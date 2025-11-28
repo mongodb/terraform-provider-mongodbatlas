@@ -1919,6 +1919,9 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
 			advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls12 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12))
 		}
+		if p.CustomOpensslCipherConfigTls13 != nil && len(*p.CustomOpensslCipherConfigTls13) > 0 {
+			advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls13 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls13))
+		}
 	}
 	if p.MinimumEnabledTlsProtocol != nil {
 		advancedConfig += fmt.Sprintf("minimum_enabled_tls_protocol = %[1]q\n", *p.MinimumEnabledTlsProtocol)
@@ -1973,9 +1976,14 @@ func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProces
 		advancedConfig["advanced_configuration.default_max_time_ms"] = strconv.Itoa(*processArgs.DefaultMaxTimeMS)
 	}
 
-	if processArgs.TlsCipherConfigMode != nil && processArgs.CustomOpensslCipherConfigTls12 != nil {
+	if processArgs.TlsCipherConfigMode != nil && (processArgs.CustomOpensslCipherConfigTls12 != nil || processArgs.CustomOpensslCipherConfigTls13 != nil) {
 		advancedConfig["advanced_configuration.tls_cipher_config_mode"] = "CUSTOM"
-		advancedConfig["advanced_configuration.custom_openssl_cipher_config_tls12.#"] = strconv.Itoa(len(*processArgs.CustomOpensslCipherConfigTls12))
+		if processArgs.CustomOpensslCipherConfigTls12 != nil {
+			advancedConfig["advanced_configuration.custom_openssl_cipher_config_tls12.#"] = strconv.Itoa(len(*processArgs.CustomOpensslCipherConfigTls12))
+		}
+		if processArgs.CustomOpensslCipherConfigTls13 != nil {
+			advancedConfig["advanced_configuration.custom_openssl_cipher_config_tls13.#"] = strconv.Itoa(len(*processArgs.CustomOpensslCipherConfigTls13))
+		}
 	} else {
 		advancedConfig["advanced_configuration.tls_cipher_config_mode"] = "DEFAULT"
 	}
@@ -1988,6 +1996,36 @@ func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProces
 
 	return checkAggr([]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		advancedConfig,
+		pluralChecks...,
+	)
+}
+
+func checkAdvancedTLS(name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
+	tlsConfig := map[string]string{
+		"name": name,
+		"advanced_configuration.minimum_enabled_tls_protocol": tls,
+	}
+
+	if processArgs.TlsCipherConfigMode != nil && (processArgs.CustomOpensslCipherConfigTls12 != nil || processArgs.CustomOpensslCipherConfigTls13 != nil) {
+		tlsConfig["advanced_configuration.tls_cipher_config_mode"] = "CUSTOM"
+		if processArgs.CustomOpensslCipherConfigTls12 != nil {
+			tlsConfig["advanced_configuration.custom_openssl_cipher_config_tls12.#"] = strconv.Itoa(len(*processArgs.CustomOpensslCipherConfigTls12))
+		}
+		if processArgs.CustomOpensslCipherConfigTls13 != nil {
+			tlsConfig["advanced_configuration.custom_openssl_cipher_config_tls13.#"] = strconv.Itoa(len(*processArgs.CustomOpensslCipherConfigTls13))
+		}
+	} else if processArgs.TlsCipherConfigMode != nil {
+		tlsConfig["advanced_configuration.tls_cipher_config_mode"] = *processArgs.TlsCipherConfigMode
+	}
+
+	pluralChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.#"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.replication_specs.#"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.name"),
+	}
+
+	return checkAggr([]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
+		tlsConfig,
 		pluralChecks...,
 	)
 }
@@ -2051,6 +2089,68 @@ func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestChec
 		pluralChecks...)
 }
 
+// Test to update advanced_configuration from TLS1_2 (CUSTOM) to TLS1_3 (CUSTOM).
+// Third step to update back to TLS1_3 → TLS1_2 is skipped due to environment flakiness for now.
+// See https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3912 for more details.
+func TestAccAdvancedCluster_tls12to13CustomCipherUpdate(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 5)
+		processArgsTLS12       = &admin.ClusterDescriptionProcessArgs20240805{
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls12: conversion.Pointer([]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"}),
+			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_2"),
+		}
+		processArgsTLS13 = &admin.ClusterDescriptionProcessArgs20240805{
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls13: conversion.Pointer([]string{"TLS_AES_128_GCM_SHA256"}),
+			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_3"),
+		}
+	)
+
+	advancedConfigTLS13 := configAdvanced(t, projectID, clusterName, "", processArgsTLS13)
+	advancedConfigTLS12 := configAdvanced(t, projectID, clusterName, "", processArgsTLS12)
+
+	check := checkAdvancedTLS(clusterName, "TLS1_2", processArgsTLS12)
+	updateCheck := checkAdvancedTLS(clusterName, "TLS1_3", processArgsTLS13)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: advancedConfigTLS12,
+				Check:  check,
+			},
+			{
+				Config: advancedConfigTLS13,
+				Check:  updateCheck,
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_tls13CustomCiphers(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
+		processArgs            = &admin.ClusterDescriptionProcessArgs20240805{
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls13: conversion.Pointer([]string{"TLS_AES_128_GCM_SHA256"}),
+			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_3"),
+		}
+	)
+
+	advancedConfig := configAdvanced(t, projectID, clusterName, "", processArgs)
+	check := checkAdvancedTLS(clusterName, "TLS1_3", processArgs)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: advancedConfig,
+				Check:  check,
+			},
+		},
+	})
+}
 func configReplicationSpecsAutoScaling(t *testing.T, projectID, clusterName string, autoScalingSettings *admin.AdvancedAutoScalingSettings, elecInstanceSize string, elecDiskSizeGB, analyticsNodeCount int) string {
 	t.Helper()
 	lifecycleIgnoreChanges := ""
