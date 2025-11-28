@@ -17,7 +17,7 @@ const (
 	nonEmptyPrefixPath = "push-log-prefix-v3"
 )
 
-func TestAccPushBasedLogExportV3API_basic(t *testing.T) {
+func TestAccLogIntegration_basic(t *testing.T) {
 	resource.Test(t, *basicTestCase(t))
 }
 

@@ -310,7 +310,7 @@ jobs:
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/projectsettingsapi/*.go'
             - 'internal/serviceapi/resourcepolicyapi/*.go'
-            - 'internal/serviceapi/pushbasedlogexportv3api/*.go'
+            - 'internal/serviceapi/logintegration/*.go'
           autogen_slow:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/pushbasedlogexportapi/*.go'
