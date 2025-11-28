@@ -97,6 +97,11 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 
+	// If use_effective_fields is being changed, plan optimization is not safe.
+	if state.UseEffectiveFields.ValueBool() != plan.UseEffectiveFields.ValueBool() {
+		return
+	}
+
 	useStateForUnknowns(ctx, diags, &state, &plan)
 	if diags.HasError() {
 		return
