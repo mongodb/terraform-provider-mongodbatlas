@@ -11,7 +11,7 @@ import (
 
 func TestAccAdvancedCluster_effectiveBasic(t *testing.T) {
 	var (
-		flag = baseEffectiveReq(t).withFlag()
+		set = baseEffectiveReq(t).withFlag()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -19,11 +19,55 @@ func TestAccAdvancedCluster_effectiveBasic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: flag.config(),
-				Check:  flag.check(),
+				Config: set.config(),
+				Check:  set.check(),
 			},
 			// Ignore replication_specs differences as import doesn't use flag so non-effective specs not in the config are set in the state.
 			acc.TestStepImportCluster(resourceName, "use_effective_fields", "replication_specs"),
+		},
+	})
+}
+
+func TestAccAdvancedCluster_effectiveUnsetToSet(t *testing.T) {
+	var (
+		set   = baseEffectiveReq(t).withFlag()
+		unset = set.withoutFlag()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: unset.config(),
+				Check:  unset.check(),
+			},
+			{
+				Config: set.config(),
+				Check:  set.check(),
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_effectiveSetToUnset(t *testing.T) {
+	var (
+		set   = baseEffectiveReq(t).withFlag()
+		unset = set.withoutFlag()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: set.config(),
+				Check:  set.check(),
+			},
+			{
+				Config: unset.config(),
+				Check:  unset.check(),
+			},
 		},
 	})
 }
@@ -77,6 +121,11 @@ func baseEffectiveReq(t *testing.T) effectiveReq {
 
 func (req effectiveReq) withFlag() effectiveReq {
 	req.useEffectiveFields = true
+	return req
+}
+
+func (req effectiveReq) withoutFlag() effectiveReq {
+	req.useEffectiveFields = false
 	return req
 }
 
