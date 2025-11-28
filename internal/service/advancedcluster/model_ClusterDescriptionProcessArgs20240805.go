@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *ProcessArgs, diags *diag.Diagnostics) {
+func buildAdvancedConfigObjType(ctx context.Context, input *ProcessArgs, diags *diag.Diagnostics) types.Object {
 	var advancedConfig TFAdvancedConfigurationModel
 	var customCipherConfig *[]string
 
@@ -43,9 +43,9 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *ProcessArgs
 
 	overrideTLSIfClusterAdvancedConfigPresent(ctx, diags, &advancedConfig, input.ClusterAdvancedConfig)
 
-	objType, diagsLocal := types.ObjectValueFrom(ctx, AdvancedConfigurationObjType.AttrTypes, advancedConfig)
+	objType, diagsLocal := types.ObjectValueFrom(ctx, advancedConfigurationObjType.AttrTypes, advancedConfig)
 	diags.Append(diagsLocal...)
-	tfModel.AdvancedConfiguration = objType
+	return objType
 }
 
 func overrideTLSIfClusterAdvancedConfigPresent(ctx context.Context, diags *diag.Diagnostics, tfAdvConfig *TFAdvancedConfigurationModel, conf *admin.ApiAtlasClusterAdvancedConfiguration) {

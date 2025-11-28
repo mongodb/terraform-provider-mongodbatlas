@@ -79,7 +79,7 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 				}
 				responseCache[providerName] = containersResponse
 			}
-			if results := GetAdvancedClusterContainerID(containersResponse.GetResults(), &regionConfig); results != "" {
+			if results := getAdvancedClusterContainerID(containersResponse.GetResults(), &regionConfig); results != "" {
 				containerIDs[key] = results
 			} else {
 				return nil, fmt.Errorf("container id not found for %s", key)
@@ -90,7 +90,7 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 }
 
 func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
-	if modelOut == nil {
+	if modelIn == nil || modelOut == nil {
 		return
 	}
 	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())

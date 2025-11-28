@@ -64,11 +64,11 @@ module "atlas_cluster" {
 output "cluster_info" {
   description = "Basic cluster information including operational state"
   value = {
-    cluster_name                     = module.atlas_cluster.cluster_name
-    project_id                       = module.atlas_cluster.project_id
-    state                            = module.atlas_cluster.cluster_state
-    auto_scaling_enabled             = module.atlas_cluster.auto_scaling_enabled
-    analytics_auto_scaling_enabled   = module.atlas_cluster.analytics_auto_scaling_enabled
+    cluster_name                   = module.atlas_cluster.cluster_name
+    project_id                     = module.atlas_cluster.project_id
+    state                          = module.atlas_cluster.cluster_state
+    auto_scaling_enabled           = module.atlas_cluster.auto_scaling_enabled
+    analytics_auto_scaling_enabled = module.atlas_cluster.analytics_auto_scaling_enabled
   }
 }
 

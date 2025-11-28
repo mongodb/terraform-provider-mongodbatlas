@@ -125,18 +125,34 @@ func (req effectiveReq) config() string {
 }
 
 func (req effectiveReq) check() resource.TestCheckFunc {
+	const (
+		specsPath           = "replication_specs.0.region_configs.0.electable_specs."
+		effectivePath       = "replication_specs.0.region_configs.0.effective_electable_specs."
+		effectivePathPlural = "results.0.replication_specs.0.region_configs.0.effective_electable_specs."
+	)
 	attrsMap := map[string]string{
-		"replication_specs.0.region_configs.0.electable_specs.instance_size": req.instanceSize,
-		"replication_specs.0.region_configs.0.electable_specs.node_count":    fmt.Sprintf("%d", req.nodeCountElectable),
+		specsPath + "instance_size": req.instanceSize,
+		specsPath + "node_count":    fmt.Sprintf("%d", req.nodeCountElectable),
 	}
 	extraChecks := []resource.TestCheckFunc{
+		// Effective fields in singular data source.
+		resource.TestCheckResourceAttr(dataSourceName, effectivePath+"instance_size", req.instanceSize),
+		resource.TestCheckResourceAttr(dataSourceName, effectivePath+"node_count", fmt.Sprintf("%d", req.nodeCountElectable)),
+		resource.TestCheckResourceAttrSet(dataSourceName, effectivePath+"disk_size_gb"),
+		resource.TestCheckResourceAttrSet(dataSourceName, effectivePath+"disk_iops"),
+		resource.TestCheckResourceAttrSet(dataSourceName, effectivePath+"ebs_volume_type"),
+
+		// Effective fields in plural data source.
 		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"instance_size"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"node_count"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"disk_size_gb"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"disk_iops"),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"ebs_volume_type"),
 	}
 	if req.useEffectiveFields {
 		attrsMap["use_effective_fields"] = "true"
-		extraChecks = append(extraChecks,
-			resource.TestCheckResourceAttr(dataSourcePluralName, "use_effective_fields", "true"),
-		)
+		extraChecks = append(extraChecks, resource.TestCheckResourceAttr(dataSourcePluralName, "use_effective_fields", "true"))
 	}
 	return checkAggr(nil, attrsMap, extraChecks...)
 }

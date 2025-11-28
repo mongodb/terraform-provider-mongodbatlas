@@ -90,7 +90,7 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 				copyAttrIfDestNotKnown(&baseReadOnlySpecs.DiskIops, &newPlanReadOnlySpecs.DiskIops)
 				// unknown node_count is always taken from state as it not dependent on electable_specs changes
 				copyAttrIfDestNotKnown(&stateReadOnlySpecs.NodeCount, &newPlanReadOnlySpecs.NodeCount)
-				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanReadOnlySpecs)
+				objType, diagsLocal := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, newPlanReadOnlySpecs)
 				diags.Append(diagsLocal...)
 				if diags.HasError() {
 					return
@@ -103,7 +103,7 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 			// don't get analytics_specs from state if node_count is 0 to avoid possible ANALYTICS_INSTANCE_SIZE_MUST_MATCH errors
 			if planAnalyticsSpecs == nil && stateAnalyticsSpecs != nil && stateAnalyticsSpecs.NodeCount.ValueInt64() > 0 {
 				newPlanAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
-				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanAnalyticsSpecs)
+				objType, diagsLocal := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, newPlanAnalyticsSpecs)
 				diags.Append(diagsLocal...)
 				if diags.HasError() {
 					return
@@ -123,14 +123,14 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 				planRegionConfigsTF[j].AnalyticsAutoScaling = stateRegionConfigsTF[j].AnalyticsAutoScaling
 			}
 		}
-		listRegionConfigs, diagsLocal := types.ListValueFrom(ctx, RegionConfigsObjType, planRegionConfigsTF)
+		listRegionConfigs, diagsLocal := types.ListValueFrom(ctx, regionConfigsObjType, planRegionConfigsTF)
 		diags.Append(diagsLocal...)
 		if diags.HasError() {
 			return
 		}
 		planRepSpecsTF[i].RegionConfigs = listRegionConfigs
 	}
-	listRepSpecs, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsObjType, planRepSpecsTF)
+	listRepSpecs, diagsLocal := types.ListValueFrom(ctx, replicationSpecsObjType, planRepSpecsTF)
 	diags.Append(diagsLocal...)
 	if diags.HasError() {
 		return

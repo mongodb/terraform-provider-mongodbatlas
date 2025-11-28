@@ -36,14 +36,14 @@ output "configured_specs" {
       zone_name = spec.zone_name
       regions = [
         for region in spec.region_configs : {
-          region_name       = region.region_name
-          provider_name     = region.provider_name
-          electable_size    = region.electable_specs.instance_size
-          electable_count   = region.electable_specs.node_count
-          analytics_size    = try(region.analytics_specs.instance_size, null)
-          analytics_count   = try(region.analytics_specs.node_count, null)
-          read_only_size    = try(region.read_only_specs.instance_size, null)
-          read_only_count   = try(region.read_only_specs.node_count, null)
+          region_name     = region.region_name
+          provider_name   = region.provider_name
+          electable_size  = region.electable_specs.instance_size
+          electable_count = region.electable_specs.node_count
+          analytics_size  = try(region.analytics_specs.instance_size, null)
+          analytics_count = try(region.analytics_specs.node_count, null)
+          read_only_size  = try(region.read_only_specs.instance_size, null)
+          read_only_count = try(region.read_only_specs.node_count, null)
         }
       ]
     }
@@ -73,7 +73,7 @@ output "auto_scaling_enabled" {
   value = try(
     var.replication_specs[0].region_configs[0].auto_scaling.disk_gb_enabled,
     false
-  ) || try(
+    ) || try(
     var.replication_specs[0].region_configs[0].auto_scaling.compute_enabled,
     false
   )
@@ -84,7 +84,7 @@ output "analytics_auto_scaling_enabled" {
   value = try(
     var.replication_specs[0].region_configs[0].analytics_auto_scaling.disk_gb_enabled,
     false
-  ) || try(
+    ) || try(
     var.replication_specs[0].region_configs[0].analytics_auto_scaling.compute_enabled,
     false
   )
