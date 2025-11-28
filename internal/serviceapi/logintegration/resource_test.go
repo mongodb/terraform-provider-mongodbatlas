@@ -18,7 +18,7 @@ const (
 )
 
 func TestAccLogIntegration_basic(t *testing.T) {
-	resource.Test(t, *basicTestCase(t))
+	resource.ParallelTest(t, *basicTestCase(t))
 }
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
