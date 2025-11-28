@@ -87,5 +87,5 @@ operations:
         http_method: PUT
         path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
     version_header: application/vnd.atlas.2025-03-12+json
-name: push_based_log_export_v3_api
-packageName: pushbasedlogexportv3api
+name: log_integration
+packageName: logintegration

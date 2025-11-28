@@ -807,7 +807,7 @@ resources:
         notifications.ops_genie_api_key:
           sensitive: true
 
-  push_based_log_export_v3_api:
+  log_integration:
     read:
       path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
       method: GET

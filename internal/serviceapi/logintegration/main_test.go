@@ -1,4 +1,4 @@
-package pushbasedlogexportv3api_test
+package logintegration_test
 
 import (
 	"os"

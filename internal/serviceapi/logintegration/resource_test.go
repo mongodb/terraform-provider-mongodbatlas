@@ -1,4 +1,4 @@
-package pushbasedlogexportv3api_test
+package logintegration_test
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	resourceName       = "mongodbatlas_push_based_log_export_v3_api.test"
+	resourceName       = "mongodbatlas_log_integration.test"
 	nonEmptyPrefixPath = "push-log-prefix-v3"
 )
 
@@ -92,7 +92,7 @@ func configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, aw
 		awsIAMroleAuthAndS3Config(s3BucketName), pushBasedLogExportConfig(usePrefixPath, useKmsKey, prefixPath, kmsKey))
 }
 
-// pushBasedLogExportConfig returns config for mongodbatlas_push_based_log_export_v3_api resource.
+// pushBasedLogExportConfig returns config for mongodbatlas_log_integration resource.
 // This method uses the project and S3 bucket created in awsIAMroleAuthAndS3Config()
 func pushBasedLogExportConfig(usePrefixPath, useKmsKey bool, prefixPath, kmsKey string) string {
 	prefixPathAttr := ""
@@ -104,7 +104,7 @@ func pushBasedLogExportConfig(usePrefixPath, useKmsKey bool, prefixPath, kmsKey 
 		kmsKeyAttr = fmt.Sprintf("kms_key   = %[1]q", kmsKey)
 	}
 
-	return fmt.Sprintf(`resource "mongodbatlas_push_based_log_export_v3_api" "test" {
+	return fmt.Sprintf(`resource "mongodbatlas_log_integration" "test" {
 		project_id  = local.project_id
 		bucket_name = aws_s3_bucket.log_bucket.bucket
 		iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
