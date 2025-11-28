@@ -18,8 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
-    - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+    - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+    - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
       with:
         go-version-file: 'go.mod'
     - name: Build
@@ -30,14 +30,14 @@ jobs:
     permissions:
       pull-requests: write # Needed by sticky-pull-request-comment
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       # Avoid: cannot run Terraform provider tests: error calling terraform version command: fork/exec /tmp/plugintest-terraformXXX/terraform: text file busy also speeds up the tests as terraform will already exist on path.
       # Also speeds up the tests
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
-          terraform_version: '1.13.x'
+          terraform_version: '1.14.x'
           terraform_wrapper: false
-      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+      - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
         with:
           go-version-file: 'go.mod'
       - name: Unit Test
@@ -47,14 +47,14 @@ jobs:
     permissions: {}
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - name: Install Go
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
         with:
           go-version-file: 'go.mod'
           cache: false # see https://github.com/golangci/golangci-lint-action/issues/807
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@0a35821d5c230e903fcfe077583637dea1b27b47
+        uses: golangci/golangci-lint-action@e7fa5ac41e1cf5b7d48e45e42232ce7ada589601
         with:
           version: v2.4.0 # Also update GOLANGCI_VERSION variable in GNUmakefile when updating this version
       - name: actionlint
@@ -67,14 +67,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - name: Run ShellCheck
         uses: bewuethr/shellcheck-action@80bac2daa9fcf95d648200a793d00060857e6dc4
   generate-doc-check:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - run: make tools generate-docs-all
       - name: Find mutations
         id: self_mutation

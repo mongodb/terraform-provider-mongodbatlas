@@ -41,6 +41,7 @@ type Model struct {
 type Resource struct {
 	Schema      *Schema       `yaml:"schema,omitempty"`
 	Operations  APIOperations `yaml:"operations"`
+	MoveState   *MoveState    `yaml:"move_state,omitempty"`
 	Name        string        `yaml:"name"`
 	PackageName string        `yaml:"packageName"`
 }
@@ -67,6 +68,10 @@ type Wait struct {
 	TimeoutSeconds    int      `yaml:"timeout_seconds"`
 	MinTimeoutSeconds int      `yaml:"min_timeout_seconds"`
 	DelaySeconds      int      `yaml:"delay_seconds"`
+}
+
+type MoveState struct {
+	SourceResources []string `yaml:"source_resources"`
 }
 
 type Schema struct {

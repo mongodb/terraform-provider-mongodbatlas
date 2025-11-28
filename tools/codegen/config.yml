@@ -18,6 +18,7 @@ resources:
     version_header: application/vnd.atlas.2023-01-01+json
 
   cluster_old_api:
+    deprecation_message: "This resource is deprecated. Please use the mongodbatlas_cluster_api resource instead."
     read:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
       method: GET
@@ -266,6 +267,8 @@ resources:
             "DELETING",
           ]
         target_states: [ "DELETED" ] # DELETED is a special state value when API returns 404 or empty object
+    move_state:
+      source_resources: ["mongodbatlas_cluster_old_api"]
     version_header: application/vnd.atlas.2024-08-05+json
     schema:
       ignores: [ "links", "mongo_db_employee_access_grant.links" ]
@@ -658,6 +661,9 @@ resources:
     schema:
       aliases:
         indexId: indexID # path param name does not match the API response property
+      overrides:
+        definition.type_sets:
+          include_null_on_update: true # on update if an empty array is sent the index definition is rejected with error Invalid definition: "typeSets" cannot be empty. 
 
   # Update doesn't work because API defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
   # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.

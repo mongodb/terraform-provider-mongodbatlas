@@ -15,6 +15,7 @@ import (
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
+var _ resource.ResourceWithMoveState = &rs{}
 
 const apiVersionHeader = "application/vnd.atlas.2024-08-05+json"
 
@@ -193,4 +194,14 @@ func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Dia
 			Method:        "DELETE",
 		},
 	}
+}
+
+func (r *rs) MoveState(context.Context) []resource.StateMover {
+	return []resource.StateMover{{StateMover: stateMover}}
+}
+
+func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+	supportedSources := []string{"mongodbatlas_cluster_old_api"}
+	idAttributes := []string{"group_id", "name"}
+	autogen.HandleMove(ctx, supportedSources, idAttributes, req, resp)
 }

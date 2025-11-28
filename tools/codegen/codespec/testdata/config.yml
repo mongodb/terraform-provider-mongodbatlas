@@ -98,3 +98,34 @@ resources:
     delete:
       path: /api/atlas/v2/dynamicJsonProperties
       method: DELETE
+
+  test_resource_move_state:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: DELETE
+    move_state:
+      source_resources: ["test_resource"]
+
+  test_resource_deprecated:
+    deprecation_message: "This resource is deprecated. Please use test_resource_new resource instead."
+    read:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: DELETE

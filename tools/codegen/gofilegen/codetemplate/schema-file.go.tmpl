@@ -11,6 +11,9 @@ import (
 
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
+		{{- if .DeprecationMessage }}
+		DeprecationMessage: "{{ .DeprecationMessage }}",
+		{{- end }}
 		Attributes: map[string]schema.Attribute{
 			{{ .SchemaAttributes }}
 		},

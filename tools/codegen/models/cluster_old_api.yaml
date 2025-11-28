@@ -3,6 +3,7 @@ schema:
         Creates one cluster in the specified project. Clusters contain a group of hosts that maintain the same data set. This resource can create clusters with asymmetrically-sized shards. Each project supports up to 25 database deployments. To use this resource, the requesting Service Account or API Key must have the Project Owner role. This feature is not available for serverless clusters.
 
         Please note that using an instanceSize of M2 or M5 will create a Flex cluster instead. Support for the instanceSize of M2 or M5 will be discontinued in January 2026. We recommend using the createFlexCluster API for such configurations moving forward.
+    deprecation_message: This resource is deprecated. Please use the mongodbatlas_cluster_api resource instead.
     attributes:
         - string: {}
           description: If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. MongoDB Atlas docs contain more information. To proceed with an operation which carries that risk, set **acceptDataRisksAndForceReplicaSetReconfig** to the current date. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
@@ -25,6 +26,19 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: custom_openssl_cipher_config_tls12
                       tf_model_name: CustomOpensslCipherConfigTls12
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                    - list:
+                        element_type: 4
+                      description: The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.ListValue[types.String]
+                        schema: customtypes.NewListType[types.String](ctx)
+                      computed_optional_required: optional
+                      tf_schema_name: custom_openssl_cipher_config_tls13
+                      tf_model_name: CustomOpensslCipherConfigTls13
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false

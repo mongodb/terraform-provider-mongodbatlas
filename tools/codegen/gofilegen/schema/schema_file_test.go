@@ -288,6 +288,25 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "multiple-nested-models-same-parent-attr-name",
 		},
+		"Deprecation message": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Schema: &codespec.Schema{
+					DeprecationMessage: admin.PtrString("This resource is deprecated. Please use the test_name_new resource instead."),
+					Attributes: []codespec.Attribute{
+						{
+							TFSchemaName:             "string_attr",
+							TFModelName:              "StringAttr",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("string description"),
+							ComputedOptionalRequired: codespec.Required,
+						},
+					},
+				},
+			},
+			goldenFileName: "deprecation-message",
+		},
 		"Plan modifiers using create only": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",

@@ -1881,7 +1881,9 @@ components:
                         - requests
                         - 1000 requests
                         - tokens
+                        - million tokens
                         - pixels
+                        - billion pixels
                         - GB seconds
                         - GB hours
                         - GB days
@@ -1982,6 +1984,20 @@ components:
                             - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
                             - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
                         type: string
+                    type: array
+                customOpensslCipherConfigTls13:
+                    description: The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.
+                    externalDocs:
+                        description: This option corresponds to the `opensslCipherSuiteConfig` `mongod` configuration file option.
+                        url: https://www.mongodb.com/docs/manual/reference/parameters/#mongodb-parameter-param.opensslCipherSuiteConfig
+                    items:
+                        enum:
+                            - TLS_AES_256_GCM_SHA384
+                            - TLS_CHACHA20_POLY1305_SHA256
+                            - TLS_AES_128_GCM_SHA256
+                            - TLS_AES_128_CCM_SHA256
+                        type: string
+                    maxItems: 4
                     type: array
                 minimumEnabledTlsProtocol:
                     description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.
@@ -3565,6 +3581,10 @@ components:
                     REALM_TRIGGERS_FAILED_REQUESTS: '#/components/schemas/RawMetricThresholdView'
                     REALM_TRIGGERS_RESPONSE_MS: '#/components/schemas/TimeMetricThresholdView'
                 propertyName: metricName
+            oneOf:
+                - $ref: '#/components/schemas/RawMetricThresholdView'
+                - $ref: '#/components/schemas/DataMetricThresholdView'
+                - $ref: '#/components/schemas/TimeMetricThresholdView'
             properties:
                 metricName:
                     description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
@@ -3607,7 +3627,9 @@ components:
                         - requests
                         - 1000 requests
                         - tokens
+                        - million tokens
                         - pixels
+                        - billion pixels
                         - GB seconds
                         - GB hours
                         - GB days
@@ -4774,6 +4796,9 @@ components:
                             - SPAIN_CENTRAL
                             - MEXICO_CENTRAL
                             - NEW_ZEALAND_NORTH
+                            - INDONESIA_CENTRAL
+                            - MALAYSIA_WEST
+                            - CHILE_CENTRAL
                         type: string
                     vnetName:
                         description: Unique string that identifies the Azure VNet in which MongoDB Cloud clusters in this network peering container exist. The response returns **null** if no clusters exist in this network peering container.
@@ -5860,6 +5885,10 @@ components:
                     type: string
                 delivery:
                     $ref: '#/components/schemas/BackupRestoreJobDelivery'
+                deploymentJobId:
+                    description: Unique 24-hexadecimal digit string that identifies the an imported deployment job. This parameter exists when restoring from an imported snapshot/clustershot.
+                    readOnly: true
+                    type: string
                 encryptionEnabled:
                     description: Flag that indicates whether someone encrypted the data in the restored snapshot.
                     readOnly: true
@@ -6461,6 +6490,7 @@ components:
                 - CHECK_PAYMENT_RECEIVED
                 - WIRE_TRANSFER_PAYMENT_RECEIVED
                 - DISCOUNT_APPLIED
+                - CREDIT_MOVED
                 - CREDIT_ISSUED
                 - CREDIT_PULLED_FWD
                 - CREDIT_END_DATE_MODIFIED
@@ -6523,6 +6553,7 @@ components:
                 - PENDING_DEAL_ACTIVATION_FAILED
                 - EVERGREEN_PRIORITY_MODIFIED
                 - CROSS_ORG_OPERATION_TICKET_TRACKING
+                - ADMIN_OVERRIDE_PAYMENT_METHOD_DELETED
             example: CHARGE_SUCCEEDED
             title: Billing Event Types
             type: string
@@ -9395,6 +9426,20 @@ components:
                             - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
                         type: string
                     type: array
+                customOpensslCipherConfigTls13:
+                    description: The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.
+                    externalDocs:
+                        description: This option corresponds to the `opensslCipherSuiteConfig` `mongod` configuration file option.
+                        url: https://www.mongodb.com/docs/manual/reference/parameters/#mongodb-parameter-param.opensslCipherSuiteConfig
+                    items:
+                        enum:
+                            - TLS_AES_256_GCM_SHA384
+                            - TLS_CHACHA20_POLY1305_SHA256
+                            - TLS_AES_128_GCM_SHA256
+                            - TLS_AES_128_CCM_SHA256
+                        type: string
+                    maxItems: 4
+                    type: array
                 defaultMaxTimeMS:
                     description: Default time limit in milliseconds for individual read operations to complete.
                     externalDocs:
@@ -9532,6 +9577,20 @@ components:
                             - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
                             - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
                         type: string
+                    type: array
+                customOpensslCipherConfigTls13:
+                    description: The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.
+                    externalDocs:
+                        description: This option corresponds to the `opensslCipherSuiteConfig` `mongod` configuration file option.
+                        url: https://www.mongodb.com/docs/manual/reference/parameters/#mongodb-parameter-param.opensslCipherSuiteConfig
+                    items:
+                        enum:
+                            - TLS_AES_256_GCM_SHA384
+                            - TLS_CHACHA20_POLY1305_SHA256
+                            - TLS_AES_128_GCM_SHA256
+                            - TLS_AES_128_CCM_SHA256
+                        type: string
+                    maxItems: 4
                     type: array
                 defaultMaxTimeMS:
                     description: Default time limit in milliseconds for individual read operations to complete.
@@ -9827,6 +9886,11 @@ components:
                 clusterName:
                     description: Human-readable label that identifies the cluster that undergoes outage simulation.
                     pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
+                    readOnly: true
+                    type: string
+                expirationDate:
+                    description: Date and time when MongoDB Cloud expires the outage simulation. This parameter expresses its value in the ISO 8601 timestamp format in UTC. If not provided, defaults to 3 days from the start date.
+                    format: date-time
                     readOnly: true
                     type: string
                 groupId:
@@ -10233,6 +10297,77 @@ components:
             required:
                 - metricName
             type: object
+        ConfluentSaslInheritAuthentication:
+            allOf:
+                - $ref: '#/components/schemas/ConfluentSchemaRegistryAuthentication'
+            description: SASL_INHERIT authentication configuration from Kafka for Confluent Schema Registry. Username and password are inherited from the Kafka connection.
+            required:
+                - type
+            type: object
+        ConfluentSchemaRegistryAuthentication:
+            description: Authentication configuration for Confluent Schema Registry.
+            discriminator:
+                mapping:
+                    SASL_INHERIT: '#/components/schemas/ConfluentSaslInheritAuthentication'
+                    USER_INFO: '#/components/schemas/ConfluentUserInfoAuthentication'
+                propertyName: type
+            oneOf:
+                - $ref: '#/components/schemas/ConfluentUserInfoAuthentication'
+                - $ref: '#/components/schemas/ConfluentSaslInheritAuthentication'
+            properties:
+                type:
+                    description: Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry.
+                    enum:
+                        - USER_INFO
+                        - SASL_INHERIT
+                    type: string
+            required:
+                - type
+            type: object
+        ConfluentSchemaRegistryConnectionPrivatePreview:
+            allOf:
+                - $ref: '#/components/schemas/StreamsConnectionPrivatePreview'
+                - properties:
+                    authentication:
+                        $ref: '#/components/schemas/ConfluentSchemaRegistryAuthentication'
+                    provider:
+                        description: The Schema Registry provider.
+                        enum:
+                            - CONFLUENT
+                        type: string
+                    schemaRegistryUrls:
+                        description: List of Schema Registry URLs.
+                        items:
+                            description: Schema Registry URL.
+                            format: uri
+                            type: string
+                        maxItems: 10
+                        type: array
+                        uniqueItems: true
+                  type: object
+                - $ref: '#/components/schemas/StreamsSchemaRegistryConnectionPrivatePreview'
+            description: The configuration for Confluent Schema Registry connections.
+            required:
+                - provider
+            type: object
+        ConfluentUserInfoAuthentication:
+            allOf:
+                - $ref: '#/components/schemas/ConfluentSchemaRegistryAuthentication'
+                - properties:
+                    password:
+                        description: Password for USER_INFO authentication. Required.
+                        type: string
+                        writeOnly: true
+                    username:
+                        description: Username for USER_INFO authentication. Required.
+                        type: string
+                  type: object
+            description: Direct authentication with username and password for Confluent Schema Registry.
+            required:
+                - password
+                - type
+                - username
+            type: object
         ConnectedOrgConfig:
             properties:
                 dataAccessIdentityProviderIds:
@@ -10467,6 +10602,8 @@ components:
                             - Cloud Manager
                             - Cloud Manager Standard/Premium
                             - Legacy Backup
+                            - AI Models
+                            - Automated Embedding
                             - Flex Consulting
                             - Support
                             - Credits
@@ -13257,6 +13394,7 @@ components:
                             - MAINTENANCE_IN_ADVANCED
                             - MAINTENANCE_AUTO_DEFERRED
                             - MAINTENANCE_STARTED
+                            - MAINTENANCE_COMPLETED
                             - MAINTENANCE_NO_LONGER_NEEDED
                           title: NDS Maintenance Window Audit Types
                           type: string
@@ -13472,6 +13610,7 @@ components:
                             - MAINTENANCE_IN_ADVANCED
                             - MAINTENANCE_AUTO_DEFERRED
                             - MAINTENANCE_STARTED
+                            - MAINTENANCE_COMPLETED
                             - MAINTENANCE_NO_LONGER_NEEDED
                           title: NDS Maintenance Window Audit Types
                           type: string
@@ -13823,6 +13962,7 @@ components:
                             - MAINTENANCE_IN_ADVANCED
                             - MAINTENANCE_AUTO_DEFERRED
                             - MAINTENANCE_STARTED
+                            - MAINTENANCE_COMPLETED
                             - MAINTENANCE_NO_LONGER_NEEDED
                           title: NDS Maintenance Window Audit Types
                           type: string
@@ -16760,10 +16900,14 @@ components:
                     - HOST_MONGOT_CRASHING_OOM
                     - HOST_MONGOT_RESUME_REPLICATION
                     - HOST_MONGOT_STOP_REPLICATION
+                    - HOST_MONGOT_UNPAUSE_INITIAL_SYNC
+                    - HOST_MONGOT_PAUSE_INITIAL_SYNC
                     - HOST_MONGOT_SUFFICIENT_DISK_SPACE
                     - HOST_MONGOT_APPROACHING_STOP_REPLICATION
                     - HOST_SEARCH_NODE_UNBLOCKED
                     - HOST_SEARCH_NODE_INDEX_FAILED
+                    - HOST_EXTERNAL_LOG_SINK_EXPORT_DOWN
+                    - HOST_EXTERNAL_LOG_SINK_EXPORT_RESUMED
                     - HOST_ENOUGH_DISK_SPACE
                     - HOST_NOT_ENOUGH_DISK_SPACE
                     - SSH_KEY_NDS_HOST_ACCESS_REQUESTED
@@ -16832,7 +16976,10 @@ components:
                     - CLUSTER_INSTANCE_UPDATE_REQUESTED
                     - CLUSTER_INSTANCE_REPLACED
                     - CLUSTER_INSTANCE_REPLACE_CLEARED
+                    - CLUSTER_INSTANCE_SWAPPED
+                    - CLUSTER_INSTANCE_SWAP_CLEARED
                     - CLUSTER_INSTANCE_VM_RESTART_CLEARED
+                    - CLUSTER_INSTANCE_VM_REBOOT_CLEARED
                     - CLUSTER_INSTANCE_CONFIG_UPDATED
                     - CLUSTER_INSTANCE_AGENT_API_KEY_ROTATED
                     - CLUSTER_INSTANCE_SSL_ROTATED
@@ -16969,6 +17116,8 @@ components:
                     - INGESTION_PIPELINE_UPDATED
                     - OS_TUNE_FILE_OVERRIDES
                     - MONITORING_AGENT_OVERRIDES
+                    - MONITORING_AGENT_REBALANCE_FLAG
+                    - MONITORING_AGENT_REBALANCE_TRIGGERED
                     - CLUSTER_PREFERRED_CPU_ARCHITECTURE_MODIFIED
                     - CLUSTER_FORCE_PLANNED
                     - DATA_PROCESSING_REGION_UPDATED
@@ -17056,6 +17205,7 @@ components:
                     - SHADOW_CLUSTER_CREATE_EXPOSURE
                     - SHADOW_CLUSTER_DELETE_EXPOSURE
                     - SHADOW_CLUSTER_RECORDING_STATUS_UPDATE
+                    - SHADOW_CLUSTER_REPLAY_STATUS_UPDATE
                   title: NDS Audit Types
                   type: string
                   x-xgen-IPA-exception:
@@ -17098,6 +17248,7 @@ components:
                     - MAINTENANCE_IN_ADVANCED
                     - MAINTENANCE_AUTO_DEFERRED
                     - MAINTENANCE_STARTED
+                    - MAINTENANCE_COMPLETED
                     - MAINTENANCE_NO_LONGER_NEEDED
                   title: NDS Maintenance Window Audit Types
                   type: string
@@ -17359,6 +17510,7 @@ components:
                     - CHECK_PAYMENT_RECEIVED
                     - WIRE_TRANSFER_PAYMENT_RECEIVED
                     - DISCOUNT_APPLIED
+                    - CREDIT_MOVED
                     - CREDIT_ISSUED
                     - CREDIT_PULLED_FWD
                     - CREDIT_END_DATE_MODIFIED
@@ -17421,6 +17573,7 @@ components:
                     - PENDING_DEAL_ACTIVATION_FAILED
                     - EVERGREEN_PRIORITY_MODIFIED
                     - CROSS_ORG_OPERATION_TICKET_TRACKING
+                    - ADMIN_OVERRIDE_PAYMENT_METHOD_DELETED
                   title: Billing Event Types
                   type: string
                   x-xgen-IPA-exception:
@@ -17497,6 +17650,10 @@ components:
                     - ORG_PAYPAL_UPDATED
                     - ORG_PAYPAL_CANCELLED
                     - ORG_OVERRIDE_PAYMENT_METHOD_ADDED
+                    - ORG_BANK_ACCOUNT_ADDED
+                    - ORG_BANK_ACCOUNT_UPDATED
+                    - ORG_WALLET_ADDED
+                    - ORG_WALLET_UPDATED
                     - ORG_ACTIVATED
                     - ORG_TEMPORARILY_ACTIVATED
                     - ORG_SUSPENSION_DATE_CHANGED
@@ -19109,7 +19266,9 @@ components:
                         - requests
                         - 1000 requests
                         - tokens
+                        - million tokens
                         - pixels
+                        - billion pixels
                         - GB seconds
                         - GB hours
                         - GB days
@@ -21665,10 +21824,14 @@ components:
                 - HOST_MONGOT_CRASHING_OOM
                 - HOST_MONGOT_RESUME_REPLICATION
                 - HOST_MONGOT_STOP_REPLICATION
+                - HOST_MONGOT_UNPAUSE_INITIAL_SYNC
+                - HOST_MONGOT_PAUSE_INITIAL_SYNC
                 - HOST_MONGOT_SUFFICIENT_DISK_SPACE
                 - HOST_MONGOT_APPROACHING_STOP_REPLICATION
                 - HOST_SEARCH_NODE_UNBLOCKED
                 - HOST_SEARCH_NODE_INDEX_FAILED
+                - HOST_EXTERNAL_LOG_SINK_EXPORT_DOWN
+                - HOST_EXTERNAL_LOG_SINK_EXPORT_RESUMED
                 - HOST_ENOUGH_DISK_SPACE
                 - HOST_NOT_ENOUGH_DISK_SPACE
                 - SSH_KEY_NDS_HOST_ACCESS_REQUESTED
@@ -21697,7 +21860,9 @@ components:
                 - HOST_MONGOT_CRASHING_OOM
                 - HOST_MONGOT_STOP_REPLICATION
                 - HOST_MONGOT_APPROACHING_STOP_REPLICATION
+                - HOST_MONGOT_PAUSE_INITIAL_SYNC
                 - HOST_SEARCH_NODE_INDEX_FAILED
+                - HOST_EXTERNAL_LOG_SINK_EXPORT_DOWN
                 - HOST_NOT_ENOUGH_DISK_SPACE
                 - SSH_KEY_NDS_HOST_ACCESS_REQUESTED
                 - SSH_KEY_NDS_HOST_ACCESS_REFRESHED
@@ -22882,7 +23047,9 @@ components:
                         - requests
                         - 1000 requests
                         - tokens
+                        - million tokens
                         - pixels
+                        - billion pixels
                         - GB seconds
                         - GB hours
                         - GB days
@@ -22932,7 +23099,9 @@ components:
                         - requests
                         - 1000 requests
                         - tokens
+                        - million tokens
                         - pixels
+                        - billion pixels
                         - GB seconds
                         - GB hours
                         - GB days
@@ -23825,6 +23994,38 @@ components:
                         - ATLAS_GCP_STREAM_PROCESSING_DATA_TRANSFER_DIFFERENT_REGION
                         - ATLAS_GCP_STREAM_PROCESSING_DATA_TRANSFER_INTERNET
                         - ATLAS_GCP_STREAM_PROCESSING_PRIVATELINK
+                        - VOYAGE_EMBEDDING_3_TEXT_LARGE_API
+                        - VOYAGE_EMBEDDING_3_TEXT_API
+                        - VOYAGE_EMBEDDING_3_TEXT_LITE_API
+                        - VOYAGE_EMBEDDING_3_5_TEXT_API
+                        - VOYAGE_EMBEDDING_3_5_TEXT_LITE_API
+                        - VOYAGE_EMBEDDING_3_TEXT_CONTEXT_API
+                        - VOYAGE_EMBEDDING_3_CODE_API
+                        - VOYAGE_EMBEDDING_2_FINANCE_API
+                        - VOYAGE_EMBEDDING_2_LAW_API
+                        - VOYAGE_EMBEDDING_2_CODE_API
+                        - VOYAGE_EMBEDDING_3_5_MULTIMODAL_TOKENS_API
+                        - VOYAGE_EMBEDDING_3_5_MULTIMODAL_PIXELS_API
+                        - VOYAGE_EMBEDDING_3_MULTIMODAL_TOKENS_API
+                        - VOYAGE_EMBEDDING_3_MULTIMODAL_PIXELS_API
+                        - VOYAGE_RERANK_2_5_LITE_API
+                        - VOYAGE_RERANK_2_5_API
+                        - VOYAGE_RERANK_2_LITE_API
+                        - VOYAGE_RERANK_2_API
+                        - VOYAGE_EMBEDDING_3_TEXT_LARGE_AUTOEMBED
+                        - VOYAGE_EMBEDDING_3_TEXT_AUTOEMBED
+                        - VOYAGE_EMBEDDING_3_TEXT_LITE_AUTOEMBED
+                        - VOYAGE_EMBEDDING_3_5_TEXT_AUTOEMBED
+                        - VOYAGE_EMBEDDING_3_5_TEXT_LITE_AUTOEMBED
+                        - VOYAGE_EMBEDDING_3_TEXT_CONTEXT_AUTOEMBED
+                        - VOYAGE_EMBEDDING_3_CODE_AUTOEMBED
+                        - VOYAGE_EMBEDDING_2_FINANCE_AUTOEMBED
+                        - VOYAGE_EMBEDDING_2_LAW_AUTOEMBED
+                        - VOYAGE_EMBEDDING_2_CODE_AUTOEMBED
+                        - VOYAGE_EMBEDDING_3_5_MULTIMODAL_TOKENS_AUTOEMBED
+                        - VOYAGE_EMBEDDING_3_5_MULTIMODAL_PIXELS_AUTOEMBED
+                        - VOYAGE_EMBEDDING_3_MULTIMODAL_TOKENS_AUTOEMBED
+                        - VOYAGE_EMBEDDING_3_MULTIMODAL_PIXELS_AUTOEMBED
                     readOnly: true
                     type: string
                 startDate:
@@ -26702,7 +26903,10 @@ components:
                 - CLUSTER_INSTANCE_UPDATE_REQUESTED
                 - CLUSTER_INSTANCE_REPLACED
                 - CLUSTER_INSTANCE_REPLACE_CLEARED
+                - CLUSTER_INSTANCE_SWAPPED
+                - CLUSTER_INSTANCE_SWAP_CLEARED
                 - CLUSTER_INSTANCE_VM_RESTART_CLEARED
+                - CLUSTER_INSTANCE_VM_REBOOT_CLEARED
                 - CLUSTER_INSTANCE_CONFIG_UPDATED
                 - CLUSTER_INSTANCE_AGENT_API_KEY_ROTATED
                 - CLUSTER_INSTANCE_SSL_ROTATED
@@ -26839,6 +27043,8 @@ components:
                 - INGESTION_PIPELINE_UPDATED
                 - OS_TUNE_FILE_OVERRIDES
                 - MONITORING_AGENT_OVERRIDES
+                - MONITORING_AGENT_REBALANCE_FLAG
+                - MONITORING_AGENT_REBALANCE_TRIGGERED
                 - CLUSTER_PREFERRED_CPU_ARCHITECTURE_MODIFIED
                 - CLUSTER_FORCE_PLANNED
                 - DATA_PROCESSING_REGION_UPDATED
@@ -26926,6 +27132,7 @@ components:
                 - SHADOW_CLUSTER_CREATE_EXPOSURE
                 - SHADOW_CLUSTER_DELETE_EXPOSURE
                 - SHADOW_CLUSTER_RECORDING_STATUS_UPDATE
+                - SHADOW_CLUSTER_REPLAY_STATUS_UPDATE
             example: CLUSTER_CREATED
             title: NDS Audit Types
             type: string
@@ -28811,6 +29018,10 @@ components:
                 - ORG_PAYPAL_UPDATED
                 - ORG_PAYPAL_CANCELLED
                 - ORG_OVERRIDE_PAYMENT_METHOD_ADDED
+                - ORG_BANK_ACCOUNT_ADDED
+                - ORG_BANK_ACCOUNT_UPDATED
+                - ORG_WALLET_ADDED
+                - ORG_WALLET_UPDATED
                 - ORG_ACTIVATED
                 - ORG_TEMPORARILY_ACTIVATED
                 - ORG_SUSPENSION_DATE_CHANGED
@@ -33234,6 +33445,52 @@ components:
                     type: string
             readOnly: true
             type: object
+        S3LogExport:
+            description: Details to integrate S3 log export with one MongoDB Cloud project.
+            properties:
+                bucketName:
+                    description: Human-readable label that identifies the S3 bucket name for storing log files.
+                    example: my-log-bucket
+                    type: string
+                iamRoleId:
+                    description: Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
+                    example: 507f1f77bcf86cd799439011
+                    type: string
+                id:
+                    description: Integration id.
+                    nullable: true
+                    type: string
+                kmsKey:
+                    description: AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
+                    example: arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+                    nullable: true
+                    type: string
+                logTypes:
+                    description: Array of log types to export to S3.
+                    example:
+                        - MONGOD
+                        - MONGOS
+                        - MONGOD_AUDIT
+                        - MONGOS_AUDIT
+                    items:
+                        type: string
+                    maxItems: 10
+                    type: array
+                prefixPath:
+                    description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
+                    example: mongo-logs/
+                    type: string
+                type:
+                    description: Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the third-party service integration type.
+                    enum:
+                        - S3_LOG_EXPORT
+                    type: string
+            required:
+                - bucketName
+                - iamRoleId
+                - prefixPath
+            title: S3 Log Export
+            type: object
         SMSNotification:
             description: SMS notification configuration for MongoDB Cloud to send information when an event triggers an alert condition.
             properties:
@@ -34972,7 +35229,9 @@ components:
                         - requests
                         - 1000 requests
                         - tokens
+                        - million tokens
                         - pixels
+                        - billion pixels
                         - GB seconds
                         - GB hours
                         - GB days
@@ -36270,7 +36529,9 @@ components:
                         - requests
                         - 1000 requests
                         - tokens
+                        - million tokens
                         - pixels
+                        - billion pixels
                         - GB seconds
                         - GB hours
                         - GB days
@@ -36386,6 +36647,20 @@ components:
                         - AWSKinesisDataStreams
                     type: string
             readOnly: true
+            type: object
+        StreamsConnectionPrivatePreview:
+            description: Settings that define a connection to an external data store.
+            discriminator:
+                mapping:
+                    SchemaRegistry: '#/components/schemas/StreamsSchemaRegistryConnectionPrivatePreview'
+                propertyName: type
+            oneOf:
+                - $ref: '#/components/schemas/StreamsSchemaRegistryConnectionPrivatePreview'
+            properties:
+                type:
+                    type: string
+            required:
+                - type
             type: object
         StreamsDLQ:
             description: Dead letter queue for the stream processor.
@@ -36982,6 +37257,45 @@ components:
                     default: false
                     description: Flag that indicates whether to add a 'sample_stream_solar' connection.
                     type: boolean
+            type: object
+        StreamsSchemaRegistryConnectionPrivatePreview:
+            description: The configuration for Schema Registry connections.
+            discriminator:
+                mapping:
+                    CONFLUENT: '#/components/schemas/ConfluentSchemaRegistryConnectionPrivatePreview'
+                propertyName: provider
+            oneOf:
+                - $ref: '#/components/schemas/ConfluentSchemaRegistryConnectionPrivatePreview'
+            properties:
+                links:
+                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                    externalDocs:
+                        description: Web Linking Specification (RFC 5988)
+                        url: https://datatracker.ietf.org/doc/html/rfc5988
+                    items:
+                        $ref: '#/components/schemas/Link'
+                    readOnly: true
+                    type: array
+                name:
+                    description: Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
+                    type: string
+                provider:
+                    description: The Schema Registry provider.
+                    enum:
+                        - CONFLUENT
+                    type: string
+                type:
+                    description: Type of the connection.
+                    enum:
+                        - Kafka
+                        - Cluster
+                        - Sample
+                        - Https
+                        - AWSLambda
+                        - AWSKinesisDataStreams
+                    type: string
+            required:
+                - provider
             type: object
         StreamsStartStreamProcessorWith:
             description: A request to start a stream processor.
@@ -37660,6 +37974,9 @@ components:
                     example: 32b6e34b3d91647abb20e7b8
                     pattern: ^([a-f0-9]{24})$
                     type: string
+            required:
+                - roleNames
+                - teamId
             type: object
         TeamUpdate:
             properties:
@@ -38143,6 +38460,7 @@ components:
                     OPS_GENIE: '#/components/schemas/OpsGenie'
                     PAGER_DUTY: '#/components/schemas/PagerDuty'
                     PROMETHEUS: '#/components/schemas/Prometheus'
+                    S3_LOG_EXPORT: '#/components/schemas/S3LogExport'
                     SLACK: '#/components/schemas/Slack'
                     VICTOR_OPS: '#/components/schemas/VictorOps'
                     WEBHOOK: '#/components/schemas/Webhook'
@@ -38157,6 +38475,7 @@ components:
                 - $ref: '#/components/schemas/Webhook'
                 - $ref: '#/components/schemas/Prometheus'
                 - $ref: '#/components/schemas/MicrosoftTeams'
+                - $ref: '#/components/schemas/S3LogExport'
             properties:
                 id:
                     description: Integration id.
@@ -38175,6 +38494,7 @@ components:
                         - HIP_CHAT
                         - PROMETHEUS
                         - MICROSOFT_TEAMS
+                        - S3_LOG_EXPORT
                     title: Integration Type
                     type: string
             title: Third-Party Integration
@@ -38855,6 +39175,8 @@ components:
                             - Cloud Manager
                             - Cloud Manager Standard/Premium
                             - Legacy Backup
+                            - AI Models
+                            - Automated Embedding
                             - Flex Consulting
                             - Support
                             - Credits
@@ -40357,7 +40679,7 @@ info:
     termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
     title: MongoDB Atlas Administration API
     version: "2.0"
-    x-xgen-sha: 1750cc29d671948cce0fab7f75119ebf77340b09
+    x-xgen-sha: 536443f23a305e3164cbcd3d4df7e5fb045a0d20
 openapi: 3.0.1
 paths:
     /api/atlas/v2:
@@ -42286,6 +42608,7 @@ paths:
                 content:
                     application/vnd.atlas.2023-01-01+json:
                         schema:
+                            description: Explanatory text that describes this API key, the list of roles to grant this API key, or both.
                             items:
                                 $ref: '#/components/schemas/UserAccessRoleAssignment'
                             type: array
@@ -45215,6 +45538,7 @@ paths:
                     content:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
+                                description: List of Atlas Search indexes that MongoDB Cloud returns for this request.
                                 items:
                                     $ref: '#/components/schemas/ClusterSearchIndex'
                                 type: array
@@ -47183,6 +47507,7 @@ paths:
                     content:
                         application/vnd.atlas.2024-05-30+json:
                             schema:
+                                description: List of Atlas Search indexes that MongoDB Cloud returns for this request.
                                 items:
                                     $ref: '#/components/schemas/SearchIndexResponse'
                                 type: array
@@ -47295,6 +47620,7 @@ paths:
                     content:
                         application/vnd.atlas.2024-05-30+json:
                             schema:
+                                description: List of Atlas Search indexes that MongoDB Cloud returns for this request.
                                 items:
                                     $ref: '#/components/schemas/SearchIndexResponse'
                                 type: array
@@ -51073,7 +51399,7 @@ paths:
             x-xgen-operation-id-override: listMeasurements
     /api/atlas/v2/groups/{groupId}/integrations:
         get:
-            description: Returns the settings that permit integrations with all configured third-party services. These settings apply to all databases managed in one MongoDB Cloud project. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+            description: Returns the settings that permit integrations with all configured third-party services. These settings apply to all databases managed in one MongoDB Cloud project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
             operationId: listGroupIntegrations
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -51125,6 +51451,7 @@ paths:
                         - HIP_CHAT
                         - PROMETHEUS
                         - MICROSOFT_TEAMS
+                        - S3_LOG_EXPORT
                     title: Integration Type
                     type: string
                 - $ref: '#/components/parameters/envelope'
@@ -51151,7 +51478,7 @@ paths:
                 - Third-Party Integrations
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/deleteGroupIntegration
         get:
-            description: Returns the settings for configuring integration with one third-party service. These settings apply to all databases managed in one MongoDB Cloud project. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. Viewing log export to S3, Splunk, and Datadog is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+            description: Returns the settings for configuring integration with one third-party service. These settings apply to all databases managed in one MongoDB Cloud project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role. Viewing log export to S3, Splunk, and Datadog is currently in preview. Please contact your Customer Success Manager (CSM) for access.
             operationId: getGroupIntegration
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -51173,6 +51500,7 @@ paths:
                         - HIP_CHAT
                         - PROMETHEUS
                         - MICROSOFT_TEAMS
+                        - S3_LOG_EXPORT
                     title: Integration Type
                     type: string
             responses:
@@ -51220,6 +51548,7 @@ paths:
                         - HIP_CHAT
                         - PROMETHEUS
                         - MICROSOFT_TEAMS
+                        - S3_LOG_EXPORT
                     title: Integration Type
                     type: string
                 - $ref: '#/components/parameters/envelope'
@@ -51279,6 +51608,7 @@ paths:
                         - HIP_CHAT
                         - PROMETHEUS
                         - MICROSOFT_TEAMS
+                        - S3_LOG_EXPORT
                     title: Integration Type
                     type: string
                 - $ref: '#/components/parameters/envelope'
@@ -56725,6 +57055,12 @@ paths:
                     application/vnd.atlas.2023-02-01+json:
                         schema:
                             $ref: '#/components/schemas/StreamsConnection'
+                    application/vnd.atlas.preview+json:
+                        schema:
+                            $ref: '#/components/schemas/StreamsConnectionPrivatePreview'
+                        x-xgen-preview:
+                            name: stream-connection
+                        x-xgen-version: preview
                 description: Details to create one connection for a streams workspace in the specified project.
                 required: true
             responses:
@@ -56734,6 +57070,12 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/StreamsConnection'
                             x-xgen-version: "2023-02-01"
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/StreamsConnectionPrivatePreview'
+                            x-xgen-preview:
+                                name: stream-connection
+                            x-xgen-version: preview
                     description: OK
                 "400":
                     $ref: '#/components/responses/badRequest'
@@ -56779,6 +57121,10 @@ paths:
                     content:
                         application/vnd.atlas.2023-02-01+json:
                             x-xgen-version: "2023-02-01"
+                        application/vnd.atlas.preview+json:
+                            x-xgen-preview:
+                                name: stream-connection
+                            x-xgen-version: preview
                     description: Accepted
                 "401":
                     $ref: '#/components/responses/unauthorized'
@@ -56822,8 +57168,16 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/StreamsConnection'
                             x-xgen-IPA-exception:
-                                xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation.
+                                xgen-IPA-104-get-method-returns-response-suffixed-object: Exception OK as they are present in existing resource, fixing would require major refactoring.
                             x-xgen-version: "2023-02-01"
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/StreamsConnectionPrivatePreview'
+                            x-xgen-IPA-exception:
+                                xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation.
+                            x-xgen-preview:
+                                name: stream-connection
+                            x-xgen-version: preview
                     description: OK
                 "401":
                     $ref: '#/components/responses/unauthorized'
@@ -56864,6 +57218,12 @@ paths:
                     application/vnd.atlas.2023-02-01+json:
                         schema:
                             $ref: '#/components/schemas/StreamsConnection'
+                    application/vnd.atlas.preview+json:
+                        schema:
+                            $ref: '#/components/schemas/StreamsConnectionPrivatePreview'
+                        x-xgen-preview:
+                            name: stream-connection
+                        x-xgen-version: preview
                 description: Details to update one connection for a streams workspace in the specified project.
                 required: true
             responses:
@@ -56873,6 +57233,12 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/StreamsConnection'
                             x-xgen-version: "2023-02-01"
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/StreamsConnectionPrivatePreview'
+                            x-xgen-preview:
+                                name: stream-connection
+                            x-xgen-version: preview
                     description: OK
                 "400":
                     $ref: '#/components/responses/badRequest'
@@ -57666,7 +58032,7 @@ paths:
                 - Teams
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Teams/operation/listGroupTeams
         post:
-            description: Adds one team to the specified project. All members of the team share the same project access. MongoDB Cloud limits the number of users to a maximum of 100 teams per project and a maximum of 250 teams per organization. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+            description: Adds multiple teams to the specified project. All members of a team share the same project access. MongoDB Cloud limits the number of users to a maximum of 100 teams per project and a maximum of 250 teams per organization. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
             externalDocs:
                 description: Manage Organization Teams
                 url: https://docs.atlas.mongodb.com/access/manage-teams-in-orgs/#std-label-manage-teams
@@ -57682,7 +58048,7 @@ paths:
                             items:
                                 $ref: '#/components/schemas/TeamRole'
                             type: array
-                description: Team to add to the specified project.
+                description: Teams and their roles to be added to the specified project.
                 required: true
             responses:
                 "200":
@@ -57702,7 +58068,7 @@ paths:
                     $ref: '#/components/responses/notFound'
                 "500":
                     $ref: '#/components/responses/internalServerError'
-            summary: Add One Team to One Project
+            summary: Add Multiple Teams to One Project
             tags:
                 - Teams
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Teams/operation/addGroupTeams

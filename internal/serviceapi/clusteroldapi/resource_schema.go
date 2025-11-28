@@ -15,6 +15,7 @@ import (
 
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
+		DeprecationMessage: "This resource is deprecated. Please use the mongodbatlas_cluster_api resource instead.",
 		Attributes: map[string]schema.Attribute{
 			"accept_data_risks_and_force_replica_set_reconfig": schema.StringAttribute{
 				Optional:            true,
@@ -30,6 +31,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Computed:            true,
 						Optional:            true,
 						MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.",
+						CustomType:          customtypes.NewListType[types.String](ctx),
+						ElementType:         types.StringType,
+					},
+					"custom_openssl_cipher_config_tls13": schema.ListAttribute{
+						Optional:            true,
+						MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.",
 						CustomType:          customtypes.NewListType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
@@ -579,6 +586,7 @@ type TFModel struct {
 }
 type TFAdvancedConfigurationModel struct {
 	CustomOpensslCipherConfigTls12 customtypes.ListValue[types.String] `tfsdk:"custom_openssl_cipher_config_tls12"`
+	CustomOpensslCipherConfigTls13 customtypes.ListValue[types.String] `tfsdk:"custom_openssl_cipher_config_tls13"`
 	MinimumEnabledTlsProtocol      types.String                        `tfsdk:"minimum_enabled_tls_protocol"`
 	TlsCipherConfigMode            types.String                        `tfsdk:"tls_cipher_config_mode"`
 }

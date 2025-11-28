@@ -109,7 +109,7 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 
 	schema := &Schema{
 		Description:        oasResource.Description,
-		DeprecationMessage: oasResource.DeprecationMessage,
+		DeprecationMessage: resourceConfig.DeprecationMessage,
 		Attributes:         attributes,
 	}
 
@@ -117,14 +117,26 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	if operations.VersionHeader == "" { // version was not defined in config file
 		operations.VersionHeader = getLatestVersionFromAPISpec(readOp)
 	}
+
+	var moveState *MoveState
+	if resourceConfig.MoveState != nil {
+		if len(resourceConfig.MoveState.SourceResources) == 0 {
+			return nil, fmt.Errorf("resource %s missing source_resources for move_state in config file", name)
+		}
+		moveState = &MoveState{SourceResources: resourceConfig.MoveState.SourceResources}
+	}
+
 	resource := &Resource{
 		Name:        name,
 		PackageName: strings.ReplaceAll(name, "_", ""),
 		Schema:      schema,
+		MoveState:   moveState,
 		Operations:  operations,
 	}
 
-	applyTransformationsWithConfigOpts(resourceConfig, resource)
+	if err := applyTransformationsWithConfigOpts(resourceConfig, resource); err != nil {
+		return nil, err
+	}
 
 	return resource, nil
 }

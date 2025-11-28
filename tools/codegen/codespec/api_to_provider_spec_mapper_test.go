@@ -18,6 +18,48 @@ const (
 	testDataConfigPath  = "testdata/config.yml"
 )
 
+var (
+	simpleTestResourceAttributes = codespec.Attributes{
+		{
+			TFSchemaName:             "group_id",
+			TFModelName:              "GroupId",
+			ComputedOptionalRequired: codespec.Required,
+			String:                   &codespec.StringAttribute{},
+			Description:              conversion.StringPtr(testPathParamDesc),
+			ReqBodyUsage:             codespec.OmitAlways,
+			CreateOnly:               true,
+		},
+		{
+			TFSchemaName:             "string_attr",
+			TFModelName:              "StringAttr",
+			ComputedOptionalRequired: codespec.Required,
+			String:                   &codespec.StringAttribute{},
+			Description:              conversion.StringPtr(testFieldDesc),
+			ReqBodyUsage:             codespec.AllRequestBodies,
+		},
+	}
+
+	simpleTestResourceOperations = codespec.APIOperations{
+		Create: codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/simpleTestResource",
+			HTTPMethod: "POST",
+		},
+		Read: codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/simpleTestResource",
+			HTTPMethod: "GET",
+		},
+		Update: &codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/simpleTestResource",
+			HTTPMethod: "PATCH",
+		},
+		Delete: &codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/simpleTestResource",
+			HTTPMethod: "DELETE",
+		},
+		VersionHeader: "application/vnd.atlas.2023-01-01+json",
+	}
+)
+
 type convertToSpecTestCase struct {
 	expectedResult       *codespec.Model
 	inputOpenAPISpecPath string
@@ -133,7 +175,10 @@ func TestConvertToProviderSpec(t *testing.T) {
 			}},
 		},
 	}
-	runTestCase(t, tc)
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
 func TestConvertToProviderSpec_nested(t *testing.T) {
@@ -390,7 +435,10 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 			}},
 		},
 	}
-	runTestCase(t, tc)
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
 func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
@@ -523,7 +571,10 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 			},
 		},
 	}
-	runTestCase(t, tc)
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
 func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
@@ -590,7 +641,10 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 			},
 		},
 	}
-	runTestCase(t, tc)
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
 func TestConvertToProviderSpec_singletonResourceNoDeleteOperation(t *testing.T) {
@@ -643,7 +697,10 @@ func TestConvertToProviderSpec_singletonResourceNoDeleteOperation(t *testing.T) 
 			}},
 		},
 	}
-	runTestCase(t, tc)
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
 func TestConvertToProviderSpec_NoUpdateOperation(t *testing.T) {
@@ -697,7 +754,10 @@ func TestConvertToProviderSpec_NoUpdateOperation(t *testing.T) {
 			}},
 		},
 	}
-	runTestCase(t, tc)
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
 func TestConvertToProviderSpec_typeOverride(t *testing.T) {
@@ -771,7 +831,10 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 			}},
 		},
 	}
-	runTestCase(t, tc)
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
 func TestConvertToProviderSpec_dynamicJSONProperties(t *testing.T) {
@@ -842,11 +905,57 @@ func TestConvertToProviderSpec_dynamicJSONProperties(t *testing.T) {
 			}},
 		},
 	}
-	runTestCase(t, tc)
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
-func runTestCase(t *testing.T, tc convertToSpecTestCase) {
-	t.Helper()
+func TestConvertToProviderSpec_moveState(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_move_state",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr("POST API description"),
+					Attributes:  simpleTestResourceAttributes,
+				},
+				Name:        "test_resource_move_state",
+				PackageName: "testresourcemovestate",
+				Operations:  simpleTestResourceOperations,
+				MoveState:   &codespec.MoveState{SourceResources: []string{"test_resource"}},
+			}},
+		},
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+}
+
+func TestConvertToProviderSpec_deprecatedResource(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_deprecated",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description:        conversion.StringPtr("POST API description"),
+					DeprecationMessage: conversion.StringPtr("This resource is deprecated. Please use test_resource_new resource instead."),
+					Attributes:         simpleTestResourceAttributes,
+				},
+				Name:        "test_resource_deprecated",
+				PackageName: "testresourcedeprecated",
+				Operations:  simpleTestResourceOperations,
+			}},
+		},
+	}
+
 	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
