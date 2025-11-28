@@ -52,12 +52,11 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName, nonEmptyPrefixPath)...),
 			},
 			{
-				Config:                               configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, false, ""),
-				ResourceName:                         resourceName,
-				ImportStateIdFunc:                    importStateIDFunc(resourceName),
-				ImportState:                          true,
-				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: "project_id",
+				Config:            configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, false, ""),
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	}
