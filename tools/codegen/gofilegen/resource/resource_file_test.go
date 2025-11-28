@@ -19,6 +19,18 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+						{
+							TFSchemaName: "role_name",
+							TFModelName:  "RoleName",
+						},
+					},
+				},
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
@@ -45,6 +57,14 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+					},
+				},
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
@@ -71,6 +91,14 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+					},
+				},
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
@@ -121,6 +149,14 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+					},
+				},
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
@@ -148,6 +184,14 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+					},
+				},
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
@@ -171,6 +215,14 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+					},
+				},
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
@@ -196,6 +248,14 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 				Name:        "test_name",
 				PackageName: "testname",
 				MoveState:   &codespec.MoveState{SourceResources: []string{"test_name_old"}},
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+					},
+				},
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
@@ -217,6 +277,50 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 				},
 			},
 			goldenFileName: "move-state",
+		},
+		"Path params with aliased schema names": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "project_id",
+							TFModelName:              "ProjectId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+						{
+							TFSchemaName:             "integration_id",
+							TFModelName:              "IntegrationId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						HTTPMethod: "POST",
+						Path:       "/api/v1/groups/{projectId}/integrations",
+					},
+					Update: &codespec.APIOperation{
+						HTTPMethod: "PATCH",
+						Path:       "/api/v1/groups/{projectId}/integrations/{integrationId}",
+					},
+					Read: codespec.APIOperation{
+						HTTPMethod: "GET",
+						Path:       "/api/v1/groups/{projectId}/integrations/{integrationId}",
+					},
+					Delete: &codespec.APIOperation{
+						HTTPMethod: "DELETE",
+						Path:       "/api/v1/groups/{projectId}/integrations/{integrationId}",
+					},
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			},
+			goldenFileName: "path-params-with-aliases",
 		},
 	}
 

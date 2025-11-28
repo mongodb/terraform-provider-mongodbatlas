@@ -89,7 +89,7 @@ func getIDAttributes(readPath string) []string {
 	params := getPathParams(readPath)
 	result := make([]string, len(params))
 	for i, param := range params {
-		result[i] = stringcase.ToSnakeCase(param.CamelCaseName)
+		result[i] = stringcase.ToSnakeCase(param.PascalCaseName)
 	}
 	return result
 }
