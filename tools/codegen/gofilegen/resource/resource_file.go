@@ -22,7 +22,7 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
 		MoveState:    toCodeTemplateMoveStateModel(input.MoveState),
-		IDAttributes: getIDAttributes(input.Operations.Read.Path),
+		IDAttributes: getIDAttributes(input),
 	}
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 
@@ -85,8 +85,11 @@ func getPathParams(s string) []codetemplate.Param {
 	return params
 }
 
-func getIDAttributes(readPath string) []string {
-	params := getPathParams(readPath)
+func getIDAttributes(input *codespec.Resource) []string {
+	if input.IDAttributes != nil {
+		return input.IDAttributes
+	}
+	params := getPathParams(input.Operations.Read.Path)
 	result := make([]string, len(params))
 	for i, param := range params {
 		result[i] = stringcase.ToSnakeCase(param.CamelCaseName)

@@ -13,6 +13,7 @@ type Resource struct {
 	VersionHeader      string        `yaml:"version_header"` // when not defined latest version defined in API Spec of the resource is used
 	DeprecationMessage *string       `yaml:"deprecation_message"`
 	SchemaOptions      SchemaOptions `yaml:"schema"`
+	IDAttributes       []string      `yaml:"id_attributes"` // when not defined, id attributes are obtained from the read operation path parameters
 }
 
 type APIOperation struct {
@@ -20,6 +21,7 @@ type APIOperation struct {
 	Path              string `yaml:"path"`
 	Method            string `yaml:"method"`
 	StaticRequestBody string `yaml:"static_request_body"` // use at the moment for Delete when it's done with a PATCH or PUT and needs to send a static request body.
+	SchemaIgnore      bool   `yaml:"schema_ignore"`
 }
 
 type Wait struct {
