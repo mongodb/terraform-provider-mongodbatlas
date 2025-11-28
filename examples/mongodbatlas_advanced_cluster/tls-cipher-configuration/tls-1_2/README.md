@@ -1,6 +1,6 @@
 # MongoDB Atlas Provider — Advanced Cluster (TLS 1.2 Configuration)
 
-This example creates a project and a replica set cluster with TLS 1.2 cipher configuration, using:
+This example creates a project and a sharded cluster with TLS 1.2 cipher configuration, using:
 - `advanced_configuration.tls_cipher_config_mode = "CUSTOM"` to enable custom cipher lists.
 - `advanced_configuration.minimum_enabled_tls_protocol = "TLS1_2"` to enforce TLS 1.2 as the minimum protocol version.
 
