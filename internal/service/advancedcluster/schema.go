@@ -652,6 +652,12 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				ElementType:         types.StringType,
 				MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.",
 			},
+			"custom_openssl_cipher_config_tls13": schema.SetAttribute{
+				Computed:            true,
+				Optional:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.",
+			},
 			"tls_cipher_config_mode": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -901,6 +907,7 @@ var specsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 type TFAdvancedConfigurationModel struct {
 	OplogMinRetentionHours                                types.Float64 `tfsdk:"oplog_min_retention_hours"`
 	CustomOpensslCipherConfigTls12                        types.Set     `tfsdk:"custom_openssl_cipher_config_tls12"`
+	CustomOpensslCipherConfigTls13                        types.Set     `tfsdk:"custom_openssl_cipher_config_tls13"`
 	MinimumEnabledTlsProtocol                             types.String  `tfsdk:"minimum_enabled_tls_protocol"`
 	DefaultWriteConcern                                   types.String  `tfsdk:"default_write_concern"`
 	TlsCipherConfigMode                                   types.String  `tfsdk:"tls_cipher_config_mode"`
@@ -928,6 +935,7 @@ var advancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.T
 	"default_max_time_ms":                  types.Int64Type,
 	"tls_cipher_config_mode":               types.StringType,
 	"custom_openssl_cipher_config_tls12":   types.SetType{ElemType: types.StringType},
+	"custom_openssl_cipher_config_tls13":   types.SetType{ElemType: types.StringType},
 }}
 
 type TFPinnedFCVModel struct {

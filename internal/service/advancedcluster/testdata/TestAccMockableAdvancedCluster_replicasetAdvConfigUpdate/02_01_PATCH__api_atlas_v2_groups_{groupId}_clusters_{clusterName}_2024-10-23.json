@@ -3,6 +3,7 @@
   "customOpensslCipherConfigTls12": [
    "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
   ],
+  "customOpensslCipherConfigTls13": [],
   "minimumEnabledTlsProtocol": "TLS1_2",
   "tlsCipherConfigMode": "CUSTOM"
  },
