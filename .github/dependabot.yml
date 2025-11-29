@@ -4,14 +4,20 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
-      day: tuesday
+      day: monday
     commit-message:
       prefix: "chore"
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
-      day: tuesday
+      day: monday
     commit-message:
       prefix: "chore"
-
+  - package-ecosystem: github-actions
+    directory: "/.github/templates/run-script-and-commit"
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "chore"
