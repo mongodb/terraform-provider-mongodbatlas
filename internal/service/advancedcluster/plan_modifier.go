@@ -2,6 +2,7 @@ package advancedcluster
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -13,7 +14,13 @@ import (
 
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+	DebugPrintSpecs(ctx, "BEFORE state", state)
+	DebugPrintSpecs(ctx, "BEFORE plan", plan)
+
 	AdjustRegionConfigsChildren(ctx, diags, state, plan)
+
+	DebugPrintSpecs(ctx, "MIDDLE state", state)
+	DebugPrintSpecs(ctx, "MIDDLE plan", plan)
 
 	diff := findClusterDiff(ctx, state, plan, diags)
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
@@ -28,15 +35,24 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 		// When switching between custom_openssl_cipher_config_tls12 and custom_openssl_cipher_config_tls13, both must remain unknown to avoid sending a PATCH with both values included.
 		"custom_openssl_cipher_config_tls12": {"custom_openssl_cipher_config_tls13"},
 		"custom_openssl_cipher_config_tls13": {"custom_openssl_cipher_config_tls12"},
-		"cluster_type":                       {"config_server_management_mode", "config_server_type"}, // Computed values of config server change when REPLICA_SET changes to SHARDED.
+		// Computed values of config server change when REPLICA_SET changes to SHARDED.
+		"cluster_type": {"config_server_management_mode", "config_server_type"},
 	})...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
-	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
+	keepUnknownFunc := determineKeepUnknownsUseEffectiveFields(state, plan)
+	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, keepUnknownFunc)
+
+	DebugPrintSpecs(ctx, "AFTER state", state)
+	DebugPrintSpecs(ctx, "AFTER plan", plan)
 }
 
 // AdjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
 // This ensures proper handling of removing auto scaling and specs attributes by preserving state values.
 func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+	// Not safe if use_effective_fields is changes
+	if state.UseEffectiveFields.ValueBool() != plan.UseEffectiveFields.ValueBool() {
+		return
+	}
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	if diags.HasError() {
@@ -149,6 +165,32 @@ func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnosti
 	return keepUnknown
 }
 
+// determineKeepUnknownsUseEffectiveFields returns a function that keeps spec fields unknown when use_effective_fields changes.
+func determineKeepUnknownsUseEffectiveFields(state, plan *TFModel) func(string, attr.Value) bool {
+	// If use_effective_fields is changing, we need to keep spec fields unknown
+	if state.UseEffectiveFields.ValueBool() == plan.UseEffectiveFields.ValueBool() {
+		return nil // No change, don't filter anything
+	}
+
+	// List of spec object names and their field names
+	specFields := []string{
+		// Spec object names
+		"electable_specs", "read_only_specs", "analytics_specs",
+		// Field names within specs
+		"node_count", "instance_size", "disk_size_gb", "disk_iops", "ebs_volume_type",
+	}
+
+	return func(name string, value attr.Value) bool {
+		// Keep unknown if the field is spec-related
+		for _, field := range specFields {
+			if name == field {
+				return true
+			}
+		}
+		return false
+	}
+}
+
 // autoScalingUsed checks is auto-scaling was enabled (state) or will be enabled (plan).
 func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (computedUsed, diskUsed bool) {
 	for _, model := range []*TFModel{state, plan} {
@@ -209,4 +251,67 @@ func minLen[T any](a, b []T) int {
 		return la
 	}
 	return lb
+}
+
+// DebugPrintSpecs prints spec information for the first replication spec's first region config for debugging.
+func DebugPrintSpecs(ctx context.Context, label string, model *TFModel) {
+	if model == nil {
+		fmt.Printf("[DEBUG %s] model is nil\n", label)
+		return
+	}
+
+	repSpecs := TFModelList[TFReplicationSpecsModel](ctx, &diag.Diagnostics{}, model.ReplicationSpecs)
+	if len(repSpecs) == 0 {
+		fmt.Printf("[DEBUG %s] no replication specs\n", label)
+		return
+	}
+
+	regionConfigs := TFModelList[TFRegionConfigsModel](ctx, &diag.Diagnostics{}, repSpecs[0].RegionConfigs)
+	if len(regionConfigs) == 0 {
+		fmt.Printf("[DEBUG %s] no region configs\n", label)
+		return
+	}
+
+	fmt.Printf("[DEBUG 12345 %s] Specs %s\n", label, attrValueString(model.UseEffectiveFields))
+
+	printSpecDetails := func(specName string, specObj types.Object) {
+		if specObj.IsNull() {
+			fmt.Printf("  %s: null\n", specName)
+			return
+		}
+		if specObj.IsUnknown() {
+			fmt.Printf("  %s: unknown\n", specName)
+			return
+		}
+
+		spec := TFModelObject[TFSpecsModel](ctx, specObj)
+		if spec == nil {
+			fmt.Printf("  %s: <failed to convert>\n", specName)
+			return
+		}
+
+		fmt.Printf("  %s: node_count=%s, instance_size=%s, disk_size_gb=%s, disk_iops=%s, ebs_volume_type=%s\n",
+			specName,
+			attrValueString(spec.NodeCount),
+			attrValueString(spec.InstanceSize),
+			attrValueString(spec.DiskSizeGb),
+			attrValueString(spec.DiskIops),
+			attrValueString(spec.EbsVolumeType),
+		)
+	}
+
+	printSpecDetails("electable_specs", regionConfigs[0].ElectableSpecs)
+	printSpecDetails("read_only_specs", regionConfigs[0].ReadOnlySpecs)
+	printSpecDetails("analytics_specs", regionConfigs[0].AnalyticsSpecs)
+}
+
+// attrValueString returns a string representation of an attribute value showing if it's known, null, or unknown.
+func attrValueString(value attr.Value) string {
+	if value.IsNull() {
+		return "null"
+	}
+	if value.IsUnknown() {
+		return "unknown"
+	}
+	return value.String()
 }
