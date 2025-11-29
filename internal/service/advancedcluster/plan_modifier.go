@@ -11,29 +11,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
-var (
-	// Change mappings uses `attribute_name`, it doesn't care about the nested level.
-	attributeRootChangeMapping = map[string][]string{
-		"replication_specs":      {},
-		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12", "custom_openssl_cipher_config_tls13"},
-		// When changing custom_openssl_cipher_config_tls12 -> custom_openssl_cipher_config_tls13 and vice versa, we CANNOT use the state value
-		// it needs to be unknown to avoid sending a PATCH with both values included.
-		"custom_openssl_cipher_config_tls12": {"custom_openssl_cipher_config_tls13"},
-		"custom_openssl_cipher_config_tls13": {"custom_openssl_cipher_config_tls12"},
-		"cluster_type":                       {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
-	}
-	attributeReplicationSpecChangeMapping = map[string][]string{
-		// All these fields can exist in specs that are computed, therefore, it is not safe to use them when they have changed.
-		"disk_iops":       {},
-		"ebs_volume_type": {},
-		"disk_size_gb":    {},                  // disk_size_gb can be change at any level/spec
-		"instance_size":   {"disk_iops"},       // disk_iops can change based on instance_size changes
-		"provider_name":   {"ebs_volume_type"}, // AWS --> AZURE will change ebs_volume_type
-		"region_name":     {"container_id"},    // container_id changes based on region_name changes
-		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when zone_name has changed, because zone_id may be computed based on the new zone_name value.
-	}
-)
-
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
 	AdjustRegionConfigsChildren(ctx, diags, state, plan)
@@ -44,7 +21,15 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	}
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version"} // Volatile attributes, should not be copied from state
-	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
+	// When a key attribute changes, dependent attributes may also change and must remain unknown. Attribute matching is by name, independent of nesting level.
+	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(map[string][]string{
+		"replication_specs":      {},
+		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12", "custom_openssl_cipher_config_tls13"},
+		// When switching between custom_openssl_cipher_config_tls12 and custom_openssl_cipher_config_tls13, both must remain unknown to avoid sending a PATCH with both values included.
+		"custom_openssl_cipher_config_tls12": {"custom_openssl_cipher_config_tls13"},
+		"custom_openssl_cipher_config_tls13": {"custom_openssl_cipher_config_tls12"},
+		"cluster_type":                       {"config_server_management_mode", "config_server_type"}, // Computed values of config server change when REPLICA_SET changes to SHARDED.
+	})...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
 }
@@ -156,12 +141,10 @@ func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnosti
 	var keepUnknown []string
 	computedUsed, diskUsed := autoScalingUsed(ctx, diags, state, plan)
 	if computedUsed {
-		keepUnknown = append(keepUnknown, "instance_size")
-		keepUnknown = append(keepUnknown, attributeReplicationSpecChangeMapping["instance_size"]...)
+		keepUnknown = append(keepUnknown, "instance_size", "disk_iops") // disk_iops can change based on instance_size changes
 	}
 	if diskUsed {
 		keepUnknown = append(keepUnknown, "disk_size_gb")
-		keepUnknown = append(keepUnknown, attributeReplicationSpecChangeMapping["disk_size_gb"]...)
 	}
 	return keepUnknown
 }
