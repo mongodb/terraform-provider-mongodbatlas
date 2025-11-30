@@ -39,8 +39,8 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 		"cluster_type": {"config_server_management_mode", "config_server_type"},
 	})...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
-	keepUnknownFunc := determineKeepUnknownsUseEffectiveFields(state, plan)
-	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, keepUnknownFunc)
+	keepUnknown = append(keepUnknown, determineKeepUnknownsUseEffectiveFields(state, plan)...)
+	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
 
 	DebugPrintSpecs(ctx, "AFTER state", state)
 	DebugPrintSpecs(ctx, "AFTER plan", plan)
@@ -165,29 +165,16 @@ func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnosti
 	return keepUnknown
 }
 
-// determineKeepUnknownsUseEffectiveFields returns a function that keeps spec fields unknown when use_effective_fields changes.
-func determineKeepUnknownsUseEffectiveFields(state, plan *TFModel) func(string, attr.Value) bool {
-	// If use_effective_fields is changing, we need to keep spec fields unknown
+// determineKeepUnknownsUseEffectiveFields returns spec field names that should remain unknown when use_effective_fields changes.
+func determineKeepUnknownsUseEffectiveFields(state, plan *TFModel) []string {
 	if state.UseEffectiveFields.ValueBool() == plan.UseEffectiveFields.ValueBool() {
 		return nil // No change, don't filter anything
 	}
-
-	// List of spec object names and their field names
-	specFields := []string{
+	return []string{
 		// Spec object names
 		"electable_specs", "read_only_specs", "analytics_specs",
 		// Field names within specs
 		"node_count", "instance_size", "disk_size_gb", "disk_iops", "ebs_volume_type",
-	}
-
-	return func(name string, value attr.Value) bool {
-		// Keep unknown if the field is spec-related
-		for _, field := range specFields {
-			if name == field {
-				return true
-			}
-		}
-		return false
 	}
 }
 
