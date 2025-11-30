@@ -49,8 +49,8 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 // AdjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
 // This ensures proper handling of removing auto scaling and specs attributes by preserving state values.
 func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	// Not safe if use_effective_fields is changes
-	if state.UseEffectiveFields.ValueBool() != plan.UseEffectiveFields.ValueBool() {
+	// Not safe if use_effective_fields is being enabled.
+	if !state.UseEffectiveFields.ValueBool() && plan.UseEffectiveFields.ValueBool() {
 		return
 	}
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
