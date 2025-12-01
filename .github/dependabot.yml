@@ -14,4 +14,10 @@ updates:
       day: sunday
     commit-message:
       prefix: "chore"
-
+  - package-ecosystem: github-actions
+    directory: "/.github/templates/run-script-and-commit"
+    schedule:
+      interval: weekly
+      day: sunday
+    commit-message:
+      prefix: "chore"
