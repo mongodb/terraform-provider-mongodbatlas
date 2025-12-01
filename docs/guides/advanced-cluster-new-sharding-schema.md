@@ -506,18 +506,26 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }]
     zone_name = "Zone 1"
   }]
-  lifecycle { # avoids future non-empty plans as instance size start to scale from initial values
+  lifecycle { # avoids future non-empty plans when auto-scaling adjusts cluster resources
     ignore_changes = [
       replication_specs[0].region_configs[0].electable_specs.instance_size,
+      replication_specs[0].region_configs[0].electable_specs.disk_size_gb,
+      replication_specs[0].region_configs[0].electable_specs.disk_iops,
       replication_specs[0].region_configs[0].analytics_specs.instance_size,
+      replication_specs[0].region_configs[0].analytics_specs.disk_size_gb,
+      replication_specs[0].region_configs[0].analytics_specs.disk_iops,
       replication_specs[1].region_configs[0].electable_specs.instance_size,
-      replication_specs[1].region_configs[0].analytics_specs.instance_size
+      replication_specs[1].region_configs[0].electable_specs.disk_size_gb,
+      replication_specs[1].region_configs[0].electable_specs.disk_iops,
+      replication_specs[1].region_configs[0].analytics_specs.instance_size,
+      replication_specs[1].region_configs[0].analytics_specs.disk_size_gb,
+      replication_specs[1].region_configs[0].analytics_specs.disk_iops
     ]
   }
 }
 ```
 
-While the examples initially define two symmetric shards, auto-scaling of `electable_specs` or `analytic_specs` can lead to asymmetric shards due to changes in `instance_size`.
+While the examples initially define two symmetric shards, auto-scaling can lead to asymmetric shards due to changes in `instance_size`, `disk_size_gb`, and `disk_iops`. When either compute or disk auto-scaling is enabled, Atlas may adjust any of these resources to maintain optimal cluster performance.
 
 -> **NOTE:** In the following scenarios, a `mongodbatlas_advanced_cluster` using the new sharding configuration (single `replication_specs` per shard) might not have shard-level auto-scaling enabled: <br/>1. Configuration was defined prior to version 1.23.0 when auto-scaling per shard feature was released.<br/>2. Cluster was imported from a legacy schema (For example, `mongodbatlas_cluster` or `mongodbatlas_advanced_cluster` using `num_shards` > 1).
 <br/>3. Configuration is updated directly from a v1.x version of our provider directly to v2.0.0+ as no update is triggered.
