@@ -27,7 +27,8 @@ resource "mongodbatlas_advanced_cluster" "this" {
     ignore_changes = [
       replication_specs[0].region_configs[0].electable_specs.instance_size,
       replication_specs[0].region_configs[0].electable_specs.disk_size_gb,
-      # ... additional fields
+      replication_specs[0].region_configs[0].electable_specs.disk_iops,
+      # ... additional fields for other specs
     ]
   }
 }
@@ -44,6 +45,8 @@ resource "mongodbatlas_advanced_cluster" "this" {
   lifecycle {
     ignore_changes = [
       replication_specs[0].region_configs[0].electable_specs.instance_size,
+      replication_specs[0].region_configs[0].electable_specs.disk_size_gb,
+      replication_specs[0].region_configs[0].electable_specs.disk_iops,
     ]
   }
 }
