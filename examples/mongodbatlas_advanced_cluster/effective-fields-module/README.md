@@ -295,4 +295,6 @@ Existing modules utilizing `lifecycle.ignore_changes` can be updated through the
 3. Incorporate a data source to retrieve effective values
 4. Update module outputs to expose both configured and effective specifications
 
+**Important:** When adding `use_effective_fields = true` to an existing cluster, apply this change in a separate Terraform operation without any other cluster configuration changes. The provider will return an error if you attempt to modify `use_effective_fields` along with other attributes in the same apply operation.
+
 This migration maintains backward compatibility, requiring no changes to module consumer configurations.

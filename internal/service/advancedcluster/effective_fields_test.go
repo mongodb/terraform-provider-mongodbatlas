@@ -97,6 +97,28 @@ func TestAccAdvancedCluster_effectiveTenantFlex(t *testing.T) {
 	})
 }
 
+func TestAccAdvancedCluster_effectiveWithOtherChanges(t *testing.T) {
+	var (
+		unset      = baseEffectiveReq(t).withInstanceSize("M10").withoutFlag()
+		setUpdated = unset.withInstanceSize("M20").withFlag()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: unset.config(),
+				Check:  unset.check(),
+			},
+			{
+				Config:      setUpdated.config(),
+				ExpectError: regexp.MustCompile("Cannot change use_effective_fields with other cluster changes"),
+			},
+		},
+	})
+}
+
 type effectiveReq struct {
 	projectID          string
 	clusterName        string
@@ -126,6 +148,11 @@ func (req effectiveReq) withFlag() effectiveReq {
 
 func (req effectiveReq) withoutFlag() effectiveReq {
 	req.useEffectiveFields = false
+	return req
+}
+
+func (req effectiveReq) withInstanceSize(instanceSize string) effectiveReq {
+	req.instanceSize = instanceSize
 	return req
 }
 
