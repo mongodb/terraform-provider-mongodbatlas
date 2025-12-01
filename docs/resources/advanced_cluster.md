@@ -797,7 +797,7 @@ lifecycle {
 }
 ```
 
-~> **IMPORTANT:** When either `disk_gb_enabled` or `compute_enabled` is true, Atlas may automatically adjust `instance_size`, `disk_size_gb`, and `disk_iops` to maintain optimal cluster performance, even if only one type of auto-scaling is enabled. With Option 2, this will cause these values in state to potentially differ from what is specified in the Terraform config. If you then apply a plan without the `lifecycle` ignore customization, Terraform will scale the cluster back to the original values in the config. **To manually update these values when auto-scaling is enabled:** Temporarily disable auto-scaling, apply the changes, then re-enable auto-scaling.
+~> **IMPORTANT:** When either `disk_gb_enabled` or `compute_enabled` is true, Atlas may automatically adjust `instance_size`, `disk_size_gb`, and `disk_iops` to maintain optimal cluster performance, even if only one type of auto-scaling is enabled. With Option 2, this will cause these values in state to potentially differ from what is specified in the Terraform config. If you then apply a plan without the `lifecycle` ignore customization, Terraform will scale the cluster back to the original values in the config. **To manually update these values when auto-scaling is enabled:** (1) Set `compute_enabled = false` and `disk_gb_enabled = false` in the [`auto_scaling`](#auto_scaling) block, (2) apply to disable auto-scaling, (3) update `instance_size`, `disk_size_gb`, or `disk_iops` as needed, (4) apply again, (5) re-enable auto-scaling by setting the flags back to `true`, (6) apply a final time.
 
 ### analytics_auto_scaling
 
