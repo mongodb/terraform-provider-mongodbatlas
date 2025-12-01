@@ -18,6 +18,6 @@ updates:
     directory: "/.github/templates/run-script-and-commit"
     schedule:
       interval: weekly
-      day: monday
+      day: sunday
     commit-message:
       prefix: "chore"
