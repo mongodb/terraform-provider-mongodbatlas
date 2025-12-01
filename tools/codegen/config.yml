@@ -64,7 +64,7 @@ resources:
     schema:
       ignores: ["links", "mongo_db_employee_access_grant.links"]
       aliases:
-        ClusterName: Name # path param name does not match the API request property
+        clusterName: name # path param name does not match the API request property
       # These attributes are optional but when not configured, Atlas returns a default value.
       # If a nested attribute is optional/computed, all its optional child attributes must also be defined as optional/computed to avoid non-empty plans.
       overrides:
@@ -273,7 +273,7 @@ resources:
     schema:
       ignores: ["links", "mongo_db_employee_access_grant.links"]
       aliases:
-        ClusterName: Name # path param name does not match the API request property
+        clusterName: name # path param name does not match the API request property
       # These attributes are optional but when not configured, Atlas returns a default value.
       # If a nested attribute is optional/computed, all its optional child attributes must also be defined as optional/computed to avoid non-empty plans.
       overrides:
@@ -511,7 +511,7 @@ resources:
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
       aliases:
-        GroupId: ProjectId
+        groupId: projectId
       overrides:
         # These attributes are optional but when not configured, Atlas returns a default value.
         is_collect_database_specifics_statistics_enabled:
@@ -560,7 +560,7 @@ resources:
     schema:
       ignores: ["links"]
       aliases:
-        GroupId: Id # path param name does not match the API response property
+        groupId: id # path param name does not match the API response property
 
   push_based_log_export_api:
     read:
@@ -607,7 +607,7 @@ resources:
     version_header: application/vnd.atlas.2024-08-05+json
     schema:
       aliases:
-        ResourcePolicyId: Id # path param name does not match the API response property
+        resourcePolicyId: id # path param name does not match the API response property
 
   search_deployment_api:
     read:
@@ -662,7 +662,7 @@ resources:
     version_header: application/vnd.atlas.2024-05-30+json
     schema:
       aliases:
-        IndexId: IndexID # path param name does not match the API response property
+        indexId: indexID # path param name does not match the API response property
       overrides:
         definition.type_sets:
           include_null_on_update: true # on update if an empty array is sent the index definition is rejected with error Invalid definition: "typeSets" cannot be empty.
@@ -703,7 +703,7 @@ resources:
           "stream_config.links",
         ]
       aliases:
-        TenantName: Name # path param name does not match the API request property
+        tenantName: name # path param name does not match the API request property
 
   # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
   # Custom methods :startWith and :stop are not called so state attribute is not supported as Optional like in the curated resource, only as Computed.
@@ -736,7 +736,7 @@ resources:
     schema:
       ignores: ["links", "options.links", "options.dlq.links", "_id"]
       aliases:
-        ProcessorName: Name # path param name does not match the API request property.
+        processorName: name # path param name does not match the API request property.
       overrides:
         options: # optional but when not configured, Atlas returns a default value.
           computability:
@@ -778,7 +778,7 @@ resources:
       method: DELETE
     schema:
       aliases:
-        AlertConfigId: Id # path param name does not match the API response property
+        alertConfigId: id # path param name does not match the API response property
       overrides:
         notifications.notifier_id:
           computability:

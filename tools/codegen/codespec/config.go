@@ -100,7 +100,10 @@ func shouldIgnoreAttribute(attrName string, ignoredAttrs map[string]bool) bool {
 }
 
 func applyAliasToAttribute(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) {
-	if newModelName, ok := schemaOptions.Aliases[attr.TFModelName]; ok {
+	// Config uses camelCase (e.g., groupId: projectId), TFModelName is PascalCase (e.g., GroupId)
+	modelNameCamel := stringcase.Uncapitalize(attr.TFModelName)
+	if aliasCamel, ok := schemaOptions.Aliases[modelNameCamel]; ok {
+		newModelName := stringcase.Capitalize(aliasCamel)
 		attr.TFModelName = newModelName
 		attr.TFSchemaName = stringcase.ToSnakeCase(newModelName)
 		parts := strings.Split(*attrPathName, ".")
@@ -113,15 +116,13 @@ func applyAliasToAttribute(attr *Attribute, attrPathName *string, schemaOptions 
 
 func applyAliasToPathParams(resource *Resource, aliases map[string]string) {
 	for original, alias := range aliases {
-		originalCamel := stringcase.Uncapitalize(original)
-		aliasCamel := stringcase.Uncapitalize(alias)
-		resource.Operations.Create.Path = strings.ReplaceAll(resource.Operations.Create.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
-		resource.Operations.Read.Path = strings.ReplaceAll(resource.Operations.Read.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
+		resource.Operations.Create.Path = strings.ReplaceAll(resource.Operations.Create.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
+		resource.Operations.Read.Path = strings.ReplaceAll(resource.Operations.Read.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
 		if resource.Operations.Update != nil {
-			resource.Operations.Update.Path = strings.ReplaceAll(resource.Operations.Update.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
+			resource.Operations.Update.Path = strings.ReplaceAll(resource.Operations.Update.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
 		}
 		if resource.Operations.Delete != nil {
-			resource.Operations.Delete.Path = strings.ReplaceAll(resource.Operations.Delete.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
+			resource.Operations.Delete.Path = strings.ReplaceAll(resource.Operations.Delete.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
 		}
 	}
 }

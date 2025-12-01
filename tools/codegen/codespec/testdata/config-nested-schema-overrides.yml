@@ -15,9 +15,9 @@ resources:
     version_header: application/vnd.atlas.2035-01-01+json
     schema:
       aliases:
-        GroupId: ProjectId
-        InnerNumAttr: InnerNumAttrAlias
-        LevelField1: LevelField1Alias
+        groupId: projectId
+        innerNumAttr: innerNumAttrAlias
+        levelField1: levelField1Alias
 
       ignores:
         [
