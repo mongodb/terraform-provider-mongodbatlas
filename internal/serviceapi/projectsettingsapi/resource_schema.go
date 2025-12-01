@@ -14,7 +14,7 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"group_id": schema.StringAttribute{
+			"project_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
@@ -64,7 +64,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	GroupId                                         types.String `tfsdk:"group_id" autogen:"omitjson"`
+	ProjectId                                       types.String `tfsdk:"project_id" autogen:"omitjson"`
 	IsCollectDatabaseSpecificsStatisticsEnabled     types.Bool   `tfsdk:"is_collect_database_specifics_statistics_enabled"`
 	IsDataExplorerEnabled                           types.Bool   `tfsdk:"is_data_explorer_enabled"`
 	IsDataExplorerGenAIFeaturesEnabled              types.Bool   `tfsdk:"is_data_explorer_gen_ai_features_enabled"`

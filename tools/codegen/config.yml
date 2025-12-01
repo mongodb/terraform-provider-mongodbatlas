@@ -510,6 +510,8 @@ resources:
       method: PATCH
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
+      aliases:
+        GroupId: ProjectId
       overrides:
         # These attributes are optional but when not configured, Atlas returns a default value.
         is_collect_database_specifics_statistics_enabled:

@@ -7,8 +7,8 @@ schema:
 
             **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
           computed_optional_required: required
-          tf_schema_name: group_id
-          tf_model_name: GroupId
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
           req_body_usage: omit_always
           sensitive: false
           create_only: true
@@ -80,13 +80,13 @@ schema:
 operations:
     create:
         http_method: PATCH
-        path: /api/atlas/v2/groups/{groupId}/settings
+        path: /api/atlas/v2/groups/{projectId}/settings
     read:
         http_method: GET
-        path: /api/atlas/v2/groups/{groupId}/settings
+        path: /api/atlas/v2/groups/{projectId}/settings
     update:
         http_method: PATCH
-        path: /api/atlas/v2/groups/{groupId}/settings
+        path: /api/atlas/v2/groups/{projectId}/settings
     version_header: application/vnd.atlas.2023-01-01+json
 name: project_settings_api
 packageName: projectsettingsapi
