@@ -11,7 +11,7 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
-      day: monday
+      day: sunday
     commit-message:
       prefix: "chore"
   - package-ecosystem: github-actions
