@@ -462,7 +462,7 @@ resources:
     schema:
       ignores: ["links"]
       aliases:
-        username: dbUser
+        username: dbUser # alias is only added to illustrate full aliasing support (username is both a path param and present in request body)
       overrides:
         password:
           sensitive: true
