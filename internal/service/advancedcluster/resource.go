@@ -254,10 +254,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		if diags.HasError() {
 			return
 		}
-		if diff.isAnyChange() && state.UseEffectiveFields.ValueBool() != plan.UseEffectiveFields.ValueBool() {
-			diags.AddError("Cannot change use_effective_fields with other cluster changes", "The use_effective_fields attribute must be changed separately from other cluster configuration changes.")
-			return
-		}
 		switch {
 		case diff.isUpgradeTenantToFlex:
 			if flexOut := handleFlexUpgrade(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
@@ -269,11 +265,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 				diags.Append(resp.State.Set(ctx, flexOut)...)
 			}
 			return
-		case diff.upgradeFlexToDedicatedReq != nil:
+		case diff.isUpgradeFlexToDedicated():
 			clusterResp = upgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
-		case diff.upgradeTenantReq != nil:
+		case diff.isUpgradeTenant():
 			clusterResp = upgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
-		case diff.clusterPatchOnlyReq != nil:
+		case diff.isClusterPatchOnly():
 			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
 		}
 		if diags.HasError() {
@@ -498,12 +494,20 @@ type clusterDiff struct {
 	isUpdateOfFlex            bool
 }
 
-func (c *clusterDiff) isAnyUpgrade() bool {
-	return c.isUpgradeTenantToFlex || c.upgradeTenantReq != nil || c.upgradeFlexToDedicatedReq != nil
+func (c *clusterDiff) isClusterPatchOnly() bool {
+	return !update.IsZeroValues(c.clusterPatchOnlyReq)
 }
 
-func (c *clusterDiff) isAnyChange() bool {
-	return c.clusterPatchOnlyReq != nil || c.isUpdateOfFlex || c.isAnyUpgrade()
+func (c *clusterDiff) isUpgradeTenant() bool {
+	return c.upgradeTenantReq != nil
+}
+
+func (c *clusterDiff) isUpgradeFlexToDedicated() bool {
+	return c.upgradeFlexToDedicatedReq != nil
+}
+
+func (c *clusterDiff) isAnyUpgrade() bool {
+	return c.isUpgradeTenantToFlex || c.isUpgradeTenant() || c.isUpgradeFlexToDedicated()
 }
 
 // findClusterDiff should be called only in Update, e.g. it will fail for a flex cluster with no changes.
@@ -536,13 +540,10 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	if update.IsZeroValues(patchReq) { // No changes to cluster
 		return clusterDiff{}
 	}
-	upgradeFlexToDedicatedReq := getUpgradeFlexToDedicatedRequest(stateReq, patchReq)
-	if upgradeFlexToDedicatedReq != nil {
-		return clusterDiff{upgradeFlexToDedicatedReq: upgradeFlexToDedicatedReq}
-	}
 	upgradeTenantReq := getUpgradeTenantRequest(stateReq, patchReq)
-	if upgradeTenantReq != nil {
-		return clusterDiff{upgradeTenantReq: upgradeTenantReq}
+	upgradeFlexToDedicatedReq := getUpgradeFlexToDedicatedRequest(stateReq, patchReq)
+	if upgradeTenantReq != nil || upgradeFlexToDedicatedReq != nil {
+		return clusterDiff{upgradeTenantReq: upgradeTenantReq, upgradeFlexToDedicatedReq: upgradeFlexToDedicatedReq}
 	}
 	return clusterDiff{clusterPatchOnlyReq: patchReq}
 }
