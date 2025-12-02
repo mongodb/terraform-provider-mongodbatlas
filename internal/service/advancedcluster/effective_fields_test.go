@@ -256,19 +256,79 @@ func TestAccAdvancedCluster_effectiveToggleAutoScaling(t *testing.T) {
 	})
 }
 
+func TestAccAdvancedCluster_effectiveReadOnlySpecs(t *testing.T) {
+	var (
+		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withInstanceSize("M10").
+			withReadOnlySpecs("M10", 2, 10, 3000)
+		updated = initial.withReadOnlySpecs("M20", 2, 15, 3010).withEffectiveReadOnlyValues(initial)
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: initial.config(),
+				Check:  initial.check(),
+			},
+			{
+				Config: updated.config(),
+				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_effectiveAnalyticsSpecs(t *testing.T) {
+	var (
+		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withInstanceSize("M10").
+			withAnalyticsSpecs("M10", 2, 10, 3000)
+		updated = initial.withAnalyticsSpecs("M20", 2, 15, 3010).withEffectiveAnalyticsValues(initial)
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: initial.config(),
+				Check:  initial.check(),
+			},
+			{
+				Config: updated.config(),
+				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
+			},
+		},
+	})
+}
+
 type effectiveReq struct {
-	projectID              string
-	clusterName            string
-	instanceSize           string
-	computeMaxInstanceSize string
-	effectiveInstanceSize  string
-	nodeCountElectable     int
-	diskIOPS               int
-	diskSizeGB             int
-	effectiveDiskIOPS      int
-	effectiveDiskSizeGB    int
-	useEffectiveFields     bool
-	diskAutoScaling        bool
+	readOnlyInstanceSize           string
+	clusterName                    string
+	instanceSize                   string
+	computeMaxInstanceSize         string
+	effectiveInstanceSize          string
+	effectiveAnalyticsInstanceSize string
+	projectID                      string
+	analyticsInstanceSize          string
+	effectiveReadOnlyInstanceSize  string
+	diskIOPS                       int
+	effectiveReadOnlyDiskSizeGB    int
+	effectiveAnalyticsDiskSizeGB   int
+	effectiveDiskSizeGB            int
+	readOnlyDiskIOPS               int
+	readOnlyDiskSizeGB             int
+	readOnlyNodeCount              int
+	effectiveDiskIOPS              int
+	effectiveReadOnlyDiskIOPS      int
+	effectiveAnalyticsDiskIOPS     int
+	diskSizeGB                     int
+	analyticsDiskIOPS              int
+	analyticsDiskSizeGB            int
+	analyticsNodeCount             int
+	nodeCountElectable             int
+	useEffectiveFields             bool
+	diskAutoScaling                bool
 }
 
 func baseEffectiveReq(t *testing.T) effectiveReq {
@@ -326,6 +386,36 @@ func (req effectiveReq) withEffectiveValues(effectiveReq effectiveReq) effective
 	return req
 }
 
+func (req effectiveReq) withReadOnlySpecs(instanceSize string, nodeCount, diskSizeGB, diskIOPS int) effectiveReq {
+	req.readOnlyInstanceSize = instanceSize
+	req.readOnlyNodeCount = nodeCount
+	req.readOnlyDiskSizeGB = diskSizeGB
+	req.readOnlyDiskIOPS = diskIOPS
+	return req
+}
+
+func (req effectiveReq) withEffectiveReadOnlyValues(effectiveReq effectiveReq) effectiveReq {
+	req.effectiveReadOnlyInstanceSize = effectiveReq.readOnlyInstanceSize
+	req.effectiveReadOnlyDiskSizeGB = effectiveReq.readOnlyDiskSizeGB
+	req.effectiveReadOnlyDiskIOPS = effectiveReq.readOnlyDiskIOPS
+	return req
+}
+
+func (req effectiveReq) withAnalyticsSpecs(instanceSize string, nodeCount, diskSizeGB, diskIOPS int) effectiveReq {
+	req.analyticsInstanceSize = instanceSize
+	req.analyticsNodeCount = nodeCount
+	req.analyticsDiskSizeGB = diskSizeGB
+	req.analyticsDiskIOPS = diskIOPS
+	return req
+}
+
+func (req effectiveReq) withEffectiveAnalyticsValues(effectiveReq effectiveReq) effectiveReq {
+	req.effectiveAnalyticsInstanceSize = effectiveReq.analyticsInstanceSize
+	req.effectiveAnalyticsDiskSizeGB = effectiveReq.analyticsDiskSizeGB
+	req.effectiveAnalyticsDiskIOPS = effectiveReq.analyticsDiskIOPS
+	return req
+}
+
 func (req effectiveReq) config() string {
 	var (
 		extraRoot         = ""
@@ -351,6 +441,36 @@ func (req effectiveReq) config() string {
 	}
 	if req.diskSizeGB != 0 {
 		extraSpecs += fmt.Sprintf("disk_size_gb = %d\n", req.diskSizeGB)
+	}
+	// Read-only specs
+	if req.readOnlyNodeCount > 0 {
+		extraRegionConfig += "read_only_specs = {\n"
+		extraRegionConfig += fmt.Sprintf("\t\t\tnode_count = %d\n", req.readOnlyNodeCount)
+		if req.readOnlyInstanceSize != "" {
+			extraRegionConfig += fmt.Sprintf("\t\t\tinstance_size = %q\n", req.readOnlyInstanceSize)
+		}
+		if req.readOnlyDiskSizeGB != 0 {
+			extraRegionConfig += fmt.Sprintf("\t\t\tdisk_size_gb = %d\n", req.readOnlyDiskSizeGB)
+		}
+		if req.readOnlyDiskIOPS != 0 {
+			extraRegionConfig += fmt.Sprintf("\t\t\tdisk_iops = %d\n", req.readOnlyDiskIOPS)
+		}
+		extraRegionConfig += "\t\t}\n"
+	}
+	// Analytics specs
+	if req.analyticsNodeCount > 0 {
+		extraRegionConfig += "analytics_specs = {\n"
+		extraRegionConfig += fmt.Sprintf("\t\t\tnode_count = %d\n", req.analyticsNodeCount)
+		if req.analyticsInstanceSize != "" {
+			extraRegionConfig += fmt.Sprintf("\t\t\tinstance_size = %q\n", req.analyticsInstanceSize)
+		}
+		if req.analyticsDiskSizeGB != 0 {
+			extraRegionConfig += fmt.Sprintf("\t\t\tdisk_size_gb = %d\n", req.analyticsDiskSizeGB)
+		}
+		if req.analyticsDiskIOPS != 0 {
+			extraRegionConfig += fmt.Sprintf("\t\t\tdisk_iops = %d\n", req.analyticsDiskIOPS)
+		}
+		extraRegionConfig += "\t\t}\n"
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
@@ -448,6 +568,72 @@ func (req effectiveReq) check() resource.TestCheckFunc {
 	if req.useEffectiveFields {
 		attrsMap["use_effective_fields"] = "true"
 		extraChecks = append(extraChecks, resource.TestCheckResourceAttr(dataSourcePluralName, "use_effective_fields", "true"))
+	}
+	// Read-only specs
+	if req.readOnlyNodeCount > 0 {
+		const (
+			readOnlyPath          = "replication_specs.0.region_configs.0.read_only_specs."
+			effectiveReadOnlyPath = "replication_specs.0.region_configs.0.effective_read_only_specs."
+		)
+		attrsMap[readOnlyPath+"node_count"] = fmt.Sprintf("%d", req.readOnlyNodeCount)
+		if req.readOnlyInstanceSize != "" {
+			attrsMap[readOnlyPath+"instance_size"] = req.readOnlyInstanceSize
+		}
+		if req.readOnlyDiskSizeGB != 0 {
+			attrsMap[readOnlyPath+"disk_size_gb"] = fmt.Sprintf("%d", req.readOnlyDiskSizeGB)
+		}
+		if req.readOnlyDiskIOPS != 0 {
+			attrsMap[readOnlyPath+"disk_iops"] = fmt.Sprintf("%d", req.readOnlyDiskIOPS)
+		}
+		// Check effective read-only values if specified
+		if req.effectiveReadOnlyInstanceSize != "" {
+			extraChecks = append(extraChecks, resource.TestCheckResourceAttr(dataSourceName, effectiveReadOnlyPath+"instance_size", req.effectiveReadOnlyInstanceSize))
+		} else {
+			extraChecks = append(extraChecks, resource.TestCheckResourceAttrSet(dataSourceName, effectiveReadOnlyPath+"instance_size"))
+		}
+		if req.effectiveReadOnlyDiskSizeGB != 0 {
+			extraChecks = append(extraChecks, resource.TestCheckResourceAttr(dataSourceName, effectiveReadOnlyPath+"disk_size_gb", fmt.Sprintf("%d", req.effectiveReadOnlyDiskSizeGB)))
+		} else {
+			extraChecks = append(extraChecks, resource.TestCheckResourceAttrSet(dataSourceName, effectiveReadOnlyPath+"disk_size_gb"))
+		}
+		if req.effectiveReadOnlyDiskIOPS != 0 {
+			extraChecks = append(extraChecks, resource.TestCheckResourceAttr(dataSourceName, effectiveReadOnlyPath+"disk_iops", fmt.Sprintf("%d", req.effectiveReadOnlyDiskIOPS)))
+		} else {
+			extraChecks = append(extraChecks, resource.TestCheckResourceAttrSet(dataSourceName, effectiveReadOnlyPath+"disk_iops"))
+		}
+	}
+	// Analytics specs
+	if req.analyticsNodeCount > 0 {
+		const (
+			analyticsPath          = "replication_specs.0.region_configs.0.analytics_specs."
+			effectiveAnalyticsPath = "replication_specs.0.region_configs.0.effective_analytics_specs."
+		)
+		attrsMap[analyticsPath+"node_count"] = fmt.Sprintf("%d", req.analyticsNodeCount)
+		if req.analyticsInstanceSize != "" {
+			attrsMap[analyticsPath+"instance_size"] = req.analyticsInstanceSize
+		}
+		if req.analyticsDiskSizeGB != 0 {
+			attrsMap[analyticsPath+"disk_size_gb"] = fmt.Sprintf("%d", req.analyticsDiskSizeGB)
+		}
+		if req.analyticsDiskIOPS != 0 {
+			attrsMap[analyticsPath+"disk_iops"] = fmt.Sprintf("%d", req.analyticsDiskIOPS)
+		}
+		// Check effective analytics values if specified
+		if req.effectiveAnalyticsInstanceSize != "" {
+			extraChecks = append(extraChecks, resource.TestCheckResourceAttr(dataSourceName, effectiveAnalyticsPath+"instance_size", req.effectiveAnalyticsInstanceSize))
+		} else {
+			extraChecks = append(extraChecks, resource.TestCheckResourceAttrSet(dataSourceName, effectiveAnalyticsPath+"instance_size"))
+		}
+		if req.effectiveAnalyticsDiskSizeGB != 0 {
+			extraChecks = append(extraChecks, resource.TestCheckResourceAttr(dataSourceName, effectiveAnalyticsPath+"disk_size_gb", fmt.Sprintf("%d", req.effectiveAnalyticsDiskSizeGB)))
+		} else {
+			extraChecks = append(extraChecks, resource.TestCheckResourceAttrSet(dataSourceName, effectiveAnalyticsPath+"disk_size_gb"))
+		}
+		if req.effectiveAnalyticsDiskIOPS != 0 {
+			extraChecks = append(extraChecks, resource.TestCheckResourceAttr(dataSourceName, effectiveAnalyticsPath+"disk_iops", fmt.Sprintf("%d", req.effectiveAnalyticsDiskIOPS)))
+		} else {
+			extraChecks = append(extraChecks, resource.TestCheckResourceAttrSet(dataSourceName, effectiveAnalyticsPath+"disk_iops"))
+		}
 	}
 	return checkAggr(nil, attrsMap, extraChecks...)
 }
