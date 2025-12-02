@@ -2090,9 +2090,10 @@ func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestChec
 }
 
 // Test to update advanced_configuration from TLS1_2 (CUSTOM) to TLS1_3 (CUSTOM).
-// Third step to update back to TLS1_3 → TLS1_2 is skipped due to environment flakiness for now.
+// Third step to update back to TLS1_3 → TLS1_2 is skipped due to environment flakiness for now. Enable once CLOUDP-362374 is solved.
 // See https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3912 for more details.
 func TestAccAdvancedCluster_tls12to13CustomCipherUpdate(t *testing.T) {
+	acc.SkipTestForCI(t) // Skipping due to almost-consistent failures on cluster update. Enable once CLOUDP-362374 is solved.
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 5)
 		processArgsTLS12       = &admin.ClusterDescriptionProcessArgs20240805{
