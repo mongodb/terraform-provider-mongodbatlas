@@ -234,51 +234,7 @@ func TestAccAdvancedCluster_effectiveToggleAutoScaling(t *testing.T) {
 	})
 }
 
-func TestAccAdvancedCluster_effectiveReadOnlySpecs(t *testing.T) {
-	var (
-		initial = baseEffectiveReq(t).withFlag().withInstanceSize("M10").withReadOnlySpecs("M10", 1, 0, 0)
-		updated = initial.withInstanceSize("M20").withReadOnlySpecs("M20", 1, 0, 0).withEffectiveReadOnlyValues(&initial)
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: initial.config(),
-				Check:  initial.check(),
-			},
-			{
-				Config: updated.config(),
-				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
-			},
-		},
-	})
-}
-
-func TestAccAdvancedCluster_effectiveAnalyticsSpecs(t *testing.T) {
-	var (
-		initial = baseEffectiveReq(t).withFlag().withInstanceSize("M10").withAnalyticsSpecs("M10", 1, 0, 0)
-		updated = initial.withInstanceSize("M20").withAnalyticsSpecs("M20", 1, 0, 0).withEffectiveAnalyticsValues(&initial)
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: initial.config(),
-				Check:  initial.check(),
-			},
-			{
-				Config: updated.config(),
-				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
-			},
-		},
-	})
-}
-
-func TestAccAdvancedCluster_effectiveReadOnlySpecsWithAutoScaling(t *testing.T) {
+func TestAccAdvancedCluster_effectiveReadOnlyAutoScaling(t *testing.T) {
 	var (
 		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withInstanceSize("M10").withReadOnlySpecs("M10", 1, 0, 0)
 		updated = initial.withInstanceSize("M20").withReadOnlySpecs("M20", 1, 0, 0).withEffectiveReadOnlyValues(&initial)
@@ -300,7 +256,7 @@ func TestAccAdvancedCluster_effectiveReadOnlySpecsWithAutoScaling(t *testing.T) 
 	})
 }
 
-func TestAccAdvancedCluster_effectiveAnalyticsSpecsWithAutoScaling(t *testing.T) {
+func TestAccAdvancedCluster_effectiveAnalyticsAutoScaling(t *testing.T) {
 	var (
 		initial = baseEffectiveReq(t).withFlag().withAnalyticsComputeMaxInstanceSize("M40").withInstanceSize("M10").withAnalyticsSpecs("M10", 1, 0, 0)
 		updated = initial.withInstanceSize("M20").withAnalyticsSpecs("M20", 1, 0, 0).withEffectiveAnalyticsValues(&initial)
