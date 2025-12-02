@@ -122,7 +122,7 @@ func TestAccAdvancedCluster_effectiveWithOtherChanges(t *testing.T) {
 func TestAccAdvancedCluster_effectiveComputeAutoScalingInstanceSize(t *testing.T) {
 	var (
 		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withInstanceSize("M10")
-		updated = initial.withInstanceSize("M20").withEffectiveValues(initial)
+		updated = initial.withInstanceSize("M20").withEffectiveValues(&initial)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -144,7 +144,7 @@ func TestAccAdvancedCluster_effectiveComputeAutoScalingInstanceSize(t *testing.T
 func TestAccAdvancedCluster_effectiveComputeAutoScalingAll(t *testing.T) {
 	var (
 		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
-		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010).withEffectiveValues(initial)
+		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010).withEffectiveValues(&initial)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -166,7 +166,7 @@ func TestAccAdvancedCluster_effectiveComputeAutoScalingAll(t *testing.T) {
 func TestAccAdvancedCluster_effectiveDiskAutoScalingAll(t *testing.T) {
 	var (
 		initial = baseEffectiveReq(t).withFlag().withDiskAutoScaling().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
-		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010).withEffectiveValues(initial)
+		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010).withEffectiveValues(&initial)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -210,7 +210,7 @@ func TestAccAdvancedCluster_effectiveDiskFieldsWithoutAutoScaling(t *testing.T) 
 func TestAccAdvancedCluster_effectiveBothAutoScalingEnabled(t *testing.T) {
 	var (
 		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withDiskAutoScaling().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
-		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010).withEffectiveValues(initial)
+		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010).withEffectiveValues(&initial)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -232,7 +232,7 @@ func TestAccAdvancedCluster_effectiveBothAutoScalingEnabled(t *testing.T) {
 func TestAccAdvancedCluster_effectiveToggleAutoScaling(t *testing.T) {
 	var (
 		withoutAutoScaling     = baseEffectiveReq(t).withFlag().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
-		withAutoScaling        = withoutAutoScaling.withComputeMaxInstanceSize("M40").withEffectiveValues(withoutAutoScaling)
+		withAutoScaling        = withoutAutoScaling.withComputeMaxInstanceSize("M40").withEffectiveValues(&withoutAutoScaling)
 		backWithoutAutoScaling = withAutoScaling.withComputeMaxInstanceSize("").withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010)
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -260,7 +260,7 @@ func TestAccAdvancedCluster_effectiveReadOnlySpecs(t *testing.T) {
 	var (
 		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withInstanceSize("M10").
 			withReadOnlySpecs("M10", 2, 10, 3000)
-		updated = initial.withReadOnlySpecs("M20", 2, 15, 3010).withEffectiveReadOnlyValues(initial)
+		updated = initial.withReadOnlySpecs("M20", 2, 15, 3010).withEffectiveReadOnlyValues(&initial)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -283,7 +283,7 @@ func TestAccAdvancedCluster_effectiveAnalyticsSpecs(t *testing.T) {
 	var (
 		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withInstanceSize("M10").
 			withAnalyticsSpecs("M10", 2, 10, 3000)
-		updated = initial.withAnalyticsSpecs("M20", 2, 15, 3010).withEffectiveAnalyticsValues(initial)
+		updated = initial.withAnalyticsSpecs("M20", 2, 15, 3010).withEffectiveAnalyticsValues(&initial)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -379,7 +379,7 @@ func (req effectiveReq) withDiskAutoScaling() effectiveReq {
 	return req
 }
 
-func (req effectiveReq) withEffectiveValues(effectiveReq effectiveReq) effectiveReq {
+func (req effectiveReq) withEffectiveValues(effectiveReq *effectiveReq) effectiveReq {
 	req.effectiveInstanceSize = effectiveReq.instanceSize
 	req.effectiveDiskSizeGB = effectiveReq.diskSizeGB
 	req.effectiveDiskIOPS = effectiveReq.diskIOPS
@@ -394,7 +394,7 @@ func (req effectiveReq) withReadOnlySpecs(instanceSize string, nodeCount, diskSi
 	return req
 }
 
-func (req effectiveReq) withEffectiveReadOnlyValues(effectiveReq effectiveReq) effectiveReq {
+func (req effectiveReq) withEffectiveReadOnlyValues(effectiveReq *effectiveReq) effectiveReq {
 	req.effectiveReadOnlyInstanceSize = effectiveReq.readOnlyInstanceSize
 	req.effectiveReadOnlyDiskSizeGB = effectiveReq.readOnlyDiskSizeGB
 	req.effectiveReadOnlyDiskIOPS = effectiveReq.readOnlyDiskIOPS
@@ -409,7 +409,7 @@ func (req effectiveReq) withAnalyticsSpecs(instanceSize string, nodeCount, diskS
 	return req
 }
 
-func (req effectiveReq) withEffectiveAnalyticsValues(effectiveReq effectiveReq) effectiveReq {
+func (req effectiveReq) withEffectiveAnalyticsValues(effectiveReq *effectiveReq) effectiveReq {
 	req.effectiveAnalyticsInstanceSize = effectiveReq.analyticsInstanceSize
 	req.effectiveAnalyticsDiskSizeGB = effectiveReq.analyticsDiskSizeGB
 	req.effectiveAnalyticsDiskIOPS = effectiveReq.analyticsDiskIOPS
