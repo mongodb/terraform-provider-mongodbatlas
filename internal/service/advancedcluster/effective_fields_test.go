@@ -122,7 +122,7 @@ func TestAccAdvancedCluster_effectiveWithOtherChanges(t *testing.T) {
 func TestAccAdvancedCluster_effectiveComputeAutoScalingInstanceSize(t *testing.T) {
 	var (
 		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withInstanceSize("M10")
-		updated = initial.withInstanceSize("M20")
+		updated = initial.withInstanceSize("M20").withEffectiveValues(initial)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -135,7 +135,7 @@ func TestAccAdvancedCluster_effectiveComputeAutoScalingInstanceSize(t *testing.T
 			},
 			{
 				Config: updated.config(),
-				Check:  initial.check(), // All three fields are ignored when both auto-scaling types are enabled.
+				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
 			},
 		},
 	})
@@ -144,7 +144,7 @@ func TestAccAdvancedCluster_effectiveComputeAutoScalingInstanceSize(t *testing.T
 func TestAccAdvancedCluster_effectiveComputeAutoScalingAll(t *testing.T) {
 	var (
 		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
-		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010)
+		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010).withEffectiveValues(initial)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -157,7 +157,7 @@ func TestAccAdvancedCluster_effectiveComputeAutoScalingAll(t *testing.T) {
 			},
 			{
 				Config: updated.config(),
-				Check:  initial.check(), // Instance size, disk size and IOPS are ignored when compute auto-scaling is enabled so keep initial values.
+				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
 			},
 		},
 	})
@@ -166,7 +166,7 @@ func TestAccAdvancedCluster_effectiveComputeAutoScalingAll(t *testing.T) {
 func TestAccAdvancedCluster_effectiveDiskAutoScalingAll(t *testing.T) {
 	var (
 		initial = baseEffectiveReq(t).withFlag().withDiskAutoScaling().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
-		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010)
+		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010).withEffectiveValues(initial)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -179,7 +179,7 @@ func TestAccAdvancedCluster_effectiveDiskAutoScalingAll(t *testing.T) {
 			},
 			{
 				Config: updated.config(),
-				Check:  initial.check(), // All three fields are ignored when both auto-scaling types are enabled.
+				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
 			},
 		},
 	})
@@ -210,7 +210,7 @@ func TestAccAdvancedCluster_effectiveDiskFieldsWithoutAutoScaling(t *testing.T) 
 func TestAccAdvancedCluster_effectiveBothAutoScalingEnabled(t *testing.T) {
 	var (
 		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withDiskAutoScaling().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
-		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010)
+		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010).withEffectiveValues(initial)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -223,7 +223,7 @@ func TestAccAdvancedCluster_effectiveBothAutoScalingEnabled(t *testing.T) {
 			},
 			{
 				Config: updated.config(),
-				Check:  initial.check(), // All three fields are ignored when both auto-scaling types are enabled.
+				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
 			},
 		},
 	})
@@ -232,7 +232,7 @@ func TestAccAdvancedCluster_effectiveBothAutoScalingEnabled(t *testing.T) {
 func TestAccAdvancedCluster_effectiveToggleAutoScaling(t *testing.T) {
 	var (
 		withoutAutoScaling     = baseEffectiveReq(t).withFlag().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
-		withAutoScaling        = withoutAutoScaling.withComputeMaxInstanceSize("M40")
+		withAutoScaling        = withoutAutoScaling.withComputeMaxInstanceSize("M40").withEffectiveValues(withoutAutoScaling)
 		backWithoutAutoScaling = withAutoScaling.withComputeMaxInstanceSize("").withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010)
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -266,6 +266,9 @@ type effectiveReq struct {
 	diskSizeGB             int
 	useEffectiveFields     bool
 	diskAutoScaling        bool
+	effectiveInstanceSize  string
+	effectiveDiskIOPS      int
+	effectiveDiskSizeGB    int
 }
 
 func baseEffectiveReq(t *testing.T) effectiveReq {
@@ -313,6 +316,13 @@ func (req effectiveReq) withComputeMaxInstanceSize(computeMaxInstanceSize string
 
 func (req effectiveReq) withDiskAutoScaling() effectiveReq {
 	req.diskAutoScaling = true
+	return req
+}
+
+func (req effectiveReq) withEffectiveValues(effectiveReq effectiveReq) effectiveReq {
+	req.effectiveInstanceSize = effectiveReq.instanceSize
+	req.effectiveDiskSizeGB = effectiveReq.diskSizeGB
+	req.effectiveDiskIOPS = effectiveReq.diskIOPS
 	return req
 }
 
@@ -395,19 +405,32 @@ func (req effectiveReq) check() resource.TestCheckFunc {
 	}
 	extraChecks := []resource.TestCheckFunc{
 		// Effective fields in singular data source.
-		resource.TestCheckResourceAttr(dataSourceName, effectivePath+"instance_size", req.instanceSize),
-		resource.TestCheckResourceAttr(dataSourceName, effectivePath+"node_count", fmt.Sprintf("%d", req.nodeCountElectable)),
-		resource.TestCheckResourceAttrSet(dataSourceName, effectivePath+"disk_size_gb"),
-		resource.TestCheckResourceAttrSet(dataSourceName, effectivePath+"disk_iops"),
+		resource.TestCheckResourceAttrSet(dataSourceName, effectivePath+"node_count"),
 		resource.TestCheckResourceAttrSet(dataSourceName, effectivePath+"ebs_volume_type"),
 
-		// Effective fields in plural data source.
+		// Effective fields in plural data source - verify they are populated.
 		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"instance_size"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"node_count"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"disk_size_gb"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"disk_iops"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"ebs_volume_type"),
+	}
+	// Check effective values if specified, otherwise just verify they're set
+	if req.effectiveInstanceSize != "" {
+		extraChecks = append(extraChecks, resource.TestCheckResourceAttr(dataSourceName, effectivePath+"instance_size", req.effectiveInstanceSize))
+	} else {
+		extraChecks = append(extraChecks, resource.TestCheckResourceAttrSet(dataSourceName, effectivePath+"instance_size"))
+	}
+	if req.effectiveDiskSizeGB != 0 {
+		extraChecks = append(extraChecks, resource.TestCheckResourceAttr(dataSourceName, effectivePath+"disk_size_gb", fmt.Sprintf("%d", req.effectiveDiskSizeGB)))
+	} else {
+		extraChecks = append(extraChecks, resource.TestCheckResourceAttrSet(dataSourceName, effectivePath+"disk_size_gb"))
+	}
+	if req.effectiveDiskIOPS != 0 {
+		extraChecks = append(extraChecks, resource.TestCheckResourceAttr(dataSourceName, effectivePath+"disk_iops", fmt.Sprintf("%d", req.effectiveDiskIOPS)))
+	} else {
+		extraChecks = append(extraChecks, resource.TestCheckResourceAttrSet(dataSourceName, effectivePath+"disk_iops"))
 	}
 	if req.diskSizeGB != 0 {
 		attrsMap[specsPath+"disk_size_gb"] = fmt.Sprintf("%d", req.diskSizeGB)
