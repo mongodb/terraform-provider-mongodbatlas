@@ -30,6 +30,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	GroupId          types.String `tfsdk:"project_id" autogen:"omitjson"`
-	ProjectIdWithTag types.String `tfsdk:"project_id_with_tag" autogen:"apiname:groupId,omitjson"`
+	ProjectIdWithTag types.String `tfsdk:"project_id_with_tag" apiname:"groupId" autogen:"omitjson"`
 	NormalAttr       types.String `tfsdk:"normal_attr"`
 }

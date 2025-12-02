@@ -57,8 +57,8 @@ func TestMarshalBasic(t *testing.T) {
 func TestMarshalWithApiNameTag(t *testing.T) {
 	// Test that apiname tag is used for JSON field name instead of struct field name
 	model := struct {
-		ProjectID types.String `tfsdk:"project_id" autogen:"apiname:groupId,omitjson"`
-		Name      types.String `tfsdk:"name" autogen:"apiname:clusterName"`
+		ProjectID types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+		Name      types.String `tfsdk:"name" apiname:"clusterName"`
 		RegularID types.String `tfsdk:"regular_id"` // No apiname tag, uses field name
 	}{
 		ProjectID: types.StringValue("proj123"),

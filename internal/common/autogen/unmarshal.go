@@ -50,19 +50,12 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 }
 
 // buildAPINameToFieldMap creates a mapping from API JSON name to struct field index.
-// It checks for apiname: tag first, otherwise uses the uncapitalized field name.
+// It checks for apiname tag first, otherwise uses the uncapitalized field name.
 func buildAPINameToFieldMap(structType reflect.Type) map[string]int {
 	result := make(map[string]int)
 	for i := range structType.NumField() {
 		field := structType.Field(i)
-		tags := strings.Split(field.Tag.Get(tagKey), ",")
-		apiName := ""
-		for _, tag := range tags {
-			if strings.HasPrefix(tag, tagAPINamePrefix) {
-				apiName = strings.TrimPrefix(tag, tagAPINamePrefix)
-				break
-			}
-		}
+		apiName := field.Tag.Get("apiname")
 		if apiName == "" {
 			apiName = stringcase.Uncapitalize(field.Name)
 		}

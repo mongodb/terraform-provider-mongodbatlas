@@ -60,8 +60,8 @@ func TestUnmarshalBasic(t *testing.T) {
 func TestUnmarshalWithAPINameTag(t *testing.T) {
 	// Test that apiname tag is used to map JSON field name to struct field
 	type modelst struct {
-		ProjectName types.String `tfsdk:"project_name" autogen:"apiname:groupName"`
-		Name        types.String `tfsdk:"name" autogen:"apiname:clusterName"`
+		ProjectName types.String `tfsdk:"project_name" apiname:"groupName"`
+		Name        types.String `tfsdk:"name" apiname:"clusterName"`
 		RegularName types.String `tfsdk:"regular_name"` // No apiname tag, uses Uncapitalize(field name) = "regularName"
 	}
 

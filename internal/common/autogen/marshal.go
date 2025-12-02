@@ -21,7 +21,7 @@ const (
 	tagValOmitJSON            = "omitjson"
 	tagValOmitJSONUpdate      = "omitjsonupdate"
 	tagValIncludeNullOnUpdate = "includenullonupdate"
-	tagAPINamePrefix          = "apiname:" // e.g., autogen:"apiname:groupId" means JSON field is "groupId"
+	tagAPIName                = "apiname" // e.g., apiname:"groupId" means JSON field is "groupId"
 )
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
@@ -63,7 +63,7 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 		}
 		attrNameModel := attrTypeModel.Name
 		// Check for apiname tag to get the actual JSON field name (for aliased attributes)
-		apiName := getAPINameFromTags(tags, attrNameModel)
+		apiName := getAPINameFromTag(attrTypeModel.Tag, attrNameModel)
 		attrValModel := valModel.Field(i)
 		includeNullOnUpdate := slices.Contains(tags, tagValIncludeNullOnUpdate)
 		if err := marshalAttr(apiName, attrValModel, objJSON, isUpdate, includeNullOnUpdate); err != nil {
@@ -73,13 +73,11 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 	return objJSON, nil
 }
 
-// getAPINameFromTags extracts the API name from tags if present (e.g., "apiname:groupId"),
+// getAPINameFromTag extracts the API name from the apiname tag if present (e.g., apiname:"groupId"),
 // otherwise returns the model name uncapitalized as the default JSON name.
-func getAPINameFromTags(tags []string, modelName string) string {
-	for _, tag := range tags {
-		if strings.HasPrefix(tag, tagAPINamePrefix) {
-			return strings.TrimPrefix(tag, tagAPINamePrefix)
-		}
+func getAPINameFromTag(structTag reflect.StructTag, modelName string) string {
+	if apiName := structTag.Get(tagAPIName); apiName != "" {
+		return apiName
 	}
 	return stringcase.Uncapitalize(modelName)
 }
