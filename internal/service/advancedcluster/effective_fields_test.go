@@ -121,7 +121,7 @@ func TestAccAdvancedCluster_effectiveWithOtherChanges(t *testing.T) {
 
 func TestAccAdvancedCluster_effectiveComputeAutoScalingInstanceSize(t *testing.T) {
 	var (
-		initial = baseEffectiveReq(t).withFlag().withComputeAutoScaling().withInstanceSize("M10")
+		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withInstanceSize("M10")
 		updated = initial.withInstanceSize("M20")
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -135,7 +135,7 @@ func TestAccAdvancedCluster_effectiveComputeAutoScalingInstanceSize(t *testing.T
 			},
 			{
 				Config: updated.config(),
-				Check:  initial.check(), // Instance size is ignored when compute auto-scaling is enabled so keep initial value.
+				Check:  initial.check(), // All three fields are ignored when both auto-scaling types are enabled.
 			},
 		},
 	})
@@ -143,7 +143,7 @@ func TestAccAdvancedCluster_effectiveComputeAutoScalingInstanceSize(t *testing.T
 
 func TestAccAdvancedCluster_effectiveComputeAutoScalingAll(t *testing.T) {
 	var (
-		initial = baseEffectiveReq(t).withFlag().withComputeAutoScaling().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
+		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
 		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010)
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -209,7 +209,7 @@ func TestAccAdvancedCluster_effectiveDiskFieldsWithoutAutoScaling(t *testing.T) 
 
 func TestAccAdvancedCluster_effectiveBothAutoScalingEnabled(t *testing.T) {
 	var (
-		initial = baseEffectiveReq(t).withFlag().withComputeAutoScaling().withDiskAutoScaling().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
+		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withDiskAutoScaling().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
 		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010)
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -232,8 +232,8 @@ func TestAccAdvancedCluster_effectiveBothAutoScalingEnabled(t *testing.T) {
 func TestAccAdvancedCluster_effectiveToggleAutoScaling(t *testing.T) {
 	var (
 		withoutAutoScaling     = baseEffectiveReq(t).withFlag().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
-		withAutoScaling        = withoutAutoScaling.withComputeAutoScaling()
-		backWithoutAutoScaling = withAutoScaling.withoutComputeAutoScaling().withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010)
+		withAutoScaling        = withoutAutoScaling.withComputeMaxInstanceSize("M40")
+		backWithoutAutoScaling = withAutoScaling.withComputeMaxInstanceSize("").withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -257,15 +257,15 @@ func TestAccAdvancedCluster_effectiveToggleAutoScaling(t *testing.T) {
 }
 
 type effectiveReq struct {
-	projectID          string
-	clusterName        string
-	instanceSize       string
-	nodeCountElectable int
-	diskIOPS           int
-	diskSizeGB         int
-	useEffectiveFields bool
-	computeAutoScaling bool
-	diskAutoScaling    bool
+	projectID              string
+	clusterName            string
+	instanceSize           string
+	nodeCountElectable     int
+	diskIOPS               int
+	diskSizeGB             int
+	useEffectiveFields     bool
+	computeMaxInstanceSize string
+	diskAutoScaling        bool
 }
 
 func baseEffectiveReq(t *testing.T) effectiveReq {
@@ -305,13 +305,9 @@ func (req effectiveReq) withDiskIOPS(diskIOPS int) effectiveReq {
 	req.diskIOPS = diskIOPS
 	return req
 }
-func (req effectiveReq) withComputeAutoScaling() effectiveReq {
-	req.computeAutoScaling = true
-	return req
-}
 
-func (req effectiveReq) withoutComputeAutoScaling() effectiveReq {
-	req.computeAutoScaling = false
+func (req effectiveReq) withComputeMaxInstanceSize(computeMaxInstanceSize string) effectiveReq {
+	req.computeMaxInstanceSize = computeMaxInstanceSize
 	return req
 }
 
@@ -329,10 +325,11 @@ func (req effectiveReq) config() string {
 	if req.useEffectiveFields {
 		extraRoot += "use_effective_fields = true\n"
 	}
-	if req.computeAutoScaling || req.diskAutoScaling {
+	if req.computeMaxInstanceSize != "" || req.diskAutoScaling {
 		extraRegionConfig += "auto_scaling = {\n"
-		if req.computeAutoScaling {
+		if req.computeMaxInstanceSize != "" {
 			extraRegionConfig += "\t\t\tcompute_enabled = true\n"
+			extraRegionConfig += fmt.Sprintf("\t\t\tcompute_max_instance_size = %q\n", req.computeMaxInstanceSize)
 		}
 		if req.diskAutoScaling {
 			extraRegionConfig += "\t\t\tdisk_gb_enabled = true\n"
@@ -418,8 +415,9 @@ func (req effectiveReq) check() resource.TestCheckFunc {
 	if req.diskIOPS != 0 {
 		attrsMap[specsPath+"disk_iops"] = fmt.Sprintf("%d", req.diskIOPS)
 	}
-	if req.computeAutoScaling {
+	if req.computeMaxInstanceSize != "" {
 		attrsMap[autoScalingPath+"compute_enabled"] = "true"
+		attrsMap[autoScalingPath+"compute_max_instance_size"] = req.computeMaxInstanceSize
 	}
 	if req.diskAutoScaling {
 		attrsMap[autoScalingPath+"disk_gb_enabled"] = "true"
