@@ -105,7 +105,7 @@ paths:
               x-xgen-version: 2023-01-01
           description: OK
       security:
-        - DigestAuth: [ ]
+        - DigestAuth: []
       summary: Disable the Test Resource feature for a project.
       tags:
         - Test Resource
@@ -123,7 +123,7 @@ paths:
               x-xgen-version: 2023-01-01
           description: OK
       security:
-        - DigestAuth: [ ]
+        - DigestAuth: []
       summary: Get the Test Resource configuration for a project
       tags:
         - Test Resource
@@ -147,7 +147,7 @@ paths:
               x-xgen-version: 2023-01-01
           description: OK
       security:
-        - DigestAuth: [ ]
+        - DigestAuth: []
       summary: Enable the Test Resource feature for a project
       tags:
         - Test Resource
@@ -397,7 +397,7 @@ paths:
               x-xgen-version: 2023-01-01
           description: OK
       security:
-        - DigestAuth: [ ]
+        - DigestAuth: []
       summary: Get the Test Singleton Resource configuration for a project
       tags:
         - Test Resource
@@ -421,7 +421,7 @@ paths:
               x-xgen-version: 2023-01-01
           description: OK
       security:
-        - DigestAuth: [ ]
+        - DigestAuth: []
       summary: Update the Test Singleton Resource feature for a project
       tags:
         - Test Singleton Resource
@@ -1025,5 +1025,13 @@ components:
               description: Inner attribute
           required:
             - innerAttr
+        nestedObjectDB:
+          type: object
+          properties:
+            apiKey:
+              type: string
+              description: API key for the nested object DB
+          required:
+            - apiKey
       required:
         - MongoDBMajorVersion

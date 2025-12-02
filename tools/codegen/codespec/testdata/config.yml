@@ -150,3 +150,5 @@ resources:
         MongoDBMajorVersion: mongoDbVersion
         # Test nested path-based alias with multiple caps
         nestedObject.innerAttr: innerAttribute
+        # Test nested object with multiple consecutive caps (nestedObjectDB) and alias one of its inner attributes
+        nestedObjectDB.apiKey: apiKeyAlias

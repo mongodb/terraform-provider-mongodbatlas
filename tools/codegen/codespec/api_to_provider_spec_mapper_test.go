@@ -1181,6 +1181,30 @@ func TestConvertToProviderSpec_multipleConsecutiveCaps(t *testing.T) {
 							Description:  conversion.StringPtr(""),
 							ReqBodyUsage: codespec.AllRequestBodies,
 						},
+						{
+							TFSchemaName:             "nested_object_db",
+							TFModelName:              "NestedObjectDB",
+							APIName:                  "nestedObjectDB", // Preserves multiple consecutive caps in nested object name
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomObjectType("NestedObjectDB"),
+							SingleNested: &codespec.SingleNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: codespec.Attributes{
+										{
+											TFSchemaName:             "api_key_alias",
+											TFModelName:              "ApiKeyAlias", // Aliased from apiKey
+											APIName:                  "apiKey",      // Original API name preserved
+											ComputedOptionalRequired: codespec.Required,
+											String:                   &codespec.StringAttribute{},
+											Description:              conversion.StringPtr("API key for the nested object DB"),
+											ReqBodyUsage:             codespec.AllRequestBodies,
+										},
+									},
+								},
+							},
+							Description:  conversion.StringPtr(""),
+							ReqBodyUsage: codespec.AllRequestBodies,
+						},
 					},
 				},
 				Name:        "test_resource_with_multiple_caps",
@@ -1216,6 +1240,7 @@ func TestConvertToProviderSpec_multipleConsecutiveCaps(t *testing.T) {
 	// 1. MongoDBMajorVersion was aliased to mongoDbVersion (schema name)
 	// 2. The APIName is preserved as "MongoDBMajorVersion" (not "MongoDbMajorVersion")
 	// 3. The nested alias also worked: nestedObject.innerAttr -> nestedObject.innerAttribute
+	// 4. The nestedObjectDB (with multiple consecutive caps) alias works: nestedObjectDB.apiKey -> nestedObjectDB.privateApiKey
 	mongoDbVersionAttr := result.Resources[0].Schema.Attributes[1] // Index 1 (after groupId)
 	assert.Equal(t, "mongo_db_version", mongoDbVersionAttr.TFSchemaName, "Schema name should be aliased")
 	assert.Equal(t, "MongoDbVersion", mongoDbVersionAttr.TFModelName, "Model name should be aliased")
@@ -1227,4 +1252,13 @@ func TestConvertToProviderSpec_multipleConsecutiveCaps(t *testing.T) {
 	assert.Equal(t, "inner_attribute", innerAttr.TFSchemaName, "Nested schema name should be aliased")
 	assert.Equal(t, "InnerAttribute", innerAttr.TFModelName, "Nested model name should be aliased")
 	assert.Equal(t, "innerAttr", innerAttr.APIName, "Nested APIName should be preserved")
+
+	nestedObjectDBAttr := result.Resources[0].Schema.Attributes[3] // Index 3 (after groupId, mongoDbVersion, and nestedObject)
+	assert.Equal(t, "nested_object_db", nestedObjectDBAttr.TFSchemaName, "Schema name should be snake_case")
+	assert.Equal(t, "NestedObjectDB", nestedObjectDBAttr.TFModelName, "Model name should preserve multiple consecutive caps")
+	assert.Equal(t, "nestedObjectDB", nestedObjectDBAttr.APIName, "APIName should preserve original casing with multiple consecutive caps")
+	apiKeyAttr := nestedObjectDBAttr.SingleNested.NestedObject.Attributes[0]
+	assert.Equal(t, "api_key_alias", apiKeyAttr.TFSchemaName, "Nested schema name should be aliased")
+	assert.Equal(t, "ApiKeyAlias", apiKeyAttr.TFModelName, "Nested model name should be aliased")
+	assert.Equal(t, "apiKey", apiKeyAttr.APIName, "Nested APIName should be preserved")
 }
