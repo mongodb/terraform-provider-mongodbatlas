@@ -16,7 +16,7 @@ const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resour
 
 func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resource *Resource) error {
 	// Start with empty paths for both schemaPath (snake_case) and apiPath (camelCase)
-	if err := applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, "", ""); err != nil {
+	if err := applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
 	applyAliasToPathParams(resource, resourceConfig.SchemaOptions.Aliases)
@@ -43,7 +43,7 @@ var transformations = []AttributeTransformation{
 	createOnlyTransformation,
 }
 
-func applyAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentSchemaPath, parentAPIPath string) error {
+func applyAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths) error {
 	ignoredAttrs := getIgnoredAttributesMap(schemaOptions.Ignores)
 
 	var finalAttributes Attributes
@@ -51,8 +51,8 @@ func applyAttributeTransformations(schemaOptions config.SchemaOptions, attribute
 	for i := range *attributes {
 		attr := &(*attributes)[i]
 		paths := attrPaths{
-			schemaPath: buildPath(parentSchemaPath, attr.TFSchemaName),
-			apiPath:    buildPath(parentAPIPath, attr.APIName),
+			schemaPath: buildPath(parentPaths.schemaPath, attr.TFSchemaName),
+			apiPath:    buildPath(parentPaths.apiPath, attr.APIName),
 		}
 
 		if shouldIgnoreAttribute(paths.schemaPath, ignoredAttrs) {
@@ -68,19 +68,19 @@ func applyAttributeTransformations(schemaOptions config.SchemaOptions, attribute
 		// apply transformations to nested attributes
 		switch {
 		case attr.ListNested != nil:
-			if err := applyAttributeTransformations(schemaOptions, &attr.ListNested.NestedObject.Attributes, paths.schemaPath, paths.apiPath); err != nil {
+			if err := applyAttributeTransformations(schemaOptions, &attr.ListNested.NestedObject.Attributes, &paths); err != nil {
 				return err
 			}
 		case attr.SingleNested != nil:
-			if err := applyAttributeTransformations(schemaOptions, &attr.SingleNested.NestedObject.Attributes, paths.schemaPath, paths.apiPath); err != nil {
+			if err := applyAttributeTransformations(schemaOptions, &attr.SingleNested.NestedObject.Attributes, &paths); err != nil {
 				return err
 			}
 		case attr.SetNested != nil:
-			if err := applyAttributeTransformations(schemaOptions, &attr.SetNested.NestedObject.Attributes, paths.schemaPath, paths.apiPath); err != nil {
+			if err := applyAttributeTransformations(schemaOptions, &attr.SetNested.NestedObject.Attributes, &paths); err != nil {
 				return err
 			}
 		case attr.MapNested != nil:
-			if err := applyAttributeTransformations(schemaOptions, &attr.MapNested.NestedObject.Attributes, paths.schemaPath, paths.apiPath); err != nil {
+			if err := applyAttributeTransformations(schemaOptions, &attr.MapNested.NestedObject.Attributes, &paths); err != nil {
 				return err
 			}
 		}
