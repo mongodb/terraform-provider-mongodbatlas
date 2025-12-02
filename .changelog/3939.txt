@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_advanced_cluster: Adds `use_effective_fields` attribute to improve auto-scaling workflows, eliminating the need for `lifecycle.ignore_changes` blocks
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_cluster: Adds `use_effective_fields`, `effective_electable_specs`, `effective_read_only_specs` and `effective_analytics_specs` attributes to expose actual specifications
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_clusters: Adds `use_effective_fields`, `effective_electable_specs`, `effective_read_only_specs` and `effective_analytics_specs` attributes to expose actual specifications
+```
