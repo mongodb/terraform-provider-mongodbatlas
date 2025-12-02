@@ -261,14 +261,14 @@ type effectiveReq struct {
 	clusterName            string
 	instanceSize           string
 	computeMaxInstanceSize string
+	effectiveInstanceSize  string
 	nodeCountElectable     int
 	diskIOPS               int
 	diskSizeGB             int
-	useEffectiveFields     bool
-	diskAutoScaling        bool
-	effectiveInstanceSize  string
 	effectiveDiskIOPS      int
 	effectiveDiskSizeGB    int
+	useEffectiveFields     bool
+	diskAutoScaling        bool
 }
 
 func baseEffectiveReq(t *testing.T) effectiveReq {
