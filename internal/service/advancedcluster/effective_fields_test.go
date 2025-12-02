@@ -349,33 +349,33 @@ func TestAccAdvancedCluster_effectiveAnalyticsSpecsWithAutoScaling(t *testing.T)
 }
 
 type effectiveReq struct {
-	readOnlyInstanceSize               string
-	clusterName                        string
-	instanceSize                       string
-	computeMaxInstanceSize             string
-	analyticsComputeMaxInstanceSize    string
-	effectiveInstanceSize              string
-	effectiveAnalyticsInstanceSize     string
-	projectID                          string
-	analyticsInstanceSize              string
-	effectiveReadOnlyInstanceSize      string
-	diskIOPS                           int
-	effectiveReadOnlyDiskSizeGB        int
-	effectiveAnalyticsDiskSizeGB       int
-	effectiveDiskSizeGB                int
-	readOnlyDiskIOPS                   int
-	readOnlyDiskSizeGB                 int
-	readOnlyNodeCount                  int
-	effectiveDiskIOPS                  int
-	effectiveReadOnlyDiskIOPS          int
-	effectiveAnalyticsDiskIOPS         int
-	diskSizeGB                         int
-	analyticsDiskIOPS                  int
-	analyticsDiskSizeGB                int
-	analyticsNodeCount                 int
-	nodeCountElectable                 int
-	useEffectiveFields                 bool
-	diskAutoScaling                    bool
+	readOnlyInstanceSize            string
+	clusterName                     string
+	instanceSize                    string
+	computeMaxInstanceSize          string
+	analyticsComputeMaxInstanceSize string
+	effectiveInstanceSize           string
+	effectiveAnalyticsInstanceSize  string
+	projectID                       string
+	analyticsInstanceSize           string
+	effectiveReadOnlyInstanceSize   string
+	diskIOPS                        int
+	effectiveReadOnlyDiskSizeGB     int
+	effectiveAnalyticsDiskSizeGB    int
+	effectiveDiskSizeGB             int
+	readOnlyDiskIOPS                int
+	readOnlyDiskSizeGB              int
+	readOnlyNodeCount               int
+	effectiveDiskIOPS               int
+	effectiveReadOnlyDiskIOPS       int
+	effectiveAnalyticsDiskIOPS      int
+	diskSizeGB                      int
+	analyticsDiskIOPS               int
+	analyticsDiskSizeGB             int
+	analyticsNodeCount              int
+	nodeCountElectable              int
+	useEffectiveFields              bool
+	diskAutoScaling                 bool
 }
 
 func baseEffectiveReq(t *testing.T) effectiveReq {
