@@ -24,9 +24,30 @@ var (
 	}
 )
 
-// useStateForUnknowns should be called only in Update, because of findClusterDiff
-func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	AdjustRegionConfigsChildren(ctx, diags, state, plan)
+// handleModifyPlan should be called only in Update, because of findClusterDiff
+func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+	// Special logic for use_effective_fields changes, as normal optimization is not safe.
+	if state.UseEffectiveFields.ValueBool() != plan.UseEffectiveFields.ValueBool() {
+		if isReadOnlySpecsDeleted(ctx, diags, state, plan) {
+			diags.AddError(
+				"Cannot remove read_only_specs blocks while toggling use_effective_fields",
+				"Your configuration previously had read_only_specs blocks that were removed. "+
+					"To keep read-only nodes, add the blocks back. To delete them, add the blocks back with node_count = 0. "+
+					"After adding the blocks back, apply without toggling use_effective_fields, then toggle the flag in a separate apply.",
+			)
+		}
+		if isAnalyticsSpecsDeleted(ctx, diags, state, plan) {
+			diags.AddError(
+				"Cannot remove analytics_specs blocks while toggling use_effective_fields",
+				"Your configuration previously had analytics_specs blocks that have been removed. "+
+					"To keep analytics nodes, add the blocks back. To delete them, add the blocks back with node_count = 0. "+
+					"After adding the blocks back, apply without toggling use_effective_fields, then toggle the flag in a separate apply.",
+			)
+		}
+		return
+	}
+
+	adjustRegionConfigsChildren(ctx, diags, state, plan)
 
 	diff := findClusterDiff(ctx, state, plan, diags)
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
@@ -39,9 +60,9 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
 }
 
-// AdjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
+// adjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
 // This ensures proper handling of removing auto scaling and specs attributes by preserving state values.
-func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+func adjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	if diags.HasError() {
@@ -166,6 +187,54 @@ func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *
 						return true
 					}
 				}
+			}
+		}
+	}
+	return false
+}
+
+// isReadOnlySpecsDeleted detects if any read_only_specs block with node_count > 0 was deleted from the plan.
+func isReadOnlySpecsDeleted(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) bool {
+	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
+	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
+	if diags.HasError() {
+		return false
+	}
+	for i := range minLen(planRepSpecsTF, stateRepSpecsTF) {
+		stateRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, stateRepSpecsTF[i].RegionConfigs)
+		planRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecsTF[i].RegionConfigs)
+		if diags.HasError() {
+			return false
+		}
+		for j := range minLen(planRegionConfigsTF, stateRegionConfigsTF) {
+			stateReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ReadOnlySpecs)
+			planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
+			if stateReadOnlySpecs != nil && stateReadOnlySpecs.NodeCount.ValueInt64() > 0 && planReadOnlySpecs == nil {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// isAnalyticsSpecsDeleted detects if any analytics_specs block with node_count > 0 was deleted from the plan.
+func isAnalyticsSpecsDeleted(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) bool {
+	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
+	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
+	if diags.HasError() {
+		return false
+	}
+	for i := range minLen(planRepSpecsTF, stateRepSpecsTF) {
+		stateRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, stateRepSpecsTF[i].RegionConfigs)
+		planRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecsTF[i].RegionConfigs)
+		if diags.HasError() {
+			return false
+		}
+		for j := range minLen(planRegionConfigsTF, stateRegionConfigsTF) {
+			stateAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
+			planAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].AnalyticsSpecs)
+			if stateAnalyticsSpecs != nil && stateAnalyticsSpecs.NodeCount.ValueInt64() > 0 && planAnalyticsSpecs == nil {
+				return true
 			}
 		}
 	}

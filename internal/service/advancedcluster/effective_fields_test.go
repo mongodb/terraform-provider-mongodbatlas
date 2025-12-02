@@ -97,28 +97,6 @@ func TestAccAdvancedCluster_effectiveTenantFlex(t *testing.T) {
 	})
 }
 
-func TestAccAdvancedCluster_effectiveWithOtherChanges(t *testing.T) {
-	var (
-		unset      = baseEffectiveReq(t).withInstanceSize("M10").withoutFlag()
-		setUpdated = unset.withInstanceSize("M20").withFlag()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: unset.config(),
-				Check:  unset.check(),
-			},
-			{
-				Config:      setUpdated.config(),
-				ExpectError: regexp.MustCompile("Cannot change use_effective_fields with replication_specs changes"),
-			},
-		},
-	})
-}
-
 func TestAccAdvancedCluster_effectiveComputeAutoScalingInstanceSize(t *testing.T) {
 	var (
 		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withInstanceSize("M10")
@@ -343,6 +321,47 @@ func TestAccAdvancedCluster_effectiveAnalyticsSpecsWithAutoScaling(t *testing.T)
 			{
 				Config: updated.config(),
 				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_effectiveErrorDeletingSpecsWhileTogglingFlag(t *testing.T) {
+	var (
+		base    = baseEffectiveReq(t).withComputeMaxInstanceSize("M40").withInstanceSize("M10")
+		initial = base.withReadOnlySpecs("M10", 1, 10, 3000).
+			withAnalyticsSpecs("M10", 2, 10, 3000)
+		readOnlyRemoved  = base.withAnalyticsSpecs("M10", 1, 10, 3000)
+		analyticsRemoved = base.withReadOnlySpecs("M10", 2, 10, 3000)
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: initial.config(),
+				Check:  initial.check(),
+			},
+			{
+				Config: readOnlyRemoved.config(),
+				Check:  readOnlyRemoved.check(),
+			},
+			{
+				Config:      readOnlyRemoved.withFlag().config(),
+				ExpectError: regexp.MustCompile("Cannot remove read_only_specs blocks while toggling use_effective_fields"),
+			},
+			{
+				Config: initial.config(),
+				Check:  initial.check(),
+			},
+			{
+				Config: analyticsRemoved.config(),
+				Check:  analyticsRemoved.check(),
+			},
+			{
+				Config:      analyticsRemoved.withFlag().config(),
+				ExpectError: regexp.MustCompile("Cannot remove analytics_specs blocks while toggling use_effective_fields"),
 			},
 		},
 	})
