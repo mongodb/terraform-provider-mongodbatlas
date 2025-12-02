@@ -254,6 +254,10 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		if diags.HasError() {
 			return
 		}
+		if diff.isAnyChange() && state.UseEffectiveFields.ValueBool() != plan.UseEffectiveFields.ValueBool() {
+			diags.AddError("Cannot change use_effective_fields with other cluster changes", "The use_effective_fields attribute must be changed separately from other cluster configuration changes.")
+			return
+		}
 		switch {
 		case diff.isUpgradeTenantToFlex:
 			if flexOut := handleFlexUpgrade(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
@@ -508,6 +512,10 @@ func (c *clusterDiff) isUpgradeFlexToDedicated() bool {
 
 func (c *clusterDiff) isAnyUpgrade() bool {
 	return c.isUpgradeTenantToFlex || c.isUpgradeTenant() || c.isUpgradeFlexToDedicated()
+}
+
+func (c *clusterDiff) isAnyChange() bool {
+	return c.isClusterPatchOnly() || c.isAnyUpgrade() || c.isUpdateOfFlex
 }
 
 // findClusterDiff should be called only in Update, e.g. it will fail for a flex cluster with no changes.
