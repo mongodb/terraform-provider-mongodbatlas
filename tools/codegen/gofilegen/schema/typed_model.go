@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 )
 
@@ -65,6 +66,12 @@ func typedModelProperty(attr *codespec.Attribute) string {
 		tagsStr  = ""
 		tags     = make([]string, 0)
 	)
+
+	// Add apiname tag if the API name is different from the uncapitalized model name
+	// This ensures correct marshaling/unmarshaling when TFModelName doesn't derive to the correct API property name
+	if attr.APIName != "" && attr.APIName != stringcase.Uncapitalize(attr.TFModelName) {
+		tags = append(tags, fmt.Sprintf("apiname:%s", attr.APIName))
+	}
 
 	if attr.Sensitive {
 		tags = append(tags, "sensitive")

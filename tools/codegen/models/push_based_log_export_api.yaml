@@ -6,6 +6,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: bucket_name
           tf_model_name: BucketName
+          api_name: bucketName
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -14,6 +15,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: create_date
           tf_model_name: CreateDate
+          api_name: createDate
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -25,6 +27,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
+          api_name: groupId
           req_body_usage: omit_always
           sensitive: false
           create_only: true
@@ -33,6 +36,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: iam_role_id
           tf_model_name: IamRoleId
+          api_name: iamRoleId
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -41,6 +45,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: prefix_path
           tf_model_name: PrefixPath
+          api_name: prefixPath
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -49,6 +54,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: state
           tf_model_name: State
+          api_name: state
           req_body_usage: omit_always
           sensitive: false
           create_only: false

@@ -116,8 +116,11 @@ func applyAliasToAttribute(attr *Attribute, attrPathName *string, schemaOptions 
 	}
 
 	if found {
-		// Only change TFSchemaName, NOT TFModelName (TFModelName is needed for API marshaling/unmarshalling)
+		// Change both TFSchemaName and TFModelName to the aliased name.
+		// The APIName field preserves the original API property name, and the apiname tag
+		// will be generated when TFModelName doesn't derive to the correct API name.
 		attr.TFSchemaName = stringcase.ToSnakeCase(aliasCamel)
+		attr.TFModelName = stringcase.Capitalize(aliasCamel)
 		// Update the path name to reflect the new schema name
 		parts := strings.Split(*attrPathName, ".")
 		if len(parts) > 0 {

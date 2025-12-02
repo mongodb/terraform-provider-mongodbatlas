@@ -307,6 +307,45 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "deprecation-message",
 		},
+		"Apiname tag generation": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: []codespec.Attribute{
+						{
+							// APIName matches Uncapitalize(TFModelName) - no apiname tag needed
+							TFSchemaName:             "project_id",
+							TFModelName:              "GroupId",
+							APIName:                  "groupId",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("project identifier (aliased from groupId)"),
+							ComputedOptionalRequired: codespec.Required,
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+						{
+							// APIName differs from Uncapitalize(TFModelName) - apiname tag needed
+							TFSchemaName:             "project_id_with_tag",
+							TFModelName:              "ProjectIdWithTag",
+							APIName:                  "groupId",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("project identifier with explicit apiname tag"),
+							ComputedOptionalRequired: codespec.Required,
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+						{
+							// Empty APIName - no apiname tag (backwards compatible)
+							TFSchemaName:             "normal_attr",
+							TFModelName:              "NormalAttr",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("normal attribute without APIName"),
+							ComputedOptionalRequired: codespec.Optional,
+						},
+					},
+				},
+			},
+			goldenFileName: "apiname-tag",
+		},
 		"Plan modifiers using create only": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",

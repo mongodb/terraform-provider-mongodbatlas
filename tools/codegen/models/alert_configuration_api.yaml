@@ -9,6 +9,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: created
           tf_model_name: Created
+          api_name: created
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -18,6 +19,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: enabled
           tf_model_name: Enabled
+          api_name: enabled
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -26,6 +28,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: event_type_name
           tf_model_name: EventTypeName
+          api_name: eventTypeName
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -37,6 +40,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
+          api_name: groupId
           req_body_usage: omit_always
           sensitive: false
           create_only: true
@@ -45,6 +49,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: id
           tf_model_name: Id
+          api_name: id
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -56,6 +61,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: href
                       tf_model_name: Href
+                      api_name: href
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -64,6 +70,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: rel
                       tf_model_name: Rel
+                      api_name: rel
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -75,6 +82,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: links
           tf_model_name: Links
+          api_name: links
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -86,6 +94,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: field_name
                       tf_model_name: FieldName
+                      api_name: fieldName
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -94,6 +103,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: operator
                       tf_model_name: Operator
+                      api_name: operator
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -102,6 +112,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: value
                       tf_model_name: Value
+                      api_name: value
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -113,6 +124,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: matchers
           tf_model_name: Matchers
+          api_name: matchers
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -124,6 +136,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: metric_name
                       tf_model_name: MetricName
+                      api_name: metricName
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -132,6 +145,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: mode
                       tf_model_name: Mode
+                      api_name: mode
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -140,6 +154,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: operator
                       tf_model_name: Operator
+                      api_name: operator
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -148,6 +163,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: threshold
                       tf_model_name: Threshold
+                      api_name: threshold
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -157,6 +173,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: units
                       tf_model_name: Units
+                      api_name: units
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -168,6 +185,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: metric_threshold
           tf_model_name: MetricThreshold
+          api_name: metricThreshold
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -179,6 +197,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: api_token
                       tf_model_name: ApiToken
+                      api_name: apiToken
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
@@ -187,6 +206,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: channel_name
                       tf_model_name: ChannelName
+                      api_name: channelName
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -202,6 +222,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: datadog_api_key
                       tf_model_name: DatadogApiKey
+                      api_name: datadogApiKey
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
@@ -211,6 +232,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: datadog_region
                       tf_model_name: DatadogRegion
+                      api_name: datadogRegion
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -219,6 +241,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: delay_min
                       tf_model_name: DelayMin
+                      api_name: delayMin
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -235,6 +258,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: email_address
                       tf_model_name: EmailAddress
+                      api_name: emailAddress
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -248,6 +272,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: email_enabled
                       tf_model_name: EmailEnabled
+                      api_name: emailEnabled
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -256,6 +281,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: integration_id
                       tf_model_name: IntegrationId
+                      api_name: integrationId
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -267,6 +293,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: interval_min
                       tf_model_name: IntervalMin
+                      api_name: intervalMin
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -278,6 +305,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: microsoft_teams_webhook_url
                       tf_model_name: MicrosoftTeamsWebhookUrl
+                      api_name: microsoftTeamsWebhookUrl
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
@@ -286,6 +314,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: mobile_number
                       tf_model_name: MobileNumber
+                      api_name: mobileNumber
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -301,6 +330,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: notification_token
                       tf_model_name: NotificationToken
+                      api_name: notificationToken
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
@@ -309,6 +339,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: notifier_id
                       tf_model_name: NotifierId
+                      api_name: notifierId
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -324,6 +355,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: ops_genie_api_key
                       tf_model_name: OpsGenieApiKey
+                      api_name: opsGenieApiKey
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
@@ -333,6 +365,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: ops_genie_region
                       tf_model_name: OpsGenieRegion
+                      api_name: opsGenieRegion
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -342,6 +375,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: region
                       tf_model_name: Region
+                      api_name: region
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -355,6 +389,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: roles
                       tf_model_name: Roles
+                      api_name: roles
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -363,6 +398,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: room_name
                       tf_model_name: RoomName
+                      api_name: roomName
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -378,6 +414,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: service_key
                       tf_model_name: ServiceKey
+                      api_name: serviceKey
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
@@ -391,6 +428,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: sms_enabled
                       tf_model_name: SmsEnabled
+                      api_name: smsEnabled
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -399,6 +437,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: team_id
                       tf_model_name: TeamId
+                      api_name: teamId
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -407,6 +446,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: team_name
                       tf_model_name: TeamName
+                      api_name: teamName
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -415,6 +455,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: type_name
                       tf_model_name: TypeName
+                      api_name: typeName
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -423,6 +464,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: username
                       tf_model_name: Username
+                      api_name: username
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -438,6 +480,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: victor_ops_api_key
                       tf_model_name: VictorOpsApiKey
+                      api_name: victorOpsApiKey
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
@@ -446,6 +489,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: victor_ops_routing_key
                       tf_model_name: VictorOpsRoutingKey
+                      api_name: victorOpsRoutingKey
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -461,6 +505,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: webhook_secret
                       tf_model_name: WebhookSecret
+                      api_name: webhookSecret
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
@@ -476,6 +521,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: webhook_url
                       tf_model_name: WebhookUrl
+                      api_name: webhookUrl
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
@@ -487,6 +533,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: notifications
           tf_model_name: Notifications
+          api_name: notifications
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -495,6 +542,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: severity_override
           tf_model_name: SeverityOverride
+          api_name: severityOverride
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -506,6 +554,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: metric_name
                       tf_model_name: MetricName
+                      api_name: metricName
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -514,6 +563,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: mode
                       tf_model_name: Mode
+                      api_name: mode
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -522,6 +572,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: operator
                       tf_model_name: Operator
+                      api_name: operator
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -530,6 +581,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: threshold
                       tf_model_name: Threshold
+                      api_name: threshold
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -539,6 +591,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: units
                       tf_model_name: Units
+                      api_name: units
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -550,6 +603,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: threshold
           tf_model_name: Threshold
+          api_name: threshold
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -558,6 +612,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: updated
           tf_model_name: Updated
+          api_name: updated
           req_body_usage: omit_always
           sensitive: false
           create_only: false

@@ -9,6 +9,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
+          api_name: groupId
           req_body_usage: omit_always
           sensitive: false
           create_only: true
@@ -17,6 +18,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: name
           tf_model_name: Name
+          api_name: name
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -31,6 +33,7 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: coll
                                   tf_model_name: Coll
+                                  api_name: coll
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
@@ -39,6 +42,7 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: connection_name
                                   tf_model_name: ConnectionName
+                                  api_name: connectionName
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
@@ -47,6 +51,7 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: db
                                   tf_model_name: Db
+                                  api_name: db
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
@@ -58,6 +63,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: dlq
                       tf_model_name: Dlq
+                      api_name: dlq
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -66,6 +72,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: resume_from_checkpoint
                       tf_model_name: ResumeFromCheckpoint
+                      api_name: resumeFromCheckpoint
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -77,6 +84,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: options
           tf_model_name: Options
+          api_name: options
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -90,6 +98,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: pipeline
           tf_model_name: Pipeline
+          api_name: pipeline
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -98,6 +107,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: state
           tf_model_name: State
+          api_name: state
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -111,6 +121,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: stats
           tf_model_name: Stats
+          api_name: stats
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -119,6 +130,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: tenant_name
           tf_model_name: TenantName
+          api_name: tenantName
           req_body_usage: omit_always
           sensitive: false
           create_only: true
@@ -127,6 +139,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: tier
           tf_model_name: Tier
+          api_name: tier
           req_body_usage: omit_always
           sensitive: false
           create_only: false

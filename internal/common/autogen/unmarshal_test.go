@@ -57,6 +57,28 @@ func TestUnmarshalBasic(t *testing.T) {
 	assert.Equal(t, int64(1), model.AttrMANYUpper.ValueInt64())
 }
 
+func TestUnmarshalWithApiNameTag(t *testing.T) {
+	// Test that apiname tag is used to map JSON field name to struct field
+	type modelst struct {
+		ProjectID types.String `tfsdk:"project_id" autogen:"apiname:groupId"`
+		Name      types.String `tfsdk:"name" autogen:"apiname:clusterName"`
+		RegularID types.String `tfsdk:"regular_id"` // No apiname tag, uses field name
+	}
+
+	var model modelst
+	const jsonResp = `
+		{
+			"groupId": "proj123",
+			"clusterName": "my-cluster",
+			"regularId": "reg456"
+		}
+	`
+	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
+	assert.Equal(t, "proj123", model.ProjectID.ValueString())
+	assert.Equal(t, "my-cluster", model.Name.ValueString())
+	assert.Equal(t, "reg456", model.RegularID.ValueString())
+}
+
 func TestUnmarshalDynamicJSONAttr(t *testing.T) {
 	ctx := context.Background()
 

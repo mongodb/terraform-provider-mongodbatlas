@@ -6,6 +6,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: cluster_count
           tf_model_name: ClusterCount
+          api_name: clusterCount
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -14,6 +15,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: created
           tf_model_name: Created
+          api_name: created
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -22,6 +24,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: id
           tf_model_name: Id
+          api_name: id
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -30,6 +33,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: name
           tf_model_name: Name
+          api_name: name
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -38,6 +42,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: org_id
           tf_model_name: OrgId
+          api_name: orgId
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
@@ -56,6 +61,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: region_usage_restrictions
           tf_model_name: RegionUsageRestrictions
+          api_name: regionUsageRestrictions
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: false
@@ -67,6 +73,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: key
                       tf_model_name: Key
+                      api_name: key
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -75,6 +82,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: value
                       tf_model_name: Value
+                      api_name: value
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -86,6 +94,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: tags
           tf_model_name: Tags
+          api_name: tags
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -95,6 +104,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: with_default_alerts_settings
           tf_model_name: WithDefaultAlertsSettings
+          api_name: withDefaultAlertsSettings
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: false

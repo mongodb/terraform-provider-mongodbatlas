@@ -7,6 +7,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: aws_iam_type
           tf_model_name: AwsIAMType
+          api_name: awsIAMType
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -16,6 +17,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: database_name
           tf_model_name: DatabaseName
+          api_name: databaseName
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -24,6 +26,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: delete_after_date
           tf_model_name: DeleteAfterDate
+          api_name: deleteAfterDate
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -32,6 +35,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: description
           tf_model_name: Description
+          api_name: description
           req_body_usage: include_null_on_update
           sensitive: false
           create_only: false
@@ -43,6 +47,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
+          api_name: groupId
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -54,6 +59,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: key
                       tf_model_name: Key
+                      api_name: key
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -62,6 +68,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: value
                       tf_model_name: Value
+                      api_name: value
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -73,6 +80,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: labels
           tf_model_name: Labels
+          api_name: labels
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -82,6 +90,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: ldap_auth_type
           tf_model_name: LdapAuthType
+          api_name: ldapAuthType
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -91,6 +100,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: oidc_auth_type
           tf_model_name: OidcAuthType
+          api_name: oidcAuthType
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -99,6 +109,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: password
           tf_model_name: Password
+          api_name: password
           req_body_usage: all_request_bodies
           sensitive: true
           create_only: false
@@ -110,6 +121,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: collection_name
                       tf_model_name: CollectionName
+                      api_name: collectionName
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -118,6 +130,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: database_name
                       tf_model_name: DatabaseName
+                      api_name: databaseName
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -126,6 +139,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: role_name
                       tf_model_name: RoleName
+                      api_name: roleName
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -137,6 +151,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: roles
           tf_model_name: Roles
+          api_name: roles
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -148,6 +163,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: name
                       tf_model_name: Name
+                      api_name: name
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -156,6 +172,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: type
                       tf_model_name: Type
+                      api_name: type
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -167,6 +184,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: scopes
           tf_model_name: Scopes
+          api_name: scopes
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -188,6 +206,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: username
           tf_model_name: Username
+          api_name: username
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -203,6 +222,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: x509_type
           tf_model_name: X509Type
+          api_name: x509Type
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false

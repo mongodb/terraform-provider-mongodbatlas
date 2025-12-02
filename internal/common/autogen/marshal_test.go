@@ -54,6 +54,29 @@ func TestMarshalBasic(t *testing.T) {
 	assert.JSONEq(t, expectedJSON, string(raw))
 }
 
+func TestMarshalWithApiNameTag(t *testing.T) {
+	// Test that apiname tag is used for JSON field name instead of struct field name
+	model := struct {
+		ProjectID types.String `tfsdk:"project_id" autogen:"apiname:groupId,omitjson"`
+		Name      types.String `tfsdk:"name" autogen:"apiname:clusterName"`
+		RegularID types.String `tfsdk:"regular_id"` // No apiname tag, uses field name
+	}{
+		ProjectID: types.StringValue("proj123"),
+		Name:      types.StringValue("my-cluster"),
+		RegularID: types.StringValue("reg456"),
+	}
+	const expectedJSON = `
+		{
+			"clusterName": "my-cluster",
+			"regularID": "reg456"
+		}
+	`
+	// Note: ProjectID is omitted due to omitjson tag
+	raw, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedJSON, string(raw))
+}
+
 func TestMarshalDynamicJSONAttr(t *testing.T) {
 	model := struct {
 		AttrDynamicJSONObject         jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_object"`

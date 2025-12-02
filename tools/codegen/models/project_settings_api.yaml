@@ -9,6 +9,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: project_id
           tf_model_name: ProjectId
+          api_name: groupId
           req_body_usage: omit_always
           sensitive: false
           create_only: true
@@ -17,6 +18,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_collect_database_specifics_statistics_enabled
           tf_model_name: IsCollectDatabaseSpecificsStatisticsEnabled
+          api_name: isCollectDatabaseSpecificsStatisticsEnabled
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -25,6 +27,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_data_explorer_enabled
           tf_model_name: IsDataExplorerEnabled
+          api_name: isDataExplorerEnabled
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -33,6 +36,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_data_explorer_gen_ai_features_enabled
           tf_model_name: IsDataExplorerGenAIFeaturesEnabled
+          api_name: isDataExplorerGenAIFeaturesEnabled
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -42,6 +46,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_data_explorer_gen_ai_sample_document_passing_enabled
           tf_model_name: IsDataExplorerGenAISampleDocumentPassingEnabled
+          api_name: isDataExplorerGenAISampleDocumentPassingEnabled
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -50,6 +55,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_extended_storage_sizes_enabled
           tf_model_name: IsExtendedStorageSizesEnabled
+          api_name: isExtendedStorageSizesEnabled
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -58,6 +64,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_performance_advisor_enabled
           tf_model_name: IsPerformanceAdvisorEnabled
+          api_name: isPerformanceAdvisorEnabled
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -66,6 +73,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_realtime_performance_panel_enabled
           tf_model_name: IsRealtimePerformancePanelEnabled
+          api_name: isRealtimePerformancePanelEnabled
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -74,6 +82,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_schema_advisor_enabled
           tf_model_name: IsSchemaAdvisorEnabled
+          api_name: isSchemaAdvisorEnabled
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false

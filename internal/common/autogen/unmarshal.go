@@ -39,31 +39,63 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 	if valModel.Kind() != reflect.Struct {
 		panic("model must be pointer to struct")
 	}
+	// Build a map from API name (JSON field name) to struct field index
+	apiNameToFieldIdx := buildAPINameToFieldMap(valModel.Type())
 	for attrNameJSON, attrObjJSON := range objJSON {
-		if err := unmarshalAttr(attrNameJSON, attrObjJSON, valModel); err != nil {
+		if err := unmarshalAttr(attrNameJSON, attrObjJSON, valModel, apiNameToFieldIdx); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value) error {
+// buildAPINameToFieldMap creates a mapping from API JSON name to struct field index.
+// It checks for apiname: tag first, otherwise uses the uncapitalized field name.
+func buildAPINameToFieldMap(structType reflect.Type) map[string]int {
+	result := make(map[string]int)
+	for i := range structType.NumField() {
+		field := structType.Field(i)
+		tags := strings.Split(field.Tag.Get(tagKey), ",")
+		apiName := ""
+		for _, tag := range tags {
+			if strings.HasPrefix(tag, tagAPINamePrefix) {
+				apiName = strings.TrimPrefix(tag, tagAPINamePrefix)
+				break
+			}
+		}
+		if apiName == "" {
+			apiName = stringcase.Uncapitalize(field.Name)
+		}
+		result[apiName] = i
+	}
+	return result
+}
+
+func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value, apiNameToFieldIdx map[string]int) error {
 	if attrObjJSON == nil {
 		return nil // skip nil values, no need to set anything
 	}
 
-	attrNameModel := stringcase.Capitalize(attrNameJSON)
-	fieldModel := valModel.FieldByName(attrNameModel)
-	if !fieldModel.CanSet() {
-		return nil // skip fields that cannot be set, are invalid or not found
+	// Look up the struct field by API name
+	fieldIdx, ok := apiNameToFieldIdx[attrNameJSON]
+	if !ok {
+		return nil // skip fields not found in the model
 	}
+
+	fieldModel := valModel.Field(fieldIdx)
+	if !fieldModel.CanSet() {
+		return nil // skip fields that cannot be set
+	}
+
+	structField := valModel.Type().Field(fieldIdx)
+	attrNameModel := structField.Name
+
 	oldVal, ok := fieldModel.Interface().(attr.Value)
 	if !ok {
 		return fmt.Errorf("unmarshal trying to set non-Terraform attribute %s", attrNameModel)
 	}
 
 	if !oldVal.IsNull() && !oldVal.IsUnknown() { // Check if oldVal is a known value
-		structField, _ := valModel.Type().FieldByName(attrNameModel)                        // Always valid, checked above
 		if slices.Contains(strings.Split(structField.Tag.Get(tagKey), ","), tagSensitive) { // Field contains the "sensitive" tag
 			return nil // skip sensitive fields that are already set in the plan/state to avoid overwriting with redacted values
 		}
