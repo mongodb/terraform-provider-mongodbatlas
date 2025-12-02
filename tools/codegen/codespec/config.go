@@ -100,18 +100,47 @@ func shouldIgnoreAttribute(attrName string, ignoredAttrs map[string]bool) bool {
 }
 
 func applyAliasToAttribute(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) {
-	// Config uses camelCase (e.g., groupId: projectId), TFModelName is PascalCase (e.g., GroupId)
+	// Config uses full camelCase for aliases (e.g., groupId: projectId, nestedObject.innerAttr: renamedAttr)
 	modelNameCamel := stringcase.Uncapitalize(attr.TFModelName)
-	if aliasCamel, ok := schemaOptions.Aliases[modelNameCamel]; ok {
-		newModelName := stringcase.Capitalize(aliasCamel)
-		attr.TFModelName = newModelName
-		attr.TFSchemaName = stringcase.ToSnakeCase(newModelName)
+
+	// Build path-based key in full camelCase (e.g., "nestedListArrayAttr.innerNumAttr")
+	pathBasedKey := buildAliasPathKey(*attrPathName, modelNameCamel)
+
+	var aliasCamel string
+	var found bool
+
+	// First try path-based lookup for targeted aliasing of nested attributes
+	if aliasCamel, found = schemaOptions.Aliases[pathBasedKey]; !found {
+		// Fall back to model-name only lookup (for path params like groupId: projectId)
+		aliasCamel, found = schemaOptions.Aliases[modelNameCamel]
+	}
+
+	if found {
+		// Only change TFSchemaName, NOT TFModelName (TFModelName is needed for API marshaling/unmarshalling)
+		attr.TFSchemaName = stringcase.ToSnakeCase(aliasCamel)
+		// Update the path name to reflect the new schema name
 		parts := strings.Split(*attrPathName, ".")
 		if len(parts) > 0 {
 			parts[len(parts)-1] = attr.TFSchemaName
 			*attrPathName = strings.Join(parts, ".")
 		}
 	}
+}
+
+// buildAliasPathKey constructs the path-based alias key in full camelCase
+// Format: parentCamel.attrCamel (e.g., "nestedListArrayAttr.innerNumAttr")
+func buildAliasPathKey(attrPathName, modelNameCamel string) string {
+	parts := strings.Split(attrPathName, ".")
+	if len(parts) <= 1 {
+		// No parent, just return model name
+		return modelNameCamel
+	}
+	// Convert parent parts to camelCase (skip last part since we'll replace it)
+	for i := 0; i < len(parts)-1; i++ {
+		parts[i] = stringcase.SnakeToCamel(parts[i])
+	}
+	parts[len(parts)-1] = modelNameCamel
+	return strings.Join(parts, ".")
 }
 
 func applyAliasToPathParams(resource *Resource, aliases map[string]string) {
@@ -129,7 +158,8 @@ func applyAliasToPathParams(resource *Resource, aliases map[string]string) {
 
 // Transformations
 func aliasTransformation(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) error {
-	// the config is expected to use alias name for defining any subsequent overrides (description, etc)
+	// Alias transformation runs first, updating TFSchemaName and attrPathName.
+	// Subsequent overrides should use the aliased snake_case path (e.g., nested_list_array_attr.inner_num_attr_alias)
 	applyAliasToAttribute(attr, attrPathName, schemaOptions)
 	return nil
 }

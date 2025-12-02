@@ -1,0 +1,37 @@
+resources:
+  test_resource_with_nested_attr_path_alias:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: DELETE
+    version_header: application/vnd.atlas.2024-05-30+json
+    schema:
+      aliases:
+        groupId: projectId
+        # Path-based alias: only rename innerNumAttr inside nestedListArrayAttr, NOT in nestedSetArrayAttr
+        # Uses full camelCase format
+        nestedListArrayAttr.innerNumAttr: renamedInnerNumAttr
+
+      ignores:
+        [
+          "cluster_name",
+          "list_primitive_string_attr",
+          "nested_map_object_attr",
+          "set_primitive_string_attr",
+          "single_nested_attr",
+          "single_nested_attr_with_nested_maps",
+          "outer_object",
+          "optional_string_attr",
+          "attr_always_in_updates",
+          "nested_list_array_attr.list_primitive_string_attr",
+          "nested_list_array_attr.list_primitive_string_computed_attr",
+          "nested_set_array_attr.list_primitive_string_attr",
+        ]

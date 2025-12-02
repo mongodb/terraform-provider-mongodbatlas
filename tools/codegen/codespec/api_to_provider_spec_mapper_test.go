@@ -462,7 +462,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 						},
 						{
 							TFSchemaName:             "project_id",
-							TFModelName:              "ProjectId",
+							TFModelName:              "GroupId", // TFModelName preserved (needed for API marshaling)
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
@@ -479,7 +479,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 									Attributes: codespec.Attributes{
 										{
 											TFSchemaName:             "inner_num_attr_alias",
-											TFModelName:              "InnerNumAttrAlias",
+											TFModelName:              "InnerNumAttr", // TFModelName preserved (needed for API marshaling)
 											ComputedOptionalRequired: codespec.Required,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr("Overridden inner_num_attr_alias description"),
@@ -530,7 +530,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 													Attributes: codespec.Attributes{
 														{
 															TFSchemaName:             "level_field1_alias",
-															TFModelName:              "LevelField1Alias",
+															TFModelName:              "LevelField1", // TFModelName preserved (needed for API marshaling)
 															ComputedOptionalRequired: codespec.Computed,
 															ReqBodyUsage:             codespec.OmitAlways,
 															String:                   &codespec.StringAttribute{},
@@ -566,6 +566,108 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 						HTTPMethod: "DELETE",
 					},
 					VersionHeader: "application/vnd.atlas.2035-01-01+json", // version header defined in config
+				},
+			},
+			},
+		},
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+}
+
+// TestConvertToProviderSpec_pathBasedAlias verifies that aliases can target specific nested attributes
+// using path-based keys (e.g., "nestedListArrayAttr.innerNumAttr") instead of just model names.
+// This ensures that when multiple nested objects have attributes with the same name, only the targeted one is aliased.
+func TestConvertToProviderSpec_pathBasedAlias(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      "testdata/config-path-based-alias.yml",
+		inputResourceName:    "test_resource_with_nested_attr_path_alias",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr(testResourceDesc),
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "project_id",
+							TFModelName:              "GroupId", // TFModelName should NOT change (needed for marshaling)
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testPathParamDesc),
+							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
+						},
+						{
+							TFSchemaName:             "nested_list_array_attr",
+							TFModelName:              "NestedListArrayAttr",
+							ComputedOptionalRequired: codespec.Required,
+							CustomType:               codespec.NewCustomNestedListType("NestedListArrayAttr"),
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: codespec.Attributes{
+										{
+											// This attribute should be ALIASED via path-based alias
+											TFSchemaName:             "renamed_inner_num_attr",
+											TFModelName:              "InnerNumAttr", // TFModelName preserved for marshaling
+											ComputedOptionalRequired: codespec.Required,
+											Int64:                    &codespec.Int64Attribute{},
+											Description:              conversion.StringPtr(testFieldDesc),
+											ReqBodyUsage:             codespec.AllRequestBodies,
+										},
+									},
+								},
+							},
+							Description:  conversion.StringPtr(testFieldDesc),
+							ReqBodyUsage: codespec.AllRequestBodies,
+						},
+						{
+							TFSchemaName:             "nested_set_array_attr",
+							TFModelName:              "NestedSetArrayAttr",
+							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomNestedSetType("NestedSetArrayAttr"),
+							SetNested: &codespec.SetNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: codespec.Attributes{
+										{
+											// This attribute should NOT be aliased (different path)
+											TFSchemaName:             "inner_num_attr",
+											TFModelName:              "InnerNumAttr",
+											ComputedOptionalRequired: codespec.Computed, // computed because parent is readOnly
+											Int64:                    &codespec.Int64Attribute{},
+											Description:              conversion.StringPtr(testFieldDesc),
+											ReqBodyUsage:             codespec.OmitAlways,
+										},
+									},
+								},
+							},
+							Description:  conversion.StringPtr(testFieldDesc),
+							ReqBodyUsage: codespec.OmitAlways,
+						},
+					},
+				},
+				Name:        "test_resource_with_nested_attr_path_alias",
+				PackageName: "testresourcewithnestedattrpathalias",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
+						HTTPMethod: "GET",
+					},
+					Update: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
+						HTTPMethod: "PATCH",
+					},
+					Delete: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
+						HTTPMethod: "DELETE",
+					},
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
 				},
 			},
 			},

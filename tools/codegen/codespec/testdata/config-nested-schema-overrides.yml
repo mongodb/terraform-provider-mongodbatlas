@@ -16,8 +16,9 @@ resources:
     schema:
       aliases:
         groupId: projectId
-        innerNumAttr: innerNumAttrAlias
-        levelField1: levelField1Alias
+        # Path-based aliases for nested attributes (full camelCase)
+        nestedListArrayAttr.innerNumAttr: innerNumAttrAlias
+        outerObject.nestedLevel1.levelField1: levelField1Alias
 
       ignores:
         [
