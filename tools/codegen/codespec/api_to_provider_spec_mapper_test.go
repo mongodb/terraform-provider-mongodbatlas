@@ -1262,3 +1262,99 @@ func TestConvertToProviderSpec_multipleConsecutiveCaps(t *testing.T) {
 	assert.Equal(t, "ApiKeyAlias", apiKeyAttr.TFModelName, "Nested model name should be aliased")
 	assert.Equal(t, "apiKey", apiKeyAttr.APIName, "Nested APIName should be preserved")
 }
+
+// TestConvertToProviderSpec_pathParamWithAlias verifies that aliasing works correctly when an attribute
+// is both a path parameter and appears in request/response bodies. The api_name tag should preserve
+// the original API name while the schema uses the aliased name, and path parameters should use the aliased name.
+func TestConvertToProviderSpec_pathParamWithAlias(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_path_param_with_alias",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr(testResourceDesc),
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "email",
+							TFModelName:              "Email",
+							APIName:                  "email",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testFieldDesc),
+							ReqBodyUsage:             codespec.AllRequestBodies,
+						},
+						{
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
+							APIName:                  "groupId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testPathParamDesc),
+							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
+						},
+						{
+							TFSchemaName:             "db_user",
+							TFModelName:              "DbUser",   // Aliased from username
+							APIName:                  "username", // Original API name preserved for apiname tag
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testFieldDesc),
+							ReqBodyUsage:             codespec.AllRequestBodies, // Merged from path param and request body
+							CreateOnly:               false,                     // Not create-only because it's in request bodies
+						},
+					},
+				},
+				Name:        "test_resource_path_param_with_alias",
+				PackageName: "testresourcepathparamwithalias",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/users",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/users/{dbUser}",
+						HTTPMethod: "GET",
+					},
+					Update: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/users/{dbUser}",
+						HTTPMethod: "PATCH",
+					},
+					Delete: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/users/{dbUser}",
+						HTTPMethod: "DELETE",
+					},
+					VersionHeader: "application/vnd.atlas.2023-01-01+json",
+				},
+			}},
+		},
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+
+	// Verify that the alias worked correctly:
+	// 1. The merged attribute (from both path param and request body) has aliased schema name but preserved API name
+	var dbUserAttr *codespec.Attribute
+	for i := range result.Resources[0].Schema.Attributes {
+		if result.Resources[0].Schema.Attributes[i].TFSchemaName == "db_user" {
+			dbUserAttr = &result.Resources[0].Schema.Attributes[i]
+			break
+		}
+	}
+	require.NotNil(t, dbUserAttr, "db_user attribute should exist")
+	assert.Equal(t, "db_user", dbUserAttr.TFSchemaName, "Schema name should be aliased")
+	assert.Equal(t, "DbUser", dbUserAttr.TFModelName, "Model name should be aliased")
+	assert.Equal(t, "username", dbUserAttr.APIName, "APIName should preserve original API name for apiname tag")
+	assert.Equal(t, codespec.AllRequestBodies, dbUserAttr.ReqBodyUsage, "ReqBodyUsage should be AllRequestBodies when merged from path param and request body")
+	assert.False(t, dbUserAttr.CreateOnly, "CreateOnly should be false when attribute is in request bodies")
+
+	// 2. Path parameters in operations use the aliased name
+	assert.Contains(t, result.Resources[0].Operations.Read.Path, "{dbUser}", "Read path should use aliased path param")
+	assert.Contains(t, result.Resources[0].Operations.Update.Path, "{dbUser}", "Update path should use aliased path param")
+	assert.Contains(t, result.Resources[0].Operations.Delete.Path, "{dbUser}", "Delete path should use aliased path param")
+}
