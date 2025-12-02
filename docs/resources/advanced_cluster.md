@@ -784,6 +784,8 @@ When auto-scaling is enabled, there are two approaches to manage your cluster co
 
 **Option 1 (Recommended):** Use `use_effective_fields = true` to enable the new effective fields behavior. With this option, Atlas-managed auto-scaling changes won't cause plan drift, eliminating the need for `lifecycle` ignore customizations. When either compute or disk auto-scaling is enabled (or both), all three fields (`instance_size`, `disk_size_gb`, and `disk_iops`) are ignored in the Terraform configuration, as Atlas may adjust any of these resources to maintain optimal cluster performance. You can read the actual scaled values using the `effective_electable_specs` and `effective_read_only_specs` attributes in the `mongodbatlas_advanced_cluster` data source. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for details.
 
+To manually update specs with Option 1, you must temporarily disable auto-scaling. See [Manually Updating Specs with use_effective_fields](#manually-updating-specs-with-use_effective_fields) for the detailed workflow.
+
 **Option 2:** If not using `use_effective_fields`, use a lifecycle ignore customization to prevent unintended changes. When auto-scaling is enabled, you must ignore all three fields (`instance_size`, `disk_size_gb`, and `disk_iops`) as Atlas may adjust any of these resources regardless of which auto-scaling type is enabled.
 
 ```terraform
@@ -797,7 +799,7 @@ lifecycle {
 }
 ```
 
-~> **IMPORTANT:** When either `disk_gb_enabled` or `compute_enabled` is true, Atlas may automatically adjust `instance_size`, `disk_size_gb`, and `disk_iops` to maintain optimal cluster performance, even if only one type of auto-scaling is enabled. With Option 2, this will cause these values in state to potentially differ from what is specified in the Terraform config. If you then apply a plan without the `lifecycle` ignore customization, Terraform will scale the cluster back to the original values in the config. **To manually update these values when auto-scaling is enabled:** (1) Set `compute_enabled = false` and `disk_gb_enabled = false` in the [`auto_scaling`](#auto_scaling) block, (2) apply to disable auto-scaling, (3) update `instance_size`, `disk_size_gb`, or `disk_iops` as needed, (4) apply again, (5) re-enable auto-scaling by setting the flags back to `true`, (6) apply a final time.
+~> **IMPORTANT:** When auto-scaling is enabled, Atlas may automatically adjust `instance_size`, `disk_size_gb`, and `disk_iops`, causing these values in state to differ from your Terraform configuration. The `lifecycle.ignore_changes` block prevents Terraform from reverting these Atlas-managed changes. To manually update these values, temporarily remove or comment out the `lifecycle.ignore_changes` block, update and apply your desired spec values, then restore the `lifecycle.ignore_changes` block.
 
 ### analytics_auto_scaling
 
@@ -908,9 +910,24 @@ The `use_effective_fields` attribute changes how the provider handles specificat
 - No plan drift occurs when Atlas auto-scales your cluster
 - Use data sources to read `effective_electable_specs`, `effective_analytics_specs`, and `effective_read_only_specs` for actual values
 
-**Key difference:** With `use_effective_fields = true`, your configuration stays clean and represents your intent, while effective specs show the reality of what Atlas has provisioned. 
+**Key difference:** With `use_effective_fields = true`, your configuration stays clean and represents your intent, while effective specs show the reality of what Atlas has provisioned.
 
 See the [Example using effective fields with auto-scaling](#example-using-effective-fields-with-auto-scaling) in the Example Usage section.
+
+### Manually Updating Specs with use_effective_fields
+
+When `use_effective_fields = true` and auto-scaling is enabled, you can update spec values in your Terraform configuration at any time without validation errors. However, Atlas will echo these values back in state while continuing to use the auto-scaled values for actual cluster operations.
+
+To have your configured values actually take effect on the cluster, you must temporarily disable auto-scaling:
+
+1. Set `compute_enabled = false` and `disk_gb_enabled = false` in the [`auto_scaling`](#auto_scaling) block
+2. Apply the configuration to disable auto-scaling
+3. Update the desired spec values (`instance_size`, `disk_size_gb`, or `disk_iops`)
+4. Apply the configuration with the updated values
+5. Re-enable auto-scaling by setting `compute_enabled` and/or `disk_gb_enabled` back to `true`
+6. Apply the configuration a final time
+
+This workflow is required because when auto-scaling is enabled, Atlas controls these values dynamically based on workload. Disabling auto-scaling allows you to set specific values that will be used by the cluster, after which you can re-enable auto-scaling to resume dynamic scaling from your new baseline.
 
 ### Terraform Modules
 
