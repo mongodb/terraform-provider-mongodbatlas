@@ -46,30 +46,6 @@ func ToSnakeCase(str string) string {
 	return builder.String()
 }
 
-// SnakeToCamel converts snake_case to camelCase
-// Example: "inner_num_attr" -> "innerNumAttr"
-func SnakeToCamel(str string) string {
-	if str == "" {
-		return str
-	}
-
-	parts := strings.Split(str, "_")
-	builder := &strings.Builder{}
-
-	for i, part := range parts {
-		if part == "" {
-			continue
-		}
-		if i == 0 {
-			builder.WriteString(strings.ToLower(part))
-		} else {
-			builder.WriteString(Capitalize(part))
-		}
-	}
-
-	return builder.String()
-}
-
 func Capitalize(str string) string {
 	return capitalization(str, true)
 }

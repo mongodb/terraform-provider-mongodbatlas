@@ -1122,3 +1122,109 @@ func TestConvertToProviderSpec_deprecatedResource(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
+
+func TestConvertToProviderSpec_multipleConsecutiveCaps(t *testing.T) {
+	// This test verifies that aliasing works correctly with attributes that have multiple
+	// consecutive capital letters (e.g., MongoDBMajorVersion). The fix ensures that apiPath
+	// is built from APIName values which preserve the original casing, avoiding the lossy
+	// snake to camel case conversion that would incorrectly convert "MongoDBMajorVersion" to "MongoDbMajorVersion".
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_with_multiple_caps",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr("POST API description"),
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
+							APIName:                  "groupId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testPathParamDesc),
+							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
+						},
+						{
+							TFSchemaName:             "mongo_db_version",
+							TFModelName:              "MongoDbVersion",      // Aliased from MongoDBMajorVersion
+							APIName:                  "MongoDBMajorVersion", // Original API name preserved
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("MongoDB major version with multiple consecutive capital letters"),
+							ReqBodyUsage:             codespec.AllRequestBodies,
+						},
+						{
+							TFSchemaName:             "nested_object",
+							TFModelName:              "NestedObject",
+							APIName:                  "nestedObject",
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomObjectType("NestedObject"),
+							SingleNested: &codespec.SingleNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: codespec.Attributes{
+										{
+											TFSchemaName:             "inner_attribute",
+											TFModelName:              "InnerAttribute", // Aliased from innerAttr
+											APIName:                  "innerAttr",      // Original API name preserved
+											ComputedOptionalRequired: codespec.Required,
+											String:                   &codespec.StringAttribute{},
+											Description:              conversion.StringPtr("Inner attribute"),
+											ReqBodyUsage:             codespec.AllRequestBodies,
+										},
+									},
+								},
+							},
+							Description:  conversion.StringPtr(""),
+							ReqBodyUsage: codespec.AllRequestBodies,
+						},
+					},
+				},
+				Name:        "test_resource_with_multiple_caps",
+				PackageName: "testresourcewithmultiplecaps",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithMultipleCaps",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithMultipleCaps",
+						HTTPMethod: "GET",
+					},
+					Update: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithMultipleCaps",
+						HTTPMethod: "PATCH",
+					},
+					Delete: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithMultipleCaps",
+						HTTPMethod: "DELETE",
+					},
+					VersionHeader: "application/vnd.atlas.2023-01-01+json",
+				},
+			}},
+		},
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+
+	// Verify that the alias lookup worked correctly by checking that:
+	// 1. MongoDBMajorVersion was aliased to mongoDbVersion (schema name)
+	// 2. The APIName is preserved as "MongoDBMajorVersion" (not "MongoDbMajorVersion")
+	// 3. The nested alias also worked: nestedObject.innerAttr -> nestedObject.innerAttribute
+	mongoDbVersionAttr := result.Resources[0].Schema.Attributes[1] // Index 1 (after groupId)
+	assert.Equal(t, "mongo_db_version", mongoDbVersionAttr.TFSchemaName, "Schema name should be aliased")
+	assert.Equal(t, "MongoDbVersion", mongoDbVersionAttr.TFModelName, "Model name should be aliased")
+	assert.Equal(t, "MongoDBMajorVersion", mongoDbVersionAttr.APIName, "APIName should preserve original casing with multiple consecutive caps")
+
+	nestedObjectAttr := result.Resources[0].Schema.Attributes[2] // Index 2 (after groupId and mongoDbVersion)
+	assert.Equal(t, "nested_object", nestedObjectAttr.TFSchemaName)
+	innerAttr := nestedObjectAttr.SingleNested.NestedObject.Attributes[0]
+	assert.Equal(t, "inner_attribute", innerAttr.TFSchemaName, "Nested schema name should be aliased")
+	assert.Equal(t, "InnerAttribute", innerAttr.TFModelName, "Nested model name should be aliased")
+	assert.Equal(t, "innerAttr", innerAttr.APIName, "Nested APIName should be preserved")
+}

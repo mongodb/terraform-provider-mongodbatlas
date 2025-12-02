@@ -129,3 +129,24 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/simpleTestResource
       method: DELETE
+
+  test_resource_with_multiple_caps:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithMultipleCaps
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithMultipleCaps
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithMultipleCaps
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithMultipleCaps
+      method: DELETE
+    schema:
+      aliases:
+        # Test that aliasing works correctly with attributes that have multiple consecutive capital letters
+        # The apiPath should preserve "MongoDBMajorVersion" (not convert via lossy conversion from snake to camel case)
+        MongoDBMajorVersion: mongoDbVersion
+        # Test nested path-based alias with multiple caps
+        nestedObject.innerAttr: innerAttribute

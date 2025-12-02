@@ -631,6 +631,89 @@ paths:
       summary: Enable the Simple Test Resource feature for a project
       tags:
         - Test Resource
+  "/api/atlas/v2/groups/{groupId}/testResourceWithMultipleCaps":
+    delete:
+      description: DELETE API description
+      operationId: deleteTestResourceWithMultipleCapsConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Delete the Test Resource With Multiple Caps feature for a project
+      tags:
+        - Test Resource
+    get:
+      description: GET API description
+      operationId: getTestResourceWithMultipleCapsConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/TestResourceWithMultipleCaps"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Get the Test Resource With Multiple Caps configuration for a project
+      tags:
+        - Test Resource
+    patch:
+      description: PATCH API description
+      operationId: updateTestResourceWithMultipleCapsConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResourceWithMultipleCaps"
+            x-xgen-version: 2023-01-01
+        description: Patch request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Update the Test Resource With Multiple Caps feature for a project
+      tags:
+        - Test Resource
+    post:
+      description: POST API description
+      operationId: createTestResourceWithMultipleCapsConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResourceWithMultipleCaps"
+            x-xgen-version: 2023-01-01
+        description: Create request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Enable the Test Resource With Multiple Caps feature for a project
+      tags:
+        - Test Resource
 components:
   parameters:
     groupId:
@@ -928,3 +1011,19 @@ components:
           description: Test field description
       required:
         - stringAttr
+    TestResourceWithMultipleCaps:
+      type: object
+      properties:
+        MongoDBMajorVersion:
+          type: string
+          description: MongoDB major version with multiple consecutive capital letters
+        nestedObject:
+          type: object
+          properties:
+            innerAttr:
+              type: string
+              description: Inner attribute
+          required:
+            - innerAttr
+      required:
+        - MongoDBMajorVersion
