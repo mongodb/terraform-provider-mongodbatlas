@@ -11,7 +11,7 @@ import (
 
 func TestAccAdvancedCluster_effectiveBasic(t *testing.T) {
 	var (
-		set = baseEffectiveReq(t).withFlag()
+		set = baseEffectiveReq(t).withInstanceSize("M10").withFlag()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -30,7 +30,7 @@ func TestAccAdvancedCluster_effectiveBasic(t *testing.T) {
 
 func TestAccAdvancedCluster_effectiveUnsetToSet(t *testing.T) {
 	var (
-		set   = baseEffectiveReq(t).withFlag()
+		set   = baseEffectiveReq(t).withInstanceSize("M10").withFlag()
 		unset = set.withoutFlag()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -52,7 +52,7 @@ func TestAccAdvancedCluster_effectiveUnsetToSet(t *testing.T) {
 
 func TestAccAdvancedCluster_effectiveSetToUnset(t *testing.T) {
 	var (
-		set   = baseEffectiveReq(t).withFlag()
+		set   = baseEffectiveReq(t).withInstanceSize("M10").withFlag()
 		unset = set.withoutFlag()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -119,12 +119,153 @@ func TestAccAdvancedCluster_effectiveWithOtherChanges(t *testing.T) {
 	})
 }
 
+func TestAccAdvancedCluster_effectiveComputeAutoScalingInstanceSize(t *testing.T) {
+	var (
+		initial = baseEffectiveReq(t).withFlag().withComputeAutoScaling().withInstanceSize("M10")
+		updated = initial.withInstanceSize("M20")
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: initial.config(),
+				Check:  initial.check(),
+			},
+			{
+				Config: updated.config(),
+				Check:  initial.check(), // Instance size is ignored when compute auto-scaling is enabled so keep initial value.
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_effectiveComputeAutoScalingAll(t *testing.T) {
+	var (
+		initial = baseEffectiveReq(t).withFlag().withComputeAutoScaling().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
+		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010)
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: initial.config(),
+				Check:  initial.check(),
+			},
+			{
+				Config: updated.config(),
+				Check:  initial.check(), // Instance size, disk size and IOPS are ignored when compute auto-scaling is enabled so keep initial values.
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_effectiveDiskAutoScalingAll(t *testing.T) {
+	var (
+		initial = baseEffectiveReq(t).withFlag().withDiskAutoScaling().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
+		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010)
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: initial.config(),
+				Check:  initial.check(),
+			},
+			{
+				Config: updated.config(),
+				Check:  initial.check(), // All three fields are ignored when both auto-scaling types are enabled.
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_effectiveDiskFieldsWithoutAutoScaling(t *testing.T) {
+	var (
+		initial = baseEffectiveReq(t).withFlag().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
+		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010)
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: initial.config(),
+				Check:  initial.check(),
+			},
+			{
+				Config: updated.config(),
+				Check:  updated.check(), // Without auto-scaling, disk fields should update normally.
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_effectiveBothAutoScalingEnabled(t *testing.T) {
+	var (
+		initial = baseEffectiveReq(t).withFlag().withComputeAutoScaling().withDiskAutoScaling().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
+		updated = initial.withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010)
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: initial.config(),
+				Check:  initial.check(),
+			},
+			{
+				Config: updated.config(),
+				Check:  initial.check(), // All three fields are ignored when both auto-scaling types are enabled.
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_effectiveToggleAutoScaling(t *testing.T) {
+	var (
+		withoutAutoScaling     = baseEffectiveReq(t).withFlag().withInstanceSize("M10").withDiskSizeGB(10).withDiskIOPS(3000)
+		withAutoScaling        = withoutAutoScaling.withComputeAutoScaling()
+		backWithoutAutoScaling = withAutoScaling.withoutComputeAutoScaling().withInstanceSize("M20").withDiskSizeGB(15).withDiskIOPS(3010)
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: withoutAutoScaling.config(),
+				Check:  withoutAutoScaling.check(),
+			},
+			{
+				Config: withAutoScaling.config(),
+				Check:  withAutoScaling.check(),
+			},
+			{
+				Config: backWithoutAutoScaling.config(),
+				Check:  backWithoutAutoScaling.check(),
+			},
+		},
+	})
+}
+
 type effectiveReq struct {
 	projectID          string
 	clusterName        string
 	instanceSize       string
 	nodeCountElectable int
+	diskIOPS           int
+	diskSizeGB         int
 	useEffectiveFields bool
+	computeAutoScaling bool
+	diskAutoScaling    bool
 }
 
 func baseEffectiveReq(t *testing.T) effectiveReq {
@@ -136,7 +277,6 @@ func baseEffectiveReq(t *testing.T) effectiveReq {
 	return effectiveReq{
 		projectID:          projectID,
 		clusterName:        clusterName,
-		instanceSize:       "M10",
 		nodeCountElectable: nodeCountElectable,
 	}
 }
@@ -156,12 +296,55 @@ func (req effectiveReq) withInstanceSize(instanceSize string) effectiveReq {
 	return req
 }
 
-func (req effectiveReq) config() string {
-	useEffectiveFieldsConfig := ""
-	if req.useEffectiveFields {
-		useEffectiveFieldsConfig = "use_effective_fields = true"
-	}
+func (req effectiveReq) withDiskSizeGB(diskSizeGB int) effectiveReq {
+	req.diskSizeGB = diskSizeGB
+	return req
+}
 
+func (req effectiveReq) withDiskIOPS(diskIOPS int) effectiveReq {
+	req.diskIOPS = diskIOPS
+	return req
+}
+func (req effectiveReq) withComputeAutoScaling() effectiveReq {
+	req.computeAutoScaling = true
+	return req
+}
+
+func (req effectiveReq) withoutComputeAutoScaling() effectiveReq {
+	req.computeAutoScaling = false
+	return req
+}
+
+func (req effectiveReq) withDiskAutoScaling() effectiveReq {
+	req.diskAutoScaling = true
+	return req
+}
+
+func (req effectiveReq) config() string {
+	var (
+		extraRoot         = ""
+		extraRegionConfig = ""
+		extraSpecs        = ""
+	)
+	if req.useEffectiveFields {
+		extraRoot += "use_effective_fields = true\n"
+	}
+	if req.computeAutoScaling || req.diskAutoScaling {
+		extraRegionConfig += "auto_scaling = {\n"
+		if req.computeAutoScaling {
+			extraRegionConfig += "\t\t\tcompute_enabled = true\n"
+		}
+		if req.diskAutoScaling {
+			extraRegionConfig += "\t\t\tdisk_gb_enabled = true\n"
+		}
+		extraRegionConfig += "\t\t}\n"
+	}
+	if req.diskIOPS != 0 {
+		extraSpecs += fmt.Sprintf("disk_iops = %d\n", req.diskIOPS)
+	}
+	if req.diskSizeGB != 0 {
+		extraSpecs += fmt.Sprintf("disk_size_gb = %d\n", req.diskSizeGB)
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
@@ -177,7 +360,9 @@ func (req effectiveReq) config() string {
 							electable_specs = {
 								node_count    = %[3]d
 								instance_size = %[4]q
+								%[7]s
 							}
+							%[6]s
 						}
 					]
 				}
@@ -197,7 +382,7 @@ func (req effectiveReq) config() string {
 			%[5]s
 			depends_on = [mongodbatlas_advanced_cluster.test]
 		}
-	`, req.projectID, req.clusterName, req.nodeCountElectable, req.instanceSize, useEffectiveFieldsConfig)
+	`, req.projectID, req.clusterName, req.nodeCountElectable, req.instanceSize, extraRoot, extraRegionConfig, extraSpecs)
 }
 
 func (req effectiveReq) check() resource.TestCheckFunc {
@@ -205,6 +390,7 @@ func (req effectiveReq) check() resource.TestCheckFunc {
 		specsPath           = "replication_specs.0.region_configs.0.electable_specs."
 		effectivePath       = "replication_specs.0.region_configs.0.effective_electable_specs."
 		effectivePathPlural = "results.0.replication_specs.0.region_configs.0.effective_electable_specs."
+		autoScalingPath     = "replication_specs.0.region_configs.0.auto_scaling."
 	)
 	attrsMap := map[string]string{
 		specsPath + "instance_size": req.instanceSize,
@@ -225,6 +411,18 @@ func (req effectiveReq) check() resource.TestCheckFunc {
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"disk_size_gb"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"disk_iops"),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, effectivePathPlural+"ebs_volume_type"),
+	}
+	if req.diskSizeGB != 0 {
+		attrsMap[specsPath+"disk_size_gb"] = fmt.Sprintf("%d", req.diskSizeGB)
+	}
+	if req.diskIOPS != 0 {
+		attrsMap[specsPath+"disk_iops"] = fmt.Sprintf("%d", req.diskIOPS)
+	}
+	if req.computeAutoScaling {
+		attrsMap[autoScalingPath+"compute_enabled"] = "true"
+	}
+	if req.diskAutoScaling {
+		attrsMap[autoScalingPath+"disk_gb_enabled"] = "true"
 	}
 	if req.useEffectiveFields {
 		attrsMap["use_effective_fields"] = "true"
