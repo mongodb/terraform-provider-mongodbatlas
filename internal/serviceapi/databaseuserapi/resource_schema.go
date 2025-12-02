@@ -105,7 +105,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
-			"username": schema.StringAttribute{
+			"db_user": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Human-readable label that represents the user that authenticates to MongoDB. The format of this label depends on the method of authentication:\n\n| Authentication Method | Parameter Needed | Parameter Value | username Format |\n|---|---|---|---|\n| AWS IAM | awsIAMType | ROLE | <abbr title=\"Amazon Resource Name\">ARN</abbr> |\n| AWS IAM | awsIAMType | USER | <abbr title=\"Amazon Resource Name\">ARN</abbr> |\n| x.509 | x509Type | CUSTOMER | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| x.509 | x509Type | MANAGED | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| LDAP | ldapAuthType | USER | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| LDAP | ldapAuthType | GROUP | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| OIDC Workforce | oidcAuthType | IDP_GROUP | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name |\n| OIDC Workload | oidcAuthType | USER | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |\n| SCRAM-SHA | awsIAMType, x509Type, ldapAuthType, oidcAuthType | NONE | Alphanumeric string |\n",
 			},
@@ -130,7 +130,7 @@ type TFModel struct {
 	Password        types.String                               `tfsdk:"password" autogen:"sensitive"`
 	Roles           customtypes.NestedListValue[TFRolesModel]  `tfsdk:"roles"`
 	Scopes          customtypes.NestedListValue[TFScopesModel] `tfsdk:"scopes"`
-	Username        types.String                               `tfsdk:"username"`
+	DbUser          types.String                               `tfsdk:"db_user" apiname:"username"`
 	X509Type        types.String                               `tfsdk:"x509_type"`
 }
 type TFLabelsModel struct {

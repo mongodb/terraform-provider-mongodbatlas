@@ -85,11 +85,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	pathParams := map[string]string{
 		"groupId":      state.GroupId.ValueString(),
 		"databaseName": state.DatabaseName.ValueString(),
-		"username":     state.Username.ValueString(),
+		"dbUser":       state.DbUser.ValueString(),
 	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{dbUser}",
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
@@ -113,7 +113,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	idAttributes := []string{"group_id", "database_name", "username"}
+	idAttributes := []string{"group_id", "database_name", "db_user"}
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
@@ -122,11 +122,11 @@ func readAPICallParams(model any) *config.APICallParams {
 	pathParams := map[string]string{
 		"groupId":      m.GroupId.ValueString(),
 		"databaseName": m.DatabaseName.ValueString(),
-		"username":     m.Username.ValueString(),
+		"dbUser":       m.DbUser.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{dbUser}",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
@@ -136,7 +136,7 @@ func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Dia
 	pathParams := map[string]string{
 		"groupId":      model.GroupId.ValueString(),
 		"databaseName": model.DatabaseName.ValueString(),
-		"username":     model.Username.ValueString(),
+		"dbUser":       model.DbUser.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
 		Client: client,
@@ -144,7 +144,7 @@ func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Dia
 		Diags:  diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
-			RelativePath:  "/api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}",
+			RelativePath:  "/api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{dbUser}",
 			PathParams:    pathParams,
 			Method:        "DELETE",
 		},

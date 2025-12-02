@@ -41,7 +41,7 @@ func TestAccDatabaseUserAPI_basic(t *testing.T) {
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIgnore:              []string{"password"},
-				ImportStateVerifyIdentifierAttribute: "username",
+				ImportStateVerifyIdentifierAttribute: "db_user",
 			},
 		},
 	})
@@ -57,7 +57,7 @@ func configBasic(groupID, username, roleName, keyLabel, valueLabel, description 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_database_user_api" "test" {
 			group_id         = %[1]q
-			username           = %[2]q
+			db_user           = %[2]q
 			password           = "test-acc-password"
 			database_name = "admin"
 
@@ -79,7 +79,7 @@ func configBasic(groupID, username, roleName, keyLabel, valueLabel, description 
 func checkBasic(groupID, username, roleName, keyLabel, valueLabel, description string) resource.TestCheckFunc {
 	mapChecks := map[string]string{
 		"group_id":          groupID,
-		"username":          username,
+		"db_user":           username,
 		"password":          "test-acc-password",
 		"database_name":     "admin",
 		"labels.#":          "1",
@@ -104,7 +104,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		groupID := rs.Primary.Attributes["group_id"]
 		databaseName := rs.Primary.Attributes["database_name"]
-		username := rs.Primary.Attributes["username"]
+		username := rs.Primary.Attributes["db_user"]
 		if groupID == "" || databaseName == "" || username == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
@@ -122,7 +122,7 @@ func checkDestroy(s *terraform.State) error {
 		}
 		groupID := rs.Primary.Attributes["group_id"]
 		databaseName := rs.Primary.Attributes["database_name"]
-		username := rs.Primary.Attributes["username"]
+		username := rs.Primary.Attributes["db_user"]
 		if groupID == "" || databaseName == "" || username == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
@@ -142,7 +142,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		}
 		groupID := rs.Primary.Attributes["group_id"]
 		databaseName := rs.Primary.Attributes["database_name"]
-		username := rs.Primary.Attributes["username"]
+		username := rs.Primary.Attributes["db_user"]
 		if groupID == "" || databaseName == "" || username == "" {
 			return "", fmt.Errorf("import, attributes not found for: %s", resourceName)
 		}

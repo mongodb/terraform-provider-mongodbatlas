@@ -204,8 +204,8 @@ schema:
             | OIDC Workload | oidcAuthType | USER | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |
             | SCRAM-SHA | awsIAMType, x509Type, ldapAuthType, oidcAuthType | NONE | Alphanumeric string |
           computed_optional_required: required
-          tf_schema_name: username
-          tf_model_name: Username
+          tf_schema_name: db_user
+          tf_model_name: DbUser
           api_name: username
           req_body_usage: all_request_bodies
           sensitive: false
@@ -229,16 +229,16 @@ schema:
 operations:
     delete:
         http_method: DELETE
-        path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+        path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{dbUser}
     create:
         http_method: POST
         path: /api/atlas/v2/groups/{groupId}/databaseUsers
     read:
         http_method: GET
-        path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+        path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{dbUser}
     update:
         http_method: PATCH
-        path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+        path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{dbUser}
     version_header: application/vnd.atlas.2023-01-01+json
 name: database_user_api
 packageName: databaseuserapi

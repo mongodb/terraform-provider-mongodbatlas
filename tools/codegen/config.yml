@@ -461,6 +461,8 @@ resources:
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
       ignores: ["links"]
+      aliases:
+        username: dbUser
       overrides:
         password:
           sensitive: true
