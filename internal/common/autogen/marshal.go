@@ -21,7 +21,7 @@ const (
 	tagValOmitJSON            = "omitjson"
 	tagValOmitJSONUpdate      = "omitjsonupdate"
 	tagValIncludeNullOnUpdate = "includenullonupdate"
-	tagAPIName                = "apiname" // e.g., apiname:"groupId" means JSON field is "groupId"
+	tagAPIName                = "apiname" // e.g., apiname:"groupId" means JSON field is "groupId", used if the API name is different from the uncapitalized model name
 )
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
