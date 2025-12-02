@@ -260,11 +260,11 @@ type effectiveReq struct {
 	projectID              string
 	clusterName            string
 	instanceSize           string
+	computeMaxInstanceSize string
 	nodeCountElectable     int
 	diskIOPS               int
 	diskSizeGB             int
 	useEffectiveFields     bool
-	computeMaxInstanceSize string
 	diskAutoScaling        bool
 }
 
