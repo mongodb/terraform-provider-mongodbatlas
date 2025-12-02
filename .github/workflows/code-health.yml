@@ -94,3 +94,4 @@ jobs:
     uses: ./.github/workflows/acceptance-tests.yml
     with:
         reduced_tests: true
+        atlas_cloud_env: qa
