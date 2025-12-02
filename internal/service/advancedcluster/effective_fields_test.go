@@ -113,7 +113,7 @@ func TestAccAdvancedCluster_effectiveWithOtherChanges(t *testing.T) {
 			},
 			{
 				Config:      setUpdated.config(),
-				ExpectError: regexp.MustCompile("Cannot change use_effective_fields with other cluster changes"),
+				ExpectError: regexp.MustCompile("Cannot change use_effective_fields with replication_specs changes"),
 			},
 		},
 	})

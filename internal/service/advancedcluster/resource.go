@@ -254,10 +254,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		if diags.HasError() {
 			return
 		}
-		if diff.isAnyChange() && state.UseEffectiveFields.ValueBool() != plan.UseEffectiveFields.ValueBool() {
-			diags.AddError("Cannot change use_effective_fields with other cluster changes", "The use_effective_fields attribute must be changed separately from other cluster configuration changes.")
-			return
-		}
 		switch {
 		case diff.isUpgradeTenantToFlex:
 			if flexOut := handleFlexUpgrade(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
@@ -274,6 +270,14 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		case diff.isUpgradeTenant():
 			clusterResp = upgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
 		case diff.isClusterPatchOnly():
+			// Forbid toggling use_effective_fields with replication_specs changes as it's not safe.
+			// This allows flag toggling alongside other changes like tags, labels, or advanced_configuration.
+			isFlagToggling := state.UseEffectiveFields.ValueBool() != plan.UseEffectiveFields.ValueBool()
+			hasReplicationSpecsChanges := diff.clusterPatchOnlyReq.ReplicationSpecs != nil
+			if isFlagToggling && hasReplicationSpecsChanges {
+				diags.AddError("Cannot change use_effective_fields with replication_specs changes", "The use_effective_fields attribute must be changed separately from replication_specs changes.")
+				return
+			}
 			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
 		}
 		if diags.HasError() {
@@ -512,10 +516,6 @@ func (c *clusterDiff) isUpgradeFlexToDedicated() bool {
 
 func (c *clusterDiff) isAnyUpgrade() bool {
 	return c.isUpgradeTenantToFlex || c.isUpgradeTenant() || c.isUpgradeFlexToDedicated()
-}
-
-func (c *clusterDiff) isAnyChange() bool {
-	return c.isClusterPatchOnly() || c.isAnyUpgrade() || c.isUpdateOfFlex
 }
 
 // findClusterDiff should be called only in Update, e.g. it will fail for a flex cluster with no changes.
