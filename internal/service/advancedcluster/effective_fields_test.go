@@ -258,6 +258,52 @@ func TestAccAdvancedCluster_effectiveToggleAutoScaling(t *testing.T) {
 
 func TestAccAdvancedCluster_effectiveReadOnlySpecs(t *testing.T) {
 	var (
+		initial = baseEffectiveReq(t).withFlag().withInstanceSize("M10").
+			withReadOnlySpecs("M10", 2, 10, 3000)
+		updated = initial.withReadOnlySpecs("M20", 2, 15, 3010)
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: initial.config(),
+				Check:  initial.check(),
+			},
+			{
+				Config: updated.config(),
+				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_effectiveAnalyticsSpecs(t *testing.T) {
+	var (
+		initial = baseEffectiveReq(t).withFlag().withInstanceSize("M10").
+			withAnalyticsSpecs("M10", 2, 10, 3000)
+		updated = initial.withAnalyticsSpecs("M20", 2, 15, 3010)
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: initial.config(),
+				Check:  initial.check(),
+			},
+			{
+				Config: updated.config(),
+				Check:  updated.check(), // Config values echoed in state, but effective specs show actual running values.
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_effectiveReadOnlySpecsWithAutoScaling(t *testing.T) {
+	var (
 		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withInstanceSize("M10").
 			withReadOnlySpecs("M10", 2, 10, 3000)
 		updated = initial.withReadOnlySpecs("M20", 2, 15, 3010).withEffectiveReadOnlyValues(&initial)
@@ -279,9 +325,9 @@ func TestAccAdvancedCluster_effectiveReadOnlySpecs(t *testing.T) {
 	})
 }
 
-func TestAccAdvancedCluster_effectiveAnalyticsSpecs(t *testing.T) {
+func TestAccAdvancedCluster_effectiveAnalyticsSpecsWithAutoScaling(t *testing.T) {
 	var (
-		initial = baseEffectiveReq(t).withFlag().withComputeMaxInstanceSize("M40").withInstanceSize("M10").
+		initial = baseEffectiveReq(t).withFlag().withAnalyticsComputeMaxInstanceSize("M40").withInstanceSize("M10").
 			withAnalyticsSpecs("M10", 2, 10, 3000)
 		updated = initial.withAnalyticsSpecs("M20", 2, 15, 3010).withEffectiveAnalyticsValues(&initial)
 	)
@@ -303,32 +349,33 @@ func TestAccAdvancedCluster_effectiveAnalyticsSpecs(t *testing.T) {
 }
 
 type effectiveReq struct {
-	readOnlyInstanceSize           string
-	clusterName                    string
-	instanceSize                   string
-	computeMaxInstanceSize         string
-	effectiveInstanceSize          string
-	effectiveAnalyticsInstanceSize string
-	projectID                      string
-	analyticsInstanceSize          string
-	effectiveReadOnlyInstanceSize  string
-	diskIOPS                       int
-	effectiveReadOnlyDiskSizeGB    int
-	effectiveAnalyticsDiskSizeGB   int
-	effectiveDiskSizeGB            int
-	readOnlyDiskIOPS               int
-	readOnlyDiskSizeGB             int
-	readOnlyNodeCount              int
-	effectiveDiskIOPS              int
-	effectiveReadOnlyDiskIOPS      int
-	effectiveAnalyticsDiskIOPS     int
-	diskSizeGB                     int
-	analyticsDiskIOPS              int
-	analyticsDiskSizeGB            int
-	analyticsNodeCount             int
-	nodeCountElectable             int
-	useEffectiveFields             bool
-	diskAutoScaling                bool
+	readOnlyInstanceSize               string
+	clusterName                        string
+	instanceSize                       string
+	computeMaxInstanceSize             string
+	analyticsComputeMaxInstanceSize    string
+	effectiveInstanceSize              string
+	effectiveAnalyticsInstanceSize     string
+	projectID                          string
+	analyticsInstanceSize              string
+	effectiveReadOnlyInstanceSize      string
+	diskIOPS                           int
+	effectiveReadOnlyDiskSizeGB        int
+	effectiveAnalyticsDiskSizeGB       int
+	effectiveDiskSizeGB                int
+	readOnlyDiskIOPS                   int
+	readOnlyDiskSizeGB                 int
+	readOnlyNodeCount                  int
+	effectiveDiskIOPS                  int
+	effectiveReadOnlyDiskIOPS          int
+	effectiveAnalyticsDiskIOPS         int
+	diskSizeGB                         int
+	analyticsDiskIOPS                  int
+	analyticsDiskSizeGB                int
+	analyticsNodeCount                 int
+	nodeCountElectable                 int
+	useEffectiveFields                 bool
+	diskAutoScaling                    bool
 }
 
 func baseEffectiveReq(t *testing.T) effectiveReq {
@@ -376,6 +423,11 @@ func (req effectiveReq) withComputeMaxInstanceSize(computeMaxInstanceSize string
 
 func (req effectiveReq) withDiskAutoScaling() effectiveReq {
 	req.diskAutoScaling = true
+	return req
+}
+
+func (req effectiveReq) withAnalyticsComputeMaxInstanceSize(analyticsComputeMaxInstanceSize string) effectiveReq {
+	req.analyticsComputeMaxInstanceSize = analyticsComputeMaxInstanceSize
 	return req
 }
 
@@ -470,6 +522,13 @@ func (req effectiveReq) config() string {
 		if req.analyticsDiskIOPS != 0 {
 			extraRegionConfig += fmt.Sprintf("\t\t\tdisk_iops = %d\n", req.analyticsDiskIOPS)
 		}
+		extraRegionConfig += "\t\t}\n"
+	}
+	// Analytics auto-scaling
+	if req.analyticsComputeMaxInstanceSize != "" {
+		extraRegionConfig += "analytics_auto_scaling = {\n"
+		extraRegionConfig += "\t\t\tcompute_enabled = true\n"
+		extraRegionConfig += fmt.Sprintf("\t\t\tcompute_max_instance_size = %q\n", req.analyticsComputeMaxInstanceSize)
 		extraRegionConfig += "\t\t}\n"
 	}
 	return fmt.Sprintf(`
