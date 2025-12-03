@@ -43,8 +43,8 @@ func doubleCustomNestedListAttr(ancestorName string) codespec.Attribute {
 }
 
 type schemaGenerationTestCase struct {
-	inputModel     codespec.Resource
 	goldenFileName string
+	inputModel     codespec.Resource
 }
 
 //nolint:funlen // Long test data

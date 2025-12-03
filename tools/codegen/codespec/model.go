@@ -39,11 +39,12 @@ type Model struct {
 }
 
 type Resource struct {
-	Schema      *Schema       `yaml:"schema,omitempty"`
-	Operations  APIOperations `yaml:"operations"`
-	MoveState   *MoveState    `yaml:"move_state,omitempty"`
-	Name        string        `yaml:"name"`
-	PackageName string        `yaml:"packageName"`
+	Schema       *Schema       `yaml:"schema,omitempty"`
+	Operations   APIOperations `yaml:"operations"`
+	MoveState    *MoveState    `yaml:"move_state,omitempty"`
+	Name         string        `yaml:"name"`
+	PackageName  string        `yaml:"packageName"`
+	IDAttributes []string      `yaml:"id_attributes,omitempty"`
 }
 
 type APIOperations struct {
