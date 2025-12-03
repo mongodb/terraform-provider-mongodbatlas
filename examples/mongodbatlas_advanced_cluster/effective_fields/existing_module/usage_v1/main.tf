@@ -4,10 +4,10 @@
 module "atlas_cluster" {
   source = "../module_v1"
 
-  atlas_org_id  = var.atlas_org_id
-  project_name  = var.project_name
-  cluster_name  = var.cluster_name
-  cluster_type  = "REPLICASET"
+  atlas_org_id = var.atlas_org_id
+  project_name = var.project_name
+  cluster_name = var.cluster_name
+  cluster_type = "REPLICASET"
 
   replication_specs = [
     {
@@ -18,7 +18,7 @@ module "atlas_cluster" {
           region_name   = "US_EAST_1"
 
           electable_specs = {
-            instance_size = "M10"  # Initial size, but actual size may differ due to auto-scaling
+            instance_size = "M10" # Initial size, but actual size may differ due to auto-scaling
             node_count    = 3
           }
 
@@ -36,8 +36,8 @@ module "atlas_cluster" {
   ]
 
   tags = {
-    Environment = "development"
-    ManagedBy   = "terraform"
+    Environment   = "development"
+    ManagedBy     = "terraform"
     ModuleVersion = "1.0"
   }
 }

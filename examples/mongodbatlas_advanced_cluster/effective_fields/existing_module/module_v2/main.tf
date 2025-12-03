@@ -14,7 +14,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
   project_id           = mongodbatlas_project.this.id
   name                 = var.cluster_name
   cluster_type         = var.cluster_type
-  use_effective_fields = true  # NEW: Enables effective fields behavior
+  use_effective_fields = true # NEW: Enables effective fields behavior
   replication_specs    = var.replication_specs
   tags                 = var.tags
 
@@ -27,6 +27,6 @@ resource "mongodbatlas_advanced_cluster" "this" {
 data "mongodbatlas_advanced_cluster" "this" {
   project_id           = mongodbatlas_advanced_cluster.this.project_id
   name                 = mongodbatlas_advanced_cluster.this.name
-  use_effective_fields = true  # Must match the resource
+  use_effective_fields = true # Must match the resource
   depends_on           = [mongodbatlas_advanced_cluster.this]
 }
