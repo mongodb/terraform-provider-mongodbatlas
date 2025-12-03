@@ -278,7 +278,7 @@ func TestAccAdvancedCluster_effectiveAnalyticsAutoScaling(t *testing.T) {
 	})
 }
 
-func TestAccAdvancedCluster_effectiveErrorDeletingSpecsWhileTogglingFlag(t *testing.T) {
+func TestAccAdvancedCluster_effectiveToggleFlagWithRemovedSpecs(t *testing.T) {
 	var (
 		base    = baseEffectiveReq(t).withComputeMaxInstanceSize("M40").withInstanceSize("M10")
 		initial = base.withReadOnlySpecs("M10", 1, 10, 3000).

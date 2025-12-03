@@ -576,7 +576,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 * `config_server_management_mode` - (Optional) Config Server Management Mode for creating or updating a sharded cluster. Valid values are `ATLAS_MANAGED` (default) and `FIXED_TO_DEDICATED`. When configured as `ATLAS_MANAGED`, Atlas may automatically switch the cluster's config server type for optimal performance and savings. When configured as `FIXED_TO_DEDICATED`, the cluster will always use a dedicated config server. To learn more, see the [Sharded Cluster Config Servers documentation](https://dochub.mongodb.org/docs/manual/core/sharded-cluster-config-servers/).
 - `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 * `use_effective_fields` - (Optional) Controls how hardware specification fields are returned in the response. When set to true, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to false (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications. This opt-in feature enhances auto-scaling workflows by eliminating the need for `lifecycle.ignore_changes` blocks and preventing plan drift from Atlas-managed changes. This attribute applies to dedicated clusters, not to tenant or flex clusters. This attribute will be deprecated in provider version 2.x and removed in 3.x when the new behavior becomes default. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for more details.
-**Important:** The recommendation is to toggle this flag and remove any existing `lifecycle.ignore_changes` blocks for spec fields in the same apply, without combining other changes. Toggling will result in increased plan verbosity with `(known after apply)` markers, which can be safely ignored. If you previously removed `read_only_specs` or `analytics_specs` blocks from your configuration, you'll get a validation error for safety reasons to prevent accidental node loss. To resolve: add the blocks back (to keep nodes) or with `node_count = 0` (to delete nodes), apply without toggling the flag, then toggle in a separate apply.
+**Important:** Toggle this flag and remove any existing `lifecycle.ignore_changes` blocks for spec fields in the same apply, without combining other changes. Toggling will result in increased plan verbosity with `(known after apply)` markers, which can be safely ignored. If you previously removed `read_only_specs` or `analytics_specs` blocks from your configuration, you'll get a validation error for safety reasons to prevent accidental node loss. To resolve: add the blocks back (to keep nodes) or with `node_count = 0` (to delete nodes), apply without toggling the flag, then toggle in a separate apply.
 
 ### bi_connector_config
 
@@ -784,9 +784,9 @@ When auto-scaling is enabled, there are two approaches to manage your cluster co
 
 **Option 1 (Recommended):** Use `use_effective_fields = true` to enable the new effective fields behavior. With this option, Atlas-managed auto-scaling changes won't cause plan drift, eliminating the need for `lifecycle` ignore customizations. When either compute or disk auto-scaling is enabled (or both), all three fields (`instance_size`, `disk_size_gb`, and `disk_iops`) are ignored in the Terraform configuration, as Atlas may adjust any of these resources to maintain optimal cluster performance. You can read the actual scaled values using the `effective_electable_specs` and `effective_read_only_specs` attributes in the `mongodbatlas_advanced_cluster` data source. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for details.
 
-**Important:** If you're enabling this flag on an existing cluster that has `lifecycle.ignore_changes` blocks for spec fields, the recommendation is to enable the flag and remove the blocks in the same apply. The blocks are no longer needed and may interfere with the new behavior. If you previously removed `read_only_specs` or `analytics_specs` blocks, you may encounter a validation error. This is a safety check to prevent accidental node loss. To resolve: add the blocks back (to keep nodes) or with `node_count = 0` (to delete nodes), apply without toggling the flag, then toggle in a separate apply.
+**Important:** If you're enabling this flag on an existing cluster that has `lifecycle.ignore_changes` blocks for spec fields, enable the flag and remove the blocks in the same apply. The blocks are no longer needed and may interfere with the new behavior. If you previously removed `read_only_specs` or `analytics_specs` blocks, you may encounter a validation error. This is a safety check to prevent accidental node loss. To resolve: add the blocks back (to keep nodes) or with `node_count = 0` (to delete nodes), apply without toggling the flag, then toggle in a separate apply.
 
-To manually update specs with Option 1, you must temporarily disable auto-scaling. See [Manually Updating Specs with use_effective_fields](#manually-updating-specs-with-use_effective_fields) for the detailed workflow.
+To manually update `instance_size`, `disk_size_gb`, or `disk_iops` with Option 1, you must temporarily disable auto-scaling. See [Manually Updating Specs with use_effective_fields](#manually-updating-specs-with-use_effective_fields) for the detailed workflow.
 
 **Option 2:** If not using `use_effective_fields`, use a lifecycle ignore customization to prevent unintended changes. When auto-scaling is enabled, you must ignore all three fields (`instance_size`, `disk_size_gb`, and `disk_iops`) as Atlas may adjust any of these resources regardless of which auto-scaling type is enabled.
 
@@ -918,18 +918,13 @@ See the [Example using effective fields with auto-scaling](#example-using-effect
 
 ### Manually Updating Specs with use_effective_fields
 
-When `use_effective_fields = true` and auto-scaling is enabled, you can update spec values in your Terraform configuration at any time without validation errors. However, Atlas will echo these values back in state while continuing to use the auto-scaled values for actual cluster operations.
+When `use_effective_fields = true` and auto-scaling is enabled, you can update `instance_size`, `disk_size_gb`, or `disk_iops` in your configuration at any time without validation errors. However, Atlas echoes these values back in state while continuing to use auto-scaled values for actual cluster operations. To have your configured values take effect, temporarily disable auto-scaling:
 
-To have your configured values actually take effect on the cluster, you must temporarily disable auto-scaling:
+1. Set `compute_enabled = false` and `disk_gb_enabled = false` in the [`auto_scaling`](#auto_scaling) block and apply.
+2. Update `instance_size`, `disk_size_gb`, or `disk_iops` to your desired values and apply.
+3. Re-enable auto-scaling by setting `compute_enabled` and/or `disk_gb_enabled` back to `true` and apply.
 
-1. Set `compute_enabled = false` and `disk_gb_enabled = false` in the [`auto_scaling`](#auto_scaling) block
-2. Apply the configuration to disable auto-scaling
-3. Update the desired spec values (`instance_size`, `disk_size_gb`, or `disk_iops`)
-4. Apply the configuration with the updated values
-5. Re-enable auto-scaling by setting `compute_enabled` and/or `disk_gb_enabled` back to `true`
-6. Apply the configuration a final time
-
-This workflow is required because when auto-scaling is enabled, Atlas controls these values dynamically based on workload. Disabling auto-scaling allows you to set specific values that will be used by the cluster, after which you can re-enable auto-scaling to resume dynamic scaling from your new baseline.
+This workflow allows you to set specific baseline values from which auto-scaling will resume dynamic adjustments based on workload.
 
 ### Terraform Modules
 
