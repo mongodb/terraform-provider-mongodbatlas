@@ -21,6 +21,7 @@ const (
 	tagValOmitJSON            = "omitjson"
 	tagValOmitJSONUpdate      = "omitjsonupdate"
 	tagValIncludeNullOnUpdate = "includenullonupdate"
+	tagAPIName                = "apiname" // e.g., apiname:"groupId" means JSON field is "groupId", used if the API name is different from the uncapitalized model name
 )
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
@@ -61,17 +62,27 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 			continue // skip fields with tag `omitjsonupdate` if in update mode
 		}
 		attrNameModel := attrTypeModel.Name
+		// Check for apiname tag to get the actual JSON field name (for aliased attributes)
+		apiName := getAPINameFromTag(attrTypeModel.Tag, attrNameModel)
 		attrValModel := valModel.Field(i)
 		includeNullOnUpdate := slices.Contains(tags, tagValIncludeNullOnUpdate)
-		if err := marshalAttr(attrNameModel, attrValModel, objJSON, isUpdate, includeNullOnUpdate); err != nil {
+		if err := marshalAttr(apiName, attrValModel, objJSON, isUpdate, includeNullOnUpdate); err != nil {
 			return nil, err
 		}
 	}
 	return objJSON, nil
 }
 
-func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any, isUpdate, includeNullOnUpdate bool) error {
-	attrNameJSON := stringcase.Uncapitalize(attrNameModel)
+// getAPINameFromTag extracts the API name from the apiname tag if present (e.g., apiname:"groupId"),
+// otherwise returns the model name uncapitalized as the default JSON name.
+func getAPINameFromTag(structTag reflect.StructTag, modelName string) string {
+	if apiName := structTag.Get(tagAPIName); apiName != "" {
+		return apiName
+	}
+	return stringcase.Uncapitalize(modelName)
+}
+
+func marshalAttr(attrNameJSON string, attrValModel reflect.Value, objJSON map[string]any, isUpdate, includeNullOnUpdate bool) error {
 	obj, ok := attrValModel.Interface().(attr.Value)
 	if !ok {
 		panic("marshal expects only Terraform types in the model")

@@ -36,7 +36,7 @@ type MoveState struct {
 }
 
 type SchemaOptions struct {
-	Aliases   map[string]string   `yaml:"aliases"` // only supports modifying path param names, full alias support is not yet implemented in conversion logic for request/response bodies
+	Aliases   map[string]string   `yaml:"aliases"` // keys and values use camelCase (e.g., groupId: projectId, nestedObject.innerAttr: renamedAttr). Supports path params and request/response body fields via APIName preservation and apiname tag generation
 	Overrides map[string]Override `yaml:"overrides"`
 	Ignores   []string            `yaml:"ignores"`
 }

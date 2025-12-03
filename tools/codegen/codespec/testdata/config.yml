@@ -129,3 +129,46 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/simpleTestResource
       method: DELETE
+
+  test_resource_with_multiple_caps:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithMultipleCaps
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithMultipleCaps
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithMultipleCaps
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithMultipleCaps
+      method: DELETE
+    schema:
+      aliases:
+        # Test that aliasing works correctly with attributes that have multiple consecutive capital letters
+        # The apiPath should preserve "MongoDBMajorVersion" (not convert via lossy conversion from snake to camel case)
+        MongoDBMajorVersion: mongoDbVersion
+        # Test nested path-based alias with multiple caps
+        nestedObject.innerAttr: innerAttribute
+        # Test nested object with multiple consecutive caps (nestedObjectDB) and alias one of its inner attributes
+        nestedObjectDB.apiKey: apiKeyAlias
+
+  test_resource_path_param_with_alias:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/users/{username}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/users
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/users/{username}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/users/{username}
+      method: DELETE
+    schema:
+      aliases:
+        # Test that aliasing works correctly when an attribute is both a path parameter
+        # and appears in request/response bodies. The apiname tag should preserve the
+        # original API name "username" while the schema uses the aliased name "dbUser"
+        username: dbUser

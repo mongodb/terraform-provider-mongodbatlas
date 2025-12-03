@@ -39,31 +39,46 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 	if valModel.Kind() != reflect.Struct {
 		panic("model must be pointer to struct")
 	}
-	for attrNameJSON, attrObjJSON := range objJSON {
-		if err := unmarshalAttr(attrNameJSON, attrObjJSON, valModel); err != nil {
+
+	// Iterate over model fields and look up corresponding JSON properties
+	structType := valModel.Type()
+	for i := range structType.NumField() {
+		field := structType.Field(i)
+		fieldModel := valModel.Field(i)
+
+		if !fieldModel.CanSet() {
+			continue // skip fields that cannot be set
+		}
+
+		// Get the API name (JSON field name) for this model field
+		apiName := getAPINameFromTag(field.Tag, field.Name)
+
+		// Look up the JSON property
+		attrObjJSON, ok := objJSON[apiName]
+		if !ok {
+			continue // skip fields not found in JSON (attributes in JSON but not in model are ignored)
+		}
+
+		if attrObjJSON == nil {
+			continue // skip nil values, no need to set anything
+		}
+
+		if err := unmarshalAttr(attrObjJSON, fieldModel, &field); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value) error {
-	if attrObjJSON == nil {
-		return nil // skip nil values, no need to set anything
-	}
+func unmarshalAttr(attrObjJSON any, fieldModel reflect.Value, structField *reflect.StructField) error {
+	attrNameModel := structField.Name
 
-	attrNameModel := stringcase.Capitalize(attrNameJSON)
-	fieldModel := valModel.FieldByName(attrNameModel)
-	if !fieldModel.CanSet() {
-		return nil // skip fields that cannot be set, are invalid or not found
-	}
 	oldVal, ok := fieldModel.Interface().(attr.Value)
 	if !ok {
 		return fmt.Errorf("unmarshal trying to set non-Terraform attribute %s", attrNameModel)
 	}
 
 	if !oldVal.IsNull() && !oldVal.IsUnknown() { // Check if oldVal is a known value
-		structField, _ := valModel.Type().FieldByName(attrNameModel)                        // Always valid, checked above
 		if slices.Contains(strings.Split(structField.Tag.Get(tagKey), ","), tagSensitive) { // Field contains the "sensitive" tag
 			return nil // skip sensitive fields that are already set in the plan/state to avoid overwriting with redacted values
 		}

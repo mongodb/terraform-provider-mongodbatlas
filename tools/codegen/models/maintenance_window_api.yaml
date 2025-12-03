@@ -6,6 +6,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: auto_defer_once_enabled
           tf_model_name: AutoDeferOnceEnabled
+          api_name: autoDeferOnceEnabled
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -23,6 +24,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: day_of_week
           tf_model_name: DayOfWeek
+          api_name: dayOfWeek
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -34,6 +36,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
+          api_name: groupId
           req_body_usage: omit_always
           sensitive: false
           create_only: true
@@ -42,6 +45,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: hour_of_day
           tf_model_name: HourOfDay
+          api_name: hourOfDay
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -50,6 +54,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: number_of_deferrals
           tf_model_name: NumberOfDeferrals
+          api_name: numberOfDeferrals
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -61,6 +66,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: end_hour_of_day
                       tf_model_name: EndHourOfDay
+                      api_name: endHourOfDay
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -69,6 +75,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: start_hour_of_day
                       tf_model_name: StartHourOfDay
+                      api_name: startHourOfDay
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -80,6 +87,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: protected_hours
           tf_model_name: ProtectedHours
+          api_name: protectedHours
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -88,6 +96,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: start_asap
           tf_model_name: StartASAP
+          api_name: startASAP
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -96,6 +105,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: time_zone_id
           tf_model_name: TimeZoneId
+          api_name: timeZoneId
           req_body_usage: omit_always
           sensitive: false
           create_only: false

@@ -9,6 +9,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: accept_data_risks_and_force_replica_set_reconfig
           tf_model_name: AcceptDataRisksAndForceReplicaSetReconfig
+          api_name: acceptDataRisksAndForceReplicaSetReconfig
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -25,6 +26,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: custom_openssl_cipher_config_tls12
                       tf_model_name: CustomOpensslCipherConfigTls12
+                      api_name: customOpensslCipherConfigTls12
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -38,6 +40,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: custom_openssl_cipher_config_tls13
                       tf_model_name: CustomOpensslCipherConfigTls13
+                      api_name: customOpensslCipherConfigTls13
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -46,6 +49,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: minimum_enabled_tls_protocol
                       tf_model_name: MinimumEnabledTlsProtocol
+                      api_name: minimumEnabledTlsProtocol
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -54,6 +58,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: tls_cipher_config_mode
                       tf_model_name: TlsCipherConfigMode
+                      api_name: tlsCipherConfigMode
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -65,6 +70,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: advanced_configuration
           tf_model_name: AdvancedConfiguration
+          api_name: advancedConfiguration
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -74,6 +80,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: backup_enabled
           tf_model_name: BackupEnabled
+          api_name: backupEnabled
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -85,6 +92,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: enabled
                       tf_model_name: Enabled
+                      api_name: enabled
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -93,6 +101,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: read_preference
                       tf_model_name: ReadPreference
+                      api_name: readPreference
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -104,6 +113,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: bi_connector
           tf_model_name: BiConnector
+          api_name: biConnector
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -112,6 +122,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: cluster_type
           tf_model_name: ClusterType
+          api_name: clusterType
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -126,6 +137,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: config_server_management_mode
           tf_model_name: ConfigServerManagementMode
+          api_name: configServerManagementMode
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -134,6 +146,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: config_server_type
           tf_model_name: ConfigServerType
+          api_name: configServerType
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -150,6 +163,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: aws_private_link
                       tf_model_name: AwsPrivateLink
+                      api_name: awsPrivateLink
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -163,6 +177,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: aws_private_link_srv
                       tf_model_name: AwsPrivateLinkSrv
+                      api_name: awsPrivateLinkSrv
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -171,6 +186,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: private
                       tf_model_name: Private
+                      api_name: private
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -182,6 +198,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: connection_string
                                   tf_model_name: ConnectionString
+                                  api_name: connectionString
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -193,6 +210,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: endpoint_id
                                               tf_model_name: EndpointId
+                                              api_name: endpointId
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -201,6 +219,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: provider_name
                                               tf_model_name: ProviderName
+                                              api_name: providerName
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -209,6 +228,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: region
                                               tf_model_name: Region
+                                              api_name: region
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -220,6 +240,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: endpoints
                                   tf_model_name: Endpoints
+                                  api_name: endpoints
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -228,6 +249,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: srv_connection_string
                                   tf_model_name: SrvConnectionString
+                                  api_name: srvConnectionString
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -236,6 +258,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: srv_shard_optimized_connection_string
                                   tf_model_name: SrvShardOptimizedConnectionString
+                                  api_name: srvShardOptimizedConnectionString
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -244,6 +267,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: type
                                   tf_model_name: Type
+                                  api_name: type
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -255,6 +279,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: private_endpoint
                       tf_model_name: PrivateEndpoint
+                      api_name: privateEndpoint
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -263,6 +288,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: private_srv
                       tf_model_name: PrivateSrv
+                      api_name: privateSrv
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -271,6 +297,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: standard
                       tf_model_name: Standard
+                      api_name: standard
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -279,6 +306,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: standard_srv
                       tf_model_name: StandardSrv
+                      api_name: standardSrv
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -290,6 +318,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: connection_strings
           tf_model_name: ConnectionStrings
+          api_name: connectionStrings
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -298,6 +327,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: create_date
           tf_model_name: CreateDate
+          api_name: createDate
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -307,6 +337,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: disk_warming_mode
           tf_model_name: DiskWarmingMode
+          api_name: diskWarmingMode
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -315,6 +346,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: encryption_at_rest_provider
           tf_model_name: EncryptionAtRestProvider
+          api_name: encryptionAtRestProvider
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -323,6 +355,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: feature_compatibility_version
           tf_model_name: FeatureCompatibilityVersion
+          api_name: featureCompatibilityVersion
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -331,6 +364,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: feature_compatibility_version_expiration_date
           tf_model_name: FeatureCompatibilityVersionExpirationDate
+          api_name: featureCompatibilityVersionExpirationDate
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -346,6 +380,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: global_cluster_self_managed_sharding
           tf_model_name: GlobalClusterSelfManagedSharding
+          api_name: globalClusterSelfManagedSharding
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -357,6 +392,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
+          api_name: groupId
           req_body_usage: omit_always
           sensitive: false
           create_only: true
@@ -365,6 +401,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: id
           tf_model_name: Id
+          api_name: id
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -373,6 +410,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: internal_cluster_role
           tf_model_name: InternalClusterRole
+          api_name: internalClusterRole
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -384,6 +422,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: key
                       tf_model_name: Key
+                      api_name: key
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -392,6 +431,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: value
                       tf_model_name: Value
+                      api_name: value
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -407,6 +447,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: labels
           tf_model_name: Labels
+          api_name: labels
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -418,6 +459,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: expiration_time
                       tf_model_name: ExpirationTime
+                      api_name: expirationTime
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -426,6 +468,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: grant_type
                       tf_model_name: GrantType
+                      api_name: grantType
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -437,6 +480,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: mongo_db_employee_access_grant
           tf_model_name: MongoDBEmployeeAccessGrant
+          api_name: mongoDBEmployeeAccessGrant
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -445,6 +489,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: mongo_db_major_version
           tf_model_name: MongoDBMajorVersion
+          api_name: mongoDBMajorVersion
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -453,6 +498,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: mongo_db_version
           tf_model_name: MongoDBVersion
+          api_name: mongoDBVersion
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -461,6 +507,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: name
           tf_model_name: Name
+          api_name: name
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -469,6 +516,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: paused
           tf_model_name: Paused
+          api_name: paused
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -477,6 +525,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: pit_enabled
           tf_model_name: PitEnabled
+          api_name: pitEnabled
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -492,6 +541,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: redact_client_log_data
           tf_model_name: RedactClientLogData
+          api_name: redactClientLogData
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -508,6 +558,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: replica_set_scaling_strategy
           tf_model_name: ReplicaSetScalingStrategy
+          api_name: replicaSetScalingStrategy
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -519,6 +570,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: id
                       tf_model_name: Id
+                      api_name: id
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -540,6 +592,7 @@ schema:
                                                           computed_optional_required: optional
                                                           tf_schema_name: enabled
                                                           tf_model_name: Enabled
+                                                          api_name: enabled
                                                           req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
@@ -548,6 +601,7 @@ schema:
                                                           computed_optional_required: computed
                                                           tf_schema_name: max_instance_size
                                                           tf_model_name: MaxInstanceSize
+                                                          api_name: maxInstanceSize
                                                           req_body_usage: omit_always
                                                           sensitive: false
                                                           create_only: false
@@ -556,6 +610,7 @@ schema:
                                                           computed_optional_required: computed
                                                           tf_schema_name: min_instance_size
                                                           tf_model_name: MinInstanceSize
+                                                          api_name: minInstanceSize
                                                           req_body_usage: omit_always
                                                           sensitive: false
                                                           create_only: false
@@ -564,6 +619,7 @@ schema:
                                                           computed_optional_required: optional
                                                           tf_schema_name: scale_down_enabled
                                                           tf_model_name: ScaleDownEnabled
+                                                          api_name: scaleDownEnabled
                                                           req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
@@ -575,6 +631,7 @@ schema:
                                               computed_optional_required: optional
                                               tf_schema_name: compute
                                               tf_model_name: Compute
+                                              api_name: compute
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
@@ -586,6 +643,7 @@ schema:
                                                           computed_optional_required: optional
                                                           tf_schema_name: enabled
                                                           tf_model_name: Enabled
+                                                          api_name: enabled
                                                           req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
@@ -597,6 +655,7 @@ schema:
                                               computed_optional_required: optional
                                               tf_schema_name: disk_gb
                                               tf_model_name: DiskGB
+                                              api_name: diskGB
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
@@ -608,6 +667,7 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: analytics_auto_scaling
                                   tf_model_name: AnalyticsAutoScaling
+                                  api_name: analyticsAutoScaling
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
@@ -627,6 +687,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_iops
                                               tf_model_name: DiskIOPS
+                                              api_name: diskIOPS
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -635,6 +696,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_size_gb
                                               tf_model_name: DiskSizeGB
+                                              api_name: diskSizeGB
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -644,6 +706,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
+                                              api_name: ebsVolumeType
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -652,6 +715,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: instance_size
                                               tf_model_name: InstanceSize
+                                              api_name: instanceSize
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -660,6 +724,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: node_count
                                               tf_model_name: NodeCount
+                                              api_name: nodeCount
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -671,6 +736,7 @@ schema:
                                   computed_optional_required: computed_optional
                                   tf_schema_name: analytics_specs
                                   tf_model_name: AnalyticsSpecs
+                                  api_name: analyticsSpecs
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -689,6 +755,7 @@ schema:
                                                           computed_optional_required: computed_optional
                                                           tf_schema_name: enabled
                                                           tf_model_name: Enabled
+                                                          api_name: enabled
                                                           req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
@@ -697,6 +764,7 @@ schema:
                                                           computed_optional_required: computed_optional
                                                           tf_schema_name: max_instance_size
                                                           tf_model_name: MaxInstanceSize
+                                                          api_name: maxInstanceSize
                                                           req_body_usage: omit_always
                                                           sensitive: false
                                                           create_only: false
@@ -705,6 +773,7 @@ schema:
                                                           computed_optional_required: computed_optional
                                                           tf_schema_name: min_instance_size
                                                           tf_model_name: MinInstanceSize
+                                                          api_name: minInstanceSize
                                                           req_body_usage: omit_always
                                                           sensitive: false
                                                           create_only: false
@@ -713,6 +782,7 @@ schema:
                                                           computed_optional_required: computed_optional
                                                           tf_schema_name: scale_down_enabled
                                                           tf_model_name: ScaleDownEnabled
+                                                          api_name: scaleDownEnabled
                                                           req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
@@ -724,6 +794,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: compute
                                               tf_model_name: Compute
+                                              api_name: compute
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
@@ -735,6 +806,7 @@ schema:
                                                           computed_optional_required: computed_optional
                                                           tf_schema_name: enabled
                                                           tf_model_name: Enabled
+                                                          api_name: enabled
                                                           req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
@@ -746,6 +818,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_gb
                                               tf_model_name: DiskGB
+                                              api_name: diskGB
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
@@ -757,6 +830,7 @@ schema:
                                   computed_optional_required: computed_optional
                                   tf_schema_name: auto_scaling
                                   tf_model_name: AutoScaling
+                                  api_name: autoScaling
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
@@ -765,6 +839,7 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: backing_provider_name
                                   tf_model_name: BackingProviderName
+                                  api_name: backingProviderName
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
@@ -784,6 +859,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
                                               tf_model_name: DiskIOPS
+                                              api_name: diskIOPS
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -792,6 +868,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: disk_size_gb
                                               tf_model_name: DiskSizeGB
+                                              api_name: diskSizeGB
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -801,6 +878,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
+                                              api_name: ebsVolumeType
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -809,6 +887,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: instance_size
                                               tf_model_name: InstanceSize
+                                              api_name: instanceSize
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -817,6 +896,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: node_count
                                               tf_model_name: NodeCount
+                                              api_name: nodeCount
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -828,6 +908,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: effective_analytics_specs
                                   tf_model_name: EffectiveAnalyticsSpecs
+                                  api_name: effectiveAnalyticsSpecs
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -847,6 +928,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
                                               tf_model_name: DiskIOPS
+                                              api_name: diskIOPS
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -855,6 +937,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: disk_size_gb
                                               tf_model_name: DiskSizeGB
+                                              api_name: diskSizeGB
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -864,6 +947,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
+                                              api_name: ebsVolumeType
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -872,6 +956,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: instance_size
                                               tf_model_name: InstanceSize
+                                              api_name: instanceSize
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -880,6 +965,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: node_count
                                               tf_model_name: NodeCount
+                                              api_name: nodeCount
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -891,6 +977,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: effective_electable_specs
                                   tf_model_name: EffectiveElectableSpecs
+                                  api_name: effectiveElectableSpecs
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -910,6 +997,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
                                               tf_model_name: DiskIOPS
+                                              api_name: diskIOPS
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -918,6 +1006,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: disk_size_gb
                                               tf_model_name: DiskSizeGB
+                                              api_name: diskSizeGB
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -927,6 +1016,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
+                                              api_name: ebsVolumeType
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -935,6 +1025,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: instance_size
                                               tf_model_name: InstanceSize
+                                              api_name: instanceSize
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -943,6 +1034,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: node_count
                                               tf_model_name: NodeCount
+                                              api_name: nodeCount
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -954,6 +1046,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: effective_read_only_specs
                                   tf_model_name: EffectiveReadOnlySpecs
+                                  api_name: effectiveReadOnlySpecs
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -973,6 +1066,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_iops
                                               tf_model_name: DiskIOPS
+                                              api_name: diskIOPS
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
@@ -981,6 +1075,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_size_gb
                                               tf_model_name: DiskSizeGB
+                                              api_name: diskSizeGB
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
@@ -990,6 +1085,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
+                                              api_name: ebsVolumeType
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
@@ -998,6 +1094,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: effective_instance_size
                                               tf_model_name: EffectiveInstanceSize
+                                              api_name: effectiveInstanceSize
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -1006,6 +1103,7 @@ schema:
                                               computed_optional_required: optional
                                               tf_schema_name: instance_size
                                               tf_model_name: InstanceSize
+                                              api_name: instanceSize
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
@@ -1014,6 +1112,7 @@ schema:
                                               computed_optional_required: optional
                                               tf_schema_name: node_count
                                               tf_model_name: NodeCount
+                                              api_name: nodeCount
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
@@ -1025,6 +1124,7 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: electable_specs
                                   tf_model_name: ElectableSpecs
+                                  api_name: electableSpecs
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
@@ -1036,6 +1136,7 @@ schema:
                                   computed_optional_required: computed_optional
                                   tf_schema_name: priority
                                   tf_model_name: Priority
+                                  api_name: priority
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
@@ -1044,6 +1145,7 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: provider_name
                                   tf_model_name: ProviderName
+                                  api_name: providerName
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
@@ -1063,6 +1165,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_iops
                                               tf_model_name: DiskIOPS
+                                              api_name: diskIOPS
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -1071,6 +1174,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_size_gb
                                               tf_model_name: DiskSizeGB
+                                              api_name: diskSizeGB
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -1080,6 +1184,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
+                                              api_name: ebsVolumeType
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -1088,6 +1193,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: instance_size
                                               tf_model_name: InstanceSize
+                                              api_name: instanceSize
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -1096,6 +1202,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: node_count
                                               tf_model_name: NodeCount
+                                              api_name: nodeCount
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -1107,6 +1214,7 @@ schema:
                                   computed_optional_required: computed_optional
                                   tf_schema_name: read_only_specs
                                   tf_model_name: ReadOnlySpecs
+                                  api_name: readOnlySpecs
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -1115,6 +1223,7 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: region_name
                                   tf_model_name: RegionName
+                                  api_name: regionName
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
@@ -1131,6 +1240,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: region_configs
                       tf_model_name: RegionConfigs
+                      api_name: regionConfigs
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -1139,6 +1249,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: zone_id
                       tf_model_name: ZoneId
+                      api_name: zoneId
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -1147,6 +1258,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: zone_name
                       tf_model_name: ZoneName
+                      api_name: zoneName
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -1158,6 +1270,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: replication_specs
           tf_model_name: ReplicationSpecs
+          api_name: replicationSpecs
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -1167,6 +1280,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: root_cert_type
           tf_model_name: RootCertType
+          api_name: rootCertType
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -1182,6 +1296,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: state_name
           tf_model_name: StateName
+          api_name: stateName
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -1193,6 +1308,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: key
                       tf_model_name: Key
+                      api_name: key
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -1201,6 +1317,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: value
                       tf_model_name: Value
+                      api_name: value
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -1212,6 +1329,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: tags
           tf_model_name: Tags
+          api_name: tags
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -1221,6 +1339,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: termination_protection_enabled
           tf_model_name: TerminationProtectionEnabled
+          api_name: terminationProtectionEnabled
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -1230,6 +1349,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: use_aws_time_based_snapshot_copy_for_fast_initial_sync
           tf_model_name: UseAwsTimeBasedSnapshotCopyForFastInitialSync
+          api_name: useAwsTimeBasedSnapshotCopyForFastInitialSync
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -1239,6 +1359,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: version_release_system
           tf_model_name: VersionReleaseSystem
+          api_name: versionReleaseSystem
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
