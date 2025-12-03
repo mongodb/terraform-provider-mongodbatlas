@@ -301,7 +301,7 @@ func TestAccAdvancedCluster_effectiveToggleFlagWithRemovedSpecs(t *testing.T) {
 			},
 			{
 				Config:      readOnlyRemoved.withFlag().config(),
-				ExpectError: regexp.MustCompile("Cannot remove read_only_specs blocks while toggling use_effective_fields"),
+				ExpectError: regexp.MustCompile("Cannot remove read_only_specs attributes while toggling use_effective_fields"),
 			},
 			{
 				Config: initial.config(),
@@ -313,7 +313,7 @@ func TestAccAdvancedCluster_effectiveToggleFlagWithRemovedSpecs(t *testing.T) {
 			},
 			{
 				Config:      analyticsRemoved.withFlag().config(),
-				ExpectError: regexp.MustCompile("Cannot remove analytics_specs blocks while toggling use_effective_fields"),
+				ExpectError: regexp.MustCompile("Cannot remove analytics_specs attributes while toggling use_effective_fields"),
 			},
 		},
 	})
