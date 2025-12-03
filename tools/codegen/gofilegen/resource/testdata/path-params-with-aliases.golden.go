@@ -41,11 +41,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	pathParams := map[string]string{
-		"groupId": plan.GroupId.ValueString(),
+		"projectId": plan.ProjectId.ValueString(),
 	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/v1/groups/{groupId}/integrations",
+		RelativePath:  "/api/v1/groups/{projectId}/integrations",
 		PathParams:    pathParams,
 		Method:        "POST",
 	}
@@ -83,12 +83,12 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	// Path params are grabbed from state as they may be computed-only and not present in the plan
 	pathParams := map[string]string{
-		"groupId": state.GroupId.ValueString(),
-		"id":      state.Id.ValueString(),
+		"projectId":     state.ProjectId.ValueString(),
+		"integrationId": state.IntegrationId.ValueString(),
 	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/v1/groups/{groupId}/integrations/{id}",
+		RelativePath:  "/api/v1/groups/{projectId}/integrations/{integrationId}",
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
@@ -119,12 +119,12 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 func readAPICallParams(model any) *config.APICallParams {
 	m := model.(*TFModel)
 	pathParams := map[string]string{
-		"groupId": m.GroupId.ValueString(),
-		"id":      m.Id.ValueString(),
+		"projectId":     m.ProjectId.ValueString(),
+		"integrationId": m.IntegrationId.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/v1/groups/{groupId}/integrations/{id}",
+		RelativePath:  "/api/v1/groups/{projectId}/integrations/{integrationId}",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
@@ -132,8 +132,8 @@ func readAPICallParams(model any) *config.APICallParams {
 
 func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
-		"groupId": model.GroupId.ValueString(),
-		"id":      model.Id.ValueString(),
+		"projectId":     model.ProjectId.ValueString(),
+		"integrationId": model.IntegrationId.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
 		Client: client,
@@ -141,7 +141,7 @@ func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Dia
 		Diags:  diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
-			RelativePath:  "/api/v1/groups/{groupId}/integrations/{id}",
+			RelativePath:  "/api/v1/groups/{projectId}/integrations/{integrationId}",
 			PathParams:    pathParams,
 			Method:        "DELETE",
 		},

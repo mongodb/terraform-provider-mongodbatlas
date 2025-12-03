@@ -461,6 +461,8 @@ resources:
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
       ignores: ["links"]
+      aliases:
+        username: dbUser # alias is only added to illustrate full aliasing support (username is both a path param and present in request body)
       overrides:
         password:
           sensitive: true
@@ -510,6 +512,8 @@ resources:
       method: PATCH
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
+      aliases:
+        groupId: projectId
       overrides:
         # These attributes are optional but when not configured, Atlas returns a default value.
         is_collect_database_specifics_statistics_enabled:

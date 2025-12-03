@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 )
 
@@ -61,29 +62,36 @@ func generateStructOfTypedModel(attributes codespec.Attributes, name string) Cod
 
 func typedModelProperty(attr *codespec.Attribute) string {
 	var (
-		propType = attrModelType(attr)
-		tagsStr  = ""
-		tags     = make([]string, 0)
+		propType    = attrModelType(attr)
+		tagsStr     = ""
+		autogenTags = make([]string, 0)
+		apinameTag  = ""
 	)
 
+	// Add apiname tag if the API name is different from the uncapitalized model name
+	// This ensures correct marshaling/unmarshaling when TFModelName doesn't derive to the correct API property name
+	if attr.APIName != "" && attr.APIName != stringcase.Uncapitalize(attr.TFModelName) {
+		apinameTag = fmt.Sprintf(" apiname:%q", attr.APIName)
+	}
+
 	if attr.Sensitive {
-		tags = append(tags, "sensitive")
+		autogenTags = append(autogenTags, "sensitive")
 	}
 
 	switch attr.ReqBodyUsage {
 	case codespec.AllRequestBodies:
 	case codespec.OmitAlways:
-		tags = append(tags, "omitjson")
+		autogenTags = append(autogenTags, "omitjson")
 	case codespec.OmitInUpdateBody:
-		tags = append(tags, "omitjsonupdate")
+		autogenTags = append(autogenTags, "omitjsonupdate")
 	case codespec.IncludeNullOnUpdate:
-		tags = append(tags, "includenullonupdate")
+		autogenTags = append(autogenTags, "includenullonupdate")
 	}
 
-	if len(tags) > 0 {
-		tagsStr = fmt.Sprintf(" autogen:%q", strings.Join(tags, ","))
+	if len(autogenTags) > 0 {
+		tagsStr = fmt.Sprintf(" autogen:%q", strings.Join(autogenTags, ","))
 	}
-	return fmt.Sprintf("%s %s", attr.TFModelName, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.TFSchemaName) + tagsStr + "`"
+	return fmt.Sprintf("%s %s", attr.TFModelName, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.TFSchemaName) + apinameTag + tagsStr + "`"
 }
 
 func attrModelType(attr *codespec.Attribute) string {

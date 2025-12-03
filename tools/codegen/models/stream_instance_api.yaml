@@ -12,6 +12,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: client_id
                                   tf_model_name: ClientId
+                                  api_name: clientId
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -20,6 +21,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: client_secret
                                   tf_model_name: ClientSecret
+                                  api_name: clientSecret
                                   req_body_usage: omit_always
                                   sensitive: true
                                   create_only: false
@@ -28,6 +30,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: mechanism
                                   tf_model_name: Mechanism
+                                  api_name: mechanism
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -36,6 +39,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: method
                                   tf_model_name: Method
+                                  api_name: method
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -44,6 +48,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: password
                                   tf_model_name: Password
+                                  api_name: password
                                   req_body_usage: omit_always
                                   sensitive: true
                                   create_only: false
@@ -52,6 +57,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: sasl_oauthbearer_extensions
                                   tf_model_name: SaslOauthbearerExtensions
+                                  api_name: saslOauthbearerExtensions
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -60,6 +66,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: scope
                                   tf_model_name: Scope
+                                  api_name: scope
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -68,6 +75,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: ssl_certificate
                                   tf_model_name: SslCertificate
+                                  api_name: sslCertificate
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -76,6 +84,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: ssl_key
                                   tf_model_name: SslKey
+                                  api_name: sslKey
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -84,6 +93,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: ssl_key_password
                                   tf_model_name: SslKeyPassword
+                                  api_name: sslKeyPassword
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -92,6 +102,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: token_endpoint_url
                                   tf_model_name: TokenEndpointUrl
+                                  api_name: tokenEndpointUrl
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -100,6 +111,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: username
                                   tf_model_name: Username
+                                  api_name: username
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -111,6 +123,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: authentication
                       tf_model_name: Authentication
+                      api_name: authentication
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -122,6 +135,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: role_arn
                                   tf_model_name: RoleArn
+                                  api_name: roleArn
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -130,6 +144,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: test_bucket
                                   tf_model_name: TestBucket
+                                  api_name: testBucket
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -141,6 +156,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: aws
                       tf_model_name: Aws
+                      api_name: aws
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -149,6 +165,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: bootstrap_servers
                       tf_model_name: BootstrapServers
+                      api_name: bootstrapServers
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -157,6 +174,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: cluster_group_id
                       tf_model_name: ClusterGroupId
+                      api_name: clusterGroupId
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -165,6 +183,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: cluster_name
                       tf_model_name: ClusterName
+                      api_name: clusterName
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -178,6 +197,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: config
                       tf_model_name: Config
+                      api_name: config
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -189,6 +209,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: role
                                   tf_model_name: Role
+                                  api_name: role
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -197,6 +218,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: type
                                   tf_model_name: Type
+                                  api_name: type
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -208,6 +230,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: db_role_to_execute
                       tf_model_name: DbRoleToExecute
+                      api_name: dbRoleToExecute
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -221,6 +244,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: headers
                       tf_model_name: Headers
+                      api_name: headers
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -229,6 +253,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: name
                       tf_model_name: Name
+                      api_name: name
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -243,6 +268,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: connection_id
                                               tf_model_name: ConnectionId
+                                              api_name: connectionId
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -251,6 +277,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: name
                                               tf_model_name: Name
+                                              api_name: name
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -259,6 +286,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: tgw_route_id
                                               tf_model_name: TgwRouteId
+                                              api_name: tgwRouteId
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -267,6 +295,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: type
                                               tf_model_name: Type
+                                              api_name: type
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -278,6 +307,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: access
                                   tf_model_name: Access
+                                  api_name: access
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -289,6 +319,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: networking
                       tf_model_name: Networking
+                      api_name: networking
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -300,6 +331,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: broker_public_certificate
                                   tf_model_name: BrokerPublicCertificate
+                                  api_name: brokerPublicCertificate
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -308,6 +340,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: protocol
                                   tf_model_name: Protocol
+                                  api_name: protocol
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
@@ -319,6 +352,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: security
                       tf_model_name: Security
+                      api_name: security
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -327,6 +361,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: type
                       tf_model_name: Type
+                      api_name: type
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -335,6 +370,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: url
                       tf_model_name: Url
+                      api_name: url
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -346,6 +382,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: connections
           tf_model_name: Connections
+          api_name: connections
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -357,6 +394,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: cloud_provider
                       tf_model_name: CloudProvider
+                      api_name: cloudProvider
                       req_body_usage: ""
                       sensitive: false
                       create_only: false
@@ -365,6 +403,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: region
                       tf_model_name: Region
+                      api_name: region
                       req_body_usage: ""
                       sensitive: false
                       create_only: false
@@ -376,6 +415,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: data_process_region
           tf_model_name: DataProcessRegion
+          api_name: dataProcessRegion
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
@@ -387,6 +427,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
+          api_name: groupId
           req_body_usage: omit_always
           sensitive: false
           create_only: true
@@ -400,6 +441,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: hostnames
           tf_model_name: Hostnames
+          api_name: hostnames
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -408,6 +450,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: name
           tf_model_name: Name
+          api_name: name
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
@@ -420,6 +463,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: solar
                       tf_model_name: Solar
+                      api_name: solar
                       req_body_usage: ""
                       sensitive: false
                       create_only: false
@@ -431,6 +475,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: sample_connections
           tf_model_name: SampleConnections
+          api_name: sampleConnections
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
@@ -442,6 +487,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: max_tier_size
                       tf_model_name: MaxTierSize
+                      api_name: maxTierSize
                       req_body_usage: ""
                       sensitive: false
                       create_only: false
@@ -450,6 +496,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: tier
                       tf_model_name: Tier
+                      api_name: tier
                       req_body_usage: ""
                       sensitive: false
                       create_only: false
@@ -461,6 +508,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: stream_config
           tf_model_name: StreamConfig
+          api_name: streamConfig
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true

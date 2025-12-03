@@ -9,6 +9,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: action
                       tf_model_name: Action
+                      api_name: action
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -20,6 +21,7 @@ schema:
                                   computed_optional_required: required
                                   tf_schema_name: cluster
                                   tf_model_name: Cluster
+                                  api_name: cluster
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
@@ -28,6 +30,7 @@ schema:
                                   computed_optional_required: required
                                   tf_schema_name: collection
                                   tf_model_name: Collection
+                                  api_name: collection
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
@@ -36,6 +39,7 @@ schema:
                                   computed_optional_required: required
                                   tf_schema_name: db
                                   tf_model_name: Db
+                                  api_name: db
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
@@ -47,6 +51,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: resources
                       tf_model_name: Resources
+                      api_name: resources
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -58,6 +63,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: actions
           tf_model_name: Actions
+          api_name: actions
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -69,6 +75,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
+          api_name: groupId
           req_body_usage: omit_always
           sensitive: false
           create_only: true
@@ -80,6 +87,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: db
                       tf_model_name: Db
+                      api_name: db
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -88,6 +96,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: role
                       tf_model_name: Role
+                      api_name: role
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
@@ -99,6 +108,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: inherited_roles
           tf_model_name: InheritedRoles
+          api_name: inheritedRoles
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -107,6 +117,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: role_name
           tf_model_name: RoleName
+          api_name: roleName
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true

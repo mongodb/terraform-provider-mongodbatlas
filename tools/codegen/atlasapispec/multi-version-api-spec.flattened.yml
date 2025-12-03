@@ -1526,8 +1526,6 @@ components:
         minimumEnabledTlsProtocol:
           description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.
           enum:
-            - TLS1_0
-            - TLS1_1
             - TLS1_2
             - TLS1_3
           externalDocs:
@@ -6254,8 +6252,6 @@ components:
         minimumEnabledTlsProtocol:
           description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.
           enum:
-            - TLS1_0
-            - TLS1_1
             - TLS1_2
             - TLS1_3
           externalDocs:
@@ -6387,8 +6383,6 @@ components:
         minimumEnabledTlsProtocol:
           description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.
           enum:
-            - TLS1_0
-            - TLS1_1
             - TLS1_2
             - TLS1_3
           externalDocs:

@@ -105,6 +105,7 @@ type Attribute struct {
 	ComputedOptionalRequired ComputedOptionalRequired `yaml:"computed_optional_required"`
 	TFSchemaName             string                   `yaml:"tf_schema_name"`
 	TFModelName              string                   `yaml:"tf_model_name"`
+	APIName                  string                   `yaml:"api_name,omitempty"` // original API property name (camelCase), used for apiname tag when different from Uncapitalize(TFModelName)
 	ReqBodyUsage             AttributeReqBodyUsage    `yaml:"req_body_usage"`
 	Sensitive                bool                     `yaml:"sensitive"`
 	CreateOnly               bool                     `yaml:"create_only"` // leveraged for defining plan modifier which avoids updates on this attribute
