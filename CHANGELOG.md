@@ -1,5 +1,14 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_advanced_cluster: Adds `use_effective_fields`, `effective_electable_specs`, `effective_read_only_specs` and `effective_analytics_specs` attributes to expose actual specifications ([#3939](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3939))
+* data-source/mongodbatlas_advanced_cluster: Adds the `custom_openssl_cipher_config_tls13` attribute ([#3912](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3912))
+* data-source/mongodbatlas_advanced_clusters: Adds `use_effective_fields`, `effective_electable_specs`, `effective_read_only_specs` and `effective_analytics_specs` attributes to expose actual specifications ([#3939](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3939))
+* data-source/mongodbatlas_advanced_clusters: Adds the `custom_openssl_cipher_config_tls13` attribute ([#3912](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3912))
+* resource/mongodbatlas_advanced_cluster: Adds `use_effective_fields` attribute to improve auto-scaling workflows, eliminating the need for `lifecycle.ignore_changes` blocks ([#3939](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3939))
+* resource/mongodbatlas_advanced_cluster: Adds the `custom_openssl_cipher_config_tls13` attribute ([#3912](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3912))
+
 BUG FIXES:
 
 * data-source/mongodbatlas_cloud_user_org_assignment: Changes `user_id` and `username` to be Optional and Computed ([#3911](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3911))
