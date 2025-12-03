@@ -1,6 +1,8 @@
-# MongoDB Atlas Advanced Cluster Module with Effective Fields
+# MongoDB Atlas Advanced Cluster Module with Effective Fields (New Module Example)
 
-This example demonstrates a reusable Terraform module for MongoDB Atlas clusters that supports both auto-scaling and non-auto-scaling configurations without requiring `lifecycle.ignore_changes` blocks.
+This example demonstrates how to create a reusable Terraform module from scratch for MongoDB Atlas clusters that supports both auto-scaling and non-auto-scaling configurations without requiring `lifecycle.ignore_changes` blocks.
+
+**Note:** This example shows how to build a new module. For guidance on updating an existing module to use effective fields, we will provide a separate example in the future.
 
 ## Overview
 
@@ -76,7 +78,7 @@ module "cluster" {
 ## Module Structure
 
 ```
-effective-fields-module/
+new-module/
 ├── module/                    # The reusable module
 │   ├── main.tf               # Module resources with use_effective_fields = true
 │   ├── variables.tf          # Module input variables
