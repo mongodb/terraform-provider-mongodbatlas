@@ -55,7 +55,3 @@ output "configured_specs" {
     }
   ]
 }
-
-# Note: effective_specs output is not available in v1
-# Module users cannot see the actual instance sizes, disk sizes, or IOPS
-# after Atlas auto-scales the cluster. This will be added in v2.

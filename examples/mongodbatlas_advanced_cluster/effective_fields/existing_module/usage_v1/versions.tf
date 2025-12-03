@@ -7,9 +7,3 @@ terraform {
     }
   }
 }
-
-provider "mongodbatlas" {
-  # Credentials should be provided via environment variables:
-  # - MONGODB_ATLAS_CLIENT_ID
-  # - MONGODB_ATLAS_CLIENT_SECRET
-}
