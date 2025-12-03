@@ -260,11 +260,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 				diags.Append(resp.State.Set(ctx, flexOut)...)
 			}
 			return
-		case diff.isUpgradeFlexToDedicated():
+		case diff.upgradeFlexToDedicatedReq != nil:
 			clusterResp = upgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
-		case diff.isUpgradeTenant():
+		case diff.upgradeTenantReq != nil:
 			clusterResp = upgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
-		case diff.isClusterPatchOnly():
+		case diff.clusterPatchOnlyReq != nil:
 			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
 		}
 		if diags.HasError() {
@@ -489,20 +489,8 @@ type clusterDiff struct {
 	isUpdateOfFlex            bool
 }
 
-func (c *clusterDiff) isClusterPatchOnly() bool {
-	return !update.IsZeroValues(c.clusterPatchOnlyReq)
-}
-
-func (c *clusterDiff) isUpgradeTenant() bool {
-	return c.upgradeTenantReq != nil
-}
-
-func (c *clusterDiff) isUpgradeFlexToDedicated() bool {
-	return c.upgradeFlexToDedicatedReq != nil
-}
-
 func (c *clusterDiff) isAnyUpgrade() bool {
-	return c.isUpgradeTenantToFlex || c.isUpgradeTenant() || c.isUpgradeFlexToDedicated()
+	return c.isUpgradeTenantToFlex || c.upgradeTenantReq != nil || c.upgradeFlexToDedicatedReq != nil
 }
 
 // findClusterDiff should be called only in Update, e.g. it will fail for a flex cluster with no changes.
@@ -535,10 +523,11 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	if update.IsZeroValues(patchReq) { // No changes to cluster
 		return clusterDiff{}
 	}
-	upgradeTenantReq := getUpgradeTenantRequest(stateReq, patchReq)
-	upgradeFlexToDedicatedReq := getUpgradeFlexToDedicatedRequest(stateReq, patchReq)
-	if upgradeTenantReq != nil || upgradeFlexToDedicatedReq != nil {
-		return clusterDiff{upgradeTenantReq: upgradeTenantReq, upgradeFlexToDedicatedReq: upgradeFlexToDedicatedReq}
+	if upgradeFlexToDedicatedReq := getUpgradeFlexToDedicatedRequest(stateReq, patchReq); upgradeFlexToDedicatedReq != nil {
+		return clusterDiff{upgradeFlexToDedicatedReq: upgradeFlexToDedicatedReq}
+	}
+	if upgradeTenantReq := getUpgradeTenantRequest(stateReq, patchReq); upgradeTenantReq != nil {
+		return clusterDiff{upgradeTenantReq: upgradeTenantReq}
 	}
 	return clusterDiff{clusterPatchOnlyReq: patchReq}
 }
