@@ -36,7 +36,7 @@ module "atlas_cluster" {
 
   tags = {
     environment = "development"
-    example     = "without-autoscaling"
+    example     = "without_autoscaling"
   }
 }
 

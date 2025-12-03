@@ -9,20 +9,11 @@ This directory contains examples demonstrating how to use the `use_effective_fie
 
 Demonstrates how to build a reusable Terraform module from scratch using `use_effective_fields`. Includes complete module implementation with examples for both auto-scaling and non-auto-scaling configurations.
 
-**Use this example when:**
-- Creating a new Terraform module for MongoDB Atlas clusters
-- Learning the architecture and best practices for effective fields modules
-- Need a reference implementation for module design patterns
-
 ### 2. [existing_module](./existing_module/)
 **Migrating an Existing Module to Effective Fields**
 
 Demonstrates how to migrate an existing module from `lifecycle.ignore_changes` to `use_effective_fields`, showing both v1 (with lifecycle.ignore_changes) and v2 (with use_effective_fields) approaches side-by-side.
 
-**Use this example when:**
-- Migrating an existing module that uses `lifecycle.ignore_changes`
-- Understanding the upgrade path and benefits of effective fields
-- Providing a seamless upgrade experience for module users
 
 ## Understanding use_effective_fields
 

@@ -21,11 +21,11 @@ new_module/
 │   ├── variables.tf          # Module input variables
 │   ├── outputs.tf            # Exposes both configured and effective specs
 │   └── versions.tf
-├── with-autoscaling/         # Example with auto-scaling enabled
+├── with_autoscaling/         # Example with auto-scaling enabled
 │   ├── main.tf
 │   ├── variables.tf
 │   └── versions.tf
-└── without-autoscaling/      # Example without auto-scaling
+└── without_autoscaling/      # Example without auto-scaling
     ├── main.tf
     ├── variables.tf
     └── versions.tf
@@ -184,7 +184,7 @@ export TF_VAR_atlas_org_id="<your-org-id>"
 
 **With auto-scaling:**
 ```bash
-cd with-autoscaling/
+cd with_autoscaling/
 terraform init
 terraform plan
 terraform apply
@@ -193,7 +193,7 @@ terraform output
 
 **Without auto-scaling:**
 ```bash
-cd ../without-autoscaling/
+cd ../without_autoscaling/
 terraform init
 terraform plan
 terraform apply

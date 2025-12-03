@@ -55,7 +55,7 @@ module "atlas_cluster" {
 
   tags = {
     environment = "production"
-    example     = "with-autoscaling"
+    example     = "with_autoscaling"
   }
 }
 
