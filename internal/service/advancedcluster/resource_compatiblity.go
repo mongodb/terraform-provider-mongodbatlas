@@ -79,7 +79,7 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 				}
 				responseCache[providerName] = containersResponse
 			}
-			if results := GetAdvancedClusterContainerID(containersResponse.GetResults(), &regionConfig); results != "" {
+			if results := getAdvancedClusterContainerID(containersResponse.GetResults(), &regionConfig); results != "" {
 				containerIDs[key] = results
 			} else {
 				return nil, fmt.Errorf("container id not found for %s", key)
@@ -90,19 +90,23 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 }
 
 func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
+	if modelIn == nil || modelOut == nil {
+		return
+	}
 	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())
 	if beforeVersion != nil && !modelIn.MongoDBMajorVersion.Equal(modelOut.MongoDBMajorVersion) {
 		modelOut.MongoDBMajorVersion = types.StringPointerValue(beforeVersion)
 	}
-	retainBackups := conversion.NilForUnknown(modelIn.RetainBackupsEnabled, modelIn.RetainBackupsEnabled.ValueBoolPointer())
-	if retainBackups != nil && !modelIn.RetainBackupsEnabled.Equal(modelOut.RetainBackupsEnabled) {
-		modelOut.RetainBackupsEnabled = types.BoolPointerValue(retainBackups)
-	}
-	if modelIn.DeleteOnCreateTimeout.ValueBoolPointer() != nil {
-		modelOut.DeleteOnCreateTimeout = modelIn.DeleteOnCreateTimeout
-	}
 	overrideMapStringWithPrevStateValue(&modelIn.Labels, &modelOut.Labels)
 	overrideMapStringWithPrevStateValue(&modelIn.Tags, &modelOut.Tags)
+
+	// Copy Terraform-only attributes which are not returned by Atlas API.
+	// These fields are Optional-only or Optional+Computed (because of a default value),
+	// so no need for more complex logic as they can't be Unknown in the plan.
+	modelOut.Timeouts = modelIn.Timeouts
+	modelOut.DeleteOnCreateTimeout = modelIn.DeleteOnCreateTimeout
+	modelOut.RetainBackupsEnabled = modelIn.RetainBackupsEnabled
+	modelOut.UseEffectiveFields = modelIn.UseEffectiveFields
 }
 
 func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {

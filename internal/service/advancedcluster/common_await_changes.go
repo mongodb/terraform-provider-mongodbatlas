@@ -27,10 +27,11 @@ var (
 )
 
 type ClusterWaitParams struct {
-	ProjectID   string
-	ClusterName string
-	Timeout     time.Duration
-	IsDelete    bool
+	ProjectID          string
+	ClusterName        string
+	Timeout            time.Duration
+	IsDelete           bool
+	UseEffectiveFields bool
 }
 
 func AwaitChangesUpgrade(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
@@ -56,7 +57,7 @@ func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams 
 		extraPending = append(extraPending, retrystrategy.RetryStrategyIdleState)
 	}
 	clusterName := waitParams.ClusterName
-	stateConf := createStateChangeConfig(ctx, api, waitParams.ProjectID, clusterName, targetState, waitParams.Timeout, extraPending...)
+	stateConf := createStateChangeConfig(ctx, api, waitParams, targetState, extraPending...)
 	clusterAny, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && isDelete {
@@ -76,7 +77,7 @@ func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams 
 	return cluster
 }
 
-func createStateChangeConfig(ctx context.Context, api admin.ClustersApi, projectID, name, targetState string, timeout time.Duration, extraPending ...string) retry.StateChangeConf {
+func createStateChangeConfig(ctx context.Context, api admin.ClustersApi, waitParams *ClusterWaitParams, targetState string, extraPending ...string) retry.StateChangeConf {
 	return retry.StateChangeConf{
 		Pending: slices.Concat([]string{
 			retrystrategy.RetryStrategyCreatingState,
@@ -87,17 +88,17 @@ func createStateChangeConfig(ctx context.Context, api admin.ClustersApi, project
 			retrystrategy.RetryStrategyDeletingState,
 		}, extraPending),
 		Target:       []string{targetState},
-		Refresh:      ResourceRefreshFunc(ctx, name, projectID, api),
-		Timeout:      timeout,
+		Refresh:      ResourceRefreshFunc(ctx, waitParams, api),
+		Timeout:      waitParams.Timeout,
 		MinTimeout:   RetryMinTimeout,
 		Delay:        RetryDelay,
 		PollInterval: RetryPollInterval,
 	}
 }
 
-func ResourceRefreshFunc(ctx context.Context, name, projectID string, api admin.ClustersApi) retry.StateRefreshFunc {
+func ResourceRefreshFunc(ctx context.Context, waitParams *ClusterWaitParams, api admin.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		cluster, resp, err := api.GetCluster(ctx, projectID, name).Execute()
+		cluster, resp, err := api.GetCluster(ctx, waitParams.ProjectID, waitParams.ClusterName).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, retrystrategy.RetryStrategyRepeatingState, nil
 		}

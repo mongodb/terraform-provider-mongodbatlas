@@ -94,7 +94,7 @@ func (v RegionSpecPriorityOrderDecreasingValidator) MarkdownDescription(_ contex
 }
 func (v RegionSpecPriorityOrderDecreasingValidator) ValidateList(ctx context.Context, req validator.ListRequest, resp *validator.ListResponse) {
 	diags := &resp.Diagnostics
-	regionConfigs := newCloudRegionConfig20240805(ctx, req.ConfigValue, diags)
+	regionConfigs := newRegionConfig(ctx, req.ConfigValue, diags)
 	if diags.HasError() || regionConfigs == nil {
 		return
 	}
@@ -103,5 +103,36 @@ func (v RegionSpecPriorityOrderDecreasingValidator) ValidateList(ctx context.Con
 		if configs[i].GetPriority() < configs[i+1].GetPriority() {
 			diags.AddError(errorRegionPriorities, fmt.Sprintf("priority value at index %d is %d and priority value at index %d is %d", i, configs[i].GetPriority(), i+1, configs[i+1].GetPriority()))
 		}
+	}
+}
+
+// UseEffectiveFieldsValidator validates that use_effective_fields is not set for Flex or Tenant clusters
+type UseEffectiveFieldsValidator struct{}
+
+func (v UseEffectiveFieldsValidator) Description(ctx context.Context) string {
+	return v.MarkdownDescription(ctx)
+}
+
+func (v UseEffectiveFieldsValidator) MarkdownDescription(_ context.Context) string {
+	return "use_effective_fields cannot be set for Flex or Tenant clusters."
+}
+
+func (v UseEffectiveFieldsValidator) ValidateBool(ctx context.Context, req validator.BoolRequest, resp *validator.BoolResponse) {
+	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
+		return
+	}
+	diags := &resp.Diagnostics
+	var replicationSpecsList types.List
+	diags.Append(req.Config.GetAttribute(ctx, path.Root("replication_specs"), &replicationSpecsList)...)
+	if diags.HasError() {
+		return
+	}
+	replicationSpecs := newReplicationSpec(ctx, replicationSpecsList, &resp.Diagnostics)
+	if diags.HasError() || replicationSpecs == nil {
+		return
+	}
+	if isFlex(replicationSpecs) || isTenant(replicationSpecs) {
+		diags.AddAttributeError(req.Path, "Invalid Attribute Configuration",
+			"use_effective_fields cannot be set for Flex or Tenant clusters, it is only supported for dedicated clusters.")
 	}
 }

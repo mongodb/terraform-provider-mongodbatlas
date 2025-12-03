@@ -8,59 +8,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDiagsHasOnlyClusterNotFound(t *testing.T) {
-	tests := map[string]struct {
-		diags    diag.Diagnostics
-		expected bool
-	}{
-		"empty diagnostics": {
-			diags:    diag.Diagnostics{},
-			expected: true,
-		},
-		"single cluster not found": {
-			diags: diag.Diagnostics{
-				diag.NewErrorDiagnostic("Cluster Not Found", "CLUSTER_NOT_FOUND"),
-			},
-			expected: true,
-		},
-		"multiple errors with cluster not found": {
-			diags: diag.Diagnostics{
-				diag.NewErrorDiagnostic("Other Error", "Some other error"),
-				diag.NewErrorDiagnostic("Cluster Not Found", "CLUSTER_NOT_FOUND"),
-			},
-			expected: false,
-		},
-		"other errors only": {
-			diags: diag.Diagnostics{
-				diag.NewErrorDiagnostic("Error 1", "Some error"),
-				diag.NewErrorDiagnostic("Error 2", "Another error"),
-			},
-			expected: false,
-		},
-		"warnings with cluster not found error": {
-			diags: diag.Diagnostics{
-				diag.NewWarningDiagnostic("Warning", "Some warning"),
-				diag.NewErrorDiagnostic("Cluster Not Found", "CLUSTER_NOT_FOUND"),
-			},
-			expected: true,
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			result := advancedcluster.DiagsHasOnlyClusterNotFoundErrors(&tc.diags)
-			assert.Equal(t, tc.expected, result)
-		})
-	}
-}
-
-func TestResetClusterNotFoundErrors(t *testing.T) {
+func TestRemoveClusterNotFoundErrors(t *testing.T) {
 	tests := map[string]struct {
 		input    diag.Diagnostics
 		expected diag.Diagnostics
 	}{
 		"empty diagnostics": {
 			input:    diag.Diagnostics{},
+			expected: diag.Diagnostics{},
+		},
+		"single cluster not found": {
+			input: diag.Diagnostics{
+				diag.NewErrorDiagnostic("Cluster Not Found", "CLUSTER_NOT_FOUND"),
+			},
 			expected: diag.Diagnostics{},
 		},
 		"only cluster not found errors": {
@@ -70,16 +30,16 @@ func TestResetClusterNotFoundErrors(t *testing.T) {
 			},
 			expected: diag.Diagnostics{},
 		},
-		"mixed errors": {
+		"mixed errors with cluster not found": {
 			input: diag.Diagnostics{
-				diag.NewErrorDiagnostic("Error", "CLUSTER_NOT_FOUND"),
 				diag.NewErrorDiagnostic("Other Error", "Some other error"),
+				diag.NewErrorDiagnostic("Cluster Not Found", "CLUSTER_NOT_FOUND"),
 			},
 			expected: diag.Diagnostics{
 				diag.NewErrorDiagnostic("Other Error", "Some other error"),
 			},
 		},
-		"no cluster not found errors": {
+		"other errors only": {
 			input: diag.Diagnostics{
 				diag.NewErrorDiagnostic("Error 1", "Some error"),
 				diag.NewErrorDiagnostic("Error 2", "Another error"),
@@ -89,10 +49,10 @@ func TestResetClusterNotFoundErrors(t *testing.T) {
 				diag.NewErrorDiagnostic("Error 2", "Another error"),
 			},
 		},
-		"warnings with cluster not found": {
+		"warnings with cluster not found error": {
 			input: diag.Diagnostics{
 				diag.NewWarningDiagnostic("Warning", "Some warning"),
-				diag.NewErrorDiagnostic("Error", "CLUSTER_NOT_FOUND"),
+				diag.NewErrorDiagnostic("Cluster Not Found", "CLUSTER_NOT_FOUND"),
 			},
 			expected: diag.Diagnostics{
 				diag.NewWarningDiagnostic("Warning", "Some warning"),
@@ -102,8 +62,8 @@ func TestResetClusterNotFoundErrors(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			result := advancedcluster.ResetClusterNotFoundErrors(&tc.input)
-			assert.Equal(t, tc.expected, *result)
+			advancedcluster.RemoveClusterNotFoundErrors(&tc.input)
+			assert.Equal(t, tc.expected, tc.input)
 		})
 	}
 }
