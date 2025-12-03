@@ -30,18 +30,18 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 	if state.UseEffectiveFields.ValueBool() != plan.UseEffectiveFields.ValueBool() {
 		if isReadOnlySpecsDeleted(ctx, diags, state, plan) {
 			diags.AddError(
-				"Cannot remove read_only_specs blocks while toggling use_effective_fields",
-				"Your configuration previously had read_only_specs blocks that were removed. "+
-					"To keep read-only nodes, add the blocks back. To delete them, add the blocks back with node_count = 0. "+
-					"After adding the blocks back, apply without toggling use_effective_fields, then toggle the flag in a separate apply.",
+				"Cannot remove read_only_specs attributes while toggling use_effective_fields",
+				"Your configuration previously had read_only_specs attributes that were removed. "+
+					"To keep read-only nodes, add the attributes back. To delete them, add the attributes back with node_count = 0. "+
+					"After adding the attributes back, apply without toggling use_effective_fields, then toggle the flag in a separate apply.",
 			)
 		}
 		if isAnalyticsSpecsDeleted(ctx, diags, state, plan) {
 			diags.AddError(
-				"Cannot remove analytics_specs blocks while toggling use_effective_fields",
-				"Your configuration previously had analytics_specs blocks that have been removed. "+
-					"To keep analytics nodes, add the blocks back. To delete them, add the blocks back with node_count = 0. "+
-					"After adding the blocks back, apply without toggling use_effective_fields, then toggle the flag in a separate apply.",
+				"Cannot remove analytics_specs attributes while toggling use_effective_fields",
+				"Your configuration previously had analytics_specs attributes that have been removed. "+
+					"To keep analytics nodes, add the attributes back. To delete them, add the attributes back with node_count = 0. "+
+					"After adding the attributes back, apply without toggling use_effective_fields, then toggle the flag in a separate apply.",
 			)
 		}
 		return
