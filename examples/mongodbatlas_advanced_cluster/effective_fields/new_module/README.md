@@ -78,7 +78,7 @@ module "cluster" {
 ## Module Structure
 
 ```
-new-module/
+new_module/
 ├── module/                    # The reusable module
 │   ├── main.tf               # Module resources with use_effective_fields = true
 │   ├── variables.tf          # Module input variables

@@ -57,7 +57,7 @@ data "mongodbatlas_advanced_cluster" "this" {
 ## Directory Structure
 
 ```
-existing-module/
+existing_module/
 ├── README.md                  # This file
 ├── module_v1/                 # Legacy module using lifecycle.ignore_changes
 │   ├── main.tf
@@ -69,11 +69,11 @@ existing-module/
 │   ├── variables.tf
 │   ├── outputs.tf
 │   └── versions.tf
-├── usage-v1/                  # Example using module_v1
+├── usage_v1/                  # Example using module_v1
 │   ├── main.tf
 │   ├── variables.tf
 │   └── versions.tf
-└── usage-v2/                  # Example using module_v2 (after upgrade)
+└── usage_v2/                  # Example using module_v2 (after upgrade)
     ├── main.tf
     ├── variables.tf
     └── versions.tf
@@ -203,7 +203,7 @@ module "atlas_cluster" {
 
 ### Example: Before and After
 
-**With module v1 (see `usage-v1/`):**
+**With module v1 (see `usage_v1/`):**
 ```terraform
 output "cluster_info" {
   value = {
@@ -213,7 +213,7 @@ output "cluster_info" {
 }
 ```
 
-**With module v2 (see `usage-v2/`):**
+**With module v2 (see `usage_v2/`):**
 ```terraform
 output "cluster_info" {
   value = {
@@ -251,7 +251,7 @@ export TF_VAR_atlas_org_id="<your-org-id>"
 ### Test Module v1 (Legacy Approach)
 
 ```bash
-cd usage-v1/
+cd usage_v1/
 terraform init
 terraform plan
 terraform apply
@@ -261,7 +261,7 @@ terraform output cluster_info
 ### Test Module v2 (Modern Approach)
 
 ```bash
-cd ../usage-v2/
+cd ../usage_v2/
 terraform init
 terraform plan
 terraform apply
@@ -331,11 +331,11 @@ In provider version 3.x:
 - [Auto-Scaling with Effective Fields](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#auto-scaling-with-effective-fields)
 - [Advanced Cluster Resource Documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster)
 - [Advanced Cluster Data Source Documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/advanced_cluster)
-- [New Module Example](../new-module/) - Building modules from scratch with effective fields
+- [New Module Example](../new_module/) - Building modules from scratch with effective fields
 
 ## Support
 
 For questions or issues with this migration pattern:
 1. Review the complete examples in `module_v1/` and `module_v2/`
-2. Test with the usage examples in `usage-v1/` and `usage-v2/`
+2. Test with the usage examples in `usage_v1/` and `usage_v2/`
 3. Consult the [provider documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs)

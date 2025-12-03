@@ -6,7 +6,7 @@ This directory contains examples demonstrating how to use the `use_effective_fie
 
 This directory contains two subdirectories, each addressing a different use case:
 
-### 1. [new-module](./new-module/)
+### 1. [new_module](./new_module/)
 **Creating a New Module from Scratch**
 
 This example demonstrates how to build a reusable Terraform module from the ground up that uses `use_effective_fields`. It includes:
@@ -20,12 +20,10 @@ This example demonstrates how to build a reusable Terraform module from the grou
 - You want to understand the complete architecture of an effective fields module
 - You need a reference implementation for module design patterns
 
-### 2. [existing-module](./existing-module/)
+### 2. [existing_module](./existing_module/)
 **Migrating an Existing Module**
 
-This example will demonstrate how to migrate an existing Terraform module that uses `lifecycle.ignore_changes` to adopt the `use_effective_fields` approach.
-
-**Status:** Coming soon. This example is currently under development.
+This example demonstrates how to migrate an existing Terraform module that uses `lifecycle.ignore_changes` to adopt the `use_effective_fields` approach.
 
 **Use this example when:**
 - You have an existing module that uses `lifecycle.ignore_changes`
@@ -49,8 +47,8 @@ The `use_effective_fields` attribute addresses a key challenge in creating reusa
 
 ## Getting Started
 
-1. If you're creating a new module, start with the [new-module](./new-module/) example
-2. If you're migrating an existing module, check the [existing-module](./existing-module/) directory (coming soon)
+1. If you're creating a new module, start with the [new_module](./new_module/) example
+2. If you're migrating an existing module, check the [existing_module](./existing_module/) directory
 
 ## Additional Resources
 

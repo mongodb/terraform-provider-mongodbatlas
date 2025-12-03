@@ -106,7 +106,7 @@ output "actual_instance_size" {
 }
 ```
 
-**For module authors:** See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective-fields) for complete examples of using `use_effective_fields` and effective specs in reusable Terraform modules.
+**For module authors:** See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective_fields) for complete examples of using `use_effective_fields` and effective specs in reusable Terraform modules.
 
 ### Example Tenant Cluster
 
@@ -519,7 +519,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 
 **Auto-scaling:**
 - [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard)
-- [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/effective-fields)
+- [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/effective_fields)
 
 **Upgrades & Migrations:**
 - [Tenant Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/tenant-upgrade)
@@ -928,7 +928,7 @@ This workflow allows you to set specific baseline values from which auto-scaling
 
 ### Terraform Modules
 
-`use_effective_fields` is particularly valuable for reusable Terraform modules. Without it, separate module implementations are required (one with lifecycle blocks for auto-scaling, one without). With `use_effective_fields`, a single module handles both scenarios without lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective-fields) for complete implementations.
+`use_effective_fields` is particularly valuable for reusable Terraform modules. Without it, separate module implementations are required (one with lifecycle blocks for auto-scaling, one without). With `use_effective_fields`, a single module handles both scenarios without lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
 
 ### Migration path and version 3.x
 
