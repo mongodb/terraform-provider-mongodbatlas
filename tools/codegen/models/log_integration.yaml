@@ -6,6 +6,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: bucket_name
           tf_model_name: BucketName
+          api_name: bucketName
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -16,7 +17,8 @@ schema:
             **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
           computed_optional_required: required
           tf_schema_name: project_id
-          tf_model_name: GroupId
+          tf_model_name: ProjectId
+          api_name: groupId
           req_body_usage: omit_always
           sensitive: false
           create_only: true
@@ -25,6 +27,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: iam_role_id
           tf_model_name: IamRoleId
+          api_name: iamRoleId
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -33,6 +36,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: id
           tf_model_name: Id
+          api_name: id
           req_body_usage: omit_always
           sensitive: false
           create_only: false
@@ -41,6 +45,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: kms_key
           tf_model_name: KmsKey
+          api_name: kmsKey
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -54,6 +59,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: log_types
           tf_model_name: LogTypes
+          api_name: logTypes
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -62,6 +68,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: prefix_path
           tf_model_name: PrefixPath
+          api_name: prefixPath
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -70,22 +77,23 @@ schema:
           computed_optional_required: required
           tf_schema_name: type
           tf_model_name: Type
+          api_name: type
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
 operations:
     delete:
         http_method: DELETE
-        path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+        path: /api/atlas/v2/groups/{projectId}/logIntegrations/{id}
     create:
         http_method: POST
-        path: /api/atlas/v2/groups/{groupId}/logIntegrations
+        path: /api/atlas/v2/groups/{projectId}/logIntegrations
     read:
         http_method: GET
-        path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+        path: /api/atlas/v2/groups/{projectId}/logIntegrations/{id}
     update:
         http_method: PUT
-        path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+        path: /api/atlas/v2/groups/{projectId}/logIntegrations/{id}
     version_header: application/vnd.atlas.2025-03-12+json
 name: log_integration
 packageName: logintegration

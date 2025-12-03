@@ -826,4 +826,4 @@ resources:
       method: DELETE
     schema:
       aliases:
-        group_id: project_id
+        groupId: projectId

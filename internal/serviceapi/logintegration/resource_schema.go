@@ -56,7 +56,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	BucketName types.String                       `tfsdk:"bucket_name"`
-	GroupId    types.String                       `tfsdk:"project_id" autogen:"omitjson"`
+	ProjectId  types.String                       `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	IamRoleId  types.String                       `tfsdk:"iam_role_id"`
 	Id         types.String                       `tfsdk:"id" autogen:"omitjson"`
 	KmsKey     types.String                       `tfsdk:"kms_key"`
