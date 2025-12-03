@@ -776,7 +776,7 @@ resources:
     delete:
       path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets/{secretId}
       method: DELETE
-    id_attributes: ["id", "org_id", "client_id"]
+    id_attributes: ["org_id", "client_id", "id"]
     schema:
       aliases:
         secretId: id # path param name does not match the API response property.

@@ -89,7 +89,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	idAttributes := []string{"org_id", "client_id"}
+	idAttributes := []string{"org_id", "client_id", "id"}
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 

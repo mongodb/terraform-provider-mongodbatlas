@@ -11,6 +11,11 @@ import (
 )
 
 func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
+	idAttrs := input.IDAttributes
+	if len(idAttrs) == 0 {
+		idAttrs = getIDAttributes(input.Operations.Read.Path)
+	}
+
 	tmplInputs := codetemplate.ResourceFileInputs{
 		PackageName:  input.PackageName,
 		ResourceName: input.Name,
@@ -22,7 +27,7 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
 		MoveState:    toCodeTemplateMoveStateModel(input.MoveState),
-		IDAttributes: getIDAttributes(input.Operations.Read.Path),
+		IDAttributes: idAttrs,
 	}
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 
