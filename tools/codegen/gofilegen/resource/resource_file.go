@@ -22,7 +22,7 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
 		MoveState:    toCodeTemplateMoveStateModel(input.MoveState),
-		IDAttributes: getIDAttributes(input.Operations.Read.Path),
+		IDAttributes: GetIDAttributes(input.Operations.Read.Path),
 	}
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 
@@ -47,7 +47,7 @@ func toCodeTemplateOpModel(op *codespec.APIOperation) *codetemplate.Operation {
 	return &codetemplate.Operation{
 		Path:              op.Path,
 		HTTPMethod:        op.HTTPMethod,
-		PathParams:        getPathParams(op.Path),
+		PathParams:        GetPathParams(op.Path),
 		Wait:              getWaitValues(op.Wait),
 		StaticRequestBody: op.StaticRequestBody,
 	}
@@ -67,8 +67,9 @@ func getWaitValues(wait *codespec.Wait) *codetemplate.Wait {
 	}
 }
 
-// obtains path parameters for URL, this can evetually be explicitly defined in the intermediate model if additional information is required
-func getPathParams(s string) []codetemplate.Param {
+// GetPathParams extracts path parameters from a URL path and returns them as Param structs.
+// This can eventually be explicitly defined in the intermediate model if additional information is required.
+func GetPathParams(s string) []codetemplate.Param {
 	params := []codetemplate.Param{}
 
 	// Use regex to find all {paramName} patterns
@@ -85,8 +86,10 @@ func getPathParams(s string) []codetemplate.Param {
 	return params
 }
 
-func getIDAttributes(readPath string) []string {
-	params := getPathParams(readPath)
+// GetIDAttributes converts path params to snake_case attribute names.
+// Used for both resource ID attributes and data source required fields.
+func GetIDAttributes(readPath string) []string {
+	params := GetPathParams(readPath)
 	result := make([]string, len(params))
 	for i, param := range params {
 		result[i] = stringcase.ToSnakeCase(param.PascalCaseName)

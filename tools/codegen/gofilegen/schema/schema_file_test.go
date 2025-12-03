@@ -486,7 +486,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 
 	for testName, tc := range schemaGenFromCodeSpecTestCases {
 		t.Run(testName, func(t *testing.T) {
-			result, err := schema.GenerateGoCode(&tc.inputModel)
+			result, err := schema.GenerateGoCode(&tc.inputModel, nil)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

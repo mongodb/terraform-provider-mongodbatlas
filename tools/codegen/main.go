@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/datasource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/schema"
 	"gopkg.in/yaml.v3"
@@ -24,25 +25,30 @@ const (
 func main() {
 	resourceName := getOsArg()
 
-	{
-		// Generate resource models
-		model, err := codespec.ToCodeSpecModel(specFilePath, configPath, resourceName)
-		if err != nil {
-			log.Fatalf("[ERROR] An error occurred while generating codespec.Model: %v", err)
-		}
+	// Generate resource and data source models from API spec
+	model, err := codespec.ToCodeSpecModel(specFilePath, configPath, resourceName)
+	if err != nil {
+		log.Fatalf("[ERROR] An error occurred while generating codespec.Model: %v", err)
+	}
 
-		// Write resource models to files
-		for i := range model.Resources {
-			resourceModel := model.Resources[i]
-			resourceModelFilePath := fmt.Sprintf(resourceModelFilePathFormat, resourceModel.Name)
-			resourceModelYaml, err := yaml.Marshal(resourceModel)
-			if err != nil {
-				log.Fatalf("[ERROR] An error occurred while serializing the resource model: %v", err)
-			}
-			if err := writeToFile(resourceModelFilePath, resourceModelYaml); err != nil {
-				log.Fatalf("[ERROR] An error occurred while writing resource model to file: %v", err)
-			}
+	// Write resource models to files
+	for i := range model.Resources {
+		resourceModel := model.Resources[i]
+		resourceModelFilePath := fmt.Sprintf(resourceModelFilePathFormat, resourceModel.Name)
+		resourceModelYaml, err := yaml.Marshal(resourceModel)
+		if err != nil {
+			log.Fatalf("[ERROR] An error occurred while serializing the resource model: %v", err)
 		}
+		if err := writeToFile(resourceModelFilePath, resourceModelYaml); err != nil {
+			log.Fatalf("[ERROR] An error occurred while writing resource model to file: %v", err)
+		}
+	}
+
+	// Create a map of data sources by name for quick lookup
+	dataSourceMap := make(map[string]*codespec.DataSource)
+	for i := range model.DataSources {
+		ds := &model.DataSources[i]
+		dataSourceMap[ds.Name] = ds
 	}
 
 	// Gather resource model files
@@ -71,7 +77,10 @@ func main() {
 
 		log.Printf("[INFO] Generating resource code: %s", resourceModel.Name)
 
-		schemaCode, err := schema.GenerateGoCode(resourceModel)
+		// Find corresponding data source (if any)
+		dataSourceModel := dataSourceMap[resourceModel.Name]
+
+		schemaCode, err := schema.GenerateGoCode(resourceModel, dataSourceModel)
 		if err != nil {
 			log.Fatalf("[ERROR] %v", err)
 		}
@@ -88,6 +97,19 @@ func main() {
 		resourceFilePath := fmt.Sprintf("internal/serviceapi/%s/resource.go", resourceModel.PackageName)
 		if err := writeToFile(resourceFilePath, resourceCode); err != nil {
 			log.Fatalf("[ERROR] An error occurred when writing content to file: %v", err)
+		}
+
+		// Generate data source code if data source model exists
+		if dataSourceModel != nil {
+			log.Printf("[INFO] Generating data source code: %s", dataSourceModel.Name)
+			dataSourceCode, err := datasource.GenerateGoCode(dataSourceModel)
+			if err != nil {
+				log.Fatalf("[ERROR] %v", err)
+			}
+			dataSourceFilePath := fmt.Sprintf("internal/serviceapi/%s/data_source.go", dataSourceModel.PackageName)
+			if err := writeToFile(dataSourceFilePath, dataSourceCode); err != nil {
+				log.Fatalf("[ERROR] An error occurred when writing content to file: %v", err)
+			}
 		}
 	}
 }

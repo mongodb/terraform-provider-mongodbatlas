@@ -35,7 +35,18 @@ var ElementTypeToModelString = map[ElemType]string{
 }
 
 type Model struct {
-	Resources []Resource
+	Resources   []Resource
+	DataSources []DataSource
+}
+
+// DataSource represents a singular data source derived from a resource.
+// It reuses the resource schema via DataSourceSchemaFromResource at runtime.
+type DataSource struct {
+	ReadOperation APIOperation `yaml:"read_operation"`
+	Name          string       `yaml:"name"`
+	PackageName   string       `yaml:"packageName"`
+	VersionHeader string       `yaml:"version_header"`
+	Attributes    Attributes   `yaml:"attributes"`
 }
 
 type Resource struct {

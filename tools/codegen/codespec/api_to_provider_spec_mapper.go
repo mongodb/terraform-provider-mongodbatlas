@@ -42,7 +42,8 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 		return nil, err
 	}
 
-	var results []Resource
+	var resources []Resource
+	var dataSources []DataSource
 	for name, resourceConfig := range resourceConfigsToIterate {
 		log.Printf("[INFO] Generating resource model: %s", name)
 		// find resource operations, schemas, etc from OAS
@@ -55,10 +56,17 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 		if err != nil {
 			return nil, fmt.Errorf("unable to map to code spec model for %s: %w", name, err)
 		}
-		results = append(results, *resource)
+		resources = append(resources, *resource)
+
+		// Generate DataSource from Resource unless skip_data_source is true
+		if !resourceConfig.SkipDataSource {
+			dataSource := resourceToDataSource(resource)
+			dataSources = append(dataSources, *dataSource)
+			log.Printf("[INFO] Generated data source model: %s", name)
+		}
 	}
 
-	return &Model{Resources: results}, nil
+	return &Model{Resources: resources, DataSources: dataSources}, nil
 }
 
 func validateRequiredOperations(resourceConfigs map[string]config.Resource) error {
@@ -335,4 +343,37 @@ func extractCommonParameters(paths *high.Paths, path string) ([]*high.Parameter,
 	pathItem, _ := paths.PathItems.Get(path)
 
 	return pathItem.Parameters, nil
+}
+
+// resourceToDataSource creates a DataSource model from a Resource model.
+// It filters out resource-specific attributes (timeouts, delete_on_create_timeout).
+func resourceToDataSource(resource *Resource) *DataSource {
+	// Filter attributes: exclude timeouts and delete_on_create_timeout
+	dsAttributes := filterDataSourceAttributes(resource.Schema.Attributes)
+
+	return &DataSource{
+		Name:          resource.Name,
+		PackageName:   resource.PackageName,
+		Attributes:    dsAttributes,
+		ReadOperation: resource.Operations.Read,
+		VersionHeader: resource.Operations.VersionHeader,
+	}
+}
+
+// filterDataSourceAttributes returns attributes suitable for a data source model.
+// It excludes timeouts and delete_on_create_timeout which are resource-specific.
+func filterDataSourceAttributes(attrs Attributes) Attributes {
+	excludeAttrs := map[string]bool{
+		"timeouts":                 true,
+		"delete_on_create_timeout": true,
+	}
+
+	filtered := make(Attributes, 0, len(attrs))
+	for i := range attrs {
+		if excludeAttrs[attrs[i].TFSchemaName] {
+			continue
+		}
+		filtered = append(filtered, attrs[i])
+	}
+	return filtered
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/codetemplate"
 )
 
-func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
+func GenerateGoCode(input *codespec.Resource, dataSource *codespec.DataSource) ([]byte, error) {
 	schemaAttrs := GenerateSchemaAttributes(input.Schema.Attributes)
 	models := GenerateTypedModels(input.Schema.Attributes)
 
@@ -16,11 +16,19 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 	imports = append(imports, schemaAttrs.Imports...)
 	imports = append(imports, models.Imports...)
 
+	// Generate DS model if data source is provided
+	var dsModel CodeStatement
+	if dataSource != nil {
+		dsModel = GenerateDataSourceTypedModels(dataSource.Attributes)
+		imports = append(imports, dsModel.Imports...)
+	}
+
 	tmplInputs := codetemplate.SchemaFileInputs{
 		PackageName:        input.PackageName,
 		Imports:            imports,
 		SchemaAttributes:   schemaAttrs.Code,
 		Models:             models.Code,
+		DSModel:            dsModel.Code,
 		DeprecationMessage: input.Schema.DeprecationMessage,
 	}
 	result := codetemplate.ApplySchemaFileTemplate(&tmplInputs)

@@ -21,3 +21,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 {{ .Models }}
+{{- if .DSModel }}
+
+{{ .DSModel }}
+{{- end }}

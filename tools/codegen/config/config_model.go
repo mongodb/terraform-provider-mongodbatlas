@@ -13,6 +13,7 @@ type Resource struct {
 	VersionHeader      string        `yaml:"version_header"` // when not defined latest version defined in API Spec of the resource is used
 	DeprecationMessage *string       `yaml:"deprecation_message"`
 	SchemaOptions      SchemaOptions `yaml:"schema"`
+	SkipDataSource     bool          `yaml:"skip_data_source"` // when true, no singular data source is generated for this resource
 }
 
 type APIOperation struct {
