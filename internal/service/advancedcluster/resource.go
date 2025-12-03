@@ -91,18 +91,13 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 	// The replication specs can be unknown if the cluster depends on another resource.
-	// useStateForUnknowns will try to convert the field to `Target Type: []advancedcluster.TFReplicationSpecsModel`.
+	// handleModifyPlan will try to convert the field to `Target Type: []advancedcluster.TFReplicationSpecsModel`.
 	// But since the field is unknown the user gets an error: `Error: Value Conversion Error`.
 	if plan.ReplicationSpecs.IsUnknown() {
 		return
 	}
 
-	// If use_effective_fields is being changed, plan optimization is not safe.
-	if state.UseEffectiveFields.ValueBool() != plan.UseEffectiveFields.ValueBool() {
-		return
-	}
-
-	useStateForUnknowns(ctx, diags, &state, &plan)
+	handleModifyPlan(ctx, diags, &state, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -530,7 +525,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	}
 
 	patchOptions := update.PatchOptions{
-		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknowns and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
+		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknown and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {

@@ -22,21 +22,32 @@ var (
 		"custom_openssl_cipher_config_tls13": {"custom_openssl_cipher_config_tls12"},
 		"cluster_type":                       {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
 	}
-	attributeReplicationSpecChangeMapping = map[string][]string{
-		// All these fields can exist in specs that are computed, therefore, it is not safe to use them when they have changed.
-		"disk_iops":       {},
-		"ebs_volume_type": {},
-		"disk_size_gb":    {},                  // disk_size_gb can be change at any level/spec
-		"instance_size":   {"disk_iops"},       // disk_iops can change based on instance_size changes
-		"provider_name":   {"ebs_volume_type"}, // AWS --> AZURE will change ebs_volume_type
-		"region_name":     {"container_id"},    // container_id changes based on region_name changes
-		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when zone_name has changed, because zone_id may be computed based on the new zone_name value.
-	}
 )
 
-// useStateForUnknowns should be called only in Update, because of findClusterDiff
-func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	AdjustRegionConfigsChildren(ctx, diags, state, plan)
+// handleModifyPlan should be called only in Update, because of findClusterDiff
+func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+	// Special logic for use_effective_fields changes, as normal optimization is not safe.
+	if state.UseEffectiveFields.ValueBool() != plan.UseEffectiveFields.ValueBool() {
+		if isReadOnlySpecsDeleted(ctx, diags, state, plan) {
+			diags.AddError(
+				"Cannot remove read_only_specs blocks while toggling use_effective_fields",
+				"Your configuration previously had read_only_specs blocks that were removed. "+
+					"To keep read-only nodes, add the blocks back. To delete them, add the blocks back with node_count = 0. "+
+					"After adding the blocks back, apply without toggling use_effective_fields, then toggle the flag in a separate apply.",
+			)
+		}
+		if isAnalyticsSpecsDeleted(ctx, diags, state, plan) {
+			diags.AddError(
+				"Cannot remove analytics_specs blocks while toggling use_effective_fields",
+				"Your configuration previously had analytics_specs blocks that have been removed. "+
+					"To keep analytics nodes, add the blocks back. To delete them, add the blocks back with node_count = 0. "+
+					"After adding the blocks back, apply without toggling use_effective_fields, then toggle the flag in a separate apply.",
+			)
+		}
+		return
+	}
+
+	adjustRegionConfigsChildren(ctx, diags, state, plan)
 
 	diff := findClusterDiff(ctx, state, plan, diags)
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
@@ -49,9 +60,9 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
 }
 
-// AdjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
+// adjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
 // This ensures proper handling of removing auto scaling and specs attributes by preserving state values.
-func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+func adjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
 	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	if diags.HasError() {
@@ -153,21 +164,15 @@ func findDefinedElectableSpecInReplicationSpec(ctx context.Context, regionConfig
 }
 
 func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) []string {
-	var keepUnknown []string
-	computedUsed, diskUsed := autoScalingUsed(ctx, diags, state, plan)
-	if computedUsed {
-		keepUnknown = append(keepUnknown, "instance_size")
-		keepUnknown = append(keepUnknown, attributeReplicationSpecChangeMapping["instance_size"]...)
+	if !autoScalingUsed(ctx, diags, state, plan) {
+		return nil
 	}
-	if diskUsed {
-		keepUnknown = append(keepUnknown, "disk_size_gb")
-		keepUnknown = append(keepUnknown, attributeReplicationSpecChangeMapping["disk_size_gb"]...)
-	}
-	return keepUnknown
+	// When either compute or disk auto-scaling is enabled, all three fields may be adjusted by Atlas
+	return []string{"instance_size", "disk_size_gb", "disk_iops"}
 }
 
-// autoScalingUsed checks is auto-scaling was enabled (state) or will be enabled (plan).
-func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (computedUsed, diskUsed bool) {
+// autoScalingUsed checks if auto-scaling was enabled (state) or will be enabled (plan).
+func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) bool {
 	for _, model := range []*TFModel{state, plan} {
 		repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, model.ReplicationSpecs)
 		for i := range repSpecsTF {
@@ -178,17 +183,62 @@ func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *
 					if autoscaling == nil {
 						continue
 					}
-					if autoscaling.ComputeEnabled.ValueBool() {
-						computedUsed = true
-					}
-					if autoscaling.DiskGBEnabled.ValueBool() {
-						diskUsed = true
+					if autoscaling.ComputeEnabled.ValueBool() || autoscaling.DiskGBEnabled.ValueBool() {
+						return true
 					}
 				}
 			}
 		}
 	}
-	return
+	return false
+}
+
+// isReadOnlySpecsDeleted detects if any read_only_specs block with node_count > 0 was deleted from the plan.
+func isReadOnlySpecsDeleted(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) bool {
+	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
+	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
+	if diags.HasError() {
+		return false
+	}
+	for i := range minLen(planRepSpecsTF, stateRepSpecsTF) {
+		stateRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, stateRepSpecsTF[i].RegionConfigs)
+		planRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecsTF[i].RegionConfigs)
+		if diags.HasError() {
+			return false
+		}
+		for j := range minLen(planRegionConfigsTF, stateRegionConfigsTF) {
+			stateReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ReadOnlySpecs)
+			planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
+			if stateReadOnlySpecs != nil && stateReadOnlySpecs.NodeCount.ValueInt64() > 0 && planReadOnlySpecs == nil {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// isAnalyticsSpecsDeleted detects if any analytics_specs block with node_count > 0 was deleted from the plan.
+func isAnalyticsSpecsDeleted(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) bool {
+	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
+	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
+	if diags.HasError() {
+		return false
+	}
+	for i := range minLen(planRepSpecsTF, stateRepSpecsTF) {
+		stateRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, stateRepSpecsTF[i].RegionConfigs)
+		planRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecsTF[i].RegionConfigs)
+		if diags.HasError() {
+			return false
+		}
+		for j := range minLen(planRegionConfigsTF, stateRegionConfigsTF) {
+			stateAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
+			planAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].AnalyticsSpecs)
+			if stateAnalyticsSpecs != nil && stateAnalyticsSpecs.NodeCount.ValueInt64() > 0 && planAnalyticsSpecs == nil {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input types.List) []T {

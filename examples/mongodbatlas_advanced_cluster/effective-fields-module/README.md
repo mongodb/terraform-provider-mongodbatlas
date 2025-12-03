@@ -27,7 +27,8 @@ resource "mongodbatlas_advanced_cluster" "this" {
     ignore_changes = [
       replication_specs[0].region_configs[0].electable_specs.instance_size,
       replication_specs[0].region_configs[0].electable_specs.disk_size_gb,
-      # ... additional fields
+      replication_specs[0].region_configs[0].electable_specs.disk_iops,
+      # ... additional fields for other specs
     ]
   }
 }
@@ -44,6 +45,8 @@ resource "mongodbatlas_advanced_cluster" "this" {
   lifecycle {
     ignore_changes = [
       replication_specs[0].region_configs[0].electable_specs.instance_size,
+      replication_specs[0].region_configs[0].electable_specs.disk_size_gb,
+      replication_specs[0].region_configs[0].electable_specs.disk_iops,
     ]
   }
 }
@@ -294,5 +297,7 @@ Existing modules utilizing `lifecycle.ignore_changes` can be updated through the
 2. Remove existing `lifecycle.ignore_changes` blocks
 3. Incorporate a data source to retrieve effective values
 4. Update module outputs to expose both configured and effective specifications
+
+**Important:** When adding `use_effective_fields = true` to an existing cluster, apply this change separately from other cluster configuration changes to avoid validation errors.
 
 This migration maintains backward compatibility, requiring no changes to module consumer configurations.
