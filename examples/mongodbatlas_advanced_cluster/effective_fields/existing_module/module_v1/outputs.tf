@@ -29,7 +29,7 @@ output "connection_strings" {
   sensitive   = true
 }
 
-# In the legacy module (v1), we only expose configured specifications
+# In v1, we only expose configured specifications
 # We cannot see the actual (effective) values that Atlas has provisioned after auto-scaling
 # This is a limitation of the ignore_changes approach
 output "configured_specs" {

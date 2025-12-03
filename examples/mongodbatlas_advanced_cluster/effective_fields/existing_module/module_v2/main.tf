@@ -4,10 +4,12 @@ resource "mongodbatlas_project" "this" {
   org_id = var.atlas_org_id
 }
 
-# Create Atlas Advanced Cluster with use_effective_fields
+# Create Atlas Advanced Cluster
 # MIGRATION CHANGE: Added use_effective_fields = true
-# This eliminates the need for lifecycle.ignore_changes blocks
-# The module now works seamlessly for both auto-scaling and non-auto-scaling scenarios
+# - Specification attributes remain exactly as defined in configuration
+# - Atlas-computed values available separately in effective specs
+# - No plan drift when Atlas auto-scales
+# - lifecycle.ignore_changes block no longer needed
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id           = mongodbatlas_project.this.id
   name                 = var.cluster_name
@@ -16,14 +18,12 @@ resource "mongodbatlas_advanced_cluster" "this" {
   replication_specs    = var.replication_specs
   tags                 = var.tags
 
-  # MIGRATION CHANGE: lifecycle.ignore_changes block has been removed
-  # With use_effective_fields = true, Terraform automatically handles auto-scaling drift
+  # MIGRATION CHANGE: lifecycle.ignore_changes block removed
 }
 
-# Data source to read effective (actual) values after Atlas scales the cluster
-# MIGRATION CHANGE: This data source is new in v2
-# It allows module users to see the actual provisioned specifications
-# including changes made by Atlas auto-scaling
+# Data source to read effective specs
+# MIGRATION CHANGE: New in v2
+# Exposes actual provisioned values, including changes made by auto-scaling
 data "mongodbatlas_advanced_cluster" "this" {
   project_id           = mongodbatlas_advanced_cluster.this.project_id
   name                 = mongodbatlas_advanced_cluster.this.name

@@ -4,9 +4,12 @@ resource "mongodbatlas_project" "this" {
   org_id = var.atlas_org_id
 }
 
-# Create Atlas Advanced Cluster with optional auto-scaling
-# Using use_effective_fields = true eliminates the need for lifecycle.ignore_changes
-# even when auto-scaling is enabled, making this module work seamlessly in both scenarios
+# Create Atlas Advanced Cluster
+# use_effective_fields = true enables clear separation of concerns:
+# - Specification attributes remain exactly as defined in configuration
+# - Atlas-computed values available separately in effective specs
+# - No plan drift when Atlas auto-scales
+# - Works seamlessly for both auto-scaling and non-auto-scaling scenarios
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id           = mongodbatlas_project.this.id
   name                 = var.cluster_name
@@ -16,8 +19,8 @@ resource "mongodbatlas_advanced_cluster" "this" {
   tags                 = var.tags
 }
 
-# Data source to read effective values after Atlas auto-scales
-# This is always available regardless of whether auto-scaling is enabled
+# Data source to read effective specs
+# Exposes actual provisioned values, including any changes made by auto-scaling
 data "mongodbatlas_advanced_cluster" "this" {
   project_id           = mongodbatlas_advanced_cluster.this.project_id
   name                 = mongodbatlas_advanced_cluster.this.name
