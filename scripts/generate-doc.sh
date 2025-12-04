@@ -32,7 +32,7 @@
 
 set -euo pipefail
 
-TF_VERSION="${TF_VERSION:-"1.14.0"}" # TF version to use when running tfplugindocs. Default: 1.14.0
+TF_VERSION="${TF_VERSION:-"1.14.1"}" # TF version to use when running tfplugindocs. Default: 1.14.1
 TEMPLATE_FOLDER_PATH="${TEMPLATE_FOLDER_PATH:-"templates"}" # PATH to the templates folder. Default: templates
 
 
