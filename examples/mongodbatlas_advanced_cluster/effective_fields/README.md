@@ -52,12 +52,16 @@ See [module_effective_fields/main.tf](./module_effective_fields/main.tf) for imp
 3. **Update outputs:** Reference data source for replication specs
 4. **Result:** Eliminates lifecycle blocks, prevents drift, maintains output compatibility
 
-**Phase 2: Enhanced visibility (optional, for future versions)**
+**Phase 2: Enhanced visibility (prepares for provider v3.x)**
+
+This breaking change prepares for provider v3.x where effective fields will be the default behavior:
 
 1. **Update data source:** Add `use_effective_fields = true` to data source
-2. **Update outputs:** Optionally expose both configured and effective specs separately
-3. **Update documentation:** Explain the behavioral change to module users
-4. **Result:** Clear separation between configured intent and actual provisioned values
+2. **Update outputs:** Expose both configured specs and effective specs separately, or document that clients must use `effective_*_specs` for actual values
+3. **Update documentation:** Clearly communicate the breaking change - data source now returns both client-provided specs (via `replication_specs`) and actual provisioned specs (via `effective_*_specs`). Clients must switch from using normal specs (which previously returned actual values) to using `effective_*_specs` to get actual values.
+4. **Result:** Clear separation between configured intent and actual provisioned values, aligned with future v3.x behavior
+
+**Breaking change impact:** Module users accessing `replication_specs` for actual provisioned values must switch to using `effective_*_specs` attributes (effective_electable_specs, effective_analytics_specs, effective_read_only_specs).
 
 See detailed implementation in [module_existing](./module_existing/) and [module_effective_fields](./module_effective_fields/).
 

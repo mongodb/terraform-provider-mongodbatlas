@@ -26,23 +26,25 @@ resource "mongodbatlas_advanced_cluster" "this" {
 #
 # IMPORTANT: The use_effective_fields flag on the data source controls what values are returned:
 #
-# Option 1 - MIGRATION/BACKWARD COMPATIBLE (current approach, omitting flag or setting to false):
+# PHASE 1 - BACKWARD COMPATIBLE MIGRATION (current approach, omitting flag or setting to false):
 # - replication_specs returns ACTUAL provisioned values (what's currently running)
 # - Maintains compatibility with module_existing behavior
 # - effective_*_specs also returns actual values (always available for dedicated clusters)
-# - Best for migrating from lifecycle.ignore_changes approach
+# - Best for migrating from lifecycle.ignore_changes approach without breaking module users
 #
-# Option 2 - RECOMMENDED FOR NEW MODULES (set use_effective_fields = true):
+# PHASE 2 - BREAKING CHANGE (set use_effective_fields = true, prepares for provider v3.x):
 # - replication_specs returns CONFIGURED values (what you specified in .tf files)
 # - effective_*_specs returns ACTUAL provisioned values (may differ due to auto-scaling)
 # - Clear separation between intent (configured) and reality (effective)
-# - Better visibility into both client-provided and Atlas-managed values
+# - BREAKING: Module users must switch from replication_specs to effective_*_specs for actual values
+# - Prepares for provider v3.x where this becomes default behavior
+# - Recommended for new modules created from scratch
 #
-# This example uses Option 1 for backward compatibility during migration.
-# To use Option 2, add: use_effective_fields = true
+# This example uses Phase 1 for backward compatibility during migration.
+# To implement Phase 2, add: use_effective_fields = true
 data "mongodbatlas_advanced_cluster" "this" {
   project_id = mongodbatlas_advanced_cluster.this.project_id
   name       = mongodbatlas_advanced_cluster.this.name
-  # use_effective_fields = true  # Uncomment for Option 2 (recommended for new modules)
+  # use_effective_fields = true  # Uncomment for Phase 2 (breaking change, prepares for v3.x)
   depends_on = [mongodbatlas_advanced_cluster.this]
 }
