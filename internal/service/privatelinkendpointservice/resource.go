@@ -17,8 +17,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+
+	// TODO: update before merging to master:  "go.mongodb.org/atlas-sdk/v20250312010/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 )
 
 const (
@@ -145,7 +146,8 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
@@ -204,7 +206,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	clusterConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
-		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
+		Refresh:    ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: delayAndMinTimeout,
 		Delay:      delayAndMinTimeout,
@@ -226,7 +228,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -298,7 +301,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -330,7 +334,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterConf := &retry.StateChangeConf{
 			Pending:    []string{"REPEATING", "PENDING"},
 			Target:     []string{"IDLE", "DELETED"},
-			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
+			Refresh:    ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: delayAndMinTimeout,
 			Delay:      delayAndMinTimeout,
@@ -346,7 +350,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 
 	parts := strings.SplitN(d.Id(), "--", 4)
 	if len(parts) != 4 {
@@ -470,4 +475,36 @@ func flattenGCPEndpoints(apiObjects *[]admin.GCPConsumerForwardingRule) []any {
 	}
 
 	return tfList
+}
+
+func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersApi) retry.StateRefreshFunc {
+	return func() (any, string, error) {
+		clusters, resp, err := clustersAPI.ListClusters(ctx, projectID).Execute()
+
+		if err != nil && strings.Contains(err.Error(), "reset by peer") {
+			return nil, "REPEATING", nil
+		}
+
+		if err != nil && clusters == nil && resp == nil {
+			return nil, "", err
+		}
+
+		if err != nil {
+			if validate.StatusNotFound(resp) {
+				return "", "DELETED", nil
+			}
+			if validate.StatusServiceUnavailable(resp) {
+				return "", "PENDING", nil
+			}
+			return nil, "", err
+		}
+
+		for i := range clusters.GetResults() {
+			cluster := clusters.GetResults()[i]
+			if cluster.GetStateName() != "IDLE" {
+				return cluster, "PENDING", nil
+			}
+		}
+		return clusters, "IDLE", nil
+	}
 }
