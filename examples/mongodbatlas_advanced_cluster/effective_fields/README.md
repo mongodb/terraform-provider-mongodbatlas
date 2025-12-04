@@ -21,7 +21,7 @@ effective_fields/
 
 When auto-scaling is enabled, Atlas automatically adjusts instance sizes and disk capacity. This creates [configuration drift](https://developer.hashicorp.com/terraform/tutorials/state/resource-drift) that requires management.
 
-`use_effective_fields` is an attribute for the `mongodbatlas_advanced_cluster` resource and data source that solves this problem. When enabled on the resource, it eliminates the need for `lifecycle.ignore_changes` blocks by treating Atlas-managed values as part of the expected state rather than drift.
+`use_effective_fields` is an attribute for the `mongodbatlas_advanced_cluster` resource and data sources that solves this problem. When enabled on the resource, it eliminates the need for `lifecycle.ignore_changes` blocks by treating Atlas-managed values as part of the expected state rather than drift.
 
 Additionally, the data sources provide `effective_*_specs` attributes (`effective_electable_specs`, `effective_analytics_specs`, `effective_read_only_specs`) that expose the actual provisioned values from Atlas, providing visibility into what Atlas has scaled to versus what was configured.
 
