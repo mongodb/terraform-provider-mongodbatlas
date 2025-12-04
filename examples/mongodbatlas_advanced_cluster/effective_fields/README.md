@@ -21,134 +21,41 @@ effective_fields/
 
 When auto-scaling is enabled, Atlas automatically adjusts instance sizes and disk capacity. This creates [configuration drift](https://developer.hashicorp.com/terraform/tutorials/state/resource-drift) that requires management.
 
-### Without use_effective_fields (module_existing)
-
-**Requires lifecycle.ignore_changes:**
-```terraform
-resource "mongodbatlas_advanced_cluster" "cluster" {
-  # ... configuration ...
-
-  lifecycle {
-    ignore_changes = [
-      # Must list all auto-scalable fields for all regions and node types
-      replication_specs[0].region_configs[0].electable_specs.instance_size,
-      replication_specs[0].region_configs[0].electable_specs.disk_size_gb,
-      replication_specs[0].region_configs[0].electable_specs.disk_iops,
-      # ... 50+ more fields for multi-region clusters
-    ]
-  }
-}
-```
-
-**Limitations:**
-- Complex: must list all combinations of regions, shards, and node types
-- Inflexible: cannot be conditional
-- Poor visibility: cannot distinguish configured values from auto-scaled values
-
-### With use_effective_fields (module_effective_fields)
-
-**Single attribute replaces entire lifecycle block:**
-```terraform
-resource "mongodbatlas_advanced_cluster" "cluster" {
-  use_effective_fields = true
-  # ... rest of configuration stays the same ...
-}
-
-# Data source exposes actual provisioned values
-data "mongodbatlas_advanced_cluster" "cluster" {
-  project_id           = mongodbatlas_advanced_cluster.cluster.project_id
-  name                 = mongodbatlas_advanced_cluster.cluster.name
-  use_effective_fields = true
-}
-```
-
-**Benefits:**
-- Simple: single attribute
-- Clear: spec attributes stay constant, effective_* attributes show actual values
-- No plan drift: Atlas changes don't trigger updates
-- Works for both auto-scaling and non-auto-scaling scenarios
-
-## Module Comparison
-
 | Aspect | module_existing | module_effective_fields |
 |--------|-----------------|-------------------------|
 | **Drift handling** | `lifecycle.ignore_changes` | `use_effective_fields = true` |
-| **Complexity** | 18-54+ ignore_changes fields | Single attribute |
-| **Data source** | Not needed | Required for effective values |
-| **Spec values** | Return state (may be auto-scaled) | Stay constant (match configuration) |
-| **Effective values** | Not distinguishable | Available via `effective_*` attributes |
-| **Visibility** | Limited | Full (configured + actual) |
+| **Complexity** | Significant number of ignore_changes fields | Single attribute |
+| **Data source** | Optional | Required |
+| **Configured values** | Mixed with state values | Always match configuration |
+| **Actual provisioned values** | Via data source (no use_effective_fields) | Via data source `effective_*` attributes |
+
+### module_existing approach
+
+Uses `mongodbatlas_advanced_cluster` resource with `lifecycle.ignore_changes` block listing all auto-scalable fields (instance_size, disk_size_gb, disk_iops) for all node types across regions and replication specs. Includes `mongodbatlas_advanced_cluster` data source to query actual provisioned values from Atlas API.
+
+See [module_existing/main.tf](./module_existing/main.tf) for implementation.
+
+### module_effective_fields approach
+
+Uses `mongodbatlas_advanced_cluster` resource with `use_effective_fields = true` attribute. Requires `mongodbatlas_advanced_cluster` data source with `use_effective_fields = true` to expose both configured values (via `replication_specs`) and actual provisioned values (via `effective_electable_specs`, `effective_analytics_specs`, `effective_read_only_specs` attributes).
+
+Note: `effective_*_specs` attributes are ONLY available on the data source, not the resource.
+
+See [module_effective_fields/main.tf](./module_effective_fields/main.tf) for implementation.
 
 ## Migration Guide
 
 ### For Module Maintainers
 
 1. **Update resource:** Add `use_effective_fields = true`, remove `lifecycle` block
-2. **Add data source:** Read effective specs with `use_effective_fields = true`
-3. **Update outputs:** Expose both configured and effective specs
-4. **Publish:** Increment module version (e.g., 1.0 → 2.0)
+2. **Add data source:** Required to read effective specs with `use_effective_fields = true`
+3. **Update outputs:** Reference data source for replication specs (see [module_effective_fields/outputs.tf](./module_effective_fields/outputs.tf))
 
-See detailed comparison in [module_existing](./module_existing/) and [module_effective_fields](./module_effective_fields/).
+See detailed implementation in [module_existing](./module_existing/) and [module_effective_fields](./module_effective_fields/).
 
 ### For Module Users
 
-Simply update the module source or version. See [module_user](./module_user/) for a complete working example.
-
-```terraform
-module "cluster" {
-  source  = "your-org/cluster-module"
-  version = "2.0.0"  # Only change needed
-
-  # Same configuration - no other changes required
-}
-```
-
-**No configuration changes required:**
-- All input variables stay the same
-- No parameter updates needed
-- Seamless upgrade experience
-
-## Key Behavioral Change
-
-**IMPORTANT:** How resource references work changes:
-
-**module_existing:**
-- `mongodbatlas_advanced_cluster.cluster.replication_specs` returns **state values** (may be auto-scaled)
-- Cannot distinguish configured values from auto-scaled values
-
-**module_effective_fields:**
-- `data.mongodbatlas_advanced_cluster.cluster.replication_specs` returns **configuration values** (as defined in .tf files)
-- `data.mongodbatlas_advanced_cluster.cluster.replication_specs[0].region_configs[0].effective_electable_specs` returns **actual provisioned values**
-- Clear separation between what you configured and what Atlas provisioned
-
-### Preserving Output Compatibility
-
-If migrating and your outputs referenced `resource.replication_specs`:
-
-**Option 1: Expose both (recommended)**
-```terraform
-output "configured_specs" {
-  value = data.mongodbatlas_advanced_cluster.this.replication_specs
-}
-
-output "effective_specs" {
-  # Use effective_electable_specs, effective_analytics_specs, etc.
-  value = [/* map effective_* attributes */]
-}
-```
-
-**Option 2: Preserve v1 behavior**
-```terraform
-data "mongodbatlas_advanced_cluster" "compat" {
-  project_id = mongodbatlas_advanced_cluster.this.project_id
-  name       = mongodbatlas_advanced_cluster.this.name
-  # Without use_effective_fields - returns state values like v1
-}
-
-output "specs" {
-  value = data.mongodbatlas_advanced_cluster.compat.replication_specs
-}
-```
+Update the module source or version - no configuration changes required. See [module_user](./module_user/) for example.
 
 ## Additional Resources
 
