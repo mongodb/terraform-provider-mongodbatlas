@@ -204,8 +204,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	clusterConf := &retry.StateChangeConf{
-		Pending:    []string{"REPEATING", "PENDING"},
-		Target:     []string{"IDLE", "DELETED"},
+		Pending: []string{"REPEATING", "PENDING"},
+		Target:  []string{"IDLE", "DELETED"},
+		// TODO: update before merging to master: ResourceClusterListAdvancedRefreshFunc to advancedcluster.ResourceClusterListAdvancedRefreshFunc
 		Refresh:    ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: delayAndMinTimeout,
@@ -332,8 +333,9 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 
 		clusterConf := &retry.StateChangeConf{
-			Pending:    []string{"REPEATING", "PENDING"},
-			Target:     []string{"IDLE", "DELETED"},
+			Pending: []string{"REPEATING", "PENDING"},
+			Target:  []string{"IDLE", "DELETED"},
+			// TODO: update before merging to master: ResourceClusterListAdvancedRefreshFunc to advancedcluster.ResourceClusterListAdvancedRefreshFunc
 			Refresh:    ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: delayAndMinTimeout,
@@ -477,6 +479,7 @@ func flattenGCPEndpoints(apiObjects *[]admin.GCPConsumerForwardingRule) []any {
 	return tfList
 }
 
+// TODO: update before merging to master: delete ResourceClusterListAdvancedRefreshFunc and use advancedcluster.ResourceClusterListAdvancedRefreshFunc
 func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		clusters, resp, err := clustersAPI.ListClusters(ctx, projectID).Execute()
