@@ -27,16 +27,16 @@ resource "mongodbatlas_advanced_cluster" "this" {
 # IMPORTANT: The use_effective_fields flag on the data source controls what values are returned:
 #
 # PHASE 1 - BACKWARD COMPATIBLE MIGRATION (current approach, omitting flag or setting to false):
-# - replication_specs returns ACTUAL provisioned values (what's currently running)
+# - *_specs (electable_specs, analytics_specs, read_only_specs) return ACTUAL provisioned values
 # - Maintains compatibility with module_existing behavior
 # - effective_*_specs also returns actual values (always available for dedicated clusters)
 # - Best for migrating from lifecycle.ignore_changes approach without breaking module users
 #
 # PHASE 2 - BREAKING CHANGE (set use_effective_fields = true, prepares for provider v3.x):
-# - replication_specs returns CONFIGURED values (what you specified in .tf files)
+# - *_specs (electable_specs, analytics_specs, read_only_specs) return CONFIGURED values
 # - effective_*_specs returns ACTUAL provisioned values (may differ due to auto-scaling)
 # - Clear separation between intent (configured) and reality (effective)
-# - BREAKING: Module users must switch from replication_specs to effective_*_specs for actual values
+# - BREAKING: Module users must switch from *_specs to effective_*_specs for actual values
 # - Prepares for provider v3.x where this becomes default behavior
 # - Recommended for new modules created from scratch
 #

@@ -5,7 +5,7 @@ This example demonstrates how to use the effective fields modules from a user's 
 ## Key Takeaway
 
 **Module migration is transparent to users:**
-- Change module source from `../module_existing` to `../module_effective_fields`
+- Change module source from `../module_existing` to `../module_effective_fields`, or change module version
 - No other configuration changes needed
 - All input variables stay the same
 - All outputs remain available (with enhanced functionality in module_effective_fields)
