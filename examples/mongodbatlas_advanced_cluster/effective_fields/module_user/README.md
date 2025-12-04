@@ -1,6 +1,6 @@
 # Module Usage Example
 
-This example demonstrates how to use the effective fields modules from a user's perspective. It shows that switching between `module_existing` and `module_effective_fields` requires **only** changing the module source path - all other parameters remain identical.
+This example demonstrates how to use the effective fields modules from a user's perspective. It shows that switching between `module_existing` and `module_effective_fields` requires **only** changing the module source path. All other parameters remain identical.
 
 ## Key Takeaway
 
