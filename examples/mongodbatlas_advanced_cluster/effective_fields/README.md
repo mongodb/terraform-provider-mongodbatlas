@@ -29,10 +29,10 @@ Uses `mongodbatlas_advanced_cluster` resource with `lifecycle.ignore_changes` bl
 
 **Known issues with this approach:**
 - `lifecycle.ignore_changes` blocks cannot be conditional based on auto-scaling configuration (Terraform limitation)
-- Requires maintaining separate modules: one for auto-scaling clusters, one for non-auto-scaling clusters
-- Complex to maintain: must list `lifecycle.ignore_changes` lines for the biggest expected cluster topology (18-54+ fields)
-- Complicates provider upgrades and cluster configuration migrations
-- Has caused issues in practice, for example: [Issue #3427](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/3427)
+- Requires maintaining separate modules: one for auto-scaling clusters, one for non-auto-scaling clusters.
+- Complex to maintain: must list `lifecycle.ignore_changes` lines for the biggest expected cluster topology (18-54+ fields).
+- Complicates provider upgrades and cluster configuration migrations.
+- Has caused issues in practice, for example: [Issue #3427](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/3427).
 
 See [module_existing/main.tf](./module_existing/main.tf) for implementation.
 
