@@ -30,15 +30,24 @@ output "connection_strings" {
 }
 
 # Replication specifications from data source
-# With use_effective_fields, regular spec attributes (electable_specs, analytics_specs,
-# read_only_specs) return configuration values that stay constant.
-# To get actual provisioned values (which may differ due to auto-scaling),
-# use the effective_* attributes available in data source:
+#
+# BACKWARD COMPATIBLE BEHAVIOR (data source without use_effective_fields):
+# - replication_specs returns ACTUAL provisioned values from Atlas API
+# - This matches module_existing behavior for seamless migration
+# - Module users see no difference in outputs when migrating
+#
+# The data source also exposes effective_* attributes (always available for dedicated clusters):
 # - effective_electable_specs.instance_size, effective_electable_specs.disk_size_gb, etc.
 # - effective_analytics_specs.instance_size, effective_analytics_specs.disk_size_gb, etc.
 # - effective_read_only_specs.instance_size, effective_read_only_specs.disk_size_gb, etc.
+# These also return actual values when use_effective_fields is not set.
+#
+# ENHANCED BEHAVIOR (if data source had use_effective_fields = true):
+# - replication_specs would return CONFIGURED values (client-provided intent)
+# - effective_* attributes would return ACTUAL values (Atlas-managed reality)
+# - Clear separation between what you configured and what's running
 output "replication_specs" {
-  description = "Cluster replication specifications (contains both configured and effective_* specs)"
+  description = "Cluster replication specifications (actual values for backward compatibility)"
   value       = data.mongodbatlas_advanced_cluster.this.replication_specs
 }
 
