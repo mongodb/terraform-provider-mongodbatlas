@@ -29,8 +29,9 @@ output "connection_strings" {
   sensitive   = true
 }
 
+# Configured specifications - values as defined in configuration (stay constant)
 output "configured_specs" {
-  description = "Configured hardware specifications for each shard or replica set"
+  description = "Hardware specifications as defined in Terraform configuration"
   value = [
     for spec in data.mongodbatlas_advanced_cluster.this.replication_specs : {
       zone_name = spec.zone_name
@@ -40,18 +41,22 @@ output "configured_specs" {
           provider_name   = region.provider_name
           electable_size  = region.electable_specs.instance_size
           electable_count = region.electable_specs.node_count
+          electable_disk  = try(region.electable_specs.disk_size_gb, null)
           analytics_size  = try(region.analytics_specs.instance_size, null)
           analytics_count = try(region.analytics_specs.node_count, null)
+          analytics_disk  = try(region.analytics_specs.disk_size_gb, null)
           read_only_size  = try(region.read_only_specs.instance_size, null)
           read_only_count = try(region.read_only_specs.node_count, null)
+          read_only_disk  = try(region.read_only_specs.disk_size_gb, null)
         }
       ]
     }
   ]
 }
 
+# Effective specifications - actual values provisioned by Atlas (may differ due to auto-scaling)
 output "effective_specs" {
-  description = "Effective hardware specifications as provisioned by Atlas, including auto-scaling changes"
+  description = "Hardware specifications as provisioned by Atlas, including auto-scaling changes"
   value = [
     for spec in data.mongodbatlas_advanced_cluster.this.replication_specs : {
       zone_name = spec.zone_name
@@ -60,8 +65,14 @@ output "effective_specs" {
           region_name              = region.region_name
           provider_name            = region.provider_name
           effective_electable_size = region.effective_electable_specs.instance_size
+          effective_electable_disk = try(region.effective_electable_specs.disk_size_gb, null)
+          effective_electable_iops = try(region.effective_electable_specs.disk_iops, null)
           effective_analytics_size = try(region.effective_analytics_specs.instance_size, null)
+          effective_analytics_disk = try(region.effective_analytics_specs.disk_size_gb, null)
+          effective_analytics_iops = try(region.effective_analytics_specs.disk_iops, null)
           effective_read_only_size = try(region.effective_read_only_specs.instance_size, null)
+          effective_read_only_disk = try(region.effective_read_only_specs.disk_size_gb, null)
+          effective_read_only_iops = try(region.effective_read_only_specs.disk_iops, null)
         }
       ]
     }

@@ -29,11 +29,9 @@ output "connection_strings" {
   sensitive   = true
 }
 
-# In v1, we only expose configured specifications
-# We cannot see the actual (effective) values that Atlas has provisioned after auto-scaling
-# This is a limitation of the ignore_changes approach
+# With lifecycle.ignore_changes, cannot distinguish configured from auto-scaled values
 output "configured_specs" {
-  description = "Configured hardware specifications as defined in Terraform configuration"
+  description = "Hardware specifications from state (may include auto-scaled values)"
   value = [
     for spec in mongodbatlas_advanced_cluster.this.replication_specs : {
       zone_name = spec.zone_name
