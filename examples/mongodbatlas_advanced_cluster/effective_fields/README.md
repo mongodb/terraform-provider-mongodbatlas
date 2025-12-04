@@ -63,10 +63,10 @@ See [module_effective_fields/main.tf](./module_effective_fields/main.tf) for imp
 
 This breaking change prepares for provider v3.x where effective fields will be the default behavior:
 
-1. **Update data source:** Add `use_effective_fields = true` to data source
-2. **Update outputs:** Expose both configured specs and effective specs separately, or document that clients must use `effective_*_specs` for actual values
+1. **Update data source:** Add `use_effective_fields = true` to data source.
+2. **Update outputs:** Expose both configured specs and effective specs separately, or document that clients must use `effective_*_specs` for actual values.
 3. **Update documentation:** Clearly communicate the breaking change - data source now returns both client-provided specs (via `*_specs`) and actual provisioned specs (via `effective_*_specs`). Clients must switch from using normal specs (which previously returned actual values) to using `effective_*_specs` to get actual values.
-4. **Result:** Clear separation between configured intent and actual provisioned values, aligned with future v3.x behavior
+4. **Result:** Clear separation between configured intent and actual provisioned values, aligned with future v3.x behavior.
 
 **Breaking change impact:** Module users accessing `*_specs` for actual provisioned values must switch to using `effective_*_specs` attributes (effective_electable_specs, effective_analytics_specs, effective_read_only_specs).
 
