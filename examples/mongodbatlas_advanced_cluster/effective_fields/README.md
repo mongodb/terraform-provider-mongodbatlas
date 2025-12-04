@@ -74,7 +74,7 @@ See detailed implementation in [module_existing](./module_existing/) and [module
 
 ### For Module Users
 
-Update the module source or version - no configuration changes required. Outputs remain compatible during Phase 1 migration. See [module_user](./module_user/) for example.
+Update the module source or version. No configuration changes required. Outputs remain compatible during Phase 1 migration. For exmaple, see [module_user](./module_user/).
 
 ## Additional Resources
 
