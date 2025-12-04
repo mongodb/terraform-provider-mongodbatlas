@@ -34,8 +34,8 @@ See [module_existing/main.tf](./module_existing/main.tf) for implementation.
 Uses `mongodbatlas_advanced_cluster` resource with `use_effective_fields = true` to eliminate lifecycle blocks and prevent plan drift. Requires `mongodbatlas_advanced_cluster` data source to access actual provisioned values.
 
 **Key insight for migration:** The resource and data source flags are independent. For backward compatible migration, use `use_effective_fields = true` on the **resource** (to eliminate lifecycle blocks) but omit or set to `false` on the **data source** (to maintain output compatibility):
-- **Data source without flag (default, backward compatible):** `replication_specs` returns actual provisioned values, matching module_existing behavior. Perfect for seamless migration.
-- **Data source with `use_effective_fields = true` (recommended for new modules):** `replication_specs` returns configured values, while `effective_*_specs` attributes return actual values. Provides clear separation between intent and reality.
+- **Data source without flag (default, backward compatible):**  `*_specs` returns actual provisioned values, matching module_existing behavior. Perfect for seamless migration.
+- **Data source with `use_effective_fields = true` (recommended for new modules):** `*_specs` returns configured values, while `effective_*_specs` attributes return actual values. Provides clear separation between intent and reality.
 
 Note: `effective_*_specs` attributes (effective_electable_specs, effective_analytics_specs, effective_read_only_specs) are always available on the data source for dedicated clusters, regardless of the flag value.
 
@@ -58,10 +58,10 @@ This breaking change prepares for provider v3.x where effective fields will be t
 
 1. **Update data source:** Add `use_effective_fields = true` to data source
 2. **Update outputs:** Expose both configured specs and effective specs separately, or document that clients must use `effective_*_specs` for actual values
-3. **Update documentation:** Clearly communicate the breaking change - data source now returns both client-provided specs (via `replication_specs`) and actual provisioned specs (via `effective_*_specs`). Clients must switch from using normal specs (which previously returned actual values) to using `effective_*_specs` to get actual values.
+3. **Update documentation:** Clearly communicate the breaking change - data source now returns both client-provided specs (via `*_specs`) and actual provisioned specs (via `effective_*_specs`). Clients must switch from using normal specs (which previously returned actual values) to using `effective_*_specs` to get actual values.
 4. **Result:** Clear separation between configured intent and actual provisioned values, aligned with future v3.x behavior
 
-**Breaking change impact:** Module users accessing `replication_specs` for actual provisioned values must switch to using `effective_*_specs` attributes (effective_electable_specs, effective_analytics_specs, effective_read_only_specs).
+**Breaking change impact:** Module users accessing `*_specs` for actual provisioned values must switch to using `effective_*_specs` attributes (effective_electable_specs, effective_analytics_specs, effective_read_only_specs).
 
 See detailed implementation in [module_existing](./module_existing/) and [module_effective_fields](./module_effective_fields/).
 

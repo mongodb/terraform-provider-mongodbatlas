@@ -36,19 +36,19 @@ To see the old approach with `lifecycle.ignore_changes`, edit the module source 
 ### Behavioral difference:
 
 **module_existing:**
-- `replication_specs` returns actual provisioned values (may be auto-scaled)
+- `*_specs` returns actual provisioned values (may be auto-scaled)
 - Cannot distinguish configured from auto-scaled values
 
 **module_effective_fields (Phase 1 - backward compatible):**
-- `replication_specs` returns actual provisioned values (same as module_existing)
+- `*_specs` returns actual provisioned values (same as module_existing)
 - `effective_*_specs` attributes also available with actual values
 - Seamless migration with no output changes
 
 **module_effective_fields (Phase 2 - breaking change, prepares for v3.x):**
 - If data source uses `use_effective_fields = true`:
-  - `replication_specs` returns configured values (client-provided intent)
+  - `*_specs` returns configured values (client-provided intent)
   - `effective_*_specs` returns actual provisioned values (Atlas-managed reality)
-  - **BREAKING CHANGE:** Must switch from `replication_specs` to `effective_*_specs` for actual values
+  - **BREAKING CHANGE:** Must switch from `*_specs` to `effective_*_specs` for actual values
   - Prepares for provider v3.x where this becomes default behavior
   - Clear separation between what you configured and what Atlas provisioned
 
