@@ -28,7 +28,7 @@ When auto-scaling is enabled, Atlas automatically adjusts instance sizes and dis
 Uses `mongodbatlas_advanced_cluster` resource with `lifecycle.ignore_changes` block listing all auto-scalable fields (instance_size, disk_size_gb, disk_iops) for all node types across regions and replication specs. When auto-scaling is enabled, Atlas may adjust all three fields regardless of which auto-scaling type is enabled (for optimal performance). Includes `mongodbatlas_advanced_cluster` data source to query actual provisioned values from Atlas API, as ignored fields are got from the Terraform state.
 
 **Known issues with this approach:**
-- `lifecycle.ignore_changes` blocks cannot be conditional based on auto-scaling configuration (Terraform limitation)
+- `lifecycle.ignore_changes` blocks cannot be conditional based on auto-scaling configuration (Terraform limitation).
 - Requires maintaining separate modules: one for auto-scaling clusters, one for non-auto-scaling clusters.
 - Complex to maintain: must list `lifecycle.ignore_changes` lines for the biggest expected cluster topology (18-54+ fields).
 - Complicates provider upgrades and cluster configuration migrations.
@@ -74,7 +74,7 @@ See detailed implementation in [module_existing](./module_existing/) and [module
 
 ### For Module Users
 
-Update the module source or version. No configuration changes required. Outputs remain compatible during Phase 1 migration. For exmaple, see [module_user](./module_user/).
+Update the module source or version. No configuration changes required. Outputs remain compatible during Phase 1 migration. For example, see [module_user](./module_user/).
 
 ## Additional Resources
 
