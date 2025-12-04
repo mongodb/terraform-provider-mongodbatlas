@@ -29,13 +29,13 @@ output "connection_strings" {
   sensitive   = true
 }
 
-# Replication specifications from data source
-#
-# This module uses Phase 1 approach (data source without use_effective_fields flag):
-# - *_specs return actual provisioned values for backward compatibility with module_existing
-# - Data source also exposes effective_*_specs attributes
-#
-# For Phase 2 approach (breaking change for v3.x preparation), see main.tf data source comments.
+/*
+ This module uses Phase 1 approach (data source without use_effective_fields flag):
+ - *_specs return actual provisioned values for backward compatibility with module_existing
+ - Data source also exposes effective_*_specs attributes
+
+ For Phase 2 approach (breaking change for v3.x preparation), see main.tf data source comments.
+*/
 output "replication_specs" {
   description = "Cluster replication specifications (actual values for backward compatibility)"
   value       = data.mongodbatlas_advanced_cluster.this.replication_specs

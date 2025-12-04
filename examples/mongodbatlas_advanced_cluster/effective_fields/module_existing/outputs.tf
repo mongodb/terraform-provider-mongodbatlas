@@ -29,10 +29,7 @@ output "connection_strings" {
   sensitive   = true
 }
 
-# Replication specifications from data source
-# Uses data source to get real provisioned values from Atlas API.
-# With lifecycle.ignore_changes, resource attributes may differ from actual state,
-# so we use data source to query the current cluster configuration.
+// Uses data source to get real provisioned values from Atlas API.
 output "replication_specs" {
   description = "Cluster replication specifications (actual values from Atlas)"
   value       = data.mongodbatlas_advanced_cluster.this.replication_specs
