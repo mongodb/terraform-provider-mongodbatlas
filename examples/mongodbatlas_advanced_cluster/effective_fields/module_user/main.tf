@@ -1,9 +1,3 @@
-provider "mongodbatlas" {
-  # Credentials from environment variables:
-  # - MONGODB_ATLAS_CLIENT_ID
-  # - MONGODB_ATLAS_CLIENT_SECRET
-}
-
 # Module usage - works with BOTH module_existing and module_effective_fields
 # Only the source path needs to change when migrating
 module "atlas_cluster" {
@@ -76,15 +70,19 @@ output "connection_strings" {
   sensitive   = true
 }
 
-# When using module_effective_fields, you can access both configured and effective specs
-output "configured_specs" {
-  description = "Hardware specifications as defined in configuration"
-  value       = module.atlas_cluster.configured_specs
+# Replication specifications - works with both modules
+# - module_existing: returns actual values from Atlas API
+# - module_effective_fields: returns configured specs + effective_* specs for auto-scaled values
+output "replication_specs" {
+  description = "Cluster replication specifications"
+  value       = module.atlas_cluster.replication_specs
 }
 
-# This output is only available when using module_effective_fields
-# When using module_existing, this will show the same values as configured_specs
-output "effective_specs" {
-  description = "Actual hardware specifications provisioned by Atlas (may differ due to auto-scaling)"
-  value       = try(module.atlas_cluster.effective_specs, "Not available with module_existing")
+# Example: accessing auto-scaling status (only available with module_effective_fields)
+output "auto_scaling_status" {
+  description = "Auto-scaling configuration status"
+  value = {
+    electable_enabled = try(module.atlas_cluster.auto_scaling_enabled, null)
+    analytics_enabled = try(module.atlas_cluster.analytics_auto_scaling_enabled, null)
+  }
 }

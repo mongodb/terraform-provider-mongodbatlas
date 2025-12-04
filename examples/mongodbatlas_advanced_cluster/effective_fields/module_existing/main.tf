@@ -99,3 +99,13 @@ resource "mongodbatlas_advanced_cluster" "this" {
     ]
   }
 }
+
+# Data source to read actual cluster state
+# With lifecycle.ignore_changes, the resource's replication_specs attributes return
+# values from state which may differ from configuration due to ignored changes.
+# Use this data source to get the real provisioned values from Atlas API.
+data "mongodbatlas_advanced_cluster" "this" {
+  project_id = mongodbatlas_advanced_cluster.this.project_id
+  name       = mongodbatlas_advanced_cluster.this.name
+  depends_on = [mongodbatlas_advanced_cluster.this]
+}
