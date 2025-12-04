@@ -2,8 +2,18 @@
 
 This example demonstrates the `use_effective_fields` attribute for MongoDB Atlas Terraform modules, eliminating `lifecycle.ignore_changes` blocks and providing clear visibility into Atlas-managed changes.
 
+## Directory Structure
+
+```
+effective_fields/
+├── module_existing/          # Module using lifecycle.ignore_changes
+├── module_effective_fields/  # Module using use_effective_fields
+└── module_user/             # Usage example (works with both modules)
+```
+
 ## Quick Start
 
+- **Want to see how to use these modules?** Start with [module_user](./module_user/) - shows that migration only requires changing the module source
 - **Creating a new module?** Go directly to [module_effective_fields](./module_effective_fields/)
 - **Migrating an existing module?** Review both [module_existing](./module_existing/) and [module_effective_fields](./module_effective_fields/) to understand the changes
 
@@ -82,7 +92,7 @@ See detailed comparison in [module_existing](./module_existing/) and [module_eff
 
 ### For Module Users
 
-Simply update the module version:
+Simply update the module source or version. See [module_user](./module_user/) for a complete working example.
 
 ```terraform
 module "cluster" {
@@ -92,6 +102,11 @@ module "cluster" {
   # Same configuration - no other changes required
 }
 ```
+
+**No configuration changes required:**
+- All input variables stay the same
+- No parameter updates needed
+- Seamless upgrade experience
 
 ## Key Behavioral Change
 
