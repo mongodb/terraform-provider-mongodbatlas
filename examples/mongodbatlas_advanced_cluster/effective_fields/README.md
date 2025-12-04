@@ -54,10 +54,10 @@ See [module_effective_fields/main.tf](./module_effective_fields/main.tf) for imp
 
 **Phase 1: Migrate with backward compatibility (recommended first step)**
 
-1. **Update resource:** Add `use_effective_fields = true` and remove `lifecycle.ignore_changes` blocks
-2. **Add data source:** Add `mongodbatlas_advanced_cluster` data source WITHOUT `use_effective_fields` flag (defaults to false)
-3. **Update outputs:** Reference data source for replication specs
-4. **Result:** Eliminates lifecycle blocks, prevents drift, maintains output compatibility
+1. **Update resource:** Add `use_effective_fields = true` and remove `lifecycle.ignore_changes` blocks.
+2. **Add data source:** Add `mongodbatlas_advanced_cluster` data source WITHOUT `use_effective_fields` flag (defaults to false).
+3. **Update outputs:** Reference data source for replication specs.
+4. **Result:** Eliminates lifecycle blocks, prevents drift, maintains output compatibility.
 
 **Phase 2: Enhanced visibility (prepares for provider v3.x)**
 
