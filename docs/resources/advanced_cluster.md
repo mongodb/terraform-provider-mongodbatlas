@@ -883,7 +883,7 @@ More information about moving resources can be found in our [Migration Guide](ht
 
 ## Auto-Scaling with Effective Fields
 
-The `use_effective_fields` attribute enhances auto-scaling workflows by eliminating the need for `lifecycle.ignore_changes` blocks and providing visibility into Atlas-managed changes.
+The `use_effective_fields` attribute enhances auto-scaling workflows by eliminating the need for `lifecycle.ignore_changes` blocks and providing visibility into Atlas-managed changes. This feature only applies to dedicated clusters (M10+) and is not supported for flex and tenant clusters.
 
 ### Why use_effective_fields?
 

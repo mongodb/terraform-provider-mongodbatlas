@@ -25,7 +25,7 @@ When auto-scaling is enabled, Atlas automatically adjusts instance sizes and dis
 
 ### module_existing approach
 
-Uses `mongodbatlas_advanced_cluster` resource with `lifecycle.ignore_changes` block listing all auto-scalable fields (instance_size, disk_size_gb, disk_iops) for all node types across regions and replication specs. When auto-scaling is enabled, Atlas may adjust all three fields regardless of which auto-scaling type is enabled (for optimal performance). Includes `mongodbatlas_advanced_cluster` data source to query actual provisioned values from Atlas API.
+Uses `mongodbatlas_advanced_cluster` resource with `lifecycle.ignore_changes` block listing all auto-scalable fields (instance_size, disk_size_gb, disk_iops) for all node types across regions and replication specs. When auto-scaling is enabled, Atlas may adjust all three fields regardless of which auto-scaling type is enabled (for optimal performance). Includes `mongodbatlas_advanced_cluster` data source to query actual provisioned values from Atlas API as ignored fields are got from the Terraform state.
 
 See [module_existing/main.tf](./module_existing/main.tf) for implementation.
 
@@ -47,7 +47,7 @@ See [module_effective_fields/main.tf](./module_effective_fields/main.tf) for imp
 
 **Phase 1: Migrate with backward compatibility (recommended first step)**
 
-1. **Update resource:** Add `use_effective_fields = true`, remove `lifecycle.ignore_changes` block in the same apply
+1. **Update resource:** Add `use_effective_fields = true` and remove `lifecycle.ignore_changes` blocks
 2. **Add data source:** Add `mongodbatlas_advanced_cluster` data source WITHOUT `use_effective_fields` flag (defaults to false)
 3. **Update outputs:** Reference data source for replication specs
 4. **Result:** Eliminates lifecycle blocks, prevents drift, maintains output compatibility
@@ -68,27 +68,6 @@ See detailed implementation in [module_existing](./module_existing/) and [module
 ### For Module Users
 
 Update the module source or version - no configuration changes required. Outputs remain compatible during Phase 1 migration. See [module_user](./module_user/) for example.
-
-### Important Migration Notes
-
-- **Compatibility:** `use_effective_fields` only applies to dedicated clusters (M10+), not tenant clusters (M0/M2/M5) or serverless
-- **Provider v3.x transition:** The flag will be deprecated in late v2.x and removed in v3.x, making effective fields the default behavior. Migrating now prepares for this transition
-- When enabling `use_effective_fields = true` on the resource, remove lifecycle blocks in the **same apply**
-- Do NOT combine with other cluster changes
-- If previously removed `analytics_specs` or `read_only_specs` blocks, add them back before toggling (or set `node_count = 0` to explicitly remove nodes)
-- Toggling the flag may show increased `(known after apply)` markers - this is expected and safe
-
-### Updating Specs with Auto-Scaling Enabled
-
-**With use_effective_fields = true:**
-1. Disable auto-scaling (`compute_enabled = false`, `disk_gb_enabled = false`) and apply
-2. Update `instance_size`, `disk_size_gb`, or `disk_iops` to desired values and apply
-3. Re-enable auto-scaling and apply
-
-**Without use_effective_fields (legacy):**
-1. Temporarily remove or comment out `lifecycle.ignore_changes` block
-2. Update spec values and apply
-3. Restore `lifecycle.ignore_changes` block
 
 ## Additional Resources
 
