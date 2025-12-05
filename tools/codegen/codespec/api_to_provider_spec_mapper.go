@@ -358,11 +358,8 @@ func apiSpecToDataSourceModel(spec *high.Document, resourceConfig *config.Resour
 		return nil, nil // no data source to generate
 	}
 
-	// Determine version header: use datasource-specific if defined, otherwise fall back to resource's. Avoids needing resource to define version header if only data source is defined.
-	versionHeader := dsConfig.VersionHeader
-	if versionHeader == "" {
-		versionHeader = resourceConfig.VersionHeader
-	}
+	// Use resource's version header
+	versionHeader := resourceConfig.VersionHeader
 	var configuredVersion *string
 	if versionHeader != "" {
 		configuredVersion = &versionHeader
@@ -451,7 +448,7 @@ func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map
 }
 
 // applyDataSourceTransformations applies the data source's schema options to attributes.
-func applyDataSourceTransformations(dsConfig *config.DataSourceConfig, attributes *Attributes) error {
+func applyDataSourceTransformations(dsConfig *config.DataSources, attributes *Attributes) error {
 	return applyAttributeTransformations(dsConfig.SchemaOptions, attributes, &attrPaths{schemaPath: "", apiPath: ""})
 }
 

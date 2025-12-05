@@ -5,23 +5,22 @@ type Config struct {
 }
 
 type Resource struct {
-	Create             *APIOperation     `yaml:"create"`
-	Read               *APIOperation     `yaml:"read"`
-	Update             *APIOperation     `yaml:"update"`
-	Delete             *APIOperation     `yaml:"delete"`
-	MoveState          *MoveState        `yaml:"move_state"`
-	DeprecationMessage *string           `yaml:"deprecation_message"`
-	DataSources        *DataSourceConfig `yaml:"datasources"`
-	VersionHeader      string            `yaml:"version_header"`
-	SchemaOptions      SchemaOptions     `yaml:"schema"`
+	Create             *APIOperation `yaml:"create"`
+	Read               *APIOperation `yaml:"read"`
+	Update             *APIOperation `yaml:"update"`
+	Delete             *APIOperation `yaml:"delete"`
+	MoveState          *MoveState    `yaml:"move_state"`
+	DeprecationMessage *string       `yaml:"deprecation_message"`
+	DataSources        *DataSources  `yaml:"datasources"` // when defined, data source(s) are generated with independent schema options
+	VersionHeader      string        `yaml:"version_header"`
+	SchemaOptions      SchemaOptions `yaml:"schema"`
 }
 
-// DataSourceConfig defines the configuration for generating data sources independently from resources
-type DataSourceConfig struct {
-	Read          *APIOperation `yaml:"read"`
-	List          *APIOperation `yaml:"list"`
-	VersionHeader string        `yaml:"version_header"`
-	SchemaOptions SchemaOptions `yaml:"schema"`
+// DataSources defines the configuration for generating data sources independently from resources
+type DataSources struct {
+	Read          *APIOperation `yaml:"read"`   // singular data source read operation
+	List          *APIOperation `yaml:"list"`   // plural data source list operation
+	SchemaOptions SchemaOptions `yaml:"schema"` // data source specific schema options (aliases, overrides, ignores)
 }
 
 type APIOperation struct {
