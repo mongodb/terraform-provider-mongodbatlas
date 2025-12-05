@@ -43,7 +43,8 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 	}
 
 	var resources []Resource
-	for name, resourceConfig := range resourceConfigsToIterate {
+	for name := range resourceConfigsToIterate {
+		resourceConfig := resourceConfigsToIterate[name]
 		log.Printf("[INFO] Generating resource model: %s", name)
 		// find resource operations, schemas, etc from OAS
 		oasResource, err := getAPISpecResource(&apiSpec.Model, &resourceConfig, name)
@@ -74,7 +75,8 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 
 func validateRequiredOperations(resourceConfigs map[string]config.Resource) error {
 	var validationErrors []error
-	for name, resourceConfig := range resourceConfigs {
+	for name := range resourceConfigs {
+		resourceConfig := resourceConfigs[name]
 		if resourceConfig.Create == nil {
 			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Create operation in config file", name))
 		}
@@ -99,16 +101,25 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		configuredVersion = &resourceConfig.VersionHeader
 	}
 
-	createRequestAttributes, err := opRequestToAttributes(createOp, configuredVersion)
-	if err != nil {
-		return nil, fmt.Errorf("failed to process create request attributes for %s: %w", name, err)
+	var createRequestAttributes, updateRequestAttributes, createResponseAttributes, readResponseAttributes Attributes
+	var err error
+
+	if !resourceConfig.Create.SchemaIgnore {
+		createRequestAttributes, err = opRequestToAttributes(createOp, configuredVersion)
+		if err != nil {
+			return nil, fmt.Errorf("failed to process create request attributes for %s: %w", name, err)
+		}
+		createResponseAttributes = opResponseToAttributes(createOp, configuredVersion)
 	}
-	updateRequestAttributes, err := opRequestToAttributes(updateOp, configuredVersion)
-	if err != nil {
-		return nil, fmt.Errorf("failed to process update request attributes for %s: %w", name, err)
+	if resourceConfig.Update != nil && !resourceConfig.Update.SchemaIgnore {
+		updateRequestAttributes, err = opRequestToAttributes(updateOp, configuredVersion)
+		if err != nil {
+			return nil, fmt.Errorf("failed to process update request attributes for %s: %w", name, err)
+		}
 	}
-	createResponseAttributes := opResponseToAttributes(createOp, configuredVersion)
-	readResponseAttributes := opResponseToAttributes(readOp, configuredVersion)
+	if !resourceConfig.Read.SchemaIgnore {
+		readResponseAttributes = opResponseToAttributes(readOp, configuredVersion)
+	}
 
 	attributes := mergeAttributes(&attributeDefinitionSources{
 		createPathParams: createPathParams,
@@ -138,11 +149,12 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	}
 
 	resource := &Resource{
-		Name:        name,
-		PackageName: strings.ReplaceAll(name, "_", ""),
-		Schema:      schema,
-		MoveState:   moveState,
-		Operations:  operations,
+		Name:         name,
+		PackageName:  strings.ReplaceAll(name, "_", ""),
+		Schema:       schema,
+		MoveState:    moveState,
+		Operations:   operations,
+		IDAttributes: resourceConfig.IDAttributes,
 	}
 
 	if err := applyTransformationsWithConfigOpts(resourceConfig, resource); err != nil {

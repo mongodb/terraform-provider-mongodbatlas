@@ -42,19 +42,23 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "SymmetricShardedCluster"
   cluster_type = "SHARDED"
 
-  replication_specs = [{
-    num_shards = 2           # this attribute has been removed in v2.0.0
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M30"
-        disk_iops = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-  }]
+  replication_specs = [
+    {
+      num_shards = 2           # this attribute has been removed in v2.0.0
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            disk_iops = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -66,30 +70,36 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "SymmetricShardedCluster"
   cluster_type = "SHARDED"
 
-  replication_specs = [{ # first shard
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M30"
-        disk_iops = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-  },
-  { # second shard
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M30"
-        disk_iops = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-  }]
+  replication_specs = [
+    { # first shard
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            disk_iops = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    },
+    { # second shard
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            disk_iops = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -353,14 +363,101 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 As of version 1.23.0, enabled `compute` auto-scaling (either `auto_scaling` or `analytics_auto_scaling`) will scale the `instance_size` of each shard independently. Each shard must be represented with a unique `replication_specs` element and `num_shards` must not be used.
 
-The following example illustrates a configuration that has compute auto-scaling per shard for electable and analytic nodes.
+### Recommended Approach: Using use_effective_fields
+
+The following example shows the recommended approach using `use_effective_fields = true` to manage auto-scaling without `lifecycle.ignore_changes` blocks:
+
+```
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id            = var.project_id
+  name                  = "AutoScalingCluster"
+  cluster_type          = "SHARDED"
+  use_effective_fields  = true
+
+  replication_specs = [{ # first shard
+    region_configs = [{
+      electable_specs = {
+        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
+        node_count    = 3
+      }
+      analytics_specs = {
+        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
+        node_count = 1
+      }
+      auto_scaling = {
+        compute_enabled = true
+        compute_max_instance_size = "M60"
+      }
+      analytics_auto_scaling = {
+        compute_enabled = true
+        compute_max_instance_size = "M60"
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "EU_WEST_1"
+    }]
+    zone_name = "Zone 1"
+  },
+  { # second shard
+    region_configs = [{
+      electable_specs = {
+        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
+        node_count    = 3
+      }
+      analytics_specs = {
+        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
+        node_count = 1
+      }
+      auto_scaling = {
+        compute_enabled = true
+        compute_max_instance_size = "M60"
+      }
+      analytics_auto_scaling = {
+        compute_enabled = true
+        compute_max_instance_size = "M60"
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "EU_WEST_1"
+    }]
+    zone_name = "Zone 1"
+  }]
+}
+
+# Read effective values to see what Atlas has scaled to
+data "mongodbatlas_advanced_cluster" "test" {
+  project_id           = mongodbatlas_advanced_cluster.test.project_id
+  name                 = mongodbatlas_advanced_cluster.test.name
+  use_effective_fields = true
+  depends_on           = [mongodbatlas_advanced_cluster.test]
+}
+
+output "shard_sizes" {
+  value = [
+    for idx, spec in data.mongodbatlas_advanced_cluster.test.replication_specs : {
+      shard_index           = idx
+      configured_size       = spec.region_configs[0].electable_specs.instance_size
+      actual_electable_size = spec.region_configs[0].effective_electable_specs.instance_size
+      actual_analytics_size = spec.region_configs[0].effective_analytics_specs.instance_size
+    }
+  ]
+}
+```
+
+To learn more about `use_effective_fields`, see [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields).
+
+**For module authors:** `use_effective_fields` is particularly valuable for reusable Terraform modules, enabling a single module to handle both auto-scaling and non-auto-scaling clusters without requiring lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
+
+### Legacy Approach: Using lifecycle.ignore_changes
+
+If you need to maintain the legacy approach without using `use_effective_fields`, you can use `lifecycle.ignore_changes`:
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = var.project_id
   name         = "AutoScalingCluster"
   cluster_type = "SHARDED"
-  
+
   replication_specs = [{ # first shard
     region_configs = [{
       electable_specs = {
@@ -409,18 +506,26 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }]
     zone_name = "Zone 1"
   }]
-  lifecycle { # avoids future non-empty plans as instance size start to scale from initial values
-    ignore_changes = [ 
-      replication_specs[0].region_configs[0].electable_specs.instance_size, 
-      replication_specs[0].region_configs[0].analytics_specs.instance_size, 
+  lifecycle { # avoids future non-empty plans when auto-scaling adjusts cluster resources
+    ignore_changes = [
+      replication_specs[0].region_configs[0].electable_specs.instance_size,
+      replication_specs[0].region_configs[0].electable_specs.disk_size_gb,
+      replication_specs[0].region_configs[0].electable_specs.disk_iops,
+      replication_specs[0].region_configs[0].analytics_specs.instance_size,
+      replication_specs[0].region_configs[0].analytics_specs.disk_size_gb,
+      replication_specs[0].region_configs[0].analytics_specs.disk_iops,
       replication_specs[1].region_configs[0].electable_specs.instance_size,
-      replication_specs[1].region_configs[0].analytics_specs.instance_size
+      replication_specs[1].region_configs[0].electable_specs.disk_size_gb,
+      replication_specs[1].region_configs[0].electable_specs.disk_iops,
+      replication_specs[1].region_configs[0].analytics_specs.instance_size,
+      replication_specs[1].region_configs[0].analytics_specs.disk_size_gb,
+      replication_specs[1].region_configs[0].analytics_specs.disk_iops
     ]
   }
 }
 ```
 
-While the example initially defines 2 symmetric shards, auto-scaling of `electable_specs` or `analytic_specs` can lead to asymmetric shards due to changes in `instance_size`.
+While the examples initially define two symmetric shards, auto-scaling can lead to asymmetric shards due to changes in `instance_size`, `disk_size_gb`, and `disk_iops`. When either compute or disk auto-scaling is enabled, Atlas may adjust any of these resources to maintain optimal cluster performance.
 
 -> **NOTE:** In the following scenarios, a `mongodbatlas_advanced_cluster` using the new sharding configuration (single `replication_specs` per shard) might not have shard-level auto-scaling enabled: <br/>1. Configuration was defined prior to version 1.23.0 when auto-scaling per shard feature was released.<br/>2. Cluster was imported from a legacy schema (For example, `mongodbatlas_cluster` or `mongodbatlas_advanced_cluster` using `num_shards` > 1).
 <br/>3. Configuration is updated directly from a v1.x version of our provider directly to v2.0.0+ as no update is triggered.

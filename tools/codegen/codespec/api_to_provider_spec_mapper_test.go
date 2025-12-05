@@ -1358,3 +1358,40 @@ func TestConvertToProviderSpec_pathParamWithAlias(t *testing.T) {
 	assert.Contains(t, result.Resources[0].Operations.Update.Path, "{dbUser}", "Update path should use aliased path param")
 	assert.Contains(t, result.Resources[0].Operations.Delete.Path, "{dbUser}", "Delete path should use aliased path param")
 }
+
+func TestConvertToProviderSpec_ignoreSchemaAndIdAttributes(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_schema_ignore_and_id_attributes",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr("POST API description"),
+					// due to schema_ignore string_attr is not included in the attributes
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
+							APIName:                  "groupId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testPathParamDesc),
+							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
+						},
+					},
+				},
+				Name:         "test_schema_ignore_and_id_attributes",
+				PackageName:  "testschemaignoreandidattributes",
+				Operations:   simpleTestResourceOperations,
+				IDAttributes: []string{"group_id", "id"},
+			}},
+		},
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+}

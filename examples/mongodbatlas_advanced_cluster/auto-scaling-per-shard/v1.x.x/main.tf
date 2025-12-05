@@ -62,13 +62,22 @@ resource "mongodbatlas_advanced_cluster" "this" {
     zone_name = "Zone 1"
   }
 
-  lifecycle { # avoid plans as autoscaling changes instance_size
+  lifecycle { # avoid plans as autoscaling adjusts cluster resources
     ignore_changes = [
-      # in v2.0.0+, electable_specs and analytics_specs are updated to attributes and will no longer require index to access instance_size
+      # in v2.0.0+, electable_specs and analytics_specs are updated to attributes and will no longer require index to access these fields
+      # when either compute or disk auto-scaling is enabled, all three fields may be adjusted by Atlas
       replication_specs[0].region_configs[0].electable_specs[0].instance_size,
+      replication_specs[0].region_configs[0].electable_specs[0].disk_size_gb,
+      replication_specs[0].region_configs[0].electable_specs[0].disk_iops,
       replication_specs[0].region_configs[0].analytics_specs[0].instance_size,
+      replication_specs[0].region_configs[0].analytics_specs[0].disk_size_gb,
+      replication_specs[0].region_configs[0].analytics_specs[0].disk_iops,
       replication_specs[1].region_configs[0].electable_specs[0].instance_size,
+      replication_specs[1].region_configs[0].electable_specs[0].disk_size_gb,
+      replication_specs[1].region_configs[0].electable_specs[0].disk_iops,
       replication_specs[1].region_configs[0].analytics_specs[0].instance_size,
+      replication_specs[1].region_configs[0].analytics_specs[0].disk_size_gb,
+      replication_specs[1].region_configs[0].analytics_specs[0].disk_iops,
     ]
   }
 }

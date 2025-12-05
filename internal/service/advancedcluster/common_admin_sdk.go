@@ -16,45 +16,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
-func CreateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
-	var (
-		pauseAfter  = req.GetPaused()
-		clusterResp *admin.ClusterDescription20240805
-	)
-	if pauseAfter {
-		req.Paused = nil
-	}
-	clusterResp = createClusterLatest(ctx, diags, client, req, waitParams)
-	if diags.HasError() {
-		return nil
-	}
-	if pauseAfter {
-		clusterResp = updateCluster(ctx, diags, client, &pauseRequest, waitParams, operationPauseAfterCreate)
-	}
-	return clusterResp
-}
-
-func createClusterLatest(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
-	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).Execute()
-	if err != nil {
-		addErrorDiag(diags, operationCreate, defaultAPIErrorDetails(waitParams.ClusterName, err))
-		return nil
-	}
-	return AwaitChanges(ctx, client, waitParams, operationCreate, diags)
-}
-
-func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, operationName string) *admin.ClusterDescription20240805 {
-	_, _, err := client.AtlasV2.ClustersApi.UpdateCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, req).Execute()
-	if err != nil {
-		addErrorDiag(diags, operationName, defaultAPIErrorDetails(waitParams.ClusterName, err))
-		return nil
-	}
-	return AwaitChanges(ctx, client, waitParams, operationName, diags)
-}
-
 // ProcessArgs.ClusterAdvancedConfig is managed through create/updateCluster APIs instead of /processArgs APIs but since corresponding TF attributes
 // belong in the advanced_configuration attribute we still need to check for any changes
-func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, p *ProcessArgs, waitParams *ClusterWaitParams) (latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
+func updateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, p *ProcessArgs, waitParams *ClusterWaitParams) (latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
 	var (
 		err         error
 		advConfig   *admin.ClusterDescriptionProcessArgs20240805
@@ -79,7 +43,7 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 	return advConfig, changed
 }
 
-func ReadIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, configNew *admin.ClusterDescriptionProcessArgs20240805) (latest *admin.ClusterDescriptionProcessArgs20240805) {
+func readIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, configNew *admin.ClusterDescriptionProcessArgs20240805) (latest *admin.ClusterDescriptionProcessArgs20240805) {
 	var err error
 	if configNew == nil {
 		configNew, _, err = client.AtlasV2.ClustersApi.GetProcessArgs(ctx, projectID, clusterName).Execute()
@@ -91,7 +55,7 @@ func ReadIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnosti
 	return configNew
 }
 
-func UpgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
+func upgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV2.ClustersApi.UpgradeTenantUpgrade(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationTenantUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
@@ -100,7 +64,7 @@ func UpgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.
 	return AwaitChangesUpgrade(ctx, client, waitParams, operationTenantUpgrade, diags)
 }
 
-func UpgradeFlexToDedicated(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.AtlasTenantClusterUpgradeRequest20240805) *admin.ClusterDescription20240805 {
+func upgradeFlexToDedicated(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.AtlasTenantClusterUpgradeRequest20240805) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV2.FlexClustersApi.TenantUpgrade(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationFlexUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
@@ -123,7 +87,7 @@ func PinFCV(ctx context.Context, api admin.ClustersApi, projectID, clusterName, 
 	return nil
 }
 
-func DeleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, retainBackups *bool) {
+func deleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, retainBackups *bool) {
 	params := &admin.DeleteClusterApiParams{
 		GroupId:       waitParams.ProjectID,
 		ClusterName:   waitParams.ClusterName,
@@ -141,10 +105,10 @@ func DeleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 			return
 		}
 	}
-	AwaitChanges(ctx, client, waitParams, operationDelete, diags)
+	_ = AwaitChanges(ctx, client, waitParams, operationDelete, diags)
 }
 
-func DeleteClusterNoWait(client *config.MongoDBClient, projectID, clusterName string, isFlex bool) func(ctx context.Context) error {
+func deleteClusterNoWait(client *config.MongoDBClient, projectID, clusterName string, isFlex bool) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		var cleanResp *http.Response
 		var cleanErr error
@@ -160,9 +124,9 @@ func DeleteClusterNoWait(client *config.MongoDBClient, projectID, clusterName st
 	}
 }
 
-func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, clusterName string, client *config.MongoDBClient, fcvPresentInState bool) (clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113) {
+func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, clusterName string, client *config.MongoDBClient, fcvPresentInState, useEffectiveFields bool) (clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113) {
 	isFlex := false
-	clusterDesc, resp, err := client.AtlasV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	clusterDesc, resp, err := client.AtlasV2.ClustersApi.GetCluster(ctx, projectID, clusterName).UseEffectiveInstanceFields(useEffectiveFields).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) || admin.IsErrorCode(err, ErrorCodeClusterNotFound) {
 			return nil, nil

@@ -19,7 +19,10 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 		return nil, fmt.Errorf("resource %s is missing required Read operation", input.Name)
 	}
 
-	idAttributes := GetIDAttributes(input.Operations.Read.Path)
+	idAttrs := input.IDAttributes
+	if len(idAttrs) == 0 {
+		idAttrs = GetIDAttributes(input.Operations.Read.Path)
+	}
 
 	tmplInputs := codetemplate.ResourceFileInputs{
 		PackageName:  input.PackageName,
@@ -32,7 +35,7 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
 		MoveState:    toCodeTemplateMoveStateModel(input.MoveState),
-		IDAttributes: idAttributes,
+		IDAttributes: idAttrs,
 	}
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 

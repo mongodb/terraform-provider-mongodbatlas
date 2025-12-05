@@ -10,6 +10,7 @@ type Resource struct {
 	Update             *APIOperation `yaml:"update"`
 	Delete             *APIOperation `yaml:"delete"`
 	MoveState          *MoveState    `yaml:"move_state"`
+	IDAttributes       []string      `yaml:"id_attributes"`
 	DeprecationMessage *string       `yaml:"deprecation_message"`
 	DataSources        *DataSources  `yaml:"datasources"` // when defined, data source(s) are generated with independent schema options
 	VersionHeader      string        `yaml:"version_header"`
@@ -27,7 +28,8 @@ type APIOperation struct {
 	Wait              *Wait  `yaml:"wait"`
 	Path              string `yaml:"path"`
 	Method            string `yaml:"method"`
-	StaticRequestBody string `yaml:"static_request_body"` // use at the moment for Delete when it's done with a PATCH or PUT and needs to send a static request body.
+	StaticRequestBody string `yaml:"static_request_body"`
+	SchemaIgnore      bool   `yaml:"schema_ignore"`
 }
 
 type Wait struct {
