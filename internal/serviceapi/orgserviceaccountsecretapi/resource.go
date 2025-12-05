@@ -26,6 +26,7 @@ func Resource() resource.Resource {
 }
 
 type rs struct {
+	autogen.NoOpCustomCodeHooks
 	config.RSCommon
 }
 
@@ -51,10 +52,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Method:        "POST",
 	}
 	reqHandle := autogen.HandleCreateReq{
-		Resp:       resp,
-		Client:     r.Client,
-		Plan:       &plan,
-		CallParams: &callParams,
+		APICallCustomCodeHooks: r,
+		Resp:                   resp,
+		Client:                 r.Client,
+		Plan:                   &plan,
+		CallParams:             &callParams,
 	}
 	autogen.HandleCreate(ctx, reqHandle)
 }
@@ -66,10 +68,11 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	reqHandle := autogen.HandleReadReq{
-		Resp:       resp,
-		Client:     r.Client,
-		State:      &state,
-		CallParams: readAPICallParams(&state),
+		APICallCustomCodeHooks: r,
+		Resp:                   resp,
+		Client:                 r.Client,
+		State:                  &state,
+		CallParams:             readAPICallParams(&state),
 	}
 	autogen.HandleRead(ctx, reqHandle)
 }
@@ -84,7 +87,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := deleteRequest(r.Client, &state, &resp.Diagnostics)
+	reqHandle := deleteRequest(r, r.Client, &state, &resp.Diagnostics)
 	autogen.HandleDelete(ctx, *reqHandle)
 }
 
@@ -107,16 +110,17 @@ func readAPICallParams(model any) *config.APICallParams {
 	}
 }
 
-func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
+func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
 		"orgId":    model.OrgId.ValueString(),
 		"clientId": model.ClientId.ValueString(),
 		"id":       model.Id.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
-		Client: client,
-		State:  model,
-		Diags:  diags,
+		APICallCustomCodeHooks: r,
+		Client:                 client,
+		State:                  model,
+		Diags:                  diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
 			RelativePath:  "/api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets/{id}",
