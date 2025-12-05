@@ -11,19 +11,24 @@ import (
 )
 
 func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
-	var idAttributes []string
-	if input.Operations.Read != nil {
-		idAttributes = GetIDAttributes(input.Operations.Read.Path)
+	// Resources require Create and Read operations - fail fast if missing
+	if input.Operations.Create == nil {
+		return nil, fmt.Errorf("resource %s is missing required Create operation", input.Name)
 	}
+	if input.Operations.Read == nil {
+		return nil, fmt.Errorf("resource %s is missing required Read operation", input.Name)
+	}
+
+	idAttributes := GetIDAttributes(input.Operations.Read.Path)
 
 	tmplInputs := codetemplate.ResourceFileInputs{
 		PackageName:  input.PackageName,
 		ResourceName: input.Name,
 		APIOperations: codetemplate.APIOperations{
 			VersionHeader: input.Operations.VersionHeader,
-			Create:        derefOperationOrEmpty(toCodeTemplateOpModel(input.Operations.Create)),
+			Create:        *toCodeTemplateOpModel(input.Operations.Create),
 			Update:        toCodeTemplateOpModel(input.Operations.Update),
-			Read:          derefOperationOrEmpty(toCodeTemplateOpModel(input.Operations.Read)),
+			Read:          *toCodeTemplateOpModel(input.Operations.Read),
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
 		MoveState:    toCodeTemplateMoveStateModel(input.MoveState),
@@ -36,13 +41,6 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 		return nil, fmt.Errorf("failed to format generated Go code (resource): %w", err)
 	}
 	return formattedResult, nil
-}
-
-func derefOperationOrEmpty(op *codetemplate.Operation) codetemplate.Operation {
-	if op == nil {
-		return codetemplate.Operation{}
-	}
-	return *op
 }
 
 func toCodeTemplateMoveStateModel(moveState *codespec.MoveState) *codetemplate.MoveState {
