@@ -15,7 +15,7 @@ effective_fields/
 
 - **Migrating an existing module?** Review both [module_existing](./module_existing/) and [module_effective_fields](./module_effective_fields/) to understand the changes.
 - **Creating a new module?** Go directly to [module_effective_fields](./module_effective_fields/).
-- **How to use these modules?** See [module_user](./module_user/). It shows that migration only requires changing the module source.
+- **How to use these modules?** See [module_user](./module_user/). It shows that migration requires only that you change the module source.
 
 ## What is use_effective_fields?
 
