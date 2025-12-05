@@ -32,7 +32,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -40,7 +40,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}/{roleName}",
 					},
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}/{roleName}",
 					},
@@ -66,7 +66,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -74,7 +74,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "PUT",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -100,7 +100,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 						Wait: &codespec.Wait{
@@ -124,7 +124,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 							DelaySeconds:      10,
 						},
 					},
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -158,7 +158,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -166,7 +166,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -193,7 +193,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -201,7 +201,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -224,12 +224,12 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
 					Update: nil,
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -257,7 +257,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -265,7 +265,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -301,7 +301,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/groups/{projectId}/integrations",
 					},
@@ -309,7 +309,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/groups/{projectId}/integrations/{integrationId}",
 					},
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/groups/{projectId}/integrations/{integrationId}",
 					},
@@ -342,11 +342,11 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/{clientId}/secrets",
 					},
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/{clientId}",
 					},
