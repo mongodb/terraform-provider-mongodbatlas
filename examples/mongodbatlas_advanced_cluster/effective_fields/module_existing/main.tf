@@ -5,9 +5,11 @@ resource "mongodbatlas_project" "this" {
 }
 
 /*
- Create Atlas Advanced Cluster with auto-scaling.
- This approach uses lifecycle.ignore_changes blocks to prevent Terraform
- from detecting drift when Atlas auto-scales the cluster.
+ This module simulates an existing implementation using lifecycle.ignore_changes blocks.
+
+ This was the only available approach before use_effective_fields was introduced and is no longer
+ recommended. This implementation is included only for understanding migration from existing modules.
+ For new modules, use the module_effective_fields approach instead.
 */
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id        = mongodbatlas_project.this.id
@@ -17,9 +19,6 @@ resource "mongodbatlas_advanced_cluster" "this" {
   tags              = var.tags
 
   /*
-   lifecycle.ignore_changes is required when auto-scaling is enabled
-   to prevent Terraform from trying to revert Atlas-managed changes.
-
    When auto-scaling is enabled (either compute or disk auto-scaling), Atlas may adjust
    instance_size, disk_size_gb, and disk_iops regardless of which auto-scaling type is enabled.
    Therefore, all three attributes must be ignored to prevent unintended changes.
