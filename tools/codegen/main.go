@@ -175,7 +175,6 @@ func formatGeneratedFiles(files []string, packageDir string) {
 	}
 
 	// Run fieldalignment on the package directory so it can resolve types across files
-	// Use filepath.Clean to sanitize the path and prevent command injection
 	packagePath := "./" + packageDir
 	fieldalignmentCmd := exec.CommandContext(context.Background(), "fieldalignment", "-fix", packagePath)
 	if output, err := fieldalignmentCmd.CombinedOutput(); err != nil {
