@@ -20,11 +20,11 @@ resource "mongodbatlas_advanced_cluster" "this" {
  - *_specs (electable_specs, analytics_specs, read_only_specs) return actual provisioned values
  - Recommended for migrating from lifecycle.ignore_changes while maintaining compatibility with module_existing behavior
 
- Phase 2 (breaking change, prepares for v3.x):
+ Phase 2 (prepares for future provider major versions):
  - Set use_effective_fields = true on the data source
  - *_specs return configured values, effective_*_specs return actual provisioned values
  - Module users must switch from *_specs to effective_*_specs for actual values
- - Recommended for new modules or when preparing for provider v3.x
+ - Recommended for new modules or when preparing for future provider major versions
 */
 data "mongodbatlas_advanced_cluster" "this" {
   project_id = mongodbatlas_advanced_cluster.this.project_id

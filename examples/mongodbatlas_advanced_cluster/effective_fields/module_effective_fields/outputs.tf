@@ -34,7 +34,7 @@ output "connection_strings" {
  - *_specs return actual provisioned values for backward compatibility with module_existing
  - Data source also exposes effective_*_specs attributes
 
- For Phase 2 approach (breaking change for v3.x preparation), see main.tf data source comments.
+ For Phase 2 approach (prepares for future provider major versions), see main.tf data source comments.
 */
 output "replication_specs" {
   description = "Cluster replication specifications (actual values for backward compatibility)"

@@ -44,12 +44,12 @@ To see the old approach with `lifecycle.ignore_changes`, edit the module source 
 - `effective_*_specs` attributes also available with actual values.
 - Seamless migration with no output changes.
 
-**module_effective_fields (Phase 2 - breaking change, prepares for v3.x):**
+**module_effective_fields (Phase 2 - prepares for future provider major versions):**
 - If data source uses `use_effective_fields = true`:
   - `*_specs` returns configured values (client-provided intent).
   - `effective_*_specs` returns actual provisioned values (Atlas-managed reality).
-  - **BREAKING CHANGE:** Must switch from `*_specs` to `effective_*_specs` for actual values.
-  - Prepares for provider v3.x where this becomes default behavior.
+  - Module users must switch from `*_specs` to `effective_*_specs` for actual values.
+  - Prepares for future provider major versions where this becomes default behavior.
   - Clear separation between what you configured and what Atlas provisioned.
 
 ## Complete Migration Example

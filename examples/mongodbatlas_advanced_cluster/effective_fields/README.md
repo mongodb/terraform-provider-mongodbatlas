@@ -15,15 +15,21 @@ effective_fields/
 
 - **Migrating an existing module?** Review both [module_existing](./module_existing/) and [module_effective_fields](./module_effective_fields/) to understand the changes.
 - **Creating a new module?** Go directly to [module_effective_fields](./module_effective_fields/).
-- **How to use these modules?** See [module_user](./module_user/) - shows that migration only requires changing the module source.
+- **How to use these modules?** See [module_user](./module_user/). It shows that migration requires only that you change the module source.
 
 ## What is use_effective_fields?
 
 When auto-scaling is enabled, Atlas automatically adjusts instance sizes and disk capacity. This creates [configuration drift](https://developer.hashicorp.com/terraform/tutorials/state/resource-drift) that requires management.
 
-**Future direction:** In provider v3.x, `use_effective_fields = true` will become the default behavior and the flag will be removed. Migrating now is recommended to prepare for this transition.
+`use_effective_fields` is an attribute for the `mongodbatlas_advanced_cluster` resource and data sources that solves this problem. When enabled on the resource, it eliminates the need for `lifecycle.ignore_changes` blocks by treating Atlas-managed values as part of the expected state rather than drift.
+
+Additionally, the data sources provide `effective_*_specs` attributes (`effective_electable_specs`, `effective_analytics_specs`, `effective_read_only_specs`) that expose the actual provisioned values from Atlas, providing visibility into what Atlas has scaled to versus what was configured.
+
+For more details, see [Auto-Scaling with Effective Fields](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#auto-scaling-with-effective-fields) documentation.
 
 ### module_existing approach
+
+**This was the only available approach before `use_effective_fields` was introduced and is no longer recommended.** This section is included only for understanding migration from existing implementations. For new modules or when migrating, use the [module_effective_fields approach](#module_effective_fields-approach) (see [Migration Guide](#migration-guide) below).
 
 Uses `mongodbatlas_advanced_cluster` resource with `lifecycle.ignore_changes` block listing all auto-scalable fields (instance_size, disk_size_gb, disk_iops) for all node types across regions and replication specs. When auto-scaling is enabled, Atlas may adjust all three fields regardless of which auto-scaling type is enabled (for optimal performance). Includes `mongodbatlas_advanced_cluster` data source to query actual provisioned values from Atlas API, as ignored fields are from the Terraform state.
 
@@ -58,16 +64,16 @@ See [module_effective_fields/main.tf](./module_effective_fields/main.tf) for imp
 3. **Update outputs:** Reference data source for replication specs.
 4. **Result:** Eliminates lifecycle blocks, prevents drift, maintains output compatibility.
 
-**Phase 2: Enhanced visibility (prepares for provider v3.x)**
+**Phase 2: Enhanced visibility (prepares for future provider major versions)**
 
-This breaking change prepares for provider v3.x where effective fields will be the default behavior:
+Prepares for future provider major versions where effective fields will be the default behavior. This involves changes to data source outputs:
 
 1. **Update data source:** Add `use_effective_fields = true` to data source.
 2. **Update outputs:** Expose both configured specs and effective specs separately, or document that clients must use `effective_*_specs` for actual values.
-3. **Update documentation:** Clearly communicate the breaking change - data source now returns both client-provided specs (via `*_specs`) and actual provisioned specs (via `effective_*_specs`). Clients must switch from using normal specs (which previously returned actual values) to using `effective_*_specs` to get actual values.
-4. **Result:** Clear separation between configured intent and actual provisioned values, aligned with future v3.x behavior.
+3. **Update documentation:** Clearly document that data source now returns both client-provided specs (via `*_specs`) and actual provisioned specs (via `effective_*_specs`). Clients must switch from using normal specs (which previously returned actual values) to using `effective_*_specs` to get actual values.
+4. **Result:** Clear separation between configured intent and actual provisioned values, aligned with future provider major version behavior.
 
-**Breaking change impact:** Module users accessing `*_specs` for actual provisioned values must switch to using `effective_*_specs` attributes (effective_electable_specs, effective_analytics_specs, effective_read_only_specs).
+**Migration impact:** Module users accessing `*_specs` for actual provisioned values must switch to using `effective_*_specs` attributes (effective_electable_specs, effective_analytics_specs, effective_read_only_specs).
 
 See detailed implementation in [module_existing](./module_existing/) and [module_effective_fields](./module_effective_fields/).
 
