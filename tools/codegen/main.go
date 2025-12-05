@@ -92,6 +92,19 @@ func main() {
 		// Generate data source code if data sources are defined
 		if resourceModel.DataSources != nil {
 			log.Printf("[INFO] Generating data source code: %s", resourceModel.Name)
+
+			// Generate data_source_schema.go
+			dsSchemaCode, err := schema.GenerateDataSourceSchemaGoCode(resourceModel)
+			if err != nil {
+				log.Fatalf("[ERROR] %v", err)
+			}
+			dsSchemaFilePath := fmt.Sprintf("internal/serviceapi/%s/data_source_schema.go", resourceModel.PackageName)
+			if err := writeToFile(dsSchemaFilePath, dsSchemaCode); err != nil {
+				log.Fatalf("[ERROR] An error occurred when writing content to file: %v", err)
+			}
+			formatGoFile(dsSchemaFilePath)
+
+			// Generate data_source.go
 			dataSourceCode, err := datasource.GenerateGoCode(resourceModel)
 			if err != nil {
 				log.Fatalf("[ERROR] %v", err)

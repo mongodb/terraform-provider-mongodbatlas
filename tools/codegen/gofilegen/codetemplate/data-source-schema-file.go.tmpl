@@ -4,20 +4,23 @@ package {{ .PackageName }}
 
 import (
 	"context"
+
+	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	{{range .Imports }}
 	"{{ . }}"
 	{{- end }}
 )
 
-func ResourceSchema(ctx context.Context) schema.Schema {
-	return schema.Schema{
+func DataSourceSchema(ctx context.Context) dsschema.Schema {
+	return dsschema.Schema{
 		{{- if .DeprecationMessage }}
 		DeprecationMessage: "{{ .DeprecationMessage }}",
 		{{- end }}
-		Attributes: map[string]schema.Attribute{
+		Attributes: map[string]dsschema.Attribute{
 			{{ .SchemaAttributes }}
 		},
 	}
 }
 
-{{ .Models }}
+{{ .DSModel }}
+

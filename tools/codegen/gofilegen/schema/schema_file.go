@@ -16,19 +16,11 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 	imports = append(imports, schemaAttrs.Imports...)
 	imports = append(imports, models.Imports...)
 
-	// Generate DS model if data sources are defined
-	var dsModel CodeStatement
-	if input.DataSources != nil && input.DataSources.Schema != nil {
-		dsModel = GenerateDataSourceTypedModels(input.DataSources.Schema.Attributes)
-		imports = append(imports, dsModel.Imports...)
-	}
-
 	tmplInputs := codetemplate.SchemaFileInputs{
 		PackageName:        input.PackageName,
 		Imports:            imports,
 		SchemaAttributes:   schemaAttrs.Code,
 		Models:             models.Code,
-		DSModel:            dsModel.Code,
 		DeprecationMessage: input.Schema.DeprecationMessage,
 	}
 	result := codetemplate.ApplySchemaFileTemplate(&tmplInputs)

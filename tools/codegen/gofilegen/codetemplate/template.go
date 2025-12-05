@@ -14,7 +14,6 @@ type SchemaFileInputs struct {
 	PackageName        string
 	SchemaAttributes   string
 	Models             string
-	DSModel            string // Data source model (TFDSModel)
 	Imports            []string
 }
 
@@ -23,6 +22,9 @@ var resourceFileTemplate string
 
 //go:embed data-source-file.go.tmpl
 var dataSourceFileTemplate string
+
+//go:embed data-source-schema-file.go.tmpl
+var dataSourceSchemaFileTemplate string
 
 type ResourceFileInputs struct {
 	PackageName   string
@@ -75,6 +77,14 @@ type DataSourceFileInputs struct {
 	PathParams     []Param
 }
 
+type DataSourceSchemaFileInputs struct {
+	DeprecationMessage *string
+	PackageName        string
+	SchemaAttributes   string
+	DSModel            string
+	Imports            []string
+}
+
 func ApplySchemaFileTemplate(inputs *SchemaFileInputs) bytes.Buffer {
 	return applyTemplate(schemaFileTemplate, inputs)
 }
@@ -85,6 +95,10 @@ func ApplyResourceFileTemplate(inputs *ResourceFileInputs) bytes.Buffer {
 
 func ApplyDataSourceFileTemplate(inputs *DataSourceFileInputs) bytes.Buffer {
 	return applyTemplate(dataSourceFileTemplate, inputs)
+}
+
+func ApplyDataSourceSchemaFileTemplate(inputs *DataSourceSchemaFileInputs) bytes.Buffer {
+	return applyTemplate(dataSourceSchemaFileTemplate, inputs)
 }
 
 func applyTemplate[T any](templateStr string, inputs T) bytes.Buffer {
