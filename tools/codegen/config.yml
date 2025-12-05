@@ -778,6 +778,16 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
       method: DELETE
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/alertConfigs/
+        method: GET
+      schema:
+        aliases:
+          alertConfigId: id
     schema:
       aliases:
         alertConfigId: id # path param name does not match the API response property

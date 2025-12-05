@@ -58,11 +58,16 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 		}
 		resources = append(resources, *resource)
 
-		// Generate DataSource from Resource unless skip_data_source is true
-		if !resourceConfig.SkipDataSource {
-			dataSource := resourceToDataSource(resource)
-			dataSources = append(dataSources, *dataSource)
-			log.Printf("[INFO] Generated data source model: %s", name)
+		// Generate DataSource only when datasources block is defined in config
+		if resourceConfig.DataSources != nil {
+			dataSource, err := apiSpecToDataSourceModel(&apiSpec.Model, &resourceConfig, name)
+			if err != nil {
+				return nil, fmt.Errorf("unable to map to data source model for %s: %w", name, err)
+			}
+			if dataSource != nil {
+				dataSources = append(dataSources, *dataSource)
+				log.Printf("[INFO] Generated data source model: %s", name)
+			}
 		}
 	}
 
@@ -345,35 +350,115 @@ func extractCommonParameters(paths *high.Paths, path string) ([]*high.Parameter,
 	return pathItem.Parameters, nil
 }
 
-// resourceToDataSource creates a DataSource model from a Resource model.
-// It filters out resource-specific attributes (timeouts, delete_on_create_timeout).
-func resourceToDataSource(resource *Resource) *DataSource {
-	// Filter attributes: exclude timeouts and delete_on_create_timeout
-	dsAttributes := filterDataSourceAttributes(resource.Schema.Attributes)
+// apiSpecToDataSourceModel creates a DataSource model from the API spec using the datasources config.
+// The data source has its own schema options (aliases, overrides, ignores) independent from the resource.
+func apiSpecToDataSourceModel(spec *high.Document, resourceConfig *config.Resource, name string) (*DataSource, error) {
+	dsConfig := resourceConfig.DataSources
+	if dsConfig == nil || dsConfig.Read == nil {
+		return nil, nil // no data source to generate
+	}
+
+	// Determine version header: use datasource-specific if defined, otherwise fall back to resource's. Avoids needing resource to define version header if only data source is defined.
+	versionHeader := dsConfig.VersionHeader
+	if versionHeader == "" {
+		versionHeader = resourceConfig.VersionHeader
+	}
+	var configuredVersion *string
+	if versionHeader != "" {
+		configuredVersion = &versionHeader
+	}
+
+	// Extract the read operation from OAS
+	readOp, err := extractOp(spec.Paths, dsConfig.Read)
+	if err != nil {
+		return nil, fmt.Errorf("unable to extract data source read operation: %w", err)
+	}
+
+	// Build attributes from the read response
+	readResponseAttributes := opResponseToAttributes(readOp, configuredVersion)
+
+	// Get path parameters as required attributes
+	pathParams := pathParamsToAttributes(readOp)
+
+	// Merge path params with response attributes, considering aliases to avoid duplicates
+	attributes := mergeDataSourceAttributes(pathParams, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
+
+	// Apply the data source's own schema transformations (aliases, overrides, ignores)
+	if err := applyDataSourceTransformations(dsConfig, &attributes); err != nil {
+		return nil, fmt.Errorf("failed to apply data source transformations: %w", err)
+	}
+
+	// Apply alias to path params in the read path
+	readPath := applyAliasToPath(dsConfig.Read.Path, dsConfig.SchemaOptions.Aliases)
+
+	// If version header wasn't explicitly set, get from API spec
+	if versionHeader == "" {
+		versionHeader = getLatestVersionFromAPISpec(readOp)
+	}
 
 	return &DataSource{
-		Name:          resource.Name,
-		PackageName:   resource.PackageName,
-		Attributes:    dsAttributes,
-		ReadOperation: resource.Operations.Read,
-		VersionHeader: resource.Operations.VersionHeader,
-	}
+		Name:        name,
+		PackageName: strings.ReplaceAll(name, "_", ""),
+		Attributes:  attributes,
+		ReadOperation: APIOperation{
+			HTTPMethod: dsConfig.Read.Method,
+			Path:       readPath,
+		},
+		VersionHeader: versionHeader,
+	}, nil
 }
 
-// filterDataSourceAttributes returns attributes suitable for a data source model.
-// It excludes timeouts and delete_on_create_timeout which are resource-specific.
-func filterDataSourceAttributes(attrs Attributes) Attributes {
-	excludeAttrs := map[string]bool{
-		"timeouts":                 true,
-		"delete_on_create_timeout": true,
+// mergeDataSourceAttributes merges path parameters with response attributes.
+// Path params are marked as required, response attributes are computed.
+// Aliases are considered to avoid duplicates when a path param is aliased to match a response attribute.
+func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map[string]string) Attributes {
+	// Create a map to track which attributes already exist from response (by APIName for alias matching)
+	responseAttrByAPIName := make(map[string]bool)
+	for i := range responseAttrs {
+		responseAttrByAPIName[responseAttrs[i].APIName] = true
 	}
 
-	filtered := make(Attributes, 0, len(attrs))
-	for i := range attrs {
-		if excludeAttrs[attrs[i].TFSchemaName] {
-			continue
+	var result Attributes
+
+	// Add path params as required (they identify the data source)
+	for i := range pathParams {
+		// Check if this path param will be aliased to match a response attribute
+		// If so, the response attribute should be excluded to avoid duplication
+		aliasedAPIName := pathParams[i].APIName
+		if alias, ok := aliases[pathParams[i].APIName]; ok {
+			aliasedAPIName = alias
 		}
-		filtered = append(filtered, attrs[i])
+
+		// If the aliased param name matches a response attribute, mark it as handled
+		if responseAttrByAPIName[aliasedAPIName] {
+			responseAttrByAPIName[aliasedAPIName] = false // mark as handled
+		}
+
+		result = append(result, pathParams[i])
 	}
-	return filtered
+
+	// Add remaining response attributes as computed
+	for i := range responseAttrs {
+		if responseAttrByAPIName[responseAttrs[i].APIName] {
+			// Set as computed for data source
+			responseAttrs[i].ComputedOptionalRequired = Computed
+			responseAttrs[i].ReqBodyUsage = OmitAlways
+			result = append(result, responseAttrs[i])
+		}
+	}
+
+	return result
+}
+
+// applyDataSourceTransformations applies the data source's schema options to attributes.
+func applyDataSourceTransformations(dsConfig *config.DataSourceConfig, attributes *Attributes) error {
+	return applyAttributeTransformations(dsConfig.SchemaOptions, attributes, &attrPaths{schemaPath: "", apiPath: ""})
+}
+
+// applyAliasToPath replaces path parameters with their aliased names.
+func applyAliasToPath(path string, aliases map[string]string) string {
+	for original, alias := range aliases {
+		path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
+	}
+	return path
 }

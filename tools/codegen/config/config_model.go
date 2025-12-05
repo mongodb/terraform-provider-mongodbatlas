@@ -5,15 +5,23 @@ type Config struct {
 }
 
 type Resource struct {
-	Create             *APIOperation `yaml:"create"`
-	Read               *APIOperation `yaml:"read"`
-	Update             *APIOperation `yaml:"update"`
-	Delete             *APIOperation `yaml:"delete"`
-	MoveState          *MoveState    `yaml:"move_state"`
-	VersionHeader      string        `yaml:"version_header"` // when not defined latest version defined in API Spec of the resource is used
-	DeprecationMessage *string       `yaml:"deprecation_message"`
-	SchemaOptions      SchemaOptions `yaml:"schema"`
-	SkipDataSource     bool          `yaml:"skip_data_source"` // when true, no singular data source is generated for this resource
+	Create             *APIOperation     `yaml:"create"`
+	Read               *APIOperation     `yaml:"read"`
+	Update             *APIOperation     `yaml:"update"`
+	Delete             *APIOperation     `yaml:"delete"`
+	MoveState          *MoveState        `yaml:"move_state"`
+	DeprecationMessage *string           `yaml:"deprecation_message"`
+	DataSources        *DataSourceConfig `yaml:"datasources"`
+	VersionHeader      string            `yaml:"version_header"`
+	SchemaOptions      SchemaOptions     `yaml:"schema"`
+}
+
+// DataSourceConfig defines the configuration for generating data sources independently from resources
+type DataSourceConfig struct {
+	Read          *APIOperation `yaml:"read"`
+	List          *APIOperation `yaml:"list"`
+	VersionHeader string        `yaml:"version_header"`
+	SchemaOptions SchemaOptions `yaml:"schema"`
 }
 
 type APIOperation struct {
