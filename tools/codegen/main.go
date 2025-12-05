@@ -44,13 +44,6 @@ func main() {
 		}
 	}
 
-	// Create a map of data sources by name for quick lookup
-	dataSourceMap := make(map[string]*codespec.DataSource)
-	for i := range model.DataSources {
-		ds := &model.DataSources[i]
-		dataSourceMap[ds.Name] = ds
-	}
-
 	// Gather resource model files
 	var resourceModelFilePaths []string
 	if resourceName == nil {
@@ -77,10 +70,7 @@ func main() {
 
 		log.Printf("[INFO] Generating resource code: %s", resourceModel.Name)
 
-		// Find corresponding data source (if any)
-		dataSourceModel := dataSourceMap[resourceModel.Name]
-
-		schemaCode, err := schema.GenerateGoCode(resourceModel, dataSourceModel)
+		schemaCode, err := schema.GenerateGoCode(resourceModel)
 		if err != nil {
 			log.Fatalf("[ERROR] %v", err)
 		}
@@ -99,14 +89,14 @@ func main() {
 			log.Fatalf("[ERROR] An error occurred when writing content to file: %v", err)
 		}
 
-		// Generate data source code if data source model exists
-		if dataSourceModel != nil {
-			log.Printf("[INFO] Generating data source code: %s", dataSourceModel.Name)
-			dataSourceCode, err := datasource.GenerateGoCode(dataSourceModel)
+		// Generate data source code if data sources are defined
+		if resourceModel.DataSources != nil {
+			log.Printf("[INFO] Generating data source code: %s", resourceModel.Name)
+			dataSourceCode, err := datasource.GenerateGoCode(resourceModel)
 			if err != nil {
 				log.Fatalf("[ERROR] %v", err)
 			}
-			dataSourceFilePath := fmt.Sprintf("internal/serviceapi/%s/data_source.go", dataSourceModel.PackageName)
+			dataSourceFilePath := fmt.Sprintf("internal/serviceapi/%s/data_source.go", resourceModel.PackageName)
 			if err := writeToFile(dataSourceFilePath, dataSourceCode); err != nil {
 				log.Fatalf("[ERROR] An error occurred when writing content to file: %v", err)
 			}

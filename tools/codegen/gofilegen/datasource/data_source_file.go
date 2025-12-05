@@ -9,16 +9,21 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/resource"
 )
 
-func GenerateGoCode(input *codespec.DataSource) ([]byte, error) {
-	pathParams := resource.GetPathParams(input.ReadOperation.Path)
-	requiredFields := resource.GetIDAttributes(input.ReadOperation.Path)
+func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
+	if input.DataSources == nil || input.DataSources.Operations.Read == nil {
+		return nil, fmt.Errorf("data source read operation is required for %s", input.Name)
+	}
+
+	readOp := input.DataSources.Operations.Read
+	pathParams := resource.GetPathParams(readOp.Path)
+	requiredFields := resource.GetIDAttributes(readOp.Path)
 
 	tmplInputs := codetemplate.DataSourceFileInputs{
 		PackageName:    input.PackageName,
 		DataSourceName: input.Name,
-		VersionHeader:  input.VersionHeader,
-		ReadPath:       input.ReadOperation.Path,
-		ReadMethod:     input.ReadOperation.HTTPMethod,
+		VersionHeader:  input.DataSources.Operations.VersionHeader,
+		ReadPath:       readOp.Path,
+		ReadMethod:     readOp.HTTPMethod,
 		RequiredFields: requiredFields,
 		PathParams:     pathParams,
 	}

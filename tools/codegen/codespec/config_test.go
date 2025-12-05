@@ -15,28 +15,28 @@ func TestApplyTimeoutTransformation(t *testing.T) {
 	}{
 		"No wait blocks - no timeout attribute added": {
 			inputOperations: codespec.APIOperations{
-				Create: codespec.APIOperation{},
-				Read:   codespec.APIOperation{},
+				Create: &codespec.APIOperation{},
+				Read:   &codespec.APIOperation{},
 				Update: &codespec.APIOperation{},
 			},
 			expectedTimeouts: nil,
 		},
 		"Create wait only": {
 			inputOperations: codespec.APIOperations{
-				Create: codespec.APIOperation{
+				Create: &codespec.APIOperation{
 					Wait: &codespec.Wait{},
 				},
-				Read:   codespec.APIOperation{},
+				Read:   &codespec.APIOperation{},
 				Update: &codespec.APIOperation{},
 			},
 			expectedTimeouts: []codespec.Operation{codespec.Create},
 		},
 		"Create, Update, Delete waits": {
 			inputOperations: codespec.APIOperations{
-				Create: codespec.APIOperation{
+				Create: &codespec.APIOperation{
 					Wait: &codespec.Wait{},
 				},
-				Read: codespec.APIOperation{},
+				Read: &codespec.APIOperation{},
 				Update: &codespec.APIOperation{
 					Wait: &codespec.Wait{},
 				},
@@ -48,10 +48,10 @@ func TestApplyTimeoutTransformation(t *testing.T) {
 		},
 		"All operations with waits": {
 			inputOperations: codespec.APIOperations{
-				Create: codespec.APIOperation{
+				Create: &codespec.APIOperation{
 					Wait: &codespec.Wait{},
 				},
-				Read: codespec.APIOperation{
+				Read: &codespec.APIOperation{
 					Wait: &codespec.Wait{},
 				},
 				Update: &codespec.APIOperation{
@@ -98,10 +98,10 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 	}{
 		"Create with wait and Delete operation - attribute added": {
 			inputOperations: codespec.APIOperations{
-				Create: codespec.APIOperation{
+				Create: &codespec.APIOperation{
 					Wait: &codespec.Wait{},
 				},
-				Read:   codespec.APIOperation{},
+				Read:   &codespec.APIOperation{},
 				Update: &codespec.APIOperation{},
 				Delete: &codespec.APIOperation{},
 			},
@@ -109,18 +109,18 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 		},
 		"Create with wait but no Delete operation - attribute not added": {
 			inputOperations: codespec.APIOperations{
-				Create: codespec.APIOperation{
+				Create: &codespec.APIOperation{
 					Wait: &codespec.Wait{},
 				},
-				Read:   codespec.APIOperation{},
+				Read:   &codespec.APIOperation{},
 				Update: &codespec.APIOperation{},
 			},
 			shouldAddDeleteOnCreateTimeout: false,
 		},
 		"Create without wait but with Delete operation - attribute not added": {
 			inputOperations: codespec.APIOperations{
-				Create: codespec.APIOperation{},
-				Read:   codespec.APIOperation{},
+				Create: &codespec.APIOperation{},
+				Read:   &codespec.APIOperation{},
 				Update: &codespec.APIOperation{},
 				Delete: &codespec.APIOperation{},
 			},
@@ -128,18 +128,18 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 		},
 		"No Create wait and no Delete operation - attribute not added": {
 			inputOperations: codespec.APIOperations{
-				Create: codespec.APIOperation{},
-				Read:   codespec.APIOperation{},
+				Create: &codespec.APIOperation{},
+				Read:   &codespec.APIOperation{},
 				Update: &codespec.APIOperation{},
 			},
 			shouldAddDeleteOnCreateTimeout: false,
 		},
 		"Create with wait, Update with wait, and Delete operation - attribute added": {
 			inputOperations: codespec.APIOperations{
-				Create: codespec.APIOperation{
+				Create: &codespec.APIOperation{
 					Wait: &codespec.Wait{},
 				},
-				Read: codespec.APIOperation{},
+				Read: &codespec.APIOperation{},
 				Update: &codespec.APIOperation{
 					Wait: &codespec.Wait{},
 				},

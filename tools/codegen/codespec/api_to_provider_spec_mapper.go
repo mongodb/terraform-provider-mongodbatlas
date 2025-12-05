@@ -43,7 +43,6 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 	}
 
 	var resources []Resource
-	var dataSources []DataSource
 	for name, resourceConfig := range resourceConfigsToIterate {
 		log.Printf("[INFO] Generating resource model: %s", name)
 		// find resource operations, schemas, etc from OAS
@@ -56,22 +55,21 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 		if err != nil {
 			return nil, fmt.Errorf("unable to map to code spec model for %s: %w", name, err)
 		}
-		resources = append(resources, *resource)
 
-		// Generate DataSource only when datasources block is defined in config
+		// Generate DataSources only when datasources block is defined in config
 		if resourceConfig.DataSources != nil {
-			dataSource, err := apiSpecToDataSourceModel(&apiSpec.Model, &resourceConfig, name)
+			dataSources, err := apiSpecToDataSourcesModel(&apiSpec.Model, &resourceConfig)
 			if err != nil {
-				return nil, fmt.Errorf("unable to map to data source model for %s: %w", name, err)
+				return nil, fmt.Errorf("unable to map to data sources model for %s: %w", name, err)
 			}
-			if dataSource != nil {
-				dataSources = append(dataSources, *dataSource)
-				log.Printf("[INFO] Generated data source model: %s", name)
-			}
+			resource.DataSources = dataSources
+			log.Printf("[INFO] Generated data sources model for: %s", name)
 		}
+
+		resources = append(resources, *resource)
 	}
 
-	return &Model{Resources: resources, DataSources: dataSources}, nil
+	return &Model{Resources: resources}, nil
 }
 
 func validateRequiredOperations(resourceConfigs map[string]config.Resource) error {
@@ -168,8 +166,8 @@ func getLatestVersionFromAPISpec(readOp *high.Operation) string {
 
 func getOperationsFromConfig(resourceConfig *config.Resource) APIOperations {
 	return APIOperations{
-		Create:        *operationConfigToModel(resourceConfig.Create),
-		Read:          *operationConfigToModel(resourceConfig.Read),
+		Create:        operationConfigToModel(resourceConfig.Create),
+		Read:          operationConfigToModel(resourceConfig.Read),
 		Update:        operationConfigToModel(resourceConfig.Update),
 		Delete:        operationConfigToModel(resourceConfig.Delete),
 		VersionHeader: resourceConfig.VersionHeader,
@@ -350,11 +348,11 @@ func extractCommonParameters(paths *high.Paths, path string) ([]*high.Parameter,
 	return pathItem.Parameters, nil
 }
 
-// apiSpecToDataSourceModel creates a DataSource model from the API spec using the datasources config.
+// apiSpecToDataSourcesModel creates a DataSources model from the API spec using the datasources config.
 // The data source has its own schema options (aliases, overrides, ignores) independent from the resource.
-func apiSpecToDataSourceModel(spec *high.Document, resourceConfig *config.Resource, name string) (*DataSource, error) {
+func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resource) (*DataSources, error) {
 	dsConfig := resourceConfig.DataSources
-	if dsConfig == nil || dsConfig.Read == nil {
+	if dsConfig == nil {
 		return nil, nil // no data source to generate
 	}
 
@@ -365,43 +363,63 @@ func apiSpecToDataSourceModel(spec *high.Document, resourceConfig *config.Resour
 		configuredVersion = &versionHeader
 	}
 
-	// Extract the read operation from OAS
-	readOp, err := extractOp(spec.Paths, dsConfig.Read)
-	if err != nil {
-		return nil, fmt.Errorf("unable to extract data source read operation: %w", err)
+	var attributes Attributes
+	var readOp *APIOperation
+	var listOp *APIOperation
+
+	// Process Read operation if defined
+	if dsConfig.Read != nil {
+		oasReadOp, err := extractOp(spec.Paths, dsConfig.Read)
+		if err != nil {
+			return nil, fmt.Errorf("unable to extract data source read operation: %w", err)
+		}
+
+		// Build attributes from the read response
+		readResponseAttributes := opResponseToAttributes(oasReadOp, configuredVersion)
+
+		// Get path parameters as required attributes
+		pathParams := pathParamsToAttributes(oasReadOp)
+
+		// Merge path params with response attributes, considering aliases to avoid duplicates
+		attributes = mergeDataSourceAttributes(pathParams, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
+
+		// Apply alias to path params in the read path
+		readPath := applyAliasToPath(dsConfig.Read.Path, dsConfig.SchemaOptions.Aliases)
+
+		readOp = &APIOperation{
+			HTTPMethod: dsConfig.Read.Method,
+			Path:       readPath,
+		}
+
+		// If version header wasn't explicitly set, get from API spec
+		if versionHeader == "" {
+			versionHeader = getLatestVersionFromAPISpec(oasReadOp)
+		}
 	}
 
-	// Build attributes from the read response
-	readResponseAttributes := opResponseToAttributes(readOp, configuredVersion)
-
-	// Get path parameters as required attributes
-	pathParams := pathParamsToAttributes(readOp)
-
-	// Merge path params with response attributes, considering aliases to avoid duplicates
-	attributes := mergeDataSourceAttributes(pathParams, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
+	// Process List operation if defined
+	if dsConfig.List != nil {
+		listPath := applyAliasToPath(dsConfig.List.Path, dsConfig.SchemaOptions.Aliases)
+		listOp = &APIOperation{
+			HTTPMethod: dsConfig.List.Method,
+			Path:       listPath,
+		}
+	}
 
 	// Apply the data source's own schema transformations (aliases, overrides, ignores)
 	if err := applyDataSourceTransformations(dsConfig, &attributes); err != nil {
 		return nil, fmt.Errorf("failed to apply data source transformations: %w", err)
 	}
 
-	// Apply alias to path params in the read path
-	readPath := applyAliasToPath(dsConfig.Read.Path, dsConfig.SchemaOptions.Aliases)
-
-	// If version header wasn't explicitly set, get from API spec
-	if versionHeader == "" {
-		versionHeader = getLatestVersionFromAPISpec(readOp)
-	}
-
-	return &DataSource{
-		Name:        name,
-		PackageName: strings.ReplaceAll(name, "_", ""),
-		Attributes:  attributes,
-		ReadOperation: APIOperation{
-			HTTPMethod: dsConfig.Read.Method,
-			Path:       readPath,
+	return &DataSources{
+		Schema: &DataSourceSchema{
+			Attributes: attributes,
 		},
-		VersionHeader: versionHeader,
+		Operations: APIOperations{
+			Read:          readOp,
+			List:          listOp,
+			VersionHeader: versionHeader,
+		},
 	}, nil
 }
 
