@@ -52,11 +52,12 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Method:        "POST",
 	}
 	reqHandle := autogen.HandleCreateReq{
-		APICallCustomCodeHooks: r,
-		Resp:                   resp,
-		Client:                 r.Client,
-		Plan:                   &plan,
-		CallParams:             &callParams,
+		CreateAPICallHooks: r,
+		ReadAPICallHooks:   r,
+		Resp:               resp,
+		Client:             r.Client,
+		Plan:               &plan,
+		CallParams:         &callParams,
 	}
 	autogen.HandleCreate(ctx, reqHandle)
 }
@@ -68,11 +69,11 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	reqHandle := autogen.HandleReadReq{
-		APICallCustomCodeHooks: r,
-		Resp:                   resp,
-		Client:                 r.Client,
-		State:                  &state,
-		CallParams:             readAPICallParams(&state),
+		ReadAPICallHooks: r,
+		Resp:             resp,
+		Client:           r.Client,
+		State:            &state,
+		CallParams:       readAPICallParams(&state),
 	}
 	autogen.HandleRead(ctx, reqHandle)
 }
@@ -117,10 +118,11 @@ func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *d
 		"id":       model.Id.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
-		APICallCustomCodeHooks: r,
-		Client:                 client,
-		State:                  model,
-		Diags:                  diags,
+		DeleteAPICallHooks: r,
+		ReadAPICallHooks:   r,
+		Client:             client,
+		State:              model,
+		Diags:              diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
 			RelativePath:  "/api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets/{id}",
