@@ -12,8 +12,8 @@ type Resource struct {
 	MoveState          *MoveState    `yaml:"move_state"`
 	IDAttributes       []string      `yaml:"id_attributes"`
 	DeprecationMessage *string       `yaml:"deprecation_message"`
-	DataSources        *DataSources  `yaml:"datasources"` // when defined, data source(s) are generated with independent schema options
-	VersionHeader      string        `yaml:"version_header"`
+	DataSources        *DataSources  `yaml:"datasources"`    // when defined, data source(s) are generated with independent schema options
+	VersionHeader      string        `yaml:"version_header"` // when not defined latest version defined in API Spec of the resource is used
 	SchemaOptions      SchemaOptions `yaml:"schema"`
 }
 
