@@ -498,18 +498,31 @@ func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map
 		result = append(result, *attr)
 	}
 
+	sortAttributesRecursive(&result)
+
 	return result
 }
 
-// applyDataSourceTransformations applies the data source's schema options to attributes.
-func applyDataSourceTransformations(dsConfig *config.DataSources, attributes *Attributes) error {
-	return applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, attributes, &attrPaths{schemaPath: "", apiPath: ""})
-}
+func sortAttributesRecursive(attrs *Attributes) {
+	if attrs == nil {
+		return
+	}
 
-// // applyAliasToPath replaces path parameters with their aliased names.
-// func applyAliasToPath(path string, aliases map[string]string) string {
-// 	for original, alias := range aliases {
-// 		path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-// 	}
-// 	return path
-// }
+	sortAttributes(*attrs)
+
+	for i := range *attrs {
+		attr := &(*attrs)[i]
+		if attr.ListNested != nil {
+			sortAttributesRecursive(&attr.ListNested.NestedObject.Attributes)
+		}
+		if attr.SingleNested != nil {
+			sortAttributesRecursive(&attr.SingleNested.NestedObject.Attributes)
+		}
+		if attr.SetNested != nil {
+			sortAttributesRecursive(&attr.SetNested.NestedObject.Attributes)
+		}
+		if attr.MapNested != nil {
+			sortAttributesRecursive(&attr.MapNested.NestedObject.Attributes)
+		}
+	}
+}

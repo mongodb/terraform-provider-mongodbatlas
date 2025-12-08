@@ -14,14 +14,6 @@ import (
 func DataSourceSchema(ctx context.Context) dsschema.Schema {
 	return dsschema.Schema{
 		Attributes: map[string]dsschema.Attribute{
-			"group_id": dsschema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
-			},
-			"id": dsschema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the alert configuration.",
-			},
 			"created": dsschema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Date and time when MongoDB Cloud created the alert configuration. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
@@ -33,6 +25,14 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			"event_type_name": dsschema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Event type that triggers an alert.",
+			},
+			"group_id": dsschema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
+			},
+			"id": dsschema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the alert configuration.",
 			},
 			"links": dsschema.ListNestedAttribute{
 				Computed:            true,
@@ -271,10 +271,10 @@ type TFDSModel struct {
 	Links            customtypes.NestedListValue[TFLinksModel]         `tfsdk:"links"`
 	Matchers         customtypes.NestedListValue[TFMatchersModel]      `tfsdk:"matchers"`
 	Notifications    customtypes.NestedListValue[TFNotificationsModel] `tfsdk:"notifications"`
-	GroupId          types.String                                      `tfsdk:"group_id"`
-	Id               types.String                                      `tfsdk:"id"`
 	Created          types.String                                      `tfsdk:"created"`
 	EventTypeName    types.String                                      `tfsdk:"event_type_name"`
+	GroupId          types.String                                      `tfsdk:"group_id"`
+	Id               types.String                                      `tfsdk:"id"`
 	MetricThreshold  customtypes.ObjectValue[TFMetricThresholdModel]   `tfsdk:"metric_threshold"`
 	SeverityOverride types.String                                      `tfsdk:"severity_override"`
 	Threshold        customtypes.ObjectValue[TFThresholdModel]         `tfsdk:"threshold"`

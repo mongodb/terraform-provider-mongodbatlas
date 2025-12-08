@@ -19,7 +19,7 @@ func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resourc
 	if err := applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
-	applyAliasToPathParams(resource, resourceConfig.SchemaOptions.Aliases)
+	applyAliasToPathParams(&resource.Operations, resourceConfig.SchemaOptions.Aliases)
 	ApplyDeleteOnCreateTimeoutTransformation(resource)
 	ApplyTimeoutTransformation(resource)
 	return nil
@@ -37,22 +37,38 @@ func applyTransformationsWithConfigOptsToDataSources(dsConfig *config.DataSource
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
 
-	// Alias placeholders in read/list paths after attribute transformations
-	if ds.Operations.Read != nil {
-		ds.Operations.Read.Path = applyAliasToPath(ds.Operations.Read.Path, dsConfig.SchemaOptions.Aliases)
-	}
-	if ds.Operations.List != nil {
-		ds.Operations.List.Path = applyAliasToPath(ds.Operations.List.Path, dsConfig.SchemaOptions.Aliases)
-	}
+	// Alias placeholders in operation paths after attribute transformations
+	applyAliasToPathParams(&ds.Operations, dsConfig.SchemaOptions.Aliases)
 	return nil
 }
 
-// applyAliasToPath replaces path parameters with their aliased names.
-func applyAliasToPath(path string, aliases map[string]string) string {
-	for original, alias := range aliases {
-		path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
+// applyAliasToPathParams replaces path parameter placeholders with their aliased names in all operation paths.
+// Works for both resources (Create, Read, Update, Delete) and data sources (Read, List).
+func applyAliasToPathParams(operations *APIOperations, aliases map[string]string) {
+	if operations == nil {
+		return
 	}
-	return path
+
+	for original, alias := range aliases {
+		placeholder := fmt.Sprintf("{%s}", original)
+		aliasedPlaceholder := fmt.Sprintf("{%s}", alias)
+
+		if operations.Create != nil {
+			operations.Create.Path = strings.ReplaceAll(operations.Create.Path, placeholder, aliasedPlaceholder)
+		}
+		if operations.Read != nil {
+			operations.Read.Path = strings.ReplaceAll(operations.Read.Path, placeholder, aliasedPlaceholder)
+		}
+		if operations.Update != nil {
+			operations.Update.Path = strings.ReplaceAll(operations.Update.Path, placeholder, aliasedPlaceholder)
+		}
+		if operations.Delete != nil {
+			operations.Delete.Path = strings.ReplaceAll(operations.Delete.Path, placeholder, aliasedPlaceholder)
+		}
+		if operations.List != nil {
+			operations.List.Path = strings.ReplaceAll(operations.List.Path, placeholder, aliasedPlaceholder)
+		}
+	}
 }
 
 // attrPaths holds both the snake_case path (for overrides) and the camelCase path (for aliases).
@@ -184,19 +200,6 @@ func applyAliasToAttribute(attr *Attribute, paths *attrPaths, schemaOptions conf
 		}
 		// Note: apiPath is not updated because it's only used for alias lookup,
 		// and aliases are defined using original API names
-	}
-}
-
-func applyAliasToPathParams(resource *Resource, aliases map[string]string) {
-	for original, alias := range aliases {
-		resource.Operations.Create.Path = strings.ReplaceAll(resource.Operations.Create.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-		resource.Operations.Read.Path = strings.ReplaceAll(resource.Operations.Read.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-		if resource.Operations.Update != nil {
-			resource.Operations.Update.Path = strings.ReplaceAll(resource.Operations.Update.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-		}
-		if resource.Operations.Delete != nil {
-			resource.Operations.Delete.Path = strings.ReplaceAll(resource.Operations.Delete.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-		}
 	}
 }
 
