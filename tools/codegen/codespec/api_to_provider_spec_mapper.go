@@ -10,6 +10,7 @@ import (
 	low "github.com/pb33f/libopenapi/datamodel/low/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
@@ -59,6 +60,7 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 
 		// Generate DataSources only when datasources block is defined in config
 		if resourceConfig.DataSources != nil {
+			// TODO: validateDataSourceOperations(resourceConfig.DataSources) - schemaIgnore not supported, staticRequestBody not supported
 			dataSources, err := apiSpecToDataSourcesModel(&apiSpec.Model, &resourceConfig)
 			if err != nil {
 				return nil, fmt.Errorf("unable to map to data sources model for %s: %w", name, err)
@@ -82,6 +84,9 @@ func validateRequiredOperations(resourceConfigs map[string]config.Resource) erro
 		}
 		if resourceConfig.Read == nil {
 			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Read operation in config file", name))
+		}
+		if resourceConfig.DataSources != nil && resourceConfig.DataSources.Read == nil && resourceConfig.DataSources.List == nil {
+			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing DataSource Read or List operation in config file", name))
 		}
 	}
 	if len(validationErrors) > 0 {
@@ -378,6 +383,8 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 	var attributes Attributes
 	var readOp *APIOperation
 	var listOp *APIOperation
+	var singularDescription *string
+	var pluralDescription *string
 
 	// Process Read operation if defined
 	if dsConfig.Read != nil {
@@ -392,16 +399,16 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 		// Get path parameters as required attributes
 		pathParams := pathParamsToAttributes(oasReadOp)
 
-		// Merge path params with response attributes, considering aliases to avoid duplicates
+		// Merge all attributes, applying aliases to path params during merge to avoid duplicates
 		attributes = mergeDataSourceAttributes(pathParams, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
-
-		// Apply alias to path params in the read path
-		readPath := applyAliasToPath(dsConfig.Read.Path, dsConfig.SchemaOptions.Aliases)
 
 		readOp = &APIOperation{
 			HTTPMethod: dsConfig.Read.Method,
-			Path:       readPath,
+			Path:       dsConfig.Read.Path, // alias will be applied later by transformations helper
 		}
+
+		// Set singular data source description from the read operation
+		singularDescription = &oasReadOp.Description
 
 		// If version header wasn't explicitly set, get from API spec
 		if versionHeader == "" {
@@ -411,67 +418,84 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 
 	// Process List operation if defined
 	if dsConfig.List != nil {
-		listPath := applyAliasToPath(dsConfig.List.Path, dsConfig.SchemaOptions.Aliases)
+		// Extract list operation for description
+		if oasListOp, err := extractOp(spec.Paths, dsConfig.List); err == nil && oasListOp != nil {
+			pluralDescription = &oasListOp.Description
+		}
+
 		listOp = &APIOperation{
 			HTTPMethod: dsConfig.List.Method,
-			Path:       listPath,
+			Path:       dsConfig.List.Path, // alias will be applied later by transformations helper
 		}
 	}
 
-	// Apply the data source's own schema transformations (aliases, overrides, ignores)
-	if err := applyDataSourceTransformations(dsConfig, &attributes); err != nil {
-		return nil, fmt.Errorf("failed to apply data source transformations: %w", err)
-	}
-
-	return &DataSources{
+	ds := &DataSources{
 		Schema: &DataSourceSchema{
-			Attributes: attributes,
+			SingularDSDescription: singularDescription,
+			PluralDSDescription:   pluralDescription,
+			DeprecationMessage:    resourceConfig.DeprecationMessage,
+			Attributes:            attributes,
 		},
 		Operations: APIOperations{
 			Read:          readOp,
 			List:          listOp,
 			VersionHeader: versionHeader,
 		},
-	}, nil
+	}
+
+	// Apply aliasing and schema transformations post-merge
+	if err := applyTransformationsWithConfigOptsToDataSources(dsConfig, ds); err != nil {
+		return nil, fmt.Errorf("failed to apply data source transformations: %w", err)
+	}
+
+	return ds, nil
 }
 
 // mergeDataSourceAttributes merges path parameters with response attributes.
-// Path params are marked as required, response attributes are computed.
-// Aliases are considered to avoid duplicates when a path param is aliased to match a response attribute.
+// Path params are enforced as required; response attributes are marked computed.
+// Aliases are applied to path params during merge to avoid duplicates with response attributes.
+// If duplicates exist (same TFSchemaName), Required always wins over Computed.
 func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map[string]string) Attributes {
-	// Create a map to track which attributes already exist from response (by APIName for alias matching)
-	responseAttrByAPIName := make(map[string]bool)
-	for i := range responseAttrs {
-		responseAttrByAPIName[responseAttrs[i].APIName] = true
-	}
-
-	var result Attributes
+	merged := make(map[string]*Attribute) // key by TFSchemaName
 
 	// Add path params as required (they identify the data source)
+	// Apply aliases to path params during merge
 	for i := range pathParams {
-		// Check if this path param will be aliased to match a response attribute
-		// If so, the response attribute should be excluded to avoid duplication
-		aliasedAPIName := pathParams[i].APIName
-		if alias, ok := aliases[pathParams[i].APIName]; ok {
-			aliasedAPIName = alias
+		attr := pathParams[i] // create a copy
+		attr.ComputedOptionalRequired = Required
+		attr.ReqBodyUsage = OmitAlways
+		
+		// Apply alias if configured
+		if alias, found := aliases[attr.APIName]; found {
+			attr.TFSchemaName = stringcase.ToSnakeCase(alias)
+			attr.TFModelName = stringcase.Capitalize(alias)
 		}
-
-		// If the aliased param name matches a response attribute, mark it as handled
-		if responseAttrByAPIName[aliasedAPIName] {
-			responseAttrByAPIName[aliasedAPIName] = false // mark as handled
-		}
-
-		result = append(result, pathParams[i])
+		
+		merged[attr.TFSchemaName] = &attr
 	}
 
-	// Add remaining response attributes as computed
+	// Add response attributes as computed
+	// If a duplicate exists and the existing one is Required, keep Required
 	for i := range responseAttrs {
-		if responseAttrByAPIName[responseAttrs[i].APIName] {
-			// Set as computed for data source
-			responseAttrs[i].ComputedOptionalRequired = Computed
-			responseAttrs[i].ReqBodyUsage = OmitAlways
-			result = append(result, responseAttrs[i])
+		attr := responseAttrs[i] // create a copy
+		attr.ComputedOptionalRequired = Computed
+		attr.ReqBodyUsage = OmitAlways
+		
+		if existing, found := merged[attr.TFSchemaName]; found {
+			// Duplicate found: keep Required over Computed (Required always wins)
+			if existing.ComputedOptionalRequired != Required {
+				merged[attr.TFSchemaName] = &attr
+			}
+			// else: existing is Required, keep it
+		} else {
+			merged[attr.TFSchemaName] = &attr
 		}
+	}
+
+	// Convert map to slice
+	result := make(Attributes, 0, len(merged))
+	for _, attr := range merged {
+		result = append(result, *attr)
 	}
 
 	return result
@@ -479,13 +503,13 @@ func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map
 
 // applyDataSourceTransformations applies the data source's schema options to attributes.
 func applyDataSourceTransformations(dsConfig *config.DataSources, attributes *Attributes) error {
-	return applyAttributeTransformations(dsConfig.SchemaOptions, attributes, &attrPaths{schemaPath: "", apiPath: ""})
+	return applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, attributes, &attrPaths{schemaPath: "", apiPath: ""})
 }
 
-// applyAliasToPath replaces path parameters with their aliased names.
-func applyAliasToPath(path string, aliases map[string]string) string {
-	for original, alias := range aliases {
-		path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-	}
-	return path
-}
+// // applyAliasToPath replaces path parameters with their aliased names.
+// func applyAliasToPath(path string, aliases map[string]string) string {
+// 	for original, alias := range aliases {
+// 		path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
+// 	}
+// 	return path
+// }

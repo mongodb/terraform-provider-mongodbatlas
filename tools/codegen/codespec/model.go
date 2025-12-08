@@ -51,7 +51,7 @@ type Resource struct {
 // DataSources holds the data source configuration within a resource
 type DataSources struct {
 	Schema     *DataSourceSchema `yaml:"schema,omitempty"`
-	Operations APIOperations     `yaml:"operations"` // typically only Read and List operations
+	Operations APIOperations     `yaml:"operations"` // only Read and List operations
 }
 
 // DataSourceSchema holds schema information specific to data sources

@@ -632,6 +632,10 @@ operations:
     version_header: application/vnd.atlas.2023-01-01+json
 data_sources:
     schema:
+        singular_ds_description: |-
+            Returns the specified alert configuration from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role. Use the Return All Alert Configurations for One Project endpoint to retrieve all alert configurations to which the authenticated user has access.
+
+            This resource remains under revision and may change.
         attributes:
             - string: {}
               description: |-
@@ -642,7 +646,7 @@ data_sources:
               tf_schema_name: group_id
               tf_model_name: GroupId
               api_name: groupId
-              req_body_usage: ""
+              req_body_usage: omit_always
               sensitive: false
               create_only: false
             - string: {}
@@ -651,7 +655,7 @@ data_sources:
               tf_schema_name: id
               tf_model_name: Id
               api_name: alertConfigId
-              req_body_usage: ""
+              req_body_usage: omit_always
               sensitive: false
               create_only: false
             - string: {}
