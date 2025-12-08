@@ -57,17 +57,17 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 		addError(d, opCreate, errBuildingAPIRequest, err)
 		return
 	}
-	bodyResp, _, err := callAPI(ctx, req.Client, req.CallParams, bodyReq, APICallHooks{
+	callResult := callAPI(ctx, req.Client, req.CallParams, bodyReq, APICallHooks{
 		PreAPICall:  req.APICallCustomCodeHooks.PreCreateAPICall,
 		PostAPICall: req.APICallCustomCodeHooks.PostCreateAPICall,
 	})
-	if err != nil {
+	if callResult.Err != nil {
 		addError(d, opCreate, errCallingAPI, err)
 		return
 	}
 
 	// Use the plan as the base model to set the response state
-	if err := Unmarshal(bodyResp, req.Plan); err != nil {
+	if err := Unmarshal(callResult.Body, req.Plan); err != nil {
 		addError(d, opCreate, errUnmarshallingResponse, err)
 		return
 	}
@@ -103,21 +103,21 @@ type HandleReadReq struct {
 
 func HandleRead(ctx context.Context, req HandleReadReq) {
 	d := &req.Resp.Diagnostics
-	bodyResp, apiResp, err := callAPIWithoutBody(ctx, req.Client, req.CallParams, APICallHooks{
+	callResult := callAPIWithoutBody(ctx, req.Client, req.CallParams, APICallHooks{
 		PreAPICall:  req.APICallCustomCodeHooks.PreReadAPICall,
 		PostAPICall: req.APICallCustomCodeHooks.PostReadAPICall,
 	})
-	if notFound(bodyResp, apiResp) {
+	if notFound(callResult.Body, callResult.Resp) {
 		req.Resp.State.RemoveResource(ctx)
 		return
 	}
-	if err != nil {
-		addError(d, opRead, errCallingAPI, err)
+	if callResult.Err != nil {
+		addError(d, opRead, errCallingAPI, callResult.Err)
 		return
 	}
 
 	// Use the current state as the base model to set the response state
-	if err := Unmarshal(bodyResp, req.State); err != nil {
+	if err := Unmarshal(callResult.Body, req.State); err != nil {
 		addError(d, opRead, errUnmarshallingResponse, err)
 		return
 	}
@@ -144,17 +144,17 @@ func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 		addError(d, opUpdate, errBuildingAPIRequest, err)
 		return
 	}
-	bodyResp, _, err := callAPI(ctx, req.Client, req.CallParams, bodyReq, APICallHooks{
+	callResult := callAPI(ctx, req.Client, req.CallParams, bodyReq, APICallHooks{
 		PreAPICall:  req.APICallCustomCodeHooks.PreUpdateAPICall,
 		PostAPICall: req.APICallCustomCodeHooks.PostUpdateAPICall,
 	})
-	if err != nil {
+	if callResult.Err != nil {
 		addError(d, opUpdate, errCallingAPI, err)
 		return
 	}
 
 	// Use the plan as the base model to set the response state
-	if err := Unmarshal(bodyResp, req.Plan); err != nil {
+	if err := Unmarshal(callResult.Body, req.Plan); err != nil {
 		addError(d, opUpdate, errUnmarshallingResponse, err)
 		return
 	}
@@ -228,50 +228,54 @@ func addError(d *diag.Diagnostics, opName, errSummary string, err error) {
 
 type APICallHooks struct {
 	PreAPICall  func(callParams config.APICallParams, bodyReq []byte) (config.APICallParams, []byte)
-	PostAPICall func([]byte, *http.Response, error) ([]byte, *http.Response, error)
+	PostAPICall func(APICallResult) APICallResult
+}
+
+type APICallResult struct {
+	Err  error
+	Resp *http.Response
+	Body []byte
 }
 
 // callAPI makes a request to the API with the given request body and returns the response body.
 // It is used for POST, PUT, PATCH and DELETE with static content.
-func callAPI(ctx context.Context, client *config.MongoDBClient, callParams *config.APICallParams, bodyReq []byte, hooks APICallHooks) ([]byte, *http.Response, error) {
+func callAPI(ctx context.Context, client *config.MongoDBClient, callParams *config.APICallParams, bodyReq []byte, hooks APICallHooks) APICallResult {
 	modifiedParams, modifiedBody := hooks.PreAPICall(*callParams, bodyReq)
 	apiResp, err := client.UntypedAPICall(ctx, &modifiedParams, modifiedBody)
 	if err != nil {
-		return nil, apiResp, err
+		return APICallResult{Body: nil, Resp: apiResp, Err: err}
 	}
 	bodyResp, err := io.ReadAll(apiResp.Body)
 	apiResp.Body.Close()
 	if err != nil {
-		return nil, apiResp, err
+		return APICallResult{Body: nil, Resp: apiResp, Err: err}
 	}
-	return hooks.PostAPICall(bodyResp, apiResp, nil)
+	return hooks.PostAPICall(APICallResult{Body: bodyResp, Resp: apiResp})
 }
 
 // callAPIWithoutBody makes a request to the API without a request body and returns the response body.
 // It is used for GET or DELETE requests where no request body is required.
-func callAPIWithoutBody(ctx context.Context, client *config.MongoDBClient, callParams *config.APICallParams, hooks APICallHooks) ([]byte, *http.Response, error) {
+func callAPIWithoutBody(ctx context.Context, client *config.MongoDBClient, callParams *config.APICallParams, hooks APICallHooks) APICallResult {
 	return callAPI(ctx, client, callParams, nil, hooks)
 }
 
 // callDelete makes a DELETE request to the API, supporting both requests with and without a body.
 // Returns nil if the resource is not found (already deleted).
 func callDelete(ctx context.Context, req *HandleDeleteReq) error {
-	var err error
-	var bodyResp []byte
-	var apiResp *http.Response
+	var callResult APICallResult
 	deleteAPICallHooks := APICallHooks{
 		PreAPICall:  req.APICallCustomCodeHooks.PreDeleteAPICall,
 		PostAPICall: req.APICallCustomCodeHooks.PostDeleteAPICall,
 	}
 	if req.StaticRequestBody == "" {
-		bodyResp, apiResp, err = callAPIWithoutBody(ctx, req.Client, req.CallParams, deleteAPICallHooks)
+		callResult = callAPIWithoutBody(ctx, req.Client, req.CallParams, deleteAPICallHooks)
 	} else {
-		bodyResp, apiResp, err = callAPI(ctx, req.Client, req.CallParams, []byte(req.StaticRequestBody), deleteAPICallHooks)
+		callResult = callAPI(ctx, req.Client, req.CallParams, []byte(req.StaticRequestBody), deleteAPICallHooks)
 	}
-	if notFound(bodyResp, apiResp) { // Resource is already deleted, don't fail.
+	if notFound(callResult.Body, callResult.Resp) { // Resource is already deleted, don't fail.
 		return nil
 	}
-	return err
+	return callResult.Err
 }
 
 // waitForChanges waits until a long-running operation is done.
@@ -300,16 +304,16 @@ func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBCl
 func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model any, readHooks APICallHooks) retry.StateRefreshFunc {
 	return func() (result any, state string, err error) {
 		callParams := wait.CallParams(model)
-		bodyResp, httpResp, err := callAPIWithoutBody(ctx, client, callParams, readHooks)
-		if notFound(bodyResp, httpResp) {
+		callResult := callAPIWithoutBody(ctx, client, callParams, readHooks)
+		if notFound(callResult.Body, callResult.Resp) {
 			// if "artificial" states continue to grow we can evaluate using a prefix to clearly separate states coming from API and those defined by refreshFunc
 			return emptyJSON, retrystrategy.RetryStrategyDeletedState, nil
 		}
-		if err != nil {
+		if callResult.Err != nil {
 			return nil, "", err
 		}
 		var objJSON map[string]any
-		if err := json.Unmarshal(bodyResp, &objJSON); err != nil {
+		if err := json.Unmarshal(callResult.Body, &objJSON); err != nil {
 			return nil, "", err
 		}
 		stateValAny, found := objJSON[wait.StateProperty]
@@ -320,7 +324,7 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 		if !ok {
 			return nil, "", fmt.Errorf("wait state attribute value is not a string, attribute name: %s, value: %s", wait.StateProperty, stateValAny)
 		}
-		return bodyResp, stateValStr, nil
+		return callResult.Body, stateValStr, nil
 	}
 }
 

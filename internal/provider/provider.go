@@ -47,8 +47,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orgserviceaccountapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orgserviceaccountsecretapi"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -335,9 +333,6 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		teamprojectassignment.Resource,
 		clouduserteamassignment.Resource,
 		advancedcluster.Resource,
-		// TODO remove
-		orgserviceaccountapi.Resource,
-		orgserviceaccountsecretapi.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {
