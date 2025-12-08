@@ -464,13 +464,13 @@ func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map
 		attr := pathParams[i] // create a copy
 		attr.ComputedOptionalRequired = Required
 		attr.ReqBodyUsage = OmitAlways
-		
+
 		// Apply alias if configured
 		if alias, found := aliases[attr.APIName]; found {
 			attr.TFSchemaName = stringcase.ToSnakeCase(alias)
 			attr.TFModelName = stringcase.Capitalize(alias)
 		}
-		
+
 		merged[attr.TFSchemaName] = &attr
 	}
 
@@ -480,7 +480,7 @@ func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map
 		attr := responseAttrs[i] // create a copy
 		attr.ComputedOptionalRequired = Computed
 		attr.ReqBodyUsage = OmitAlways
-		
+
 		if existing, found := merged[attr.TFSchemaName]; found {
 			// Duplicate found: keep Required over Computed (Required always wins)
 			if existing.ComputedOptionalRequired != Required {
