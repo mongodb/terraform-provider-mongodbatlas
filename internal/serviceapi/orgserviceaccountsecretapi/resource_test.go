@@ -130,6 +130,6 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		if id == "" || orgID == "" || clientID == "" {
 			return "", fmt.Errorf("import, attributes not found for: %s", resourceName)
 		}
-		return fmt.Sprintf("%s/%s/%s", id, orgID, clientID), nil
+		return fmt.Sprintf("%s/%s/%s", orgID, clientID, id), nil
 	}
 }
