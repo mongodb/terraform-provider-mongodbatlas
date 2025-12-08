@@ -57,10 +57,9 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 		addError(d, opCreate, errBuildingAPIRequest, err)
 		return
 	}
-	callResult := callAPI(ctx, req.Client, req.CallParams, bodyReq, APICallHooks{
-		PreAPICall:  req.APICallCustomCodeHooks.PreCreateAPICall,
-		PostAPICall: req.APICallCustomCodeHooks.PostCreateAPICall,
-	})
+
+	modifiedParams, modifiedBody := req.APICallCustomCodeHooks.PreCreateAPICall(*req.CallParams, bodyReq)
+	callResult := req.APICallCustomCodeHooks.PostCreateAPICall(callAPI(ctx, req.Client, modifiedParams, modifiedBody))
 	if callResult.Err != nil {
 		addError(d, opCreate, errCallingAPI, err)
 		return
@@ -75,10 +74,8 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 		addError(d, opCreate, errResolvingResponse, err)
 		return
 	}
-	errWait := handleWaitCreateUpdate(ctx, req.Wait, req.Client, req.Plan, APICallHooks{
-		PreAPICall:  req.APICallCustomCodeHooks.PreReadAPICall,
-		PostAPICall: req.APICallCustomCodeHooks.PostReadAPICall,
-	})
+
+	errWait := handleWaitCreateUpdate(ctx, req.Wait, req.Client, req.Plan, req.APICallCustomCodeHooks)
 	if req.DeleteReq != nil {
 		// Handle timeout with cleanup if delete_on_create_timeout is enabled.
 		errWait = cleanup.HandleCreateTimeout(req.DeleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
@@ -103,10 +100,9 @@ type HandleReadReq struct {
 
 func HandleRead(ctx context.Context, req HandleReadReq) {
 	d := &req.Resp.Diagnostics
-	callResult := callAPIWithoutBody(ctx, req.Client, req.CallParams, APICallHooks{
-		PreAPICall:  req.APICallCustomCodeHooks.PreReadAPICall,
-		PostAPICall: req.APICallCustomCodeHooks.PostReadAPICall,
-	})
+	modifiedParams := req.APICallCustomCodeHooks.PreReadAPICall(*req.CallParams)
+	callResult := callAPIWithoutBody(ctx, req.Client, modifiedParams)
+	callResult = req.APICallCustomCodeHooks.PostReadAPICall(req, callResult)
 	if notFound(callResult.Body, callResult.Resp) {
 		req.Resp.State.RemoveResource(ctx)
 		return
@@ -144,10 +140,8 @@ func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 		addError(d, opUpdate, errBuildingAPIRequest, err)
 		return
 	}
-	callResult := callAPI(ctx, req.Client, req.CallParams, bodyReq, APICallHooks{
-		PreAPICall:  req.APICallCustomCodeHooks.PreUpdateAPICall,
-		PostAPICall: req.APICallCustomCodeHooks.PostUpdateAPICall,
-	})
+	modifiedParams, modifiedBody := req.APICallCustomCodeHooks.PreUpdateAPICall(*req.CallParams, bodyReq)
+	callResult := req.APICallCustomCodeHooks.PostUpdateAPICall(callAPI(ctx, req.Client, modifiedParams, modifiedBody))
 	if callResult.Err != nil {
 		addError(d, opUpdate, errCallingAPI, err)
 		return
@@ -162,10 +156,7 @@ func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 		addError(d, opUpdate, errResolvingResponse, err)
 		return
 	}
-	if err := handleWaitCreateUpdate(ctx, req.Wait, req.Client, req.Plan, APICallHooks{
-		PreAPICall:  req.APICallCustomCodeHooks.PreReadAPICall,
-		PostAPICall: req.APICallCustomCodeHooks.PostReadAPICall,
-	}); err != nil {
+	if err := handleWaitCreateUpdate(ctx, req.Wait, req.Client, req.Plan, req.APICallCustomCodeHooks); err != nil {
 		addError(d, opUpdate, errWaitingForChanges, err)
 		return
 	}
@@ -187,21 +178,18 @@ func HandleDelete(ctx context.Context, req HandleDeleteReq) {
 		addError(req.Diags, opDelete, errCallingAPI, err)
 		return
 	}
-	if errWait := handleWaitDelete(ctx, req.Wait, req.Client, req.State, APICallHooks{
-		PreAPICall:  req.APICallCustomCodeHooks.PreReadAPICall,
-		PostAPICall: req.APICallCustomCodeHooks.PostReadAPICall,
-	}); errWait != nil {
+	if errWait := handleWaitDelete(ctx, req.Wait, req.Client, req.State, req.APICallCustomCodeHooks); errWait != nil {
 		addError(req.Diags, opDelete, errWaitingForChanges, errWait)
 	}
 }
 
 // handleWaitCreateUpdate waits until a long-running operation is done if needed.
 // It also updates the model with the latest JSON response from the API.
-func handleWaitCreateUpdate(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model any, readHooks APICallHooks) error {
+func handleWaitCreateUpdate(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model any, hooks CustomCodeHooks) error {
 	if wait == nil {
 		return nil
 	}
-	bodyResp, err := waitForChanges(ctx, wait, client, model, readHooks)
+	bodyResp, err := waitForChanges(ctx, wait, client, model, hooks)
 	if err != nil || isEmptyJSON(bodyResp) {
 		return err
 	}
@@ -212,11 +200,11 @@ func handleWaitCreateUpdate(ctx context.Context, wait *WaitReq, client *config.M
 }
 
 // handleWaitDelete waits until a long-running operation to delete a resource if neeed.
-func handleWaitDelete(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model any, readHooks APICallHooks) error {
+func handleWaitDelete(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model any, hooks CustomCodeHooks) error {
 	if wait == nil {
 		return nil
 	}
-	if _, err := waitForChanges(ctx, wait, client, model, readHooks); err != nil {
+	if _, err := waitForChanges(ctx, wait, client, model, hooks); err != nil {
 		return err
 	}
 	return nil
@@ -224,11 +212,6 @@ func handleWaitDelete(ctx context.Context, wait *WaitReq, client *config.MongoDB
 
 func addError(d *diag.Diagnostics, opName, errSummary string, err error) {
 	d.AddError(fmt.Sprintf("Error %s in %s", errSummary, opName), err.Error())
-}
-
-type APICallHooks struct {
-	PreAPICall  func(callParams config.APICallParams, bodyReq []byte) (config.APICallParams, []byte)
-	PostAPICall func(APICallResult) APICallResult
 }
 
 type APICallResult struct {
@@ -239,9 +222,8 @@ type APICallResult struct {
 
 // callAPI makes a request to the API with the given request body and returns the response body.
 // It is used for POST, PUT, PATCH and DELETE with static content.
-func callAPI(ctx context.Context, client *config.MongoDBClient, callParams *config.APICallParams, bodyReq []byte, hooks APICallHooks) APICallResult {
-	modifiedParams, modifiedBody := hooks.PreAPICall(*callParams, bodyReq)
-	apiResp, err := client.UntypedAPICall(ctx, &modifiedParams, modifiedBody)
+func callAPI(ctx context.Context, client *config.MongoDBClient, callParams config.APICallParams, bodyReq []byte) APICallResult {
+	apiResp, err := client.UntypedAPICall(ctx, callParams, bodyReq)
 	if err != nil {
 		return APICallResult{Body: nil, Resp: apiResp, Err: err}
 	}
@@ -250,28 +232,27 @@ func callAPI(ctx context.Context, client *config.MongoDBClient, callParams *conf
 	if err != nil {
 		return APICallResult{Body: nil, Resp: apiResp, Err: err}
 	}
-	return hooks.PostAPICall(APICallResult{Body: bodyResp, Resp: apiResp})
+	return APICallResult{Body: bodyResp, Resp: apiResp}
 }
 
 // callAPIWithoutBody makes a request to the API without a request body and returns the response body.
 // It is used for GET or DELETE requests where no request body is required.
-func callAPIWithoutBody(ctx context.Context, client *config.MongoDBClient, callParams *config.APICallParams, hooks APICallHooks) APICallResult {
-	return callAPI(ctx, client, callParams, nil, hooks)
+func callAPIWithoutBody(ctx context.Context, client *config.MongoDBClient, callParams config.APICallParams) APICallResult {
+	return callAPI(ctx, client, callParams, nil)
 }
 
 // callDelete makes a DELETE request to the API, supporting both requests with and without a body.
 // Returns nil if the resource is not found (already deleted).
 func callDelete(ctx context.Context, req *HandleDeleteReq) error {
 	var callResult APICallResult
-	deleteAPICallHooks := APICallHooks{
-		PreAPICall:  req.APICallCustomCodeHooks.PreDeleteAPICall,
-		PostAPICall: req.APICallCustomCodeHooks.PostDeleteAPICall,
-	}
+	modifiedParams := req.APICallCustomCodeHooks.PreDeleteAPICall(*req.CallParams)
 	if req.StaticRequestBody == "" {
-		callResult = callAPIWithoutBody(ctx, req.Client, req.CallParams, deleteAPICallHooks)
+		callResult = callAPIWithoutBody(ctx, req.Client, modifiedParams)
 	} else {
-		callResult = callAPI(ctx, req.Client, req.CallParams, []byte(req.StaticRequestBody), deleteAPICallHooks)
+		callResult = callAPI(ctx, req.Client, modifiedParams, []byte(req.StaticRequestBody))
 	}
+	callResult = req.APICallCustomCodeHooks.PostDeleteAPICall(callResult)
+
 	if notFound(callResult.Body, callResult.Resp) { // Resource is already deleted, don't fail.
 		return nil
 	}
@@ -280,7 +261,7 @@ func callDelete(ctx context.Context, req *HandleDeleteReq) error {
 
 // waitForChanges waits until a long-running operation is done.
 // It returns the latest JSON response from the API so it can be used to update the response state.
-func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model any, readHooks APICallHooks) ([]byte, error) {
+func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model any, hooks CustomCodeHooks) ([]byte, error) {
 	if len(wait.TargetStates) == 0 {
 		return nil, fmt.Errorf("wait must have at least one target state, pending states: %v", wait.PendingStates)
 	}
@@ -290,7 +271,7 @@ func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBCl
 		Timeout:    wait.Timeout,
 		MinTimeout: time.Duration(wait.MinTimeoutSeconds) * time.Second,
 		Delay:      time.Duration(wait.DelaySeconds) * time.Second,
-		Refresh:    refreshFunc(ctx, wait, client, model, readHooks),
+		Refresh:    refreshFunc(ctx, wait, client, model, hooks),
 	}
 	bodyResp, err := stateConf.WaitForStateContext(ctx)
 	if err != nil || bodyResp == nil {
@@ -301,10 +282,18 @@ func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBCl
 
 // refreshFunc retries until a target state or error happens.
 // It uses a special state value of "DELETED" when the API returns 404 or empty object
-func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model any, readHooks APICallHooks) retry.StateRefreshFunc {
+func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model any, hooks CustomCodeHooks) retry.StateRefreshFunc {
 	return func() (result any, state string, err error) {
 		callParams := wait.CallParams(model)
-		callResult := callAPIWithoutBody(ctx, client, callParams, readHooks)
+		modifiedParams := hooks.PreReadAPICall(*callParams)
+		callResult := callAPIWithoutBody(ctx, client, modifiedParams)
+		// TODO fix?
+		callResult = hooks.PostReadAPICall(HandleReadReq{
+			APICallCustomCodeHooks: hooks,
+			Client:                 client,
+			State:                  model,
+			CallParams:             callParams,
+		}, callResult)
 		if notFound(callResult.Body, callResult.Resp) {
 			// if "artificial" states continue to grow we can evaluate using a prefix to clearly separate states coming from API and those defined by refreshFunc
 			return emptyJSON, retrystrategy.RetryStrategyDeletedState, nil
