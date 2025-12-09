@@ -17,19 +17,19 @@ import (
 // On update the default has no impact and the UseStateForUnknown behavior is observed instead.
 // Always use Optional+Computed when using a default value.
 // If the attribute is not in the API Response implement CopyFromPlan behavior when converting API Model to TF Model.
-func CreateOnlyBoolWithDefault(b bool) planmodifier.Bool {
-	return &createOnlyBoolPlanModifier{defaultBool: b}
+func NonUpdatableBoolWithDefault(b bool) planmodifier.Bool {
+	return &nonUpdatableBoolPlanModifier{defaultBool: b}
 }
 
-type createOnlyBoolPlanModifier struct {
+type nonUpdatableBoolPlanModifier struct {
 	defaultBool bool
 }
 
-func (d *createOnlyBoolPlanModifier) Description(ctx context.Context) string {
+func (d *nonUpdatableBoolPlanModifier) Description(ctx context.Context) string {
 	return d.MarkdownDescription(ctx)
 }
 
-func (d *createOnlyBoolPlanModifier) MarkdownDescription(ctx context.Context) string {
+func (d *nonUpdatableBoolPlanModifier) MarkdownDescription(ctx context.Context) string {
 	return "Ensures the update operation fails when updating an attribute. If the read after import doesn't equal the configuration value it will also raise an error."
 }
 
@@ -38,7 +38,7 @@ func isCreate(t *tfsdk.State) bool {
 	return t.Raw.IsNull()
 }
 
-func (d *createOnlyBoolPlanModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
+func (d *nonUpdatableBoolPlanModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
 	if isCreate(&req.State) {
 		if !IsKnown(req.PlanValue) {
 			resp.PlanValue = types.BoolPointerValue(&d.defaultBool)
@@ -64,7 +64,7 @@ func isUpdated(state, plan attr.Value) bool {
 	return !state.Equal(plan)
 }
 
-func (d *createOnlyBoolPlanModifier) addDiags(diags *diag.Diagnostics, attrPath path.Path, stateValue attr.Value) {
+func (d *nonUpdatableBoolPlanModifier) addDiags(diags *diag.Diagnostics, attrPath path.Path, stateValue attr.Value) {
 	message := fmt.Sprintf("%s cannot be updated or set after import, remove it from the configuration or use the state value (see below).", attrPath)
 	detail := fmt.Sprintf("The current state value is %s", stateValue)
 	diags.AddError(message, detail)
