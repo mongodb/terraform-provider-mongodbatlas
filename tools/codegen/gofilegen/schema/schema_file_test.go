@@ -480,7 +480,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 			},
-			goldenFileName: "plan-modifiers-create-only",
+			goldenFileName: "plan-modifiers-non-updatable",
 		},
 	}
 
