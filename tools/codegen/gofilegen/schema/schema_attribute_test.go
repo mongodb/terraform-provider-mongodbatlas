@@ -25,7 +25,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			},
 			hasPlanModifier: false,
 		},
-		"String attribute with non-updatable - uses CreateOnly()": {
+		"String attribute with non-updatable - uses NonUpdatable()": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_string",
 				TFModelName:              "TestString",
@@ -35,7 +35,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			},
 			hasPlanModifier: true,
 		},
-		"Bool attribute with non-updatable but no default - uses CreateOnly()": {
+		"Bool attribute with non-updatable but no default - uses NonUpdatable()": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_bool",
 				TFModelName:              "TestBool",
@@ -65,7 +65,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			},
 			hasPlanModifier: true,
 		},
-		"Int64 attribute with non-updatable - uses CreateOnly()": {
+		"Int64 attribute with non-updatable - uses NonUpdatable()": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_int",
 				TFModelName:              "TestInt",
@@ -75,7 +75,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			},
 			hasPlanModifier: true,
 		},
-		"Computed attribute with non-updatable - uses CreateOnly() (model is enforced)": {
+		"Computed attribute with non-updatable - uses NonUpdatable() (model is enforced)": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_computed",
 				TFModelName:              "TestComputed",
@@ -85,7 +85,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			},
 			hasPlanModifier: true,
 		},
-		"ComputedOptional attribute with non-updatable - uses CreateOnly()": {
+		"ComputedOptional attribute with non-updatable - uses NonUpdatable()": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_computed_optional",
 				TFModelName:              "TestComputedOptional",
@@ -112,7 +112,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 				return
 			}
 			if tc.attribute.NonUpdatable {
-				assert.Contains(t, code, "customplanmodifier.CreateOnly()")
+				assert.Contains(t, code, "customplanmodifier.NonUpdatable()")
 			}
 		})
 	}
