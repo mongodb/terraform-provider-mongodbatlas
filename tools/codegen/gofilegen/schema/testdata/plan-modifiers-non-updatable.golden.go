@@ -18,55 +18,55 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"string_attr": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "string description",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.NonUpdatable()},
 			},
 			"bool_attr": schema.BoolAttribute{
 				Optional:            true,
 				MarkdownDescription: "bool description",
-				PlanModifiers:       []planmodifier.Bool{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Bool{customplanmodifier.NonUpdatable()},
 			},
 			"int_attr": schema.Int64Attribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "int description",
-				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Int64{customplanmodifier.NonUpdatable()},
 			},
 			"float_attr": schema.Float64Attribute{
 				Optional:            true,
 				MarkdownDescription: "float description",
-				PlanModifiers:       []planmodifier.Float64{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Float64{customplanmodifier.NonUpdatable()},
 			},
 			"number_attr": schema.NumberAttribute{
 				Optional:            true,
 				MarkdownDescription: "number description",
-				PlanModifiers:       []planmodifier.Number{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Number{customplanmodifier.NonUpdatable()},
 			},
 			"simple_list_attr": schema.ListAttribute{
 				Optional:            true,
 				MarkdownDescription: "simple arr description",
 				CustomType:          customtypes.NewListType[types.String](ctx),
-				PlanModifiers:       []planmodifier.List{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.List{customplanmodifier.NonUpdatable()},
 				ElementType:         types.StringType,
 			},
 			"simple_set_attr": schema.SetAttribute{
 				Optional:            true,
 				MarkdownDescription: "simple set description",
 				CustomType:          customtypes.NewSetType[types.Float64](ctx),
-				PlanModifiers:       []planmodifier.Set{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Set{customplanmodifier.NonUpdatable()},
 				ElementType:         types.Float64Type,
 			},
 			"simple_map_attr": schema.MapAttribute{
 				Optional:            true,
 				MarkdownDescription: "simple map description",
 				CustomType:          customtypes.NewMapType[types.Bool](ctx),
-				PlanModifiers:       []planmodifier.Map{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Map{customplanmodifier.NonUpdatable()},
 				ElementType:         types.BoolType,
 			},
 			"nested_single_attr": schema.SingleNestedAttribute{
 				Required:            true,
 				MarkdownDescription: "nested single attribute",
 				CustomType:          customtypes.NewObjectType[TFNestedSingleAttrModel](ctx),
-				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Object{customplanmodifier.NonUpdatable()},
 				Attributes: map[string]schema.Attribute{
 					"int_attr": schema.Int64Attribute{
 						Required:            true,
@@ -78,7 +78,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "nested list attribute",
 				CustomType:          customtypes.NewNestedListType[TFNestedListAttrModel](ctx),
-				PlanModifiers:       []planmodifier.List{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.List{customplanmodifier.NonUpdatable()},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"int_attr": schema.Int64Attribute{
@@ -93,7 +93,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "set nested attribute",
 				CustomType:          customtypes.NewNestedSetType[TFSetNestedAttributeModel](ctx),
-				PlanModifiers:       []planmodifier.Set{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Set{customplanmodifier.NonUpdatable()},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"int_attr": schema.Int64Attribute{
@@ -108,7 +108,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "map nested attribute",
 				CustomType:          customtypes.NewNestedMapType[TFMapNestedAttributeModel](ctx),
-				PlanModifiers:       []planmodifier.Map{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Map{customplanmodifier.NonUpdatable()},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"int_attr": schema.Int64Attribute{
