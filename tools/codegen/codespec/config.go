@@ -170,7 +170,7 @@ func overridesTransformation(attr *Attribute, paths *attrPaths, schemaOptions co
 }
 
 func createOnlyTransformation(attr *Attribute, _ *attrPaths, _ config.SchemaOptions) error {
-	setCreateOnlyValue(attr)
+	setNonUpdatableValue(attr)
 	return nil
 }
 
@@ -278,12 +278,12 @@ func ApplyDeleteOnCreateTimeoutTransformation(resource *Resource) {
 		Bool:                     &BoolAttribute{Default: conversion.Pointer(true)},
 		Description:              conversion.StringPtr(DeleteOnCreateTimeoutDescription),
 		ReqBodyUsage:             OmitAlways,
-		CreateOnly:               true,
+		NonUpdatable:             true,
 		ComputedOptionalRequired: ComputedOptional,
 	})
 }
 
-func setCreateOnlyValue(attr *Attribute) {
+func setNonUpdatableValue(attr *Attribute) {
 	// CreateOnly plan modifier will not be applied for computed attributes
 	if attr.ComputedOptionalRequired == Computed || attr.ComputedOptionalRequired == ComputedOptional {
 		return
@@ -291,6 +291,6 @@ func setCreateOnlyValue(attr *Attribute) {
 
 	// captures case of path param attributes (no present in request body) and properties which are only present in post request
 	if attr.ReqBodyUsage == OmitAlways || attr.ReqBodyUsage == OmitInUpdateBody {
-		attr.CreateOnly = true
+		attr.NonUpdatable = true
 	}
 }
