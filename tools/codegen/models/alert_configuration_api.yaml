@@ -630,5 +630,632 @@ operations:
         http_method: PUT
         path: /api/atlas/v2/groups/{groupId}/alertConfigs/{id}
     version_header: application/vnd.atlas.2023-01-01+json
+data_sources:
+    schema:
+        singular_ds_description: |-
+            Returns the specified alert configuration from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role. Use the Return All Alert Configurations for One Project endpoint to retrieve all alert configurations to which the authenticated user has access.
+
+            This resource remains under revision and may change.
+        attributes:
+            - string: {}
+              description: Date and time when MongoDB Cloud created the alert configuration. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+              computed_optional_required: computed
+              tf_schema_name: created
+              tf_model_name: Created
+              api_name: created
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+            - bool:
+                default: false
+              description: Flag that indicates whether someone enabled this alert configuration for the specified project.
+              computed_optional_required: computed
+              tf_schema_name: enabled
+              tf_model_name: Enabled
+              api_name: enabled
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+            - string: {}
+              description: Event type that triggers an alert.
+              computed_optional_required: computed
+              tf_schema_name: event_type_name
+              tf_model_name: EventTypeName
+              api_name: eventTypeName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+            - string: {}
+              description: |-
+                Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+                **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+              computed_optional_required: required
+              tf_schema_name: group_id
+              tf_model_name: GroupId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies the alert configuration.
+              computed_optional_required: required
+              tf_schema_name: id
+              tf_model_name: Id
+              api_name: alertConfigId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                          computed_optional_required: optional
+                          tf_schema_name: href
+                          tf_model_name: Href
+                          api_name: href
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                          computed_optional_required: optional
+                          tf_schema_name: rel
+                          tf_model_name: Rel
+                          api_name: rel
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+              description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+              custom_type:
+                package: customtypes
+                model: customtypes.NestedListValue[TFLinksModel]
+                schema: customtypes.NewNestedListType[TFLinksModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: links
+              tf_model_name: Links
+              api_name: links
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Name of the parameter in the target object that MongoDB Cloud checks. The parameter must match all rules for MongoDB Cloud to check for alert configurations.
+                          computed_optional_required: required
+                          tf_schema_name: field_name
+                          tf_model_name: FieldName
+                          api_name: fieldName
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: Comparison operator to apply when checking the current metric value against **matcher[n].value**.
+                          computed_optional_required: required
+                          tf_schema_name: operator
+                          tf_model_name: Operator
+                          api_name: operator
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: Value to match or exceed using the specified **matchers.operator**.
+                          computed_optional_required: required
+                          tf_schema_name: value
+                          tf_model_name: Value
+                          api_name: value
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+              description: List of rules that determine whether MongoDB Cloud checks an object for the alert configuration.
+              custom_type:
+                package: customtypes
+                model: customtypes.NestedListValue[TFMatchersModel]
+                schema: customtypes.NewNestedListType[TFMatchersModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: matchers
+              tf_model_name: Matchers
+              api_name: matchers
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+            - single_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
+                          computed_optional_required: required
+                          tf_schema_name: metric_name
+                          tf_model_name: MetricName
+                          api_name: metricName
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: MongoDB Cloud computes the current metric value as an average.
+                          computed_optional_required: optional
+                          tf_schema_name: mode
+                          tf_model_name: Mode
+                          api_name: mode
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: Comparison operator to apply when checking the current metric value.
+                          computed_optional_required: optional
+                          tf_schema_name: operator
+                          tf_model_name: Operator
+                          api_name: operator
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - float64: {}
+                          description: Value of metric that, when exceeded, triggers an alert.
+                          computed_optional_required: optional
+                          tf_schema_name: threshold
+                          tf_model_name: Threshold
+                          api_name: threshold
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string:
+                            default: HOURS
+                          description: Element used to express the quantity. This can be an element of time, storage capacity, and the like.
+                          computed_optional_required: computed_optional
+                          tf_schema_name: units
+                          tf_model_name: Units
+                          api_name: units
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+              description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics about the serverless database.
+              custom_type:
+                package: customtypes
+                model: customtypes.ObjectValue[TFMetricThresholdModel]
+                schema: customtypes.NewObjectType[TFMetricThresholdModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: metric_threshold
+              tf_model_name: MetricThreshold
+              api_name: metricThreshold
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: "Slack API token or Bot token that MongoDB Cloud needs to send alert notifications via Slack. The resource requires this parameter when `\"notifications.[n].typeName\" : \"SLACK\"`. If the token later becomes invalid, MongoDB Cloud sends an email to the project owners. If the token remains invalid, MongoDB Cloud removes the token. \n\n**NOTE**: After you create a notification which requires an API or integration key, the key appears partially redacted when you:\n\n* View or edit the alert through the Atlas UI.\n\n* Query the alert for the notification through the Atlas Administration API."
+                          computed_optional_required: optional
+                          tf_schema_name: api_token
+                          tf_model_name: ApiToken
+                          api_name: apiToken
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: 'Name of the Slack channel to which MongoDB Cloud sends alert notifications. The resource requires this parameter when `"notifications.[n].typeName" : "SLACK"`.'
+                          computed_optional_required: optional
+                          tf_schema_name: channel_name
+                          tf_model_name: ChannelName
+                          api_name: channelName
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: |-
+                            Datadog API Key that MongoDB Cloud needs to send alert notifications to Datadog. You can find this API key in the Datadog dashboard. The resource requires this parameter when `"notifications.[n].typeName" : "DATADOG"`.
+
+                            **NOTE**: After you create a notification which requires an API or integration key, the key appears partially redacted when you:
+
+                            * View or edit the alert through the Atlas UI.
+
+                            * Query the alert for the notification through the Atlas Administration API.
+                          computed_optional_required: optional
+                          tf_schema_name: datadog_api_key
+                          tf_model_name: DatadogApiKey
+                          api_name: datadogApiKey
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string:
+                            default: US
+                          description: 'Datadog region that indicates which API Uniform Resource Locator (URL) to use. The resource requires this parameter when `"notifications.[n].typeName" : "DATADOG"`.'
+                          computed_optional_required: computed_optional
+                          tf_schema_name: datadog_region
+                          tf_model_name: DatadogRegion
+                          api_name: datadogRegion
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - int64: {}
+                          description: Number of minutes that MongoDB Cloud waits after detecting an alert condition before it sends out the first notification.
+                          computed_optional_required: optional
+                          tf_schema_name: delay_min
+                          tf_model_name: DelayMin
+                          api_name: delayMin
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: |-
+                            Email address to which MongoDB Cloud sends alert notifications. The resource requires this parameter when `"notifications.[n].typeName" : "EMAIL"`. You don't need to set this value to send emails to individual or groups of MongoDB Cloud users including:
+
+                            - specific MongoDB Cloud users (`"notifications.[n].typeName" : "USER"`)
+                            - MongoDB Cloud users with specific project roles (`"notifications.[n].typeName" : "GROUP"`)
+                            - MongoDB Cloud users with specific organization roles (`"notifications.[n].typeName" : "ORG"`)
+                            - MongoDB Cloud teams (`"notifications.[n].typeName" : "TEAM"`)
+
+                            To send emails to one MongoDB Cloud user or grouping of users, set the `notifications.[n].emailEnabled` parameter.
+                          computed_optional_required: optional
+                          tf_schema_name: email_address
+                          tf_model_name: EmailAddress
+                          api_name: emailAddress
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - bool: {}
+                          description: |-
+                            Flag that indicates whether MongoDB Cloud should send email notifications. The resource requires this parameter when one of the following values have been set:
+
+                            - `"notifications.[n].typeName" : "ORG"`
+                            - `"notifications.[n].typeName" : "GROUP"`
+                            - `"notifications.[n].typeName" : "USER"`
+                          computed_optional_required: optional
+                          tf_schema_name: email_enabled
+                          tf_model_name: EmailEnabled
+                          api_name: emailEnabled
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: The id of the associated integration, the credentials of which to use for requests.
+                          computed_optional_required: optional
+                          tf_schema_name: integration_id
+                          tf_model_name: IntegrationId
+                          api_name: integrationId
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - int64: {}
+                          description: |-
+                            Number of minutes to wait between successive notifications. MongoDB Cloud sends notifications until someone acknowledges the unacknowledged alert.
+
+                            PagerDuty, VictorOps, and OpsGenie notifications don't return this element. Configure and manage the notification interval within each of those services.
+                          computed_optional_required: optional
+                          tf_schema_name: interval_min
+                          tf_model_name: IntervalMin
+                          api_name: intervalMin
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: |-
+                            Microsoft Teams Webhook Uniform Resource Locator (URL) that MongoDB Cloud needs to send this notification via Microsoft Teams. The resource requires this parameter when `"notifications.[n].typeName" : "MICROSOFT_TEAMS"`. If the URL later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.
+
+                            **NOTE**: When you view or edit the alert for a Microsoft Teams notification, the URL appears partially redacted.
+                          computed_optional_required: optional
+                          tf_schema_name: microsoft_teams_webhook_url
+                          tf_model_name: MicrosoftTeamsWebhookUrl
+                          api_name: microsoftTeamsWebhookUrl
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: 'Mobile phone number to which MongoDB Cloud sends alert notifications. The resource requires this parameter when `"notifications.[n].typeName" : "SMS"`.'
+                          computed_optional_required: optional
+                          tf_schema_name: mobile_number
+                          tf_model_name: MobileNumber
+                          api_name: mobileNumber
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: |-
+                            HipChat API token that MongoDB Cloud needs to send alert notifications to HipChat. The resource requires this parameter when `"notifications.[n].typeName" : "HIP_CHAT"`". If the token later becomes invalid, MongoDB Cloud sends an email to the project owners. If the token remains invalid, MongoDB Cloud removes it.
+
+                            **NOTE**: After you create a notification which requires an API or integration key, the key appears partially redacted when you:
+
+                            * View or edit the alert through the Atlas UI.
+
+                            * Query the alert for the notification through the Atlas Administration API.
+                          computed_optional_required: optional
+                          tf_schema_name: notification_token
+                          tf_model_name: NotificationToken
+                          api_name: notificationToken
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: The notifierId is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.
+                          computed_optional_required: optional
+                          tf_schema_name: notifier_id
+                          tf_model_name: NotifierId
+                          api_name: notifierId
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: |-
+                            API Key that MongoDB Cloud needs to send this notification via Opsgenie. The resource requires this parameter when `"notifications.[n].typeName" : "OPS_GENIE"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.
+
+                            **NOTE**: After you create a notification which requires an API or integration key, the key appears partially redacted when you:
+
+                            * View or edit the alert through the Atlas UI.
+
+                            * Query the alert for the notification through the Atlas Administration API.
+                          computed_optional_required: optional
+                          tf_schema_name: ops_genie_api_key
+                          tf_model_name: OpsGenieApiKey
+                          api_name: opsGenieApiKey
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string:
+                            default: US
+                          description: Opsgenie region that indicates which API Uniform Resource Locator (URL) to use.
+                          computed_optional_required: computed_optional
+                          tf_schema_name: ops_genie_region
+                          tf_model_name: OpsGenieRegion
+                          api_name: opsGenieRegion
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string:
+                            default: US
+                          description: PagerDuty region that indicates which API Uniform Resource Locator (URL) to use.
+                          computed_optional_required: computed_optional
+                          tf_schema_name: region
+                          tf_model_name: Region
+                          api_name: region
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - list:
+                            element_type: 4
+                          description: 'List that contains the one or more organization roles that receive the configured alert. This parameter is available when `"notifications.[n].typeName" : "GROUP"` or `"notifications.[n].typeName" : "ORG"`. If you include this parameter, MongoDB Cloud sends alerts only to users assigned the roles you specify in the array. If you omit this parameter, MongoDB Cloud sends alerts to users assigned any role.'
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.ListValue[types.String]
+                            schema: customtypes.NewListType[types.String](ctx)
+                          computed_optional_required: optional
+                          tf_schema_name: roles
+                          tf_model_name: Roles
+                          api_name: roles
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: 'HipChat API room name to which MongoDB Cloud sends alert notifications. The resource requires this parameter when `"notifications.[n].typeName" : "HIP_CHAT"`".'
+                          computed_optional_required: optional
+                          tf_schema_name: room_name
+                          tf_model_name: RoomName
+                          api_name: roomName
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: |-
+                            PagerDuty service key that MongoDB Cloud needs to send notifications via PagerDuty. The resource requires this parameter when `"notifications.[n].typeName" : "PAGER_DUTY"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.
+
+                            **NOTE**: After you create a notification which requires an API or integration key, the key appears partially redacted when you:
+
+                            * View or edit the alert through the Atlas UI.
+
+                            * Query the alert for the notification through the Atlas Administration API.
+                          computed_optional_required: optional
+                          tf_schema_name: service_key
+                          tf_model_name: ServiceKey
+                          api_name: serviceKey
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - bool: {}
+                          description: |-
+                            Flag that indicates whether MongoDB Cloud should send text message notifications. The resource requires this parameter when one of the following values have been set:
+
+                            - `"notifications.[n].typeName" : "ORG"`
+                            - `"notifications.[n].typeName" : "GROUP"`
+                            - `"notifications.[n].typeName" : "USER"`
+                          computed_optional_required: optional
+                          tf_schema_name: sms_enabled
+                          tf_model_name: SmsEnabled
+                          api_name: smsEnabled
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: 'Unique 24-hexadecimal digit string that identifies one MongoDB Cloud team. The resource requires this parameter when `"notifications.[n].typeName" : "TEAM"`.'
+                          computed_optional_required: optional
+                          tf_schema_name: team_id
+                          tf_model_name: TeamId
+                          api_name: teamId
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: 'Name of the MongoDB Cloud team that receives this notification. The resource requires this parameter when `"notifications.[n].typeName" : "TEAM"`.'
+                          computed_optional_required: optional
+                          tf_schema_name: team_name
+                          tf_model_name: TeamName
+                          api_name: teamName
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: Human-readable label that displays the alert notification type.
+                          computed_optional_required: optional
+                          tf_schema_name: type_name
+                          tf_model_name: TypeName
+                          api_name: typeName
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: 'MongoDB Cloud username of the person to whom MongoDB Cloud sends notifications. Specify only MongoDB Cloud users who belong to the project that owns the alert configuration. The resource requires this parameter when `"notifications.[n].typeName" : "USER"`.'
+                          computed_optional_required: optional
+                          tf_schema_name: username
+                          tf_model_name: Username
+                          api_name: username
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: |-
+                            API key that MongoDB Cloud needs to send alert notifications to Splunk On-Call. The resource requires this parameter when `"notifications.[n].typeName" : "VICTOR_OPS"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.
+
+                            **NOTE**: After you create a notification which requires an API or integration key, the key appears partially redacted when you:
+
+                            * View or edit the alert through the Atlas UI.
+
+                            * Query the alert for the notification through the Atlas Administration API.
+                          computed_optional_required: optional
+                          tf_schema_name: victor_ops_api_key
+                          tf_model_name: VictorOpsApiKey
+                          api_name: victorOpsApiKey
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: 'Routing key that MongoDB Cloud needs to send alert notifications to Splunk On-Call. The resource requires this parameter when `"notifications.[n].typeName" : "VICTOR_OPS"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.'
+                          computed_optional_required: optional
+                          tf_schema_name: victor_ops_routing_key
+                          tf_model_name: VictorOpsRoutingKey
+                          api_name: victorOpsRoutingKey
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: |-
+                            Authentication secret for a webhook-based alert.
+
+                            Atlas returns this value if you set `"notifications.[n].typeName" :"WEBHOOK"` and either:
+                            * You set `notification.[n].webhookSecret` to a non-empty string
+                            * You set a default webhookSecret either on the Integrations page, or with the [Integrations API](#tag/Third-Party-Service-Integrations/operation/createIntegration)
+
+                            **NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.
+                          computed_optional_required: optional
+                          tf_schema_name: webhook_secret
+                          tf_model_name: WebhookSecret
+                          api_name: webhookSecret
+                          req_body_usage: ""
+                          sensitive: true
+                          create_only: false
+                        - string: {}
+                          description: |-
+                            Target URL for a webhook-based alert.
+
+                            Atlas returns this value if you set `"notifications.[n].typeName" :"WEBHOOK"` and either:
+                            * You set `notification.[n].webhookURL` to a non-empty string
+                            * You set a default webhookUrl either on the [Integrations](https://www.mongodb.com/docs/atlas/tutorial/third-party-service-integrations/#std-label-third-party-integrations) page, or with the [Integrations API](#tag/Third-Party-Service-Integrations/operation/createIntegration)
+
+                            **NOTE**: When you view or edit the alert for a Webhook URL notification, the URL appears partially redacted.
+                          computed_optional_required: optional
+                          tf_schema_name: webhook_url
+                          tf_model_name: WebhookUrl
+                          api_name: webhookUrl
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+              description: List that contains the targets that MongoDB Cloud sends notifications.
+              custom_type:
+                package: customtypes
+                model: customtypes.NestedListValue[TFNotificationsModel]
+                schema: customtypes.NewNestedListType[TFNotificationsModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: notifications
+              tf_model_name: Notifications
+              api_name: notifications
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+            - string: {}
+              description: Severity of the event.
+              computed_optional_required: computed
+              tf_schema_name: severity_override
+              tf_model_name: SeverityOverride
+              api_name: severityOverride
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+            - single_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
+                          computed_optional_required: optional
+                          tf_schema_name: metric_name
+                          tf_model_name: MetricName
+                          api_name: metricName
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: MongoDB Cloud computes the current metric value as an average.
+                          computed_optional_required: optional
+                          tf_schema_name: mode
+                          tf_model_name: Mode
+                          api_name: mode
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string: {}
+                          description: Comparison operator to apply when checking the current metric value.
+                          computed_optional_required: optional
+                          tf_schema_name: operator
+                          tf_model_name: Operator
+                          api_name: operator
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - float64: {}
+                          description: Value of metric that, when exceeded, triggers an alert.
+                          computed_optional_required: optional
+                          tf_schema_name: threshold
+                          tf_model_name: Threshold
+                          api_name: threshold
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+                        - string:
+                            default: RAW
+                          description: Element used to express the quantity. This can be an element of time, storage capacity, and the like.
+                          computed_optional_required: computed_optional
+                          tf_schema_name: units
+                          tf_model_name: Units
+                          api_name: units
+                          req_body_usage: ""
+                          sensitive: false
+                          create_only: false
+              description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
+              custom_type:
+                package: customtypes
+                model: customtypes.ObjectValue[TFThresholdModel]
+                schema: customtypes.NewObjectType[TFThresholdModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: threshold
+              tf_model_name: Threshold
+              api_name: threshold
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+            - string: {}
+              description: Date and time when someone last updated this alert configuration. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+              computed_optional_required: computed
+              tf_schema_name: updated
+              tf_model_name: Updated
+              api_name: updated
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/groups/{groupId}/alertConfigs/{id}
+        list:
+            http_method: GET
+            path: /api/atlas/v2/groups/{groupId}/alertConfigs/
+        version_header: application/vnd.atlas.2023-01-01+json
 name: alert_configuration_api
 packageName: alertconfigurationapi

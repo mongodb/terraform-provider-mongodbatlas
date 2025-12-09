@@ -10,10 +10,18 @@ type Resource struct {
 	Update             *APIOperation `yaml:"update"`
 	Delete             *APIOperation `yaml:"delete"`
 	MoveState          *MoveState    `yaml:"move_state"`
-	VersionHeader      string        `yaml:"version_header"` // when not defined latest version defined in API Spec of the resource is used
 	IDAttributes       []string      `yaml:"id_attributes"`
 	DeprecationMessage *string       `yaml:"deprecation_message"`
+	DataSources        *DataSources  `yaml:"datasources"`    // when defined, data source(s) are generated with independent schema options
+	VersionHeader      string        `yaml:"version_header"` // when not defined latest version defined in API Spec of the resource is used
 	SchemaOptions      SchemaOptions `yaml:"schema"`
+}
+
+// DataSources defines the configuration for generating data sources independently from resources
+type DataSources struct {
+	Read          *APIOperation `yaml:"read"`   // singular data source read operation
+	List          *APIOperation `yaml:"list"`   // plural data source list operation
+	SchemaOptions SchemaOptions `yaml:"schema"` // data source specific schema options (aliases, overrides, ignores)
 }
 
 type APIOperation struct {
