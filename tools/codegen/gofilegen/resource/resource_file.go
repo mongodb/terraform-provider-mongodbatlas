@@ -21,9 +21,9 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 		ResourceName: input.Name,
 		APIOperations: codetemplate.APIOperations{
 			VersionHeader: input.Operations.VersionHeader,
-			Create:        *toCodeTemplateOpModel(&input.Operations.Create),
+			Create:        *toCodeTemplateOpModel(input.Operations.Create),
 			Update:        toCodeTemplateOpModel(input.Operations.Update),
-			Read:          *toCodeTemplateOpModel(&input.Operations.Read),
+			Read:          *toCodeTemplateOpModel(input.Operations.Read),
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
 		MoveState:    toCodeTemplateMoveStateModel(input.MoveState),
