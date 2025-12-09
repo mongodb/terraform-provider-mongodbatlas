@@ -453,8 +453,8 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 
 // mergeDataSourceAttributes merges path parameters with response attributes.
 // Path params are enforced as required; response attributes are marked computed.
-// Aliases are applied to path params during merge to avoid duplicates with response attributes.
-// If duplicates exist (same TFSchemaName), Required always wins over Computed.
+// Aliases are applied to both path params and response attributes during merge to properly detect duplicates.
+// If duplicates exist (same TFSchemaName after aliasing), Required always wins over Computed.
 func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map[string]string) Attributes {
 	merged := make(map[string]*Attribute) // key by TFSchemaName
 
@@ -475,11 +475,18 @@ func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map
 	}
 
 	// Add response attributes as computed
+	// Apply aliases to response attributes during merge to detect duplicates with aliased path params
 	// If a duplicate exists and the existing one is Required, keep Required
 	for i := range responseAttrs {
 		attr := responseAttrs[i] // create a copy
 		attr.ComputedOptionalRequired = Computed
 		attr.ReqBodyUsage = OmitAlways
+
+		// Apply alias if configured (same logic as path params)
+		if alias, found := aliases[attr.APIName]; found {
+			attr.TFSchemaName = stringcase.ToSnakeCase(alias)
+			attr.TFModelName = stringcase.Capitalize(alias)
+		}
 
 		if existing, found := merged[attr.TFSchemaName]; found {
 			// Duplicate found: keep Required over Computed (Required always wins)
