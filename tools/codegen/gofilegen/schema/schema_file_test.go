@@ -358,7 +358,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              admin.PtrString("string description"),
 							ComputedOptionalRequired: codespec.Required,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "bool_attr",
@@ -366,7 +366,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							Bool:                     &codespec.BoolAttribute{},
 							Description:              admin.PtrString("bool description"),
 							ComputedOptionalRequired: codespec.Optional,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "int_attr",
@@ -374,7 +374,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							Int64:                    &codespec.Int64Attribute{},
 							Description:              admin.PtrString("int description"),
 							ComputedOptionalRequired: codespec.ComputedOptional,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "float_attr",
@@ -382,7 +382,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							Float64:                  &codespec.Float64Attribute{},
 							Description:              admin.PtrString("float description"),
 							ComputedOptionalRequired: codespec.Optional,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "number_attr",
@@ -390,7 +390,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							Number:                   &codespec.NumberAttribute{},
 							Description:              admin.PtrString("number description"),
 							ComputedOptionalRequired: codespec.Optional,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName: "simple_list_attr",
@@ -401,7 +401,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							},
 							Description:              admin.PtrString("simple arr description"),
 							ComputedOptionalRequired: codespec.Optional,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName: "simple_set_attr",
@@ -412,7 +412,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							},
 							Description:              admin.PtrString("simple set description"),
 							ComputedOptionalRequired: codespec.Optional,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName: "simple_map_attr",
@@ -423,7 +423,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							},
 							Description:              admin.PtrString("simple map description"),
 							ComputedOptionalRequired: codespec.Optional,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "nested_single_attr",
@@ -436,7 +436,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 									Attributes: []codespec.Attribute{intAttr},
 								},
 							},
-							CreateOnly: true,
+							NonUpdatable: true,
 						},
 						{
 							TFSchemaName:             "nested_list_attr",
@@ -449,7 +449,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 									Attributes: []codespec.Attribute{intAttr},
 								},
 							},
-							CreateOnly: true,
+							NonUpdatable: true,
 						},
 						{
 							TFSchemaName:             "set_nested_attribute",
@@ -462,7 +462,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 									Attributes: []codespec.Attribute{intAttr},
 								},
 							},
-							CreateOnly: true,
+							NonUpdatable: true,
 						},
 						{
 							TFSchemaName:             "map_nested_attribute",
@@ -475,7 +475,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 									Attributes: []codespec.Attribute{intAttr},
 								},
 							},
-							CreateOnly: true,
+							NonUpdatable: true,
 						},
 					},
 				},

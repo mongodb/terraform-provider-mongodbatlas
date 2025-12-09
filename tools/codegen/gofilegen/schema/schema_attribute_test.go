@@ -21,7 +21,7 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 				TFModelName:              "TestString",
 				String:                   &codespec.StringAttribute{},
 				ComputedOptionalRequired: codespec.Optional,
-				CreateOnly:               false,
+				NonUpdatable:             false,
 			},
 			hasPlanModifier: false,
 		},
@@ -31,7 +31,7 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 				TFModelName:              "TestString",
 				String:                   &codespec.StringAttribute{},
 				ComputedOptionalRequired: codespec.Optional,
-				CreateOnly:               true,
+				NonUpdatable:             true,
 			},
 			hasPlanModifier: true,
 		},
@@ -41,7 +41,7 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 				TFModelName:              "TestBool",
 				Bool:                     &codespec.BoolAttribute{},
 				ComputedOptionalRequired: codespec.Optional,
-				CreateOnly:               true,
+				NonUpdatable:             true,
 			},
 			hasPlanModifier: true,
 		},
@@ -51,7 +51,7 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 				TFModelName:              "TestBool",
 				Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(true)},
 				ComputedOptionalRequired: codespec.ComputedOptional,
-				CreateOnly:               true,
+				NonUpdatable:             true,
 			},
 			hasPlanModifier: true,
 		},
@@ -61,7 +61,7 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 				TFModelName:              "TestBool",
 				Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(false)},
 				ComputedOptionalRequired: codespec.ComputedOptional,
-				CreateOnly:               true,
+				NonUpdatable:             true,
 			},
 			hasPlanModifier: true,
 		},
@@ -71,7 +71,7 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 				TFModelName:              "TestInt",
 				Int64:                    &codespec.Int64Attribute{},
 				ComputedOptionalRequired: codespec.Optional,
-				CreateOnly:               true,
+				NonUpdatable:             true,
 			},
 			hasPlanModifier: true,
 		},
@@ -81,7 +81,7 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 				TFModelName:              "TestComputed",
 				String:                   &codespec.StringAttribute{},
 				ComputedOptionalRequired: codespec.Computed,
-				CreateOnly:               true,
+				NonUpdatable:             true,
 			},
 			hasPlanModifier: true,
 		},
@@ -91,7 +91,7 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 				TFModelName:              "TestComputedOptional",
 				String:                   &codespec.StringAttribute{},
 				ComputedOptionalRequired: codespec.ComputedOptional,
-				CreateOnly:               true,
+				NonUpdatable:             true,
 			},
 			hasPlanModifier: true,
 		},
@@ -111,7 +111,7 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 				assert.Contains(t, code, expected)
 				return
 			}
-			if tc.attribute.CreateOnly {
+			if tc.attribute.NonUpdatable {
 				assert.Contains(t, code, "customplanmodifier.CreateOnly()")
 			}
 		})
