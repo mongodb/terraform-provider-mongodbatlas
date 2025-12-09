@@ -68,13 +68,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	ClusterCount              types.Int64                              `tfsdk:"cluster_count" autogen:"omitjson"`
+	Tags                      customtypes.NestedListValue[TFTagsModel] `tfsdk:"tags"`
 	Created                   types.String                             `tfsdk:"created" autogen:"omitjson"`
 	Id                        types.String                             `tfsdk:"id" autogen:"omitjson"`
 	Name                      types.String                             `tfsdk:"name"`
 	OrgId                     types.String                             `tfsdk:"org_id" autogen:"omitjsonupdate"`
 	RegionUsageRestrictions   types.String                             `tfsdk:"region_usage_restrictions" autogen:"omitjsonupdate"`
-	Tags                      customtypes.NestedListValue[TFTagsModel] `tfsdk:"tags"`
+	ClusterCount              types.Int64                              `tfsdk:"cluster_count" autogen:"omitjson"`
 	WithDefaultAlertsSettings types.Bool                               `tfsdk:"with_default_alerts_settings" autogen:"omitjsonupdate"`
 }
 type TFTagsModel struct {

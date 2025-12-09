@@ -91,9 +91,9 @@ type TFActionsModel struct {
 	Resources customtypes.NestedListValue[TFActionsResourcesModel] `tfsdk:"resources"`
 }
 type TFActionsResourcesModel struct {
-	Cluster    types.Bool   `tfsdk:"cluster"`
 	Collection types.String `tfsdk:"collection"`
 	Db         types.String `tfsdk:"db"`
+	Cluster    types.Bool   `tfsdk:"cluster"`
 }
 type TFInheritedRolesModel struct {
 	Db   types.String `tfsdk:"db"`
