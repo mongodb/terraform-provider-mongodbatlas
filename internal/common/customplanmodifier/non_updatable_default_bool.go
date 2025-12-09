@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// CreateOnlyBoolWithDefault sets a default value on create operation that will show in the plan.
+// NonUpdatableBoolWithDefault sets a default value on create operation that will show in the plan.
 // This avoids any custom logic in the resource "Create" handler.
 // On update the default has no impact and the UseStateForUnknown behavior is observed instead.
 // Always use Optional+Computed when using a default value.

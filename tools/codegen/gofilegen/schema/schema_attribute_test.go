@@ -45,7 +45,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			},
 			hasPlanModifier: true,
 		},
-		"Bool attribute with non-updatable and default true - uses CreateOnlyBoolWithDefault(true)": {
+		"Bool attribute with non-updatable and default true - uses NonUpdatableBoolWithDefault(true)": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_bool",
 				TFModelName:              "TestBool",
@@ -55,7 +55,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			},
 			hasPlanModifier: true,
 		},
-		"Bool attribute with non-updatable and default false - uses CreateOnlyBoolWithDefault(false)": {
+		"Bool attribute with non-updatable and default false - uses NonUpdatableBoolWithDefault(false)": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_bool",
 				TFModelName:              "TestBool",
@@ -107,7 +107,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			}
 			assert.Contains(t, code, "PlanModifiers:")
 			if tc.attribute.Bool != nil && tc.attribute.Bool.Default != nil {
-				expected := fmt.Sprintf("customplanmodifier.CreateOnlyBoolWithDefault(%t)", *tc.attribute.Bool.Default)
+				expected := fmt.Sprintf("customplanmodifier.NonUpdatableBoolWithDefault(%t)", *tc.attribute.Bool.Default)
 				assert.Contains(t, code, expected)
 				return
 			}
