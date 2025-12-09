@@ -158,7 +158,7 @@ func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeS
 			"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier",
 			"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier",
 		}
-		code := fmt.Sprintf("PlanModifiers: []%s{customplanmodifier.CreateOnly()}", planModifierType)
+		code := fmt.Sprintf("PlanModifiers: []%s{customplanmodifier.NonUpdatable()}", planModifierType)
 
 		// For bool attributes with create-only and default value, use CreateOnlyBoolWithDefault
 		if attr.Bool != nil && attr.Bool.Default != nil {

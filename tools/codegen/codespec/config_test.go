@@ -172,7 +172,7 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 					Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(true)},
 					Description:              &description,
 					ReqBodyUsage:             codespec.OmitAlways,
-					CreateOnly:               true,
+					NonUpdatable:             true,
 					ComputedOptionalRequired: codespec.ComputedOptional,
 				}
 				assert.Equal(t, expectedAttr, resource.Schema.Attributes[0])

@@ -10,12 +10,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
+func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 	tests := map[string]struct {
 		attribute       codespec.Attribute
 		hasPlanModifier bool
 	}{
-		"No create_only - no plan modifiers": {
+		"No non-updatable - no plan modifiers": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_string",
 				TFModelName:              "TestString",

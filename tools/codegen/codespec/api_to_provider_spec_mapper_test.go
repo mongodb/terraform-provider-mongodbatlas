@@ -28,7 +28,7 @@ var (
 			String:                   &codespec.StringAttribute{},
 			Description:              conversion.StringPtr(testPathParamDesc),
 			ReqBodyUsage:             codespec.OmitAlways,
-			CreateOnly:               true,
+			NonUpdatable:             true,
 		},
 		{
 			TFSchemaName:             "string_attr",
@@ -114,7 +114,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "num_double_default_attr",
@@ -220,7 +220,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "group_id",
@@ -230,7 +230,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "list_primitive_string_attr",
@@ -501,7 +501,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "nested_list_array_attr",
@@ -640,7 +640,7 @@ func TestConvertToProviderSpec_pathBasedAlias(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "nested_list_array_attr",
@@ -744,7 +744,7 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "special_param",
@@ -754,7 +754,7 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							ReqBodyUsage:             codespec.OmitInUpdateBody,
 							Description:              conversion.StringPtr(testPathParamDesc),
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "str_req_attr1",
@@ -825,7 +825,7 @@ func TestConvertToProviderSpec_singletonResourceNoDeleteOperation(t *testing.T) 
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 					},
 				},
@@ -875,7 +875,7 @@ func TestConvertToProviderSpec_NoUpdateOperation(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "string_attr",
@@ -884,7 +884,7 @@ func TestConvertToProviderSpec_NoUpdateOperation(t *testing.T) {
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							ReqBodyUsage:             codespec.OmitInUpdateBody,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 					},
 				},
@@ -942,7 +942,7 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "list_string",
@@ -1146,7 +1146,7 @@ func TestConvertToProviderSpec_multipleConsecutiveCaps(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "mongo_db_version",
@@ -1294,7 +1294,7 @@ func TestConvertToProviderSpec_pathParamWithAlias(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 						{
 							TFSchemaName:             "db_user",
@@ -1304,7 +1304,7 @@ func TestConvertToProviderSpec_pathParamWithAlias(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
 							ReqBodyUsage:             codespec.AllRequestBodies, // Merged from path param and request body
-							CreateOnly:               false,                     // Not create-only because it's in request bodies
+							NonUpdatable:             false,                     // Not updatable because it's in request bodies
 						},
 					},
 				},
@@ -1351,7 +1351,7 @@ func TestConvertToProviderSpec_pathParamWithAlias(t *testing.T) {
 	assert.Equal(t, "DbUser", dbUserAttr.TFModelName, "Model name should be aliased")
 	assert.Equal(t, "username", dbUserAttr.APIName, "APIName should preserve original API name for apiname tag")
 	assert.Equal(t, codespec.AllRequestBodies, dbUserAttr.ReqBodyUsage, "ReqBodyUsage should be AllRequestBodies when merged from path param and request body")
-	assert.False(t, dbUserAttr.CreateOnly, "CreateOnly should be false when attribute is in request bodies")
+	assert.False(t, dbUserAttr.NonUpdatable, "NonUpdatable should be false when attribute is in request bodies")
 
 	// 2. Path parameters in operations use the aliased name
 	assert.Contains(t, result.Resources[0].Operations.Read.Path, "{dbUser}", "Read path should use aliased path param")
@@ -1379,7 +1379,7 @@ func TestConvertToProviderSpec_ignoreSchemaAndIdAttributes(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
-							CreateOnly:               true,
+							NonUpdatable:             true,
 						},
 					},
 				},
