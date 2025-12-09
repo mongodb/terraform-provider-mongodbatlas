@@ -39,7 +39,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.41.0
 	github.com/aws/aws-sdk-go-v2/config v1.32.3
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.3
-	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.39.13
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.40.4
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.3
 	github.com/hashicorp/terraform-json v0.27.2
 	github.com/hashicorp/terraform-plugin-framework-jsontypes v0.2.0
@@ -56,8 +56,8 @@ require (
 	github.com/apparentlymart/go-cidr v1.1.0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.15 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.15 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.15 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.16 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.16 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.15 // indirect
