@@ -160,7 +160,7 @@ func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeS
 		}
 		code := fmt.Sprintf("PlanModifiers: []%s{customplanmodifier.NonUpdatable()}", planModifierType)
 
-		// For bool attributes with create-only and default value, use CreateOnlyBoolWithDefault
+		// For bool attributes with non-updatable and default value, use CreateOnlyBoolWithDefault
 		if attr.Bool != nil && attr.Bool.Default != nil {
 			code = fmt.Sprintf("PlanModifiers: []%s{customplanmodifier.CreateOnlyBoolWithDefault(%t)}", planModifierType, *attr.Bool.Default)
 		}

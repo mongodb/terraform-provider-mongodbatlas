@@ -20,7 +20,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"group_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.NonUpdatable()},
 			},
 			"name": schema.StringAttribute{
 				Optional:            true,
@@ -76,7 +76,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"tenant_name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Label that identifies the stream workspace.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.NonUpdatable()},
 			},
 			"tier": schema.StringAttribute{
 				Computed:            true,
@@ -98,16 +98,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Pipeline              customtypes.ListValue[jsontypes.Normalized] `tfsdk:"pipeline"`
-	Stats                 customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"stats" autogen:"omitjson"`
 	GroupId               types.String                                `tfsdk:"group_id" autogen:"omitjson"`
 	Name                  types.String                                `tfsdk:"name"`
 	Options               customtypes.ObjectValue[TFOptionsModel]     `tfsdk:"options"`
+	Pipeline              customtypes.ListValue[jsontypes.Normalized] `tfsdk:"pipeline"`
 	State                 types.String                                `tfsdk:"state" autogen:"omitjson"`
+	Stats                 customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"stats" autogen:"omitjson"`
 	TenantName            types.String                                `tfsdk:"tenant_name" autogen:"omitjson"`
 	Tier                  types.String                                `tfsdk:"tier" autogen:"omitjson"`
-	Timeouts              timeouts.Value                              `tfsdk:"timeouts" autogen:"omitjson"`
 	DeleteOnCreateTimeout types.Bool                                  `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
+	Timeouts              timeouts.Value                              `tfsdk:"timeouts" autogen:"omitjson"`
 }
 type TFOptionsModel struct {
 	Dlq                  customtypes.ObjectValue[TFOptionsDlqModel] `tfsdk:"dlq"`

@@ -12,7 +12,7 @@ schema:
           api_name: groupId
           req_body_usage: omit_always
           sensitive: false
-          create_only: true
+          non_updatable: true
         - bool: {}
           description: Flag that indicates whether to collect database-specific metrics for the specified project.
           computed_optional_required: computed_optional
@@ -21,7 +21,7 @@ schema:
           api_name: isCollectDatabaseSpecificsStatisticsEnabled
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - bool: {}
           description: Flag that indicates whether to enable the Data Explorer for the specified project.
           computed_optional_required: computed_optional
@@ -30,7 +30,7 @@ schema:
           api_name: isDataExplorerEnabled
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - bool: {}
           description: Flag that indicates whether to enable the use of generative AI features which make requests to 3rd party services in Data Explorer for the specified project.
           computed_optional_required: computed_optional
@@ -39,7 +39,7 @@ schema:
           api_name: isDataExplorerGenAIFeaturesEnabled
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - bool:
             default: false
           description: Flag that indicates whether to enable the passing of sample field values with the use of generative AI features in the Data Explorer for the specified project.
@@ -49,7 +49,7 @@ schema:
           api_name: isDataExplorerGenAISampleDocumentPassingEnabled
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - bool: {}
           description: Flag that indicates whether to enable extended storage sizes for the specified project.
           computed_optional_required: computed_optional
@@ -58,7 +58,7 @@ schema:
           api_name: isExtendedStorageSizesEnabled
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - bool: {}
           description: Flag that indicates whether to enable the Performance Advisor and Profiler for the specified project.
           computed_optional_required: computed_optional
@@ -67,7 +67,7 @@ schema:
           api_name: isPerformanceAdvisorEnabled
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - bool: {}
           description: Flag that indicates whether to enable the Real Time Performance Panel for the specified project.
           computed_optional_required: computed_optional
@@ -76,7 +76,7 @@ schema:
           api_name: isRealtimePerformancePanelEnabled
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - bool: {}
           description: Flag that indicates whether to enable the Schema Advisor for the specified project.
           computed_optional_required: computed_optional
@@ -85,7 +85,7 @@ schema:
           api_name: isSchemaAdvisorEnabled
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
 operations:
     create:
         http_method: PATCH

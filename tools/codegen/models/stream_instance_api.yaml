@@ -15,7 +15,7 @@ schema:
                                   api_name: clientId
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: OIDC client secret for authentication to the Kafka cluster.
                                   computed_optional_required: computed
@@ -24,7 +24,7 @@ schema:
                                   api_name: clientSecret
                                   req_body_usage: omit_always
                                   sensitive: true
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.
                                   computed_optional_required: computed
@@ -33,7 +33,7 @@ schema:
                                   api_name: mechanism
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: SASL OAUTHBEARER authentication method. Can only be OIDC currently.
                                   computed_optional_required: computed
@@ -42,7 +42,7 @@ schema:
                                   api_name: method
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: Password of the account to connect to the Kafka cluster.
                                   computed_optional_required: computed
@@ -51,7 +51,7 @@ schema:
                                   api_name: password
                                   req_body_usage: omit_always
                                   sensitive: true
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: SASL OAUTHBEARER extensions parameter for additional OAuth2 configuration.
                                   computed_optional_required: computed
@@ -60,7 +60,7 @@ schema:
                                   api_name: saslOauthbearerExtensions
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: OIDC scope parameter defining the access permissions requested.
                                   computed_optional_required: computed
@@ -69,7 +69,7 @@ schema:
                                   api_name: scope
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: SSL certificate for client authentication to Kafka.
                                   computed_optional_required: computed
@@ -78,7 +78,7 @@ schema:
                                   api_name: sslCertificate
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: SSL key for client authentication to Kafka.
                                   computed_optional_required: computed
@@ -87,7 +87,7 @@ schema:
                                   api_name: sslKey
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: Password for the SSL key, if it is password protected.
                                   computed_optional_required: computed
@@ -96,7 +96,7 @@ schema:
                                   api_name: sslKeyPassword
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: OIDC token endpoint URL for obtaining access tokens.
                                   computed_optional_required: computed
@@ -105,7 +105,7 @@ schema:
                                   api_name: tokenEndpointUrl
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: Username of the account to connect to the Kafka cluster.
                                   computed_optional_required: computed
@@ -114,7 +114,7 @@ schema:
                                   api_name: username
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.
                       custom_type:
                         package: customtypes
@@ -126,7 +126,7 @@ schema:
                       api_name: authentication
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - single_nested:
                         nested_object:
                             attributes:
@@ -138,7 +138,7 @@ schema:
                                   api_name: roleArn
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
                                   computed_optional_required: computed
@@ -147,7 +147,7 @@ schema:
                                   api_name: testBucket
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: AWS configurations for AWS-based connection types.
                       custom_type:
                         package: customtypes
@@ -159,7 +159,7 @@ schema:
                       api_name: aws
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: Comma separated list of server addresses.
                       computed_optional_required: computed
@@ -168,7 +168,7 @@ schema:
                       api_name: bootstrapServers
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: The id of the group that the cluster belongs to.
                       computed_optional_required: computed
@@ -177,7 +177,7 @@ schema:
                       api_name: clusterGroupId
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: Name of the cluster configured for this connection.
                       computed_optional_required: computed
@@ -186,7 +186,7 @@ schema:
                       api_name: clusterName
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - map:
                         element_type: 4
                       description: A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
@@ -200,7 +200,7 @@ schema:
                       api_name: config
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - single_nested:
                         nested_object:
                             attributes:
@@ -212,7 +212,7 @@ schema:
                                   api_name: role
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: Type of the DB role. Can be either BuiltIn or Custom.
                                   computed_optional_required: computed
@@ -221,7 +221,7 @@ schema:
                                   api_name: type
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: The name of a Built in or Custom DB Role to connect to an Atlas Cluster.
                       custom_type:
                         package: customtypes
@@ -233,7 +233,7 @@ schema:
                       api_name: dbRoleToExecute
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - map:
                         element_type: 4
                       description: A map of key-value pairs that will be passed as headers for the request.
@@ -247,7 +247,7 @@ schema:
                       api_name: headers
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
                       computed_optional_required: computed
@@ -256,7 +256,7 @@ schema:
                       api_name: name
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - single_nested:
                         nested_object:
                             attributes:
@@ -271,7 +271,7 @@ schema:
                                               api_name: connectionId
                                               req_body_usage: omit_always
                                               sensitive: false
-                                              create_only: false
+                                              non_updatable: false
                                             - string: {}
                                               description: Reserved. Will be used by PRIVATE_LINK connection type.
                                               computed_optional_required: computed
@@ -280,7 +280,7 @@ schema:
                                               api_name: name
                                               req_body_usage: omit_always
                                               sensitive: false
-                                              create_only: false
+                                              non_updatable: false
                                             - string: {}
                                               description: Reserved. Will be used by TRANSIT_GATEWAY connection type.
                                               computed_optional_required: computed
@@ -289,7 +289,7 @@ schema:
                                               api_name: tgwRouteId
                                               req_body_usage: omit_always
                                               sensitive: false
-                                              create_only: false
+                                              non_updatable: false
                                             - string: {}
                                               description: Selected networking type. Either PUBLIC, VPC, PRIVATE_LINK, or TRANSIT_GATEWAY. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. TRANSIT_GATEWAY support is coming soon.
                                               computed_optional_required: computed
@@ -298,7 +298,7 @@ schema:
                                               api_name: type
                                               req_body_usage: omit_always
                                               sensitive: false
-                                              create_only: false
+                                              non_updatable: false
                                   description: Information about networking access.
                                   custom_type:
                                     package: customtypes
@@ -310,7 +310,7 @@ schema:
                                   api_name: access
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: Networking configuration for Streams connections.
                       custom_type:
                         package: customtypes
@@ -322,7 +322,7 @@ schema:
                       api_name: networking
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - single_nested:
                         nested_object:
                             attributes:
@@ -334,7 +334,7 @@ schema:
                                   api_name: brokerPublicCertificate
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: Describes the transport type. Can be either SASL_PLAINTEXT, SASL_SSL, or SSL.
                                   computed_optional_required: computed
@@ -343,7 +343,7 @@ schema:
                                   api_name: protocol
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.
                       custom_type:
                         package: customtypes
@@ -355,7 +355,7 @@ schema:
                       api_name: security
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: Type of the connection.
                       computed_optional_required: computed
@@ -364,7 +364,7 @@ schema:
                       api_name: type
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: The url to be used for the request.
                       computed_optional_required: computed
@@ -373,7 +373,7 @@ schema:
                       api_name: url
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
           description: List of connections configured in the stream workspace.
           custom_type:
             package: customtypes
@@ -385,7 +385,7 @@ schema:
           api_name: connections
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - single_nested:
             nested_object:
                 attributes:
@@ -397,7 +397,7 @@ schema:
                       api_name: cloudProvider
                       req_body_usage: ""
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: Name of the cloud provider region hosting Atlas Stream Processing.
                       computed_optional_required: required
@@ -406,7 +406,7 @@ schema:
                       api_name: region
                       req_body_usage: ""
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
           description: Information about the cloud provider region in which MongoDB Cloud processes the stream.
           custom_type:
             package: customtypes
@@ -418,7 +418,7 @@ schema:
           api_name: dataProcessRegion
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: true
+          non_updatable: true
         - string: {}
           description: |-
             Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -430,7 +430,7 @@ schema:
           api_name: groupId
           req_body_usage: omit_always
           sensitive: false
-          create_only: true
+          non_updatable: true
         - list:
             element_type: 4
           description: List that contains the hostnames assigned to the stream workspace.
@@ -444,7 +444,7 @@ schema:
           api_name: hostnames
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Label that identifies the stream workspace.
           computed_optional_required: optional
@@ -453,7 +453,7 @@ schema:
           api_name: name
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: true
+          non_updatable: true
         - single_nested:
             nested_object:
                 attributes:
@@ -466,7 +466,7 @@ schema:
                       api_name: solar
                       req_body_usage: ""
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
           description: Sample connections to add to SPI.
           custom_type:
             package: customtypes
@@ -478,7 +478,7 @@ schema:
           api_name: sampleConnections
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: true
+          non_updatable: true
         - single_nested:
             nested_object:
                 attributes:
@@ -490,7 +490,7 @@ schema:
                       api_name: maxTierSize
                       req_body_usage: ""
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.
                       computed_optional_required: optional
@@ -499,7 +499,7 @@ schema:
                       api_name: tier
                       req_body_usage: ""
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
           description: Configuration options for an Atlas Stream Processing Workspace.
           custom_type:
             package: customtypes
@@ -511,7 +511,7 @@ schema:
           api_name: streamConfig
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: true
+          non_updatable: true
 operations:
     delete:
         http_method: DELETE

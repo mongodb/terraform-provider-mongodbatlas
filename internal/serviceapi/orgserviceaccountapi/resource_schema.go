@@ -34,7 +34,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"org_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.NonUpdatable()},
 			},
 			"roles": schema.SetAttribute{
 				Required:            true,
@@ -45,7 +45,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"secret_expires_after_hours": schema.Int64Attribute{
 				Required:            true,
 				MarkdownDescription: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings.",
-				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Int64{customplanmodifier.NonUpdatable()},
 			},
 			"secrets": schema.SetNestedAttribute{
 				Computed:            true,
@@ -86,14 +86,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Roles                   customtypes.SetValue[types.String]         `tfsdk:"roles"`
-	Secrets                 customtypes.NestedSetValue[TFSecretsModel] `tfsdk:"secrets" autogen:"omitjson"`
 	ClientId                types.String                               `tfsdk:"client_id" autogen:"omitjson"`
 	CreatedAt               types.String                               `tfsdk:"created_at" autogen:"omitjson"`
 	Description             types.String                               `tfsdk:"description"`
 	Name                    types.String                               `tfsdk:"name"`
 	OrgId                   types.String                               `tfsdk:"org_id" autogen:"omitjson"`
+	Roles                   customtypes.SetValue[types.String]         `tfsdk:"roles"`
 	SecretExpiresAfterHours types.Int64                                `tfsdk:"secret_expires_after_hours" autogen:"omitjsonupdate"`
+	Secrets                 customtypes.NestedSetValue[TFSecretsModel] `tfsdk:"secrets" autogen:"omitjson"`
 }
 type TFSecretsModel struct {
 	CreatedAt         types.String `tfsdk:"created_at" autogen:"omitjson"`

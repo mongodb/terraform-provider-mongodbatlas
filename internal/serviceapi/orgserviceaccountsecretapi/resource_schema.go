@@ -17,7 +17,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"client_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The Client ID of the Service Account.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.NonUpdatable()},
 			},
 			"created_at": schema.StringAttribute{
 				Computed:            true,
@@ -42,7 +42,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"org_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.NonUpdatable()},
 			},
 			"secret": schema.StringAttribute{
 				Computed:            true,
@@ -52,7 +52,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"secret_expires_after_hours": schema.Int64Attribute{
 				Required:            true,
 				MarkdownDescription: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings.",
-				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Int64{customplanmodifier.NonUpdatable()},
 			},
 		},
 	}

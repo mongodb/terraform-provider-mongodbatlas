@@ -12,7 +12,7 @@ schema:
                       api_name: id
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: Human-readable label that describes a user.
                       computed_optional_required: computed
@@ -21,7 +21,7 @@ schema:
                       api_name: name
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
           description: The user that last updated the atlas resource policy.
           custom_type:
             package: customtypes
@@ -33,7 +33,7 @@ schema:
           api_name: createdByUser
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Date and time in UTC when the atlas resource policy was created.
           computed_optional_required: computed
@@ -42,7 +42,7 @@ schema:
           api_name: createdDate
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Description of the atlas resource policy.
           computed_optional_required: optional
@@ -51,7 +51,7 @@ schema:
           api_name: description
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Unique 24-hexadecimal character string that identifies the atlas resource policy.
           computed_optional_required: computed
@@ -60,7 +60,7 @@ schema:
           api_name: id
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - single_nested:
             nested_object:
                 attributes:
@@ -72,7 +72,7 @@ schema:
                       api_name: id
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: Human-readable label that describes a user.
                       computed_optional_required: computed
@@ -81,7 +81,7 @@ schema:
                       api_name: name
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
           description: The user that last updated the atlas resource policy.
           custom_type:
             package: customtypes
@@ -93,7 +93,7 @@ schema:
           api_name: lastUpdatedByUser
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Date and time in UTC when the atlas resource policy was last updated.
           computed_optional_required: computed
@@ -102,7 +102,7 @@ schema:
           api_name: lastUpdatedDate
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Human-readable label that describes the atlas resource policy.
           computed_optional_required: required
@@ -111,7 +111,7 @@ schema:
           api_name: name
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
           computed_optional_required: required
@@ -120,7 +120,7 @@ schema:
           api_name: orgId
           req_body_usage: omit_always
           sensitive: false
-          create_only: true
+          non_updatable: true
         - list_nested:
             nested_object:
                 attributes:
@@ -132,7 +132,7 @@ schema:
                       api_name: body
                       req_body_usage: all_request_bodies
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: Unique 24-hexadecimal character string that identifies the policy.
                       computed_optional_required: computed
@@ -141,7 +141,7 @@ schema:
                       api_name: id
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
           description: List of policies that make up the atlas resource policy.
           custom_type:
             package: customtypes
@@ -153,7 +153,7 @@ schema:
           api_name: policies
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: A string that identifies the version of the atlas resource policy.
           computed_optional_required: computed
@@ -162,7 +162,7 @@ schema:
           api_name: version
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
 operations:
     delete:
         http_method: DELETE

@@ -34,7 +34,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"org_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the MongoDB Cloud organization to which the project belongs.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.NonUpdatable()},
 			},
 			"region_usage_restrictions": schema.StringAttribute{
 				Computed:            true,
@@ -68,13 +68,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Tags                      customtypes.NestedListValue[TFTagsModel] `tfsdk:"tags"`
+	ClusterCount              types.Int64                              `tfsdk:"cluster_count" autogen:"omitjson"`
 	Created                   types.String                             `tfsdk:"created" autogen:"omitjson"`
 	Id                        types.String                             `tfsdk:"id" autogen:"omitjson"`
 	Name                      types.String                             `tfsdk:"name"`
 	OrgId                     types.String                             `tfsdk:"org_id" autogen:"omitjsonupdate"`
 	RegionUsageRestrictions   types.String                             `tfsdk:"region_usage_restrictions" autogen:"omitjsonupdate"`
-	ClusterCount              types.Int64                              `tfsdk:"cluster_count" autogen:"omitjson"`
+	Tags                      customtypes.NestedListValue[TFTagsModel] `tfsdk:"tags"`
 	WithDefaultAlertsSettings types.Bool                               `tfsdk:"with_default_alerts_settings" autogen:"omitjsonupdate"`
 }
 type TFTagsModel struct {

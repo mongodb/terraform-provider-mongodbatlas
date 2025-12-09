@@ -10,7 +10,7 @@ schema:
           api_name: auditAuthorizationSuccess
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: JSON document that specifies which events to record. Escape any characters that may prevent parsing, such as single or double quotes, using a backslash (`\`).
           computed_optional_required: optional
@@ -19,7 +19,7 @@ schema:
           api_name: auditFilter
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Human-readable label that displays how to configure the audit filter.
           computed_optional_required: computed
@@ -28,7 +28,7 @@ schema:
           api_name: configurationType
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - bool:
             default: false
           description: Flag that indicates whether someone enabled database auditing for the specified project.
@@ -38,7 +38,7 @@ schema:
           api_name: enabled
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: |-
             Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -50,7 +50,7 @@ schema:
           api_name: groupId
           req_body_usage: omit_always
           sensitive: false
-          create_only: true
+          non_updatable: true
 operations:
     delete:
         http_method: PATCH

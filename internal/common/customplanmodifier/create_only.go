@@ -32,7 +32,7 @@ type NonUpdatableModifier interface {
 	planmodifier.Object
 }
 
-// Plan modifier that implements create-only behavior for multiple attribute types
+// Plan modifier that implements non-updatable behavior for multiple attribute types
 type nonUpdatableAttributePlanModifier struct{}
 
 func (d *nonUpdatableAttributePlanModifier) Description(ctx context.Context) string {
@@ -40,7 +40,7 @@ func (d *nonUpdatableAttributePlanModifier) Description(ctx context.Context) str
 }
 
 func (d *nonUpdatableAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
-	return "Ensures that update operations fail when attempting to modify a create-only attribute."
+	return "Ensures that update operations fail when attempting to modify a non-updatable attribute."
 }
 
 func (d *nonUpdatableAttributePlanModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {

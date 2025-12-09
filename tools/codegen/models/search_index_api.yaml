@@ -9,7 +9,7 @@ schema:
           api_name: clusterName
           req_body_usage: omit_always
           sensitive: false
-          create_only: true
+          non_updatable: true
         - string: {}
           description: Label that identifies the collection to create an Atlas Search index in.
           computed_optional_required: required
@@ -18,7 +18,7 @@ schema:
           api_name: collectionName
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: true
+          non_updatable: true
         - string: {}
           description: Label that identifies the database that contains the collection to create an Atlas Search index in.
           computed_optional_required: required
@@ -27,7 +27,7 @@ schema:
           api_name: database
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: true
+          non_updatable: true
         - single_nested:
             nested_object:
                 attributes:
@@ -50,7 +50,7 @@ schema:
                       api_name: analyzer
                       req_body_usage: all_request_bodies
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - list_nested:
                         nested_object:
                             attributes:
@@ -67,7 +67,7 @@ schema:
                                   api_name: charFilters
                                   req_body_usage: all_request_bodies
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: |-
                                     Name that identifies the custom analyzer. Names must be unique within an index, and must not start with any of the following strings:
@@ -80,7 +80,7 @@ schema:
                                   api_name: name
                                   req_body_usage: all_request_bodies
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - list:
                                     element_type: 5
                                   description: |-
@@ -99,7 +99,7 @@ schema:
                                   api_name: tokenFilters
                                   req_body_usage: all_request_bodies
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - map:
                                     element_type: 5
                                   description: Tokenizer that you want to use to create tokens. Tokens determine how Atlas Search splits up text into discrete chunks for indexing.
@@ -113,7 +113,7 @@ schema:
                                   api_name: tokenizer
                                   req_body_usage: all_request_bodies
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: List of user-defined methods to convert database field text into searchable words.
                       custom_type:
                         package: customtypes
@@ -125,7 +125,7 @@ schema:
                       api_name: analyzers
                       req_body_usage: all_request_bodies
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - list:
                         element_type: 5
                       description: Settings that configure the fields, one per object, to index. You must define at least one "vector" type field. You can optionally define "filter" type fields also.
@@ -139,7 +139,7 @@ schema:
                       api_name: fields
                       req_body_usage: all_request_bodies
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - single_nested:
                         nested_object:
                             attributes:
@@ -155,7 +155,7 @@ schema:
                                   api_name: dynamic
                                   req_body_usage: all_request_bodies
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - map:
                                     element_type: 5
                                   description: One or more field specifications for the Atlas Search index. Required if **mappings.dynamic** is omitted or set to **false**.
@@ -169,7 +169,7 @@ schema:
                                   api_name: fields
                                   req_body_usage: all_request_bodies
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: Index specifications for the collection's fields.
                       custom_type:
                         package: customtypes
@@ -181,7 +181,7 @@ schema:
                       api_name: mappings
                       req_body_usage: all_request_bodies
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - int64:
                         default: 1
                       description: Number of index partitions. Allowed values are [1, 2, 4].
@@ -191,7 +191,7 @@ schema:
                       api_name: numPartitions
                       req_body_usage: all_request_bodies
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string:
                         default: lucene.standard
                       description: Method applied to identify words when searching this index.
@@ -201,7 +201,7 @@ schema:
                       api_name: searchAnalyzer
                       req_body_usage: all_request_bodies
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. To learn more, see Stored Source Fields.
                       custom_type:
@@ -214,7 +214,7 @@ schema:
                       api_name: storedSource
                       req_body_usage: all_request_bodies
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - list_nested:
                         nested_object:
                             attributes:
@@ -226,7 +226,7 @@ schema:
                                   api_name: analyzer
                                   req_body_usage: all_request_bodies
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: Label that identifies the synonym definition. Each **synonym.name** must be unique within the same index definition.
                                   computed_optional_required: required
@@ -235,7 +235,7 @@ schema:
                                   api_name: name
                                   req_body_usage: all_request_bodies
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - single_nested:
                                     nested_object:
                                         attributes:
@@ -247,7 +247,7 @@ schema:
                                               api_name: collection
                                               req_body_usage: all_request_bodies
                                               sensitive: false
-                                              create_only: false
+                                              non_updatable: false
                                   description: Data set that stores words and their applicable synonyms.
                                   custom_type:
                                     package: customtypes
@@ -259,7 +259,7 @@ schema:
                                   api_name: source
                                   req_body_usage: all_request_bodies
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: Rule sets that map words to their synonyms in this index.
                       custom_type:
                         package: customtypes
@@ -271,7 +271,7 @@ schema:
                       api_name: synonyms
                       req_body_usage: all_request_bodies
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - list_nested:
                         nested_object:
                             attributes:
@@ -283,7 +283,7 @@ schema:
                                   api_name: name
                                   req_body_usage: all_request_bodies
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - list:
                                     element_type: 5
                                   description: List of types associated with the type set. Each type definition must include a "type" field specifying the search field type ("autocomplete", "boolean", "date", "geo", "number", "objectId", "string", "token", or "uuid") and may include additional configuration properties specific to that type.
@@ -297,7 +297,7 @@ schema:
                                   api_name: types
                                   req_body_usage: all_request_bodies
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: Type sets for the index.
                       custom_type:
                         package: customtypes
@@ -309,7 +309,7 @@ schema:
                       api_name: typeSets
                       req_body_usage: include_null_on_update
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
           description: The index definition to update the search index to.
           custom_type:
             package: customtypes
@@ -321,7 +321,7 @@ schema:
           api_name: definition
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: |-
             Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -333,7 +333,7 @@ schema:
           api_name: groupId
           req_body_usage: omit_always
           sensitive: false
-          create_only: true
+          non_updatable: true
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies this Atlas Search index.
           computed_optional_required: computed
@@ -342,7 +342,7 @@ schema:
           api_name: indexID
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - single_nested:
             nested_object:
                 attributes:
@@ -365,7 +365,7 @@ schema:
                       api_name: analyzer
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - list_nested:
                         nested_object:
                             attributes:
@@ -382,7 +382,7 @@ schema:
                                   api_name: charFilters
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: |-
                                     Name that identifies the custom analyzer. Names must be unique within an index, and must not start with any of the following strings:
@@ -395,7 +395,7 @@ schema:
                                   api_name: name
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - list:
                                     element_type: 5
                                   description: |-
@@ -414,7 +414,7 @@ schema:
                                   api_name: tokenFilters
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - map:
                                     element_type: 5
                                   description: Tokenizer that you want to use to create tokens. Tokens determine how Atlas Search splits up text into discrete chunks for indexing.
@@ -428,7 +428,7 @@ schema:
                                   api_name: tokenizer
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: List of user-defined methods to convert database field text into searchable words.
                       custom_type:
                         package: customtypes
@@ -440,7 +440,7 @@ schema:
                       api_name: analyzers
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - list:
                         element_type: 5
                       description: Settings that configure the fields, one per object, to index. You must define at least one "vector" type field. You can optionally define "filter" type fields also.
@@ -454,7 +454,7 @@ schema:
                       api_name: fields
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - single_nested:
                         nested_object:
                             attributes:
@@ -470,7 +470,7 @@ schema:
                                   api_name: dynamic
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - map:
                                     element_type: 5
                                   description: One or more field specifications for the Atlas Search index. Required if **mappings.dynamic** is omitted or set to **false**.
@@ -484,7 +484,7 @@ schema:
                                   api_name: fields
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: Index specifications for the collection's fields.
                       custom_type:
                         package: customtypes
@@ -496,7 +496,7 @@ schema:
                       api_name: mappings
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - int64:
                         default: 1
                       description: Number of index partitions. Allowed values are [1, 2, 4].
@@ -506,7 +506,7 @@ schema:
                       api_name: numPartitions
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string:
                         default: lucene.standard
                       description: Method applied to identify words when searching this index.
@@ -516,7 +516,7 @@ schema:
                       api_name: searchAnalyzer
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. To learn more, see Stored Source Fields.
                       custom_type:
@@ -529,7 +529,7 @@ schema:
                       api_name: storedSource
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - list_nested:
                         nested_object:
                             attributes:
@@ -541,7 +541,7 @@ schema:
                                   api_name: analyzer
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: Label that identifies the synonym definition. Each **synonym.name** must be unique within the same index definition.
                                   computed_optional_required: computed
@@ -550,7 +550,7 @@ schema:
                                   api_name: name
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - single_nested:
                                     nested_object:
                                         attributes:
@@ -562,7 +562,7 @@ schema:
                                               api_name: collection
                                               req_body_usage: omit_always
                                               sensitive: false
-                                              create_only: false
+                                              non_updatable: false
                                   description: Data set that stores words and their applicable synonyms.
                                   custom_type:
                                     package: customtypes
@@ -574,7 +574,7 @@ schema:
                                   api_name: source
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: Rule sets that map words to their synonyms in this index.
                       custom_type:
                         package: customtypes
@@ -586,7 +586,7 @@ schema:
                       api_name: synonyms
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - list_nested:
                         nested_object:
                             attributes:
@@ -598,7 +598,7 @@ schema:
                                   api_name: name
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - list:
                                     element_type: 5
                                   description: List of types associated with the type set. Each type definition must include a "type" field specifying the search field type ("autocomplete", "boolean", "date", "geo", "number", "objectId", "string", "token", or "uuid") and may include additional configuration properties specific to that type.
@@ -612,7 +612,7 @@ schema:
                                   api_name: types
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: Type sets for the index.
                       custom_type:
                         package: customtypes
@@ -624,7 +624,7 @@ schema:
                       api_name: typeSets
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
           custom_type:
             package: customtypes
             model: customtypes.ObjectValue[TFLatestDefinitionModel]
@@ -635,7 +635,7 @@ schema:
           api_name: latestDefinition
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - single_nested:
             nested_object:
                 attributes:
@@ -647,7 +647,7 @@ schema:
                       api_name: createdAt
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - int64: {}
                       description: The version number associated with this index definition when it was created.
                       computed_optional_required: computed
@@ -656,7 +656,7 @@ schema:
                       api_name: version
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
           description: Object which includes the version number of the index definition and the time that the index definition was created.
           custom_type:
             package: customtypes
@@ -668,7 +668,7 @@ schema:
           api_name: latestDefinitionVersion
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Label that identifies this index. Within each namespace, names of all indexes in the namespace must be unique.
           computed_optional_required: required
@@ -677,7 +677,7 @@ schema:
           api_name: name
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: true
+          non_updatable: true
         - bool: {}
           description: Flag that indicates whether the index is queryable on all hosts.
           computed_optional_required: computed
@@ -686,7 +686,7 @@ schema:
           api_name: queryable
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: |-
             Condition of the search index when you made this request.
@@ -703,7 +703,7 @@ schema:
           api_name: status
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - list_nested:
             nested_object:
                 attributes:
@@ -715,7 +715,7 @@ schema:
                       api_name: hostname
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - single_nested:
                         nested_object:
                             attributes:
@@ -735,7 +735,7 @@ schema:
                                               api_name: fields
                                               req_body_usage: omit_always
                                               sensitive: false
-                                              create_only: false
+                                              non_updatable: false
                                             - int64:
                                                 default: 1
                                               description: Number of index partitions. Allowed values are [1, 2, 4].
@@ -745,7 +745,7 @@ schema:
                                               api_name: numPartitions
                                               req_body_usage: omit_always
                                               sensitive: false
-                                              create_only: false
+                                              non_updatable: false
                                   description: The vector search index definition set by the user.
                                   custom_type:
                                     package: customtypes
@@ -757,7 +757,7 @@ schema:
                                   api_name: definition
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - single_nested:
                                     nested_object:
                                         attributes:
@@ -769,7 +769,7 @@ schema:
                                               api_name: createdAt
                                               req_body_usage: omit_always
                                               sensitive: false
-                                              create_only: false
+                                              non_updatable: false
                                             - int64: {}
                                               description: The version number associated with this index definition when it was created.
                                               computed_optional_required: computed
@@ -778,7 +778,7 @@ schema:
                                               api_name: version
                                               req_body_usage: omit_always
                                               sensitive: false
-                                              create_only: false
+                                              non_updatable: false
                                   description: Object which includes the version number of the index definition and the time that the index definition was created.
                                   custom_type:
                                     package: customtypes
@@ -790,7 +790,7 @@ schema:
                                   api_name: definitionVersion
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: Optional message describing an error.
                                   computed_optional_required: computed
@@ -799,7 +799,7 @@ schema:
                                   api_name: message
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - bool: {}
                                   description: Flag that indicates whether the index generation is queryable on the host.
                                   computed_optional_required: computed
@@ -808,7 +808,7 @@ schema:
                                   api_name: queryable
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: |-
                                     Condition of the search index when you made this request.
@@ -825,7 +825,7 @@ schema:
                                   api_name: status
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: Contains status information about a vector search index.
                       custom_type:
                         package: customtypes
@@ -837,7 +837,7 @@ schema:
                       api_name: mainIndex
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - bool: {}
                       description: Flag that indicates whether the index is queryable on the host.
                       computed_optional_required: computed
@@ -846,7 +846,7 @@ schema:
                       api_name: queryable
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - single_nested:
                         nested_object:
                             attributes:
@@ -866,7 +866,7 @@ schema:
                                               api_name: fields
                                               req_body_usage: omit_always
                                               sensitive: false
-                                              create_only: false
+                                              non_updatable: false
                                             - int64:
                                                 default: 1
                                               description: Number of index partitions. Allowed values are [1, 2, 4].
@@ -876,7 +876,7 @@ schema:
                                               api_name: numPartitions
                                               req_body_usage: omit_always
                                               sensitive: false
-                                              create_only: false
+                                              non_updatable: false
                                   description: The vector search index definition set by the user.
                                   custom_type:
                                     package: customtypes
@@ -888,7 +888,7 @@ schema:
                                   api_name: definition
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - single_nested:
                                     nested_object:
                                         attributes:
@@ -900,7 +900,7 @@ schema:
                                               api_name: createdAt
                                               req_body_usage: omit_always
                                               sensitive: false
-                                              create_only: false
+                                              non_updatable: false
                                             - int64: {}
                                               description: The version number associated with this index definition when it was created.
                                               computed_optional_required: computed
@@ -909,7 +909,7 @@ schema:
                                               api_name: version
                                               req_body_usage: omit_always
                                               sensitive: false
-                                              create_only: false
+                                              non_updatable: false
                                   description: Object which includes the version number of the index definition and the time that the index definition was created.
                                   custom_type:
                                     package: customtypes
@@ -921,7 +921,7 @@ schema:
                                   api_name: definitionVersion
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: Optional message describing an error.
                                   computed_optional_required: computed
@@ -930,7 +930,7 @@ schema:
                                   api_name: message
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - bool: {}
                                   description: Flag that indicates whether the index generation is queryable on the host.
                                   computed_optional_required: computed
@@ -939,7 +939,7 @@ schema:
                                   api_name: queryable
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: |-
                                     Condition of the search index when you made this request.
@@ -956,7 +956,7 @@ schema:
                                   api_name: status
                                   req_body_usage: omit_always
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: Contains status information about a vector search index.
                       custom_type:
                         package: customtypes
@@ -968,7 +968,7 @@ schema:
                       api_name: stagedIndex
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: |-
                         Condition of the search index when you made this request.
@@ -985,7 +985,7 @@ schema:
                       api_name: status
                       req_body_usage: omit_always
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
           description: List of documents detailing index status on each host.
           custom_type:
             package: customtypes
@@ -997,7 +997,7 @@ schema:
           api_name: statusDetail
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Status that describes this index's synonym mappings. This status appears only if the index has synonyms defined.
           computed_optional_required: computed
@@ -1006,7 +1006,7 @@ schema:
           api_name: synonymMappingStatus
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - list:
             element_type: 5
           description: A list of documents describing the status of the index's synonym mappings on each search host. Only appears if the index has synonyms defined.
@@ -1020,7 +1020,7 @@ schema:
           api_name: synonymMappingStatusDetail
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Type of the index. The default type is search.
           computed_optional_required: optional
@@ -1029,7 +1029,7 @@ schema:
           api_name: type
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: true
+          non_updatable: true
         - bool:
             default: true
           description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
@@ -1038,7 +1038,7 @@ schema:
           tf_model_name: DeleteOnCreateTimeout
           req_body_usage: omit_always
           sensitive: false
-          create_only: true
+          non_updatable: true
         - timeouts:
             configurable_timeouts:
                 - create
@@ -1048,7 +1048,7 @@ schema:
           tf_model_name: Timeouts
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
 operations:
     delete:
         http_method: DELETE

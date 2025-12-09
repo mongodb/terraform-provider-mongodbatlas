@@ -25,7 +25,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			},
 			hasPlanModifier: false,
 		},
-		"String attribute with create_only - uses CreateOnly()": {
+		"String attribute with non-updatable - uses CreateOnly()": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_string",
 				TFModelName:              "TestString",
@@ -35,7 +35,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			},
 			hasPlanModifier: true,
 		},
-		"Bool attribute with create_only but no default - uses CreateOnly()": {
+		"Bool attribute with non-updatable but no default - uses CreateOnly()": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_bool",
 				TFModelName:              "TestBool",
@@ -45,7 +45,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			},
 			hasPlanModifier: true,
 		},
-		"Bool attribute with create_only and default true - uses CreateOnlyBoolWithDefault(true)": {
+		"Bool attribute with non-updatable and default true - uses CreateOnlyBoolWithDefault(true)": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_bool",
 				TFModelName:              "TestBool",
@@ -55,7 +55,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			},
 			hasPlanModifier: true,
 		},
-		"Bool attribute with create_only and default false - uses CreateOnlyBoolWithDefault(false)": {
+		"Bool attribute with non-updatable and default false - uses CreateOnlyBoolWithDefault(false)": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_bool",
 				TFModelName:              "TestBool",
@@ -65,7 +65,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			},
 			hasPlanModifier: true,
 		},
-		"Int64 attribute with create_only - uses CreateOnly()": {
+		"Int64 attribute with non-updatable - uses CreateOnly()": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_int",
 				TFModelName:              "TestInt",
@@ -75,7 +75,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			},
 			hasPlanModifier: true,
 		},
-		"Computed attribute with create_only - uses CreateOnly() (model is enforced)": {
+		"Computed attribute with non-updatable - uses CreateOnly() (model is enforced)": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_computed",
 				TFModelName:              "TestComputed",
@@ -85,7 +85,7 @@ func TestGenerateSchemaAttributes_NonUpdatable(t *testing.T) {
 			},
 			hasPlanModifier: true,
 		},
-		"ComputedOptional attribute with create_only - uses CreateOnly()": {
+		"ComputedOptional attribute with non-updatable - uses CreateOnly()": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_computed_optional",
 				TFModelName:              "TestComputedOptional",

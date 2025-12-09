@@ -9,7 +9,7 @@ schema:
           api_name: bucketName
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Date and time that this feature was enabled on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
           computed_optional_required: computed
@@ -18,7 +18,7 @@ schema:
           api_name: createDate
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: |-
             Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -30,7 +30,7 @@ schema:
           api_name: groupId
           req_body_usage: omit_always
           sensitive: false
-          create_only: true
+          non_updatable: true
         - string: {}
           description: ID of the AWS IAM role that will be used to write to the S3 bucket.
           computed_optional_required: required
@@ -39,7 +39,7 @@ schema:
           api_name: iamRoleId
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: S3 directory in which vector will write to in order to store the logs. An empty string denotes the root directory.
           computed_optional_required: required
@@ -48,7 +48,7 @@ schema:
           api_name: prefixPath
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Describes whether or not the feature is enabled and what status it is in.
           computed_optional_required: computed
@@ -57,7 +57,7 @@ schema:
           api_name: state
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - bool:
             default: true
           description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
@@ -66,7 +66,7 @@ schema:
           tf_model_name: DeleteOnCreateTimeout
           req_body_usage: omit_always
           sensitive: false
-          create_only: true
+          non_updatable: true
         - timeouts:
             configurable_timeouts:
                 - create
@@ -77,7 +77,7 @@ schema:
           tf_model_name: Timeouts
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
 operations:
     delete:
         wait:

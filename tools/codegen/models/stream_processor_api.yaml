@@ -12,7 +12,7 @@ schema:
           api_name: groupId
           req_body_usage: omit_always
           sensitive: false
-          create_only: true
+          non_updatable: true
         - string: {}
           description: Human-readable name of the stream processor.
           computed_optional_required: optional
@@ -21,7 +21,7 @@ schema:
           api_name: name
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - single_nested:
             nested_object:
                 attributes:
@@ -36,7 +36,7 @@ schema:
                                   api_name: coll
                                   req_body_usage: all_request_bodies
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: Name of the connection to write DLQ messages to. Must be an Atlas connection.
                                   computed_optional_required: optional
@@ -45,7 +45,7 @@ schema:
                                   api_name: connectionName
                                   req_body_usage: all_request_bodies
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                                 - string: {}
                                   description: Name of the database to use for the DLQ.
                                   computed_optional_required: optional
@@ -54,7 +54,7 @@ schema:
                                   api_name: db
                                   req_body_usage: all_request_bodies
                                   sensitive: false
-                                  create_only: false
+                                  non_updatable: false
                       description: Dead letter queue for the stream processor.
                       custom_type:
                         package: customtypes
@@ -66,7 +66,7 @@ schema:
                       api_name: dlq
                       req_body_usage: all_request_bodies
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - bool: {}
                       description: When true, the modified stream processor resumes from its last checkpoint.
                       computed_optional_required: optional
@@ -75,7 +75,7 @@ schema:
                       api_name: resumeFromCheckpoint
                       req_body_usage: all_request_bodies
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
           description: Optional configuration for the stream processor.
           custom_type:
             package: customtypes
@@ -87,7 +87,7 @@ schema:
           api_name: options
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - list:
             element_type: 5
           description: Stream aggregation pipeline you want to apply to your streaming data.
@@ -101,7 +101,7 @@ schema:
           api_name: pipeline
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'.
           computed_optional_required: computed
@@ -110,7 +110,7 @@ schema:
           api_name: state
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - map:
             element_type: 5
           description: The stats associated with the stream processor.
@@ -124,7 +124,7 @@ schema:
           api_name: stats
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Label that identifies the stream workspace.
           computed_optional_required: required
@@ -133,7 +133,7 @@ schema:
           api_name: tenantName
           req_body_usage: omit_always
           sensitive: false
-          create_only: true
+          non_updatable: true
         - string: {}
           description: Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.
           computed_optional_required: computed
@@ -142,7 +142,7 @@ schema:
           api_name: tier
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - bool:
             default: true
           description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
@@ -151,7 +151,7 @@ schema:
           tf_model_name: DeleteOnCreateTimeout
           req_body_usage: omit_always
           sensitive: false
-          create_only: true
+          non_updatable: true
         - timeouts:
             configurable_timeouts:
                 - create
@@ -162,7 +162,7 @@ schema:
           tf_model_name: Timeouts
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
 operations:
     delete:
         wait:

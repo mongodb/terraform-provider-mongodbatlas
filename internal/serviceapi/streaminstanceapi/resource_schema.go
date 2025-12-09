@@ -196,7 +196,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Information about the cloud provider region in which MongoDB Cloud processes the stream.",
 				CustomType:          customtypes.NewObjectType[TFDataProcessRegionModel](ctx),
-				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Object{customplanmodifier.NonUpdatable()},
 				Attributes: map[string]schema.Attribute{
 					"cloud_provider": schema.StringAttribute{
 						Required:            true,
@@ -211,7 +211,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"group_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.NonUpdatable()},
 			},
 			"hostnames": schema.ListAttribute{
 				Computed:            true,
@@ -222,13 +222,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"name": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Label that identifies the stream workspace.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.NonUpdatable()},
 			},
 			"sample_connections": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Sample connections to add to SPI.",
 				CustomType:          customtypes.NewObjectType[TFSampleConnectionsModel](ctx),
-				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Object{customplanmodifier.NonUpdatable()},
 				Attributes: map[string]schema.Attribute{
 					"solar": schema.BoolAttribute{
 						Computed:            true,
@@ -241,7 +241,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Configuration options for an Atlas Stream Processing Workspace.",
 				CustomType:          customtypes.NewObjectType[TFStreamConfigModel](ctx),
-				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Object{customplanmodifier.NonUpdatable()},
 				Attributes: map[string]schema.Attribute{
 					"max_tier_size": schema.StringAttribute{
 						Optional:            true,

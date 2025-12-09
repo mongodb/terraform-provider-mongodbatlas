@@ -35,16 +35,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"group_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.NonUpdatable()},
 			},
 		},
 	}
 }
 
 type TFModel struct {
+	AuditAuthorizationSuccess types.Bool   `tfsdk:"audit_authorization_success"`
 	AuditFilter               types.String `tfsdk:"audit_filter"`
 	ConfigurationType         types.String `tfsdk:"configuration_type" autogen:"omitjson"`
-	GroupId                   types.String `tfsdk:"group_id" autogen:"omitjson"`
-	AuditAuthorizationSuccess types.Bool   `tfsdk:"audit_authorization_success"`
 	Enabled                   types.Bool   `tfsdk:"enabled"`
+	GroupId                   types.String `tfsdk:"group_id" autogen:"omitjson"`
 }

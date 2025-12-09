@@ -9,7 +9,7 @@ schema:
           api_name: clusterCount
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Date and time when MongoDB Cloud created this project. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
           computed_optional_required: computed
@@ -18,7 +18,7 @@ schema:
           api_name: created
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies the MongoDB Cloud project.
           computed_optional_required: computed
@@ -27,7 +27,7 @@ schema:
           api_name: id
           req_body_usage: omit_always
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Human-readable label that identifies the project included in the MongoDB Cloud organization.
           computed_optional_required: required
@@ -36,7 +36,7 @@ schema:
           api_name: name
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies the MongoDB Cloud organization to which the project belongs.
           computed_optional_required: required
@@ -45,7 +45,7 @@ schema:
           api_name: orgId
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: true
+          non_updatable: true
         - string:
             default: COMMERCIAL_FEDRAMP_REGIONS_ONLY
           description: |-
@@ -64,7 +64,7 @@ schema:
           api_name: regionUsageRestrictions
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: false
+          non_updatable: false
         - list_nested:
             nested_object:
                 attributes:
@@ -76,7 +76,7 @@ schema:
                       api_name: key
                       req_body_usage: all_request_bodies
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
                     - string: {}
                       description: 'Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.'
                       computed_optional_required: required
@@ -85,7 +85,7 @@ schema:
                       api_name: value
                       req_body_usage: all_request_bodies
                       sensitive: false
-                      create_only: false
+                      non_updatable: false
           description: List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project.
           custom_type:
             package: customtypes
@@ -97,7 +97,7 @@ schema:
           api_name: tags
           req_body_usage: all_request_bodies
           sensitive: false
-          create_only: false
+          non_updatable: false
         - bool:
             default: true
           description: Flag that indicates whether to create the project with default alert settings. This setting cannot be updated after project creation.
@@ -107,7 +107,7 @@ schema:
           api_name: withDefaultAlertsSettings
           req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: false
+          non_updatable: false
 operations:
     delete:
         http_method: DELETE
