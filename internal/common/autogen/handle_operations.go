@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -116,6 +117,39 @@ func HandleRead(ctx context.Context, req HandleReadReq) {
 		return
 	}
 	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.State)...)
+}
+
+// HandleDataSourceReadReq contains the request parameters for a data source read operation.
+type HandleDataSourceReadReq struct {
+	Resp       *datasource.ReadResponse
+	Client     *config.MongoDBClient
+	Config     any // The configuration model (TFDSModel)
+	CallParams *config.APICallParams
+}
+
+// HandleDataSourceRead handles the read operation for a data source.
+func HandleDataSourceRead(ctx context.Context, req HandleDataSourceReadReq) {
+	d := &req.Resp.Diagnostics
+	bodyResp, apiResp, err := callAPIWithoutBody(ctx, req.Client, req.CallParams)
+	if notFound(bodyResp, apiResp) {
+		d.AddError("Resource not found", "The requested resource does not exist")
+		return
+	}
+	if err != nil {
+		addError(d, opRead, errCallingAPI, err)
+		return
+	}
+
+	// Unmarshal response into the config model
+	if err := Unmarshal(bodyResp, req.Config); err != nil {
+		addError(d, opRead, errUnmarshallingResponse, err)
+		return
+	}
+	if err := ResolveUnknowns(req.Config); err != nil {
+		addError(d, opRead, errResolvingResponse, err)
+		return
+	}
+	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Config)...)
 }
 
 type HandleUpdateReq struct {

@@ -9,16 +9,25 @@ import (
 )
 
 func GenerateTypedModels(attributes codespec.Attributes) CodeStatement {
-	return generateTypedModels(attributes, "")
+	return generateTypedModels(attributes, "", false)
 }
 
-func generateTypedModels(attributes codespec.Attributes, name string) CodeStatement {
-	models := []CodeStatement{generateStructOfTypedModel(attributes, name)}
+// GenerateDataSourceTypedModels generates the TFDSModel struct for data sources.
+// DS models are simpler: no autogen tags (no request body marshaling).
+func GenerateDataSourceTypedModels(attributes codespec.Attributes) CodeStatement {
+	return generateTypedModels(attributes, "DS", true)
+}
 
-	for i := range attributes {
-		additionalModel := getNestedModel(&attributes[i], name)
-		if additionalModel != nil {
-			models = append(models, *additionalModel)
+func generateTypedModels(attributes codespec.Attributes, name string, isDataSource bool) CodeStatement {
+	models := []CodeStatement{generateStructOfTypedModel(attributes, name, isDataSource)}
+
+	// Only generate nested models for the resource model (not for DS model since they reuse resource nested models)
+	if !isDataSource {
+		for i := range attributes {
+			additionalModel := getNestedModel(&attributes[i], name)
+			if additionalModel != nil {
+				models = append(models, *additionalModel)
+			}
 		}
 	}
 
@@ -42,14 +51,14 @@ func getNestedModel(attribute *codespec.Attribute, ancestorsName string) *CodeSt
 	if nested == nil {
 		return nil
 	}
-	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.TFModelName)
+	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.TFModelName, false)
 	return &res
 }
 
-func generateStructOfTypedModel(attributes codespec.Attributes, name string) CodeStatement {
+func generateStructOfTypedModel(attributes codespec.Attributes, name string, isDataSource bool) CodeStatement {
 	structProperties := []string{}
 	for i := range attributes {
-		structProperties = append(structProperties, typedModelProperty(&attributes[i]))
+		structProperties = append(structProperties, typedModelProperty(&attributes[i], isDataSource))
 	}
 	structPropsCode := strings.Join(structProperties, "\n")
 	return CodeStatement{
@@ -60,9 +69,16 @@ func generateStructOfTypedModel(attributes codespec.Attributes, name string) Cod
 	}
 }
 
-func typedModelProperty(attr *codespec.Attribute) string {
+func typedModelProperty(attr *codespec.Attribute, isDataSource bool) string {
+	propType := attrModelType(attr)
+
+	// Data source models only need tfsdk tag (no marshaling to request body)
+	if isDataSource {
+		return fmt.Sprintf("%s %s", attr.TFModelName, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.TFSchemaName) + "`"
+	}
+
+	// Resource models need additional tags for marshaling
 	var (
-		propType    = attrModelType(attr)
 		tagsStr     = ""
 		autogenTags = make([]string, 0)
 		apinameTag  = ""
