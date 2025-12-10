@@ -59,7 +59,6 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 
 		// Generate DataSources only when datasources block is defined in config
 		if resourceConfig.DataSources != nil {
-			// TODO: validateDataSourceOperations(resourceConfig.DataSources) - schemaIgnore not supported, staticRequestBody not supported
 			dataSources, err := apiSpecToDataSourcesModel(&apiSpec.Model, &resourceConfig)
 			if err != nil {
 				return nil, fmt.Errorf("unable to map to data sources model for %s: %w", name, err)
