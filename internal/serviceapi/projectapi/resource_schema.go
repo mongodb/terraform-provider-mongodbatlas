@@ -32,7 +32,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable label that identifies the project included in the MongoDB Cloud organization.",
 			},
 			"org_id": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the MongoDB Cloud organization to which the project belongs.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},

@@ -13,6 +13,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - single_nested:
             nested_object:
                 attributes:
@@ -30,6 +32,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - list:
                         element_type: 4
                       description: The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.
@@ -44,6 +48,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - string: {}
                       description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.
                       computed_optional_required: computed_optional
@@ -53,6 +59,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - string: {}
                       description: The TLS cipher suite configuration mode. The default mode uses the default cipher suites. The custom mode allows you to specify custom cipher suites for both TLS 1.2 and TLS 1.3.
                       computed_optional_required: computed_optional
@@ -62,6 +70,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
           description: Group of settings that configures a subset of the advanced configuration details.
           custom_type:
             package: customtypes
@@ -74,6 +84,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - bool:
             default: false
           description: Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.
@@ -84,6 +96,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - single_nested:
             nested_object:
                 attributes:
@@ -96,6 +110,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - string: {}
                       description: Data source node designated for the MongoDB Connector for Business Intelligence on MongoDB Cloud. The MongoDB Connector for Business Intelligence on MongoDB Cloud reads data from the primary, secondary, or analytics node based on your read preferences. Defaults to `ANALYTICS` node, or `SECONDARY` if there are no `ANALYTICS` nodes.
                       computed_optional_required: computed_optional
@@ -105,6 +121,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
           description: Settings needed to configure the MongoDB Connector for Business Intelligence for this cluster.
           custom_type:
             package: customtypes
@@ -117,6 +135,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: Configuration of nodes that comprise the cluster.
           computed_optional_required: optional
@@ -126,6 +146,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string:
             default: ATLAS_MANAGED
           description: |-
@@ -141,6 +163,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: Describes a sharded cluster's config server type.
           computed_optional_required: computed
@@ -150,6 +174,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - single_nested:
             nested_object:
                 attributes:
@@ -167,6 +193,8 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - map:
                         element_type: 4
                       description: Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present.
@@ -181,6 +209,8 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - string: {}
                       description: Network peering connection strings for each interface Virtual Private Cloud (VPC) endpoint that you configured to connect to this cluster. This connection string uses the `mongodb+srv://` protocol. The resource returns this parameter once someone creates a network peering connection to this cluster. This protocol tells the application to look up the host seed list in the Domain Name System (DNS). This list synchronizes with the nodes in a cluster. If the connection string uses this Uniform Resource Identifier (URI) format, you don't need to append the seed list or change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn't, use connectionStrings.private. For Amazon Web Services (AWS) clusters, this resource returns this parameter only if you enable custom DNS.
                       computed_optional_required: computed
@@ -190,6 +220,8 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - list_nested:
                         nested_object:
                             attributes:
@@ -202,6 +234,8 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - list_nested:
                                     nested_object:
                                         attributes:
@@ -214,6 +248,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string: {}
                                               description: Cloud provider in which MongoDB Cloud deploys the private endpoint.
                                               computed_optional_required: computed
@@ -223,6 +259,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string: {}
                                               description: Region where the private endpoint is deployed.
                                               computed_optional_required: computed
@@ -232,6 +270,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                   description: List that contains the private endpoints through which you connect to MongoDB Cloud when you use **connectionStrings.privateEndpoint[n].connectionString** or **connectionStrings.privateEndpoint[n].srvConnectionString**.
                                   custom_type:
                                     package: customtypes
@@ -244,6 +284,8 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - string: {}
                                   description: Private endpoint-aware connection string that uses the `mongodb+srv://` protocol to connect to MongoDB Cloud through a private endpoint. The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in the Domain Name System (DNS). This list synchronizes with the nodes in a cluster. If the connection string uses this Uniform Resource Identifier (URI) format, you don't need to append the seed list or change the Uniform Resource Identifier (URI) if the nodes change. Use this Uniform Resource Identifier (URI) format if your application supports it. If it doesn't, use connectionStrings.privateEndpoint[n].connectionString.
                                   computed_optional_required: computed
@@ -253,6 +295,8 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - string: {}
                                   description: Private endpoint-aware connection string optimized for sharded clusters that uses the `mongodb+srv://` protocol to connect to MongoDB Cloud through a private endpoint. If the connection string uses this Uniform Resource Identifier (URI) format, you don't need to change the Uniform Resource Identifier (URI) if the nodes change. Use this Uniform Resource Identifier (URI) format if your application and Atlas cluster supports it. If it doesn't, use and consult the documentation for connectionStrings.privateEndpoint[n].srvConnectionString.
                                   computed_optional_required: computed
@@ -262,6 +306,8 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - string: {}
                                   description: MongoDB process type to which your application connects. Use `MONGOD` for replica sets and `MONGOS` for sharded clusters.
                                   computed_optional_required: computed
@@ -271,6 +317,8 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                       description: List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes.
                       custom_type:
                         package: customtypes
@@ -283,6 +331,8 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - string: {}
                       description: Network peering connection strings for each interface Virtual Private Cloud (VPC) endpoint that you configured to connect to this cluster. This connection string uses the `mongodb+srv://` protocol. The resource returns this parameter when someone creates a network peering connection to this cluster. This protocol tells the application to look up the host seed list in the Domain Name System (DNS). This list synchronizes with the nodes in a cluster. If the connection string uses this Uniform Resource Identifier (URI) format, you don't need to append the seed list or change the Uniform Resource Identifier (URI) if the nodes change. Use this Uniform Resource Identifier (URI) format if your driver supports it. If it doesn't, use `connectionStrings.private`. For Amazon Web Services (AWS) clusters, this parameter returns only if you [enable custom DNS](https://docs.atlas.mongodb.com/reference/api/aws-custom-dns-update/).
                       computed_optional_required: computed
@@ -292,6 +342,8 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - string: {}
                       description: Public connection string that you can use to connect to this cluster. This connection string uses the `mongodb://` protocol.
                       computed_optional_required: computed
@@ -301,6 +353,8 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - string: {}
                       description: Public connection string that you can use to connect to this cluster. This connection string uses the `mongodb+srv://` protocol.
                       computed_optional_required: computed
@@ -310,6 +364,8 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
           description: Collection of Uniform Resource Locators that point to the MongoDB database.
           custom_type:
             package: customtypes
@@ -322,6 +378,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: Date and time when MongoDB Cloud created this cluster. This parameter expresses its value in ISO 8601 format in UTC.
           computed_optional_required: computed
@@ -331,6 +389,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string:
             default: FULLY_WARMED
           description: Disk warming mode selection.
@@ -341,6 +401,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: 'Cloud service provider that manages your customer keys to provide an additional layer of encryption at rest for the cluster. To enable customer key management for encryption at rest, the cluster **replicationSpecs[n].regionConfigs[m].{type}Specs.instanceSize** setting must be `M10` or higher and `"backupEnabled" : false` or omitted entirely.'
           computed_optional_required: computed_optional
@@ -350,6 +412,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: Feature compatibility version of the cluster. This will always appear regardless of whether FCV is pinned.
           computed_optional_required: computed
@@ -359,6 +423,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: Feature compatibility version expiration date. Will only appear if FCV is pinned. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
           computed_optional_required: computed
@@ -368,6 +434,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - bool: {}
           description: |-
             Set this field to configure the Sharding Management Mode when creating a new Global Cluster.
@@ -384,6 +452,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: |-
             Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -396,6 +466,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies the cluster.
           computed_optional_required: computed
@@ -405,6 +477,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: 'Internal classification of the cluster''s role. Possible values: NONE (regular user cluster), SYSTEM_CLUSTER (system cluster for backup), INTERNAL_SHADOW_CLUSTER (internal use shadow cluster for testing).'
           computed_optional_required: computed
@@ -414,6 +488,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - list_nested:
             nested_object:
                 attributes:
@@ -426,6 +502,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - string: {}
                       description: Value set to the Key applied to tag and categorize this component.
                       computed_optional_required: optional
@@ -435,6 +513,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
           description: |-
             Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
 
@@ -451,6 +531,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - single_nested:
             nested_object:
                 attributes:
@@ -463,6 +545,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - string: {}
                       description: Level of access to grant to MongoDB Employees.
                       computed_optional_required: required
@@ -472,6 +556,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
           description: MongoDB employee granted access level and expiration for a cluster.
           custom_type:
             package: customtypes
@@ -484,6 +570,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: "MongoDB major version of the cluster. Set to the binary major version. \n\nOn creation: Choose from the available versions of MongoDB, or leave unspecified for the current recommended default in the MongoDB Cloud platform. The recommended version is a recent Long Term Support version. The default is not guaranteed to be the most recently released version throughout the entire release cycle. For versions available in a specific project, see the linked documentation or use the API endpoint for [project LTS versions endpoint](#tag/Projects/operation/getProjectLtsVersions).\n\n On update: Increase version only by 1 major version at a time. If the cluster is pinned to a MongoDB feature compatibility version exactly one major version below the current MongoDB version, the MongoDB version can be downgraded to the previous major version."
           computed_optional_required: computed_optional
@@ -493,6 +581,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: Version of MongoDB that the cluster runs.
           computed_optional_required: computed
@@ -502,6 +592,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: Human-readable label that identifies the cluster.
           computed_optional_required: optional
@@ -511,6 +603,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - bool: {}
           description: Flag that indicates whether the cluster is paused.
           computed_optional_required: computed_optional
@@ -520,6 +614,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - bool: {}
           description: Flag that indicates whether the cluster uses continuous cloud backups.
           computed_optional_required: computed_optional
@@ -529,6 +625,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - bool: {}
           description: |-
             Enable or disable log redaction.
@@ -545,6 +643,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string:
             default: WORKLOAD_TYPE
           description: |-
@@ -562,6 +662,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - list_nested:
             nested_object:
                 attributes:
@@ -574,6 +676,8 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - list_nested:
                         nested_object:
                             attributes:
@@ -596,6 +700,8 @@ schema:
                                                           req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
+                                                          present_in_response: false
+                                                          required_on_create_input_only: false
                                                         - string: {}
                                                           description: Instance size boundary to which your cluster can automatically scale.
                                                           computed_optional_required: computed
@@ -605,6 +711,8 @@ schema:
                                                           req_body_usage: omit_always
                                                           sensitive: false
                                                           create_only: false
+                                                          present_in_response: false
+                                                          required_on_create_input_only: false
                                                         - string: {}
                                                           description: Instance size boundary to which your cluster can automatically scale.
                                                           computed_optional_required: computed
@@ -614,6 +722,8 @@ schema:
                                                           req_body_usage: omit_always
                                                           sensitive: false
                                                           create_only: false
+                                                          present_in_response: false
+                                                          required_on_create_input_only: false
                                                         - bool: {}
                                                           description: Flag that indicates whether the instance size may scale down via reactive auto-scaling. MongoDB Cloud requires this parameter if **replicationSpecs[n].regionConfigs[m].autoScaling.compute.enabled** is `true`. If you enable this option, specify a value for **replicationSpecs[n].regionConfigs[m].autoScaling.compute.minInstanceSize**.
                                                           computed_optional_required: optional
@@ -623,6 +733,8 @@ schema:
                                                           req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
+                                                          present_in_response: false
+                                                          required_on_create_input_only: false
                                               description: Options that determine how this cluster handles CPU scaling.
                                               custom_type:
                                                 package: customtypes
@@ -635,6 +747,8 @@ schema:
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - single_nested:
                                                 nested_object:
                                                     attributes:
@@ -647,6 +761,8 @@ schema:
                                                           req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
+                                                          present_in_response: false
+                                                          required_on_create_input_only: false
                                               description: Setting that enables disk auto-scaling.
                                               custom_type:
                                                 package: customtypes
@@ -659,6 +775,8 @@ schema:
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                   description: Options that determine how this cluster handles resource scaling.
                                   custom_type:
                                     package: customtypes
@@ -671,6 +789,8 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - single_nested:
                                     nested_object:
                                         attributes:
@@ -691,6 +811,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - float64: {}
                                               description: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
                                               computed_optional_required: computed_optional
@@ -700,6 +822,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string:
                                                 default: STANDARD
                                               description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
@@ -710,6 +834,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string: {}
                                               description: Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
                                               computed_optional_required: computed_optional
@@ -719,6 +845,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - int64: {}
                                               description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
                                               computed_optional_required: computed_optional
@@ -728,6 +856,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                   description: The current hardware specifications for read only nodes in the region.
                                   custom_type:
                                     package: customtypes
@@ -740,6 +870,8 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - single_nested:
                                     nested_object:
                                         attributes:
@@ -759,6 +891,8 @@ schema:
                                                           req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
+                                                          present_in_response: false
+                                                          required_on_create_input_only: false
                                                         - string: {}
                                                           description: Instance size boundary to which your cluster can automatically scale.
                                                           computed_optional_required: computed_optional
@@ -768,6 +902,8 @@ schema:
                                                           req_body_usage: omit_always
                                                           sensitive: false
                                                           create_only: false
+                                                          present_in_response: false
+                                                          required_on_create_input_only: false
                                                         - string: {}
                                                           description: Instance size boundary to which your cluster can automatically scale.
                                                           computed_optional_required: computed_optional
@@ -777,6 +913,8 @@ schema:
                                                           req_body_usage: omit_always
                                                           sensitive: false
                                                           create_only: false
+                                                          present_in_response: false
+                                                          required_on_create_input_only: false
                                                         - bool: {}
                                                           description: Flag that indicates whether the instance size may scale down via reactive auto-scaling. MongoDB Cloud requires this parameter if **replicationSpecs[n].regionConfigs[m].autoScaling.compute.enabled** is `true`. If you enable this option, specify a value for **replicationSpecs[n].regionConfigs[m].autoScaling.compute.minInstanceSize**.
                                                           computed_optional_required: computed_optional
@@ -786,6 +924,8 @@ schema:
                                                           req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
+                                                          present_in_response: false
+                                                          required_on_create_input_only: false
                                               description: Options that determine how this cluster handles CPU scaling.
                                               custom_type:
                                                 package: customtypes
@@ -798,6 +938,8 @@ schema:
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - single_nested:
                                                 nested_object:
                                                     attributes:
@@ -810,6 +952,8 @@ schema:
                                                           req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
+                                                          present_in_response: false
+                                                          required_on_create_input_only: false
                                               description: Setting that enables disk auto-scaling.
                                               custom_type:
                                                 package: customtypes
@@ -822,6 +966,8 @@ schema:
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                   description: Options that determine how this cluster handles resource scaling.
                                   custom_type:
                                     package: customtypes
@@ -834,6 +980,8 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - string: {}
                                   description: "Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when **providerName** is `TENANT` and **electableSpecs.instanceSize** is `M0`, `M2` or `M5`. \n\nPlease note that  using an instanceSize of M2 or M5 will create a Flex cluster instead. Support for the instanceSize of M2 or M5 will be discontinued in January 2026. We recommend using the createFlexCluster API for such configurations moving forward."
                                   computed_optional_required: optional
@@ -843,6 +991,8 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - single_nested:
                                     nested_object:
                                         attributes:
@@ -863,6 +1013,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - float64: {}
                                               description: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
                                               computed_optional_required: computed
@@ -872,6 +1024,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string:
                                                 default: STANDARD
                                               description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
@@ -882,6 +1036,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string: {}
                                               description: Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
                                               computed_optional_required: computed
@@ -891,6 +1047,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - int64: {}
                                               description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
                                               computed_optional_required: computed
@@ -900,6 +1058,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                   description: The current hardware specifications for read only nodes in the region.
                                   custom_type:
                                     package: customtypes
@@ -912,6 +1072,8 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - single_nested:
                                     nested_object:
                                         attributes:
@@ -932,6 +1094,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - float64: {}
                                               description: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
                                               computed_optional_required: computed
@@ -941,6 +1105,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string:
                                                 default: STANDARD
                                               description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
@@ -951,6 +1117,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string: {}
                                               description: Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
                                               computed_optional_required: computed
@@ -960,6 +1128,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - int64: {}
                                               description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
                                               computed_optional_required: computed
@@ -969,6 +1139,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                   description: The current hardware specifications for read only nodes in the region.
                                   custom_type:
                                     package: customtypes
@@ -981,6 +1153,8 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - single_nested:
                                     nested_object:
                                         attributes:
@@ -1001,6 +1175,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - float64: {}
                                               description: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
                                               computed_optional_required: computed
@@ -1010,6 +1186,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string:
                                                 default: STANDARD
                                               description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
@@ -1020,6 +1198,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string: {}
                                               description: Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
                                               computed_optional_required: computed
@@ -1029,6 +1209,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - int64: {}
                                               description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
                                               computed_optional_required: computed
@@ -1038,6 +1220,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                   description: The current hardware specifications for read only nodes in the region.
                                   custom_type:
                                     package: customtypes
@@ -1050,6 +1234,8 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - single_nested:
                                     nested_object:
                                         attributes:
@@ -1070,6 +1256,8 @@ schema:
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - float64: {}
                                               description: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
                                               computed_optional_required: computed_optional
@@ -1079,6 +1267,8 @@ schema:
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string:
                                                 default: STANDARD
                                               description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
@@ -1089,6 +1279,8 @@ schema:
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string: {}
                                               description: The true tenant instance size. This is present to support backwards compatibility for deprecated provider types and/or instance sizes.
                                               computed_optional_required: computed
@@ -1098,6 +1290,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string: {}
                                               description: Hardware specification for the instances in this M0/M2/M5 tier cluster.
                                               computed_optional_required: optional
@@ -1107,6 +1301,8 @@ schema:
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - int64: {}
                                               description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
                                               computed_optional_required: optional
@@ -1116,6 +1312,8 @@ schema:
                                               req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                   description: Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region.
                                   custom_type:
                                     package: customtypes
@@ -1128,6 +1326,8 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - int64: {}
                                   description: |-
                                     Precedence is given to this region when a primary election occurs. If your **regionConfigs** has only **readOnlySpecs**, **analyticsSpecs**, or both, set this value to `0`. If you have multiple **regionConfigs** objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is `7`.
@@ -1140,6 +1340,8 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - string: {}
                                   description: Cloud service provider on which MongoDB Cloud provisions the hosts. Set dedicated clusters to `AWS`, `GCP`, `AZURE` or `TENANT`.
                                   computed_optional_required: optional
@@ -1149,6 +1351,8 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - single_nested:
                                     nested_object:
                                         attributes:
@@ -1169,6 +1373,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - float64: {}
                                               description: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
                                               computed_optional_required: computed_optional
@@ -1178,6 +1384,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string:
                                                 default: STANDARD
                                               description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
@@ -1188,6 +1396,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - string: {}
                                               description: Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
                                               computed_optional_required: computed_optional
@@ -1197,6 +1407,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                             - int64: {}
                                               description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
                                               computed_optional_required: computed_optional
@@ -1206,6 +1418,8 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
+                                              present_in_response: false
+                                              required_on_create_input_only: false
                                   description: The current hardware specifications for read only nodes in the region.
                                   custom_type:
                                     package: customtypes
@@ -1218,6 +1432,8 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - string: {}
                                   description: Physical location of your MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases. The region name is only returned in the response for single-region clusters. When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Cloud creates them as part of the deployment. It assigns the VPC a Classless Inter-Domain Routing (CIDR) block. To limit a new VPC peering connection to one Classless Inter-Domain Routing (CIDR) block and region, create the connection first. Deploy the cluster after the connection starts. GCP Clusters and Multi-region clusters require one VPC peering connection for each region. MongoDB nodes can use only the peering connection that resides in the same region as the nodes to communicate with the peered VPC.
                                   computed_optional_required: optional
@@ -1227,6 +1443,8 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                       description: |-
                         Hardware specifications for nodes set for a given region. Each **regionConfigs** object must be unique by region and cloud provider within the **replicationSpec**. Each **regionConfigs** object describes the region's priority in elections and the number and type of MongoDB nodes that MongoDB Cloud deploys to the region. Each **regionConfigs** object must have either an **analyticsSpecs** object, **electableSpecs** object, or **readOnlySpecs** object. Tenant clusters only require **electableSpecs. Dedicated** clusters can specify any of these specifications, but must have at least one **electableSpecs** object within a **replicationSpec**.
 
@@ -1244,6 +1462,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - string: {}
                       description: Unique 24-hexadecimal digit string that identifies the zone in a Global Cluster. This value can be used to configure Global Cluster backup policies.
                       computed_optional_required: computed
@@ -1253,6 +1473,8 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - string: {}
                       description: 'Human-readable label that describes the zone this shard belongs to in a Global Cluster. Provide this value only if "clusterType" : "GEOSHARDED" but not "selfManagedSharding" : true.'
                       computed_optional_required: computed_optional
@@ -1262,6 +1484,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
           description: List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations.
           custom_type:
             package: customtypes
@@ -1274,6 +1498,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string:
             default: ISRGROOTX1
           description: Root Certificate Authority that MongoDB Atlas cluster uses. MongoDB Cloud supports Internet Security Research Group.
@@ -1284,6 +1510,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: |-
             Human-readable label that indicates any current activity being taken on this cluster by the Atlas control plane. With the exception of CREATING and DELETING states, clusters should always be available and have a Primary node even when in states indicating ongoing activity.
@@ -1300,6 +1528,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - list_nested:
             nested_object:
                 attributes:
@@ -1312,6 +1542,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - string: {}
                       description: 'Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.'
                       computed_optional_required: required
@@ -1321,6 +1553,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
           description: List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.
           custom_type:
             package: customtypes
@@ -1333,6 +1567,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - bool:
             default: false
           description: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster.
@@ -1343,6 +1579,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - bool:
             default: false
           description: Flag that indicates whether AWS time-based snapshot copies will be used instead of slower standard snapshot copies during fast Atlas cross-region initial syncs. This flag is only relevant for clusters containing AWS nodes.
@@ -1353,6 +1591,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string:
             default: LTS
           description: Method by which the cluster maintains the MongoDB versions. If value is `CONTINUOUS`, you must not specify **mongoDBMajorVersion**.
@@ -1363,6 +1603,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - bool:
             default: true
           description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
@@ -1372,6 +1614,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+          present_in_response: false
+          required_on_create_input_only: false
         - timeouts:
             configurable_timeouts:
                 - create
@@ -1383,6 +1627,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
 operations:
     delete:
         wait:

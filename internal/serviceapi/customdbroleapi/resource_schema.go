@@ -72,7 +72,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"role_name": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "Human-readable label that identifies the role for the request. This name must be unique for this custom role in this project.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},

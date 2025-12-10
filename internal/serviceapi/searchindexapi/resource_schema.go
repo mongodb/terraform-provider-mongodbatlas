@@ -23,12 +23,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"collection_name": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "Label that identifies the collection to create an Atlas Search index in.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"database": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "Label that identifies the database that contains the collection to create an Atlas Search index in.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
@@ -311,7 +311,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"name": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "Label that identifies this index. Within each namespace, names of all indexes in the namespace must be unique.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},

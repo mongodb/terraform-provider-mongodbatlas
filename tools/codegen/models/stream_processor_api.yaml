@@ -13,6 +13,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: Human-readable name of the stream processor.
           computed_optional_required: optional
@@ -22,6 +24,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - single_nested:
             nested_object:
                 attributes:
@@ -37,6 +41,8 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - string: {}
                                   description: Name of the connection to write DLQ messages to. Must be an Atlas connection.
                                   computed_optional_required: optional
@@ -46,6 +52,8 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                                 - string: {}
                                   description: Name of the database to use for the DLQ.
                                   computed_optional_required: optional
@@ -55,6 +63,8 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_response: false
+                                  required_on_create_input_only: false
                       description: Dead letter queue for the stream processor.
                       custom_type:
                         package: customtypes
@@ -67,6 +77,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
                     - bool: {}
                       description: When true, the modified stream processor resumes from its last checkpoint.
                       computed_optional_required: optional
@@ -76,6 +88,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_response: false
+                      required_on_create_input_only: false
           description: Optional configuration for the stream processor.
           custom_type:
             package: customtypes
@@ -88,6 +102,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - list:
             element_type: 5
           description: Stream aggregation pipeline you want to apply to your streaming data.
@@ -102,6 +118,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'.
           computed_optional_required: computed
@@ -111,6 +129,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - map:
             element_type: 5
           description: The stats associated with the stream processor.
@@ -125,6 +145,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: Label that identifies the stream workspace.
           computed_optional_required: required
@@ -134,6 +156,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.
           computed_optional_required: computed
@@ -143,6 +167,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - bool:
             default: true
           description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
@@ -152,6 +178,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+          present_in_response: false
+          required_on_create_input_only: false
         - timeouts:
             configurable_timeouts:
                 - create
@@ -163,6 +191,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
 operations:
     delete:
         wait:

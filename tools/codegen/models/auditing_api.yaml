@@ -11,6 +11,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: JSON document that specifies which events to record. Escape any characters that may prevent parsing, such as single or double quotes, using a backslash (`\`).
           computed_optional_required: optional
@@ -20,6 +22,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: Human-readable label that displays how to configure the audit filter.
           computed_optional_required: computed
@@ -29,6 +33,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - bool:
             default: false
           description: Flag that indicates whether someone enabled database auditing for the specified project.
@@ -39,6 +45,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_response: false
+          required_on_create_input_only: false
         - string: {}
           description: |-
             Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -51,6 +59,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+          present_in_response: false
+          required_on_create_input_only: false
 operations:
     delete:
         http_method: PATCH
