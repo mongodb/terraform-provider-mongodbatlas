@@ -452,7 +452,7 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 }
 
 // mergeDataSourceAttributes merges path parameters with response attributes.
-// Path params are enforced as required; response attributes are marked computed.
+// Path params are enforced as required; response attributes are marked computed (including all nested attributes).
 // Aliases are applied to both path params and response attributes during merge to properly detect duplicates.
 // If duplicates exist (same TFSchemaName after aliasing), Required always wins over Computed.
 func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map[string]string) Attributes {
@@ -474,13 +474,12 @@ func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map
 		merged[attr.TFSchemaName] = &attr
 	}
 
-	// Add response attributes as computed
+	// Add response attributes as computed (including all nested attributes)
 	// Apply aliases to response attributes during merge to detect duplicates with aliased path params
 	// If a duplicate exists and the existing one is Required, keep Required
 	for i := range responseAttrs {
 		attr := responseAttrs[i] // create a copy
-		attr.ComputedOptionalRequired = Computed
-		attr.ReqBodyUsage = OmitAlways
+		setAttributeComputedRecursive(&attr)
 
 		// Apply alias if configured (same logic as path params)
 		if alias, found := aliases[attr.APIName]; found {
@@ -508,6 +507,41 @@ func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map
 	sortAttributesRecursive(&result)
 
 	return result
+}
+
+// setAttributeComputedRecursive sets an attribute and all its nested attributes to Computed.
+// This is used for data source attributes where all values come from the API response.
+func setAttributeComputedRecursive(attr *Attribute) {
+	attr.ComputedOptionalRequired = Computed
+	attr.ReqBodyUsage = OmitAlways
+
+	// Process nested attributes in ListNested
+	if attr.ListNested != nil {
+		for i := range attr.ListNested.NestedObject.Attributes {
+			setAttributeComputedRecursive(&attr.ListNested.NestedObject.Attributes[i])
+		}
+	}
+
+	// Process nested attributes in SingleNested
+	if attr.SingleNested != nil {
+		for i := range attr.SingleNested.NestedObject.Attributes {
+			setAttributeComputedRecursive(&attr.SingleNested.NestedObject.Attributes[i])
+		}
+	}
+
+	// Process nested attributes in SetNested
+	if attr.SetNested != nil {
+		for i := range attr.SetNested.NestedObject.Attributes {
+			setAttributeComputedRecursive(&attr.SetNested.NestedObject.Attributes[i])
+		}
+	}
+
+	// Process nested attributes in MapNested
+	if attr.MapNested != nil {
+		for i := range attr.MapNested.NestedObject.Attributes {
+			setAttributeComputedRecursive(&attr.MapNested.NestedObject.Attributes[i])
+		}
+	}
 }
 
 func sortAttributesRecursive(attrs *Attributes) {
