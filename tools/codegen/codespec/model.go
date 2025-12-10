@@ -110,6 +110,7 @@ type Attribute struct {
 	ReqBodyUsage             AttributeReqBodyUsage    `yaml:"req_body_usage"`
 	Sensitive                bool                     `yaml:"sensitive"`
 	CreateOnly               bool                     `yaml:"create_only"` // leveraged for defining plan modifier which avoids updates on this attribute
+	PresentInResponse        bool                     `yaml:"present_in_response"`
 }
 
 type ComputedOptionalRequired string
