@@ -65,6 +65,7 @@ GCP:
   * `endpoint_group_names` - GCP network endpoint groups corresponding to the Private Service Connect endpoint service.
   * `region_name` - GCP region for the Private Service Connect endpoint service.
   * `service_attachment_names` - Unique alphanumeric and special character strings that identify the service attachments associated with the GCP Private Service Connect endpoint service. Returns an empty list while Atlas creates the service attachments.
+  * `port_mapping_enabled` - Flag that indicates whether this endpoint service uses PSC port-mapping.
 * `status` - Status of the AWS PrivateLink connection or Status of the Azure Private Link Service. Atlas returns one of the following values:
   AWS:
     * `AVAILABLE` 	Atlas is creating the network load balancer and VPC endpoint service.

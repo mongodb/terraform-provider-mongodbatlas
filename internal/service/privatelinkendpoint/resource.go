@@ -110,6 +110,12 @@ func Resource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"port_mapping_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
 			"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -130,10 +136,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
 	region := d.Get("region").(string)
+	portMappingEnabled := conversion.Pointer(d.Get("port_mapping_enabled").(bool))
 
 	request := &admin.CloudProviderEndpointServiceRequest{
-		ProviderName: providerName,
-		Region:       region,
+		ProviderName:       providerName,
+		Region:             region,
+		PortMappingEnabled: portMappingEnabled,
 	}
 
 	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.CreatePrivateEndpointService(ctx, projectID, request).Execute()
@@ -234,6 +242,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	if err := d.Set("service_attachment_names", privateEndpoint.GetServiceAttachmentNames()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "service_attachment_names", privateLinkID, err))
+	}
+
+	if err := d.Set("port_mapping_enabled", privateEndpoint.GetPortMappingEnabled()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "port_mapping_enabled", privateLinkID, err))
 	}
 
 	if privateEndpoint.GetErrorMessage() != "" {
