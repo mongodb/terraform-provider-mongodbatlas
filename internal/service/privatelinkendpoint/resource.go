@@ -113,7 +113,6 @@ func Resource() *schema.Resource {
 			"port_mapping_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
 				ForceNew: true,
 			},
 			"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.

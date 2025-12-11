@@ -125,7 +125,7 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture(t *testi
 		projectName        = "test-acc-tf-p-gcp-port-based-routing-feature-flag-enabled"
 		region             = "europe-west1"
 		providerName       = "GCP"
-		portMappingEnabled = false
+		portMappingEnabled = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -142,7 +142,7 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture(t *testi
 					resource.TestCheckResourceAttrSet(resourceName, "region"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "region", region),
-					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "true"),
 				),
 			},
 			{

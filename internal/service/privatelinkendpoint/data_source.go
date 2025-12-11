@@ -84,7 +84,6 @@ func DataSource() *schema.Resource {
 			"port_mapping_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
 				ForceNew: true,
 			},
 		},
