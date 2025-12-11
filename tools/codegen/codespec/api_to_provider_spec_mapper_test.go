@@ -1480,6 +1480,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 							ComputedOptionalRequired: codespec.ComputedOptional,
 							Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(false)},
 							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInResponse:        true,
 						},
 						{
 							TFSchemaName:             "count",
@@ -1489,6 +1490,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 							Int64:                    &codespec.Int64Attribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
 							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInResponse:        true,
 						},
 						{
 							TFSchemaName:             "create_date",
@@ -1498,6 +1500,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 							ComputedOptionalRequired: codespec.Computed,
 							Description:              conversion.StringPtr(testFieldDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							PresentInResponse:        true,
 						},
 						{
 							TFSchemaName:             "group_id",
@@ -1516,6 +1519,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 							Float64:                  &codespec.Float64Attribute{Default: conversion.Pointer(2.0)},
 							ComputedOptionalRequired: codespec.ComputedOptional,
 							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInResponse:        true,
 						},
 						{
 							TFSchemaName:             "str_computed_attr",
@@ -1525,6 +1529,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							PresentInResponse:        true,
 						},
 						{
 							TFSchemaName:             "str_req_attr1",
@@ -1534,6 +1539,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
 							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInResponse:        true,
 						},
 						{
 							TFSchemaName:             "str_req_attr2",
@@ -1543,6 +1549,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
 							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInResponse:        true,
 						},
 						{
 							TFSchemaName:             "str_req_attr3",
@@ -1552,6 +1559,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 							ComputedOptionalRequired: codespec.Required,
 							Description:              conversion.StringPtr(testFieldDesc),
 							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInResponse:        true,
 						},
 					},
 				},

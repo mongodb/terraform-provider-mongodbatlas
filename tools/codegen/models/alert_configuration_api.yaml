@@ -756,6 +756,8 @@ data_sources:
               req_body_usage: omit_always
               sensitive: false
               create_only: false
+              present_in_response: false
+              required_on_create_input_only: false
             - bool:
                 default: false
               description: Flag that indicates whether someone enabled this alert configuration for the specified project.
@@ -766,6 +768,8 @@ data_sources:
               req_body_usage: omit_always
               sensitive: false
               create_only: false
+              present_in_response: false
+              required_on_create_input_only: false
             - string: {}
               description: Event type that triggers an alert.
               computed_optional_required: computed
@@ -775,6 +779,8 @@ data_sources:
               req_body_usage: omit_always
               sensitive: false
               create_only: false
+              present_in_response: false
+              required_on_create_input_only: false
             - string: {}
               description: |-
                 Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -787,6 +793,8 @@ data_sources:
               req_body_usage: omit_always
               sensitive: false
               create_only: false
+              present_in_response: false
+              required_on_create_input_only: false
             - string: {}
               description: Unique 24-hexadecimal digit string that identifies the alert configuration.
               computed_optional_required: required
@@ -796,6 +804,8 @@ data_sources:
               req_body_usage: omit_always
               sensitive: false
               create_only: false
+              present_in_response: false
+              required_on_create_input_only: false
             - list_nested:
                 nested_object:
                     attributes:
@@ -808,6 +818,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
                           computed_optional_required: computed
@@ -817,6 +829,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
               description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
               custom_type:
                 package: customtypes
@@ -829,6 +843,8 @@ data_sources:
               req_body_usage: omit_always
               sensitive: false
               create_only: false
+              present_in_response: false
+              required_on_create_input_only: false
             - list_nested:
                 nested_object:
                     attributes:
@@ -841,6 +857,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: Comparison operator to apply when checking the current metric value against **matcher[n].value**.
                           computed_optional_required: computed
@@ -850,6 +868,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: Value to match or exceed using the specified **matchers.operator**.
                           computed_optional_required: computed
@@ -859,6 +879,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
               description: List of rules that determine whether MongoDB Cloud checks an object for the alert configuration.
               custom_type:
                 package: customtypes
@@ -871,6 +893,8 @@ data_sources:
               req_body_usage: omit_always
               sensitive: false
               create_only: false
+              present_in_response: false
+              required_on_create_input_only: false
             - single_nested:
                 nested_object:
                     attributes:
@@ -883,6 +907,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: MongoDB Cloud computes the current metric value as an average.
                           computed_optional_required: computed
@@ -892,6 +918,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: Comparison operator to apply when checking the current metric value.
                           computed_optional_required: computed
@@ -901,6 +929,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - float64: {}
                           description: Value of metric that, when exceeded, triggers an alert.
                           computed_optional_required: computed
@@ -910,6 +940,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string:
                             default: HOURS
                           description: Element used to express the quantity. This can be an element of time, storage capacity, and the like.
@@ -920,6 +952,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
               description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics about the serverless database.
               custom_type:
                 package: customtypes
@@ -932,6 +966,8 @@ data_sources:
               req_body_usage: omit_always
               sensitive: false
               create_only: false
+              present_in_response: false
+              required_on_create_input_only: false
             - list_nested:
                 nested_object:
                     attributes:
@@ -944,6 +980,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: 'Name of the Slack channel to which MongoDB Cloud sends alert notifications. The resource requires this parameter when `"notifications.[n].typeName" : "SLACK"`.'
                           computed_optional_required: computed
@@ -953,6 +991,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: |-
                             Datadog API Key that MongoDB Cloud needs to send alert notifications to Datadog. You can find this API key in the Datadog dashboard. The resource requires this parameter when `"notifications.[n].typeName" : "DATADOG"`.
@@ -969,6 +1009,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string:
                             default: US
                           description: 'Datadog region that indicates which API Uniform Resource Locator (URL) to use. The resource requires this parameter when `"notifications.[n].typeName" : "DATADOG"`.'
@@ -979,6 +1021,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - int64: {}
                           description: Number of minutes that MongoDB Cloud waits after detecting an alert condition before it sends out the first notification.
                           computed_optional_required: computed
@@ -988,6 +1032,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: |-
                             Email address to which MongoDB Cloud sends alert notifications. The resource requires this parameter when `"notifications.[n].typeName" : "EMAIL"`. You don't need to set this value to send emails to individual or groups of MongoDB Cloud users including:
@@ -1005,6 +1051,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - bool: {}
                           description: |-
                             Flag that indicates whether MongoDB Cloud should send email notifications. The resource requires this parameter when one of the following values have been set:
@@ -1019,6 +1067,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: The id of the associated integration, the credentials of which to use for requests.
                           computed_optional_required: computed
@@ -1028,6 +1078,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - int64: {}
                           description: |-
                             Number of minutes to wait between successive notifications. MongoDB Cloud sends notifications until someone acknowledges the unacknowledged alert.
@@ -1040,6 +1092,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: |-
                             Microsoft Teams Webhook Uniform Resource Locator (URL) that MongoDB Cloud needs to send this notification via Microsoft Teams. The resource requires this parameter when `"notifications.[n].typeName" : "MICROSOFT_TEAMS"`. If the URL later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.
@@ -1052,6 +1106,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: 'Mobile phone number to which MongoDB Cloud sends alert notifications. The resource requires this parameter when `"notifications.[n].typeName" : "SMS"`.'
                           computed_optional_required: computed
@@ -1061,6 +1117,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: |-
                             HipChat API token that MongoDB Cloud needs to send alert notifications to HipChat. The resource requires this parameter when `"notifications.[n].typeName" : "HIP_CHAT"`". If the token later becomes invalid, MongoDB Cloud sends an email to the project owners. If the token remains invalid, MongoDB Cloud removes it.
@@ -1077,6 +1135,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: The notifierId is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.
                           computed_optional_required: computed
@@ -1086,6 +1146,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: |-
                             API Key that MongoDB Cloud needs to send this notification via Opsgenie. The resource requires this parameter when `"notifications.[n].typeName" : "OPS_GENIE"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.
@@ -1102,6 +1164,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string:
                             default: US
                           description: Opsgenie region that indicates which API Uniform Resource Locator (URL) to use.
@@ -1112,6 +1176,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string:
                             default: US
                           description: PagerDuty region that indicates which API Uniform Resource Locator (URL) to use.
@@ -1122,6 +1188,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - list:
                             element_type: 4
                           description: 'List that contains the one or more organization roles that receive the configured alert. This parameter is available when `"notifications.[n].typeName" : "GROUP"` or `"notifications.[n].typeName" : "ORG"`. If you include this parameter, MongoDB Cloud sends alerts only to users assigned the roles you specify in the array. If you omit this parameter, MongoDB Cloud sends alerts to users assigned any role.'
@@ -1136,6 +1204,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: 'HipChat API room name to which MongoDB Cloud sends alert notifications. The resource requires this parameter when `"notifications.[n].typeName" : "HIP_CHAT"`".'
                           computed_optional_required: computed
@@ -1145,6 +1215,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: |-
                             PagerDuty service key that MongoDB Cloud needs to send notifications via PagerDuty. The resource requires this parameter when `"notifications.[n].typeName" : "PAGER_DUTY"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.
@@ -1161,6 +1233,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - bool: {}
                           description: |-
                             Flag that indicates whether MongoDB Cloud should send text message notifications. The resource requires this parameter when one of the following values have been set:
@@ -1175,6 +1249,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: 'Unique 24-hexadecimal digit string that identifies one MongoDB Cloud team. The resource requires this parameter when `"notifications.[n].typeName" : "TEAM"`.'
                           computed_optional_required: computed
@@ -1184,6 +1260,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: 'Name of the MongoDB Cloud team that receives this notification. The resource requires this parameter when `"notifications.[n].typeName" : "TEAM"`.'
                           computed_optional_required: computed
@@ -1193,6 +1271,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: Human-readable label that displays the alert notification type.
                           computed_optional_required: computed
@@ -1202,6 +1282,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: 'MongoDB Cloud username of the person to whom MongoDB Cloud sends notifications. Specify only MongoDB Cloud users who belong to the project that owns the alert configuration. The resource requires this parameter when `"notifications.[n].typeName" : "USER"`.'
                           computed_optional_required: computed
@@ -1211,6 +1293,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: |-
                             API key that MongoDB Cloud needs to send alert notifications to Splunk On-Call. The resource requires this parameter when `"notifications.[n].typeName" : "VICTOR_OPS"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.
@@ -1227,6 +1311,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: 'Routing key that MongoDB Cloud needs to send alert notifications to Splunk On-Call. The resource requires this parameter when `"notifications.[n].typeName" : "VICTOR_OPS"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.'
                           computed_optional_required: computed
@@ -1236,6 +1322,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: |-
                             Authentication secret for a webhook-based alert.
@@ -1252,6 +1340,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: true
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: |-
                             Target URL for a webhook-based alert.
@@ -1268,6 +1358,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
               description: List that contains the targets that MongoDB Cloud sends notifications.
               custom_type:
                 package: customtypes
@@ -1280,6 +1372,8 @@ data_sources:
               req_body_usage: omit_always
               sensitive: false
               create_only: false
+              present_in_response: false
+              required_on_create_input_only: false
             - string: {}
               description: Severity of the event.
               computed_optional_required: computed
@@ -1289,6 +1383,8 @@ data_sources:
               req_body_usage: omit_always
               sensitive: false
               create_only: false
+              present_in_response: false
+              required_on_create_input_only: false
             - single_nested:
                 nested_object:
                     attributes:
@@ -1301,6 +1397,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: MongoDB Cloud computes the current metric value as an average.
                           computed_optional_required: computed
@@ -1310,6 +1408,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string: {}
                           description: Comparison operator to apply when checking the current metric value.
                           computed_optional_required: computed
@@ -1319,6 +1419,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - float64: {}
                           description: Value of metric that, when exceeded, triggers an alert.
                           computed_optional_required: computed
@@ -1328,6 +1430,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
                         - string:
                             default: RAW
                           description: Element used to express the quantity. This can be an element of time, storage capacity, and the like.
@@ -1338,6 +1442,8 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+                          present_in_response: false
+                          required_on_create_input_only: false
               description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
               custom_type:
                 package: customtypes
@@ -1350,6 +1456,8 @@ data_sources:
               req_body_usage: omit_always
               sensitive: false
               create_only: false
+              present_in_response: false
+              required_on_create_input_only: false
             - string: {}
               description: Date and time when someone last updated this alert configuration. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
               computed_optional_required: computed
@@ -1359,6 +1467,8 @@ data_sources:
               req_body_usage: omit_always
               sensitive: false
               create_only: false
+              present_in_response: false
+              required_on_create_input_only: false
     operations:
         read:
             http_method: GET
