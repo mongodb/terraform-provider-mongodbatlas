@@ -263,16 +263,16 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
-	Links            customtypes.NestedListValue[TFLinksModel]         `tfsdk:"links"`
-	Matchers         customtypes.NestedListValue[TFMatchersModel]      `tfsdk:"matchers"`
-	Notifications    customtypes.NestedListValue[TFNotificationsModel] `tfsdk:"notifications"`
-	Created          types.String                                      `tfsdk:"created"`
-	EventTypeName    types.String                                      `tfsdk:"event_type_name"`
-	GroupId          types.String                                      `tfsdk:"group_id"`
-	Id               types.String                                      `tfsdk:"id"`
-	MetricThreshold  customtypes.ObjectValue[TFMetricThresholdModel]   `tfsdk:"metric_threshold"`
-	SeverityOverride types.String                                      `tfsdk:"severity_override"`
-	Threshold        customtypes.ObjectValue[TFThresholdModel]         `tfsdk:"threshold"`
-	Updated          types.String                                      `tfsdk:"updated"`
-	Enabled          types.Bool                                        `tfsdk:"enabled"`
+	Links            customtypes.NestedListValue[TFLinksModel]         `tfsdk:"links" autogen:"omitjson"`
+	Matchers         customtypes.NestedListValue[TFMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
+	Notifications    customtypes.NestedListValue[TFNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
+	Created          types.String                                      `tfsdk:"created" autogen:"omitjson"`
+	EventTypeName    types.String                                      `tfsdk:"event_type_name" autogen:"omitjson"`
+	GroupId          types.String                                      `tfsdk:"group_id" autogen:"omitjson"`
+	Id               types.String                                      `tfsdk:"id" apiname:"alertConfigId" autogen:"omitjson"`
+	MetricThreshold  customtypes.ObjectValue[TFMetricThresholdModel]   `tfsdk:"metric_threshold" autogen:"omitjson"`
+	SeverityOverride types.String                                      `tfsdk:"severity_override" autogen:"omitjson"`
+	Threshold        customtypes.ObjectValue[TFThresholdModel]         `tfsdk:"threshold" autogen:"omitjson"`
+	Updated          types.String                                      `tfsdk:"updated" autogen:"omitjson"`
+	Enabled          types.Bool                                        `tfsdk:"enabled" autogen:"omitjson"`
 }

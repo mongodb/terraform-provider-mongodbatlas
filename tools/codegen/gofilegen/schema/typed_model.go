@@ -72,11 +72,6 @@ func generateStructOfTypedModel(attributes codespec.Attributes, name string, isD
 func typedModelProperty(attr *codespec.Attribute, isDataSource bool) string {
 	propType := attrModelType(attr)
 
-	// Data source models only need tfsdk tag (no marshaling to request body)
-	if isDataSource {
-		return fmt.Sprintf("%s %s", attr.TFModelName, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.TFSchemaName) + "`"
-	}
-
 	// Resource models need additional tags for marshaling
 	var (
 		tagsStr     = ""
