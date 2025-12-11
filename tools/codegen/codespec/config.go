@@ -25,9 +25,10 @@ func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resourc
 	return nil
 }
 
-// applyTransformationsWithConfigOptsToDataSources applies schema transformations and path param aliasing to data sources.
+// ApplyTransformationsToDataSources applies schema transformations and path param aliasing to data sources.
 // This mirrors applyTransformationsWithConfigOpts for resources, without timeout-related and create-only transformations.
-func applyTransformationsWithConfigOptsToDataSources(dsConfig *config.DataSources, ds *DataSources) error {
+// Exported for testing purposes.
+func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSources) error {
 	if ds == nil || ds.Schema == nil {
 		return nil
 	}

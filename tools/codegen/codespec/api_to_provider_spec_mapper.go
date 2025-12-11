@@ -442,7 +442,7 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 	}
 
 	// Apply aliasing and schema transformations post-merge
-	if err := applyTransformationsWithConfigOptsToDataSources(dsConfig, ds); err != nil {
+	if err := ApplyTransformationsToDataSources(dsConfig, ds); err != nil {
 		return nil, fmt.Errorf("failed to apply data source transformations: %w", err)
 	}
 
