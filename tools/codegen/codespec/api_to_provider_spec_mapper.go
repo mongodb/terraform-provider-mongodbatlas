@@ -10,7 +10,6 @@ import (
 	low "github.com/pb33f/libopenapi/datamodel/low/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
@@ -60,7 +59,6 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 
 		// Generate DataSources only when datasources block is defined in config
 		if resourceConfig.DataSources != nil {
-			// TODO: validateDataSourceOperations(resourceConfig.DataSources) - schemaIgnore not supported, staticRequestBody not supported
 			dataSources, err := apiSpecToDataSourcesModel(&apiSpec.Model, &resourceConfig)
 			if err != nil {
 				return nil, fmt.Errorf("unable to map to data sources model for %s: %w", name, err)
@@ -444,92 +442,9 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 	}
 
 	// Apply aliasing and schema transformations post-merge
-	if err := applyTransformationsWithConfigOptsToDataSources(dsConfig, ds); err != nil {
+	if err := ApplyTransformationsToDataSources(dsConfig, ds); err != nil {
 		return nil, fmt.Errorf("failed to apply data source transformations: %w", err)
 	}
 
 	return ds, nil
-}
-
-// mergeDataSourceAttributes merges path parameters with response attributes.
-// Path params are enforced as required; response attributes are marked computed.
-// Aliases are applied to both path params and response attributes during merge to properly detect duplicates.
-// If duplicates exist (same TFSchemaName after aliasing), Required always wins over Computed.
-func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map[string]string) Attributes {
-	merged := make(map[string]*Attribute) // key by TFSchemaName
-
-	// Add path params as required (they identify the data source)
-	// Apply aliases to path params during merge
-	for i := range pathParams {
-		attr := pathParams[i] // create a copy
-		attr.ComputedOptionalRequired = Required
-		attr.ReqBodyUsage = OmitAlways
-
-		// Apply alias if configured
-		if alias, found := aliases[attr.APIName]; found {
-			attr.TFSchemaName = stringcase.ToSnakeCase(alias)
-			attr.TFModelName = stringcase.Capitalize(alias)
-		}
-
-		merged[attr.TFSchemaName] = &attr
-	}
-
-	// Add response attributes as computed
-	// Apply aliases to response attributes during merge to detect duplicates with aliased path params
-	// If a duplicate exists and the existing one is Required, keep Required
-	for i := range responseAttrs {
-		attr := responseAttrs[i] // create a copy
-		attr.ComputedOptionalRequired = Computed
-		attr.ReqBodyUsage = OmitAlways
-
-		// Apply alias if configured (same logic as path params)
-		if alias, found := aliases[attr.APIName]; found {
-			attr.TFSchemaName = stringcase.ToSnakeCase(alias)
-			attr.TFModelName = stringcase.Capitalize(alias)
-		}
-
-		if existing, found := merged[attr.TFSchemaName]; found {
-			// Duplicate found: keep Required over Computed (Required always wins)
-			if existing.ComputedOptionalRequired != Required {
-				merged[attr.TFSchemaName] = &attr
-			}
-			// else: existing is Required, keep it
-		} else {
-			merged[attr.TFSchemaName] = &attr
-		}
-	}
-
-	// Convert map to slice
-	result := make(Attributes, 0, len(merged))
-	for _, attr := range merged {
-		result = append(result, *attr)
-	}
-
-	sortAttributesRecursive(&result)
-
-	return result
-}
-
-func sortAttributesRecursive(attrs *Attributes) {
-	if attrs == nil {
-		return
-	}
-
-	sortAttributes(*attrs)
-
-	for i := range *attrs {
-		attr := &(*attrs)[i]
-		if attr.ListNested != nil {
-			sortAttributesRecursive(&attr.ListNested.NestedObject.Attributes)
-		}
-		if attr.SingleNested != nil {
-			sortAttributesRecursive(&attr.SingleNested.NestedObject.Attributes)
-		}
-		if attr.SetNested != nil {
-			sortAttributesRecursive(&attr.SetNested.NestedObject.Attributes)
-		}
-		if attr.MapNested != nil {
-			sortAttributesRecursive(&attr.MapNested.NestedObject.Attributes)
-		}
-	}
 }

@@ -3,9 +3,12 @@ package codespec_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
-	"github.com/stretchr/testify/assert"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 )
 
 func TestApplyTimeoutTransformation(t *testing.T) {
@@ -179,4 +182,315 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
+	tests := map[string]struct {
+		inputDataSources   *codespec.DataSources
+		inputConfig        *config.DataSources
+		expectedReadPath   string
+		expectedListPath   string
+		expectedAttributes codespec.Attributes
+	}{
+		"Alias applied to attribute and path param": {
+			inputDataSources: &codespec.DataSources{
+				Schema: &codespec.DataSourceSchema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
+							APIName:                  "groupId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+						{
+							TFSchemaName:             "name",
+							TFModelName:              "Name",
+							APIName:                  "name",
+							ComputedOptionalRequired: codespec.Computed,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					Read: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/resource",
+						HTTPMethod: "GET",
+					},
+				},
+			},
+			inputConfig: &config.DataSources{
+				SchemaOptions: config.SchemaOptions{
+					Aliases: map[string]string{
+						"groupId": "projectId",
+					},
+				},
+			},
+			// Note: attributes are NOT sorted by transformation - they keep original order with alias applied
+			expectedAttributes: codespec.Attributes{
+				{
+					TFSchemaName:             "project_id",
+					TFModelName:              "ProjectId",
+					APIName:                  "groupId", // APIName preserved
+					ComputedOptionalRequired: codespec.Required,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+				{
+					TFSchemaName:             "name",
+					TFModelName:              "Name",
+					APIName:                  "name",
+					ComputedOptionalRequired: codespec.Computed,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+			},
+			expectedReadPath: "/api/atlas/v2/groups/{projectId}/resource",
+		},
+		"Alias applied to List operation path": {
+			inputDataSources: &codespec.DataSources{
+				Schema: &codespec.DataSourceSchema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
+							APIName:                  "groupId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					List: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/resources",
+						HTTPMethod: "GET",
+					},
+				},
+			},
+			inputConfig: &config.DataSources{
+				SchemaOptions: config.SchemaOptions{
+					Aliases: map[string]string{
+						"groupId": "projectId",
+					},
+				},
+			},
+			expectedAttributes: codespec.Attributes{
+				{
+					TFSchemaName:             "project_id",
+					TFModelName:              "ProjectId",
+					APIName:                  "groupId",
+					ComputedOptionalRequired: codespec.Required,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+			},
+			expectedListPath: "/api/atlas/v2/groups/{projectId}/resources",
+		},
+		"No aliases - attributes unchanged": {
+			inputDataSources: &codespec.DataSources{
+				Schema: &codespec.DataSourceSchema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
+							APIName:                  "groupId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					Read: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/resource",
+						HTTPMethod: "GET",
+					},
+				},
+			},
+			inputConfig: &config.DataSources{
+				SchemaOptions: config.SchemaOptions{},
+			},
+			expectedAttributes: codespec.Attributes{
+				{
+					TFSchemaName:             "group_id",
+					TFModelName:              "GroupId",
+					APIName:                  "groupId",
+					ComputedOptionalRequired: codespec.Required,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+			},
+			expectedReadPath: "/api/atlas/v2/groups/{groupId}/resource",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := codespec.ApplyTransformationsToDataSources(tc.inputConfig, tc.inputDataSources)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.expectedAttributes, tc.inputDataSources.Schema.Attributes)
+
+			if tc.expectedReadPath != "" {
+				assert.Equal(t, tc.expectedReadPath, tc.inputDataSources.Operations.Read.Path)
+			}
+			if tc.expectedListPath != "" {
+				assert.Equal(t, tc.expectedListPath, tc.inputDataSources.Operations.List.Path)
+			}
+		})
+	}
+}
+
+func TestApplyTransformationsToDataSources_OverrideTransformation(t *testing.T) {
+	tests := map[string]struct {
+		inputDataSources   *codespec.DataSources
+		inputConfig        *config.DataSources
+		expectedAttributes codespec.Attributes
+	}{
+		"Override description": {
+			inputDataSources: &codespec.DataSources{
+				Schema: &codespec.DataSourceSchema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "name",
+							TFModelName:              "Name",
+							APIName:                  "name",
+							ComputedOptionalRequired: codespec.Computed,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("Original description"),
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{},
+			},
+			inputConfig: &config.DataSources{
+				SchemaOptions: config.SchemaOptions{
+					Overrides: map[string]config.Override{
+						"name": {
+							Description: "Overridden description",
+						},
+					},
+				},
+			},
+			expectedAttributes: codespec.Attributes{
+				{
+					TFSchemaName:             "name",
+					TFModelName:              "Name",
+					APIName:                  "name",
+					ComputedOptionalRequired: codespec.Computed,
+					String:                   &codespec.StringAttribute{},
+					Description:              conversion.StringPtr("Overridden description"),
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+			},
+		},
+		"Override computability": {
+			inputDataSources: &codespec.DataSources{
+				Schema: &codespec.DataSourceSchema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "optional_attr",
+							TFModelName:              "OptionalAttr",
+							APIName:                  "optionalAttr",
+							ComputedOptionalRequired: codespec.Computed,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{},
+			},
+			inputConfig: &config.DataSources{
+				SchemaOptions: config.SchemaOptions{
+					Overrides: map[string]config.Override{
+						"optional_attr": {
+							Computability: &config.Computability{Optional: true},
+						},
+					},
+				},
+			},
+			expectedAttributes: codespec.Attributes{
+				{
+					TFSchemaName:             "optional_attr",
+					TFModelName:              "OptionalAttr",
+					APIName:                  "optionalAttr",
+					ComputedOptionalRequired: codespec.Optional,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := codespec.ApplyTransformationsToDataSources(tc.inputConfig, tc.inputDataSources)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.expectedAttributes, tc.inputDataSources.Schema.Attributes)
+		})
+	}
+}
+
+func TestApplyTransformationsToDataSources_IgnoreTransformation(t *testing.T) {
+	inputDataSources := &codespec.DataSources{
+		Schema: &codespec.DataSourceSchema{
+			Attributes: codespec.Attributes{
+				{
+					TFSchemaName:             "keep_attr",
+					TFModelName:              "KeepAttr",
+					APIName:                  "keepAttr",
+					ComputedOptionalRequired: codespec.Computed,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+				{
+					TFSchemaName:             "ignore_attr",
+					TFModelName:              "IgnoreAttr",
+					APIName:                  "ignoreAttr",
+					ComputedOptionalRequired: codespec.Computed,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+			},
+		},
+		Operations: codespec.APIOperations{},
+	}
+
+	inputConfig := &config.DataSources{
+		SchemaOptions: config.SchemaOptions{
+			Ignores: []string{"ignore_attr"},
+		},
+	}
+
+	err := codespec.ApplyTransformationsToDataSources(inputConfig, inputDataSources)
+	require.NoError(t, err)
+
+	// Only keep_attr should remain
+	expectedAttributes := codespec.Attributes{
+		{
+			TFSchemaName:             "keep_attr",
+			TFModelName:              "KeepAttr",
+			APIName:                  "keepAttr",
+			ComputedOptionalRequired: codespec.Computed,
+			String:                   &codespec.StringAttribute{},
+			ReqBodyUsage:             codespec.OmitAlways,
+		},
+	}
+
+	assert.Equal(t, expectedAttributes, inputDataSources.Schema.Attributes)
+}
+
+func TestApplyTransformationsToDataSources_NilInputs(t *testing.T) {
+	// Test nil DataSources
+	err := codespec.ApplyTransformationsToDataSources(&config.DataSources{}, nil)
+	require.NoError(t, err)
+
+	// Test nil Schema
+	err = codespec.ApplyTransformationsToDataSources(&config.DataSources{}, &codespec.DataSources{})
+	require.NoError(t, err)
 }
