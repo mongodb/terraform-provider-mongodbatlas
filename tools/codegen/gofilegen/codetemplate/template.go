@@ -73,7 +73,6 @@ type DataSourceFileInputs struct {
 	VersionHeader  string
 	ReadPath       string
 	ReadMethod     string
-	RequiredFields []string // e.g. ["group_id", "cluster_name"]
 	PathParams     []Param
 }
 

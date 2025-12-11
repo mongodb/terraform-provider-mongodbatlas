@@ -16,7 +16,6 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 
 	readOp := input.DataSources.Operations.Read
 	pathParams := resource.GetPathParams(readOp.Path)
-	requiredFields := resource.GetIDAttributes(readOp.Path)
 
 	tmplInputs := codetemplate.DataSourceFileInputs{
 		PackageName:    input.PackageName,
@@ -24,7 +23,6 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 		VersionHeader:  input.DataSources.Operations.VersionHeader,
 		ReadPath:       readOp.Path,
 		ReadMethod:     readOp.HTTPMethod,
-		RequiredFields: requiredFields,
 		PathParams:     pathParams,
 	}
 	result := codetemplate.ApplyDataSourceFileTemplate(&tmplInputs)
