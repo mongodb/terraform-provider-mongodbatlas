@@ -14,26 +14,26 @@ schema:
           required_on_create_input_only: false
         - string: {}
           description: Label that identifies the collection to create an Atlas Search index in.
-          computed_optional_required: optional
+          computed_optional_required: required
           tf_schema_name: collection_name
           tf_model_name: CollectionName
           api_name: collectionName
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
-          present_in_response: false
-          required_on_create_input_only: true
+          present_in_response: true
+          required_on_create_input_only: false
         - string: {}
           description: Label that identifies the database that contains the collection to create an Atlas Search index in.
-          computed_optional_required: optional
+          computed_optional_required: required
           tf_schema_name: database
           tf_model_name: Database
           api_name: database
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
-          present_in_response: false
-          required_on_create_input_only: true
+          present_in_response: true
+          required_on_create_input_only: false
         - single_nested:
             nested_object:
                 attributes:
@@ -395,7 +395,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - single_nested:
             nested_object:
@@ -420,7 +420,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - list_nested:
                         nested_object:
@@ -439,7 +439,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: |-
@@ -454,7 +454,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - list:
                                     element_type: 5
@@ -475,7 +475,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - map:
                                     element_type: 5
@@ -491,7 +491,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                       description: List of user-defined methods to convert database field text into searchable words.
                       custom_type:
@@ -505,7 +505,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - list:
                         element_type: 5
@@ -521,7 +521,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - single_nested:
                         nested_object:
@@ -539,7 +539,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - map:
                                     element_type: 5
@@ -555,7 +555,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                       description: Index specifications for the collection's fields.
                       custom_type:
@@ -569,7 +569,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - int64:
                         default: 1
@@ -581,7 +581,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string:
                         default: lucene.standard
@@ -593,7 +593,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. To learn more, see Stored Source Fields.
@@ -608,7 +608,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - list_nested:
                         nested_object:
@@ -622,7 +622,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: Label that identifies the synonym definition. Each **synonym.name** must be unique within the same index definition.
@@ -633,7 +633,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - single_nested:
                                     nested_object:
@@ -647,7 +647,7 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
-                                              present_in_response: false
+                                              present_in_response: true
                                               required_on_create_input_only: false
                                   description: Data set that stores words and their applicable synonyms.
                                   custom_type:
@@ -661,7 +661,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                       description: Rule sets that map words to their synonyms in this index.
                       custom_type:
@@ -675,7 +675,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - list_nested:
                         nested_object:
@@ -689,7 +689,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - list:
                                     element_type: 5
@@ -705,7 +705,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                       description: Type sets for the index.
                       custom_type:
@@ -719,7 +719,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           custom_type:
             package: customtypes
@@ -732,7 +732,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - single_nested:
             nested_object:
@@ -746,7 +746,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - int64: {}
                       description: The version number associated with this index definition when it was created.
@@ -757,7 +757,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: Object which includes the version number of the index definition and the time that the index definition was created.
           custom_type:
@@ -771,19 +771,19 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Label that identifies this index. Within each namespace, names of all indexes in the namespace must be unique.
-          computed_optional_required: optional
+          computed_optional_required: required
           tf_schema_name: name
           tf_model_name: Name
           api_name: name
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
-          present_in_response: false
-          required_on_create_input_only: true
+          present_in_response: true
+          required_on_create_input_only: false
         - bool: {}
           description: Flag that indicates whether the index is queryable on all hosts.
           computed_optional_required: computed
@@ -793,7 +793,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: |-
@@ -812,7 +812,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - list_nested:
             nested_object:
@@ -826,7 +826,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - single_nested:
                         nested_object:
@@ -848,7 +848,7 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
-                                              present_in_response: false
+                                              present_in_response: true
                                               required_on_create_input_only: false
                                             - int64:
                                                 default: 1
@@ -860,7 +860,7 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
-                                              present_in_response: false
+                                              present_in_response: true
                                               required_on_create_input_only: false
                                   description: The vector search index definition set by the user.
                                   custom_type:
@@ -874,7 +874,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - single_nested:
                                     nested_object:
@@ -888,7 +888,7 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
-                                              present_in_response: false
+                                              present_in_response: true
                                               required_on_create_input_only: false
                                             - int64: {}
                                               description: The version number associated with this index definition when it was created.
@@ -899,7 +899,7 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
-                                              present_in_response: false
+                                              present_in_response: true
                                               required_on_create_input_only: false
                                   description: Object which includes the version number of the index definition and the time that the index definition was created.
                                   custom_type:
@@ -913,7 +913,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: Optional message describing an error.
@@ -924,7 +924,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - bool: {}
                                   description: Flag that indicates whether the index generation is queryable on the host.
@@ -935,7 +935,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: |-
@@ -954,7 +954,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                       description: Contains status information about a vector search index.
                       custom_type:
@@ -968,7 +968,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - bool: {}
                       description: Flag that indicates whether the index is queryable on the host.
@@ -979,7 +979,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - single_nested:
                         nested_object:
@@ -1001,7 +1001,7 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
-                                              present_in_response: false
+                                              present_in_response: true
                                               required_on_create_input_only: false
                                             - int64:
                                                 default: 1
@@ -1013,7 +1013,7 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
-                                              present_in_response: false
+                                              present_in_response: true
                                               required_on_create_input_only: false
                                   description: The vector search index definition set by the user.
                                   custom_type:
@@ -1027,7 +1027,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - single_nested:
                                     nested_object:
@@ -1041,7 +1041,7 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
-                                              present_in_response: false
+                                              present_in_response: true
                                               required_on_create_input_only: false
                                             - int64: {}
                                               description: The version number associated with this index definition when it was created.
@@ -1052,7 +1052,7 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
-                                              present_in_response: false
+                                              present_in_response: true
                                               required_on_create_input_only: false
                                   description: Object which includes the version number of the index definition and the time that the index definition was created.
                                   custom_type:
@@ -1066,7 +1066,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: Optional message describing an error.
@@ -1077,7 +1077,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - bool: {}
                                   description: Flag that indicates whether the index generation is queryable on the host.
@@ -1088,7 +1088,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: |-
@@ -1107,7 +1107,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                       description: Contains status information about a vector search index.
                       custom_type:
@@ -1121,7 +1121,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: |-
@@ -1140,7 +1140,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: List of documents detailing index status on each host.
           custom_type:
@@ -1154,7 +1154,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Status that describes this index's synonym mappings. This status appears only if the index has synonyms defined.
@@ -1165,7 +1165,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - list:
             element_type: 5
@@ -1181,7 +1181,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Type of the index. The default type is search.
@@ -1192,7 +1192,7 @@ schema:
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - bool:
             default: true

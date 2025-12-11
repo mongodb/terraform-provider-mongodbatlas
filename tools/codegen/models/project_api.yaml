@@ -10,7 +10,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Date and time when MongoDB Cloud created this project. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
@@ -21,7 +21,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies the MongoDB Cloud project.
@@ -32,7 +32,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Human-readable label that identifies the project included in the MongoDB Cloud organization.
@@ -43,19 +43,19 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies the MongoDB Cloud organization to which the project belongs.
-          computed_optional_required: optional
+          computed_optional_required: required
           tf_schema_name: org_id
           tf_model_name: OrgId
           api_name: orgId
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
-          present_in_response: false
-          required_on_create_input_only: true
+          present_in_response: true
+          required_on_create_input_only: false
         - string:
             default: COMMERCIAL_FEDRAMP_REGIONS_ONLY
           description: |-
@@ -75,7 +75,7 @@ schema:
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - list_nested:
             nested_object:
@@ -89,7 +89,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: 'Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.'
@@ -100,7 +100,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project.
           custom_type:
@@ -114,7 +114,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - bool:
             default: true
@@ -126,7 +126,7 @@ schema:
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
 operations:
     delete:

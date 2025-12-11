@@ -13,7 +13,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - list_nested:
                         nested_object:
@@ -27,7 +27,7 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: 'Human-readable label that identifies the collection on which you grant the action to one MongoDB user. If you don''t set this parameter, you grant the action to all collections in the database specified in the **actions.resources.db** parameter. If you set `"actions.resources.cluster" : true`, MongoDB Cloud ignores this parameter.'
@@ -38,7 +38,7 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: 'Human-readable label that identifies the database on which you grant the action to one MongoDB user. If you set `"actions.resources.cluster" : true`, MongoDB Cloud ignores this parameter.'
@@ -49,7 +49,7 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                       description: List of resources on which you grant the action.
                       custom_type:
@@ -63,7 +63,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: List of the individual privilege actions that the role grants.
           custom_type:
@@ -77,7 +77,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: |-
@@ -105,7 +105,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Human-readable label that identifies the role inherited. Set this value to `admin` for every role except `read` or `readWrite`.
@@ -116,7 +116,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: List of the built-in roles that this custom role inherits.
           custom_type:
@@ -130,19 +130,19 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Human-readable label that identifies the role for the request. This name must be unique for this custom role in this project.
-          computed_optional_required: optional
+          computed_optional_required: required
           tf_schema_name: role_name
           tf_model_name: RoleName
           api_name: roleName
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
-          present_in_response: false
-          required_on_create_input_only: true
+          present_in_response: true
+          required_on_create_input_only: false
 operations:
     delete:
         http_method: DELETE

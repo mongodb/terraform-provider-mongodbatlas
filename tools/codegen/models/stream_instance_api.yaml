@@ -16,7 +16,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: OIDC client secret for authentication to the Kafka cluster.
@@ -27,7 +27,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: true
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.
@@ -38,7 +38,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: SASL OAUTHBEARER authentication method. Can only be OIDC currently.
@@ -49,7 +49,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: Password of the account to connect to the Kafka cluster.
@@ -60,7 +60,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: true
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: SASL OAUTHBEARER extensions parameter for additional OAuth2 configuration.
@@ -71,7 +71,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: OIDC scope parameter defining the access permissions requested.
@@ -82,7 +82,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: SSL certificate for client authentication to Kafka.
@@ -93,7 +93,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: SSL key for client authentication to Kafka.
@@ -104,7 +104,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: Password for the SSL key, if it is password protected.
@@ -115,7 +115,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: OIDC token endpoint URL for obtaining access tokens.
@@ -126,7 +126,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: Username of the account to connect to the Kafka cluster.
@@ -137,7 +137,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                       description: User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.
                       custom_type:
@@ -151,7 +151,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - single_nested:
                         nested_object:
@@ -165,7 +165,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
@@ -176,7 +176,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                       description: AWS configurations for AWS-based connection types.
                       custom_type:
@@ -190,7 +190,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Comma separated list of server addresses.
@@ -201,7 +201,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: The id of the group that the cluster belongs to.
@@ -212,7 +212,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Name of the cluster configured for this connection.
@@ -223,7 +223,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - map:
                         element_type: 4
@@ -239,7 +239,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - single_nested:
                         nested_object:
@@ -253,7 +253,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: Type of the DB role. Can be either BuiltIn or Custom.
@@ -264,7 +264,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                       description: The name of a Built in or Custom DB Role to connect to an Atlas Cluster.
                       custom_type:
@@ -278,7 +278,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - map:
                         element_type: 4
@@ -294,7 +294,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
@@ -305,7 +305,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - single_nested:
                         nested_object:
@@ -322,7 +322,7 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
-                                              present_in_response: false
+                                              present_in_response: true
                                               required_on_create_input_only: false
                                             - string: {}
                                               description: Reserved. Will be used by PRIVATE_LINK connection type.
@@ -333,7 +333,7 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
-                                              present_in_response: false
+                                              present_in_response: true
                                               required_on_create_input_only: false
                                             - string: {}
                                               description: Reserved. Will be used by TRANSIT_GATEWAY connection type.
@@ -344,7 +344,7 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
-                                              present_in_response: false
+                                              present_in_response: true
                                               required_on_create_input_only: false
                                             - string: {}
                                               description: Selected networking type. Either PUBLIC, VPC, PRIVATE_LINK, or TRANSIT_GATEWAY. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. TRANSIT_GATEWAY support is coming soon.
@@ -355,7 +355,7 @@ schema:
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
-                                              present_in_response: false
+                                              present_in_response: true
                                               required_on_create_input_only: false
                                   description: Information about networking access.
                                   custom_type:
@@ -369,7 +369,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                       description: Networking configuration for Streams connections.
                       custom_type:
@@ -383,7 +383,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - single_nested:
                         nested_object:
@@ -397,7 +397,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: Describes the transport type. Can be either SASL_PLAINTEXT, SASL_SSL, or SSL.
@@ -408,7 +408,7 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                       description: Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.
                       custom_type:
@@ -422,7 +422,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Type of the connection.
@@ -433,7 +433,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: The url to be used for the request.
@@ -444,7 +444,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: List of connections configured in the stream workspace.
           custom_type:
@@ -458,7 +458,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - single_nested:
             nested_object:
@@ -472,7 +472,7 @@ schema:
                       req_body_usage: ""
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Name of the cloud provider region hosting Atlas Stream Processing.
@@ -483,7 +483,7 @@ schema:
                       req_body_usage: ""
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: Information about the cloud provider region in which MongoDB Cloud processes the stream.
           custom_type:
@@ -497,7 +497,7 @@ schema:
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: |-
@@ -511,7 +511,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - list:
             element_type: 4
@@ -527,7 +527,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Label that identifies the stream workspace.
@@ -538,7 +538,7 @@ schema:
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - single_nested:
             nested_object:
@@ -553,7 +553,7 @@ schema:
                       req_body_usage: ""
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: Sample connections to add to SPI.
           custom_type:
@@ -567,7 +567,7 @@ schema:
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - single_nested:
             nested_object:
@@ -581,7 +581,7 @@ schema:
                       req_body_usage: ""
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.
@@ -592,7 +592,7 @@ schema:
                       req_body_usage: ""
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: Configuration options for an Atlas Stream Processing Workspace.
           custom_type:
@@ -606,7 +606,7 @@ schema:
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
 operations:
     delete:

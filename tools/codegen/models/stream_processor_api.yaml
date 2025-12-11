@@ -24,7 +24,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - single_nested:
             nested_object:
@@ -41,7 +41,7 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: Name of the connection to write DLQ messages to. Must be an Atlas connection.
@@ -52,7 +52,7 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                                 - string: {}
                                   description: Name of the database to use for the DLQ.
@@ -63,7 +63,7 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
-                                  present_in_response: false
+                                  present_in_response: true
                                   required_on_create_input_only: false
                       description: Dead letter queue for the stream processor.
                       custom_type:
@@ -77,7 +77,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - bool: {}
                       description: When true, the modified stream processor resumes from its last checkpoint.
@@ -102,7 +102,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - list:
             element_type: 5
@@ -118,7 +118,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'.
@@ -129,7 +129,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - map:
             element_type: 5
@@ -145,7 +145,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Label that identifies the stream workspace.
@@ -167,7 +167,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - bool:
             default: true

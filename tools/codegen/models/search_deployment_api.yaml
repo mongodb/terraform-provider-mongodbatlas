@@ -21,7 +21,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: |-
@@ -35,7 +35,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies the search deployment.
@@ -46,7 +46,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - list_nested:
             nested_object:
@@ -60,7 +60,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - int64: {}
                       description: Number of Search Nodes in the cluster.
@@ -71,7 +71,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: |-
             List of settings that configure the Search Nodes for your cluster.
@@ -88,7 +88,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Human-readable label that indicates the current operating condition of this search deployment.
@@ -99,7 +99,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - bool:
             default: true

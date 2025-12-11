@@ -13,7 +13,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - bool:
             default: false
@@ -25,7 +25,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Event type that triggers an alert.
@@ -36,7 +36,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: |-
@@ -50,7 +50,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies this alert configuration.
@@ -61,7 +61,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - list_nested:
             nested_object:
@@ -75,7 +75,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
@@ -86,7 +86,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
           custom_type:
@@ -100,7 +100,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - list_nested:
             nested_object:
@@ -114,7 +114,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Comparison operator to apply when checking the current metric value against **matcher[n].value**.
@@ -125,7 +125,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Value to match or exceed using the specified **matchers.operator**.
@@ -136,7 +136,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: List of rules that determine whether MongoDB Cloud checks an object for the alert configuration.
           custom_type:
@@ -150,7 +150,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - single_nested:
             nested_object:
@@ -164,7 +164,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: MongoDB Cloud computes the current metric value as an average.
@@ -175,7 +175,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Comparison operator to apply when checking the current metric value.
@@ -186,7 +186,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - float64: {}
                       description: Value of metric that, when exceeded, triggers an alert.
@@ -197,7 +197,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string:
                         default: HOURS
@@ -209,7 +209,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics about the serverless database.
           custom_type:
@@ -223,7 +223,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - list_nested:
             nested_object:
@@ -237,7 +237,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: 'Name of the Slack channel to which MongoDB Cloud sends alert notifications. The resource requires this parameter when `"notifications.[n].typeName" : "SLACK"`.'
@@ -248,7 +248,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: |-
@@ -266,7 +266,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string:
                         default: US
@@ -278,7 +278,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - int64: {}
                       description: Number of minutes that MongoDB Cloud waits after detecting an alert condition before it sends out the first notification.
@@ -289,7 +289,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: |-
@@ -308,7 +308,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - bool: {}
                       description: |-
@@ -324,7 +324,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: The id of the associated integration, the credentials of which to use for requests.
@@ -335,7 +335,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - int64: {}
                       description: |-
@@ -349,7 +349,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: |-
@@ -363,7 +363,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: 'Mobile phone number to which MongoDB Cloud sends alert notifications. The resource requires this parameter when `"notifications.[n].typeName" : "SMS"`.'
@@ -374,7 +374,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: |-
@@ -392,7 +392,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: The notifierId is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.
@@ -403,7 +403,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: |-
@@ -421,7 +421,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string:
                         default: US
@@ -433,7 +433,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string:
                         default: US
@@ -445,7 +445,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - list:
                         element_type: 4
@@ -461,7 +461,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: 'HipChat API room name to which MongoDB Cloud sends alert notifications. The resource requires this parameter when `"notifications.[n].typeName" : "HIP_CHAT"`".'
@@ -472,7 +472,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: |-
@@ -490,7 +490,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - bool: {}
                       description: |-
@@ -506,7 +506,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: 'Unique 24-hexadecimal digit string that identifies one MongoDB Cloud team. The resource requires this parameter when `"notifications.[n].typeName" : "TEAM"`.'
@@ -517,7 +517,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: 'Name of the MongoDB Cloud team that receives this notification. The resource requires this parameter when `"notifications.[n].typeName" : "TEAM"`.'
@@ -528,7 +528,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Human-readable label that displays the alert notification type.
@@ -539,7 +539,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: 'MongoDB Cloud username of the person to whom MongoDB Cloud sends notifications. Specify only MongoDB Cloud users who belong to the project that owns the alert configuration. The resource requires this parameter when `"notifications.[n].typeName" : "USER"`.'
@@ -550,7 +550,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: |-
@@ -568,7 +568,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: 'Routing key that MongoDB Cloud needs to send alert notifications to Splunk On-Call. The resource requires this parameter when `"notifications.[n].typeName" : "VICTOR_OPS"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.'
@@ -579,7 +579,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: |-
@@ -597,7 +597,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: |-
@@ -615,7 +615,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: true
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: List that contains the targets that MongoDB Cloud sends notifications.
           custom_type:
@@ -629,7 +629,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Severity of the event.
@@ -640,7 +640,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - single_nested:
             nested_object:
@@ -654,7 +654,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: MongoDB Cloud computes the current metric value as an average.
@@ -665,7 +665,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Comparison operator to apply when checking the current metric value.
@@ -676,7 +676,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - float64: {}
                       description: Value of metric that, when exceeded, triggers an alert.
@@ -687,7 +687,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string:
                         default: RAW
@@ -699,7 +699,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
           custom_type:
@@ -713,7 +713,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Date and time when someone last updated this alert configuration. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
@@ -724,7 +724,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
 operations:
     delete:

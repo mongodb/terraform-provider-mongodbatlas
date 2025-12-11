@@ -13,7 +13,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Human-readable label that describes a user.
@@ -24,7 +24,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: The user that last updated the atlas resource policy.
           custom_type:
@@ -38,7 +38,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Date and time in UTC when the atlas resource policy was created.
@@ -49,7 +49,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Description of the atlas resource policy.
@@ -60,7 +60,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Unique 24-hexadecimal character string that identifies the atlas resource policy.
@@ -71,7 +71,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - single_nested:
             nested_object:
@@ -85,7 +85,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Human-readable label that describes a user.
@@ -96,7 +96,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: The user that last updated the atlas resource policy.
           custom_type:
@@ -110,7 +110,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Date and time in UTC when the atlas resource policy was last updated.
@@ -121,7 +121,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Human-readable label that describes the atlas resource policy.
@@ -132,7 +132,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
@@ -143,7 +143,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - list_nested:
             nested_object:
@@ -157,7 +157,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
                     - string: {}
                       description: Unique 24-hexadecimal character string that identifies the policy.
@@ -168,7 +168,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                      present_in_response: false
+                      present_in_response: true
                       required_on_create_input_only: false
           description: List of policies that make up the atlas resource policy.
           custom_type:
@@ -182,7 +182,7 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
         - string: {}
           description: A string that identifies the version of the atlas resource policy.
@@ -193,7 +193,7 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
+          present_in_response: true
           required_on_create_input_only: false
 operations:
     delete:
