@@ -29,3 +29,19 @@ func ValRegion(reg any, opt ...string) (string, error) {
 
 	return strings.ReplaceAll(region, "-", "_"), nil
 }
+
+func IsEmpty(val any) bool {
+	if val == nil {
+		return true
+	}
+
+	switch v := val.(type) {
+	case *bool, *float64, *int64:
+		return v == nil
+	case string:
+		return v == ""
+	case *string:
+		return v == nil || *v == ""
+	}
+	return false
+}

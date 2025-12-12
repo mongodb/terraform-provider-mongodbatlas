@@ -8,15 +8,17 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 )
 
 const (
@@ -539,14 +541,14 @@ func fromOnlineArchiveToMap(in *admin.BackupOnlineArchive) map[string]any {
 
 	// clean up criteria for empty values
 	for key, val := range criteria {
-		if isEmpty(val) {
+		if conversion.IsEmpty(val) {
 			delete(criteria, key)
 		}
 	}
 
 	// clean up schedule for empty values
 	for key, val := range schedule {
-		if isEmpty(val) {
+		if conversion.IsEmpty(val) {
 			delete(schedule, key)
 		}
 	}
@@ -702,20 +704,4 @@ func mapSchedule(d *schema.ResourceData) *admin.OnlineArchiveSchedule {
 	}
 
 	return scheduleInput
-}
-
-func isEmpty(val any) bool {
-	if val == nil {
-		return true
-	}
-
-	switch v := val.(type) {
-	case *bool, *float64, *int64:
-		return v == nil
-	case string:
-		return v == ""
-	case *string:
-		return v == nil || *v == ""
-	}
-	return false
 }
