@@ -10,6 +10,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: |-
             Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -22,6 +24,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
           computed_optional_required: required
@@ -31,6 +35,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Unique 24-character hexadecimal digit string that identifies the log integration configuration.
           computed_optional_required: computed
@@ -40,6 +46,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
           computed_optional_required: optional
@@ -49,6 +57,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - set:
             element_type: 4
           description: 'Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.'
@@ -63,6 +73,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
           computed_optional_required: required
@@ -72,6 +84,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
           computed_optional_required: required
@@ -81,6 +95,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
 operations:
     delete:
         http_method: DELETE
