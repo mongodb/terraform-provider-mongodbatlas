@@ -50,7 +50,7 @@ resource "mongodbatlas_cluster_outage_simulation" "outage_simulation" {
     * `GCP`
     * `AZURE`
   * `region_name` - (Required) The Atlas name of the region to undergo an outage simulation.
-* `timeouts` - (Optional) The duration to wait for the Cluster Outage Simulation to be created or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. Timeouts are supported for the following operations: `create` (default: `25m`), `delete` (default: `25m`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
+* `timeouts` - (Optional) The duration to wait for the Cluster Outage Simulation to be created or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `25m`), `delete` (default: `25m`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 * `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 
 ## Attributes Reference
