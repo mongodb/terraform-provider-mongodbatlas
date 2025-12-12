@@ -14,6 +14,7 @@ import (
 
 const (
 	resourceName       = "mongodbatlas_log_integration.test"
+	dataSourceName     = "data.mongodbatlas_log_integration.test"
 	nonEmptyPrefixPath = "push-log-prefix-v3"
 )
 
@@ -40,8 +41,10 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, false, ""),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName, nonEmptyPrefixPath)...),
+				Config: configWithDataSource(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					append(commonChecks(s3BucketName, nonEmptyPrefixPath), dataSourceChecks(s3BucketName, nonEmptyPrefixPath)...)...,
+				),
 			},
 			{
 				Config: configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, true, kmsKey),
@@ -60,6 +63,28 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			},
 		},
 	}
+}
+
+func dataSourceChecks(s3BucketName, prefixPath string) []resource.TestCheckFunc {
+	mapChecks := map[string]string{
+		"bucket_name": s3BucketName,
+		"prefix_path": prefixPath,
+		"type":        "S3_LOG_EXPORT",
+		"log_types.#": "1",
+	}
+	checks := acc.AddAttrChecks(dataSourceName, nil, mapChecks)
+	return acc.AddAttrSetChecks(dataSourceName, checks, "project_id", "iam_role_id", "id")
+}
+
+func configWithDataSource(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string) string {
+	return fmt.Sprintf(`
+		%s
+
+		data "mongodbatlas_log_integration" "test" {
+			project_id = mongodbatlas_log_integration.test.project_id
+			id         = mongodbatlas_log_integration.test.id
+		}
+	`, configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath, true, false, ""))
 }
 
 func commonChecks(s3BucketName, prefixPath string) []resource.TestCheckFunc {
@@ -88,12 +113,12 @@ func configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, aw
 
 			   %[7]s		
 	`, projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
-		awsIAMroleAuthAndS3Config(s3BucketName), pushBasedLogExportConfig(usePrefixPath, useKmsKey, prefixPath, kmsKey))
+		awsIAMroleAuthAndS3Config(s3BucketName), logIntegrationConfig(usePrefixPath, useKmsKey, prefixPath, kmsKey))
 }
 
-// pushBasedLogExportConfig returns config for mongodbatlas_log_integration resource.
+// logIntegrationConfig returns config for mongodbatlas_log_integration resource.
 // This method uses the project and S3 bucket created in awsIAMroleAuthAndS3Config()
-func pushBasedLogExportConfig(usePrefixPath, useKmsKey bool, prefixPath, kmsKey string) string {
+func logIntegrationConfig(usePrefixPath, useKmsKey bool, prefixPath, kmsKey string) string {
 	prefixPathAttr := ""
 	if usePrefixPath {
 		prefixPathAttr = fmt.Sprintf("prefix_path   = %[1]q", prefixPath)

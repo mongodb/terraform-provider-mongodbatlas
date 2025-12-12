@@ -302,6 +302,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		apikeyprojectassignment.PluralDataSource,
 		advancedcluster.DataSource,
 		advancedcluster.PluralDataSource,
+		logintegration.DataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
