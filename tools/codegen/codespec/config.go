@@ -88,6 +88,7 @@ var transformations = []AttributeTransformation{
 	aliasTransformation,
 	overridesTransformation,
 	createOnlyTransformation,
+	requiredOnCreateInputOnlyTransformation,
 }
 
 var dataSourceTransformations = []AttributeTransformation{
@@ -219,6 +220,14 @@ func overridesTransformation(attr *Attribute, paths *attrPaths, schemaOptions co
 
 func createOnlyTransformation(attr *Attribute, _ *attrPaths, _ config.SchemaOptions) error {
 	setCreateOnlyValue(attr)
+	return nil
+}
+
+func requiredOnCreateInputOnlyTransformation(attr *Attribute, _ *attrPaths, _ config.SchemaOptions) error {
+	if attr.ComputedOptionalRequired == Required && attr.ReqBodyUsage == OmitInUpdateBody && !attr.PresentInAnyResponse {
+		attr.RequestOnlyRequiredOnCreate = true
+		attr.ComputedOptionalRequired = Optional
+	}
 	return nil
 }
 
