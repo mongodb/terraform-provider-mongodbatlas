@@ -117,3 +117,48 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 		})
 	}
 }
+
+func TestGenerateSchemaAttributes_RequestOnlyRequiredOnCreate(t *testing.T) {
+
+	tests := map[string]struct {
+		attribute       codespec.Attribute
+		hasPlanModifier bool
+	}{
+		"No RequestOnlyRequiredOnCreate - no plan modifiers": {
+			attribute: codespec.Attribute{
+				TFSchemaName:                "test_string",
+				TFModelName:                 "TestString",
+				String:                      &codespec.StringAttribute{},
+				ComputedOptionalRequired:    codespec.Optional,
+				RequestOnlyRequiredOnCreate: false,
+			},
+			hasPlanModifier: false,
+		},
+		"RequestOnlyRequiredOnCreate - uses RequestOnlyRequiredOnCreate()": {
+			attribute: codespec.Attribute{
+				TFSchemaName:                "test_string",
+				TFModelName:                 "TestString",
+				String:                      &codespec.StringAttribute{},
+				ComputedOptionalRequired:    codespec.Optional,
+				RequestOnlyRequiredOnCreate: true,
+			},
+			hasPlanModifier: true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			result := schema.GenerateSchemaAttributes([]codespec.Attribute{tc.attribute})
+			code := result.Code
+			if !tc.hasPlanModifier {
+				assert.NotContains(t, code, "PlanModifiers:")
+				return
+			}
+			assert.Contains(t, code, "PlanModifiers:")
+			if tc.attribute.RequestOnlyRequiredOnCreate {
+				assert.Contains(t, code, "customplanmodifier.RequestOnlyRequiredOnCreate()")
+			}
+		})
+	}
+
+}
