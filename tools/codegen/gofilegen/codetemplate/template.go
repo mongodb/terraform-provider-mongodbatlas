@@ -20,6 +20,12 @@ type SchemaFileInputs struct {
 //go:embed resource-file.go.tmpl
 var resourceFileTemplate string
 
+//go:embed data-source-file.go.tmpl
+var dataSourceFileTemplate string
+
+//go:embed data-source-schema-file.go.tmpl
+var dataSourceSchemaFileTemplate string
+
 type ResourceFileInputs struct {
 	PackageName   string
 	ResourceName  string
@@ -61,12 +67,37 @@ type MoveState struct {
 	SourceResources []string
 }
 
+type DataSourceFileInputs struct {
+	PackageName    string
+	DataSourceName string
+	VersionHeader  string
+	ReadPath       string
+	ReadMethod     string
+	PathParams     []Param
+}
+
+type DataSourceSchemaFileInputs struct {
+	DeprecationMessage *string
+	PackageName        string
+	SchemaAttributes   string
+	DSModel            string
+	Imports            []string
+}
+
 func ApplySchemaFileTemplate(inputs *SchemaFileInputs) bytes.Buffer {
 	return applyTemplate(schemaFileTemplate, inputs)
 }
 
 func ApplyResourceFileTemplate(inputs *ResourceFileInputs) bytes.Buffer {
 	return applyTemplate(resourceFileTemplate, inputs)
+}
+
+func ApplyDataSourceFileTemplate(inputs *DataSourceFileInputs) bytes.Buffer {
+	return applyTemplate(dataSourceFileTemplate, inputs)
+}
+
+func ApplyDataSourceSchemaFileTemplate(inputs *DataSourceSchemaFileInputs) bytes.Buffer {
+	return applyTemplate(dataSourceSchemaFileTemplate, inputs)
 }
 
 func applyTemplate[T any](templateStr string, inputs T) bytes.Buffer {

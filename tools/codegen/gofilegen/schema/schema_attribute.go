@@ -7,11 +7,23 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 )
 
+// GenerateSchemaAttributes generates schema attributes for resource schemas.
 func GenerateSchemaAttributes(attrs codespec.Attributes) CodeStatement {
+	return generateSchemaAttributesWithGenerator(attrs, generator)
+}
+
+// GenerateDataSourceSchemaAttributes generates schema attributes for data source schemas.
+// Data source attributes use dsschema types instead of resource schema types.
+func GenerateDataSourceSchemaAttributes(attrs codespec.Attributes) CodeStatement {
+	return generateSchemaAttributesWithGenerator(attrs, dataSourceAttrGenerator)
+}
+
+// generateSchemaAttributesWithGenerator is the shared implementation for schema attribute generation.
+func generateSchemaAttributesWithGenerator(attrs codespec.Attributes, genFunc func(*codespec.Attribute) attributeGenerator) CodeStatement {
 	attrsCode := []string{}
 	imports := []string{}
 	for i := range attrs {
-		result := generator(&attrs[i]).AttributeCode()
+		result := genFunc(&attrs[i]).AttributeCode()
 		attrsCode = append(attrsCode, result.Code)
 		imports = append(imports, result.Imports...)
 	}
@@ -20,6 +32,40 @@ func GenerateSchemaAttributes(attrs codespec.Attributes) CodeStatement {
 		Code:    finalAttrs,
 		Imports: imports,
 	}
+}
+
+// dataSourceAttrGenerator wraps resource generators to produce data source schema code.
+func dataSourceAttrGenerator(attr *codespec.Attribute) attributeGenerator {
+	return &dsAttrGeneratorWrapper{inner: generator(attr), attr: attr}
+}
+
+// dsAttrGeneratorWrapper wraps resource attribute generators to produce data source schema code.
+// It replaces "schema." with "dsschema." in the generated code and filters out resource-specific imports.
+type dsAttrGeneratorWrapper struct {
+	inner attributeGenerator
+	attr  *codespec.Attribute
+}
+
+func (g *dsAttrGeneratorWrapper) AttributeCode() CodeStatement {
+	result := g.inner.AttributeCode()
+	// Replace schema. with dsschema. for data source schemas
+	result.Code = strings.ReplaceAll(result.Code, "schema.", "dsschema.")
+	// Add DS prefix to nested model references in CustomType (e.g., TFNestedObjectAttrModel -> TFDSNestedObjectAttrModel)
+	// This ensures data source schemas reference their own nested models instead of resource models.
+	result.Code = strings.ReplaceAll(result.Code, "[TF", "[TFDS")
+	// Filter out resource-specific imports (data sources don't need plan modifiers)
+	var filteredImports []string
+	for _, imp := range result.Imports {
+		if imp == "github.com/hashicorp/terraform-plugin-framework/resource/schema" {
+			continue
+		}
+		if strings.Contains(imp, "planmodifier") || strings.Contains(imp, "customplanmodifier") {
+			continue
+		}
+		filteredImports = append(filteredImports, imp)
+	}
+	result.Imports = filteredImports
+	return result
 }
 
 type attributeGenerator interface {

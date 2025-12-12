@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -94,11 +95,58 @@ type HandleReadReq struct {
 	CallParams *config.APICallParams
 }
 
+// HandleRead handles the read operation for a resource.
 func HandleRead(ctx context.Context, req HandleReadReq) {
-	d := &req.Resp.Diagnostics
-	bodyResp, apiResp, err := callAPIWithoutBody(ctx, req.Client, req.CallParams)
+	handleReadCore(
+		ctx,
+		req.Client,
+		req.CallParams,
+		req.State,
+		&req.Resp.Diagnostics,
+		func() { req.Resp.State.RemoveResource(ctx) }, // Resource: silently remove from state
+		func() { req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.State)...) },
+	)
+}
+
+// HandleDataSourceReadReq contains the request parameters for a data source read operation.
+type HandleDataSourceReadReq struct {
+	Resp       *datasource.ReadResponse
+	Client     *config.MongoDBClient
+	Config     any // The configuration model (TFDSModel)
+	CallParams *config.APICallParams
+}
+
+// HandleDataSourceRead handles the read operation for a data source.
+func HandleDataSourceRead(ctx context.Context, req HandleDataSourceReadReq) {
+	handleReadCore(
+		ctx,
+		req.Client,
+		req.CallParams,
+		req.Config,
+		&req.Resp.Diagnostics,
+		func() { req.Resp.Diagnostics.AddError("Resource not found", "The requested resource does not exist") }, // Data source: return error
+		func() { req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Config)...) },
+	)
+}
+
+// handleReadCore contains the shared read logic for both resources and data sources.
+// The onNotFound callback handles the not-found scenario differently:
+//   - Resource: silently removes from state (standard Terraform refresh behavior)
+//   - Data source: returns an error (resource must exist)
+//
+// The setState callback sets the response state with the unmarshalled model.
+func handleReadCore(
+	ctx context.Context,
+	client *config.MongoDBClient,
+	callParams *config.APICallParams,
+	model any,
+	d *diag.Diagnostics,
+	onNotFound func(),
+	setState func(),
+) {
+	bodyResp, apiResp, err := callAPIWithoutBody(ctx, client, callParams)
 	if notFound(bodyResp, apiResp) {
-		req.Resp.State.RemoveResource(ctx)
+		onNotFound()
 		return
 	}
 	if err != nil {
@@ -106,16 +154,15 @@ func HandleRead(ctx context.Context, req HandleReadReq) {
 		return
 	}
 
-	// Use the current state as the base model to set the response state
-	if err := Unmarshal(bodyResp, req.State); err != nil {
+	if err := Unmarshal(bodyResp, model); err != nil {
 		addError(d, opRead, errUnmarshallingResponse, err)
 		return
 	}
-	if err := ResolveUnknowns(req.State); err != nil {
+	if err := ResolveUnknowns(model); err != nil {
 		addError(d, opRead, errResolvingResponse, err)
 		return
 	}
-	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.State)...)
+	setState()
 }
 
 type HandleUpdateReq struct {

@@ -11,9 +11,17 @@ import (
 )
 
 func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
+	// Resources require Create and Read operations - fail fast if missing
+	if input.Operations.Create == nil {
+		return nil, fmt.Errorf("resource %s is missing required Create operation", input.Name)
+	}
+	if input.Operations.Read == nil {
+		return nil, fmt.Errorf("resource %s is missing required Read operation", input.Name)
+	}
+
 	idAttrs := input.IDAttributes
 	if len(idAttrs) == 0 {
-		idAttrs = getIDAttributes(input.Operations.Read.Path)
+		idAttrs = GetIDAttributes(input.Operations.Read.Path)
 	}
 
 	tmplInputs := codetemplate.ResourceFileInputs{
@@ -52,7 +60,7 @@ func toCodeTemplateOpModel(op *codespec.APIOperation) *codetemplate.Operation {
 	return &codetemplate.Operation{
 		Path:              op.Path,
 		HTTPMethod:        op.HTTPMethod,
-		PathParams:        getPathParams(op.Path),
+		PathParams:        GetPathParams(op.Path),
 		Wait:              getWaitValues(op.Wait),
 		StaticRequestBody: op.StaticRequestBody,
 	}
@@ -72,8 +80,9 @@ func getWaitValues(wait *codespec.Wait) *codetemplate.Wait {
 	}
 }
 
-// obtains path parameters for URL, this can evetually be explicitly defined in the intermediate model if additional information is required
-func getPathParams(s string) []codetemplate.Param {
+// GetPathParams extracts path parameters from a URL path and returns them as Param structs.
+// This can eventually be explicitly defined in the intermediate model if additional information is required.
+func GetPathParams(s string) []codetemplate.Param {
 	params := []codetemplate.Param{}
 
 	// Use regex to find all {paramName} patterns
@@ -90,8 +99,10 @@ func getPathParams(s string) []codetemplate.Param {
 	return params
 }
 
-func getIDAttributes(readPath string) []string {
-	params := getPathParams(readPath)
+// GetIDAttributes converts path params to snake_case attribute names.
+// Used for both resource ID attributes and data source required fields.
+func GetIDAttributes(readPath string) []string {
+	params := GetPathParams(readPath)
 	result := make([]string, len(params))
 	for i, param := range params {
 		result[i] = stringcase.ToSnakeCase(param.PascalCaseName)
