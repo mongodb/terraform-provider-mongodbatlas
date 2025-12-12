@@ -117,9 +117,7 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 		})
 	}
 }
-
 func TestGenerateSchemaAttributes_RequestOnlyRequiredOnCreate(t *testing.T) {
-
 	tests := map[string]struct {
 		attribute       codespec.Attribute
 		hasPlanModifier bool
@@ -160,5 +158,4 @@ func TestGenerateSchemaAttributes_RequestOnlyRequiredOnCreate(t *testing.T) {
 			}
 		})
 	}
-
 }
