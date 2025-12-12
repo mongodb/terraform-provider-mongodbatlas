@@ -167,7 +167,6 @@ func commonAttrStructure(attr *codespec.Attribute, attrDefType, planModifierType
 		Imports: propsStmts.Imports,
 	}
 }
-
 func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeStatement {
 	var result []CodeStatement
 	if attr.ComputedOptionalRequired == codespec.Required {
@@ -199,21 +198,27 @@ func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeS
 			Imports: imports,
 		})
 	}
-	if attr.CreateOnly { // As of now this is the only property which implies defining plan modifiers.
-		planModifierImports := []string{
-			"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier",
-			"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier",
-		}
-		code := fmt.Sprintf("PlanModifiers: []%s{customplanmodifier.CreateOnly()}", planModifierType)
 
-		// For bool attributes with create-only and default value, use CreateOnlyBoolWithDefault
+	var customPlanModifiers []string
+	if attr.CreateOnly {
 		if attr.Bool != nil && attr.Bool.Default != nil {
-			code = fmt.Sprintf("PlanModifiers: []%s{customplanmodifier.CreateOnlyBoolWithDefault(%t)}", planModifierType, *attr.Bool.Default)
+			// For bool attributes with create-only and default value, use CreateOnlyBoolWithDefault
+			customPlanModifiers = append(customPlanModifiers, fmt.Sprintf("customplanmodifier.CreateOnlyBoolWithDefault(%t)", *attr.Bool.Default))
+		} else {
+			customPlanModifiers = append(customPlanModifiers, "customplanmodifier.CreateOnly()")
 		}
+	}
+	if attr.RequestOnlyRequiredOnCreate {
+		customPlanModifiers = append(customPlanModifiers, "customplanmodifier.RequestOnlyRequiredOnCreate()")
+	}
 
+	if len(customPlanModifiers) > 0 {
 		result = append(result, CodeStatement{
-			Code:    code,
-			Imports: planModifierImports,
+			Code: fmt.Sprintf("PlanModifiers: []%s{%s}", planModifierType, strings.Join(customPlanModifiers, ", ")),
+			Imports: []string{
+				"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier",
+				"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier",
+			},
 		})
 	}
 	return result

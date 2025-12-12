@@ -52,7 +52,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"secret_expires_after_hours": schema.Int64Attribute{
 				Optional:            true,
 				MarkdownDescription: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings.",
-				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
+				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly(), customplanmodifier.RequestOnlyRequiredOnCreate()},
 			},
 		},
 	}

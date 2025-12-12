@@ -88,7 +88,7 @@ var transformations = []AttributeTransformation{
 	aliasTransformation,
 	overridesTransformation,
 	createOnlyTransformation,
-	requiredOnCreateInputOnlyTransformation,
+	requestOnlyRequiredOnCreateTransformation,
 }
 
 var dataSourceTransformations = []AttributeTransformation{
@@ -223,7 +223,7 @@ func createOnlyTransformation(attr *Attribute, _ *attrPaths, _ config.SchemaOpti
 	return nil
 }
 
-func requiredOnCreateInputOnlyTransformation(attr *Attribute, _ *attrPaths, _ config.SchemaOptions) error {
+func requestOnlyRequiredOnCreateTransformation(attr *Attribute, _ *attrPaths, _ config.SchemaOptions) error {
 	if attr.ComputedOptionalRequired == Required && attr.ReqBodyUsage == OmitInUpdateBody && !attr.PresentInAnyResponse {
 		attr.RequestOnlyRequiredOnCreate = true
 		attr.ComputedOptionalRequired = Optional
