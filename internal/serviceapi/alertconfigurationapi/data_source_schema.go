@@ -37,7 +37,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			"links": dsschema.ListNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-				CustomType:          customtypes.NewNestedListType[TFLinksModel](ctx),
+				CustomType:          customtypes.NewNestedListType[TFDSLinksModel](ctx),
 				NestedObject: dsschema.NestedAttributeObject{
 					Attributes: map[string]dsschema.Attribute{
 						"href": dsschema.StringAttribute{
@@ -54,7 +54,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			"matchers": dsschema.ListNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "List of rules that determine whether MongoDB Cloud checks an object for the alert configuration.",
-				CustomType:          customtypes.NewNestedListType[TFMatchersModel](ctx),
+				CustomType:          customtypes.NewNestedListType[TFDSMatchersModel](ctx),
 				NestedObject: dsschema.NestedAttributeObject{
 					Attributes: map[string]dsschema.Attribute{
 						"field_name": dsschema.StringAttribute{
@@ -75,7 +75,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			"metric_threshold": dsschema.SingleNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics about the serverless database.",
-				CustomType:          customtypes.NewObjectType[TFMetricThresholdModel](ctx),
+				CustomType:          customtypes.NewObjectType[TFDSMetricThresholdModel](ctx),
 				Attributes: map[string]dsschema.Attribute{
 					"metric_name": dsschema.StringAttribute{
 						Computed:            true,
@@ -102,7 +102,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			"notifications": dsschema.ListNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "List that contains the targets that MongoDB Cloud sends notifications.",
-				CustomType:          customtypes.NewNestedListType[TFNotificationsModel](ctx),
+				CustomType:          customtypes.NewNestedListType[TFDSNotificationsModel](ctx),
 				NestedObject: dsschema.NestedAttributeObject{
 					Attributes: map[string]dsschema.Attribute{
 						"api_token": dsschema.StringAttribute{
@@ -230,7 +230,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			"threshold": dsschema.SingleNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.",
-				CustomType:          customtypes.NewObjectType[TFThresholdModel](ctx),
+				CustomType:          customtypes.NewObjectType[TFDSThresholdModel](ctx),
 				Attributes: map[string]dsschema.Attribute{
 					"metric_name": dsschema.StringAttribute{
 						Computed:            true,
@@ -263,16 +263,69 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
-	Links            customtypes.NestedListValue[TFLinksModel]         `tfsdk:"links" autogen:"omitjson"`
-	Matchers         customtypes.NestedListValue[TFMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
-	Notifications    customtypes.NestedListValue[TFNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
-	Created          types.String                                      `tfsdk:"created" autogen:"omitjson"`
-	EventTypeName    types.String                                      `tfsdk:"event_type_name" autogen:"omitjson"`
-	GroupId          types.String                                      `tfsdk:"group_id" autogen:"omitjson"`
-	Id               types.String                                      `tfsdk:"id" apiname:"alertConfigId" autogen:"omitjson"`
-	MetricThreshold  customtypes.ObjectValue[TFMetricThresholdModel]   `tfsdk:"metric_threshold" autogen:"omitjson"`
-	SeverityOverride types.String                                      `tfsdk:"severity_override" autogen:"omitjson"`
-	Threshold        customtypes.ObjectValue[TFThresholdModel]         `tfsdk:"threshold" autogen:"omitjson"`
-	Updated          types.String                                      `tfsdk:"updated" autogen:"omitjson"`
-	Enabled          types.Bool                                        `tfsdk:"enabled" autogen:"omitjson"`
+	Links            customtypes.NestedListValue[TFDSLinksModel]         `tfsdk:"links" autogen:"omitjson"`
+	Matchers         customtypes.NestedListValue[TFDSMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
+	Notifications    customtypes.NestedListValue[TFDSNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
+	Created          types.String                                        `tfsdk:"created" autogen:"omitjson"`
+	EventTypeName    types.String                                        `tfsdk:"event_type_name" autogen:"omitjson"`
+	GroupId          types.String                                        `tfsdk:"group_id" autogen:"omitjson"`
+	Id               types.String                                        `tfsdk:"id" apiname:"alertConfigId" autogen:"omitjson"`
+	MetricThreshold  customtypes.ObjectValue[TFDSMetricThresholdModel]   `tfsdk:"metric_threshold" autogen:"omitjson"`
+	SeverityOverride types.String                                        `tfsdk:"severity_override" autogen:"omitjson"`
+	Threshold        customtypes.ObjectValue[TFDSThresholdModel]         `tfsdk:"threshold" autogen:"omitjson"`
+	Updated          types.String                                        `tfsdk:"updated" autogen:"omitjson"`
+	Enabled          types.Bool                                          `tfsdk:"enabled" autogen:"omitjson"`
+}
+type TFDSLinksModel struct {
+	Href types.String `tfsdk:"href" autogen:"omitjson"`
+	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
+}
+type TFDSMatchersModel struct {
+	FieldName types.String `tfsdk:"field_name" autogen:"omitjson"`
+	Operator  types.String `tfsdk:"operator" autogen:"omitjson"`
+	Value     types.String `tfsdk:"value" autogen:"omitjson"`
+}
+type TFDSMetricThresholdModel struct {
+	MetricName types.String  `tfsdk:"metric_name" autogen:"omitjson"`
+	Mode       types.String  `tfsdk:"mode" autogen:"omitjson"`
+	Operator   types.String  `tfsdk:"operator" autogen:"omitjson"`
+	Threshold  types.Float64 `tfsdk:"threshold" autogen:"omitjson"`
+	Units      types.String  `tfsdk:"units" autogen:"omitjson"`
+}
+type TFDSNotificationsModel struct {
+	Roles                    customtypes.ListValue[types.String] `tfsdk:"roles" autogen:"omitjson"`
+	OpsGenieRegion           types.String                        `tfsdk:"ops_genie_region" autogen:"omitjson"`
+	TeamId                   types.String                        `tfsdk:"team_id" autogen:"omitjson"`
+	DatadogRegion            types.String                        `tfsdk:"datadog_region" autogen:"omitjson"`
+	WebhookUrl               types.String                        `tfsdk:"webhook_url" autogen:"omitjson"`
+	EmailAddress             types.String                        `tfsdk:"email_address" autogen:"omitjson"`
+	WebhookSecret            types.String                        `tfsdk:"webhook_secret" autogen:"sensitive,omitjson"`
+	IntegrationId            types.String                        `tfsdk:"integration_id" autogen:"omitjson"`
+	ApiToken                 types.String                        `tfsdk:"api_token" autogen:"omitjson"`
+	MicrosoftTeamsWebhookUrl types.String                        `tfsdk:"microsoft_teams_webhook_url" autogen:"omitjson"`
+	MobileNumber             types.String                        `tfsdk:"mobile_number" autogen:"omitjson"`
+	NotificationToken        types.String                        `tfsdk:"notification_token" autogen:"omitjson"`
+	Region                   types.String                        `tfsdk:"region" autogen:"omitjson"`
+	DatadogApiKey            types.String                        `tfsdk:"datadog_api_key" autogen:"omitjson"`
+	VictorOpsRoutingKey      types.String                        `tfsdk:"victor_ops_routing_key" autogen:"omitjson"`
+	NotifierId               types.String                        `tfsdk:"notifier_id" autogen:"omitjson"`
+	ChannelName              types.String                        `tfsdk:"channel_name" autogen:"omitjson"`
+	RoomName                 types.String                        `tfsdk:"room_name" autogen:"omitjson"`
+	ServiceKey               types.String                        `tfsdk:"service_key" autogen:"omitjson"`
+	VictorOpsApiKey          types.String                        `tfsdk:"victor_ops_api_key" autogen:"omitjson"`
+	OpsGenieApiKey           types.String                        `tfsdk:"ops_genie_api_key" autogen:"omitjson"`
+	TeamName                 types.String                        `tfsdk:"team_name" autogen:"omitjson"`
+	TypeName                 types.String                        `tfsdk:"type_name" autogen:"omitjson"`
+	Username                 types.String                        `tfsdk:"username" autogen:"omitjson"`
+	IntervalMin              types.Int64                         `tfsdk:"interval_min" autogen:"omitjson"`
+	DelayMin                 types.Int64                         `tfsdk:"delay_min" autogen:"omitjson"`
+	SmsEnabled               types.Bool                          `tfsdk:"sms_enabled" autogen:"omitjson"`
+	EmailEnabled             types.Bool                          `tfsdk:"email_enabled" autogen:"omitjson"`
+}
+type TFDSThresholdModel struct {
+	MetricName types.String  `tfsdk:"metric_name" autogen:"omitjson"`
+	Mode       types.String  `tfsdk:"mode" autogen:"omitjson"`
+	Operator   types.String  `tfsdk:"operator" autogen:"omitjson"`
+	Threshold  types.Float64 `tfsdk:"threshold" autogen:"omitjson"`
+	Units      types.String  `tfsdk:"units" autogen:"omitjson"`
 }

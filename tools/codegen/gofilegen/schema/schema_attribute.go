@@ -50,6 +50,9 @@ func (g *dsAttrGeneratorWrapper) AttributeCode() CodeStatement {
 	result := g.inner.AttributeCode()
 	// Replace schema. with dsschema. for data source schemas
 	result.Code = strings.ReplaceAll(result.Code, "schema.", "dsschema.")
+	// Add DS prefix to nested model references in CustomType (e.g., TFNestedObjectAttrModel -> TFDSNestedObjectAttrModel)
+	// This ensures data source schemas reference their own nested models instead of resource models.
+	result.Code = strings.ReplaceAll(result.Code, "[TF", "[TFDS")
 	// Filter out resource-specific imports (data sources don't need plan modifiers)
 	var filteredImports []string
 	for _, imp := range result.Imports {

@@ -17,7 +17,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			"nested_object_attr": dsschema.SingleNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "nested object attribute",
-				CustomType:          customtypes.NewObjectType[TFNestedObjectAttrModel](ctx),
+				CustomType:          customtypes.NewObjectType[TFDSNestedObjectAttrModel](ctx),
 				Attributes: map[string]dsschema.Attribute{
 					"string_attr": dsschema.StringAttribute{
 						Computed:            true,
@@ -34,7 +34,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			"nested_list_attr": dsschema.ListNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "nested list attribute",
-				CustomType:          customtypes.NewNestedListType[TFNestedListAttrModel](ctx),
+				CustomType:          customtypes.NewNestedListType[TFDSNestedListAttrModel](ctx),
 				NestedObject: dsschema.NestedAttributeObject{
 					Attributes: map[string]dsschema.Attribute{
 						"int_attr": dsschema.Int64Attribute{
@@ -49,7 +49,13 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
-	NestedObjectAttr customtypes.ObjectValue[TFNestedObjectAttrModel]   `tfsdk:"nested_object_attr"`
-	StringListAttr   customtypes.ListValue[types.String]                `tfsdk:"string_list_attr"`
-	NestedListAttr   customtypes.NestedListValue[TFNestedListAttrModel] `tfsdk:"nested_list_attr"`
+	NestedObjectAttr customtypes.ObjectValue[TFDSNestedObjectAttrModel]   `tfsdk:"nested_object_attr"`
+	StringListAttr   customtypes.ListValue[types.String]                  `tfsdk:"string_list_attr"`
+	NestedListAttr   customtypes.NestedListValue[TFDSNestedListAttrModel] `tfsdk:"nested_list_attr"`
+}
+type TFDSNestedObjectAttrModel struct {
+	StringAttr types.String `tfsdk:"string_attr"`
+}
+type TFDSNestedListAttrModel struct {
+	IntAttr types.Int64 `tfsdk:"int_attr"`
 }

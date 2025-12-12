@@ -21,20 +21,19 @@ func GenerateDataSourceTypedModels(attributes codespec.Attributes) CodeStatement
 func generateTypedModels(attributes codespec.Attributes, name string, isDataSource bool) CodeStatement {
 	models := []CodeStatement{generateStructOfTypedModel(attributes, name, isDataSource)}
 
-	// Only generate nested models for the resource model (not for DS model since they reuse resource nested models)
-	if !isDataSource {
-		for i := range attributes {
-			additionalModel := getNestedModel(&attributes[i], name)
-			if additionalModel != nil {
-				models = append(models, *additionalModel)
-			}
+	// Generate nested models for all attributes (both resource and data source)
+	// Data source nested models use the DS prefix to avoid naming clashes with resource models
+	for i := range attributes {
+		additionalModel := getNestedModel(&attributes[i], name, isDataSource)
+		if additionalModel != nil {
+			models = append(models, *additionalModel)
 		}
 	}
 
 	return GroupCodeStatements(models, func(list []string) string { return strings.Join(list, "\n") })
 }
 
-func getNestedModel(attribute *codespec.Attribute, ancestorsName string) *CodeStatement {
+func getNestedModel(attribute *codespec.Attribute, ancestorsName string, isDataSource bool) *CodeStatement {
 	var nested *codespec.NestedAttributeObject
 	if attribute.ListNested != nil {
 		nested = &attribute.ListNested.NestedObject
@@ -51,7 +50,7 @@ func getNestedModel(attribute *codespec.Attribute, ancestorsName string) *CodeSt
 	if nested == nil {
 		return nil
 	}
-	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.TFModelName, false)
+	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.TFModelName, isDataSource)
 	return &res
 }
 
@@ -70,7 +69,7 @@ func generateStructOfTypedModel(attributes codespec.Attributes, name string, isD
 }
 
 func typedModelProperty(attr *codespec.Attribute, isDataSource bool) string {
-	propType := attrModelType(attr)
+	propType := attrModelType(attr, isDataSource)
 
 	// Resource models need additional tags for marshaling
 	var (
@@ -105,10 +104,14 @@ func typedModelProperty(attr *codespec.Attribute, isDataSource bool) string {
 	return fmt.Sprintf("%s %s", attr.TFModelName, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.TFSchemaName) + apinameTag + tagsStr + "`"
 }
 
-func attrModelType(attr *codespec.Attribute) string {
+func attrModelType(attr *codespec.Attribute, isDataSource bool) string {
 	switch {
 	case attr.CustomType != nil:
-		return attr.CustomType.Model
+		model := attr.CustomType.Model
+		if isDataSource {
+			model = addDSPrefixToNestedModels(model)
+		}
+		return model
 	case attr.Float64 != nil:
 		return "types.Float64"
 	case attr.Bool != nil:
@@ -124,4 +127,13 @@ func attrModelType(attr *codespec.Attribute) string {
 	default:
 		panic("Attribute with unknown type defined when generating typed model")
 	}
+}
+
+// addDSPrefixToNestedModels transforms nested model references by adding DS prefix.
+// e.g., "customtypes.ObjectValue[TFNestedObjectAttrModel]" -> "customtypes.ObjectValue[TFDSNestedObjectAttrModel]"
+// This only applies to nested models (TF*Model pattern), not primitive types like types.String.
+func addDSPrefixToNestedModels(s string) string {
+	// Pattern: [TF followed by word characters and ending with Model]
+	// We only want to add DS prefix to nested models, not change types.String etc.
+	return strings.ReplaceAll(s, "[TF", "[TFDS")
 }
