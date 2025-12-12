@@ -765,6 +765,25 @@ resources:
         roles:
           type: set
 
+  org_service_account_secret_api:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: GET
+      schema_ignore: true # get operation for a single secret is not available, individual secret is found in service account read looking in `secrets` property
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
+      method: POST
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets/{secretId}
+      method: DELETE
+    id_attributes: ["org_id", "client_id", "id"]
+    schema:
+      aliases:
+        secretId: id # path param name does not match the API response property.
+      overrides:
+        secret:
+          sensitive: true
+
   alert_configuration_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
@@ -778,6 +797,16 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
       method: DELETE
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/alertConfigs/
+        method: GET
+      schema:
+        aliases:
+          alertConfigId: id
     schema:
       aliases:
         alertConfigId: id # path param name does not match the API response property

@@ -19,7 +19,7 @@ import (
 
 const defaultPriority int = 7
 
-func NewFlexCreateReq(clusterName string, terminationProtectionEnabled bool, tags *[]admin.ResourceTag, replicationSpecs *[]admin.ReplicationSpec20240805) *admin.FlexClusterDescriptionCreate20241113 {
+func newFlexCreateReq(clusterName string, terminationProtectionEnabled bool, tags *[]admin.ResourceTag, replicationSpecs *[]admin.ReplicationSpec20240805) *admin.FlexClusterDescriptionCreate20241113 {
 	if replicationSpecs == nil || len(*replicationSpecs) == 0 {
 		return nil
 	}
@@ -35,7 +35,7 @@ func NewFlexCreateReq(clusterName string, terminationProtectionEnabled bool, tag
 	}
 }
 
-func NewReplicationSpecsFromFlexDescription(input *admin.FlexClusterDescription20241113, priority *int) *[]admin.ReplicationSpec20240805 {
+func newReplicationSpecsFromFlexDescription(input *admin.FlexClusterDescription20241113, priority *int) *[]admin.ReplicationSpec20240805 {
 	if input == nil {
 		return nil
 	}
@@ -54,7 +54,7 @@ func NewReplicationSpecsFromFlexDescription(input *admin.FlexClusterDescription2
 	}
 }
 
-func NewClusterConnectionStringsFromFlex(connectionStrings *admin.FlexConnectionStrings20241113) *admin.ClusterConnectionStrings {
+func newClusterConnectionStringsFromFlex(connectionStrings *admin.FlexConnectionStrings20241113) *admin.ClusterConnectionStrings {
 	if connectionStrings == nil {
 		return nil
 	}
@@ -89,14 +89,14 @@ func isValidUpdateOfFlex(stateCluster, planCluster *admin.ClusterDescription2024
 	return okUpdatesChanged && !notOkUpdatesChanged
 }
 
-func GetFlexClusterUpdateRequest(tags *[]admin.ResourceTag, terminationProtectionEnabled *bool) *admin.FlexClusterDescriptionUpdate20241113 {
+func getFlexClusterUpdateRequest(tags *[]admin.ResourceTag, terminationProtectionEnabled *bool) *admin.FlexClusterDescriptionUpdate20241113 {
 	return &admin.FlexClusterDescriptionUpdate20241113{
 		Tags:                         tags,
 		TerminationProtectionEnabled: terminationProtectionEnabled,
 	}
 }
 
-func FlexDescriptionToClusterDescription(flexCluster *admin.FlexClusterDescription20241113, priority *int) *admin.ClusterDescription20240805 {
+func flexDescriptionToClusterDescription(flexCluster *admin.FlexClusterDescription20241113, priority *int) *admin.ClusterDescription20240805 {
 	if flexCluster == nil {
 		return nil
 	}
@@ -109,39 +109,31 @@ func FlexDescriptionToClusterDescription(flexCluster *admin.FlexClusterDescripti
 		BackupEnabled:                backupEnabled,
 		CreateDate:                   flexCluster.CreateDate,
 		MongoDBVersion:               flexCluster.MongoDBVersion,
-		ReplicationSpecs:             NewReplicationSpecsFromFlexDescription(flexCluster, priority),
+		ReplicationSpecs:             newReplicationSpecsFromFlexDescription(flexCluster, priority),
 		Name:                         flexCluster.Name,
 		GroupId:                      flexCluster.GroupId,
 		StateName:                    flexCluster.StateName,
 		Tags:                         flexCluster.Tags,
 		TerminationProtectionEnabled: flexCluster.TerminationProtectionEnabled,
 		VersionReleaseSystem:         flexCluster.VersionReleaseSystem,
-		ConnectionStrings:            NewClusterConnectionStringsFromFlex(flexCluster.ConnectionStrings),
+		ConnectionStrings:            newClusterConnectionStringsFromFlex(flexCluster.ConnectionStrings),
 	}
 }
 
-func NewTFModelFlexResource(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int, modelIn *TFModel) *TFModel {
-	modelOut := NewTFModelFlex(ctx, diags, flexCluster, priority)
-	if modelOut != nil {
-		overrideAttributesWithPrevStateValue(modelIn, modelOut)
-		modelOut.Timeouts = modelIn.Timeouts
-	}
-	return modelOut
-}
-
-func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int) *TFModel {
+func newTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int, modelIn *TFModel) *TFModel {
 	if priority == nil {
 		priority = conversion.Pointer(defaultPriority)
 	}
-	modelOut := NewTFModel(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), diags, nil)
+	modelOut := newTFModel(ctx, flexDescriptionToClusterDescription(flexCluster, priority), diags, nil)
 	if diags.HasError() {
 		return nil
 	}
-	modelOut.AdvancedConfiguration = types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
+	modelOut.AdvancedConfiguration = types.ObjectNull(advancedConfigurationObjType.AttrTypes)
+	overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	return modelOut
 }
 
-func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.FlexClusterDescription20241113 {
+func flexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.FlexClusterDescription20241113 {
 	if _, _, err := client.AtlasV2.ClustersApi.UpgradeTenantUpgrade(ctx, waitParams.ProjectID, req).Execute(); err != nil {
 		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpgradeFlex, req.Name), err.Error())
 		return nil
@@ -160,7 +152,7 @@ func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.Mo
 	return flexClusterResp
 }
 
-func GetUpgradeToFlexClusterRequest(planReq *admin.ClusterDescription20240805) *admin.LegacyAtlasTenantClusterUpgradeRequest {
+func getUpgradeToFlexClusterRequest(planReq *admin.ClusterDescription20240805) *admin.LegacyAtlasTenantClusterUpgradeRequest {
 	regionConfig := getRegionConfig(planReq.ReplicationSpecs)
 
 	return &admin.LegacyAtlasTenantClusterUpgradeRequest{

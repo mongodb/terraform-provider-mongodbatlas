@@ -30,7 +30,7 @@ const (
 	errorDetailDefault       = "cluster name: %s, API error details: %s"
 	errorReadResource        = "error reading advanced cluster"
 	errorAdvancedConfRead    = "error reading Advanced Configuration"
-	errorList                = "error reading  advanced cluster list"
+	errorList                = "error reading advanced cluster list"
 	errorListDetail          = "project ID %s. Error %s"
 	errorResolveContainerIDs = "error resolving container IDs"
 	errorRegionPriorities    = "priority values in region_configs must be in descending order"
@@ -91,13 +91,13 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 	// The replication specs can be unknown if the cluster depends on another resource.
-	// useStateForUnknowns will try to convert the field to `Target Type: []advancedcluster.TFReplicationSpecsModel`.
+	// handleModifyPlan will try to convert the field to `Target Type: []advancedcluster.TFReplicationSpecsModel`.
 	// But since the field is unknown the user gets an error: `Error: Value Conversion Error`.
 	if plan.ReplicationSpecs.IsUnknown() {
 		return
 	}
 
-	useStateForUnknowns(ctx, diags, &state, &plan)
+	handleModifyPlan(ctx, diags, &state, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -124,33 +124,33 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	isFlex := IsFlex(latestReq.ReplicationSpecs)
+	isFlex := isFlex(latestReq.ReplicationSpecs)
 	projectID, clusterName := waitParams.ProjectID, waitParams.ClusterName
 	clusterDetailStr := fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID)
 	if plan.DeleteOnCreateTimeout.ValueBool() {
 		var deferCall func()
 		ctx, deferCall = cleanup.OnTimeout(
-			ctx, waitParams.Timeout, diags.AddWarning, clusterDetailStr, DeleteClusterNoWait(r.Client, projectID, clusterName, isFlex),
+			ctx, waitParams.Timeout, diags.AddWarning, clusterDetailStr, deleteClusterNoWait(r.Client, projectID, clusterName, isFlex),
 		)
 		defer deferCall()
 	}
 	if isFlex {
-		flexClusterReq := NewFlexCreateReq(latestReq.GetName(), latestReq.GetTerminationProtectionEnabled(), latestReq.Tags, latestReq.ReplicationSpecs)
+		flexClusterReq := newFlexCreateReq(latestReq.GetName(), latestReq.GetTerminationProtectionEnabled(), latestReq.Tags, latestReq.ReplicationSpecs)
 		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, plan.ProjectID.ValueString(), latestReq.GetName(), flexClusterReq, r.Client.AtlasV2.FlexClustersApi, &waitParams.Timeout)
 		if err != nil {
 			diags.AddError(fmt.Sprintf(flexcluster.ErrorCreateFlex, clusterDetailStr), err.Error())
 			return
 		}
-		newFlexClusterModel := NewTFModelFlexResource(ctx, diags, flexClusterResp, GetPriorityOfFlexReplicationSpecs(latestReq.ReplicationSpecs), &plan)
+		newFlexClusterModel := newTFModelFlex(ctx, diags, flexClusterResp, getPriorityOfFlexReplicationSpecs(latestReq.ReplicationSpecs), &plan)
 		if diags.HasError() {
 			return
 		}
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
-	clusterResp := CreateCluster(ctx, diags, r.Client, latestReq, waitParams)
+	clusterResp := createCluster(ctx, diags, r.Client, latestReq, waitParams)
 
-	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
+	emptyAdvancedConfiguration := types.ObjectNull(advancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadCluster(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
 	if diags.HasError() {
 		return
@@ -159,7 +159,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		ArgsDefault:           patchReqProcessArgs,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	}
-	advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
+	advConfig, _ := updateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -170,11 +170,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	modelOut := getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
+	modelOut := getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan)
 	if diags.HasError() {
 		return
 	}
-	advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, advConfig)
+	advConfig = readIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, advConfig)
 
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
 		ArgsDefault:           advConfig,
@@ -195,7 +195,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 	clusterName := state.Name.ValueString()
 	projectID := state.ProjectID.ValueString()
-	cluster, flexCluster := GetClusterDetails(ctx, diags, projectID, clusterName, r.Client, !state.PinnedFCV.IsNull())
+	cluster, flexCluster := GetClusterDetails(ctx, diags, projectID, clusterName, r.Client, !state.PinnedFCV.IsNull(), state.UseEffectiveFields.ValueBool())
 	if diags.HasError() {
 		return
 	}
@@ -204,14 +204,14 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	if flexCluster != nil {
-		newFlexClusterModel := NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(newAtlasReq(ctx, &state, diags).ReplicationSpecs), &state)
+		newFlexClusterModel := newTFModelFlex(ctx, diags, flexCluster, getPriorityOfFlexReplicationSpecs(newAtlasReq(ctx, &state, diags).ReplicationSpecs), &state)
 		if diags.HasError() {
 			return
 		}
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
-	modelOut := getBasicClusterModelResource(ctx, diags, r.Client, cluster, &state)
+	modelOut := getBasicClusterModel(ctx, diags, r.Client, cluster, &state)
 	if diags.HasError() {
 		return
 	}
@@ -260,12 +260,12 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 				diags.Append(resp.State.Set(ctx, flexOut)...)
 			}
 			return
-		case diff.isUpgradeFlexToDedicated():
-			clusterResp = UpgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
-		case diff.isUpgradeTenant():
-			clusterResp = UpgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
-		case diff.isClusterPatchOnly():
-			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, diff.clusterPatchOnlyReq, waitParams)
+		case diff.upgradeFlexToDedicatedReq != nil:
+			clusterResp = upgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
+		case diff.upgradeTenantReq != nil:
+			clusterResp = upgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
+		case diff.clusterPatchOnlyReq != nil:
+			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
 		}
 		if diags.HasError() {
 			return
@@ -274,17 +274,20 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	// clusterResp can be nil if there are no changes to the cluster, for example when `delete_on_create_timeout` is changed or only advanced configuration is changed
 	if clusterResp == nil {
 		var flexResp *admin.FlexClusterDescription20241113
-		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false)
+		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false, waitParams.UseEffectiveFields)
+		if diags.HasError() {
+			return
+		}
 		// This should never happen since the switch case should handle the two flex cases (update/upgrade) and return, but keeping it here for safety.
 		if flexResp != nil {
-			flexPriority := GetPriorityOfFlexReplicationSpecs(newAtlasReq(ctx, &plan, diags).ReplicationSpecs)
-			if flexOut := NewTFModelFlexResource(ctx, diags, flexResp, flexPriority, &plan); flexOut != nil {
+			flexPriority := getPriorityOfFlexReplicationSpecs(newAtlasReq(ctx, &plan, diags).ReplicationSpecs)
+			if flexOut := newTFModelFlex(ctx, diags, flexResp, flexPriority, &plan); flexOut != nil {
 				diags.Append(resp.State.Set(ctx, flexOut)...)
 			}
 			return
 		}
 	}
-	modelOut := getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
+	modelOut := getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -296,7 +299,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		ArgsDefault:           patchReqProcessArgs,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	}
-	advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
+	advConfig, advConfigChanged := updateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -326,7 +329,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 	retainBackups := conversion.NilForUnknown(state.RetainBackupsEnabled, state.RetainBackupsEnabled.ValueBoolPointer())
-	DeleteCluster(ctx, diags, r.Client, waitParams, retainBackups)
+	deleteCluster(ctx, diags, r.Client, waitParams, retainBackups)
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -364,7 +367,7 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 	return AwaitChanges(ctx, r.Client, waitParams, operationFCVUnpinning, diags)
 }
 
-func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, patchReq *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
+func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, patchReq *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	// paused = `false` is sent in an isolated request before other changes to avoid error from API: Cannot update cluster while it is paused or being paused.
 	var result *admin.ClusterDescription20240805
 	if patchReq.Paused != nil && !patchReq.GetPaused() {
@@ -387,47 +390,79 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 	return result
 }
 
-func getBasicClusterModelResource(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
+func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
+	containerIDs := resolveContainerIDsOrError(ctx, diags, clusterResp, client.AtlasV2.NetworkPeeringApi)
 	if diags.HasError() {
 		return nil
 	}
-	modelOut := getBasicClusterModel(ctx, diags, client, clusterResp)
-	if modelOut != nil {
-		modelOut.Timeouts = modelIn.Timeouts
-		overrideAttributesWithPrevStateValue(modelIn, modelOut)
+	modelOut := newTFModel(ctx, clusterResp, diags, containerIDs)
+	if diags.HasError() {
+		return nil
 	}
+	overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	return modelOut
 }
 
-func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805) *TFModel {
-	var (
-		projectID   = clusterResp.GetGroupId()
-		clusterName = clusterResp.GetName()
-	)
-	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterResp, client.AtlasV2.NetworkPeeringApi)
+func resolveContainerIDsOrError(ctx context.Context, diags *diag.Diagnostics, clusterResp *admin.ClusterDescription20240805, api admin.NetworkPeeringApi) map[string]string {
+	projectID := clusterResp.GetGroupId()
+	clusterName := clusterResp.GetName()
+	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterResp, api)
 	if err != nil {
 		diags.AddError(errorResolveContainerIDs, fmt.Sprintf("cluster name = %s, error details: %s", clusterName, err.Error()))
 		return nil
 	}
-
-	modelOut := NewTFModel(ctx, clusterResp, diags, containerIDs)
-	if diags.HasError() {
-		return nil
-	}
-	return modelOut
+	return containerIDs
 }
 
-func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel,
-	p *ProcessArgs) {
-	projectID := model.ProjectID.ValueString()
-	clusterName := model.Name.ValueString()
-	advConfig := ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, p.ArgsDefault)
+func readAdvancedConfigIfUnset(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, p *ProcessArgs) {
+	advConfig := readIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, p.ArgsDefault)
 	if diags.HasError() {
 		return
 	}
 	p.ArgsDefault = advConfig
+}
 
-	AddAdvancedConfig(ctx, model, p, diags)
+func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, p *ProcessArgs) {
+	readAdvancedConfigIfUnset(ctx, diags, client, model.ProjectID.ValueString(), model.Name.ValueString(), p)
+	if !diags.HasError() {
+		model.AdvancedConfiguration = buildAdvancedConfigObjType(ctx, p, diags)
+	}
+}
+
+func updateModelAdvancedConfigDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModelDS, p *ProcessArgs) {
+	readAdvancedConfigIfUnset(ctx, diags, client, model.ProjectID.ValueString(), model.Name.ValueString(), p)
+	if !diags.HasError() {
+		model.AdvancedConfiguration = buildAdvancedConfigObjType(ctx, p, diags)
+	}
+}
+
+func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
+	pauseAfter := req.GetPaused()
+	if pauseAfter {
+		req.Paused = nil
+	}
+	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
+	if err != nil {
+		addErrorDiag(diags, operationCreate, defaultAPIErrorDetails(waitParams.ClusterName, err))
+		return nil
+	}
+	clusterResp := AwaitChanges(ctx, client, waitParams, operationCreate, diags)
+	if diags.HasError() {
+		return nil
+	}
+	if pauseAfter {
+		clusterResp = updateCluster(ctx, diags, client, &pauseRequest, waitParams, operationPauseAfterCreate)
+	}
+	return clusterResp
+}
+
+func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, operationName string) *admin.ClusterDescription20240805 {
+	_, _, err := client.AtlasV2.ClustersApi.UpdateCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, req).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
+	if err != nil {
+		addErrorDiag(diags, operationName, defaultAPIErrorDetails(waitParams.ClusterName, err))
+		return nil
+	}
+	return AwaitChanges(ctx, client, waitParams, operationName, diags)
 }
 
 func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.Diagnostics, operation string) *ClusterWaitParams {
@@ -438,10 +473,11 @@ func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.D
 		return nil
 	}
 	return &ClusterWaitParams{
-		ProjectID:   projectID,
-		ClusterName: clusterName,
-		Timeout:     operationTimeout,
-		IsDelete:    operation == operationDelete,
+		ProjectID:          projectID,
+		ClusterName:        clusterName,
+		Timeout:            operationTimeout,
+		IsDelete:           operation == operationDelete,
+		UseEffectiveFields: model.UseEffectiveFields.ValueBool(),
 	}
 }
 
@@ -453,20 +489,8 @@ type clusterDiff struct {
 	isUpdateOfFlex            bool
 }
 
-func (c *clusterDiff) isClusterPatchOnly() bool {
-	return !update.IsZeroValues(c.clusterPatchOnlyReq)
-}
-
-func (c *clusterDiff) isUpgradeTenant() bool {
-	return c.upgradeTenantReq != nil
-}
-
-func (c *clusterDiff) isUpgradeFlexToDedicated() bool {
-	return c.upgradeFlexToDedicatedReq != nil
-}
-
 func (c *clusterDiff) isAnyUpgrade() bool {
-	return c.isUpgradeTenantToFlex || c.isUpgradeTenant() || c.isUpgradeFlexToDedicated()
+	return c.isUpgradeTenantToFlex || c.upgradeTenantReq != nil || c.upgradeFlexToDedicatedReq != nil
 }
 
 // findClusterDiff should be called only in Update, e.g. it will fail for a flex cluster with no changes.
@@ -477,7 +501,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 		return clusterDiff{}
 	}
 
-	if IsFlex(planReq.ReplicationSpecs) {
+	if isFlex(planReq.ReplicationSpecs) {
 		if isValidUpgradeTenantToFlex(stateReq, planReq) {
 			return clusterDiff{isUpgradeTenantToFlex: true}
 		}
@@ -489,7 +513,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	}
 
 	patchOptions := update.PatchOptions{
-		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknowns and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
+		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknown and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
@@ -499,10 +523,11 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	if update.IsZeroValues(patchReq) { // No changes to cluster
 		return clusterDiff{}
 	}
-	upgradeTenantReq := getUpgradeTenantRequest(stateReq, patchReq)
-	upgradeFlexToDedicatedReq := getUpgradeFlexToDedicatedRequest(stateReq, patchReq)
-	if upgradeTenantReq != nil || upgradeFlexToDedicatedReq != nil {
-		return clusterDiff{upgradeTenantReq: upgradeTenantReq, upgradeFlexToDedicatedReq: upgradeFlexToDedicatedReq}
+	if upgradeFlexToDedicatedReq := getUpgradeFlexToDedicatedRequest(stateReq, patchReq); upgradeFlexToDedicatedReq != nil {
+		return clusterDiff{upgradeFlexToDedicatedReq: upgradeFlexToDedicatedReq}
+	}
+	if upgradeTenantReq := getUpgradeTenantRequest(stateReq, patchReq); upgradeTenantReq != nil {
+		return clusterDiff{upgradeTenantReq: upgradeTenantReq}
 	}
 	return clusterDiff{clusterPatchOnlyReq: patchReq}
 }
@@ -512,11 +537,11 @@ func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *con
 	if diags.HasError() {
 		return nil
 	}
-	flexCluster := FlexUpgrade(ctx, diags, client, waitParams, GetUpgradeToFlexClusterRequest(configReq))
+	flexCluster := flexUpgrade(ctx, diags, client, waitParams, getUpgradeToFlexClusterRequest(configReq))
 	if diags.HasError() {
 		return nil
 	}
-	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
+	return newTFModelFlex(ctx, diags, flexCluster, getPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
 }
 
 func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {
@@ -526,11 +551,11 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 	}
 	clusterName := plan.Name.ValueString()
 	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), clusterName,
-		GetFlexClusterUpdateRequest(configReq.Tags, configReq.TerminationProtectionEnabled),
+		getFlexClusterUpdateRequest(configReq.Tags, configReq.TerminationProtectionEnabled),
 		client.AtlasV2.FlexClustersApi, waitParams.Timeout)
 	if err != nil {
 		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpdateFlex, clusterName), err.Error())
 		return nil
 	}
-	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
+	return newTFModelFlex(ctx, diags, flexCluster, getPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
 }

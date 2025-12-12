@@ -39,18 +39,35 @@ type Model struct {
 }
 
 type Resource struct {
-	Schema      *Schema       `yaml:"schema,omitempty"`
-	Operations  APIOperations `yaml:"operations"`
-	MoveState   *MoveState    `yaml:"move_state,omitempty"`
-	Name        string        `yaml:"name"`
-	PackageName string        `yaml:"packageName"`
+	Schema       *Schema       `yaml:"schema,omitempty"`
+	Operations   APIOperations `yaml:"operations"`
+	MoveState    *MoveState    `yaml:"move_state,omitempty"`
+	DataSources  *DataSources  `yaml:"data_sources,omitempty"`
+	Name         string        `yaml:"name"`
+	PackageName  string        `yaml:"packageName"`
+	IDAttributes []string      `yaml:"id_attributes,omitempty"`
+}
+
+// DataSources holds the data source configuration within a resource
+type DataSources struct {
+	Schema     *DataSourceSchema `yaml:"schema,omitempty"`
+	Operations APIOperations     `yaml:"operations"` // only Read and List operations
+}
+
+// DataSourceSchema holds schema information specific to data sources
+type DataSourceSchema struct {
+	SingularDSDescription *string    `yaml:"singular_ds_description,omitempty"`
+	PluralDSDescription   *string    `yaml:"plural_ds_description,omitempty"`
+	DeprecationMessage    *string    `yaml:"deprecation_message,omitempty"`
+	Attributes            Attributes `yaml:"attributes"`
 }
 
 type APIOperations struct {
 	Delete        *APIOperation `yaml:"delete,omitempty"`
-	Create        APIOperation  `yaml:"create"`
-	Read          APIOperation  `yaml:"read"`
-	Update        *APIOperation `yaml:"update"`
+	Create        *APIOperation `yaml:"create,omitempty"` // optional to support datasource-only API resources
+	Read          *APIOperation `yaml:"read,omitempty"`   // optional to support datasource-only API resources
+	List          *APIOperation `yaml:"list,omitempty"`   // for plural data sources
+	Update        *APIOperation `yaml:"update,omitempty"`
 	VersionHeader string        `yaml:"version_header"`
 }
 

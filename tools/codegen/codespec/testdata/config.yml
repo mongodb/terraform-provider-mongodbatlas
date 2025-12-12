@@ -172,3 +172,21 @@ resources:
         # and appears in request/response bodies. The apiname tag should preserve the
         # original API name "username" while the schema uses the aliased name "dbUser"
         username: dbUser
+  
+  test_schema_ignore_and_id_attributes:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: GET
+      schema_ignore: true
+    create:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: POST
+      schema_ignore: true
+    update:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: PATCH
+      schema_ignore: true
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: DELETE
+    id_attributes: ["group_id", "id"]

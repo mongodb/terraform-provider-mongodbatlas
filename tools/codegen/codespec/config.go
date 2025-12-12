@@ -19,10 +19,57 @@ func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resourc
 	if err := applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
-	applyAliasToPathParams(resource, resourceConfig.SchemaOptions.Aliases)
+	applyAliasToPathParams(&resource.Operations, resourceConfig.SchemaOptions.Aliases)
 	ApplyDeleteOnCreateTimeoutTransformation(resource)
 	ApplyTimeoutTransformation(resource)
 	return nil
+}
+
+// ApplyTransformationsToDataSources applies schema transformations and path param aliasing to data sources.
+// This mirrors applyTransformationsWithConfigOpts for resources, without timeout-related and create-only transformations.
+// Exported for testing purposes.
+func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSources) error {
+	if ds == nil || ds.Schema == nil {
+		return nil
+	}
+
+	// Apply attribute-level transformations (aliases, overrides, ignores) - excludes create-only for data sources
+	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, &ds.Schema.Attributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
+		return fmt.Errorf("failed to apply attribute transformations: %w", err)
+	}
+
+	// Alias placeholders in operation paths after attribute transformations
+	applyAliasToPathParams(&ds.Operations, dsConfig.SchemaOptions.Aliases)
+	return nil
+}
+
+// applyAliasToPathParams replaces path parameter placeholders with their aliased names in all operation paths.
+// Works for both resources (Create, Read, Update, Delete) and data sources (Read, List).
+func applyAliasToPathParams(operations *APIOperations, aliases map[string]string) {
+	if operations == nil {
+		return
+	}
+
+	for original, alias := range aliases {
+		placeholder := fmt.Sprintf("{%s}", original)
+		aliasedPlaceholder := fmt.Sprintf("{%s}", alias)
+
+		if operations.Create != nil {
+			operations.Create.Path = strings.ReplaceAll(operations.Create.Path, placeholder, aliasedPlaceholder)
+		}
+		if operations.Read != nil {
+			operations.Read.Path = strings.ReplaceAll(operations.Read.Path, placeholder, aliasedPlaceholder)
+		}
+		if operations.Update != nil {
+			operations.Update.Path = strings.ReplaceAll(operations.Update.Path, placeholder, aliasedPlaceholder)
+		}
+		if operations.Delete != nil {
+			operations.Delete.Path = strings.ReplaceAll(operations.Delete.Path, placeholder, aliasedPlaceholder)
+		}
+		if operations.List != nil {
+			operations.List.Path = strings.ReplaceAll(operations.List.Path, placeholder, aliasedPlaceholder)
+		}
+	}
 }
 
 // attrPaths holds both the snake_case path (for overrides) and the camelCase path (for aliases).
@@ -43,7 +90,21 @@ var transformations = []AttributeTransformation{
 	createOnlyTransformation,
 }
 
+var dataSourceTransformations = []AttributeTransformation{
+	aliasTransformation,
+	overridesTransformation,
+	// Note: createOnlyTransformation is excluded for data sources (read-only, no create operation)
+}
+
 func applyAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths) error {
+	return applyAttributeTransformationsList(schemaOptions, attributes, parentPaths, transformations)
+}
+
+func applyDataSourceAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths) error {
+	return applyAttributeTransformationsList(schemaOptions, attributes, parentPaths, dataSourceTransformations)
+}
+
+func applyAttributeTransformationsList(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths, transformationList []AttributeTransformation) error {
 	ignoredAttrs := getIgnoredAttributesMap(schemaOptions.Ignores)
 
 	var finalAttributes Attributes
@@ -59,28 +120,28 @@ func applyAttributeTransformations(schemaOptions config.SchemaOptions, attribute
 			continue
 		}
 
-		for _, t := range transformations {
+		for _, t := range transformationList {
 			if err := t(attr, &paths, schemaOptions); err != nil {
 				return err
 			}
 		}
 
-		// apply transformations to nested attributes
+		// apply transformations to nested attributes recursively with the same transformation list
 		switch {
 		case attr.ListNested != nil:
-			if err := applyAttributeTransformations(schemaOptions, &attr.ListNested.NestedObject.Attributes, &paths); err != nil {
+			if err := applyAttributeTransformationsList(schemaOptions, &attr.ListNested.NestedObject.Attributes, &paths, transformationList); err != nil {
 				return err
 			}
 		case attr.SingleNested != nil:
-			if err := applyAttributeTransformations(schemaOptions, &attr.SingleNested.NestedObject.Attributes, &paths); err != nil {
+			if err := applyAttributeTransformationsList(schemaOptions, &attr.SingleNested.NestedObject.Attributes, &paths, transformationList); err != nil {
 				return err
 			}
 		case attr.SetNested != nil:
-			if err := applyAttributeTransformations(schemaOptions, &attr.SetNested.NestedObject.Attributes, &paths); err != nil {
+			if err := applyAttributeTransformationsList(schemaOptions, &attr.SetNested.NestedObject.Attributes, &paths, transformationList); err != nil {
 				return err
 			}
 		case attr.MapNested != nil:
-			if err := applyAttributeTransformations(schemaOptions, &attr.MapNested.NestedObject.Attributes, &paths); err != nil {
+			if err := applyAttributeTransformationsList(schemaOptions, &attr.MapNested.NestedObject.Attributes, &paths, transformationList); err != nil {
 				return err
 			}
 		}
@@ -140,19 +201,6 @@ func applyAliasToAttribute(attr *Attribute, paths *attrPaths, schemaOptions conf
 		}
 		// Note: apiPath is not updated because it's only used for alias lookup,
 		// and aliases are defined using original API names
-	}
-}
-
-func applyAliasToPathParams(resource *Resource, aliases map[string]string) {
-	for original, alias := range aliases {
-		resource.Operations.Create.Path = strings.ReplaceAll(resource.Operations.Create.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-		resource.Operations.Read.Path = strings.ReplaceAll(resource.Operations.Read.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-		if resource.Operations.Update != nil {
-			resource.Operations.Update.Path = strings.ReplaceAll(resource.Operations.Update.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-		}
-		if resource.Operations.Delete != nil {
-			resource.Operations.Delete.Path = strings.ReplaceAll(resource.Operations.Delete.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-		}
 	}
 }
 
