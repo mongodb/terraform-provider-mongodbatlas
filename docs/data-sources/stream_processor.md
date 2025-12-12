@@ -64,6 +64,7 @@ resource "mongodbatlas_stream_processor" "stream-processor-sample-example" {
     { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "sample", "coll" : "solar", "timeseries" : { "timeField" : "_ts" } } }
   ])
   state = "STARTED"
+  tier  = "SP30"
 }
 
 resource "mongodbatlas_stream_processor" "stream-processor-cluster-to-kafka-example" {
@@ -140,6 +141,7 @@ output "stream_processors_results" {
 
 **NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.
 - `stats` (String) The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.
+- `tier` (String) Selected tier to start a stream processor on rather than defaulting to the workspace setting. Configures Memory / VCPU allowances. Valid options are SP2, SP5, SP10, SP30, and SP50.
 
 <a id="nestedatt--options"></a>
 ### Nested Schema for `options`

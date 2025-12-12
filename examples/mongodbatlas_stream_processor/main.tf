@@ -54,6 +54,7 @@ resource "mongodbatlas_stream_processor" "stream-processor-sample-example" {
     { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "sample", "coll" : "solar", "timeseries" : { "timeField" : "_ts" } } }
   ])
   state = "STARTED"
+  tier  = "SP30"
 }
 
 resource "mongodbatlas_stream_processor" "stream-processor-cluster-to-kafka-example" {
