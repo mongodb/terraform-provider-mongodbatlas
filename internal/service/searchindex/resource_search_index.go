@@ -156,6 +156,10 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 				},
 			},
 		},
+		"num_partitions": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
 	}
 }
 
@@ -269,11 +273,16 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			StoredSource:   searchRead.LatestDefinition.StoredSource,
 			Synonyms:       searchRead.LatestDefinition.Synonyms,
 			Fields:         searchRead.LatestDefinition.Fields,
+			NumPartitions:  searchRead.LatestDefinition.NumPartitions,
 		},
 	}
 
 	if d.HasChange("analyzer") {
 		searchIndex.Definition.Analyzer = conversion.StringPtr(d.Get("analyzer").(string))
+	}
+
+	if d.HasChange("num_partitions") {
+		searchIndex.Definition.NumPartitions = conversion.IntPtr(d.Get("num_partitions").(int))
 	}
 
 	if d.HasChange("search_analyzer") {
@@ -485,6 +494,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf("error setting `stored_source` for search index (%s): %s", d.Id(), err)
 	}
 
+	if err := d.Set("num_partitions", searchIndex.LatestDefinition.GetNumPartitions()); err != nil {
+		return diag.Errorf("error setting `num_partitions` for search index (%s): %s", d.Id(), err)
+	}
+
 	return nil
 }
 
@@ -501,6 +514,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Definition: &admin.BaseSearchIndexCreateRequestDefinition{
 			Analyzer:       conversion.StringPtr(d.Get("analyzer").(string)),
 			SearchAnalyzer: conversion.StringPtr(d.Get("search_analyzer").(string)),
+			NumPartitions:  conversion.IntPtr(d.Get("num_partitions").(int)),
 		},
 	}
 
