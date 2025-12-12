@@ -156,7 +156,7 @@ Read-Only:
 
 **NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.
 - `stats` (String) The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.
-- `tier` (String) Selected tier for the Stream Processor. Configures Memory / VCPU allowances. Valid options are SP2, SP5, SP10, SP30, and SP50.
+- `tier` (String) Selected tier to start a stream processor on rather than defaulting to the workspace setting. Configures Memory / VCPU allowances. Valid options are SP2, SP5, SP10, SP30, and SP50.
 - `workspace_name` (String) Label that identifies the stream processing workspace.
 
 <a id="nestedatt--results--options"></a>

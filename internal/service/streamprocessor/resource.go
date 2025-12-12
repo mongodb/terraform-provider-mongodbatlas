@@ -200,8 +200,12 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	// we must stop the current stream processor if the current state is started
-	if currentState == StartedState {
+	currentTier := state.Tier.ValueString()
+	plannedTier := plan.Tier.ValueString()
+	tierChanged := currentTier != plannedTier
+
+	// we must stop the current stream processor if the current state is started or the tier is updated
+	if currentState == StartedState && (plannedState != StartedState || tierChanged) {
 		_, err := connV2.StreamsApi.StopStreamProcessorWithParams(ctx,
 			&admin.StopStreamProcessorApiParams{
 				GroupId:       plan.ProjectID.ValueString(),
@@ -251,6 +255,15 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		streamProcessorResp, err = WaitStateTransition(ctx, requestParams, r.Client.AtlasV2.StreamsApi, []string{StoppedState}, []string{StartedState})
 		if err != nil {
 			resp.Diagnostics.AddError("Error changing state of stream processor", err.Error())
+			return
+		}
+	}
+
+	// Get the current state if the processor was not restarted
+	if streamProcessorResp == nil {
+		streamProcessorResp, _, err = r.Client.AtlasV2.StreamsApi.GetStreamProcessorWithParams(ctx, requestParams).Execute()
+		if err != nil {
+			resp.Diagnostics.AddError("Error reading updated stream processor", err.Error())
 			return
 		}
 	}

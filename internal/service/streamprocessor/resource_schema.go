@@ -98,7 +98,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"tier": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Selected tier for the Stream Processor. Configures Memory / VCPU allowances. Valid options are SP2, SP5, SP10, SP30, and SP50.",
+				MarkdownDescription: "Selected tier to start a stream processor on rather than defaulting to the workspace setting. Configures Memory / VCPU allowances. Valid options are SP2, SP5, SP10, SP30, and SP50.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},

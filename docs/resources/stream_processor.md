@@ -145,7 +145,7 @@ output "stream_processors_results" {
 - `state` (String) The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`. When a Stream Processor is created without specifying the state, it will default to `CREATED` state. When a Stream Processor is updated without specifying the state, it will default to the Previous state. 
 
 **NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.
-- `tier` (String) Selected tier for the Stream Processor. Configures Memory / VCPU allowances. Valid options are SP2, SP5, SP10, SP30, and SP50.
+- `tier` (String) Selected tier to start a stream processor on rather than defaulting to the workspace setting. Configures Memory / VCPU allowances. Valid options are SP2, SP5, SP10, SP30, and SP50.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 - `workspace_name` (String) Label that identifies the stream processing workspace.
 
