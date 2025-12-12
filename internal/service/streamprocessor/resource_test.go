@@ -69,15 +69,49 @@ func TestAccStreamProcessor_withTier(t *testing.T) {
 			{
 				Config: configWithTier(t, projectID, workspaceName, processorName, tier),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName),
-					resource.TestCheckResourceAttr(resourceName, "processor_name", processorName),
-					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
-					resource.TestCheckResourceAttr(resourceName, "tier", tier),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+				),
+			},
+			{
+				Config: configWithTier(t, projectID, workspaceName, processorName, "SP50"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
 				),
 			},
 			importStep(),
 		}})
+}
+
+func TestAccStreamProcessor_tierUpdate(t *testing.T) {
+	var (
+		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		randomSuffix             = acctest.RandString(5)
+		processorName            = "tier-update-processor" + randomSuffix
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithTier(t, projectID, workspaceName, processorName, "SP30"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "stats"),
+				),
+			},
+			{
+				// Update the stream processor tier to SP50
+				Config: configWithTier(t, projectID, workspaceName, processorName, "SP50"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "stats"),
+				),
+			},
+			importStep(),
+		},
+	})
 }
 
 func basicTestCase(t *testing.T) *resource.TestCase {
@@ -704,11 +738,10 @@ func configWithTier(t *testing.T, projectID, workspaceName, processorName, tier 
 	t.Helper()
 
 	return fmt.Sprintf(`
-	resource "mongodbatlas_stream_connection" "sample_stream_solar" {
+	data "mongodbatlas_stream_connection" "sample_stream_solar" {
 		project_id      = %[1]q
 		workspace_name  = %[2]q
 		connection_name = "sample_stream_solar"
-		type            = "Sample"
 	}
 
 	resource "mongodbatlas_stream_processor" "processor" {
@@ -716,7 +749,7 @@ func configWithTier(t *testing.T, projectID, workspaceName, processorName, tier 
 		workspace_name = %[2]q
 		processor_name = %[3]q
 		pipeline = jsonencode([
-			{ "$source" = { "connectionName" = mongodbatlas_stream_connection.sample_stream_solar.connection_name } },
+			{ "$source" = { "connectionName" = data.mongodbatlas_stream_connection.sample_stream_solar.connection_name } },
 			{ "$emit" = { "connectionName" = "__testLog" } }
 		])
 		state = "STARTED"
