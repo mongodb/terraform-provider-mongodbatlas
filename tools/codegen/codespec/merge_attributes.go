@@ -51,7 +51,7 @@ func addOrUpdate(merged map[string]*Attribute, newAttr *Attribute, reqBodyUsage 
 	} else {
 		if isFromResponse {
 			newAttr.ComputedOptionalRequired = Computed // setting as computed as attribute was defined only in response
-			newAttr.PresentInResponse = true
+			newAttr.PresentInAnyResponse = true
 		}
 		newAttr.ReqBodyUsage = reqBodyUsage
 		merged[newAttr.TFSchemaName] = newAttr
@@ -70,7 +70,7 @@ func updateAttrWithNewSource(existingAttr, newAttr *Attribute, reqBodyUsage Attr
 		// merging ensures if property is defined in POST and PATCH it will have the most restrictive computability
 		existingAttr.ComputedOptionalRequired = mergeComputability(newAttr.ComputedOptionalRequired, existingAttr.ComputedOptionalRequired)
 	} else {
-		existingAttr.PresentInResponse = true
+		existingAttr.PresentInAnyResponse = true
 	}
 
 	// handle nested attributes

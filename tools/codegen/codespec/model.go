@@ -103,31 +103,31 @@ type Attributes []Attribute
 // Add this field to the Attribute struct
 // Usage AttributeUsage
 type Attribute struct {
-	Set                       *SetAttribute            `yaml:"set,omitempty"`
-	String                    *StringAttribute         `yaml:"string,omitempty"`
-	Float64                   *Float64Attribute        `yaml:"float64,omitempty"`
-	List                      *ListAttribute           `yaml:"list,omitempty"`
-	Bool                      *BoolAttribute           `yaml:"bool,omitempty"`
-	ListNested                *ListNestedAttribute     `yaml:"list_nested,omitempty"`
-	Map                       *MapAttribute            `yaml:"map,omitempty"`
-	MapNested                 *MapNestedAttribute      `yaml:"map_nested,omitempty"`
-	Number                    *NumberAttribute         `yaml:"number,omitempty"`
-	Int64                     *Int64Attribute          `yaml:"int64,omitempty"`
-	Timeouts                  *TimeoutsAttribute       `yaml:"timeouts,omitempty"`
-	SingleNested              *SingleNestedAttribute   `yaml:"single_nested,omitempty"`
-	SetNested                 *SetNestedAttribute      `yaml:"set_nested,omitempty"`
-	Description               *string                  `yaml:"description,omitempty"`
-	DeprecationMessage        *string                  `yaml:"deprecation_message,omitempty"`
-	CustomType                *CustomType              `yaml:"custom_type,omitempty"`
-	ComputedOptionalRequired  ComputedOptionalRequired `yaml:"computed_optional_required"`
-	TFSchemaName              string                   `yaml:"tf_schema_name"`
-	TFModelName               string                   `yaml:"tf_model_name"`
-	APIName                   string                   `yaml:"api_name,omitempty"` // original API property name (camelCase), used for apiname tag when different from Uncapitalize(TFModelName)
-	ReqBodyUsage              AttributeReqBodyUsage    `yaml:"req_body_usage"`
-	Sensitive                 bool                     `yaml:"sensitive"`
-	CreateOnly                bool                     `yaml:"create_only"` // leveraged for defining plan modifier which avoids updates on this attribute
-	PresentInResponse         bool                     `yaml:"present_in_response"`
-	RequiredOnCreateInputOnly bool                     `yaml:"required_on_create_input_only"`
+	Set                         *SetAttribute            `yaml:"set,omitempty"`
+	String                      *StringAttribute         `yaml:"string,omitempty"`
+	Float64                     *Float64Attribute        `yaml:"float64,omitempty"`
+	List                        *ListAttribute           `yaml:"list,omitempty"`
+	Bool                        *BoolAttribute           `yaml:"bool,omitempty"`
+	ListNested                  *ListNestedAttribute     `yaml:"list_nested,omitempty"`
+	Map                         *MapAttribute            `yaml:"map,omitempty"`
+	MapNested                   *MapNestedAttribute      `yaml:"map_nested,omitempty"`
+	Number                      *NumberAttribute         `yaml:"number,omitempty"`
+	Int64                       *Int64Attribute          `yaml:"int64,omitempty"`
+	Timeouts                    *TimeoutsAttribute       `yaml:"timeouts,omitempty"`
+	SingleNested                *SingleNestedAttribute   `yaml:"single_nested,omitempty"`
+	SetNested                   *SetNestedAttribute      `yaml:"set_nested,omitempty"`
+	Description                 *string                  `yaml:"description,omitempty"`
+	DeprecationMessage          *string                  `yaml:"deprecation_message,omitempty"`
+	CustomType                  *CustomType              `yaml:"custom_type,omitempty"`
+	ComputedOptionalRequired    ComputedOptionalRequired `yaml:"computed_optional_required"`
+	TFSchemaName                string                   `yaml:"tf_schema_name"`
+	TFModelName                 string                   `yaml:"tf_model_name"`
+	APIName                     string                   `yaml:"api_name,omitempty"` // original API property name (camelCase), used for apiname tag when different from Uncapitalize(TFModelName)
+	ReqBodyUsage                AttributeReqBodyUsage    `yaml:"req_body_usage"`
+	Sensitive                   bool                     `yaml:"sensitive"`
+	CreateOnly                  bool                     `yaml:"create_only"` // leveraged for defining plan modifier which avoids updates on this attribute
+	PresentInAnyResponse        bool                     `yaml:"present_in_any_response"`
+	RequestOnlyRequiredOnCreate bool                     `yaml:"request_only_required_on_create"`
 }
 
 type ComputedOptionalRequired string

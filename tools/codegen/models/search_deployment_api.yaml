@@ -10,8 +10,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
-          present_in_response: false
-          required_on_create_input_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
         - string: {}
           description: Cloud service provider that manages your customer keys to provide an additional layer of Encryption At Rest for the cluster.
           computed_optional_required: computed
@@ -21,8 +21,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: |-
             Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -35,8 +35,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies the search deployment.
           computed_optional_required: computed
@@ -46,8 +46,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - list_nested:
             nested_object:
                 attributes:
@@ -60,8 +60,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: true
-                      required_on_create_input_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - int64: {}
                       description: Number of Search Nodes in the cluster.
                       computed_optional_required: required
@@ -71,8 +71,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: true
-                      required_on_create_input_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
           description: |-
             List of settings that configure the Search Nodes for your cluster.
 
@@ -88,8 +88,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Human-readable label that indicates the current operating condition of this search deployment.
           computed_optional_required: computed
@@ -99,8 +99,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - bool:
             default: true
           description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
@@ -110,8 +110,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
-          present_in_response: false
-          required_on_create_input_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
         - timeouts:
             configurable_timeouts:
                 - create
@@ -123,8 +123,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-          present_in_response: false
-          required_on_create_input_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
 operations:
     delete:
         wait:

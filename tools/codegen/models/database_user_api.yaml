@@ -11,8 +11,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string:
             default: admin
           description: The database against which the database user authenticates. Database users must provide both a username and authentication database to log into MongoDB. If the user authenticates with AWS IAM, x.509, LDAP, or OIDC Workload this value should be `$external`. If the user authenticates with SCRAM-SHA or OIDC Workforce, this value should be `admin`.
@@ -23,8 +23,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Date and time when MongoDB Cloud deletes the user. This parameter expresses its value in the ISO 8601 timestamp format in UTC and can include the time zone designation. You must specify a future date that falls within one week of making the Application Programming Interface (API) request.
           computed_optional_required: optional
@@ -34,8 +34,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Description of this database user.
           computed_optional_required: optional
@@ -45,8 +45,8 @@ schema:
           req_body_usage: include_null_on_update
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: |-
             Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -59,8 +59,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - list_nested:
             nested_object:
                 attributes:
@@ -73,8 +73,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: true
-                      required_on_create_input_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - string: {}
                       description: Value set to the Key applied to tag and categorize this component.
                       computed_optional_required: optional
@@ -84,8 +84,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: true
-                      required_on_create_input_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
           description: List that contains the key-value pairs for tagging and categorizing the MongoDB database user. The labels that you define do not appear in the console.
           custom_type:
             package: customtypes
@@ -98,8 +98,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string:
             default: NONE
           description: Part of the Lightweight Directory Access Protocol (LDAP) record that the database uses to authenticate this database user on the LDAP host.
@@ -110,8 +110,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string:
             default: NONE
           description: Human-readable label that indicates whether the new database user or group authenticates with OIDC federated authentication. To create a federated authentication user, specify the value of USER in this field. To create a federated authentication group, specify the value of IDP_GROUP in this field.
@@ -122,8 +122,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Alphanumeric string that authenticates this database user against the database specified in `databaseName`. To authenticate with SCRAM-SHA, you must specify this parameter. This parameter doesn't appear in this response.
           computed_optional_required: optional
@@ -133,8 +133,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: true
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - list_nested:
             nested_object:
                 attributes:
@@ -147,8 +147,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: true
-                      required_on_create_input_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - string: {}
                       description: Database to which the user is granted access privileges.
                       computed_optional_required: required
@@ -158,8 +158,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: true
-                      required_on_create_input_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - string: {}
                       description: Human-readable label that identifies a group of privileges assigned to a database user. This value can either be a built-in role or a custom role.
                       computed_optional_required: required
@@ -169,8 +169,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: true
-                      required_on_create_input_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
           description: List that provides the pairings of one role with one applicable database.
           custom_type:
             package: customtypes
@@ -183,8 +183,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - list_nested:
             nested_object:
                 attributes:
@@ -197,8 +197,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: true
-                      required_on_create_input_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - string: {}
                       description: Category of resource that this database user can access.
                       computed_optional_required: required
@@ -208,8 +208,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-                      present_in_response: true
-                      required_on_create_input_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
           description: List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces in the project.
           custom_type:
             package: customtypes
@@ -222,8 +222,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: |
             Human-readable label that represents the user that authenticates to MongoDB. The format of this label depends on the method of authentication:
@@ -246,8 +246,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string:
             default: NONE
           description: |-
@@ -264,8 +264,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
 operations:
     delete:
         http_method: DELETE

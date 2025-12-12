@@ -13,8 +13,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
-          present_in_response: false
-          required_on_create_input_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
         - bool: {}
           description: Flag that indicates whether to collect database-specific metrics for the specified project.
           computed_optional_required: computed_optional
@@ -24,8 +24,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - bool: {}
           description: Flag that indicates whether to enable the Data Explorer for the specified project.
           computed_optional_required: computed_optional
@@ -35,8 +35,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - bool: {}
           description: Flag that indicates whether to enable the use of generative AI features which make requests to 3rd party services in Data Explorer for the specified project.
           computed_optional_required: computed_optional
@@ -46,8 +46,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - bool:
             default: false
           description: Flag that indicates whether to enable the passing of sample field values with the use of generative AI features in the Data Explorer for the specified project.
@@ -58,8 +58,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - bool: {}
           description: Flag that indicates whether to enable extended storage sizes for the specified project.
           computed_optional_required: computed_optional
@@ -69,8 +69,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - bool: {}
           description: Flag that indicates whether to enable the Performance Advisor and Profiler for the specified project.
           computed_optional_required: computed_optional
@@ -80,8 +80,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - bool: {}
           description: Flag that indicates whether to enable the Real Time Performance Panel for the specified project.
           computed_optional_required: computed_optional
@@ -91,8 +91,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - bool: {}
           description: Flag that indicates whether to enable the Schema Advisor for the specified project.
           computed_optional_required: computed_optional
@@ -102,8 +102,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
-          present_in_response: true
-          required_on_create_input_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
 operations:
     create:
         http_method: PATCH

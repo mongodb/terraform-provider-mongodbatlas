@@ -224,8 +224,8 @@ func createOnlyTransformation(attr *Attribute, _ *attrPaths, _ config.SchemaOpti
 }
 
 func requiredOnCreateInputOnlyTransformation(attr *Attribute, _ *attrPaths, _ config.SchemaOptions) error {
-	if attr.ComputedOptionalRequired == Required && attr.ReqBodyUsage == OmitInUpdateBody && !attr.PresentInResponse {
-		attr.RequiredOnCreateInputOnly = true
+	if attr.ComputedOptionalRequired == Required && attr.ReqBodyUsage == OmitInUpdateBody && !attr.PresentInAnyResponse {
+		attr.RequestOnlyRequiredOnCreate = true
 		attr.ComputedOptionalRequired = Optional
 	}
 	return nil
