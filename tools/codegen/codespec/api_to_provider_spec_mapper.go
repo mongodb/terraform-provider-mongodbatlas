@@ -277,6 +277,48 @@ func opResponseToAttributes(op *high.Operation, configuredVersion *string) Attri
 	return responseAttributes
 }
 
+// opListResponseToResultsAttributes extracts attributes from the "results" array property of a list operation response.
+// This is used for plural data sources where the response body contains a "results" array,
+// and we need the schema of the elements within that array.
+func opListResponseToResultsAttributes(op *high.Operation, configuredVersion *string) (Attributes, error) {
+	// Get the full response schema (which should have a "results" property)
+	responseSchema, err := buildSchemaFromResponse(op, configuredVersion)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build response schema: %w", err)
+	}
+
+	if responseSchema.Schema.Properties == nil {
+		return nil, fmt.Errorf("response schema has no properties")
+	}
+	resultsProxy, found := responseSchema.Schema.Properties.Get("results")
+	if !found {
+		return nil, fmt.Errorf("response schema does not contain 'results' property")
+	}
+
+	resultsSchema, err := BuildSchema(resultsProxy)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build schema for 'results' property: %w", err)
+	}
+	if resultsSchema.Type != OASTypeArray {
+		return nil, fmt.Errorf("'results' property is not an array type, got: %s", resultsSchema.Type)
+	}
+
+	if resultsSchema.Schema.Items == nil || resultsSchema.Schema.Items.A == nil {
+		return nil, fmt.Errorf("'results' array has no items schema defined")
+	}
+
+	elementSchema, err := BuildSchema(resultsSchema.Schema.Items.A)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build schema for 'results' items: %w", err)
+	}
+	elementAttributes, err := buildResourceAttrs(elementSchema, "", false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build attributes from 'results' items: %w", err)
+	}
+
+	return elementAttributes, nil
+}
+
 func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, name string) (APISpecResource, error) {
 	var errResult error
 	var resourceDeprecationMsg *string
@@ -380,11 +422,14 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 
 	var attributes Attributes
 	var readOp *APIOperation
+	var readResponseAttributes Attributes
+	var readPathParamAttrs Attributes
+	var listPathParamAttrs Attributes
+	var listResponseAttributes Attributes
 	var listOp *APIOperation
 	var singularDescription *string
 	var pluralDescription *string
 
-	// Process Read operation if defined
 	if dsConfig.Read != nil {
 		oasReadOp, err := extractOp(spec.Paths, dsConfig.Read)
 		if err != nil {
@@ -392,47 +437,68 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 		}
 
 		// Build attributes from the read response
-		readResponseAttributes := opResponseToAttributes(oasReadOp, configuredVersion)
+		readResponseAttributes = opResponseToAttributes(oasReadOp, configuredVersion)
 
 		// Get path parameters as required attributes
-		pathParams := pathParamsToAttributes(oasReadOp)
+		readPathParamAttrs = pathParamsToAttributes(oasReadOp)
 
 		// Merge all attributes, applying aliases to path params during merge to avoid duplicates
-		attributes = mergeDataSourceAttributes(pathParams, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
+		attributes = mergeDataSourceAttributes(readPathParamAttrs, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
 
 		readOp = &APIOperation{
 			HTTPMethod: dsConfig.Read.Method,
 			Path:       dsConfig.Read.Path, // alias will be applied later by transformations helper
 		}
 
-		// Set singular data source description from the read operation
 		singularDescription = &oasReadOp.Description
 
 		// If version header wasn't explicitly set, get from API spec
-		if versionHeader == "" {
+		if conversion.IsEmpty(configuredVersion) {
 			versionHeader = getLatestVersionFromAPISpec(oasReadOp)
 		}
 	}
 
-	// Process List operation if defined
 	if dsConfig.List != nil {
-		// Extract list operation for description
-		if oasListOp, err := extractOp(spec.Paths, dsConfig.List); err == nil && oasListOp != nil {
-			pluralDescription = &oasListOp.Description
+		oasListOp, err := extractOp(spec.Paths, dsConfig.List)
+		if err != nil {
+			return nil, fmt.Errorf("unable to extract data source list operation: %w", err)
+		}
+		listPathParamAttrs = pathParamsToAttributes(oasListOp)
+		// TODO: add listQueryParamsAttrs as Optional
+
+		listResponseAttributes, err = opListResponseToResultsAttributes(oasListOp, configuredVersion)
+		if err != nil {
+			return nil, fmt.Errorf("unable to extract 'results' attributes from list operation (OperationId: %s): %w", oasListOp.OperationId, err)
+		}
+
+		// If Read is not defined, use list response items from "results" array as the schema source
+		if dsConfig.Read == nil {
+			attributes = mergeDataSourceAttributes(listPathParamAttrs, listResponseAttributes, dsConfig.SchemaOptions.Aliases)
+		} else {
+			attributes = mergeDataSourceAttributes(listResponseAttributes, attributes, dsConfig.SchemaOptions.Aliases)
 		}
 
 		listOp = &APIOperation{
 			HTTPMethod: dsConfig.List.Method,
-			Path:       dsConfig.List.Path, // alias will be applied later by transformations helper
+			Path:       dsConfig.List.Path,
+		}
+
+		pluralDescription = &oasListOp.Description
+
+		// If version header wasn't explicitly set, get from API spec
+		if conversion.IsEmpty(configuredVersion) {
+			versionHeader = getLatestVersionFromAPISpec(oasListOp)
 		}
 	}
 
 	ds := &DataSources{
 		Schema: &DataSourceSchema{
-			SingularDSDescription: singularDescription,
-			PluralDSDescription:   pluralDescription,
-			DeprecationMessage:    resourceConfig.DeprecationMessage,
-			Attributes:            attributes,
+			SingularDSDescription:        singularDescription,
+			SingularDSArgumentAttributes: &readPathParamAttrs,
+			PluralDSDescription:          pluralDescription,
+			PluralDSArgumentAttributes:   &listPathParamAttrs,
+			DeprecationMessage:           resourceConfig.DeprecationMessage,
+			Attributes:                   attributes,
 		},
 		Operations: APIOperations{
 			Read:          readOp,

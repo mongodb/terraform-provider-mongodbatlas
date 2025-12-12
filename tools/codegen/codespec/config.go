@@ -37,6 +37,12 @@ func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSou
 	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, &ds.Schema.Attributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
+	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.SingularDSArgumentAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
+		return fmt.Errorf("failed to apply attribute transformations: %w", err)
+	}
+	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.PluralDSArgumentAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
+		return fmt.Errorf("failed to apply attribute transformations: %w", err)
+	}
 
 	// Alias placeholders in operation paths after attribute transformations
 	applyAliasToPathParams(&ds.Operations, dsConfig.SchemaOptions.Aliases)
