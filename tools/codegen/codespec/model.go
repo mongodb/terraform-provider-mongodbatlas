@@ -127,7 +127,7 @@ type Attribute struct {
 	Sensitive                   bool                     `yaml:"sensitive"`
 	CreateOnly                  bool                     `yaml:"create_only"` // leveraged for defining plan modifier which avoids updates on this attribute
 	PresentInAnyResponse        bool                     `yaml:"present_in_any_response"`
-	RequestOnlyRequiredOnCreate bool                     `yaml:"request_only_required_on_create"`
+	RequestOnlyRequiredOnCreate bool                     `yaml:"request_only_required_on_create"` // Flags API property only present in create request body as required. These properties are intentionally modified to optional attributes to preserve creation validation, but allows omitting value on imports.
 }
 
 type ComputedOptionalRequired string
