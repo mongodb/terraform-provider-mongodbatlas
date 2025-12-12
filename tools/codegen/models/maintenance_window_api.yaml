@@ -10,6 +10,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - int64: {}
           description: |-
             One-based integer that represents the day of the week that the maintenance window starts.
@@ -28,6 +30,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: |-
             Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -40,6 +44,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
         - int64: {}
           description: Zero-based integer that represents the hour of the of the day that the maintenance window starts according to a 24-hour clock. Use `0` for midnight and `12` for noon.
           computed_optional_required: required
@@ -49,6 +55,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - int64: {}
           description: Number of times the current maintenance event for this project has been deferred.
           computed_optional_required: computed
@@ -58,6 +66,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - single_nested:
             nested_object:
                 attributes:
@@ -70,6 +80,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - int64: {}
                       description: Zero-based integer that represents the beginning hour of the of the day that the maintenance will not begin in.
                       computed_optional_required: optional
@@ -79,6 +91,8 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
           description: Defines the a window where maintenance will not begin within.
           custom_type:
             package: customtypes
@@ -91,6 +105,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - bool: {}
           description: Flag that indicates whether MongoDB Cloud starts the maintenance window immediately upon receiving this request. To start the maintenance window immediately for your project, MongoDB Cloud must have maintenance scheduled and you must set a maintenance window. This flag resets to `false` after MongoDB Cloud completes maintenance.
           computed_optional_required: computed
@@ -100,6 +116,8 @@ schema:
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Identifier for the current time zone of the maintenance window. This can only be updated via the Project Settings UI.
           computed_optional_required: computed
@@ -109,6 +127,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
 operations:
     delete:
         http_method: DELETE
