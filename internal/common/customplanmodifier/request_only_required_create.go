@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
@@ -37,82 +40,97 @@ func (m *requestOnlyRequiredOnCreateAttributePlanModifier) MarkdownDescription(c
 }
 
 func (m *requestOnlyRequiredOnCreateAttributePlanModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-	if isCreate(&req.State) && (req.PlanValue.IsNull() || req.PlanValue.IsUnknown()) {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("%s is required when creating this resource", req.Path),
-			fmt.Sprintf("Provide a value for %s during resource creation.", req.Path),
-		)
-	}
+	validateRequestOnlyRequiredOnCreate(
+		isCreate(&req.State),
+		req.PlanValue,
+		req.Path,
+		&resp.Diagnostics,
+	)
 }
 
 func (m *requestOnlyRequiredOnCreateAttributePlanModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
-	if isCreate(&req.State) && (req.PlanValue.IsNull() || req.PlanValue.IsUnknown()) {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("%s is required when creating this resource", req.Path),
-			fmt.Sprintf("Provide a value for %s during resource creation.", req.Path),
-		)
-	}
+	validateRequestOnlyRequiredOnCreate(
+		isCreate(&req.State),
+		req.PlanValue,
+		req.Path,
+		&resp.Diagnostics,
+	)
 }
 
 func (m *requestOnlyRequiredOnCreateAttributePlanModifier) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
-	if isCreate(&req.State) && (req.PlanValue.IsNull() || req.PlanValue.IsUnknown()) {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("%s is required when creating this resource", req.Path),
-			fmt.Sprintf("Provide a value for %s during resource creation.", req.Path),
-		)
-	}
+	validateRequestOnlyRequiredOnCreate(
+		isCreate(&req.State),
+		req.PlanValue,
+		req.Path,
+		&resp.Diagnostics,
+	)
 }
 
 func (m *requestOnlyRequiredOnCreateAttributePlanModifier) PlanModifyFloat64(ctx context.Context, req planmodifier.Float64Request, resp *planmodifier.Float64Response) {
-	if isCreate(&req.State) && (req.PlanValue.IsNull() || req.PlanValue.IsUnknown()) {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("%s is required when creating this resource", req.Path),
-			fmt.Sprintf("Provide a value for %s during resource creation.", req.Path),
-		)
-	}
+	validateRequestOnlyRequiredOnCreate(
+		isCreate(&req.State),
+		req.PlanValue,
+		req.Path,
+		&resp.Diagnostics,
+	)
 }
 
 func (m *requestOnlyRequiredOnCreateAttributePlanModifier) PlanModifyNumber(ctx context.Context, req planmodifier.NumberRequest, resp *planmodifier.NumberResponse) {
-	if isCreate(&req.State) && (req.PlanValue.IsNull() || req.PlanValue.IsUnknown()) {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("%s is required when creating this resource", req.Path),
-			fmt.Sprintf("Provide a value for %s during resource creation.", req.Path),
-		)
-	}
+	validateRequestOnlyRequiredOnCreate(
+		isCreate(&req.State),
+		req.PlanValue,
+		req.Path,
+		&resp.Diagnostics,
+	)
 }
 
 func (m *requestOnlyRequiredOnCreateAttributePlanModifier) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {
-	if isCreate(&req.State) && (req.PlanValue.IsNull() || req.PlanValue.IsUnknown()) {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("%s is required when creating this resource", req.Path),
-			fmt.Sprintf("Provide a value for %s during resource creation.", req.Path),
-		)
-	}
+	validateRequestOnlyRequiredOnCreate(
+		isCreate(&req.State),
+		req.PlanValue,
+		req.Path,
+		&resp.Diagnostics,
+	)
 }
 
 func (m *requestOnlyRequiredOnCreateAttributePlanModifier) PlanModifyMap(ctx context.Context, req planmodifier.MapRequest, resp *planmodifier.MapResponse) {
-	if isCreate(&req.State) && (req.PlanValue.IsNull() || req.PlanValue.IsUnknown()) {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("%s is required when creating this resource", req.Path),
-			fmt.Sprintf("Provide a value for %s during resource creation.", req.Path),
-		)
-	}
+	validateRequestOnlyRequiredOnCreate(
+		isCreate(&req.State),
+		req.PlanValue,
+		req.Path,
+		&resp.Diagnostics,
+	)
 }
 
 func (m *requestOnlyRequiredOnCreateAttributePlanModifier) PlanModifySet(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
-	if isCreate(&req.State) && (req.PlanValue.IsNull() || req.PlanValue.IsUnknown()) {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("%s is required when creating this resource", req.Path),
-			fmt.Sprintf("Provide a value for %s during resource creation.", req.Path),
-		)
-	}
+	validateRequestOnlyRequiredOnCreate(
+		isCreate(&req.State),
+		req.PlanValue,
+		req.Path,
+		&resp.Diagnostics,
+	)
 }
 
 func (m *requestOnlyRequiredOnCreateAttributePlanModifier) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
-	if isCreate(&req.State) && (req.PlanValue.IsNull() || req.PlanValue.IsUnknown()) {
-		resp.Diagnostics.AddError(
-			fmt.Sprintf("%s is required when creating this resource", req.Path),
-			fmt.Sprintf("Provide a value for %s during resource creation.", req.Path),
+	validateRequestOnlyRequiredOnCreate(
+		isCreate(&req.State),
+		req.PlanValue,
+		req.Path,
+		&resp.Diagnostics,
+	)
+}
+
+// validateRequestOnlyRequiredOnCreate checks that an attribute has a known, non-null
+// value during create and adds an error if it does not.
+func validateRequestOnlyRequiredOnCreate(isCreate bool, planValue attr.Value, attrPath path.Path, diagnostics *diag.Diagnostics) {
+	if !isCreate {
+		return
+	}
+
+	if planValue.IsNull() || planValue.IsUnknown() {
+		diagnostics.AddError(
+			fmt.Sprintf("%s is required when creating this resource", attrPath),
+			fmt.Sprintf("Provide a value for %s during resource creation.", attrPath),
 		)
 	}
 }
