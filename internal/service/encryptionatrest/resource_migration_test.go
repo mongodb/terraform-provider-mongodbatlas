@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+	"go.mongodb.org/atlas-sdk/v20250312011/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
