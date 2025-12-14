@@ -40,7 +40,7 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 	}
 	reqHandle := autogen.HandleReadReq{
 		ReadAPICallHooks: d,
-		RespDiags:       resp.Diagnostics,
+		RespDiags:       &resp.Diagnostics,
 		RespState:       &resp.State,
 		Client:     d.Client,
 		State:     &tfConfig,

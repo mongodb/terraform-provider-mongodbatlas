@@ -98,7 +98,7 @@ type HandleReadReq struct {
 	RespState        *tfsdk.State
 	Client           *config.MongoDBClient
 	CallParams       *config.APICallParams
-	RespDiags        diag.Diagnostics
+	RespDiags        *diag.Diagnostics
 }
 
 // HandleRead handles the read operation for a resource.
@@ -138,17 +138,17 @@ func handleReadCore(
 		return
 	}
 	if callResult.Err != nil {
-		addError(&req.RespDiags, opRead, errCallingAPI, callResult.Err)
+		addError(req.RespDiags, opRead, errCallingAPI, callResult.Err)
 		return
 	}
 
 	// Use the current state as the base model to set the response state
 	if err := Unmarshal(callResult.Body, req.State); err != nil {
-		addError(&req.RespDiags, opRead, errUnmarshallingResponse, err)
+		addError(req.RespDiags, opRead, errUnmarshallingResponse, err)
 		return
 	}
 	if err := ResolveUnknowns(req.State); err != nil {
-		addError(&req.RespDiags, opRead, errResolvingResponse, err)
+		addError(req.RespDiags, opRead, errResolvingResponse, err)
 		return
 	}
 	req.RespDiags.Append(req.RespState.Set(ctx, req.State)...)
