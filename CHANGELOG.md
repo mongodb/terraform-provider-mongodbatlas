@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.3.0 (December 09, 2025)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_advanced_cluster: Adds `use_effective_fields`, `effective_electable_specs`, `effective_read_only_specs` and `effective_analytics_specs` attributes to expose actual specifications ([#3939](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3939))

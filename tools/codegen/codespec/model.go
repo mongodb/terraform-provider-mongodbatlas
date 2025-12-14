@@ -42,16 +42,32 @@ type Resource struct {
 	Schema       *Schema       `yaml:"schema,omitempty"`
 	Operations   APIOperations `yaml:"operations"`
 	MoveState    *MoveState    `yaml:"move_state,omitempty"`
+	DataSources  *DataSources  `yaml:"data_sources,omitempty"`
 	Name         string        `yaml:"name"`
 	PackageName  string        `yaml:"packageName"`
 	IDAttributes []string      `yaml:"id_attributes,omitempty"`
 }
 
+// DataSources holds the data source configuration within a resource
+type DataSources struct {
+	Schema     *DataSourceSchema `yaml:"schema,omitempty"`
+	Operations APIOperations     `yaml:"operations"` // only Read and List operations
+}
+
+// DataSourceSchema holds schema information specific to data sources
+type DataSourceSchema struct {
+	SingularDSDescription *string    `yaml:"singular_ds_description,omitempty"`
+	PluralDSDescription   *string    `yaml:"plural_ds_description,omitempty"`
+	DeprecationMessage    *string    `yaml:"deprecation_message,omitempty"`
+	Attributes            Attributes `yaml:"attributes"`
+}
+
 type APIOperations struct {
 	Delete        *APIOperation `yaml:"delete,omitempty"`
-	Create        APIOperation  `yaml:"create"`
-	Read          APIOperation  `yaml:"read"`
-	Update        *APIOperation `yaml:"update"`
+	Create        *APIOperation `yaml:"create,omitempty"` // optional to support datasource-only API resources
+	Read          *APIOperation `yaml:"read,omitempty"`   // optional to support datasource-only API resources
+	List          *APIOperation `yaml:"list,omitempty"`   // for plural data sources
+	Update        *APIOperation `yaml:"update,omitempty"`
 	VersionHeader string        `yaml:"version_header"`
 }
 
@@ -87,29 +103,31 @@ type Attributes []Attribute
 // Add this field to the Attribute struct
 // Usage AttributeUsage
 type Attribute struct {
-	Set                      *SetAttribute            `yaml:"set,omitempty"`
-	String                   *StringAttribute         `yaml:"string,omitempty"`
-	Float64                  *Float64Attribute        `yaml:"float64,omitempty"`
-	List                     *ListAttribute           `yaml:"list,omitempty"`
-	Bool                     *BoolAttribute           `yaml:"bool,omitempty"`
-	ListNested               *ListNestedAttribute     `yaml:"list_nested,omitempty"`
-	Map                      *MapAttribute            `yaml:"map,omitempty"`
-	MapNested                *MapNestedAttribute      `yaml:"map_nested,omitempty"`
-	Number                   *NumberAttribute         `yaml:"number,omitempty"`
-	Int64                    *Int64Attribute          `yaml:"int64,omitempty"`
-	Timeouts                 *TimeoutsAttribute       `yaml:"timeouts,omitempty"`
-	SingleNested             *SingleNestedAttribute   `yaml:"single_nested,omitempty"`
-	SetNested                *SetNestedAttribute      `yaml:"set_nested,omitempty"`
-	Description              *string                  `yaml:"description,omitempty"`
-	DeprecationMessage       *string                  `yaml:"deprecation_message,omitempty"`
-	CustomType               *CustomType              `yaml:"custom_type,omitempty"`
-	ComputedOptionalRequired ComputedOptionalRequired `yaml:"computed_optional_required"`
-	TFSchemaName             string                   `yaml:"tf_schema_name"`
-	TFModelName              string                   `yaml:"tf_model_name"`
-	APIName                  string                   `yaml:"api_name,omitempty"` // original API property name (camelCase), used for apiname tag when different from Uncapitalize(TFModelName)
-	ReqBodyUsage             AttributeReqBodyUsage    `yaml:"req_body_usage"`
-	Sensitive                bool                     `yaml:"sensitive"`
-	CreateOnly               bool                     `yaml:"create_only"` // leveraged for defining plan modifier which avoids updates on this attribute
+	Set                         *SetAttribute            `yaml:"set,omitempty"`
+	String                      *StringAttribute         `yaml:"string,omitempty"`
+	Float64                     *Float64Attribute        `yaml:"float64,omitempty"`
+	List                        *ListAttribute           `yaml:"list,omitempty"`
+	Bool                        *BoolAttribute           `yaml:"bool,omitempty"`
+	ListNested                  *ListNestedAttribute     `yaml:"list_nested,omitempty"`
+	Map                         *MapAttribute            `yaml:"map,omitempty"`
+	MapNested                   *MapNestedAttribute      `yaml:"map_nested,omitempty"`
+	Number                      *NumberAttribute         `yaml:"number,omitempty"`
+	Int64                       *Int64Attribute          `yaml:"int64,omitempty"`
+	Timeouts                    *TimeoutsAttribute       `yaml:"timeouts,omitempty"`
+	SingleNested                *SingleNestedAttribute   `yaml:"single_nested,omitempty"`
+	SetNested                   *SetNestedAttribute      `yaml:"set_nested,omitempty"`
+	Description                 *string                  `yaml:"description,omitempty"`
+	DeprecationMessage          *string                  `yaml:"deprecation_message,omitempty"`
+	CustomType                  *CustomType              `yaml:"custom_type,omitempty"`
+	ComputedOptionalRequired    ComputedOptionalRequired `yaml:"computed_optional_required"`
+	TFSchemaName                string                   `yaml:"tf_schema_name"`
+	TFModelName                 string                   `yaml:"tf_model_name"`
+	APIName                     string                   `yaml:"api_name,omitempty"` // original API property name (camelCase), used for apiname tag when different from Uncapitalize(TFModelName)
+	ReqBodyUsage                AttributeReqBodyUsage    `yaml:"req_body_usage"`
+	Sensitive                   bool                     `yaml:"sensitive"`
+	CreateOnly                  bool                     `yaml:"create_only"` // leveraged for defining plan modifier which avoids updates on this attribute
+	PresentInAnyResponse        bool                     `yaml:"present_in_any_response"`
+	RequestOnlyRequiredOnCreate bool                     `yaml:"request_only_required_on_create"` // Flags API property only present in create request body as required. These properties are intentionally modified to optional attributes to preserve creation validation, but allows omitting value on imports.
 }
 
 type ComputedOptionalRequired string

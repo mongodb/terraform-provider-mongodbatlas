@@ -42,7 +42,7 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 		return nil, err
 	}
 
-	var results []Resource
+	var resources []Resource
 	for name := range resourceConfigsToIterate {
 		resourceConfig := resourceConfigsToIterate[name]
 		log.Printf("[INFO] Generating resource model: %s", name)
@@ -56,10 +56,21 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 		if err != nil {
 			return nil, fmt.Errorf("unable to map to code spec model for %s: %w", name, err)
 		}
-		results = append(results, *resource)
+
+		// Generate DataSources only when datasources block is defined in config
+		if resourceConfig.DataSources != nil {
+			dataSources, err := apiSpecToDataSourcesModel(&apiSpec.Model, &resourceConfig)
+			if err != nil {
+				return nil, fmt.Errorf("unable to map to data sources model for %s: %w", name, err)
+			}
+			resource.DataSources = dataSources
+			log.Printf("[INFO] Generated data sources model for: %s", name)
+		}
+
+		resources = append(resources, *resource)
 	}
 
-	return &Model{Resources: results}, nil
+	return &Model{Resources: resources}, nil
 }
 
 func validateRequiredOperations(resourceConfigs map[string]config.Resource) error {
@@ -71,6 +82,9 @@ func validateRequiredOperations(resourceConfigs map[string]config.Resource) erro
 		}
 		if resourceConfig.Read == nil {
 			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Read operation in config file", name))
+		}
+		if resourceConfig.DataSources != nil && resourceConfig.DataSources.Read == nil && resourceConfig.DataSources.List == nil {
+			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing DataSource Read or List operation in config file", name))
 		}
 	}
 	if len(validationErrors) > 0 {
@@ -167,8 +181,8 @@ func getLatestVersionFromAPISpec(readOp *high.Operation) string {
 
 func getOperationsFromConfig(resourceConfig *config.Resource) APIOperations {
 	return APIOperations{
-		Create:        *operationConfigToModel(resourceConfig.Create),
-		Read:          *operationConfigToModel(resourceConfig.Read),
+		Create:        operationConfigToModel(resourceConfig.Create),
+		Read:          operationConfigToModel(resourceConfig.Read),
 		Update:        operationConfigToModel(resourceConfig.Update),
 		Delete:        operationConfigToModel(resourceConfig.Delete),
 		VersionHeader: resourceConfig.VersionHeader,
@@ -347,4 +361,90 @@ func extractCommonParameters(paths *high.Paths, path string) ([]*high.Parameter,
 	pathItem, _ := paths.PathItems.Get(path)
 
 	return pathItem.Parameters, nil
+}
+
+// apiSpecToDataSourcesModel creates a DataSources model from the API spec using the datasources config.
+// The data source has its own schema options (aliases, overrides, ignores) independent from the resource.
+func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resource) (*DataSources, error) {
+	dsConfig := resourceConfig.DataSources
+	if dsConfig == nil {
+		return nil, nil // no data source to generate
+	}
+
+	// Use resource's version header
+	versionHeader := resourceConfig.VersionHeader
+	var configuredVersion *string
+	if versionHeader != "" {
+		configuredVersion = &versionHeader
+	}
+
+	var attributes Attributes
+	var readOp *APIOperation
+	var listOp *APIOperation
+	var singularDescription *string
+	var pluralDescription *string
+
+	// Process Read operation if defined
+	if dsConfig.Read != nil {
+		oasReadOp, err := extractOp(spec.Paths, dsConfig.Read)
+		if err != nil {
+			return nil, fmt.Errorf("unable to extract data source read operation: %w", err)
+		}
+
+		// Build attributes from the read response
+		readResponseAttributes := opResponseToAttributes(oasReadOp, configuredVersion)
+
+		// Get path parameters as required attributes
+		pathParams := pathParamsToAttributes(oasReadOp)
+
+		// Merge all attributes, applying aliases to path params during merge to avoid duplicates
+		attributes = mergeDataSourceAttributes(pathParams, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
+
+		readOp = &APIOperation{
+			HTTPMethod: dsConfig.Read.Method,
+			Path:       dsConfig.Read.Path, // alias will be applied later by transformations helper
+		}
+
+		// Set singular data source description from the read operation
+		singularDescription = &oasReadOp.Description
+
+		// If version header wasn't explicitly set, get from API spec
+		if versionHeader == "" {
+			versionHeader = getLatestVersionFromAPISpec(oasReadOp)
+		}
+	}
+
+	// Process List operation if defined
+	if dsConfig.List != nil {
+		// Extract list operation for description
+		if oasListOp, err := extractOp(spec.Paths, dsConfig.List); err == nil && oasListOp != nil {
+			pluralDescription = &oasListOp.Description
+		}
+
+		listOp = &APIOperation{
+			HTTPMethod: dsConfig.List.Method,
+			Path:       dsConfig.List.Path, // alias will be applied later by transformations helper
+		}
+	}
+
+	ds := &DataSources{
+		Schema: &DataSourceSchema{
+			SingularDSDescription: singularDescription,
+			PluralDSDescription:   pluralDescription,
+			DeprecationMessage:    resourceConfig.DeprecationMessage,
+			Attributes:            attributes,
+		},
+		Operations: APIOperations{
+			Read:          readOp,
+			List:          listOp,
+			VersionHeader: versionHeader,
+		},
+	}
+
+	// Apply aliasing and schema transformations post-merge
+	if err := ApplyTransformationsToDataSources(dsConfig, ds); err != nil {
+		return nil, fmt.Errorf("failed to apply data source transformations: %w", err)
+	}
+
+	return ds, nil
 }

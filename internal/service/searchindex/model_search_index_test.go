@@ -5,7 +5,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchindex"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+	"go.mongodb.org/atlas-sdk/v20250312011/admin"
 )
 
 func TestUnmarshalSearchIndexAnalyzersFields(t *testing.T) {
