@@ -776,6 +776,7 @@ resources:
     delete:
       path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets/{secretId}
       method: DELETE
+    version_header: application/vnd.atlas.2024-08-05+json
     id_attributes: ["org_id", "client_id", "id"]
     schema:
       aliases:
@@ -783,6 +784,17 @@ resources:
       overrides:
         secret:
           sensitive: true
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
+        method: POST
+      schema:
+        ignores: ["secret"]
+        overrides:
+          id:
+            computability:
+              required: true
+            
 
   alert_configuration_api:
     read:
