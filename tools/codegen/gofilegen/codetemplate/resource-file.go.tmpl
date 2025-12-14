@@ -139,6 +139,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	{{ end -}}
 	reqHandle := autogen.HandleUpdateReq {
+		UpdateAPICallHooks: r,
+	    ReadAPICallHooks: r,
 		Resp: resp,
 		Client: r.Client,
 		Plan: &plan,

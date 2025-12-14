@@ -123,10 +123,12 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	reqHandle := autogen.HandleUpdateReq{
-		Resp:       resp,
-		Client:     r.Client,
-		Plan:       &plan,
-		CallParams: &callParams,
+		UpdateAPICallHooks: r,
+		ReadAPICallHooks:   r,
+		Resp:               resp,
+		Client:             r.Client,
+		Plan:               &plan,
+		CallParams:         &callParams,
 		Wait: &autogen.WaitReq{
 			StateProperty:     "stateName",
 			PendingStates:     []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING", "DELETING"},

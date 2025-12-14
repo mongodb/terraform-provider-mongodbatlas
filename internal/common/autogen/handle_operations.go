@@ -63,7 +63,7 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 	modifiedParams, modifiedBody := req.CreateAPICallHooks.PreCreateAPICall(*req.CallParams, bodyReq)
 	callResult := req.CreateAPICallHooks.PostCreateAPICall(callAPI(ctx, req.Client, modifiedParams, modifiedBody))
 	if callResult.Err != nil {
-		addError(d, opCreate, errCallingAPI, err)
+		addError(d, opCreate, errCallingAPI, callResult.Err)
 		return
 	}
 
@@ -174,7 +174,7 @@ func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 	modifiedParams, modifiedBody := req.UpdateAPICallHooks.PreUpdateAPICall(*req.CallParams, bodyReq)
 	callResult := req.UpdateAPICallHooks.PostUpdateAPICall(callAPI(ctx, req.Client, modifiedParams, modifiedBody))
 	if callResult.Err != nil {
-		addError(d, opUpdate, errCallingAPI, err)
+		addError(d, opUpdate, errCallingAPI, callResult.Err)
 		return
 	}
 
@@ -331,7 +331,7 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 			return emptyJSON, retrystrategy.RetryStrategyDeletedState, nil
 		}
 		if callResult.Err != nil {
-			return nil, "", err
+			return nil, "", callResult.Err
 		}
 		var objJSON map[string]any
 		if err := json.Unmarshal(callResult.Body, &objJSON); err != nil {

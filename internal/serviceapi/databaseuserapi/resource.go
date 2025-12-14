@@ -99,10 +99,12 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Method:        "PATCH",
 	}
 	reqHandle := autogen.HandleUpdateReq{
-		Resp:       resp,
-		Client:     r.Client,
-		Plan:       &plan,
-		CallParams: &callParams,
+		UpdateAPICallHooks: r,
+		ReadAPICallHooks:   r,
+		Resp:               resp,
+		Client:             r.Client,
+		Plan:               &plan,
+		CallParams:         &callParams,
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
 }
