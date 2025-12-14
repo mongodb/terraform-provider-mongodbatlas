@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
@@ -94,44 +94,28 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 
 type HandleReadReq struct {
 	ReadAPICallHooks ReadAPICallHooks
-	Resp             *resource.ReadResponse
-	Client           *config.MongoDBClient
 	State            any
+	RespState        *tfsdk.State
+	Client           *config.MongoDBClient
 	CallParams       *config.APICallParams
+	RespDiags        diag.Diagnostics
 }
 
 // HandleRead handles the read operation for a resource.
 func HandleRead(ctx context.Context, req HandleReadReq) {
 	handleReadCore(
 		ctx,
-		req.Client,
-		req.CallParams,
-		req.State,
-		&req.Resp.Diagnostics,
-		func() { req.Resp.State.RemoveResource(ctx) }, // Resource: silently remove from state
-		func() { req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.State)...) },
+		req,
+		func() { req.RespState.RemoveResource(ctx) }, // Resource: silently remove from state
 	)
 }
 
-// HandleDataSourceReadReq contains the request parameters for a data source read operation.
-type HandleDataSourceReadReq struct {
-	ReadAPICallHooks ReadAPICallHooks
-	Resp       *datasource.ReadResponse
-	Client     *config.MongoDBClient
-	Config     any // The configuration model (TFDSModel)
-	CallParams *config.APICallParams
-}
-
 // HandleDataSourceRead handles the read operation for a data source.
-func HandleDataSourceRead(ctx context.Context, req HandleDataSourceReadReq) {
+func HandleDataSourceRead(ctx context.Context, req HandleReadReq) {
 	handleReadCore(
 		ctx,
-		req.Client,
-		req.CallParams,
-		req.Config,
-		&req.Resp.Diagnostics,
-		func() { req.Resp.Diagnostics.AddError("Resource not found", "The requested resource does not exist") }, // Data source: return error
-		func() { req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Config)...) },
+		req,
+		func() { req.RespDiags.AddError("Resource not found", "The requested resource does not exist") }, // Data source: return error
 	)
 }
 
@@ -143,36 +127,31 @@ func HandleDataSourceRead(ctx context.Context, req HandleDataSourceReadReq) {
 // The setState callback sets the response state with the unmarshalled model.
 func handleReadCore(
 	ctx context.Context,
-	client *config.MongoDBClient,
-	readAPICallHooks ReadAPICallHooks,
-	callParams *config.APICallParams,
-	model any,
-	d *diag.Diagnostics,
+	req HandleReadReq,
 	onNotFound func(),
-	setState func(),
 ) {
-	modifiedParams := readAPICallHooks.PreReadAPICall(*callParams)
-	callResult := callAPIWithoutBody(ctx, client, modifiedParams)
+	modifiedParams := req.ReadAPICallHooks.PreReadAPICall(*req.CallParams)
+	callResult := callAPIWithoutBody(ctx, req.Client, modifiedParams)
 	callResult = req.ReadAPICallHooks.PostReadAPICall(req, callResult)
-	if notFound(bodyResp, apiResp) {
+	if notFound(callResult.Body, callResult.Resp) {
 		onNotFound()
 		return
 	}
 	if callResult.Err != nil {
-		addError(d, opRead, errCallingAPI, callResult.Err)
+		addError(&req.RespDiags, opRead, errCallingAPI, callResult.Err)
 		return
 	}
 
 	// Use the current state as the base model to set the response state
 	if err := Unmarshal(callResult.Body, req.State); err != nil {
-		addError(d, opRead, errUnmarshallingResponse, err)
+		addError(&req.RespDiags, opRead, errUnmarshallingResponse, err)
 		return
 	}
-	if err := ResolveUnknowns(model); err != nil {
-		addError(d, opRead, errResolvingResponse, err)
+	if err := ResolveUnknowns(req.State); err != nil {
+		addError(&req.RespDiags, opRead, errResolvingResponse, err)
 		return
 	}
-	setState()
+	req.RespDiags.Append(req.RespState.Set(ctx, req.State)...)
 }
 
 type HandleUpdateReq struct {

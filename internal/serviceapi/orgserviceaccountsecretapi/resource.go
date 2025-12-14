@@ -70,7 +70,8 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 	reqHandle := autogen.HandleReadReq{
 		ReadAPICallHooks: r,
-		Resp:             resp,
+		RespDiags:        resp.Diagnostics,
+		RespState:        &resp.State,
 		Client:           r.Client,
 		State:            &state,
 		CallParams:       readAPICallParams(&state),

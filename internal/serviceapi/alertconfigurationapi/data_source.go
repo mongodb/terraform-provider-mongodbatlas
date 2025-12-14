@@ -23,6 +23,7 @@ func DataSource() datasource.DataSource {
 }
 
 type ds struct {
+	autogen.NoOpCustomCodeHooks
 	config.DSCommon
 }
 
@@ -37,11 +38,13 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := autogen.HandleDataSourceReadReq{
-		Resp:       resp,
-		Client:     d.Client,
-		Config:     &tfConfig,
-		CallParams: dataSourceReadAPICallParams(&tfConfig),
+	reqHandle := autogen.HandleReadReq{
+		ReadAPICallHooks: d,
+		RespDiags:        resp.Diagnostics,
+		RespState:        &resp.State,
+		Client:           d.Client,
+		State:            &tfConfig,
+		CallParams:       dataSourceReadAPICallParams(&tfConfig),
 	}
 	autogen.HandleDataSourceRead(ctx, reqHandle)
 }

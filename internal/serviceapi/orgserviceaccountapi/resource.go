@@ -69,7 +69,8 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 	reqHandle := autogen.HandleReadReq{
 		ReadAPICallHooks: r,
-		Resp:             resp,
+		RespDiags:        resp.Diagnostics,
+		RespState:        &resp.State,
 		Client:           r.Client,
 		State:            &state,
 		CallParams:       readAPICallParams(&state),
@@ -97,12 +98,10 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Method:        "PATCH",
 	}
 	reqHandle := autogen.HandleUpdateReq{
-		UpdateAPICallHooks: r,
-		ReadAPICallHooks:   r,
-		Resp:               resp,
-		Client:             r.Client,
-		Plan:               &plan,
-		CallParams:         &callParams,
+		Resp:       resp,
+		Client:     r.Client,
+		Plan:       &plan,
+		CallParams: &callParams,
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
 }
