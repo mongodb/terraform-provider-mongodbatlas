@@ -55,11 +55,12 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName, nonEmptyPrefixPath)...),
 			},
 			{
-				Config:            configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, false, ""),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config:                               configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, false, ""),
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "integration_id",
 			},
 		},
 	}
@@ -73,7 +74,7 @@ func dataSourceChecks(s3BucketName, prefixPath string) []resource.TestCheckFunc 
 		"log_types.#": "1",
 	}
 	checks := acc.AddAttrChecks(dataSourceName, nil, mapChecks)
-	return acc.AddAttrSetChecks(dataSourceName, checks, "project_id", "iam_role_id", "id")
+	return acc.AddAttrSetChecks(dataSourceName, checks, "project_id", "iam_role_id", "integration_id")
 }
 
 func configWithDataSource(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string) string {
@@ -81,8 +82,8 @@ func configWithDataSource(projectID, s3BucketName, s3BucketPolicyName, awsIAMRol
 		%s
 
 		data "mongodbatlas_log_integration" "test" {
-			project_id = mongodbatlas_log_integration.test.project_id
-			id         = mongodbatlas_log_integration.test.id
+			project_id     = mongodbatlas_log_integration.test.project_id
+			integration_id = mongodbatlas_log_integration.test.integration_id
 		}
 	`, configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath, true, false, ""))
 }
@@ -96,7 +97,7 @@ func commonChecks(s3BucketName, prefixPath string) []resource.TestCheckFunc {
 		"log_types.0": "MONGOD_AUDIT",
 	}
 	checks := acc.AddAttrChecks(resourceName, nil, mapChecks)
-	return acc.AddAttrSetChecks(resourceName, checks, "project_id", "iam_role_id", "id")
+	return acc.AddAttrSetChecks(resourceName, checks, "project_id", "iam_role_id", "integration_id")
 }
 
 func configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath, useKmsKey bool, kmsKey string) string {
@@ -273,6 +274,6 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["id"]), nil
+		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["integration_id"]), nil
 	}
 }
