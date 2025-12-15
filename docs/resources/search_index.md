@@ -237,7 +237,7 @@ EOF
     EOF
   ```
 
-* `num_partitions` - (Optional) Number of index partitions. Allowed values are [1, 2, 4].
+* `num_partitions` - (Optional) Number of index partitions. Allowed values are [1, 2, 4]. Default value is 1.
 
 ## Attributes Reference
 
