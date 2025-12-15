@@ -8,7 +8,7 @@ subcategory: "Log Integration"
 
 To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
 
-## Example Usages
+## Example Usage
 
 ```terraform
 resource "mongodbatlas_project" "project" {
