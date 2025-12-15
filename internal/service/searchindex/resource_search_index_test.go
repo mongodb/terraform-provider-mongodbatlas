@@ -545,8 +545,8 @@ func configSearchWithNumPartitions(projectID, indexName, clusterName string, num
 	return fmt.Sprintf(`
 
 		resource "mongodbatlas_search_deployment" "test" {
-			project_id   = %[2]q
 			cluster_name = %[1]q
+			project_id   = %[2]q
 			specs = [
 				{
 					instance_size = "S20_HIGHCPU_NVME"

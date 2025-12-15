@@ -227,7 +227,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("error setting `stored_source` for search index (%s): %s", d.Id(), err)
 	}
 
-	if err := d.Set("num_partitions", searchIndex.LatestDefinition.GetNumPartitions()); err != nil {
+	if err := d.Set("num_partitions", searchIndex.LatestDefinition.NumPartitions); err != nil {
 		return diag.Errorf("error setting `num_partitions` for search index (%s): %s", d.Id(), err)
 	}
 

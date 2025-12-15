@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_search_index: Adds `num_partitions`
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_search_index: Adds `num_partitions`
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_search_indexes: Adds `num_partitions`
+```
