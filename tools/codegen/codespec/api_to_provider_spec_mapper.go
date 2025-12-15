@@ -319,6 +319,53 @@ func opListResponseToResultsAttributes(op *high.Operation, configuredVersion *st
 	return elementAttributes, nil
 }
 
+// buildPluralDataSourceAttributes builds attributes for a plural data source with:
+// - Path params at the root level (all Computed)
+// - A "results" ListNested attribute containing the list response items
+func buildPluralDataSourceAttributes(pathParams, resultsItemAttributes Attributes, aliases map[string]string) Attributes {
+	// attributes := make(Attributes, 0, len(pathParams)+1)
+	attributes := pathParams
+
+	// // Add path params at root level with aliases applied
+	// for i := range pathParams {
+	// 	attr := pathParams[i]
+
+	// 	// Apply alias if configured
+	// 	if alias, found := aliases[attr.APIName]; found {
+	// 		attr.TFSchemaName = stringcase.ToSnakeCase(alias)
+	// 		attr.TFModelName = stringcase.Capitalize(alias)
+	// 	}
+
+	// 	attr.ComputedOptionalRequired = Computed
+	// 	attr.ReqBodyUsage = OmitAlways
+
+	// 	attributes = append(attributes, attr)
+	// }
+
+	// Create "results" ListNested attribute containing all result item attributes
+	resultsAttr := Attribute{
+		TFSchemaName:             "results",
+		TFModelName:              "Results",
+		APIName:                  "results",
+		ComputedOptionalRequired: Computed,
+		ReqBodyUsage:             OmitAlways,
+		ListNested: &ListNestedAttribute{
+			NestedObject: NestedAttributeObject{
+				Attributes: resultsItemAttributes,
+			},
+		},
+	}
+
+	// Set all nested attributes in results to Computed recursively
+	setAttributeComputedRecursive(&resultsAttr)
+
+	attributes = append(attributes, resultsAttr)
+
+	sortAttributes(attributes)
+
+	return attributes
+}
+
 func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, name string) (APISpecResource, error) {
 	var errResult error
 	var resourceDeprecationMsg *string
@@ -420,12 +467,13 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 		configuredVersion = &versionHeader
 	}
 
-	var attributes Attributes
 	var readOp *APIOperation
-	var readResponseAttributes Attributes
-	var readPathParamAttrs Attributes
-	var listPathParamAttrs Attributes
-	var listResponseAttributes Attributes
+	// var readResponseAttributes Attributes
+	// var readPathParamAttrs Attributes
+	var readAttrs Attributes
+	var listAttrs Attributes
+	// var listPathParamAttrs Attributes
+	// var listResultsAttributes Attributes
 	var listOp *APIOperation
 	var singularDescription *string
 	var pluralDescription *string
@@ -436,14 +484,11 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 			return nil, fmt.Errorf("unable to extract data source read operation: %w", err)
 		}
 
-		// Build attributes from the read response
-		readResponseAttributes = opResponseToAttributes(oasReadOp, configuredVersion)
-
-		// Get path parameters as required attributes
-		readPathParamAttrs = pathParamsToAttributes(oasReadOp)
+		readResponseAttributes := opResponseToAttributes(oasReadOp, configuredVersion)
+		readPathParamAttrs := pathParamsToAttributes(oasReadOp)
 
 		// Merge all attributes, applying aliases to path params during merge to avoid duplicates
-		attributes = mergeDataSourceAttributes(readPathParamAttrs, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
+		readAttrs = mergeDataSourceAttributes(readPathParamAttrs, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
 
 		readOp = &APIOperation{
 			HTTPMethod: dsConfig.Read.Method,
@@ -463,20 +508,16 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 		if err != nil {
 			return nil, fmt.Errorf("unable to extract data source list operation: %w", err)
 		}
-		listPathParamAttrs = pathParamsToAttributes(oasListOp)
+		listPathParamAttrs := pathParamsToAttributes(oasListOp)
 		// TODO: add listQueryParamsAttrs as Optional
 
-		listResponseAttributes, err = opListResponseToResultsAttributes(oasListOp, configuredVersion)
+		listResultsAttributes, err := opListResponseToResultsAttributes(oasListOp, configuredVersion)
 		if err != nil {
 			return nil, fmt.Errorf("unable to extract 'results' attributes from list operation (OperationId: %s): %w", oasListOp.OperationId, err)
 		}
 
-		// If Read is not defined, use list response items from "results" array as the schema source
-		if dsConfig.Read == nil {
-			attributes = mergeDataSourceAttributes(listPathParamAttrs, listResponseAttributes, dsConfig.SchemaOptions.Aliases)
-		} else {
-			attributes = mergeDataSourceAttributes(listResponseAttributes, attributes, dsConfig.SchemaOptions.Aliases)
-		}
+		// Build plural data source attributes: path params at root + results as nested list
+		listAttrs = buildPluralDataSourceAttributes(listPathParamAttrs, listResultsAttributes, dsConfig.SchemaOptions.Aliases)
 
 		listOp = &APIOperation{
 			HTTPMethod: dsConfig.List.Method,
@@ -493,12 +534,11 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 
 	ds := &DataSources{
 		Schema: &DataSourceSchema{
-			SingularDSDescription:        singularDescription,
-			SingularDSArgumentAttributes: &readPathParamAttrs,
-			PluralDSDescription:          pluralDescription,
-			PluralDSArgumentAttributes:   &listPathParamAttrs,
-			DeprecationMessage:           resourceConfig.DeprecationMessage,
-			Attributes:                   attributes,
+			SingularDSDescription: singularDescription,
+			SingularDSAttributes:  &readAttrs,
+			PluralDSDescription:   pluralDescription,
+			PluralDSAttributes:    &listAttrs,
+			DeprecationMessage:    resourceConfig.DeprecationMessage,
 		},
 		Operations: APIOperations{
 			Read:          readOp,
@@ -507,7 +547,6 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 		},
 	}
 
-	// Apply aliasing and schema transformations post-merge
 	if err := ApplyTransformationsToDataSources(dsConfig, ds); err != nil {
 		return nil, fmt.Errorf("failed to apply data source transformations: %w", err)
 	}

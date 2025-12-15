@@ -34,14 +34,11 @@ func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSou
 	}
 
 	// Apply attribute-level transformations (aliases, overrides, ignores) - excludes create-only for data sources
-	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, &ds.Schema.Attributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
-		return fmt.Errorf("failed to apply attribute transformations: %w", err)
+	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.SingularDSAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
+		return fmt.Errorf("failed to apply attribute transformations for singular data source: %w", err)
 	}
-	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.SingularDSArgumentAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
-		return fmt.Errorf("failed to apply attribute transformations: %w", err)
-	}
-	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.PluralDSArgumentAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
-		return fmt.Errorf("failed to apply attribute transformations: %w", err)
+	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.PluralDSAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
+		return fmt.Errorf("failed to apply attribute transformations for plural data source: %w", err)
 	}
 
 	// Alias placeholders in operation paths after attribute transformations

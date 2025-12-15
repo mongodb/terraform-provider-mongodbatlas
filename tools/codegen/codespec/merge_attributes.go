@@ -181,42 +181,62 @@ func sortAttributes(attrs Attributes) {
 	})
 }
 
-// mergeDataSourceAttributes merges two sets of attributes for data sources.
-// - attrs1: First set of attributes (e.g., path params or list response attributes)
-// - attrs2: Second set of attributes (e.g., read response attributes). Overrides attrs1 if duplicate names exist after aliasing.
-// - aliases: Map of APIName to alias name for renaming attributes
-//
-// All merged attributes are set to Computed.
-func mergeDataSourceAttributes(attrs1, attrs2 Attributes, aliases map[string]string) Attributes {
+// mergeDataSourceAttributes merges path parameters with response attributes for data sources.
+// Path params are enforced as required; response attributes are marked computed (including all nested attributes).
+// Aliases are applied to both path params and response attributes during merge to properly detect duplicates.
+// If duplicates exist (same TFSchemaName after aliasing), Required always wins over Computed.
+func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map[string]string) Attributes {
 	merged := make(map[string]*Attribute) // key by TFSchemaName
 
-	addDSAttributesToMerged(attrs1, merged, aliases)
-	addDSAttributesToMerged(attrs2, merged, aliases)
-
-	result := make(Attributes, 0, len(merged))
-
-	for _, attr := range merged {
-		setAttributeComputedRecursive(attr)
-		result = append(result, *attr)
-	}
-
-	sortAttributes(result)
-
-	return result
-}
-
-// addDSAttributesToMerged processes attributes, applies aliases, and adds them to the merged map.
-func addDSAttributesToMerged(attrs Attributes, merged map[string]*Attribute, aliases map[string]string) {
-	for i := range attrs {
-		attr := attrs[i] // create a copy
+	// Add path params as required (they identify the data source)
+	// Apply aliases to path params during merge
+	for i := range pathParams {
+		attr := pathParams[i] // create a copy
+		attr.ComputedOptionalRequired = Required
+		attr.ReqBodyUsage = OmitAlways
 
 		// Apply alias if configured
 		if alias, found := aliases[attr.APIName]; found {
 			attr.TFSchemaName = stringcase.ToSnakeCase(alias)
 			attr.TFModelName = stringcase.Capitalize(alias)
 		}
+
 		merged[attr.TFSchemaName] = &attr
 	}
+
+	// Add response attributes as computed (including all nested attributes)
+	// Apply aliases to response attributes during merge to detect duplicates with aliased path params
+	// If a duplicate exists and the existing one is Required, keep Required
+	for i := range responseAttrs {
+		attr := responseAttrs[i] // create a copy
+		setAttributeComputedRecursive(&attr)
+
+		// Apply alias if configured (same logic as path params)
+		if alias, found := aliases[attr.APIName]; found {
+			attr.TFSchemaName = stringcase.ToSnakeCase(alias)
+			attr.TFModelName = stringcase.Capitalize(alias)
+		}
+
+		if existing, found := merged[attr.TFSchemaName]; found {
+			// Duplicate found: keep Required over Computed (Required always wins)
+			if existing.ComputedOptionalRequired != Required {
+				merged[attr.TFSchemaName] = &attr
+			}
+			// else: existing is Required, keep it
+		} else {
+			merged[attr.TFSchemaName] = &attr
+		}
+	}
+
+	// Convert map to slice
+	result := make(Attributes, 0, len(merged))
+	for _, attr := range merged {
+		result = append(result, *attr)
+	}
+
+	sortAttributes(result)
+
+	return result
 }
 
 // setAttributeComputedRecursive sets an attribute and all its nested attributes to Computed.

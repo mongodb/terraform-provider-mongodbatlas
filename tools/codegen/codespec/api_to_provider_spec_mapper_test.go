@@ -1520,7 +1520,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 				DataSources: &codespec.DataSources{
 					Schema: &codespec.DataSourceSchema{
 						SingularDSDescription: conversion.StringPtr("GET API description"),
-						Attributes: codespec.Attributes{
+						SingularDSAttributes: &codespec.Attributes{
 							// All response attributes are Computed
 							{
 								TFSchemaName:             "bool_default_attr",
@@ -1627,9 +1627,9 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 
 	// Verify path param is Required (not Computed) even in data source
 	var projectIDAttr *codespec.Attribute
-	for i := range ds.Schema.Attributes {
-		if ds.Schema.Attributes[i].TFSchemaName == "project_id" {
-			projectIDAttr = &ds.Schema.Attributes[i]
+	for i := range *ds.Schema.SingularDSAttributes {
+		if (*ds.Schema.SingularDSAttributes)[i].TFSchemaName == "project_id" {
+			projectIDAttr = &(*ds.Schema.SingularDSAttributes)[i]
 			break
 		}
 	}
@@ -1638,7 +1638,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 	assert.Equal(t, "groupId", projectIDAttr.APIName, "APIName should preserve original name for aliased path param")
 
 	// Verify response attributes are Computed
-	for _, attr := range ds.Schema.Attributes {
+	for _, attr := range *ds.Schema.SingularDSAttributes {
 		if attr.TFSchemaName != "project_id" { // Skip path param
 			assert.Equal(t, codespec.Computed, attr.ComputedOptionalRequired,
 				"Response attribute %s should be Computed in data source", attr.TFSchemaName)
@@ -1648,4 +1648,76 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 	// Verify operation path uses aliased placeholder
 	assert.Contains(t, ds.Operations.Read.Path, "{projectId}",
 		"Data source Read path should use aliased path param placeholder")
+}
+
+// TestDebugOrgServiceAccountAPI is a simple debug test for org_service_account_api using actual config
+func TestDebugOrgServiceAccountAPI(t *testing.T) {
+	apiSpecPath := "../atlasapispec/multi-version-api-spec.flattened.yml"
+	configPath := "../config.yml"
+	resourceName := "org_service_account_api"
+
+	result, err := codespec.ToCodeSpecModel(apiSpecPath, configPath, &resourceName)
+	require.NoError(t, err, "Failed to generate codespec model")
+	require.NotNil(t, result, "Result should not be nil")
+	require.Len(t, result.Resources, 1, "Should have exactly one resource")
+
+	resource := result.Resources[0]
+
+	// Basic assertions
+	assert.Equal(t, resourceName, resource.Name)
+	assert.NotNil(t, resource.Schema)
+	assert.NotEmpty(t, resource.Schema.Attributes, "Schema should have attributes")
+
+	// Check if data source was generated
+	if resource.DataSources != nil {
+		assert.NotNil(t, resource.DataSources.Schema, "Data source schema should be generated")
+
+		// Check singular data source (Read operation)
+		if resource.DataSources.Schema.SingularDSAttributes != nil {
+			singularAttrs := *resource.DataSources.Schema.SingularDSAttributes
+			assert.NotEmpty(t, singularAttrs, "Singular data source should have attributes")
+			t.Logf("Singular data source generated with %d attributes", len(singularAttrs))
+			for _, attr := range singularAttrs {
+				t.Logf("  [singular] %s (%s): %v", attr.TFSchemaName, attr.ComputedOptionalRequired, attr.APIName)
+			}
+		}
+
+		// Check plural data source (List operation)
+		if resource.DataSources.Schema.PluralDSAttributes != nil {
+			pluralAttrs := *resource.DataSources.Schema.PluralDSAttributes
+			t.Logf("Plural data source generated with %d root attributes", len(pluralAttrs))
+			for _, attr := range pluralAttrs {
+				t.Logf("  [plural] %s (%s): %v", attr.TFSchemaName, attr.ComputedOptionalRequired, attr.APIName)
+				
+				// Check if this is the "results" nested attribute
+				if attr.TFSchemaName == "results" && attr.ListNested != nil {
+					resultsAttrs := attr.ListNested.NestedObject.Attributes
+					t.Logf("    'results' contains %d nested attributes:", len(resultsAttrs))
+					for _, nested := range resultsAttrs {
+						t.Logf("      - %s (%s): %v", nested.TFSchemaName, nested.ComputedOptionalRequired, nested.APIName)
+					}
+					
+					// Verify all nested attributes in results are Computed
+					for _, nested := range resultsAttrs {
+						assert.Equal(t, codespec.Computed, nested.ComputedOptionalRequired,
+							"All attributes in 'results' should be Computed, but %s is %s", nested.TFSchemaName, nested.ComputedOptionalRequired)
+					}
+				}
+			}
+		}
+
+		// Check operations
+		if resource.DataSources.Operations.Read != nil {
+			t.Logf("Data source Read operation: %s %s",
+				resource.DataSources.Operations.Read.HTTPMethod,
+				resource.DataSources.Operations.Read.Path)
+		}
+		if resource.DataSources.Operations.List != nil {
+			t.Logf("Data source List operation: %s %s",
+				resource.DataSources.Operations.List.HTTPMethod,
+				resource.DataSources.Operations.List.Path)
+		}
+	}
+
+	t.Logf("Resource generated successfully with %d attributes", len(resource.Schema.Attributes))
 }
