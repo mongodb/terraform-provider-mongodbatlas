@@ -48,7 +48,7 @@ func TestAccProjectRSProjectInvitation_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "username", name),
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "2"),
 					resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", updateRoles[0]),
-					resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", updateRoles[0]),
+					resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", updateRoles[1]),
 				),
 			},
 			{
