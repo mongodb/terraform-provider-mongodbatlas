@@ -15,7 +15,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 	return dsschema.Schema{
 		Attributes: map[string]dsschema.Attribute{
 			"client_id": dsschema.StringAttribute{
-				Computed:            true,
+				Required:            true,
 				MarkdownDescription: "The Client ID of the Service Account.",
 			},
 			"created_at": dsschema.StringAttribute{
@@ -31,7 +31,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				MarkdownDescription: "Human-readable name for the Service Account.",
 			},
 			"org_id": dsschema.StringAttribute{
-				Computed:            true,
+				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
 			},
 			"roles": dsschema.SetAttribute{
