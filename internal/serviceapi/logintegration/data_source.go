@@ -48,12 +48,12 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 
 func dataSourceReadAPICallParams(model *TFDSModel) *config.APICallParams {
 	pathParams := map[string]string{
-		"projectId": model.ProjectId.ValueString(),
-		"id":        model.Id.ValueString(),
+		"projectId":     model.ProjectId.ValueString(),
+		"integrationId": model.IntegrationId.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: "application/vnd.atlas.2025-03-12+json",
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/logIntegrations/{id}",
+		RelativePath:  "/api/atlas/v2/groups/{projectId}/logIntegrations/{integrationId}",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}

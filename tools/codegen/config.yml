@@ -856,6 +856,8 @@ resources:
     schema:
       aliases:
         groupId: projectId
+        alertConfigId: integrationId
+        id: integrationId
     datasources:
       read:
         path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
@@ -866,3 +868,5 @@ resources:
       schema:
         aliases:
           groupId: projectId
+          alertConfigId: integrationId
+          id: integrationId

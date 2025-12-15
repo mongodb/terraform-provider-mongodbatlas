@@ -22,7 +22,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.",
 			},
-			"id": dsschema.StringAttribute{
+			"integration_id": dsschema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique identifier of the log integration configuration.",
 			},
@@ -53,12 +53,12 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
-	BucketName types.String                       `tfsdk:"bucket_name" autogen:"omitjson"`
-	IamRoleId  types.String                       `tfsdk:"iam_role_id" autogen:"omitjson"`
-	Id         types.String                       `tfsdk:"id" autogen:"omitjson"`
-	KmsKey     types.String                       `tfsdk:"kms_key" autogen:"omitjson"`
-	LogTypes   customtypes.SetValue[types.String] `tfsdk:"log_types" autogen:"omitjson"`
-	PrefixPath types.String                       `tfsdk:"prefix_path" autogen:"omitjson"`
-	ProjectId  types.String                       `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Type       types.String                       `tfsdk:"type" autogen:"omitjson"`
+	BucketName    types.String                       `tfsdk:"bucket_name" autogen:"omitjson"`
+	IamRoleId     types.String                       `tfsdk:"iam_role_id" autogen:"omitjson"`
+	IntegrationId types.String                       `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
+	KmsKey        types.String                       `tfsdk:"kms_key" autogen:"omitjson"`
+	LogTypes      customtypes.SetValue[types.String] `tfsdk:"log_types" autogen:"omitjson"`
+	PrefixPath    types.String                       `tfsdk:"prefix_path" autogen:"omitjson"`
+	ProjectId     types.String                       `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	Type          types.String                       `tfsdk:"type" autogen:"omitjson"`
 }
