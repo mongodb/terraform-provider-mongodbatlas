@@ -70,6 +70,119 @@ type convertToSpecTestCase struct {
 	inputResourceName    string
 }
 
+// getTestResourceComputedAttributes returns the common TestResource attributes used in data sources.
+// All attributes are Computed as appropriate for data source response fields.
+func getTestResourceComputedAttributes() codespec.Attributes {
+	return codespec.Attributes{
+		{
+			TFSchemaName:             "bool_default_attr",
+			TFModelName:              "BoolDefaultAttr",
+			APIName:                  "boolDefaultAttr",
+			ComputedOptionalRequired: codespec.Computed,
+			Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(false)},
+			ReqBodyUsage:             codespec.OmitAlways,
+		},
+		{
+			TFSchemaName:             "count",
+			TFModelName:              "Count",
+			APIName:                  "count",
+			ComputedOptionalRequired: codespec.Computed,
+			Int64:                    &codespec.Int64Attribute{},
+			Description:              conversion.StringPtr(testFieldDesc),
+			ReqBodyUsage:             codespec.OmitAlways,
+		},
+		{
+			TFSchemaName:             "create_date",
+			TFModelName:              "CreateDate",
+			APIName:                  "createDate",
+			String:                   &codespec.StringAttribute{},
+			ComputedOptionalRequired: codespec.Computed,
+			Description:              conversion.StringPtr(testFieldDesc),
+			ReqBodyUsage:             codespec.OmitAlways,
+		},
+		{
+			TFSchemaName:             "num_double_default_attr",
+			TFModelName:              "NumDoubleDefaultAttr",
+			APIName:                  "numDoubleDefaultAttr",
+			Float64:                  &codespec.Float64Attribute{Default: conversion.Pointer(2.0)},
+			ComputedOptionalRequired: codespec.Computed,
+			ReqBodyUsage:             codespec.OmitAlways,
+		},
+		{
+			TFSchemaName:             "str_computed_attr",
+			TFModelName:              "StrComputedAttr",
+			APIName:                  "strComputedAttr",
+			ComputedOptionalRequired: codespec.Computed,
+			String:                   &codespec.StringAttribute{},
+			Description:              conversion.StringPtr(testFieldDesc),
+			ReqBodyUsage:             codespec.OmitAlways,
+		},
+		{
+			TFSchemaName:             "str_req_attr1",
+			TFModelName:              "StrReqAttr1",
+			APIName:                  "strReqAttr1",
+			ComputedOptionalRequired: codespec.Computed,
+			String:                   &codespec.StringAttribute{},
+			Description:              conversion.StringPtr(testFieldDesc),
+			ReqBodyUsage:             codespec.OmitAlways,
+		},
+		{
+			TFSchemaName:             "str_req_attr2",
+			TFModelName:              "StrReqAttr2",
+			APIName:                  "strReqAttr2",
+			ComputedOptionalRequired: codespec.Computed,
+			String:                   &codespec.StringAttribute{},
+			Description:              conversion.StringPtr(testFieldDesc),
+			ReqBodyUsage:             codespec.OmitAlways,
+		},
+		{
+			TFSchemaName:             "str_req_attr3",
+			TFModelName:              "StrReqAttr3",
+			APIName:                  "strReqAttr3",
+			String:                   &codespec.StringAttribute{},
+			ComputedOptionalRequired: codespec.Computed,
+			Description:              conversion.StringPtr(testFieldDesc),
+			ReqBodyUsage:             codespec.OmitAlways,
+		},
+	}
+}
+
+// getProjectIDPathParam returns the path parameter (aliased from groupId to projectId) for data sources.
+func getProjectIDPathParam() codespec.Attribute {
+	return codespec.Attribute{
+		TFSchemaName:             "project_id",
+		TFModelName:              "ProjectId",
+		APIName:                  "groupId",
+		ComputedOptionalRequired: codespec.Required,
+		String:                   &codespec.StringAttribute{},
+		Description:              conversion.StringPtr(testPathParamDesc),
+		ReqBodyUsage:             codespec.OmitAlways,
+	}
+}
+
+// getPluralDSAttributes returns the attributes for plural data sources (with results list).
+func getPluralDSAttributes() codespec.Attributes {
+	projectIDPathParam := getProjectIDPathParam()
+	testResourceComputedAttributes := getTestResourceComputedAttributes()
+
+	return codespec.Attributes{
+		projectIDPathParam,
+		{
+			TFSchemaName:             "results",
+			TFModelName:              "Results",
+			APIName:                  "results",
+			ComputedOptionalRequired: codespec.Computed,
+			CustomType:               codespec.NewCustomNestedListType("Results"),
+			ListNested: &codespec.ListNestedAttribute{
+				NestedObject: codespec.NestedAttributeObject{
+					Attributes: testResourceComputedAttributes,
+				},
+			},
+			ReqBodyUsage: codespec.OmitAlways,
+		},
+	}
+}
+
 func TestConvertToProviderSpec(t *testing.T) {
 	tc := convertToSpecTestCase{
 		inputOpenAPISpecPath: testDataAPISpecPath,
@@ -1458,11 +1571,14 @@ func TestConvertToProviderSpec_ignoreSchemaAndIdAttributes(t *testing.T) {
 
 // TestConvertToProviderSpec_withDataSources verifies that data sources are correctly generated
 // when a datasources block is defined in the config. This test verifies:
-// 1. Data source schema is generated with all response attributes as Computed
-// 2. Path parameters are Required in the data source schema
-// 3. Aliasing in data source config (groupId -> projectId) works correctly and handles duplicates
-// 4. Data source operations are correctly extracted from config
+// 1. Singular data source schema is generated with all response attributes as Computed
+// 2. Plural data source schema is generated (reusing getPluralDSAttributes helper)
+// 3. Path parameters are Required in the data source schema
+// 4. Aliasing in data source config (groupId -> projectId) works correctly and handles duplicates
+// 5. Data source operations are correctly extracted from config
 func TestConvertToProviderSpec_withDataSources(t *testing.T) {
+	pluralDSAttributes := getPluralDSAttributes()
+
 	tc := convertToSpecTestCase{
 		inputOpenAPISpecPath: testDataAPISpecPath,
 		inputConfigPath:      "testdata/config-datasources.yml",
@@ -1588,6 +1704,8 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 				DataSources: &codespec.DataSources{
 					Schema: &codespec.DataSourceSchema{
 						SingularDSDescription: conversion.StringPtr("GET API description"),
+						PluralDSDescription:   conversion.StringPtr("LIST API description"),
+						PluralDSAttributes:    &pluralDSAttributes,
 						SingularDSAttributes: &codespec.Attributes{
 							// All response attributes are Computed
 							{
@@ -1677,6 +1795,10 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 							Path:       "/api/atlas/v2/groups/{projectId}/testResource",
 							HTTPMethod: "GET",
 						},
+						List: &codespec.APIOperation{
+							Path:       "/api/atlas/v2/groups/{projectId}/testResources",
+							HTTPMethod: "GET",
+						},
 						VersionHeader: "application/vnd.atlas.2023-01-01+json",
 					},
 				},
@@ -1688,12 +1810,12 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 
-	// Additional assertions to verify key data source behaviors
+	// Additional assertions to verify key singular data source behaviors
 	ds := result.Resources[0].DataSources
 	require.NotNil(t, ds, "DataSources should be populated")
 	require.NotNil(t, ds.Schema, "DataSources.Schema should be populated")
 
-	// Verify path param is Required (not Computed) even in data source
+	// Verify path param is Required (not Computed) even in singular data source
 	var projectIDAttr *codespec.Attribute
 	for i := range *ds.Schema.SingularDSAttributes {
 		if (*ds.Schema.SingularDSAttributes)[i].TFSchemaName == "project_id" {
@@ -1716,4 +1838,109 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 	// Verify operation path uses aliased placeholder
 	assert.Contains(t, ds.Operations.Read.Path, "{projectId}",
 		"Data source Read path should use aliased path param placeholder")
+}
+
+// TestConvertToProviderSpec_withPluralDataSource verifies that plural data sources are correctly generated
+// when a datasources block with a list operation is defined in the config. This test verifies:
+// 1. Plural data source schema is generated with results list containing resource attributes
+// 2. Path parameters are Required in the plural data source schema
+// 3. All nested attributes within results are Computed
+// 4. Aliasing in plural data source config (groupId -> projectId) works correctly
+// 5. List operation is correctly extracted and path uses aliased placeholders
+func TestConvertToProviderSpec_withPluralDataSource(t *testing.T) {
+	pluralDSAttributes := getPluralDSAttributes()
+
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      "testdata/config-datasources.yml",
+		inputResourceName:    "test_resource_with_datasource",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Name:        "test_resource_with_datasource",
+				PackageName: "testresourcewithdatasource",
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
+						HTTPMethod: "POST",
+					},
+					Read: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
+						HTTPMethod: "GET",
+					},
+					Update: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
+						HTTPMethod: "PATCH",
+					},
+					Delete: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
+						HTTPMethod: "DELETE",
+					},
+					VersionHeader: "application/vnd.atlas.2023-01-01+json",
+				},
+				DataSources: &codespec.DataSources{
+					Schema: &codespec.DataSourceSchema{
+						PluralDSDescription: conversion.StringPtr("LIST API description"),
+						PluralDSAttributes:  &pluralDSAttributes,
+					},
+					Operations: codespec.APIOperations{
+						List: &codespec.APIOperation{
+							Path:       "/api/atlas/v2/groups/{projectId}/testResources",
+							HTTPMethod: "GET",
+						},
+						VersionHeader: "application/vnd.atlas.2023-01-01+json",
+					},
+				},
+			}},
+		},
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+
+	// We only verify the plural data source parts
+	ds := result.Resources[0].DataSources
+	require.NotNil(t, ds, "DataSources should be populated")
+	require.NotNil(t, ds.Schema, "DataSources.Schema should be populated")
+	require.NotNil(t, ds.Schema.PluralDSAttributes, "PluralDSAttributes should be populated")
+
+	// Verify path param is Required (not Computed) in plural data source
+	var projectIDAttr *codespec.Attribute
+	for i := range *ds.Schema.PluralDSAttributes {
+		if (*ds.Schema.PluralDSAttributes)[i].TFSchemaName == "project_id" {
+			projectIDAttr = &(*ds.Schema.PluralDSAttributes)[i]
+			break
+		}
+	}
+	require.NotNil(t, projectIDAttr, "project_id attribute should exist in plural data source")
+	assert.Equal(t, codespec.Required, projectIDAttr.ComputedOptionalRequired, "Path param should be Required in plural data source")
+	assert.Equal(t, "groupId", projectIDAttr.APIName, "APIName should preserve original name for aliased path param")
+
+	// Verify results array exists and is Computed
+	var resultsAttr *codespec.Attribute
+	for i := range *ds.Schema.PluralDSAttributes {
+		if (*ds.Schema.PluralDSAttributes)[i].TFSchemaName == "results" {
+			resultsAttr = &(*ds.Schema.PluralDSAttributes)[i]
+			break
+		}
+	}
+	require.NotNil(t, resultsAttr, "results attribute should exist in plural data source")
+	assert.Equal(t, codespec.Computed, resultsAttr.ComputedOptionalRequired, "results attribute should be Computed")
+	require.NotNil(t, resultsAttr.ListNested, "results should be a ListNested attribute")
+
+	// Verify nested attributes within results are all Computed
+	for i := range resultsAttr.ListNested.NestedObject.Attributes {
+		attr := &resultsAttr.ListNested.NestedObject.Attributes[i]
+		assert.Equal(t, codespec.Computed, attr.ComputedOptionalRequired,
+			"Nested attribute %s within results should be Computed in plural data source", attr.TFSchemaName)
+	}
+
+	// Verify the expected structure matches (comparing against the helper function output)
+	assert.Equal(t, tc.expectedResult.Resources[0].DataSources.Schema.PluralDSAttributes, ds.Schema.PluralDSAttributes,
+		"PluralDSAttributes should match expected structure")
+
+	// Verify List operation path uses aliased placeholder
+	require.NotNil(t, ds.Operations.List, "List operation should be defined for plural data source")
+	assert.Contains(t, ds.Operations.List.Path, "{projectId}",
+		"Plural data source List path should use aliased path param placeholder")
 }
