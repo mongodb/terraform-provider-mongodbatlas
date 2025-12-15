@@ -564,7 +564,7 @@ func configSearchWithNumPartitions(projectID, indexName, clusterName string, num
 			analyzer         = "lucene.standard"
 			search_analyzer  = "lucene.standard"
 			mappings_dynamic = true
-			num_partitions 	 = %[6]d
+			num_partitions   = %[6]d
 			type             = "search"
 			
 			depends_on = [mongodbatlas_search_deployment.test]
@@ -573,7 +573,7 @@ func configSearchWithNumPartitions(projectID, indexName, clusterName string, num
 		data "mongodbatlas_search_index" "data_index" {
 			cluster_name     = mongodbatlas_search_index.test.cluster_name
 			project_id       = mongodbatlas_search_index.test.project_id
-			index_id 				 = mongodbatlas_search_index.test.index_id
+			index_id 		 = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterName, projectID, indexName, database, collection, numPartitions)
 }
