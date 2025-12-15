@@ -1,0 +1,25 @@
+---
+subcategory: "Log Integration"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a resource for managing log integration configurations at the project level. This resource allows you to continually export mongod, mongos, and audit logs to an AWS S3 bucket with 1-minute log export intervals.
+
+To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import 
+Log integration resource can be imported using the project ID and log integration ID, separated by a hyphen, e.g.
+
+```
+$ terraform import mongodbatlas_log_integration.test 650972848269185c55f40ca1-6789abcd1234ef5678901234
+```
+
+For more information see: [MongoDB Atlas API - Log Integration](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Log-Integrations) Documentation.
+
