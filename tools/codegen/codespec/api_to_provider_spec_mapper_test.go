@@ -1588,7 +1588,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 				DataSources: &codespec.DataSources{
 					Schema: &codespec.DataSourceSchema{
 						SingularDSDescription: conversion.StringPtr("GET API description"),
-						Attributes: codespec.Attributes{
+						SingularDSAttributes: &codespec.Attributes{
 							// All response attributes are Computed
 							{
 								TFSchemaName:             "bool_default_attr",
@@ -1695,9 +1695,9 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 
 	// Verify path param is Required (not Computed) even in data source
 	var projectIDAttr *codespec.Attribute
-	for i := range ds.Schema.Attributes {
-		if ds.Schema.Attributes[i].TFSchemaName == "project_id" {
-			projectIDAttr = &ds.Schema.Attributes[i]
+	for i := range *ds.Schema.SingularDSAttributes {
+		if (*ds.Schema.SingularDSAttributes)[i].TFSchemaName == "project_id" {
+			projectIDAttr = &(*ds.Schema.SingularDSAttributes)[i]
 			break
 		}
 	}
@@ -1706,7 +1706,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 	assert.Equal(t, "groupId", projectIDAttr.APIName, "APIName should preserve original name for aliased path param")
 
 	// Verify response attributes are Computed
-	for _, attr := range ds.Schema.Attributes {
+	for _, attr := range *ds.Schema.SingularDSAttributes {
 		if attr.TFSchemaName != "project_id" { // Skip path param
 			assert.Equal(t, codespec.Computed, attr.ComputedOptionalRequired,
 				"Response attribute %s should be Computed in data source", attr.TFSchemaName)

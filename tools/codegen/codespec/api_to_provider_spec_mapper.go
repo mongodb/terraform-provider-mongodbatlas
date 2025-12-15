@@ -378,52 +378,57 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 		configuredVersion = &versionHeader
 	}
 
-	var attributes Attributes
+	var singularAttributes, pluralAttributes Attributes
 	var readOp *APIOperation
 	var listOp *APIOperation
 	var singularDescription *string
 	var pluralDescription *string
 
-	// Process Read operation if defined
 	if dsConfig.Read != nil {
 		oasReadOp, err := extractOp(spec.Paths, dsConfig.Read)
 		if err != nil {
 			return nil, fmt.Errorf("unable to extract data source read operation: %w", err)
 		}
 
-		// Build attributes from the read response
 		readResponseAttributes := opResponseToAttributes(oasReadOp, configuredVersion)
-
-		// Get path parameters as required attributes
 		pathParams := pathParamsToAttributes(oasReadOp)
 
 		// Merge all attributes, applying aliases to path params during merge to avoid duplicates
-		attributes = mergeDataSourceAttributes(pathParams, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
+		singularAttributes = mergeDataSourceAttributes(pathParams, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
 
 		readOp = &APIOperation{
 			HTTPMethod: dsConfig.Read.Method,
 			Path:       dsConfig.Read.Path, // alias will be applied later by transformations helper
 		}
 
-		// Set singular data source description from the read operation
 		singularDescription = &oasReadOp.Description
 
-		// If version header wasn't explicitly set, get from API spec
-		if versionHeader == "" {
+		if conversion.IsEmpty(configuredVersion) {
 			versionHeader = getLatestVersionFromAPISpec(oasReadOp)
 		}
 	}
 
-	// Process List operation if defined
 	if dsConfig.List != nil {
-		// Extract list operation for description
-		if oasListOp, err := extractOp(spec.Paths, dsConfig.List); err == nil && oasListOp != nil {
-			pluralDescription = &oasListOp.Description
+		oasListOp, err := extractOp(spec.Paths, dsConfig.List)
+		if err != nil {
+			return nil, fmt.Errorf("unable to extract data source read operation: %w", err)
 		}
+
+		readResponseAttributes := opResponseToAttributes(oasListOp, configuredVersion)
+		pathParams := pathParamsToAttributes(oasListOp)
+
+		// Merge all attributes, applying aliases to path params during merge to avoid duplicates
+		pluralAttributes = mergeDataSourceAttributes(pathParams, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
 
 		listOp = &APIOperation{
 			HTTPMethod: dsConfig.List.Method,
 			Path:       dsConfig.List.Path, // alias will be applied later by transformations helper
+		}
+
+		pluralDescription = &oasListOp.Description
+
+		if conversion.IsEmpty(configuredVersion) {
+			versionHeader = getLatestVersionFromAPISpec(oasListOp)
 		}
 	}
 
@@ -432,7 +437,8 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 			SingularDSDescription: singularDescription,
 			PluralDSDescription:   pluralDescription,
 			DeprecationMessage:    resourceConfig.DeprecationMessage,
-			Attributes:            attributes,
+			SingularDSAttributes:  &singularAttributes,
+			PluralDSAttributes:    &pluralAttributes,
 		},
 		Operations: APIOperations{
 			Read:          readOp,
