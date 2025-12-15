@@ -1693,7 +1693,7 @@ components:
                     description: Name of the parameter in the target object that MongoDB Cloud checks. The parameter must match all rules for MongoDB Cloud to check for alert configurations.
                     type: string
                 operator:
-                    description: Comparison operator to apply when checking the current metric value against **matcher[n].value**. The `REGEX` operator only supports inclusive matches. Use the `NOT_CONTAINS` operator to exclude values.
+                    description: Comparison operator to apply when checking the current metric value against **matcher[n].value**.
                     enum:
                         - EQUALS
                         - CONTAINS
@@ -2002,8 +2002,6 @@ components:
                 minimumEnabledTlsProtocol:
                     description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.
                     enum:
-                        - TLS1_0
-                        - TLS1_1
                         - TLS1_2
                         - TLS1_3
                     externalDocs:
@@ -3390,9 +3388,6 @@ components:
                 - DEPLOYMENT_MODEL_CHANGE_SUCCESS
                 - DEPLOYMENT_MODEL_CHANGE_FAILURE
             example: DEPLOYMENT_FAILURE
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: App Services Event Types
             type: string
         AppServiceEventTypeViewAlertableWithThreshold:
@@ -3400,9 +3395,6 @@ components:
             enum:
                 - OUTSIDE_REALM_METRIC_THRESHOLD
             example: OUTSIDE_REALM_METRIC_THRESHOLD
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: App Services Event Types
             type: string
         AppServiceEventView:
@@ -3524,7 +3516,7 @@ components:
                 fieldName:
                     $ref: '#/components/schemas/AppServiceMetricMatcherField'
                 operator:
-                    description: Comparison operator to apply when checking the current metric value against **matcher[n].value**. The `REGEX` operator only supports inclusive matches. Use the `NOT_CONTAINS` operator to exclude values.
+                    description: Comparison operator to apply when checking the current metric value against **matcher[n].value**.
                     enum:
                         - EQUALS
                         - CONTAINS
@@ -5156,11 +5148,6 @@ components:
                 resourceGroupName:
                     description: Name of the Azure resource group that contains your Azure Key Vault. This field cannot be modified when you enable and set up private endpoint connections to your Azure Key Vault.
                     type: string
-                roleId:
-                    description: Unique 24-hexadecimal digit string that identifies the Azure Service Principal that MongoDB Cloud uses to access the Azure Key Vault.
-                    example: 32b6e34b3d91647abb20e7b8
-                    pattern: ^([a-f0-9]{24})$
-                    type: string
                 secret:
                     description: Private data that you need secured and that belongs to the specified Azure Key Vault (AKV) tenant (**azureKeyVault.tenantID**). This data can include any type of sensitive data such as passwords, database connection strings, API keys, and the like. AKV stores this information as encrypted binary data.
                     externalDocs:
@@ -6477,9 +6464,6 @@ components:
                 - PENDING_INVOICE_OVER_THRESHOLD
                 - DAILY_BILL_OVER_THRESHOLD
             example: PENDING_INVOICE_OVER_THRESHOLD
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: Billing Event Type
             type: string
         BillingEventTypeViewForNdsGroup:
@@ -9499,8 +9483,6 @@ components:
                 minimumEnabledTlsProtocol:
                     description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.
                     enum:
-                        - TLS1_0
-                        - TLS1_1
                         - TLS1_2
                         - TLS1_3
                     externalDocs:
@@ -9632,8 +9614,6 @@ components:
                 minimumEnabledTlsProtocol:
                     description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.
                     enum:
-                        - TLS1_0
-                        - TLS1_1
                         - TLS1_2
                         - TLS1_3
                     externalDocs:
@@ -9714,9 +9694,6 @@ components:
             enum:
                 - CLUSTER_MONGOS_IS_MISSING
             example: CLUSTER_MONGOS_IS_MISSING
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: Cluster Event Types
             type: string
         ClusterEventViewForNdsGroup:
@@ -9877,7 +9854,7 @@ components:
                 fieldName:
                     $ref: '#/components/schemas/ClusterMatcherField'
                 operator:
-                    description: Comparison operator to apply when checking the current metric value against **matcher[n].value**. The `REGEX` operator only supports inclusive matches. Use the `NOT_CONTAINS` operator to exclude values.
+                    description: Comparison operator to apply when checking the current metric value against **matcher[n].value**.
                     enum:
                         - EQUALS
                         - CONTAINS
@@ -10029,16 +10006,6 @@ components:
                         - PAUSED
                     readOnly: true
                     type: string
-                storedSource:
-                    description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. Note that storing all fields (true) is not allowed for vector search indexes. To learn more, see documentation.
-                    example:
-                        include | exclude:
-                            - field1
-                            - field2
-                    externalDocs:
-                        description: Stored Source Fields
-                        url: https://dochub.mongodb.org/core/atlas-search-stored-source
-                    type: object
                 type:
                     description: Type of the index. Default type is search.
                     enum:
@@ -10361,13 +10328,13 @@ components:
             allOf:
                 - $ref: '#/components/schemas/StreamsConnectionPrivatePreview'
                 - properties:
+                    authentication:
+                        $ref: '#/components/schemas/ConfluentSchemaRegistryAuthentication'
                     provider:
                         description: The Schema Registry provider.
                         enum:
                             - CONFLUENT
                         type: string
-                    schemaRegistryAuthentication:
-                        $ref: '#/components/schemas/ConfluentSchemaRegistryAuthentication'
                     schemaRegistryUrls:
                         description: List of Schema Registry URLs.
                         items:
@@ -10669,9 +10636,6 @@ components:
                 - CPS_PREV_SNAPSHOT_OLD
                 - CPS_OPLOG_BEHIND
             example: CPS_SNAPSHOT_BEHIND
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: Cps Backup Event Type
             type: string
         CpsBackupThresholdAlertConfigViewForNdsGroup:
@@ -13354,9 +13318,6 @@ components:
                     type: boolean
                 eventTypeName:
                     description: Incident that triggered this alert.
-                    externalDocs:
-                        description: Atlas Alert Event Types
-                        url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
                     oneOf:
                         - enum:
                             - CREDIT_CARD_ABOUT_TO_EXPIRE
@@ -13414,10 +13375,6 @@ components:
                             - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRING
                             - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRED
                           title: Group Event Types
-                          type: string
-                        - enum:
-                            - MONGOTUNE_ALERT
-                          title: Mongotune Event Types
                           type: string
                         - enum:
                             - CLUSTER_INSTANCE_STOP_START
@@ -13484,28 +13441,6 @@ components:
                         - enum:
                             - RESOURCE_POLICY_VIOLATED
                           title: Atlas Resource Policy Audit Types
-                          type: string
-                        - enum:
-                            - HOST_DOWN
-                            - HOST_HAS_INDEX_SUGGESTIONS
-                            - HOST_MONGOT_CRASHING_OOM
-                            - HOST_MONGOT_STOP_REPLICATION
-                            - HOST_MONGOT_APPROACHING_STOP_REPLICATION
-                            - HOST_MONGOT_PAUSE_INITIAL_SYNC
-                            - HOST_SEARCH_NODE_INDEX_FAILED
-                            - HOST_EXTERNAL_LOG_SINK_EXPORT_DOWN
-                            - HOST_NOT_ENOUGH_DISK_SPACE
-                            - SSH_KEY_NDS_HOST_ACCESS_REQUESTED
-                            - SSH_KEY_NDS_HOST_ACCESS_REFRESHED
-                            - PUSH_BASED_LOG_EXPORT_STOPPED
-                            - PUSH_BASED_LOG_EXPORT_DROPPED_LOG
-                            - HOST_VERSION_BEHIND
-                            - VERSION_BEHIND
-                            - HOST_EXPOSED
-                            - HOST_SSL_CERTIFICATE_STALE
-                            - HOST_SECURITY_CHECKUP_NOT_MET
-                            - ALERT_HOST_SSH_SESSION_STARTED
-                          title: Host Event Types
                           type: string
                     type: object
                 groupId:
@@ -13658,10 +13593,6 @@ components:
                           title: Group Event Types
                           type: string
                         - enum:
-                            - MONGOTUNE_ALERT
-                          title: Mongotune Event Types
-                          type: string
-                        - enum:
                             - CLUSTER_INSTANCE_STOP_START
                             - CLUSTER_INSTANCE_RESYNC_REQUESTED
                             - CLUSTER_INSTANCE_UPDATE_REQUESTED
@@ -13750,28 +13681,6 @@ components:
                         - enum:
                             - RESOURCE_POLICY_VIOLATED
                           title: Atlas Resource Policy Audit Types
-                          type: string
-                        - enum:
-                            - HOST_DOWN
-                            - HOST_HAS_INDEX_SUGGESTIONS
-                            - HOST_MONGOT_CRASHING_OOM
-                            - HOST_MONGOT_STOP_REPLICATION
-                            - HOST_MONGOT_APPROACHING_STOP_REPLICATION
-                            - HOST_MONGOT_PAUSE_INITIAL_SYNC
-                            - HOST_SEARCH_NODE_INDEX_FAILED
-                            - HOST_EXTERNAL_LOG_SINK_EXPORT_DOWN
-                            - HOST_NOT_ENOUGH_DISK_SPACE
-                            - SSH_KEY_NDS_HOST_ACCESS_REQUESTED
-                            - SSH_KEY_NDS_HOST_ACCESS_REFRESHED
-                            - PUSH_BASED_LOG_EXPORT_STOPPED
-                            - PUSH_BASED_LOG_EXPORT_DROPPED_LOG
-                            - HOST_VERSION_BEHIND
-                            - VERSION_BEHIND
-                            - HOST_EXPOSED
-                            - HOST_SSL_CERTIFICATE_STALE
-                            - HOST_SECURITY_CHECKUP_NOT_MET
-                            - ALERT_HOST_SSH_SESSION_STARTED
-                          title: Host Event Types
                           type: string
                     readOnly: true
                     type: object
@@ -14192,11 +14101,6 @@ components:
                             - QUERY_SHAPE_BLOCKED
                             - QUERY_SHAPE_UNBLOCKED
                           title: Query Shape Event Types
-                          type: string
-                        - enum:
-                            - MONGOTUNE_INFO
-                            - MONGOTUNE_ALERT
-                          title: Mongotune Event Types
                           type: string
                     type: object
                 groupId:
@@ -14871,7 +14775,7 @@ components:
             description: Details of the replica set snapshot that MongoDB Cloud created.
             properties:
                 cloudProvider:
-                    description: Human-readable label that identifies the cloud provider.
+                    description: 'Human-readable label that identifies the cloud provider that stores this snapshot. The resource returns this parameter when `"type": "replicaSet"`.'
                     enum:
                         - AWS
                         - AZURE
@@ -15112,7 +15016,7 @@ components:
         DiskBackupShardedClusterSnapshotMember:
             properties:
                 cloudProvider:
-                    description: Human-readable label that identifies the cloud provider.
+                    description: 'Human-readable label that identifies the cloud provider that stores this snapshot. The resource returns this parameter when `"type": "replicaSet"`.'
                     enum:
                         - AWS
                         - AZURE
@@ -15270,7 +15174,7 @@ components:
                     minLength: 3
                     type: string
                 cloudProvider:
-                    description: Human-readable label that identifies the cloud provider.
+                    description: Human-readable label that identifies the cloud provider that Snapshots will be exported to.
                     enum:
                         - AWS
                         - AZURE
@@ -15377,7 +15281,7 @@ components:
                 propertyName: cloudProvider
             properties:
                 cloudProvider:
-                    description: Human-readable label that identifies the cloud provider.
+                    description: Human-readable label that identifies the cloud provider that Snapshots are exported to.
                     enum:
                         - AWS
                         - AZURE
@@ -15416,7 +15320,7 @@ components:
                     minLength: 3
                     type: string
                 cloudProvider:
-                    description: Human-readable label that identifies the cloud provider.
+                    description: Human-readable label that identifies the cloud provider that Snapshots will be exported to.
                     enum:
                         - AWS
                         - AZURE
@@ -16655,9 +16559,6 @@ components:
                 - AZURE_ENCRYPTION_KEY_INVALID
                 - GCP_ENCRYPTION_KEY_INVALID
             example: AWS_ENCRYPTION_KEY_NEEDS_ROTATION
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: Encryption Event Types
             type: string
         EndpointService:
@@ -17014,7 +16915,6 @@ components:
                     - SSH_KEY_NDS_HOST_ACCESS_ATTEMPT
                     - SSH_KEY_NDS_HOST_ACCESS_GRANTED
                     - SSH_KEY_NDS_HOST_ACCESS_LEVEL_CHANGED
-                    - ALERT_HOST_SSH_SESSION_STARTED
                     - HOST_SSH_SESSION_ENDED
                     - HOST_X509_CERTIFICATE_CERTIFICATE_GENERATED_FOR_SUPPORT_ACCESS
                     - PUSH_BASED_LOG_EXPORT_RESUMED
@@ -17040,11 +16940,6 @@ components:
                     - INDEX_FAILED_INDEX_BUILD
                     - INDEX_SUCCESS_INDEX_BUILD
                   title: Index Build Audit Types
-                  type: string
-                - enum:
-                    - MONGOTUNE_INFO
-                    - MONGOTUNE_ALERT
-                  title: Mongotune Event Types
                   type: string
                 - enum:
                     - CLUSTER_CREATED
@@ -17220,7 +17115,6 @@ components:
                     - INGESTION_PIPELINE_CREATED
                     - INGESTION_PIPELINE_UPDATED
                     - OS_TUNE_FILE_OVERRIDES
-                    - CLUSTER_SYSTEMD_OVERRIDES_CHANGED
                     - MONITORING_AGENT_OVERRIDES
                     - MONITORING_AGENT_REBALANCE_FLAG
                     - MONITORING_AGENT_REBALANCE_TRIGGERED
@@ -19511,9 +19405,6 @@ components:
             enum:
                 - OUTSIDE_FLEX_METRIC_THRESHOLD
             example: OUTSIDE_FLEX_METRIC_THRESHOLD
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: Flex Metric Event Types
             type: string
         FlexNetworkBytesInDataMetricThresholdView:
@@ -21948,7 +21839,6 @@ components:
                 - SSH_KEY_NDS_HOST_ACCESS_ATTEMPT
                 - SSH_KEY_NDS_HOST_ACCESS_GRANTED
                 - SSH_KEY_NDS_HOST_ACCESS_LEVEL_CHANGED
-                - ALERT_HOST_SSH_SESSION_STARTED
                 - HOST_SSH_SESSION_ENDED
                 - HOST_X509_CERTIFICATE_CERTIFICATE_GENERATED_FOR_SUPPORT_ACCESS
                 - PUSH_BASED_LOG_EXPORT_RESUMED
@@ -21983,11 +21873,7 @@ components:
                 - HOST_EXPOSED
                 - HOST_SSL_CERTIFICATE_STALE
                 - HOST_SECURITY_CHECKUP_NOT_MET
-                - ALERT_HOST_SSH_SESSION_STARTED
             example: HOST_DOWN
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: Host Event Types
             type: string
         HostEventViewForNdsGroup:
@@ -22104,7 +21990,7 @@ components:
                 fieldName:
                     $ref: '#/components/schemas/HostMatcherField'
                 operator:
-                    description: Comparison operator to apply when checking the current metric value against **matcher[n].value**. The `REGEX` operator only supports inclusive matches. Use the `NOT_CONTAINS` operator to exclude values.
+                    description: Comparison operator to apply when checking the current metric value against **matcher[n].value**.
                     enum:
                         - EQUALS
                         - CONTAINS
@@ -22797,9 +22683,6 @@ components:
             enum:
                 - OUTSIDE_METRIC_THRESHOLD
             example: OUTSIDE_METRIC_THRESHOLD
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: Host Metric Event Types
             type: string
         HostMetricThreshold:
@@ -23766,7 +23649,6 @@ components:
                         - ATLAS_AWS_BACKUP_DOWNLOAD_VM
                         - ATLAS_AWS_BACKUP_DOWNLOAD_VM_STORAGE
                         - ATLAS_AWS_BACKUP_DOWNLOAD_VM_STORAGE_IOPS
-                        - ATLAS_AWS_BACKUP_EXPORT_PRIVATE_ENDPOINT
                         - ATLAS_AWS_PRIVATE_ENDPOINT
                         - ATLAS_AWS_PRIVATE_ENDPOINT_CAPACITY_UNITS
                         - ATLAS_GCP_SEARCH_INSTANCE_S20_COMPUTE_LOCALSSD
@@ -24113,49 +23995,23 @@ components:
                         - ATLAS_GCP_STREAM_PROCESSING_DATA_TRANSFER_INTERNET
                         - ATLAS_GCP_STREAM_PROCESSING_PRIVATELINK
                         - VOYAGE_EMBEDDING_3_TEXT_LARGE_API
-                        - VOYAGE_EMBEDDING_3_TEXT_LARGE_API_FREE
                         - VOYAGE_EMBEDDING_3_TEXT_API
-                        - VOYAGE_EMBEDDING_3_TEXT_API_FREE
                         - VOYAGE_EMBEDDING_3_TEXT_LITE_API
-                        - VOYAGE_EMBEDDING_3_TEXT_LITE_API_FREE
                         - VOYAGE_EMBEDDING_3_5_TEXT_API
-                        - VOYAGE_EMBEDDING_3_5_TEXT_API_FREE
                         - VOYAGE_EMBEDDING_3_5_TEXT_LITE_API
-                        - VOYAGE_EMBEDDING_3_5_TEXT_LITE_API_FREE
                         - VOYAGE_EMBEDDING_3_TEXT_CONTEXT_API
-                        - VOYAGE_EMBEDDING_3_TEXT_CONTEXT_API_FREE
                         - VOYAGE_EMBEDDING_3_CODE_API
-                        - VOYAGE_EMBEDDING_3_CODE_API_FREE
                         - VOYAGE_EMBEDDING_2_FINANCE_API
-                        - VOYAGE_EMBEDDING_2_FINANCE_API_FREE
                         - VOYAGE_EMBEDDING_2_LAW_API
-                        - VOYAGE_EMBEDDING_2_LAW_API_FREE
                         - VOYAGE_EMBEDDING_2_CODE_API
-                        - VOYAGE_EMBEDDING_2_CODE_API_FREE
                         - VOYAGE_EMBEDDING_3_5_MULTIMODAL_TOKENS_API
-                        - VOYAGE_EMBEDDING_3_5_MULTIMODAL_TOKENS_API_FREE
                         - VOYAGE_EMBEDDING_3_5_MULTIMODAL_PIXELS_API
-                        - VOYAGE_EMBEDDING_3_5_MULTIMODAL_PIXELS_API_FREE
                         - VOYAGE_EMBEDDING_3_MULTIMODAL_TOKENS_API
-                        - VOYAGE_EMBEDDING_3_MULTIMODAL_TOKENS_API_FREE
                         - VOYAGE_EMBEDDING_3_MULTIMODAL_PIXELS_API
-                        - VOYAGE_EMBEDDING_3_MULTIMODAL_PIXELS_API_FREE
                         - VOYAGE_RERANK_2_5_LITE_API
-                        - VOYAGE_RERANK_2_5_LITE_API_FREE
                         - VOYAGE_RERANK_2_5_API
-                        - VOYAGE_RERANK_2_5_API_FREE
                         - VOYAGE_RERANK_2_LITE_API
-                        - VOYAGE_RERANK_2_LITE_API_FREE
                         - VOYAGE_RERANK_2_API
-                        - VOYAGE_RERANK_2_API_FREE
-                        - VOYAGE_EMBEDDING_4_TEXT_LARGE_API
-                        - VOYAGE_EMBEDDING_4_TEXT_LARGE_API_FREE
-                        - VOYAGE_EMBEDDING_4_TEXT_API
-                        - VOYAGE_EMBEDDING_4_TEXT_API_FREE
-                        - VOYAGE_EMBEDDING_4_TEXT_LITE_API
-                        - VOYAGE_EMBEDDING_4_TEXT_LITE_API_FREE
-                        - VOYAGE_EMBEDDING_4_TEXT_NANO_API
-                        - VOYAGE_EMBEDDING_4_TEXT_NANO_API_FREE
                         - VOYAGE_EMBEDDING_3_TEXT_LARGE_AUTOEMBED
                         - VOYAGE_EMBEDDING_3_TEXT_AUTOEMBED
                         - VOYAGE_EMBEDDING_3_TEXT_LITE_AUTOEMBED
@@ -24170,10 +24026,6 @@ components:
                         - VOYAGE_EMBEDDING_3_5_MULTIMODAL_PIXELS_AUTOEMBED
                         - VOYAGE_EMBEDDING_3_MULTIMODAL_TOKENS_AUTOEMBED
                         - VOYAGE_EMBEDDING_3_MULTIMODAL_PIXELS_AUTOEMBED
-                        - VOYAGE_EMBEDDING_4_TEXT_LARGE_AUTOEMBED
-                        - VOYAGE_EMBEDDING_4_TEXT_AUTOEMBED
-                        - VOYAGE_EMBEDDING_4_TEXT_LITE_AUTOEMBED
-                        - VOYAGE_EMBEDDING_4_TEXT_NANO_AUTOEMBED
                     readOnly: true
                     type: string
                 startDate:
@@ -25435,47 +25287,6 @@ components:
                     readOnly: true
                     type: string
             type: object
-        LogIntegrationRequest:
-            description: Request schema for creating or updating a log integration.
-            discriminator:
-                mapping:
-                    S3_LOG_EXPORT: '#/components/schemas/S3LogIntegrationRequest'
-                propertyName: type
-            oneOf:
-                - $ref: '#/components/schemas/S3LogIntegrationRequest'
-            properties:
-                type:
-                    description: Type of log integration. Identifies which service will receive the exported logs.
-                    enum:
-                        - S3_LOG_EXPORT
-                    type: string
-            required:
-                - type
-            title: Log Export Integration Request
-            type: object
-        LogIntegrationResponse:
-            description: Response schema for log integration operations.
-            discriminator:
-                mapping:
-                    S3_LOG_EXPORT: '#/components/schemas/S3LogIntegrationResponse'
-                propertyName: type
-            oneOf:
-                - $ref: '#/components/schemas/S3LogIntegrationResponse'
-            properties:
-                id:
-                    description: Unique 24-character hexadecimal digit string that identifies the log integration configuration.
-                    example: 507f1f77bcf86cd799439011
-                    type: string
-                type:
-                    description: Type of log integration. Identifies which service will receive the exported logs.
-                    enum:
-                        - S3_LOG_EXPORT
-                    type: string
-            required:
-                - id
-                - type
-            title: Log Integration Response
-            type: object
         LogicalSizeDataMetricThresholdView:
             properties:
                 metricName:
@@ -25575,10 +25386,6 @@ components:
                 - enum:
                     - RULE_ID
                   title: Log Ingestion Matcher Fields
-                  type: string
-                - enum:
-                    - SOFTWARE_TYPE
-                  title: Global Software Type Matcher Fields
                   type: string
             type: object
         MatcherHostType:
@@ -27235,7 +27042,6 @@ components:
                 - INGESTION_PIPELINE_CREATED
                 - INGESTION_PIPELINE_UPDATED
                 - OS_TUNE_FILE_OVERRIDES
-                - CLUSTER_SYSTEMD_OVERRIDES_CHANGED
                 - MONITORING_AGENT_OVERRIDES
                 - MONITORING_AGENT_REBALANCE_FLAG
                 - MONITORING_AGENT_REBALANCE_TRIGGERED
@@ -27915,9 +27721,6 @@ components:
                 - NDS_X509_USER_AUTHENTICATION_CUSTOMER_CRL_EXPIRATION_CHECK
                 - NDS_X509_USER_AUTHENTICATION_MANAGED_USER_CERTS_EXPIRATION_CHECK
             example: NDS_X509_USER_AUTHENTICATION_CUSTOMER_CA_EXPIRATION_CHECK
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: NDS x509 User Auth Event Types
             type: string
         NamespaceObj:
@@ -28539,125 +28342,6 @@ components:
                     $ref: '#/components/schemas/NumberMetricUnits'
             readOnly: true
             title: Number Metric Value
-            type: object
-        ObjectStoragePrivateEndpointRequest:
-            properties:
-                cloudProvider:
-                    description: Human-readable label that identifies the cloud provider.
-                    enum:
-                        - AWS
-                    type: string
-                regionName:
-                    description: Cloud provider region in which the Object Storage private endpoint is located.
-                    oneOf:
-                        - description: |-
-                            Physical location where MongoDB Cloud deploys your AWS-hosted MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases.
-                            When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Cloud creates them as part of the deployment. MongoDB Cloud assigns the VPC a CIDR block.
-                            To limit a new VPC peering connection to one CIDR block and region, create the connection first. Deploy the cluster after the connection starts.
-                          enum:
-                            - US_GOV_WEST_1
-                            - US_GOV_EAST_1
-                            - US_EAST_1
-                            - US_EAST_2
-                            - US_WEST_1
-                            - US_WEST_2
-                            - CA_CENTRAL_1
-                            - EU_NORTH_1
-                            - EU_WEST_1
-                            - EU_WEST_2
-                            - EU_WEST_3
-                            - EU_CENTRAL_1
-                            - AP_EAST_1
-                            - AP_NORTHEAST_1
-                            - AP_NORTHEAST_2
-                            - AP_NORTHEAST_3
-                            - AP_SOUTHEAST_1
-                            - AP_SOUTHEAST_2
-                            - AP_SOUTHEAST_3
-                            - AP_SOUTH_1
-                            - SA_EAST_1
-                            - CN_NORTH_1
-                            - CN_NORTHWEST_1
-                            - ME_SOUTH_1
-                            - AF_SOUTH_1
-                            - EU_SOUTH_1
-                            - GLOBAL
-                          type: string
-                          x-xgen-IPA-exception:
-                            xgen-IPA-123-allowable-enum-values-should-not-exceed-20: Enum values standardized by cloud providers.
-                    type: object
-            type: object
-        ObjectStoragePrivateEndpointResponse:
-            properties:
-                cloudProvider:
-                    description: Human-readable label that identifies the cloud provider.
-                    enum:
-                        - AWS
-                    type: string
-                errorMessage:
-                    description: Error message for failures associated with the Object Storage private endpoint.
-                    readOnly: true
-                    type: string
-                id:
-                    description: Unique 24-hexadecimal digit string that identifies the Private Endpoint Service.
-                    example: 32b6e34b3d91647abb20e7b8
-                    pattern: ^([a-f0-9]{24})$
-                    readOnly: true
-                    type: string
-                privateEndpointConnectionName:
-                    description: Connection name of the Private Endpoint.
-                    readOnly: true
-                    type: string
-                regionName:
-                    description: Cloud provider region in which the Object Storage private endpoint is located.
-                    oneOf:
-                        - description: |-
-                            Physical location where MongoDB Cloud deploys your AWS-hosted MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases.
-                            When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Cloud creates them as part of the deployment. MongoDB Cloud assigns the VPC a CIDR block.
-                            To limit a new VPC peering connection to one CIDR block and region, create the connection first. Deploy the cluster after the connection starts.
-                          enum:
-                            - US_GOV_WEST_1
-                            - US_GOV_EAST_1
-                            - US_EAST_1
-                            - US_EAST_2
-                            - US_WEST_1
-                            - US_WEST_2
-                            - CA_CENTRAL_1
-                            - EU_NORTH_1
-                            - EU_WEST_1
-                            - EU_WEST_2
-                            - EU_WEST_3
-                            - EU_CENTRAL_1
-                            - AP_EAST_1
-                            - AP_NORTHEAST_1
-                            - AP_NORTHEAST_2
-                            - AP_NORTHEAST_3
-                            - AP_SOUTHEAST_1
-                            - AP_SOUTHEAST_2
-                            - AP_SOUTHEAST_3
-                            - AP_SOUTH_1
-                            - SA_EAST_1
-                            - CN_NORTH_1
-                            - CN_NORTHWEST_1
-                            - ME_SOUTH_1
-                            - AF_SOUTH_1
-                            - EU_SOUTH_1
-                            - GLOBAL
-                          type: string
-                          x-xgen-IPA-exception:
-                            xgen-IPA-123-allowable-enum-values-should-not-exceed-20: Enum values standardized by cloud providers.
-                    type: object
-                status:
-                    description: State of the Object Storage private endpoint.
-                    enum:
-                        - INITIATING
-                        - PENDING_ACCEPTANCE
-                        - ACTIVE
-                        - FAILED
-                        - PENDING_RECREATION
-                        - DELETING
-                    readOnly: true
-                    type: string
             type: object
         OnDemandCpsSnapshotSource:
             allOf:
@@ -30500,30 +30184,6 @@ components:
                     readOnly: true
                     type: integer
             type: object
-        PaginatedApiAtlasObjectStoragePrivateEndpointResponseView:
-            properties:
-                links:
-                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-                    externalDocs:
-                        description: Web Linking Specification (RFC 5988)
-                        url: https://datatracker.ietf.org/doc/html/rfc5988
-                    items:
-                        $ref: '#/components/schemas/Link'
-                    readOnly: true
-                    type: array
-                results:
-                    description: List of returned documents that MongoDB Cloud provides when completing this request.
-                    items:
-                        $ref: '#/components/schemas/ObjectStoragePrivateEndpointResponse'
-                    readOnly: true
-                    type: array
-                totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
-                    format: int32
-                    minimum: 0
-                    readOnly: true
-                    type: integer
-            type: object
         PaginatedApiAtlasProviderRegionsView:
             properties:
                 links:
@@ -31320,30 +30980,6 @@ components:
                     readOnly: true
                     type: integer
             type: object
-        PaginatedLogIntegrationResponse:
-            properties:
-                links:
-                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-                    externalDocs:
-                        description: Web Linking Specification (RFC 5988)
-                        url: https://datatracker.ietf.org/doc/html/rfc5988
-                    items:
-                        $ref: '#/components/schemas/Link'
-                    readOnly: true
-                    type: array
-                results:
-                    description: List of returned documents that MongoDB Cloud provides when completing this request.
-                    items:
-                        $ref: '#/components/schemas/LogIntegrationResponse'
-                    readOnly: true
-                    type: array
-                totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
-                    format: int32
-                    minimum: 0
-                    readOnly: true
-                    type: integer
-            type: object
         PaginatedNetworkAccessView:
             properties:
                 links:
@@ -31552,31 +31188,6 @@ components:
                     description: List of returned documents that MongoDB Cloud provides when completing this request.
                     items:
                         $ref: '#/components/schemas/PublicApiUsageDetailsLineItemView'
-                    readOnly: true
-                    type: array
-                totalCount:
-                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
-                    format: int32
-                    minimum: 0
-                    readOnly: true
-                    type: integer
-            type: object
-        PaginatedQueryShapes:
-            description: Paginated collection of query shapes. This endpoint returns a maximum of 100 results.
-            properties:
-                links:
-                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-                    externalDocs:
-                        description: Web Linking Specification (RFC 5988)
-                        url: https://datatracker.ietf.org/doc/html/rfc5988
-                    items:
-                        $ref: '#/components/schemas/Link'
-                    readOnly: true
-                    type: array
-                results:
-                    description: List of returned documents that MongoDB Cloud provides when completing this request.
-                    items:
-                        $ref: '#/components/schemas/QueryShapeResponse'
                     readOnly: true
                     type: array
                 totalCount:
@@ -32592,39 +32203,6 @@ components:
             required:
                 - metricName
             type: object
-        QueryShapeResponse:
-            description: Response containing the details and status of a query shape. The query shape field may be null if the user lacks PII view access.
-            properties:
-                command:
-                    description: The MongoDB command type issued for a query shape.
-                    enum:
-                        - FIND
-                        - DISTINCT
-                        - AGGREGATE
-                    readOnly: true
-                    type: string
-                namespace:
-                    description: Human-readable label that identifies the namespace on the specified host. The resource expresses this parameter value as `<database>.<collection>`.
-                    readOnly: true
-                    type: string
-                queryShape:
-                    description: A query shape is a set of specifications that group similar queries together. Specifications can include filters, sorts, projections, aggregation pipeline stages, a namespace, and others. Queries that have similar specifications have the same query shape. This field may be null if the user lacks PII view access.
-                    readOnly: true
-                    type: string
-                queryShapeHash:
-                    description: A hexadecimal string that represents the hash of a MongoDB query shape.
-                    readOnly: true
-                    type: string
-                status:
-                    description: The rejection status of a query shape. Use REJECTED to prevent the query shape from executing on the cluster, or UNREJECTED to allow it to execute.
-                    enum:
-                        - REJECTED
-                        - UNREJECTED
-                    type: string
-            required:
-                - queryShapeHash
-                - status
-            type: object
         QueryShapeSeenMetadata:
             description: Metadata about when a query shape was seen.
             properties:
@@ -32641,18 +32219,6 @@ components:
                     description: Unix epoch milliseconds of the time.
                     format: int64
                     type: integer
-            type: object
-        QueryShapeUpdateRequest:
-            description: Request body for modifying the rejection status of a query shape.
-            properties:
-                status:
-                    description: The rejection status of a query shape. Use REJECTED to prevent the query shape from executing on the cluster, or UNREJECTED to allow it to execute.
-                    enum:
-                        - REJECTED
-                        - UNREJECTED
-                    type: string
-            required:
-                - status
             type: object
         QuerySpillToDiskDuringSortRawMetricThresholdView:
             properties:
@@ -33413,9 +32979,6 @@ components:
                 - NO_PRIMARY
                 - PRIMARY_ELECTED
             example: NO_PRIMARY
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: ReplicaSet Event Types
             type: string
         ReplicaSetEventTypeViewForNdsGroupAlertableWithThreshold:
@@ -33426,9 +32989,6 @@ components:
                 - TOO_FEW_HEALTHY_MEMBERS
                 - TOO_MANY_UNHEALTHY_MEMBERS
             example: TOO_MANY_ELECTIONS
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: ReplicaSet Event Types
             type: string
         ReplicaSetMatcher:
@@ -33437,7 +32997,7 @@ components:
                 fieldName:
                     $ref: '#/components/schemas/ReplicaSetMatcherField'
                 operator:
-                    description: Comparison operator to apply when checking the current metric value against **matcher[n].value**. The `REGEX` operator only supports inclusive matches. Use the `NOT_CONTAINS` operator to exclude values.
+                    description: Comparison operator to apply when checking the current metric value against **matcher[n].value**.
                     enum:
                         - EQUALS
                         - CONTAINS
@@ -33931,113 +33491,6 @@ components:
                 - prefixPath
             title: S3 Log Export
             type: object
-        S3LogIntegrationRequest:
-            allOf:
-                - $ref: '#/components/schemas/LogIntegrationRequest'
-                - properties:
-                    bucketName:
-                        description: Human-readable label that identifies the S3 bucket name for storing log files.
-                        example: my-log-bucket
-                        type: string
-                    iamRoleId:
-                        description: Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
-                        example: 507f1f77bcf86cd799439011
-                        type: string
-                    kmsKey:
-                        description: AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
-                        example: arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
-                        nullable: true
-                        type: string
-                    logTypes:
-                        description: 'Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.'
-                        example:
-                            - MONGOD
-                            - MONGOS
-                            - MONGOD_AUDIT
-                            - MONGOS_AUDIT
-                        items:
-                            enum:
-                                - MONGOD
-                                - MONGOS
-                                - MONGOD_AUDIT
-                                - MONGOS_AUDIT
-                            type: string
-                        maxItems: 4
-                        minItems: 1
-                        type: array
-                        uniqueItems: true
-                    prefixPath:
-                        description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
-                        example: mongo-logs/
-                        type: string
-                    type:
-                        description: Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
-                        enum:
-                            - S3_LOG_EXPORT
-                        type: string
-                  type: object
-            description: Request schema for creating or updating an S3 log export integration.
-            required:
-                - bucketName
-                - iamRoleId
-                - logTypes
-                - prefixPath
-                - type
-            title: S3 Log Export Integration Request
-            type: object
-        S3LogIntegrationResponse:
-            allOf:
-                - $ref: '#/components/schemas/LogIntegrationResponse'
-                - properties:
-                    bucketName:
-                        description: Human-readable label that identifies the S3 bucket name for storing log files.
-                        example: my-log-bucket
-                        type: string
-                    iamRoleId:
-                        description: Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
-                        example: 507f1f77bcf86cd799439011
-                        type: string
-                    kmsKey:
-                        description: AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
-                        example: arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
-                        nullable: true
-                        type: string
-                    logTypes:
-                        description: 'Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.'
-                        example:
-                            - MONGOD
-                            - MONGOS
-                            - MONGOD_AUDIT
-                            - MONGOS_AUDIT
-                        items:
-                            enum:
-                                - MONGOD
-                                - MONGOS
-                                - MONGOD_AUDIT
-                                - MONGOS_AUDIT
-                            type: string
-                        maxItems: 4
-                        type: array
-                        uniqueItems: true
-                    prefixPath:
-                        description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
-                        example: mongo-logs/
-                        type: string
-                    type:
-                        description: Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
-                        enum:
-                            - S3_LOG_EXPORT
-                        type: string
-                  type: object
-            description: Details to integrate S3 log export with one MongoDB Cloud project.
-            required:
-                - bucketName
-                - iamRoleId
-                - id
-                - prefixPath
-                - type
-            title: S3 Log Export Integration Response
-            type: object
         SMSNotification:
             description: SMS notification configuration for MongoDB Cloud to send information when an event triggers an alert condition.
             properties:
@@ -34478,6 +33931,16 @@ components:
                             - lucene.turkish
                             - lucene.ukrainian
                         type: string
+                    storedSource:
+                        description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. To learn more, see documentation.
+                        example:
+                            include | exclude:
+                                - field1
+                                - field2
+                        externalDocs:
+                            description: Stored Source Fields
+                            url: https://dochub.mongodb.org/core/atlas-search-stored-source
+                        type: object
                     synonyms:
                         description: Rule sets that map words to their synonyms in this index.
                         externalDocs:
@@ -34527,16 +33990,6 @@ components:
                     description: Number of index partitions. Allowed values are [1, 2, 4].
                     format: int32
                     type: integer
-                storedSource:
-                    description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. Note that storing all fields (true) is not allowed for vector search indexes. To learn more, see Stored Source Fields.
-                    example:
-                        include | exclude:
-                            - field1
-                            - field2
-                    externalDocs:
-                        description: Stored Source Fields
-                        url: https://dochub.mongodb.org/core/atlas-search-stored-source
-                    type: object
             title: Search Index Definition
             type: object
         SearchIndexDefinitionVersion:
@@ -35472,9 +34925,6 @@ components:
             enum:
                 - OUTSIDE_SERVERLESS_METRIC_THRESHOLD
             example: OUTSIDE_SERVERLESS_METRIC_THRESHOLD
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: Serverless Event Types
             type: string
         ServerlessInstanceDescription:
@@ -36872,9 +36322,6 @@ components:
             enum:
                 - STREAM_PROCESSOR_STATE_IS_FAILED
             example: STREAM_PROCESSOR_STATE_IS_FAILED
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: Stream Processor Event Types
             type: string
         StreamProcessorEventTypeViewAlertableWithThreshold:
@@ -36882,9 +36329,6 @@ components:
             enum:
                 - OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD
             example: OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD
-            externalDocs:
-                description: Atlas Alert Event Types
-                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
             title: Stream Processor Event Types
             type: string
         StreamProcessorEventTypeViewForNdsGroup:
@@ -37246,7 +36690,7 @@ components:
             description: Information about the cloud provider region in which MongoDB Cloud processes the stream.
             properties:
                 cloudProvider:
-                    description: Human-readable label that identifies the cloud provider.
+                    description: Label that identifies the cloud service provider where MongoDB Cloud performs stream processing. Currently, this parameter only supports AWS and AZURE.
                     enum:
                         - AWS
                         - GCP
@@ -37499,7 +36943,7 @@ components:
                 fieldName:
                     $ref: '#/components/schemas/StreamsMatcherField'
                 operator:
-                    description: Comparison operator to apply when checking the current metric value against **matcher[n].value**. The `REGEX` operator only supports inclusive matches. Use the `NOT_CONTAINS` operator to exclude values.
+                    description: Comparison operator to apply when checking the current metric value against **matcher[n].value**.
                     enum:
                         - EQUALS
                         - CONTAINS
@@ -37929,30 +37373,6 @@ components:
                     $ref: '#/components/schemas/StreamsSampleConnections'
                 streamConfig:
                     $ref: '#/components/schemas/StreamConfig'
-            type: object
-        StreamsTenantUpdateRequest:
-            description: Details to update a stream tenant.
-            properties:
-                cloudProvider:
-                    description: Human-readable label that identifies the cloud provider.
-                    enum:
-                        - AWS
-                        - GCP
-                        - AZURE
-                        - TENANT
-                        - SERVERLESS
-                    type: string
-                links:
-                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-                    externalDocs:
-                        description: Web Linking Specification (RFC 5988)
-                        url: https://datatracker.ietf.org/doc/html/rfc5988
-                    items:
-                        $ref: '#/components/schemas/Link'
-                    readOnly: true
-                    type: array
-                region:
-                    $ref: '#/components/schemas/BaseStreamsRegion'
             type: object
         SwapUsageFreeDataMetricThresholdView:
             properties:
@@ -38929,7 +38349,7 @@ components:
                         - lucene.ukrainian
                     type: string
                 storedSource:
-                    description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. Note that storing all fields (true) is not allowed for vector search indexes. To learn more, see Stored Source Fields.
+                    description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. To learn more, see Stored Source Fields.
                     example:
                         include | exclude:
                             - field1
@@ -39706,15 +39126,6 @@ components:
                     type: array
                     uniqueItems: true
             type: object
-        UpdateRequirePrivateNetworkingRequestView:
-            description: Request body to toggle the private-networking requirement for an existing export bucket.
-            properties:
-                requirePrivateNetworking:
-                    description: True to require private networking; false to disable it.
-                    type: boolean
-            required:
-                - requirePrivateNetworking
-            type: object
         UsageDetailsFilterRequest:
             description: Request body which contains various fields to filter line items as part of certain Invoice Usage Details queries.
             properties:
@@ -40343,16 +39754,6 @@ components:
                     description: Number of index partitions. Allowed values are [1, 2, 4].
                     format: int32
                     type: integer
-                storedSource:
-                    description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. Note that storing all fields (true) is not allowed for vector search indexes. To learn more, see Stored Source Fields.
-                    example:
-                        include | exclude:
-                            - field1
-                            - field2
-                    externalDocs:
-                        description: Stored Source Fields
-                        url: https://dochub.mongodb.org/core/atlas-search-stored-source
-                    type: object
             title: Vector Search Index Definition
             type: object
         VectorSearchIndexResponse:
@@ -40547,7 +39948,7 @@ components:
 
                         Atlas returns this value if you set `"notifications.[n].typeName" :"WEBHOOK"` and either:
                         * You set `notification.[n].webhookSecret` to a non-empty string
-                        * You set a default webhookSecret either on the Integrations page, or with the Integrations API
+                        * You set a default webhookSecret either on the Integrations page, or with the [Integrations API](#tag/Third-Party-Service-Integrations/operation/createIntegration)
 
                         **NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.
                     externalDocs:
@@ -40561,13 +39962,10 @@ components:
 
                         Atlas returns this value if you set `"notifications.[n].typeName" :"WEBHOOK"` and either:
                         * You set `notification.[n].webhookURL` to a non-empty string
-                        * You set a default webhookUrl either on the Integrations page, or with the Integrations API
+                        * You set a default webhookUrl either on the [Integrations](https://www.mongodb.com/docs/atlas/tutorial/third-party-service-integrations/#std-label-third-party-integrations) page, or with the [Integrations API](#tag/Third-Party-Service-Integrations/operation/createIntegration)
 
                         **NOTE**: When you view or edit the alert for a Webhook URL notification, the URL appears partially redacted.
                     example: https://webhook.com/****
-                    externalDocs:
-                        description: Integrations page
-                        url: https://www.mongodb.com/docs/atlas/tutorial/third-party-service-integrations/#std-label-third-party-integrations
                     type: string
             required:
                 - typeName
@@ -41281,7 +40679,7 @@ info:
     termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
     title: MongoDB Atlas Administration API
     version: "2.0"
-    x-xgen-sha: a765bfb29d37be514e812f4366a835e0829253f5
+    x-xgen-sha: 536443f23a305e3164cbcd3d4df7e5fb045a0d20
 openapi: 3.0.1
 paths:
     /api/atlas/v2:
@@ -43373,178 +42771,6 @@ paths:
                 customMethod: "True"
                 verb: toggle
             x-xgen-operation-id-override: toggleAwsCustomDns
-    /api/atlas/v2/groups/{groupId}/backup/{cloudProvider}/privateEndpoints:
-        get:
-            description: Returns the private endpoints of the specified cloud provider for object storage backup operations.
-            operationId: listGroupBackupPrivateEndpoints
-            parameters:
-                - $ref: '#/components/parameters/groupId'
-                - $ref: '#/components/parameters/pretty'
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/includeCount'
-                - $ref: '#/components/parameters/itemsPerPage'
-                - $ref: '#/components/parameters/pageNum'
-                - description: Human-readable label that identifies the cloud provider for the private endpoints to return.
-                  in: path
-                  name: cloudProvider
-                  required: true
-                  schema:
-                    enum:
-                        - AWS
-                    type: string
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.2024-11-13+json:
-                            schema:
-                                $ref: '#/components/schemas/PaginatedApiAtlasObjectStoragePrivateEndpointResponseView'
-                            x-xgen-version: "2024-11-13"
-                    description: OK
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Return Object Storage Private Endpoints for Cloud Backups for One Cloud Provider in One Project
-            tags:
-                - Cloud Backups
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Backups/operation/listGroupBackupPrivateEndpoints
-            x-xgen-operation-id-override: listBackupPrivateEndpoints
-        post:
-            description: Creates a private endpoint in the specified region for secure, private connectivity between Atlas and cloud provider object storage services for backup operations.
-            operationId: createGroupBackupPrivateEndpoint
-            parameters:
-                - $ref: '#/components/parameters/groupId'
-                - $ref: '#/components/parameters/pretty'
-                - $ref: '#/components/parameters/envelope'
-                - description: Human-readable label that identifies the cloud provider for the private endpoint to create.
-                  in: path
-                  name: cloudProvider
-                  required: true
-                  schema:
-                    enum:
-                        - AWS
-                    type: string
-            requestBody:
-                content:
-                    application/vnd.atlas.2024-11-13+json:
-                        schema:
-                            $ref: '#/components/schemas/ObjectStoragePrivateEndpointRequest'
-                description: Creates a private endpoint in the specified region for object storage backup operations.
-                required: true
-            responses:
-                "201":
-                    content:
-                        application/vnd.atlas.2024-11-13+json:
-                            schema:
-                                $ref: '#/components/schemas/ObjectStoragePrivateEndpointResponse'
-                            x-xgen-version: "2024-11-13"
-                    description: Created
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "409":
-                    $ref: '#/components/responses/conflict'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Create One Object Storage Private Endpoint for Cloud Backups for One Cloud Provider in One Project
-            tags:
-                - Cloud Backups
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Backups/operation/createGroupBackupPrivateEndpoint
-            x-xgen-operation-id-override: createBackupPrivateEndpoint
-    /api/atlas/v2/groups/{groupId}/backup/{cloudProvider}/privateEndpoints/{endpointId}:
-        delete:
-            description: Deletes one private endpoint, identified by its ID, for object storage backup operations.
-            operationId: deleteGroupBackupPrivateEndpoint
-            parameters:
-                - $ref: '#/components/parameters/groupId'
-                - $ref: '#/components/parameters/pretty'
-                - $ref: '#/components/parameters/envelope'
-                - description: Human-readable label that identifies the cloud provider of the private endpoint to delete.
-                  in: path
-                  name: cloudProvider
-                  required: true
-                  schema:
-                    enum:
-                        - AWS
-                    type: string
-                - description: Unique 24-hexadecimal digit string that identifies the private endpoint to delete.
-                  in: path
-                  name: endpointId
-                  required: true
-                  schema:
-                    pattern: ^([a-f0-9]{24})$
-                    type: string
-            responses:
-                "204":
-                    content:
-                        application/vnd.atlas.2024-11-13+json:
-                            x-xgen-version: "2024-11-13"
-                    description: This endpoint does not return a response body.
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Delete One Object Storage Private Endpoint for Cloud Backups for One Cloud Provider from One Project
-            tags:
-                - Cloud Backups
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Backups/operation/deleteGroupBackupPrivateEndpoint
-            x-xgen-operation-id-override: deleteBackupPrivateEndpoint
-        get:
-            description: Returns one private endpoint, identified by its ID, for object storage backup operations.
-            operationId: getGroupBackupPrivateEndpoint
-            parameters:
-                - $ref: '#/components/parameters/groupId'
-                - $ref: '#/components/parameters/pretty'
-                - $ref: '#/components/parameters/envelope'
-                - description: Human-readable label that identifies the cloud provider of the private endpoint.
-                  in: path
-                  name: cloudProvider
-                  required: true
-                  schema:
-                    enum:
-                        - AWS
-                    type: string
-                - description: Unique 24-hexadecimal digit string that identifies the private endpoint.
-                  in: path
-                  name: endpointId
-                  required: true
-                  schema:
-                    pattern: ^([a-f0-9]{24})$
-                    type: string
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.2024-11-13+json:
-                            schema:
-                                $ref: '#/components/schemas/ObjectStoragePrivateEndpointResponse'
-                            x-xgen-version: "2024-11-13"
-                    description: OK
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Return One Object Storage Private Endpoint for Cloud Backups for One Cloud Provider in One Project
-            tags:
-                - Cloud Backups
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Backups/operation/getGroupBackupPrivateEndpoint
-            x-xgen-operation-id-override: getBackupPrivateEndpoint
     /api/atlas/v2/groups/{groupId}/backup/exportBuckets:
         get:
             description: Returns all Export Buckets associated with the specified Project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
@@ -43830,52 +43056,6 @@ paths:
                 - Cloud Backups
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Backups/operation/getGroupBackupExportBucket
             x-xgen-operation-id-override: getExportBucket
-        patch:
-            description: Updates the private networking settings for one snapshot export bucket in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
-            operationId: updateGroupBackupExportBucket
-            parameters:
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/groupId'
-                - $ref: '#/components/parameters/pretty'
-                - description: Unique 24-hexadecimal character string that identifies the snapshot export bucket.
-                  in: path
-                  name: exportBucketId
-                  required: true
-                  schema:
-                    example: 32b6e34b3d91647abb20e7b8
-                    pattern: ^([a-f0-9]{24})$
-                    type: string
-            requestBody:
-                content:
-                    application/vnd.atlas.2024-05-30+json:
-                        schema:
-                            $ref: '#/components/schemas/UpdateRequirePrivateNetworkingRequestView'
-                        x-xgen-version: "2024-05-30"
-                description: Updates the private networking requirement for the snapshot export bucket.
-                required: true
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.2024-05-30+json:
-                            schema:
-                                $ref: '#/components/schemas/DiskBackupSnapshotAWSExportBucketResponse'
-                            x-xgen-version: "2024-05-30"
-                    description: OK
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Update One Export Bucket Private Networking Settings
-            tags:
-                - Cloud Backups
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Backups/operation/updateGroupBackupExportBucket
-            x-xgen-operation-id-override: updateBackupExportBucket
     /api/atlas/v2/groups/{groupId}/backupCompliancePolicy:
         delete:
             description: Disables the Backup Compliance Policy settings with the specified project. As a prerequisite, a support ticket needs to be file first, instructions in https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
@@ -47901,160 +47081,6 @@ paths:
                 - Query Shape Insights
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Query-Shape-Insights/operation/listGroupClusterQueryShapeInsightSummaries
             x-xgen-operation-id-override: listQueryShapeSummaries
-    /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/queryShapes:
-        get:
-            description: Returns a list of query shapes for one cluster. Query shapes may be filtered by their status; at present, this endpoint supports only the REJECTED status.
-            operationId: listGroupClusterQueryShapes
-            parameters:
-                - $ref: '#/components/parameters/groupId'
-                - description: Human-readable label that identifies the cluster.
-                  in: path
-                  name: clusterName
-                  required: true
-                  schema:
-                    pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
-                    type: string
-                - description: The status of query shapes to retrieve. Only REJECTED status is supported. If omitted, defaults to REJECTED.
-                  in: query
-                  name: status
-                  schema:
-                    default: REJECTED
-                    enum:
-                        - REJECTED
-                    type: string
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/includeCount'
-                - $ref: '#/components/parameters/itemsPerPage'
-                - $ref: '#/components/parameters/pageNum'
-                - $ref: '#/components/parameters/pretty'
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.2025-03-12+json:
-                            schema:
-                                $ref: '#/components/schemas/PaginatedQueryShapes'
-                            x-xgen-version: "2025-03-12"
-                    description: OK
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "429":
-                    $ref: '#/components/responses/tooManyRequests'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Return All Query Shapes
-            tags:
-                - Query Shape Insights
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Query-Shape-Insights/operation/listGroupClusterQueryShapes
-            x-xgen-operation-id-override: listClusterQueryShapes
-            x-xgen-version: "2025-03-12"
-    /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/queryShapes/{queryShapeHash}:
-        get:
-            description: Returns the details for a single query shape. This endpoint only returns query shapes with REJECTED status. If the specified query shape hash does not correspond to a rejected query shape, a 404 Not Found error is returned.
-            operationId: getGroupClusterQueryShape
-            parameters:
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/pretty'
-                - $ref: '#/components/parameters/groupId'
-                - description: Human-readable label that identifies the cluster.
-                  in: path
-                  name: clusterName
-                  required: true
-                  schema:
-                    pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
-                    type: string
-                - description: A SHA256 hash of a query shape, output by MongoDB commands like $queryStats and $explain or slow query logs.
-                  in: path
-                  name: queryShapeHash
-                  required: true
-                  schema:
-                    pattern: ^([a-fA-F0-9]{64})$
-                    type: string
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.2025-03-12+json:
-                            schema:
-                                $ref: '#/components/schemas/QueryShapeResponse'
-                            x-xgen-version: "2025-03-12"
-                    description: OK
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "429":
-                    $ref: '#/components/responses/tooManyRequests'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Return One Query Shape
-            tags:
-                - Query Shape Insights
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Query-Shape-Insights/operation/getGroupClusterQueryShape
-            x-xgen-operation-id-override: getClusterQueryShape
-            x-xgen-version: "2025-03-12"
-        patch:
-            description: 'Updates the rejection status of a query shape. Use this endpoint to reject a query shape (preventing it from executing on the cluster) or to unreject a previously rejected query shape (allowing it to execute again). This operation is idempotent: rejecting an already rejected query shape or unrejecting an already unrejected query shape will return 200 OK.'
-            operationId: updateGroupClusterQueryShape
-            parameters:
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/pretty'
-                - $ref: '#/components/parameters/groupId'
-                - description: Human-readable label that identifies the cluster.
-                  in: path
-                  name: clusterName
-                  required: true
-                  schema:
-                    pattern: ^[a-zA-Z0-9][a-zA-Z0-9-]*$
-                    type: string
-                - description: A SHA256 hash of a query shape, output by MongoDB commands like $queryStats and $explain or slow query logs.
-                  in: path
-                  name: queryShapeHash
-                  required: true
-                  schema:
-                    pattern: ^([a-fA-F0-9]{64})$
-                    type: string
-            requestBody:
-                content:
-                    application/vnd.atlas.2025-03-12+json:
-                        schema:
-                            $ref: '#/components/schemas/QueryShapeUpdateRequest'
-                description: The desired rejection status for the query shape. Provide REJECTED to block the query shape from executing, or UNREJECTED to allow it to execute.
-                required: true
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.2025-03-12+json:
-                            schema:
-                                $ref: '#/components/schemas/QueryShapeResponse'
-                            x-xgen-version: "2025-03-12"
-                    description: OK
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "429":
-                    $ref: '#/components/responses/tooManyRequests'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Update Query Shape Rejection Status
-            tags:
-                - Query Shape Insights
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Query-Shape-Insights/operation/updateGroupClusterQueryShape
-            x-xgen-operation-id-override: updateClusterQueryShape
-            x-xgen-version: "2025-03-12"
     /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/restartPrimaries:
         post:
             description: Starts a failover test for the specified cluster in the specified project. Clusters contain a group of hosts that maintain the same data set. A failover test checks how MongoDB Cloud handles the failure of the cluster's primary node. During the test, MongoDB Cloud shuts down the primary node and elects a new primary. To use this resource, the requesting Service Account or API Key must have the Project Cluster Manager role.
@@ -53354,191 +52380,6 @@ paths:
                 customMethod: true
                 verb: getStatus
             x-xgen-operation-id-override: getMigrationValidateStatus
-    /api/atlas/v2/groups/{groupId}/logIntegrations:
-        get:
-            description: Returns all log integration configurations for the project. Optionally filter by integration type. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
-            operationId: listGroupLogIntegrations
-            parameters:
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/groupId'
-                - $ref: '#/components/parameters/includeCount'
-                - $ref: '#/components/parameters/itemsPerPage'
-                - $ref: '#/components/parameters/pageNum'
-                - $ref: '#/components/parameters/pretty'
-                - description: Optional filter by integration type (e.g., 'S3_LOG_EXPORT').
-                  in: query
-                  name: integrationType
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.2025-03-12+json:
-                            schema:
-                                $ref: '#/components/schemas/PaginatedLogIntegrationResponse'
-                            x-xgen-version: "2025-03-12"
-                    description: OK
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Return All Active Log Integrations
-            tags:
-                - Push-Based Log Export
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Push-Based-Log-Export/operation/listGroupLogIntegrations
-        post:
-            description: Creates a new log integration configuration identified by a unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
-            operationId: createGroupLogIntegration
-            parameters:
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/groupId'
-                - $ref: '#/components/parameters/pretty'
-            requestBody:
-                content:
-                    application/vnd.atlas.2025-03-12+json:
-                        schema:
-                            $ref: '#/components/schemas/S3LogIntegrationRequest'
-                description: Log integration configuration to create.
-                required: true
-            responses:
-                "201":
-                    content:
-                        application/vnd.atlas.2025-03-12+json:
-                            schema:
-                                $ref: '#/components/schemas/LogIntegrationResponse'
-                            x-xgen-version: "2025-03-12"
-                    description: Created
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Create One Log Integration
-            tags:
-                - Push-Based Log Export
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Push-Based-Log-Export/operation/createGroupLogIntegration
-    /api/atlas/v2/groups/{groupId}/logIntegrations/{id}:
-        delete:
-            description: Removes the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
-            operationId: deleteGroupLogIntegration
-            parameters:
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/groupId'
-                - $ref: '#/components/parameters/pretty'
-                - description: Unique identifier of the log integration configuration.
-                  in: path
-                  name: id
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "204":
-                    content:
-                        application/vnd.atlas.2025-03-12+json:
-                            x-xgen-version: "2025-03-12"
-                    description: This endpoint does not return a response body.
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Remove One Log Integration
-            tags:
-                - Push-Based Log Export
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Push-Based-Log-Export/operation/deleteGroupLogIntegration
-        get:
-            description: Returns the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
-            operationId: getGroupLogIntegration
-            parameters:
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/groupId'
-                - $ref: '#/components/parameters/pretty'
-                - description: Unique identifier of the log integration configuration.
-                  in: path
-                  name: id
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.2025-03-12+json:
-                            schema:
-                                $ref: '#/components/schemas/LogIntegrationResponse'
-                            x-xgen-version: "2025-03-12"
-                    description: OK
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Return One Log Integration
-            tags:
-                - Push-Based Log Export
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Push-Based-Log-Export/operation/getGroupLogIntegration
-        put:
-            description: Updates the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
-            operationId: updateGroupLogIntegration
-            parameters:
-                - $ref: '#/components/parameters/envelope'
-                - $ref: '#/components/parameters/groupId'
-                - $ref: '#/components/parameters/pretty'
-                - description: Unique identifier of the log integration configuration.
-                  in: path
-                  name: id
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/vnd.atlas.2025-03-12+json:
-                        schema:
-                            $ref: '#/components/schemas/LogIntegrationRequest'
-                description: Updated log integration configuration.
-                required: true
-            responses:
-                "200":
-                    content:
-                        application/vnd.atlas.2025-03-12+json:
-                            schema:
-                                $ref: '#/components/schemas/LogIntegrationResponse'
-                            x-xgen-version: "2025-03-12"
-                    description: OK
-                "400":
-                    $ref: '#/components/responses/badRequest'
-                "401":
-                    $ref: '#/components/responses/unauthorized'
-                "403":
-                    $ref: '#/components/responses/forbidden'
-                "404":
-                    $ref: '#/components/responses/notFound'
-                "500":
-                    $ref: '#/components/responses/internalServerError'
-            summary: Update One Log Integration
-            tags:
-                - Push-Based Log Export
-            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Push-Based-Log-Export/operation/updateGroupLogIntegration
     /api/atlas/v2/groups/{groupId}/maintenanceWindow:
         delete:
             description: Resets the maintenance window for the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role. Urgent maintenance activities such as security patches can't wait for your chosen window. MongoDB Cloud starts those maintenance activities when needed. After you schedule maintenance for your cluster, you can't change your maintenance window until the current maintenance efforts complete. The maintenance procedure that MongoDB Cloud performs requires at least one replica set election during the maintenance window per replica set. Maintenance always begins as close to the scheduled hour as possible, but in-progress cluster updates or unexpected system issues could delay the start time. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
@@ -55094,7 +53935,6 @@ paths:
             x-xgen-operation-id-override: toggleRegionalEndpointMode
     /api/atlas/v2/groups/{groupId}/privateEndpoint/serverless/instance/{instanceName}/endpoint:
         get:
-            deprecated: true
             description: |-
                 Returns all private endpoints for one serverless instance. You must have at least the Project Read Only role for the project to successfully call this resource.
 
@@ -55120,7 +53960,6 @@ paths:
                                 type: array
                                 x-xgen-IPA-exception:
                                     xgen-IPA-124-array-max-items: Schema predates IPA validation.
-                            x-sunset: "2026-01-15"
                             x-xgen-IPA-exception:
                                 xgen-IPA-110-collections-response-define-links-array: Content predates IPA validation.
                                 xgen-IPA-110-collections-response-define-results-array: Content predates IPA validation.
@@ -55143,7 +53982,6 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Private-Endpoints/operation/listGroupPrivateEndpointServerlessInstanceEndpoint
             x-xgen-operation-id-override: listServerlessPrivateEndpoint
         post:
-            deprecated: true
             description: |-
                 Creates one private endpoint for one serverless instance. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
@@ -55177,7 +54015,6 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessTenantEndpoint'
-                            x-sunset: "2026-01-15"
                             x-xgen-version: "2023-01-01"
                     description: Created
                 "400":
@@ -55197,7 +54034,6 @@ paths:
             x-xgen-operation-id-override: createServerlessPrivateEndpoint
     /api/atlas/v2/groups/{groupId}/privateEndpoint/serverless/instance/{instanceName}/endpoint/{endpointId}:
         delete:
-            deprecated: true
             description: |-
                 Remove one private endpoint from one serverless instance. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
@@ -55224,7 +54060,6 @@ paths:
                 "204":
                     content:
                         application/vnd.atlas.2023-01-01+json:
-                            x-sunset: "2026-01-15"
                             x-xgen-version: "2023-01-01"
                     description: This endpoint does not return a response body.
                 "400":
@@ -55243,7 +54078,6 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Private-Endpoints/operation/deleteGroupPrivateEndpointServerlessInstanceEndpoint
             x-xgen-operation-id-override: deleteServerlessPrivateEndpoint
         get:
-            deprecated: true
             description: |-
                 Return one private endpoint for one serverless instance. Identify this endpoint using its unique ID. You must have at least the Project Read Only role for the project to successfully call this resource.
 
@@ -55272,7 +54106,6 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessTenantEndpoint'
-                            x-sunset: "2026-01-15"
                             x-xgen-IPA-exception:
                                 xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation.
                             x-xgen-version: "2023-01-01"
@@ -55293,7 +54126,6 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Private-Endpoints/operation/getGroupPrivateEndpointServerlessInstanceEndpoint
             x-xgen-operation-id-override: getServerlessPrivateEndpoint
         patch:
-            deprecated: true
             description: |-
                 Updates one private endpoint for one serverless instance. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
@@ -55329,7 +54161,6 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessTenantEndpoint'
-                            x-sunset: "2026-01-15"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -56790,7 +55621,6 @@ paths:
             x-xgen-operation-id-override: generateSandboxClusterDescription
     /api/atlas/v2/groups/{groupId}/serverless:
         get:
-            deprecated: true
             description: |-
                 Returns details for all serverless instances in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
@@ -56812,7 +55642,6 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/PaginatedServerlessInstanceDescriptionView'
-                            x-sunset: "2026-01-15"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "401":
@@ -56834,7 +55663,6 @@ paths:
                 verb: listInstances
             x-xgen-operation-id-override: listServerlessInstances
         post:
-            deprecated: true
             description: |-
                 Update as of Feb 2025: This endpoint now creates a Flex cluster instead. This endpoint will no longer be supported starting January 2026. Continuous backups are not supported and serverlessContinuousBackupEnabled will not take effect. Please use the createFlexCluster endpoint instead.
 
@@ -56860,7 +55688,6 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessInstanceDescription'
-                            x-sunset: "2026-01-15"
                             x-xgen-version: "2023-01-01"
                     description: Created
                 "400":
@@ -56887,7 +55714,6 @@ paths:
             x-xgen-operation-id-override: createServerlessInstance
     /api/atlas/v2/groups/{groupId}/serverless/{clusterName}/backup/restoreJobs:
         get:
-            deprecated: true
             description: |-
                 Returns all restore jobs for one serverless instance from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
@@ -56916,7 +55742,6 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/PaginatedApiAtlasServerlessBackupRestoreJobView'
-                            x-sunset: "2026-01-15"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -56935,7 +55760,6 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Backups/operation/listGroupServerlessBackupRestoreJobs
             x-xgen-operation-id-override: listServerlessRestoreJobs
         post:
-            deprecated: true
             description: |-
                 Restores one snapshot of one serverless instance from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
@@ -56968,7 +55792,6 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessBackupRestoreJob'
-                            x-sunset: "2026-01-15"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -56990,7 +55813,6 @@ paths:
             x-xgen-operation-id-override: createServerlessRestoreJob
     /api/atlas/v2/groups/{groupId}/serverless/{clusterName}/backup/restoreJobs/{restoreJobId}:
         get:
-            deprecated: true
             description: |-
                 Returns one restore job for one serverless instance from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
@@ -57023,7 +55845,6 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessBackupRestoreJob'
-                            x-sunset: "2026-01-15"
                             x-xgen-IPA-exception:
                                 xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation.
                             x-xgen-version: "2023-01-01"
@@ -57045,7 +55866,6 @@ paths:
             x-xgen-operation-id-override: getServerlessRestoreJob
     /api/atlas/v2/groups/{groupId}/serverless/{clusterName}/backup/snapshots:
         get:
-            deprecated: true
             description: |-
                 Returns all snapshots of one serverless instance from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
@@ -57074,7 +55894,6 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/PaginatedApiAtlasServerlessBackupSnapshotView'
-                            x-sunset: "2026-01-15"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -57094,7 +55913,6 @@ paths:
             x-xgen-operation-id-override: listServerlessBackupSnapshots
     /api/atlas/v2/groups/{groupId}/serverless/{clusterName}/backup/snapshots/{snapshotId}:
         get:
-            deprecated: true
             description: |-
                 Returns one snapshot of one serverless instance from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
@@ -57127,7 +55945,6 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessBackupSnapshot'
-                            x-sunset: "2026-01-15"
                             x-xgen-IPA-exception:
                                 xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation.
                             x-xgen-version: "2023-01-01"
@@ -57149,7 +55966,6 @@ paths:
             x-xgen-operation-id-override: getServerlessBackupSnapshot
     /api/atlas/v2/groups/{groupId}/serverless/{clusterName}/performanceAdvisor/autoIndexing:
         get:
-            deprecated: true
             description: Get whether the Serverless Auto Indexing feature is enabled. This endpoint returns a value for Flex clusters that were created with the createServerlessInstance endpoint or Flex clusters that were migrated from Serverless instances. However, the value returned is not indicative of the Auto Indexing state as Auto Indexing is unavailable for Flex clusters. This endpoint will be sunset in January 2026.
             externalDocs:
                 description: createServerlessInstance
@@ -57172,7 +55988,6 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 type: boolean
-                            x-sunset: "2026-01-15"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "401":
@@ -57194,7 +56009,6 @@ paths:
                 verb: get
             x-xgen-operation-id-override: getServerlessAutoIndexing
         post:
-            deprecated: true
             description: Set whether the Serverless Auto Indexing feature is enabled. This endpoint sets a value for Flex clusters that were created with the createServerlessInstance endpoint or Flex clusters that were migrated from Serverless instances. However, the value returned is not indicative of the Auto Indexing state as Auto Indexing is unavailable for Flex clusters. This endpoint will be sunset in January 2026.
             externalDocs:
                 description: createServerlessInstance
@@ -57220,7 +56034,6 @@ paths:
                 "200":
                     content:
                         application/vnd.atlas.2023-01-01+json:
-                            x-sunset: "2026-01-15"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "401":
@@ -57243,7 +56056,6 @@ paths:
             x-xgen-operation-id-override: setServerlessAutoIndexing
     /api/atlas/v2/groups/{groupId}/serverless/{name}:
         delete:
-            deprecated: true
             description: |-
                 Removes one serverless instance from the specified project. The serverless instance must have termination protection disabled in order to be deleted. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
@@ -57269,7 +56081,6 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/RequestAccepted'
-                            x-sunset: "2026-01-15"
                             x-xgen-version: "2023-01-01"
                     description: Accepted
                 "400":
@@ -57293,7 +56104,6 @@ paths:
                 verb: deleteInstance
             x-xgen-operation-id-override: deleteServerlessInstance
         get:
-            deprecated: true
             description: |-
                 Returns details for one serverless instance in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
@@ -57319,7 +56129,6 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessInstanceDescription'
-                            x-sunset: "2026-01-15"
                             x-xgen-IPA-exception:
                                 xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation.
                             x-xgen-version: "2023-01-01"
@@ -57345,7 +56154,6 @@ paths:
                 verb: getInstance
             x-xgen-operation-id-override: getServerlessInstance
         patch:
-            deprecated: true
             description: |-
                 Updates one serverless instance in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
@@ -57378,7 +56186,6 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessInstanceDescription'
-                            x-sunset: "2026-01-15"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -58101,8 +56908,8 @@ paths:
                 content:
                     application/vnd.atlas.2023-02-01+json:
                         schema:
-                            $ref: '#/components/schemas/StreamsTenantUpdateRequest'
-                description: Details to update in the streams workspace.
+                            $ref: '#/components/schemas/StreamsDataProcessRegion'
+                description: Details of the new data process region to update in the streams workspace.
                 required: true
             responses:
                 "200":
@@ -63714,7 +62521,7 @@ tags:
       name: Project IP Access List
     - description: Returns, adds, and edits collections of clusters and users in MongoDB Cloud.
       name: Projects
-    - description: You can continually export mongod, mongos, and audit logs to an AWS S3 bucket. The new `/logIntegrations` API provides 1-minute log export. The existing `/pushBasedLogExport` API provides 5-minute log export and will be deprecated in the future. The log export integrations are managed at the project level.
+    - description: You can continually push logs from mongod, mongos, and audit logs to an AWS S3 bucket. Atlas exports logs every 5 minutes.
       name: Push-Based Log Export
     - description: Configure and manage Atlas Resource Policies within your organization.
       name: Resource Policies
