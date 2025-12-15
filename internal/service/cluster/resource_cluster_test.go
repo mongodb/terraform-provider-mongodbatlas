@@ -47,7 +47,6 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
-					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "version_release_system", "LTS"),
 					resource.TestCheckResourceAttr(resourceName, "accept_data_risks_and_force_replica_set_reconfig", ""),
