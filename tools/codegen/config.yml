@@ -817,8 +817,6 @@ resources:
       schema:
         aliases:
           alertConfigId: id
-          groupId: projectId
-        ignores: ["links"]
     schema:
       aliases:
         alertConfigId: id # path param name does not match the API response property
