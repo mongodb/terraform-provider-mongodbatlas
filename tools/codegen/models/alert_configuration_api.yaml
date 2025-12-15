@@ -690,39 +690,6 @@ data_sources:
                 nested_object:
                     attributes:
                         - string: {}
-                          description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
-                          computed_optional_required: computed
-                          tf_schema_name: href
-                          tf_model_name: Href
-                          api_name: href
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                        - string: {}
-                          description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
-                          computed_optional_required: computed
-                          tf_schema_name: rel
-                          tf_model_name: Rel
-                          api_name: rel
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-              description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-              custom_type:
-                package: customtypes
-                model: customtypes.NestedListValue[TFLinksModel]
-                schema: customtypes.NewNestedListType[TFLinksModel](ctx)
-              computed_optional_required: computed
-              tf_schema_name: links
-              tf_model_name: Links
-              api_name: links
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-            - list_nested:
-                nested_object:
-                    attributes:
-                        - string: {}
                           description: Name of the parameter in the target object that MongoDB Cloud checks. The parameter must match all rules for MongoDB Cloud to check for alert configurations.
                           computed_optional_required: computed
                           tf_schema_name: field_name
@@ -1319,39 +1286,6 @@ data_sources:
                             nested_object:
                                 attributes:
                                     - string: {}
-                                      description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
-                                      computed_optional_required: computed
-                                      tf_schema_name: href
-                                      tf_model_name: Href
-                                      api_name: href
-                                      req_body_usage: omit_always
-                                      sensitive: false
-                                      create_only: false
-                                    - string: {}
-                                      description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
-                                      computed_optional_required: computed
-                                      tf_schema_name: rel
-                                      tf_model_name: Rel
-                                      api_name: rel
-                                      req_body_usage: omit_always
-                                      sensitive: false
-                                      create_only: false
-                          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-                          custom_type:
-                            package: customtypes
-                            model: customtypes.NestedListValue[TFLinksModel]
-                            schema: customtypes.NewNestedListType[TFLinksModel](ctx)
-                          computed_optional_required: computed
-                          tf_schema_name: links
-                          tf_model_name: Links
-                          api_name: links
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                        - list_nested:
-                            nested_object:
-                                attributes:
-                                    - string: {}
                                       description: Name of the parameter in the target object that MongoDB Cloud checks. The parameter must match all rules for MongoDB Cloud to check for alert configurations.
                                       computed_optional_required: computed
                                       tf_schema_name: field_name
@@ -1878,6 +1812,10 @@ data_sources:
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
+              custom_type:
+                package: customtypes
+                model: customtypes.NestedListValue[TFResultsModel]
+                schema: customtypes.NewNestedListType[TFResultsModel](ctx)
               computed_optional_required: computed
               tf_schema_name: results
               tf_model_name: Results

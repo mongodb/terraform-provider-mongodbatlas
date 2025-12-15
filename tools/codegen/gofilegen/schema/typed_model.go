@@ -12,10 +12,53 @@ func GenerateTypedModels(attributes codespec.Attributes) CodeStatement {
 	return generateTypedModels(attributes, "", false)
 }
 
-// GenerateDataSourceTypedModels generates the TFDSModel struct for data sources.
+// GenerateDataSourceTypedModels generates the TFDSModel struct for singular data sources.
 // DS models are simpler: no autogen tags (no request body marshaling).
+// Nested models are reused from resources.
 func GenerateDataSourceTypedModels(attributes codespec.Attributes) CodeStatement {
 	return generateTypedModels(attributes, "DS", true)
+}
+
+// GenerateDataSourceTypedModelsWithName generates typed models for data sources with a custom name suffix.
+// For plural data sources, this generates TFPluralDSModel and first-level nested models (e.g., TFResultsModel).
+// Deeply nested models are reused from resources.
+func GenerateDataSourceTypedModelsWithName(attributes codespec.Attributes, nameSuffix string) CodeStatement {
+	models := []CodeStatement{generateStructOfTypedModel(attributes, nameSuffix, true)}
+
+	// For plural data sources, generate only the first-level nested models (e.g., TFResultsModel)
+	// but don't recurse deeper - those models are reused from resources
+	for i := range attributes {
+		additionalModel := getFirstLevelNestedModel(&attributes[i])
+		if additionalModel != nil {
+			models = append(models, *additionalModel)
+		}
+	}
+
+	return GroupCodeStatements(models, func(list []string) string { return strings.Join(list, "\n") })
+}
+
+// getFirstLevelNestedModel generates a nested model for a data source attribute without recursing further.
+// This is used for plural data sources to generate TFResultsModel while reusing deeper nested models from resources.
+func getFirstLevelNestedModel(attribute *codespec.Attribute) *CodeStatement {
+	var nested *codespec.NestedAttributeObject
+	if attribute.ListNested != nil {
+		nested = &attribute.ListNested.NestedObject
+	}
+	if attribute.SingleNested != nil {
+		nested = &attribute.SingleNested.NestedObject
+	}
+	if attribute.MapNested != nil {
+		nested = &attribute.MapNested.NestedObject
+	}
+	if attribute.SetNested != nil {
+		nested = &attribute.SetNested.NestedObject
+	}
+	if nested == nil {
+		return nil
+	}
+	// Generate only this level's model; use isDataSource=true to prevent further nesting
+	res := generateStructOfTypedModel(nested.Attributes, attribute.TFModelName, true)
+	return &res
 }
 
 func generateTypedModels(attributes codespec.Attributes, name string, isDataSource bool) CodeStatement {
@@ -35,6 +78,10 @@ func generateTypedModels(attributes codespec.Attributes, name string, isDataSour
 }
 
 func getNestedModel(attribute *codespec.Attribute, ancestorsName string) *CodeStatement {
+	return getNestedModelWithDataSourceFlag(attribute, ancestorsName, false)
+}
+
+func getNestedModelWithDataSourceFlag(attribute *codespec.Attribute, ancestorsName string, isDataSource bool) *CodeStatement {
 	var nested *codespec.NestedAttributeObject
 	if attribute.ListNested != nil {
 		nested = &attribute.ListNested.NestedObject
@@ -51,7 +98,7 @@ func getNestedModel(attribute *codespec.Attribute, ancestorsName string) *CodeSt
 	if nested == nil {
 		return nil
 	}
-	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.TFModelName, false)
+	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.TFModelName, isDataSource)
 	return &res
 }
 

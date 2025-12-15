@@ -323,24 +323,7 @@ func opListResponseToResultsAttributes(op *high.Operation, configuredVersion *st
 // - Path params at the root level (all Computed)
 // - A "results" ListNested attribute containing the list response items
 func buildPluralDataSourceAttributes(pathParams, resultsItemAttributes Attributes, aliases map[string]string) Attributes {
-	// attributes := make(Attributes, 0, len(pathParams)+1)
 	attributes := pathParams
-
-	// // Add path params at root level with aliases applied
-	// for i := range pathParams {
-	// 	attr := pathParams[i]
-
-	// 	// Apply alias if configured
-	// 	if alias, found := aliases[attr.APIName]; found {
-	// 		attr.TFSchemaName = stringcase.ToSnakeCase(alias)
-	// 		attr.TFModelName = stringcase.Capitalize(alias)
-	// 	}
-
-	// 	attr.ComputedOptionalRequired = Computed
-	// 	attr.ReqBodyUsage = OmitAlways
-
-	// 	attributes = append(attributes, attr)
-	// }
 
 	// Create "results" ListNested attribute containing all result item attributes
 	resultsAttr := Attribute{
@@ -349,6 +332,7 @@ func buildPluralDataSourceAttributes(pathParams, resultsItemAttributes Attribute
 		APIName:                  "results",
 		ComputedOptionalRequired: Computed,
 		ReqBodyUsage:             OmitAlways,
+		CustomType:               NewCustomNestedListType("Results"),
 		ListNested: &ListNestedAttribute{
 			NestedObject: NestedAttributeObject{
 				Attributes: resultsItemAttributes,

@@ -329,17 +329,17 @@ func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			err := codespec.ApplyTransformationsToDataSources(tc.inputConfig, tc.inputDataSources)
-			require.NoError(t, err)
+		err := codespec.ApplyTransformationsToDataSources(tc.inputConfig, tc.inputDataSources)
+		require.NoError(t, err)
 
-			assert.Equal(t, tc.expectedAttributes, tc.inputDataSources.Schema.SingularDSAttributes)
+		assert.Equal(t, tc.expectedAttributes, *tc.inputDataSources.Schema.SingularDSAttributes)
 
-			if tc.expectedReadPath != "" {
-				assert.Equal(t, tc.expectedReadPath, tc.inputDataSources.Operations.Read.Path)
-			}
-			if tc.expectedListPath != "" {
-				assert.Equal(t, tc.expectedListPath, tc.inputDataSources.Operations.List.Path)
-			}
+		if tc.expectedReadPath != "" {
+			assert.Equal(t, tc.expectedReadPath, tc.inputDataSources.Operations.Read.Path)
+		}
+		if tc.expectedListPath != "" {
+			assert.Equal(t, tc.expectedListPath, tc.inputDataSources.Operations.List.Path)
+		}
 		})
 	}
 }
@@ -431,7 +431,7 @@ func TestApplyTransformationsToDataSources_OverrideTransformation(t *testing.T) 
 			err := codespec.ApplyTransformationsToDataSources(tc.inputConfig, tc.inputDataSources)
 			require.NoError(t, err)
 
-			assert.Equal(t, tc.expectedAttributes, tc.inputDataSources.Schema.SingularDSAttributes)
+			assert.Equal(t, tc.expectedAttributes, *tc.inputDataSources.Schema.SingularDSAttributes)
 		})
 	}
 }
@@ -482,7 +482,7 @@ func TestApplyTransformationsToDataSources_IgnoreTransformation(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, expectedAttributes, inputDataSources.Schema.SingularDSAttributes)
+	assert.Equal(t, expectedAttributes, *inputDataSources.Schema.SingularDSAttributes)
 }
 
 func TestApplyTransformationsToDataSources_NilInputs(t *testing.T) {

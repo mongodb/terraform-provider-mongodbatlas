@@ -108,6 +108,10 @@ func applyDataSourceAttributeTransformations(schemaOptions config.SchemaOptions,
 }
 
 func applyAttributeTransformationsList(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths, transformationList []AttributeTransformation) error {
+	if attributes == nil {
+		return nil
+	}
+	
 	ignoredAttrs := getIgnoredAttributesMap(schemaOptions.Ignores)
 
 	var finalAttributes Attributes
@@ -172,7 +176,7 @@ func getIgnoredAttributesMap(ignores []string) map[string]bool {
 }
 
 func shouldIgnoreAttribute(attrName string, ignoredAttrs map[string]bool) bool {
-	return ignoredAttrs[attrName]
+	return ignoredAttrs[strings.TrimPrefix(attrName, "results.")]
 }
 
 func applyAliasToAttribute(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) {

@@ -38,13 +38,11 @@ var (
 		BaseName:        "data_source",
 	}
 
-	// TODO: Add plural data source generation in CLOUDP-364146
-	// pluralDataSourceComponent defines the specification for generating plural data source files
-	// pluralDataSourceComponent = ComponentSpec{
-	// 	SchemaGenerator: schema.GeneratePluralDataSourceSchemaGoCode,
-	// 	ImplGenerator:   datasource.GeneratePluralGoCode,
-	// 	BaseName:        "plural_data_source",
-	// }
+	pluralDataSourceComponent = ComponentSpec{
+		SchemaGenerator: schema.GeneratePluralDataSourceSchemaGoCode,
+		ImplGenerator:   datasource.GeneratePluralGoCode,
+		BaseName:        "plural_data_source",
+	}
 )
 
 // GenerateCodeForResource generates all Go files for a resource and its data sources
@@ -62,20 +60,27 @@ func GenerateCodeForResource(resourceModel *codespec.Resource, packageDir string
 
 	// Generate data source files if data sources are defined
 	if resourceModel.DataSources != nil {
-		log.Printf("[INFO] Generating data source code: %s", resourceModel.Name)
+		// Generate singular data source if Read operation exists
+		if resourceModel.DataSources.Operations.Read != nil {
+			log.Printf("[INFO] Generating singular data source code: %s", resourceModel.Name)
 
-		files, err := generateComponentFiles(resourceModel, packageDir, dataSourceComponent, writeFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate data source: %w", err)
+			files, err := generateComponentFiles(resourceModel, packageDir, dataSourceComponent, writeFile)
+			if err != nil {
+				return nil, fmt.Errorf("failed to generate data source: %w", err)
+			}
+			generatedFiles = append(generatedFiles, files...)
 		}
-		generatedFiles = append(generatedFiles, files...)
 
-		// TODO: Add plural data source generation in CLOUDP-364146
-		// files, err = generateComponentFiles(resourceModel, packageDir, pluralDataSourceComponent, writeFile)
-		// if err != nil {
-		// 	return nil, fmt.Errorf("failed to generate plural data source: %w", err)
-		// }
-		// generatedFiles = append(generatedFiles, files...)
+		// Generate plural data source if List operation exists
+		if resourceModel.DataSources.Operations.List != nil {
+			log.Printf("[INFO] Generating plural data source code: %s", resourceModel.Name)
+
+			files, err := generateComponentFiles(resourceModel, packageDir, pluralDataSourceComponent, writeFile)
+			if err != nil {
+				return nil, fmt.Errorf("failed to generate plural data source: %w", err)
+			}
+			generatedFiles = append(generatedFiles, files...)
+		}
 	}
 
 	// Format all generated files: goimports per file, fieldalignment on package

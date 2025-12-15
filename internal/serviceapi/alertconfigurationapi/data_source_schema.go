@@ -34,23 +34,6 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the alert configuration.",
 			},
-			"links": dsschema.ListNestedAttribute{
-				Computed:            true,
-				MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-				CustomType:          customtypes.NewNestedListType[TFLinksModel](ctx),
-				NestedObject: dsschema.NestedAttributeObject{
-					Attributes: map[string]dsschema.Attribute{
-						"href": dsschema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-						"rel": dsschema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-					},
-				},
-			},
 			"matchers": dsschema.ListNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "List of rules that determine whether MongoDB Cloud checks an object for the alert configuration.",
@@ -263,7 +246,6 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
-	Links            customtypes.NestedListValue[TFLinksModel]         `tfsdk:"links" autogen:"omitjson"`
 	Matchers         customtypes.NestedListValue[TFMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
 	Notifications    customtypes.NestedListValue[TFNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
 	Created          types.String                                      `tfsdk:"created" autogen:"omitjson"`

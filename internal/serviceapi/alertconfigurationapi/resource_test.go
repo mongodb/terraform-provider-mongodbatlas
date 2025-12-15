@@ -499,6 +499,19 @@ func configBasic(projectID string, enabled bool) string {
 			mode        = "AVERAGE"
 		}
 	}
+		
+	data "mongodbatlas_alert_configuration_api" "test" {
+		group_id = %[1]q
+		id = mongodbatlas_alert_configuration_api.test.id
+		
+		depends_on = [mongodbatlas_alert_configuration_api.test]
+	}
+		
+	data "mongodbatlas_alert_configuration_api_list" "test" {
+		group_id = %[1]q
+		
+		depends_on = [mongodbatlas_alert_configuration_api.test]
+	}
 	`, projectID, enabled)
 }
 
