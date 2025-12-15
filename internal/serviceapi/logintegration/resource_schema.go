@@ -28,7 +28,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.",
 			},
-			"id": schema.StringAttribute{
+			"integration_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique 24-character hexadecimal digit string that identifies the log integration configuration.",
 			},
@@ -55,12 +55,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	BucketName types.String                       `tfsdk:"bucket_name"`
-	ProjectId  types.String                       `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	IamRoleId  types.String                       `tfsdk:"iam_role_id"`
-	Id         types.String                       `tfsdk:"id" autogen:"omitjson"`
-	KmsKey     types.String                       `tfsdk:"kms_key"`
-	LogTypes   customtypes.SetValue[types.String] `tfsdk:"log_types"`
-	PrefixPath types.String                       `tfsdk:"prefix_path"`
-	Type       types.String                       `tfsdk:"type"`
+	BucketName    types.String                       `tfsdk:"bucket_name"`
+	ProjectId     types.String                       `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	IamRoleId     types.String                       `tfsdk:"iam_role_id"`
+	IntegrationId types.String                       `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
+	KmsKey        types.String                       `tfsdk:"kms_key"`
+	LogTypes      customtypes.SetValue[types.String] `tfsdk:"log_types"`
+	PrefixPath    types.String                       `tfsdk:"prefix_path"`
+	Type          types.String                       `tfsdk:"type"`
 }
