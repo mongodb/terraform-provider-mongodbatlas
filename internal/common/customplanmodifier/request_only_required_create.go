@@ -120,14 +120,14 @@ func (m *requestOnlyRequiredOnCreateAttributePlanModifier) PlanModifyObject(ctx 
 	)
 }
 
-// validateRequestOnlyRequiredOnCreate checks that an attribute has a known, non-null
+// validateRequestOnlyRequiredOnCreate checks that an attribute has a non-null
 // value during create and adds an error if it does not.
 func validateRequestOnlyRequiredOnCreate(isCreate bool, planValue attr.Value, attrPath path.Path, diagnostics *diag.Diagnostics) {
 	if !isCreate {
 		return
 	}
 
-	if planValue.IsNull() || planValue.IsUnknown() {
+	if planValue.IsNull() {
 		diagnostics.AddError(
 			fmt.Sprintf("%s is required when creating this resource", attrPath),
 			fmt.Sprintf("Provide a value for %s during resource creation.", attrPath),
