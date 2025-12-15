@@ -97,7 +97,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create:            true,
-				CreateDescription: "A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as \"30s\" or \"2h45m\". Valid time units are \"s\" (seconds), \"m\" (minutes), \"h\" (hours). Default: `3h`.",
+				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate("3h"),
 			}),
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed: true,

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -44,8 +45,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create:            true,
 				Delete:            true,
-				CreateDescription: "A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as \"30s\" or \"2h45m\". Valid time units are \"s\" (seconds), \"m\" (minutes), \"h\" (hours). Default: `3h`.",
-				DeleteDescription: "A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as \"30s\" or \"2h45m\". Valid time units are \"s\" (seconds), \"m\" (minutes), \"h\" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs. Default: `3h`.",
+				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate("3h"),
+				DeleteDescription: constant.TimeoutDescriptionDelete("3h"),
 			}),
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed: true,
