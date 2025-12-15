@@ -44,8 +44,6 @@ As a result, content of schemas and models will be written into the correspondin
 And operations will be written into:
 `./internal/serviceapi/<resource-package>/resource.go`
 
-**Note**: Data source schema generation is currently not supported.
-
 
 ##### (Legacy) Using schema generation HashiCorp tooling
 
