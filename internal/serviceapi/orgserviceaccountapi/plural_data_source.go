@@ -16,7 +16,7 @@ var _ datasource.DataSourceWithConfigure = &pluralDS{}
 func PluralDataSource() datasource.DataSource {
 	return &pluralDS{
 		DSCommon: config.DSCommon{
-			DataSourceName: "org_service_account_api_list",
+			DataSourceName: "org_service_accounts_api",
 		},
 	}
 }
@@ -48,10 +48,12 @@ func pluralDataSourceReadAPICallParams(model *TFPluralDSModel) *config.APICallPa
 	pathParams := map[string]string{
 		"orgId": model.OrgId.ValueString(),
 	}
+	queryParams := map[string]string{}
 	return &config.APICallParams{
 		VersionHeader: "application/vnd.atlas.2024-08-05+json",
 		RelativePath:  "/api/atlas/v2/orgs/{orgId}/serviceAccounts",
 		PathParams:    pathParams,
+		QueryParams:   queryParams,
 		Method:        "GET",
 	}
 }
