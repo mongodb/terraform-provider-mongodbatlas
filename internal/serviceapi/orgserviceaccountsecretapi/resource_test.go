@@ -54,17 +54,24 @@ func configBasic(orgID, saName string) string {
 			client_id 				   = mongodbatlas_org_service_account_api.test.client_id
 			secret_expires_after_hours = 12
 		}
+
+		data "mongodbatlas_org_service_account_secret_api" "test" {
+			org_id    = mongodbatlas_org_service_account_secret_api.test.org_id
+			client_id = mongodbatlas_org_service_account_secret_api.test.client_id
+			id        = mongodbatlas_org_service_account_secret_api.test.id
+		}
 	`, orgID, saName)
 }
 
 func checkBasic() resource.TestCheckFunc {
-	checks := acc.AddAttrSetChecks(resourceName, nil, "id", "created_at", "expires_at", "secret")
-	checks = append(
-		checks,
+	dataSourceName := "data.mongodbatlas_org_service_account_secret_api.test"
+	attrsSet := []string{"id", "created_at", "expires_at"}
+	extraChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttrSet(resourceName, "secret"), // resource has secret, data source does not
 		resource.TestCheckNoResourceAttr(resourceName, "masked_secret_value"),
 		checkExists(resourceName),
-	)
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+	}
+	return acc.CheckRSAndDS(resourceName, &dataSourceName, nil, attrsSet, nil, extraChecks...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {

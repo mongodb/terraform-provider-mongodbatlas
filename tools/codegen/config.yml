@@ -767,9 +767,10 @@ resources:
 
   org_service_account_secret_api:
     read:
+     # get operation for a single secret is not available, individual secret is found in service account read looking in `secrets` property with custom code hooks
       path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
       method: GET
-      schema_ignore: true # get operation for a single secret is not available, individual secret is found in service account read looking in `secrets` property
+      schema_ignore: true
     create:
       path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
       method: POST
@@ -786,10 +787,11 @@ resources:
           sensitive: true
     datasources:
       read:
+        # configures POST operation to have an accurate response schema, read operation is adjusted with custom code hooks
         path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
-        method: POST
+        method: POST 
       schema:
-        ignores: ["secret"]
+        ignores: ["secret"] # `secret` is never populated in read response, no value in adding for data source
         overrides:
           id:
             computability:

@@ -26,6 +26,7 @@ func Resource() resource.Resource {
 }
 
 type rs struct {
+	autogen.NoOpCustomCodeHooks
 	config.RSCommon
 }
 
@@ -50,10 +51,12 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Method:        "POST",
 	}
 	reqHandle := autogen.HandleCreateReq{
-		Resp:       resp,
-		Client:     r.Client,
-		Plan:       &plan,
-		CallParams: &callParams,
+		CreateAPICallHooks: r,
+		ReadAPICallHooks:   r,
+		Resp:               resp,
+		Client:             r.Client,
+		Plan:               &plan,
+		CallParams:         &callParams,
 	}
 	autogen.HandleCreate(ctx, reqHandle)
 }
@@ -65,10 +68,12 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	reqHandle := autogen.HandleReadReq{
-		Resp:       resp,
-		Client:     r.Client,
-		State:      &state,
-		CallParams: readAPICallParams(&state),
+		ReadAPICallHooks: r,
+		RespDiags:        &resp.Diagnostics,
+		RespState:        &resp.State,
+		Client:           r.Client,
+		State:            &state,
+		CallParams:       readAPICallParams(&state),
 	}
 	autogen.HandleRead(ctx, reqHandle)
 }
@@ -93,10 +98,12 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Method:        "PATCH",
 	}
 	reqHandle := autogen.HandleUpdateReq{
-		Resp:       resp,
-		Client:     r.Client,
-		Plan:       &plan,
-		CallParams: &callParams,
+		UpdateAPICallHooks: r,
+		ReadAPICallHooks:   r,
+		Resp:               resp,
+		Client:             r.Client,
+		Plan:               &plan,
+		CallParams:         &callParams,
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
 }
@@ -107,7 +114,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := deleteRequest(r.Client, &state, &resp.Diagnostics)
+	reqHandle := deleteRequest(r, r.Client, &state, &resp.Diagnostics)
 	autogen.HandleDelete(ctx, *reqHandle)
 }
 
@@ -130,15 +137,17 @@ func readAPICallParams(model any) *config.APICallParams {
 	}
 }
 
-func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
+func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
 		"projectId":     model.ProjectId.ValueString(),
 		"integrationId": model.IntegrationId.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
-		Client: client,
-		State:  model,
-		Diags:  diags,
+		DeleteAPICallHooks: r,
+		ReadAPICallHooks:   r,
+		Client:             client,
+		State:              model,
+		Diags:              diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
 			RelativePath:  "/api/v1/groups/{projectId}/integrations/{integrationId}",
