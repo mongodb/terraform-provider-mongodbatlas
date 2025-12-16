@@ -195,7 +195,7 @@ func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
 		"Alias applied to attribute and path param": {
 			inputDataSources: &codespec.DataSources{
 				Schema: &codespec.DataSourceSchema{
-					Attributes: codespec.Attributes{
+					SingularDSAttributes: &codespec.Attributes{
 						{
 							TFSchemaName:             "group_id",
 							TFModelName:              "GroupId",
@@ -252,7 +252,7 @@ func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
 		"Alias applied to List operation path": {
 			inputDataSources: &codespec.DataSources{
 				Schema: &codespec.DataSourceSchema{
-					Attributes: codespec.Attributes{
+					SingularDSAttributes: &codespec.Attributes{
 						{
 							TFSchemaName:             "group_id",
 							TFModelName:              "GroupId",
@@ -292,7 +292,7 @@ func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
 		"No aliases - attributes unchanged": {
 			inputDataSources: &codespec.DataSources{
 				Schema: &codespec.DataSourceSchema{
-					Attributes: codespec.Attributes{
+					SingularDSAttributes: &codespec.Attributes{
 						{
 							TFSchemaName:             "group_id",
 							TFModelName:              "GroupId",
@@ -325,6 +325,90 @@ func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
 			},
 			expectedReadPath: "/api/atlas/v2/groups/{groupId}/resource",
 		},
+		"Alias applied to plural data source attributes and List path": {
+			inputDataSources: &codespec.DataSources{
+				Schema: &codespec.DataSourceSchema{
+					PluralDSAttributes: &codespec.Attributes{
+						{
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
+							APIName:                  "groupId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+						{
+							TFSchemaName:             "results",
+							TFModelName:              "Results",
+							APIName:                  "results",
+							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomNestedListType("Results"),
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: codespec.Attributes{
+										{
+											TFSchemaName:             "name",
+											TFModelName:              "Name",
+											APIName:                  "name",
+											ComputedOptionalRequired: codespec.Computed,
+											String:                   &codespec.StringAttribute{},
+											ReqBodyUsage:             codespec.OmitAlways,
+										},
+									},
+								},
+							},
+							ReqBodyUsage: codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					List: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/resources",
+						HTTPMethod: "GET",
+					},
+				},
+			},
+			inputConfig: &config.DataSources{
+				SchemaOptions: config.SchemaOptions{
+					Aliases: map[string]string{
+						"groupId": "projectId",
+					},
+				},
+			},
+			expectedAttributes: codespec.Attributes{
+				{
+					TFSchemaName:             "project_id",
+					TFModelName:              "ProjectId",
+					APIName:                  "groupId", // APIName preserved
+					ComputedOptionalRequired: codespec.Required,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+				{
+					TFSchemaName:             "results",
+					TFModelName:              "Results",
+					APIName:                  "results",
+					ComputedOptionalRequired: codespec.Computed,
+					CustomType:               codespec.NewCustomNestedListType("Results"),
+					ListNested: &codespec.ListNestedAttribute{
+						NestedObject: codespec.NestedAttributeObject{
+							Attributes: codespec.Attributes{
+								{
+									TFSchemaName:             "name",
+									TFModelName:              "Name",
+									APIName:                  "name",
+									ComputedOptionalRequired: codespec.Computed,
+									String:                   &codespec.StringAttribute{},
+									ReqBodyUsage:             codespec.OmitAlways,
+								},
+							},
+						},
+					},
+					ReqBodyUsage: codespec.OmitAlways,
+				},
+			},
+			expectedListPath: "/api/atlas/v2/groups/{projectId}/resources",
+		},
 	}
 
 	for name, tc := range tests {
@@ -332,7 +416,13 @@ func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
 			err := codespec.ApplyTransformationsToDataSources(tc.inputConfig, tc.inputDataSources)
 			require.NoError(t, err)
 
-			assert.Equal(t, tc.expectedAttributes, tc.inputDataSources.Schema.Attributes)
+			// Check if test is for singular or plural data sources
+			if tc.inputDataSources.Schema.SingularDSAttributes != nil {
+				assert.Equal(t, tc.expectedAttributes, *tc.inputDataSources.Schema.SingularDSAttributes)
+			}
+			if tc.inputDataSources.Schema.PluralDSAttributes != nil {
+				assert.Equal(t, tc.expectedAttributes, *tc.inputDataSources.Schema.PluralDSAttributes)
+			}
 
 			if tc.expectedReadPath != "" {
 				assert.Equal(t, tc.expectedReadPath, tc.inputDataSources.Operations.Read.Path)
@@ -353,7 +443,7 @@ func TestApplyTransformationsToDataSources_OverrideTransformation(t *testing.T) 
 		"Override description": {
 			inputDataSources: &codespec.DataSources{
 				Schema: &codespec.DataSourceSchema{
-					Attributes: codespec.Attributes{
+					SingularDSAttributes: &codespec.Attributes{
 						{
 							TFSchemaName:             "name",
 							TFModelName:              "Name",
@@ -391,7 +481,7 @@ func TestApplyTransformationsToDataSources_OverrideTransformation(t *testing.T) 
 		"Override computability": {
 			inputDataSources: &codespec.DataSources{
 				Schema: &codespec.DataSourceSchema{
-					Attributes: codespec.Attributes{
+					SingularDSAttributes: &codespec.Attributes{
 						{
 							TFSchemaName:             "optional_attr",
 							TFModelName:              "OptionalAttr",
@@ -424,6 +514,44 @@ func TestApplyTransformationsToDataSources_OverrideTransformation(t *testing.T) 
 				},
 			},
 		},
+		"Override description in plural data source": {
+			inputDataSources: &codespec.DataSources{
+				Schema: &codespec.DataSourceSchema{
+					PluralDSAttributes: &codespec.Attributes{
+						{
+							TFSchemaName:             "project_id",
+							TFModelName:              "ProjectId",
+							APIName:                  "projectId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("Original description"),
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{},
+			},
+			inputConfig: &config.DataSources{
+				SchemaOptions: config.SchemaOptions{
+					Overrides: map[string]config.Override{
+						"project_id": {
+							Description: "Overridden description for plural",
+						},
+					},
+				},
+			},
+			expectedAttributes: codespec.Attributes{
+				{
+					TFSchemaName:             "project_id",
+					TFModelName:              "ProjectId",
+					APIName:                  "projectId",
+					ComputedOptionalRequired: codespec.Required,
+					String:                   &codespec.StringAttribute{},
+					Description:              conversion.StringPtr("Overridden description for plural"),
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+			},
+		},
 	}
 
 	for name, tc := range tests {
@@ -431,7 +559,13 @@ func TestApplyTransformationsToDataSources_OverrideTransformation(t *testing.T) 
 			err := codespec.ApplyTransformationsToDataSources(tc.inputConfig, tc.inputDataSources)
 			require.NoError(t, err)
 
-			assert.Equal(t, tc.expectedAttributes, tc.inputDataSources.Schema.Attributes)
+			// Check if test is for singular or plural data sources
+			if tc.inputDataSources.Schema.SingularDSAttributes != nil {
+				assert.Equal(t, tc.expectedAttributes, *tc.inputDataSources.Schema.SingularDSAttributes)
+			}
+			if tc.inputDataSources.Schema.PluralDSAttributes != nil {
+				assert.Equal(t, tc.expectedAttributes, *tc.inputDataSources.Schema.PluralDSAttributes)
+			}
 		})
 	}
 }
@@ -439,7 +573,7 @@ func TestApplyTransformationsToDataSources_OverrideTransformation(t *testing.T) 
 func TestApplyTransformationsToDataSources_IgnoreTransformation(t *testing.T) {
 	inputDataSources := &codespec.DataSources{
 		Schema: &codespec.DataSourceSchema{
-			Attributes: codespec.Attributes{
+			SingularDSAttributes: &codespec.Attributes{
 				{
 					TFSchemaName:             "keep_attr",
 					TFModelName:              "KeepAttr",
@@ -482,7 +616,92 @@ func TestApplyTransformationsToDataSources_IgnoreTransformation(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, expectedAttributes, inputDataSources.Schema.Attributes)
+	assert.Equal(t, expectedAttributes, *inputDataSources.Schema.SingularDSAttributes)
+}
+
+func TestApplyTransformationsToDataSources_IgnorePluralDataSource(t *testing.T) {
+	inputDataSources := &codespec.DataSources{
+		Schema: &codespec.DataSourceSchema{
+			PluralDSAttributes: &codespec.Attributes{
+				{
+					TFSchemaName:             "project_id",
+					TFModelName:              "ProjectId",
+					APIName:                  "projectId",
+					ComputedOptionalRequired: codespec.Required,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+				{
+					TFSchemaName:             "results",
+					TFModelName:              "Results",
+					APIName:                  "results",
+					ComputedOptionalRequired: codespec.Computed,
+					CustomType:               codespec.NewCustomNestedListType("Results"),
+					ListNested: &codespec.ListNestedAttribute{
+						NestedObject: codespec.NestedAttributeObject{
+							Attributes: codespec.Attributes{
+								{
+									TFSchemaName:             "keep_attr",
+									TFModelName:              "KeepAttr",
+									APIName:                  "keepAttr",
+									ComputedOptionalRequired: codespec.Computed,
+									String:                   &codespec.StringAttribute{},
+									ReqBodyUsage:             codespec.OmitAlways,
+								},
+								{
+									TFSchemaName:             "ignore_attr",
+									TFModelName:              "IgnoreAttr",
+									APIName:                  "ignoreAttr",
+									ComputedOptionalRequired: codespec.Computed,
+									String:                   &codespec.StringAttribute{},
+									ReqBodyUsage:             codespec.OmitAlways,
+								},
+							},
+						},
+					},
+					ReqBodyUsage: codespec.OmitAlways,
+				},
+			},
+		},
+		Operations: codespec.APIOperations{},
+	}
+
+	inputConfig := &config.DataSources{
+		SchemaOptions: config.SchemaOptions{
+			Ignores: []string{"ignore_attr"},
+		},
+	}
+
+	err := codespec.ApplyTransformationsToDataSources(inputConfig, inputDataSources)
+	require.NoError(t, err)
+
+	// Verify project_id is still present
+	require.Len(t, *inputDataSources.Schema.PluralDSAttributes, 2, "Should have project_id and results")
+
+	// Verify results array with only keep_attr
+	var resultsAttr *codespec.Attribute
+	for i := range *inputDataSources.Schema.PluralDSAttributes {
+		if (*inputDataSources.Schema.PluralDSAttributes)[i].TFSchemaName == "results" {
+			resultsAttr = &(*inputDataSources.Schema.PluralDSAttributes)[i]
+			break
+		}
+	}
+	require.NotNil(t, resultsAttr, "results attribute should exist")
+	require.NotNil(t, resultsAttr.ListNested, "results should have ListNested")
+
+	// Only keep_attr should remain in nested attributes
+	expectedNestedAttrs := codespec.Attributes{
+		{
+			TFSchemaName:             "keep_attr",
+			TFModelName:              "KeepAttr",
+			APIName:                  "keepAttr",
+			ComputedOptionalRequired: codespec.Computed,
+			String:                   &codespec.StringAttribute{},
+			ReqBodyUsage:             codespec.OmitAlways,
+		},
+	}
+
+	assert.Equal(t, expectedNestedAttrs, resultsAttr.ListNested.NestedObject.Attributes)
 }
 
 func TestApplyTransformationsToDataSources_NilInputs(t *testing.T) {

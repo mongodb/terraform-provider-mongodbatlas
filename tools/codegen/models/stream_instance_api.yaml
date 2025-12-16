@@ -464,7 +464,7 @@ schema:
             nested_object:
                 attributes:
                     - string: {}
-                      description: Label that identifies the cloud service provider where MongoDB Cloud performs stream processing. Currently, this parameter only supports AWS and AZURE.
+                      description: Human-readable label that identifies the cloud provider.
                       computed_optional_required: required
                       tf_schema_name: cloud_provider
                       tf_model_name: CloudProvider

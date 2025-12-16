@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -152,6 +154,82 @@ func handleReadCore(
 		return
 	}
 	req.RespDiags.Append(req.RespState.Set(ctx, req.State)...)
+}
+
+// HandleDataSourceReadList handles the read operation for a plural data source (list) with automatic pagination.
+func HandleDataSourceReadList(ctx context.Context, req HandleDataSourceReadReq) {
+	d := &req.Resp.Diagnostics
+
+	// Fetch all pages using dsschema.AllPages
+	allResults, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[json.RawMessage], *http.Response, error) {
+		// Build API call params with pagination query parameters
+		paginatedParams := &config.APICallParams{
+			VersionHeader: req.CallParams.VersionHeader,
+			RelativePath:  req.CallParams.RelativePath,
+			PathParams:    req.CallParams.PathParams,
+			QueryParams: map[string]string{
+				"pageNum": fmt.Sprintf("%d", pageNum),
+			},
+			Method: req.CallParams.Method,
+		}
+
+		bodyResp, apiResp, err := callAPIWithoutBody(ctx, req.Client, paginatedParams)
+		if err != nil {
+			return nil, apiResp, err
+		}
+		if notFound(bodyResp, apiResp) {
+			return nil, apiResp, fmt.Errorf("resource not found")
+		}
+
+		// Parse response to extract results and pagination info
+		var pageResp paginatedAPIResponse
+		if err := json.Unmarshal(bodyResp, &pageResp); err != nil {
+			return nil, apiResp, err
+		}
+
+		return &pageResp, apiResp, nil
+	})
+
+	if err != nil {
+		addError(d, opRead, errCallingAPI, err)
+		return
+	}
+
+	// Reconstruct full response with all results
+	fullResponse := map[string]any{
+		"results": allResults,
+	}
+	fullResponseBytes, err := json.Marshal(fullResponse)
+	if err != nil {
+		addError(d, opRead, errUnmarshallingResponse, err)
+		return
+	}
+
+	// Unmarshal into the model
+	if err := Unmarshal(fullResponseBytes, req.Config); err != nil {
+		addError(d, opRead, errUnmarshallingResponse, err)
+		return
+	}
+	if err := ResolveUnknowns(req.Config); err != nil {
+		addError(d, opRead, errResolvingResponse, err)
+		return
+	}
+
+	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Config)...)
+}
+
+// paginatedAPIResponse wraps raw API response to implement dsschema.PaginateResponse interface
+type paginatedAPIResponse struct {
+	Results    []json.RawMessage `json:"results"`
+	TotalCount int               `json:"totalCount"`
+}
+
+func (p *paginatedAPIResponse) GetResults() []json.RawMessage {
+	return p.Results
+}
+
+func (p *paginatedAPIResponse) GetTotalCount() int {
+	return p.TotalCount
 }
 
 type HandleUpdateReq struct {

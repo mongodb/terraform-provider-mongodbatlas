@@ -33,3 +33,29 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 	}
 	return formattedResult, nil
 }
+
+// GeneratePluralGoCode generates the plural_data_source.go file for list-based data sources
+func GeneratePluralGoCode(input *codespec.Resource) ([]byte, error) {
+	if input.DataSources == nil || input.DataSources.Operations.List == nil {
+		return nil, fmt.Errorf("data source list operation is required for plural data source %s", input.Name)
+	}
+
+	listOp := input.DataSources.Operations.List
+	pathParams := resource.GetPathParams(listOp.Path)
+
+	tmplInputs := codetemplate.PluralDataSourceFileInputs{
+		PackageName:    input.PackageName,
+		DataSourceName: input.Name + "_list", // pluralize name
+		VersionHeader:  input.DataSources.Operations.VersionHeader,
+		ReadPath:       listOp.Path,
+		ReadMethod:     listOp.HTTPMethod,
+		PathParams:     pathParams,
+	}
+	result := codetemplate.ApplyPluralDataSourceFileTemplate(&tmplInputs)
+
+	formattedResult, err := format.Source(result.Bytes())
+	if err != nil {
+		return nil, fmt.Errorf("failed to format generated Go code (plural data source): %w", err)
+	}
+	return formattedResult, nil
+}

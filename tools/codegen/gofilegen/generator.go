@@ -38,13 +38,11 @@ var (
 		BaseName:        "data_source",
 	}
 
-	// TODO: Add plural data source generation in CLOUDP-364146
-	// pluralDataSourceComponent defines the specification for generating plural data source files
-	// pluralDataSourceComponent = ComponentSpec{
-	// 	SchemaGenerator: schema.GeneratePluralDataSourceSchemaGoCode,
-	// 	ImplGenerator:   datasource.GeneratePluralGoCode,
-	// 	BaseName:        "plural_data_source",
-	// }
+	pluralDataSourceComponent = ComponentSpec{
+		SchemaGenerator: schema.GeneratePluralDataSourceSchemaGoCode,
+		ImplGenerator:   datasource.GeneratePluralGoCode,
+		BaseName:        "plural_data_source",
+	}
 )
 
 // GenerateCodeForResource generates all Go files for a resource and its data sources
@@ -70,12 +68,11 @@ func GenerateCodeForResource(resourceModel *codespec.Resource, packageDir string
 		}
 		generatedFiles = append(generatedFiles, files...)
 
-		// TODO: Add plural data source generation in CLOUDP-364146
-		// files, err = generateComponentFiles(resourceModel, packageDir, pluralDataSourceComponent, writeFile)
-		// if err != nil {
-		// 	return nil, fmt.Errorf("failed to generate plural data source: %w", err)
-		// }
-		// generatedFiles = append(generatedFiles, files...)
+		files, err = generateComponentFiles(resourceModel, packageDir, pluralDataSourceComponent, writeFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate plural data source: %w", err)
+		}
+		generatedFiles = append(generatedFiles, files...)
 	}
 
 	// Format all generated files: goimports per file, fieldalignment on package
