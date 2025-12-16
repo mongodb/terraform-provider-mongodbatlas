@@ -69,5 +69,5 @@ output "log_integration_bucket_name" {
 - `prefix_path` (String) S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
 - `type` (String) Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
 
-For more information see: [MongoDB Atlas API - Log Integration](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Log-Integrations) Documentation.
+For more information see: [MongoDB Atlas API - Log Integration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-push-based-log-export) Documentation.
 
