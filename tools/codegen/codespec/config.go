@@ -9,6 +9,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 )
 
+var pluralDSIgnoredAttributes = []string{"total_count", "envelope", "items_per_page", "page_num"}
+
 const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. " +
 	"When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for " +
 	"deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a " +
@@ -33,7 +35,7 @@ func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSou
 		return nil
 	}
 
-	dsConfig.SchemaOptions.Ignores = append(dsConfig.SchemaOptions.Ignores, "total_count", "envelope", "items_per_page", "page_num")
+	dsConfig.SchemaOptions.Ignores = append(dsConfig.SchemaOptions.Ignores, pluralDSIgnoredAttributes...)
 
 	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.SingularDSAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations for singular data source: %w", err)
