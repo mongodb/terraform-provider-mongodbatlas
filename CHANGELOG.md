@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* data-source/mongodbatlas_advanced_clusters: Fixes datasource to handle CLUSTER_NOT_FOUND errors from List operation gracefully instead of failing ([#3995](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3995))
+
 ## 2.3.0 (December 09, 2025)
 
 ENHANCEMENTS:
