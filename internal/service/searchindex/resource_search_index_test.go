@@ -424,7 +424,7 @@ func configBasic(projectID, clusterName, indexName, indexType, storedSource stri
 		data "mongodbatlas_search_index" "data_index" {
 			cluster_name     = mongodbatlas_search_index.test.cluster_name
 			project_id       = mongodbatlas_search_index.test.project_id
-			index_id 				 = mongodbatlas_search_index.test.index_id
+			index_id         = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterName, projectID, indexName, database, collection, searchAnalyzer, extra)
 }
@@ -461,7 +461,7 @@ func configWithMapping(projectID, indexName, clusterName string) string {
 		data "mongodbatlas_search_index" "data_index" {
 			cluster_name     = mongodbatlas_search_index.test.cluster_name
 			project_id       = mongodbatlas_search_index.test.project_id
-			index_id 				 = mongodbatlas_search_index.test.index_id
+			index_id         = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterName, projectID, indexName, database, collection, searchAnalyzer, analyzersTF, mappingsFieldsTF)
 }
@@ -503,7 +503,7 @@ func configWithSynonyms(projectID, indexName, clusterName string, has bool) stri
 		data "mongodbatlas_search_index" "data_index" {
 			cluster_name     = mongodbatlas_search_index.test.cluster_name
 			project_id       = mongodbatlas_search_index.test.project_id
-			index_id 				 = mongodbatlas_search_index.test.index_id
+			index_id         = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterName, projectID, indexName, database, collection, searchAnalyzer, synonymsStr)
 }
@@ -541,7 +541,7 @@ func configAdditional(projectID, indexName, clusterName, additional string) stri
 		data "mongodbatlas_search_index" "data_index" {
 			cluster_name     = mongodbatlas_search_index.test.cluster_name
 			project_id       = mongodbatlas_search_index.test.project_id
-			index_id 				 = mongodbatlas_search_index.test.index_id
+			index_id = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterName, projectID, indexName, database, collection, searchAnalyzer, additional)
 }
@@ -598,7 +598,7 @@ func configVectorSearchWithNumPartitions(projectID, indexName, clusterName strin
 	}
 	return fmt.Sprintf(`
 
-			resource "mongodbatlas_search_deployment" "test" {
+		resource "mongodbatlas_search_deployment" "test" {
 			cluster_name = %[1]q
 			project_id   = %[2]q
 			specs = [
@@ -608,6 +608,7 @@ func configVectorSearchWithNumPartitions(projectID, indexName, clusterName strin
 				}
 			]
 		}
+
 		resource "mongodbatlas_search_index" "test" {
 			cluster_name     = %[1]q
 			project_id       = %[2]q
@@ -620,6 +621,8 @@ func configVectorSearchWithNumPartitions(projectID, indexName, clusterName strin
 			fields = <<-EOF
 	    %[7]s
 			EOF
+		
+		depends_on = [mongodbatlas_search_deployment.test]
 		}
 	
 		data "mongodbatlas_search_index" "data_index" {
@@ -636,6 +639,17 @@ func configSearchWithNumPartitions(projectID, indexName, clusterName string, num
 		numPartitionsLine = fmt.Sprintf("num_partitions   = %d", *numPartitions)
 	}
 	return fmt.Sprintf(`
+
+		resource "mongodbatlas_search_deployment" "test" {
+			cluster_name = %[1]q
+			project_id   = %[2]q
+			specs = [
+				{
+					instance_size = "S20_HIGHCPU_NVME"
+					node_count    = 2
+				}
+			]
+		}
 
 		resource "mongodbatlas_search_index" "test" {
 			cluster_name     = %[1]q
