@@ -68,13 +68,13 @@ func GeneratePluralGoCode(input *codespec.Resource) ([]byte, error) {
 func getQueryParams(attributes codespec.Attributes) []codetemplate.Param {
 	var queryParams []codetemplate.Param
 
-	for _, attr := range attributes {
+	for i := range attributes {
 		// Only consider optional attributes as query parameters
-		if attr.ComputedOptionalRequired == codespec.Optional {
-			attrType := getAttributeType(&attr)
+		if attributes[i].ComputedOptionalRequired == codespec.Optional {
+			attrType := getAttributeType(&attributes[i])
 			param := codetemplate.Param{
-				PascalCaseName: stringcase.Capitalize(attr.TFModelName),
-				CamelCaseName:  stringcase.Uncapitalize(attr.TFModelName),
+				PascalCaseName: stringcase.Capitalize(attributes[i].TFModelName),
+				CamelCaseName:  stringcase.Uncapitalize(attributes[i].TFModelName),
 				Type:           attrType,
 			}
 			queryParams = append(queryParams, param)
