@@ -47,6 +47,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orgserviceaccountapi"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -301,6 +302,8 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		apikeyprojectassignment.PluralDataSource,
 		advancedcluster.DataSource,
 		advancedcluster.PluralDataSource,
+		orgserviceaccountapi.DataSource,
+		orgserviceaccountapi.PluralDataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
@@ -333,6 +336,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		teamprojectassignment.Resource,
 		clouduserteamassignment.Resource,
 		advancedcluster.Resource,
+		orgserviceaccountapi.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {

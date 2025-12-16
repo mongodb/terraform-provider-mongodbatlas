@@ -1,0 +1,1968 @@
+schema:
+    description: |-
+        Creates one identity provider within the specified federation. To use this resource, the requesting Service Account or API Key must have the Organization Owner role in one of the connected organizations.
+
+        **Note**: This resource only supports the creation of OIDC identity providers.
+    attributes:
+        - string: {}
+          description: URL that points to where to send the SAML response.
+          computed_optional_required: computed
+          tf_schema_name: acs_url
+          tf_model_name: AcsUrl
+          api_name: acsUrl
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - set:
+            element_type: 4
+          description: List that contains the domains associated with the identity provider.
+          custom_type:
+            package: customtypes
+            model: customtypes.SetValue[types.String]
+            schema: customtypes.NewSetType[types.String](ctx)
+          computed_optional_required: optional
+          tf_schema_name: associated_domains
+          tf_model_name: AssociatedDomains
+          api_name: associatedDomains
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - set_nested:
+            nested_object:
+                attributes:
+                    - set:
+                        element_type: 4
+                      description: The collection of unique ids representing the identity providers that can be used for data access in this organization.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.SetValue[types.String]
+                        schema: customtypes.NewSetType[types.String](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: data_access_identity_provider_ids
+                      tf_model_name: DataAccessIdentityProviderIds
+                      api_name: dataAccessIdentityProviderIds
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - set:
+                        element_type: 4
+                      description: Approved domains that restrict users who can join the organization based on their email address.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.SetValue[types.String]
+                        schema: customtypes.NewSetType[types.String](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: domain_allow_list
+                      tf_model_name: DomainAllowList
+                      api_name: domainAllowList
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - bool: {}
+                      description: Value that indicates whether domain restriction is enabled for this connected org.
+                      computed_optional_required: computed
+                      tf_schema_name: domain_restriction_enabled
+                      tf_model_name: DomainRestrictionEnabled
+                      api_name: domainRestrictionEnabled
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Legacy 20-hexadecimal digit string that identifies the UI access identity provider that this connected org config is associated with. This id can be found within the Federation Management Console > Identity Providers tab by clicking the info icon in the IdP ID row of a configured identity provider.
+                      computed_optional_required: computed
+                      tf_schema_name: id
+                      tf_model_name: Id
+                      api_name: identityProviderId
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unique 24-hexadecimal digit string that identifies the connected organization configuration.
+                      computed_optional_required: computed
+                      tf_schema_name: org_id
+                      tf_model_name: OrgId
+                      api_name: orgId
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - set:
+                        element_type: 4
+                      description: Atlas roles that are granted to a user in this organization after authenticating. Roles are a human-readable label that identifies the collection of privileges that MongoDB Cloud grants a specific MongoDB Cloud user. These roles can only be organization specific roles.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.SetValue[types.String]
+                        schema: customtypes.NewSetType[types.String](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: post_auth_role_grants
+                      tf_model_name: PostAuthRoleGrants
+                      api_name: postAuthRoleGrants
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - set_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Unique human-readable label that identifies the identity provider group to which this role mapping applies.
+                                  computed_optional_required: computed
+                                  tf_schema_name: external_group_name
+                                  tf_model_name: ExternalGroupName
+                                  api_name: externalGroupName
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Unique 24-hexadecimal digit string that identifies this role mapping.
+                                  computed_optional_required: computed
+                                  tf_schema_name: id
+                                  tf_model_name: Id
+                                  api_name: id
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - set_nested:
+                                    nested_object:
+                                        attributes:
+                                            - string: {}
+                                              description: Unique 24-hexadecimal digit string that identifies the project to which this role belongs. Each element within **roleAssignments** can have a value for **groupId** or **orgId**, but not both.
+                                              computed_optional_required: computed
+                                              tf_schema_name: group_id
+                                              tf_model_name: GroupId
+                                              api_name: groupId
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Unique 24-hexadecimal digit string that identifies the organization to which this role belongs. Each element within **roleAssignments** can have a value for **orgId** or **groupId**, but not both.
+                                              computed_optional_required: computed
+                                              tf_schema_name: org_id
+                                              tf_model_name: OrgId
+                                              api_name: orgId
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Human-readable label that identifies the collection of privileges that MongoDB Cloud grants a specific API key, MongoDB Cloud user, or MongoDB Cloud team. These roles include organization- and project-level roles.
+                                              computed_optional_required: computed
+                                              tf_schema_name: role
+                                              tf_model_name: Role
+                                              api_name: role
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                  description: Atlas roles and the unique identifiers of the groups and organizations associated with each role. The array must include at least one element with an Organization role and its respective **orgId**. Each element in the array can have a value for **orgId** or **groupId**, but not both.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.NestedSetValue[TFAssociatedOrgsRoleMappingsRoleAssignmentsModel]
+                                    schema: customtypes.NewNestedSetType[TFAssociatedOrgsRoleMappingsRoleAssignmentsModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: role_assignments
+                                  tf_model_name: RoleAssignments
+                                  api_name: roleAssignments
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: Role mappings that are configured in this organization.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedSetValue[TFAssociatedOrgsRoleMappingsModel]
+                        schema: customtypes.NewNestedSetType[TFAssociatedOrgsRoleMappingsModel](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: role_mappings
+                      tf_model_name: RoleMappings
+                      api_name: roleMappings
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - list_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Email address of the MongoDB Cloud user linked to the federated organization.
+                                  computed_optional_required: computed
+                                  tf_schema_name: email_address
+                                  tf_model_name: EmailAddress
+                                  api_name: emailAddress
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Unique 24-hexadecimal digit string that identifies the federation to which this MongoDB Cloud user belongs.
+                                  computed_optional_required: computed
+                                  tf_schema_name: federation_settings_id
+                                  tf_model_name: FederationSettingsId
+                                  api_name: federationSettingsId
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: First or given name that belongs to the MongoDB Cloud user.
+                                  computed_optional_required: computed
+                                  tf_schema_name: first_name
+                                  tf_model_name: FirstName
+                                  api_name: firstName
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Last name, family name, or surname that belongs to the MongoDB Cloud user.
+                                  computed_optional_required: computed
+                                  tf_schema_name: last_name
+                                  tf_model_name: LastName
+                                  api_name: lastName
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Unique 24-hexadecimal digit string that identifies this user.
+                                  computed_optional_required: computed
+                                  tf_schema_name: user_id
+                                  tf_model_name: UserId
+                                  api_name: userId
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: List that contains the users who have an email address that doesn't match any domain on the allowed list.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedListValue[TFAssociatedOrgsUserConflictsModel]
+                        schema: customtypes.NewNestedListType[TFAssociatedOrgsUserConflictsModel](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: user_conflicts
+                      tf_model_name: UserConflicts
+                      api_name: userConflicts
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: List that contains the connected organization configurations associated with the identity provider.
+          custom_type:
+            package: customtypes
+            model: customtypes.NestedSetValue[TFAssociatedOrgsModel]
+            schema: customtypes.NewNestedSetType[TFAssociatedOrgsModel](ctx)
+          computed_optional_required: computed
+          tf_schema_name: associated_orgs
+          tf_model_name: AssociatedOrgs
+          api_name: associatedOrgs
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Identifier of the intended recipient of the token.
+          computed_optional_required: optional
+          tf_schema_name: audience
+          tf_model_name: Audience
+          api_name: audience
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique string that identifies the intended audience of the SAML assertion.
+          computed_optional_required: computed
+          tf_schema_name: audience_uri
+          tf_model_name: AudienceUri
+          api_name: audienceUri
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Indicates whether authorization is granted based on group membership or user ID.
+          computed_optional_required: optional
+          tf_schema_name: authorization_type
+          tf_model_name: AuthorizationType
+          api_name: authorizationType
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Client identifier that is assigned to an application by the Identity Provider.
+          computed_optional_required: optional
+          tf_schema_name: client_id
+          tf_model_name: ClientId
+          api_name: clientId
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Date that the identity provider was created on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+          computed_optional_required: computed
+          tf_schema_name: created_at
+          tf_model_name: CreatedAt
+          api_name: createdAt
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: The description of the identity provider.
+          computed_optional_required: optional
+          tf_schema_name: description
+          tf_model_name: Description
+          api_name: description
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Human-readable label that identifies the identity provider.
+          computed_optional_required: optional
+          tf_schema_name: display_name
+          tf_model_name: DisplayName
+          api_name: displayName
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies your federation.
+          computed_optional_required: required
+          tf_schema_name: federation_settings_id
+          tf_model_name: FederationSettingsId
+          api_name: federationSettingsId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - string: {}
+          description: Identifier of the claim which contains IdP Group IDs in the token.
+          computed_optional_required: optional
+          tf_schema_name: groups_claim
+          tf_model_name: GroupsClaim
+          api_name: groupsClaim
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies the identity provider.
+          computed_optional_required: computed
+          tf_schema_name: id
+          tf_model_name: Id
+          api_name: id
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: String enum that indicates the type of the identity provider. Default is WORKFORCE.
+          computed_optional_required: optional
+          tf_schema_name: idp_type
+          tf_model_name: IdpType
+          api_name: idpType
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique string that identifies the issuer of the SAML Assertion or OIDC metadata/discovery document URL.
+          computed_optional_required: optional
+          tf_schema_name: issuer_uri
+          tf_model_name: IssuerUri
+          api_name: issuerUri
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Legacy 20-hexadecimal digit string that identifies the identity provider.
+          computed_optional_required: computed
+          tf_schema_name: okta_idp_id
+          tf_model_name: OktaIdpId
+          api_name: oktaIdpId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - list_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Certificate content.
+                                  computed_optional_required: optional
+                                  tf_schema_name: content
+                                  tf_model_name: Content
+                                  api_name: content
+                                  req_body_usage: ""
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: false
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Latest date that the certificate is valid. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                                  computed_optional_required: optional
+                                  tf_schema_name: not_after
+                                  tf_model_name: NotAfter
+                                  api_name: notAfter
+                                  req_body_usage: ""
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Earliest date that the certificate is valid. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                                  computed_optional_required: optional
+                                  tf_schema_name: not_before
+                                  tf_model_name: NotBefore
+                                  api_name: notBefore
+                                  req_body_usage: ""
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: List of certificates in the file.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedListValue[TFPemFileInfoCertificatesModel]
+                        schema: customtypes.NewNestedListType[TFPemFileInfoCertificatesModel](ctx)
+                      computed_optional_required: optional
+                      tf_schema_name: certificates
+                      tf_model_name: Certificates
+                      api_name: certificates
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Human-readable label given to the file.
+                      computed_optional_required: optional
+                      tf_schema_name: file_name
+                      tf_model_name: FileName
+                      api_name: fileName
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: PEM file information for the identity provider's current certificates.
+          custom_type:
+            package: customtypes
+            model: customtypes.ObjectValue[TFPemFileInfoModel]
+            schema: customtypes.NewObjectType[TFPemFileInfoModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: pem_file_info
+          tf_model_name: PemFileInfo
+          api_name: pemFileInfo
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: String enum that indicates the protocol of the identity provider. Either SAML or OIDC.
+          computed_optional_required: optional
+          tf_schema_name: protocol
+          tf_model_name: Protocol
+          api_name: protocol
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: SAML Authentication Request Protocol HTTP method binding (POST or REDIRECT) that Federated Authentication uses to send the authentication request.
+          computed_optional_required: optional
+          tf_schema_name: request_binding
+          tf_model_name: RequestBinding
+          api_name: requestBinding
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - list:
+            element_type: 4
+          description: Scopes that MongoDB applications will request from the authorization endpoint.
+          custom_type:
+            package: customtypes
+            model: customtypes.ListValue[types.String]
+            schema: customtypes.NewListType[types.String](ctx)
+          computed_optional_required: optional
+          tf_schema_name: requested_scopes
+          tf_model_name: RequestedScopes
+          api_name: requestedScopes
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Signature algorithm that Federated Authentication uses to encrypt the identity provider signature.
+          computed_optional_required: optional
+          tf_schema_name: response_signature_algorithm
+          tf_model_name: ResponseSignatureAlgorithm
+          api_name: responseSignatureAlgorithm
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Custom SSO Url for the identity provider.
+          computed_optional_required: optional
+          tf_schema_name: slug
+          tf_model_name: Slug
+          api_name: slug
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - bool: {}
+          description: Flag that indicates whether the identity provider has SSO debug enabled.
+          computed_optional_required: optional
+          tf_schema_name: sso_debug_enabled
+          tf_model_name: SsoDebugEnabled
+          api_name: ssoDebugEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: URL that points to the receiver of the SAML authentication request.
+          computed_optional_required: optional
+          tf_schema_name: sso_url
+          tf_model_name: SsoUrl
+          api_name: ssoUrl
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: String enum that indicates whether the identity provider is active.
+          computed_optional_required: optional
+          tf_schema_name: status
+          tf_model_name: Status
+          api_name: status
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Date that the identity provider was last updated on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+          computed_optional_required: computed
+          tf_schema_name: updated_at
+          tf_model_name: UpdatedAt
+          api_name: updatedAt
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Identifier of the claim which contains the user ID in the token.
+          computed_optional_required: optional
+          tf_schema_name: user_claim
+          tf_model_name: UserClaim
+          api_name: userClaim
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders/{id}
+    create:
+        http_method: POST
+        path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders
+    read:
+        http_method: GET
+        path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders/{id}
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders/{id}
+    version_header: application/vnd.atlas.2025-03-12+json
+data_sources:
+    schema:
+        singular_ds_description: Returns one identity provider in the specified federation by the identity provider's id. To use this resource, the requesting Service Account or API Key must have the Organization Owner role in one of the connected organizations.
+        singular_ds_attributes:
+            - string: {}
+              description: URL that points to where to send the SAML response.
+              computed_optional_required: computed
+              tf_schema_name: acs_url
+              tf_model_name: AcsUrl
+              api_name: acsUrl
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - set:
+                element_type: 4
+              description: List that contains the domains associated with the identity provider.
+              custom_type:
+                package: customtypes
+                model: customtypes.SetValue[types.String]
+                schema: customtypes.NewSetType[types.String](ctx)
+              computed_optional_required: computed
+              tf_schema_name: associated_domains
+              tf_model_name: AssociatedDomains
+              api_name: associatedDomains
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - set_nested:
+                nested_object:
+                    attributes:
+                        - set:
+                            element_type: 4
+                          description: The collection of unique ids representing the identity providers that can be used for data access in this organization.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.SetValue[types.String]
+                            schema: customtypes.NewSetType[types.String](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: data_access_identity_provider_ids
+                          tf_model_name: DataAccessIdentityProviderIds
+                          api_name: dataAccessIdentityProviderIds
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - set:
+                            element_type: 4
+                          description: Approved domains that restrict users who can join the organization based on their email address.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.SetValue[types.String]
+                            schema: customtypes.NewSetType[types.String](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: domain_allow_list
+                          tf_model_name: DomainAllowList
+                          api_name: domainAllowList
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - bool: {}
+                          description: Value that indicates whether domain restriction is enabled for this connected org.
+                          computed_optional_required: computed
+                          tf_schema_name: domain_restriction_enabled
+                          tf_model_name: DomainRestrictionEnabled
+                          api_name: domainRestrictionEnabled
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Legacy 20-hexadecimal digit string that identifies the UI access identity provider that this connected org config is associated with. This id can be found within the Federation Management Console > Identity Providers tab by clicking the info icon in the IdP ID row of a configured identity provider.
+                          computed_optional_required: computed
+                          tf_schema_name: id
+                          tf_model_name: Id
+                          api_name: identityProviderId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-hexadecimal digit string that identifies the connected organization configuration.
+                          computed_optional_required: computed
+                          tf_schema_name: org_id
+                          tf_model_name: OrgId
+                          api_name: orgId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - set:
+                            element_type: 4
+                          description: Atlas roles that are granted to a user in this organization after authenticating. Roles are a human-readable label that identifies the collection of privileges that MongoDB Cloud grants a specific MongoDB Cloud user. These roles can only be organization specific roles.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.SetValue[types.String]
+                            schema: customtypes.NewSetType[types.String](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: post_auth_role_grants
+                          tf_model_name: PostAuthRoleGrants
+                          api_name: postAuthRoleGrants
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - set_nested:
+                            nested_object:
+                                attributes:
+                                    - string: {}
+                                      description: Unique human-readable label that identifies the identity provider group to which this role mapping applies.
+                                      computed_optional_required: computed
+                                      tf_schema_name: external_group_name
+                                      tf_model_name: ExternalGroupName
+                                      api_name: externalGroupName
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Unique 24-hexadecimal digit string that identifies this role mapping.
+                                      computed_optional_required: computed
+                                      tf_schema_name: id
+                                      tf_model_name: Id
+                                      api_name: id
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - set_nested:
+                                        nested_object:
+                                            attributes:
+                                                - string: {}
+                                                  description: Unique 24-hexadecimal digit string that identifies the project to which this role belongs. Each element within **roleAssignments** can have a value for **groupId** or **orgId**, but not both.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: group_id
+                                                  tf_model_name: GroupId
+                                                  api_name: groupId
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: Unique 24-hexadecimal digit string that identifies the organization to which this role belongs. Each element within **roleAssignments** can have a value for **orgId** or **groupId**, but not both.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: org_id
+                                                  tf_model_name: OrgId
+                                                  api_name: orgId
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: Human-readable label that identifies the collection of privileges that MongoDB Cloud grants a specific API key, MongoDB Cloud user, or MongoDB Cloud team. These roles include organization- and project-level roles.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: role
+                                                  tf_model_name: Role
+                                                  api_name: role
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                      description: Atlas roles and the unique identifiers of the groups and organizations associated with each role. The array must include at least one element with an Organization role and its respective **orgId**. Each element in the array can have a value for **orgId** or **groupId**, but not both.
+                                      custom_type:
+                                        package: customtypes
+                                        model: customtypes.NestedSetValue[TFAssociatedOrgsRoleMappingsRoleAssignmentsModel]
+                                        schema: customtypes.NewNestedSetType[TFAssociatedOrgsRoleMappingsRoleAssignmentsModel](ctx)
+                                      computed_optional_required: computed
+                                      tf_schema_name: role_assignments
+                                      tf_model_name: RoleAssignments
+                                      api_name: roleAssignments
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: Role mappings that are configured in this organization.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.NestedSetValue[TFAssociatedOrgsRoleMappingsModel]
+                            schema: customtypes.NewNestedSetType[TFAssociatedOrgsRoleMappingsModel](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: role_mappings
+                          tf_model_name: RoleMappings
+                          api_name: roleMappings
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - list_nested:
+                            nested_object:
+                                attributes:
+                                    - string: {}
+                                      description: Email address of the MongoDB Cloud user linked to the federated organization.
+                                      computed_optional_required: computed
+                                      tf_schema_name: email_address
+                                      tf_model_name: EmailAddress
+                                      api_name: emailAddress
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Unique 24-hexadecimal digit string that identifies the federation to which this MongoDB Cloud user belongs.
+                                      computed_optional_required: computed
+                                      tf_schema_name: federation_settings_id
+                                      tf_model_name: FederationSettingsId
+                                      api_name: federationSettingsId
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: First or given name that belongs to the MongoDB Cloud user.
+                                      computed_optional_required: computed
+                                      tf_schema_name: first_name
+                                      tf_model_name: FirstName
+                                      api_name: firstName
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Last name, family name, or surname that belongs to the MongoDB Cloud user.
+                                      computed_optional_required: computed
+                                      tf_schema_name: last_name
+                                      tf_model_name: LastName
+                                      api_name: lastName
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Unique 24-hexadecimal digit string that identifies this user.
+                                      computed_optional_required: computed
+                                      tf_schema_name: user_id
+                                      tf_model_name: UserId
+                                      api_name: userId
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: List that contains the users who have an email address that doesn't match any domain on the allowed list.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.NestedListValue[TFAssociatedOrgsUserConflictsModel]
+                            schema: customtypes.NewNestedListType[TFAssociatedOrgsUserConflictsModel](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: user_conflicts
+                          tf_model_name: UserConflicts
+                          api_name: userConflicts
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List that contains the connected organization configurations associated with the identity provider.
+              custom_type:
+                package: customtypes
+                model: customtypes.NestedSetValue[TFAssociatedOrgsModel]
+                schema: customtypes.NewNestedSetType[TFAssociatedOrgsModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: associated_orgs
+              tf_model_name: AssociatedOrgs
+              api_name: associatedOrgs
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Identifier of the intended recipient of the token.
+              computed_optional_required: computed
+              tf_schema_name: audience
+              tf_model_name: Audience
+              api_name: audience
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique string that identifies the intended audience of the SAML assertion.
+              computed_optional_required: computed
+              tf_schema_name: audience_uri
+              tf_model_name: AudienceUri
+              api_name: audienceUri
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Indicates whether authorization is granted based on group membership or user ID.
+              computed_optional_required: computed
+              tf_schema_name: authorization_type
+              tf_model_name: AuthorizationType
+              api_name: authorizationType
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Client identifier that is assigned to an application by the Identity Provider.
+              computed_optional_required: computed
+              tf_schema_name: client_id
+              tf_model_name: ClientId
+              api_name: clientId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Date that the identity provider was created on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+              computed_optional_required: computed
+              tf_schema_name: created_at
+              tf_model_name: CreatedAt
+              api_name: createdAt
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: The description of the identity provider.
+              computed_optional_required: computed
+              tf_schema_name: description
+              tf_model_name: Description
+              api_name: description
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Human-readable label that identifies the identity provider.
+              computed_optional_required: computed
+              tf_schema_name: display_name
+              tf_model_name: DisplayName
+              api_name: displayName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your federation.
+              computed_optional_required: required
+              tf_schema_name: federation_settings_id
+              tf_model_name: FederationSettingsId
+              api_name: federationSettingsId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Identifier of the claim which contains IdP Group IDs in the token.
+              computed_optional_required: computed
+              tf_schema_name: groups_claim
+              tf_model_name: GroupsClaim
+              api_name: groupsClaim
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique string that identifies the identity provider to connect. If using an API version before 11-15-2023, use the legacy 20-hexadecimal digit id. This id can be found within the Federation Management Console > Identity Providers tab by clicking the info icon in the IdP ID row of a configured identity provider. For all other versions, use the 24-hexadecimal digit id.
+              computed_optional_required: required
+              tf_schema_name: id
+              tf_model_name: Id
+              api_name: identityProviderId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: String enum that indicates the type of the identity provider. Default is WORKFORCE.
+              computed_optional_required: computed
+              tf_schema_name: idp_type
+              tf_model_name: IdpType
+              api_name: idpType
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique string that identifies the issuer of the SAML Assertion or OIDC metadata/discovery document URL.
+              computed_optional_required: computed
+              tf_schema_name: issuer_uri
+              tf_model_name: IssuerUri
+              api_name: issuerUri
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Legacy 20-hexadecimal digit string that identifies the identity provider.
+              computed_optional_required: computed
+              tf_schema_name: okta_idp_id
+              tf_model_name: OktaIdpId
+              api_name: oktaIdpId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - single_nested:
+                nested_object:
+                    attributes:
+                        - list_nested:
+                            nested_object:
+                                attributes:
+                                    - string: {}
+                                      description: Latest date that the certificate is valid. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                                      computed_optional_required: computed
+                                      tf_schema_name: not_after
+                                      tf_model_name: NotAfter
+                                      api_name: notAfter
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Earliest date that the certificate is valid. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                                      computed_optional_required: computed
+                                      tf_schema_name: not_before
+                                      tf_model_name: NotBefore
+                                      api_name: notBefore
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: List of certificates in the file.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.NestedListValue[TFPemFileInfoCertificatesModel]
+                            schema: customtypes.NewNestedListType[TFPemFileInfoCertificatesModel](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: certificates
+                          tf_model_name: Certificates
+                          api_name: certificates
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Human-readable label given to the file.
+                          computed_optional_required: computed
+                          tf_schema_name: file_name
+                          tf_model_name: FileName
+                          api_name: fileName
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: PEM file information for the identity provider's current certificates.
+              custom_type:
+                package: customtypes
+                model: customtypes.ObjectValue[TFPemFileInfoModel]
+                schema: customtypes.NewObjectType[TFPemFileInfoModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: pem_file_info
+              tf_model_name: PemFileInfo
+              api_name: pemFileInfo
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: String enum that indicates the protocol of the identity provider. Either SAML or OIDC.
+              computed_optional_required: computed
+              tf_schema_name: protocol
+              tf_model_name: Protocol
+              api_name: protocol
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: SAML Authentication Request Protocol HTTP method binding (POST or REDIRECT) that Federated Authentication uses to send the authentication request.
+              computed_optional_required: computed
+              tf_schema_name: request_binding
+              tf_model_name: RequestBinding
+              api_name: requestBinding
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list:
+                element_type: 4
+              description: Scopes that MongoDB applications will request from the authorization endpoint.
+              custom_type:
+                package: customtypes
+                model: customtypes.ListValue[types.String]
+                schema: customtypes.NewListType[types.String](ctx)
+              computed_optional_required: computed
+              tf_schema_name: requested_scopes
+              tf_model_name: RequestedScopes
+              api_name: requestedScopes
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Signature algorithm that Federated Authentication uses to encrypt the identity provider signature.
+              computed_optional_required: computed
+              tf_schema_name: response_signature_algorithm
+              tf_model_name: ResponseSignatureAlgorithm
+              api_name: responseSignatureAlgorithm
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Custom SSO Url for the identity provider.
+              computed_optional_required: computed
+              tf_schema_name: slug
+              tf_model_name: Slug
+              api_name: slug
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - bool: {}
+              description: Flag that indicates whether the identity provider has SSO debug enabled.
+              computed_optional_required: computed
+              tf_schema_name: sso_debug_enabled
+              tf_model_name: SsoDebugEnabled
+              api_name: ssoDebugEnabled
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: URL that points to the receiver of the SAML authentication request.
+              computed_optional_required: computed
+              tf_schema_name: sso_url
+              tf_model_name: SsoUrl
+              api_name: ssoUrl
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: String enum that indicates whether the identity provider is active.
+              computed_optional_required: computed
+              tf_schema_name: status
+              tf_model_name: Status
+              api_name: status
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Date that the identity provider was last updated on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+              computed_optional_required: computed
+              tf_schema_name: updated_at
+              tf_model_name: UpdatedAt
+              api_name: updatedAt
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Identifier of the claim which contains the user ID in the token.
+              computed_optional_required: computed
+              tf_schema_name: user_claim
+              tf_model_name: UserClaim
+              api_name: userClaim
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+        plural_ds_description: Returns all identity providers with the provided protocol and type in the specified federation. If no protocol is specified, only SAML identity providers will be returned. If no idpType is specified, only WORKFORCE identity providers will be returned. To use this resource, the requesting Service Account or API Key must have the Organization Owner role in one of the connected organizations.
+        plural_ds_attributes:
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your federation.
+              computed_optional_required: required
+              tf_schema_name: federation_settings_id
+              tf_model_name: FederationSettingsId
+              api_name: federationSettingsId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list:
+                element_type: 4
+              description: The types of the target identity providers.
+              custom_type:
+                package: customtypes
+                model: customtypes.ListValue[types.String]
+                schema: customtypes.NewListType[types.String](ctx)
+              computed_optional_required: optional
+              tf_schema_name: idp_type
+              tf_model_name: IdpType
+              api_name: idpType
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                          computed_optional_required: computed
+                          tf_schema_name: href
+                          tf_model_name: Href
+                          api_name: href
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                          computed_optional_required: computed
+                          tf_schema_name: rel
+                          tf_model_name: Rel
+                          api_name: rel
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+              custom_type:
+                package: customtypes
+                model: customtypes.NestedListValue[TFLinksModel]
+                schema: customtypes.NewNestedListType[TFLinksModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: links
+              tf_model_name: Links
+              api_name: links
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list:
+                element_type: 4
+              description: The protocols of the target identity providers.
+              custom_type:
+                package: customtypes
+                model: customtypes.ListValue[types.String]
+                schema: customtypes.NewListType[types.String](ctx)
+              computed_optional_required: optional
+              tf_schema_name: protocol
+              tf_model_name: Protocol
+              api_name: protocol
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: URL that points to where to send the SAML response.
+                          computed_optional_required: computed
+                          tf_schema_name: acs_url
+                          tf_model_name: AcsUrl
+                          api_name: acsUrl
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - set:
+                            element_type: 4
+                          description: List that contains the domains associated with the identity provider.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.SetValue[types.String]
+                            schema: customtypes.NewSetType[types.String](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: associated_domains
+                          tf_model_name: AssociatedDomains
+                          api_name: associatedDomains
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - set_nested:
+                            nested_object:
+                                attributes:
+                                    - set:
+                                        element_type: 4
+                                      description: The collection of unique ids representing the identity providers that can be used for data access in this organization.
+                                      custom_type:
+                                        package: customtypes
+                                        model: customtypes.SetValue[types.String]
+                                        schema: customtypes.NewSetType[types.String](ctx)
+                                      computed_optional_required: computed
+                                      tf_schema_name: data_access_identity_provider_ids
+                                      tf_model_name: DataAccessIdentityProviderIds
+                                      api_name: dataAccessIdentityProviderIds
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - set:
+                                        element_type: 4
+                                      description: Approved domains that restrict users who can join the organization based on their email address.
+                                      custom_type:
+                                        package: customtypes
+                                        model: customtypes.SetValue[types.String]
+                                        schema: customtypes.NewSetType[types.String](ctx)
+                                      computed_optional_required: computed
+                                      tf_schema_name: domain_allow_list
+                                      tf_model_name: DomainAllowList
+                                      api_name: domainAllowList
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - bool: {}
+                                      description: Value that indicates whether domain restriction is enabled for this connected org.
+                                      computed_optional_required: computed
+                                      tf_schema_name: domain_restriction_enabled
+                                      tf_model_name: DomainRestrictionEnabled
+                                      api_name: domainRestrictionEnabled
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Legacy 20-hexadecimal digit string that identifies the UI access identity provider that this connected org config is associated with. This id can be found within the Federation Management Console > Identity Providers tab by clicking the info icon in the IdP ID row of a configured identity provider.
+                                      computed_optional_required: computed
+                                      tf_schema_name: id
+                                      tf_model_name: Id
+                                      api_name: identityProviderId
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Unique 24-hexadecimal digit string that identifies the connected organization configuration.
+                                      computed_optional_required: computed
+                                      tf_schema_name: org_id
+                                      tf_model_name: OrgId
+                                      api_name: orgId
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - set:
+                                        element_type: 4
+                                      description: Atlas roles that are granted to a user in this organization after authenticating. Roles are a human-readable label that identifies the collection of privileges that MongoDB Cloud grants a specific MongoDB Cloud user. These roles can only be organization specific roles.
+                                      custom_type:
+                                        package: customtypes
+                                        model: customtypes.SetValue[types.String]
+                                        schema: customtypes.NewSetType[types.String](ctx)
+                                      computed_optional_required: computed
+                                      tf_schema_name: post_auth_role_grants
+                                      tf_model_name: PostAuthRoleGrants
+                                      api_name: postAuthRoleGrants
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - set_nested:
+                                        nested_object:
+                                            attributes:
+                                                - string: {}
+                                                  description: Unique human-readable label that identifies the identity provider group to which this role mapping applies.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: external_group_name
+                                                  tf_model_name: ExternalGroupName
+                                                  api_name: externalGroupName
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: Unique 24-hexadecimal digit string that identifies this role mapping.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: id
+                                                  tf_model_name: Id
+                                                  api_name: id
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - set_nested:
+                                                    nested_object:
+                                                        attributes:
+                                                            - string: {}
+                                                              description: Unique 24-hexadecimal digit string that identifies the project to which this role belongs. Each element within **roleAssignments** can have a value for **groupId** or **orgId**, but not both.
+                                                              computed_optional_required: computed
+                                                              tf_schema_name: group_id
+                                                              tf_model_name: GroupId
+                                                              api_name: groupId
+                                                              req_body_usage: omit_always
+                                                              sensitive: false
+                                                              create_only: false
+                                                              present_in_any_response: false
+                                                              request_only_required_on_create: false
+                                                            - string: {}
+                                                              description: Unique 24-hexadecimal digit string that identifies the organization to which this role belongs. Each element within **roleAssignments** can have a value for **orgId** or **groupId**, but not both.
+                                                              computed_optional_required: computed
+                                                              tf_schema_name: org_id
+                                                              tf_model_name: OrgId
+                                                              api_name: orgId
+                                                              req_body_usage: omit_always
+                                                              sensitive: false
+                                                              create_only: false
+                                                              present_in_any_response: false
+                                                              request_only_required_on_create: false
+                                                            - string: {}
+                                                              description: Human-readable label that identifies the collection of privileges that MongoDB Cloud grants a specific API key, MongoDB Cloud user, or MongoDB Cloud team. These roles include organization- and project-level roles.
+                                                              computed_optional_required: computed
+                                                              tf_schema_name: role
+                                                              tf_model_name: Role
+                                                              api_name: role
+                                                              req_body_usage: omit_always
+                                                              sensitive: false
+                                                              create_only: false
+                                                              present_in_any_response: false
+                                                              request_only_required_on_create: false
+                                                  description: Atlas roles and the unique identifiers of the groups and organizations associated with each role. The array must include at least one element with an Organization role and its respective **orgId**. Each element in the array can have a value for **orgId** or **groupId**, but not both.
+                                                  custom_type:
+                                                    package: customtypes
+                                                    model: customtypes.NestedSetValue[TFResultsAssociatedOrgsRoleMappingsRoleAssignmentsModel]
+                                                    schema: customtypes.NewNestedSetType[TFResultsAssociatedOrgsRoleMappingsRoleAssignmentsModel](ctx)
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: role_assignments
+                                                  tf_model_name: RoleAssignments
+                                                  api_name: roleAssignments
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                      description: Role mappings that are configured in this organization.
+                                      custom_type:
+                                        package: customtypes
+                                        model: customtypes.NestedSetValue[TFResultsAssociatedOrgsRoleMappingsModel]
+                                        schema: customtypes.NewNestedSetType[TFResultsAssociatedOrgsRoleMappingsModel](ctx)
+                                      computed_optional_required: computed
+                                      tf_schema_name: role_mappings
+                                      tf_model_name: RoleMappings
+                                      api_name: roleMappings
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - list_nested:
+                                        nested_object:
+                                            attributes:
+                                                - string: {}
+                                                  description: Email address of the MongoDB Cloud user linked to the federated organization.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: email_address
+                                                  tf_model_name: EmailAddress
+                                                  api_name: emailAddress
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: Unique 24-hexadecimal digit string that identifies the federation to which this MongoDB Cloud user belongs.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: federation_settings_id
+                                                  tf_model_name: FederationSettingsId
+                                                  api_name: federationSettingsId
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: First or given name that belongs to the MongoDB Cloud user.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: first_name
+                                                  tf_model_name: FirstName
+                                                  api_name: firstName
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: Last name, family name, or surname that belongs to the MongoDB Cloud user.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: last_name
+                                                  tf_model_name: LastName
+                                                  api_name: lastName
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: Unique 24-hexadecimal digit string that identifies this user.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: user_id
+                                                  tf_model_name: UserId
+                                                  api_name: userId
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                      description: List that contains the users who have an email address that doesn't match any domain on the allowed list.
+                                      custom_type:
+                                        package: customtypes
+                                        model: customtypes.NestedListValue[TFResultsAssociatedOrgsUserConflictsModel]
+                                        schema: customtypes.NewNestedListType[TFResultsAssociatedOrgsUserConflictsModel](ctx)
+                                      computed_optional_required: computed
+                                      tf_schema_name: user_conflicts
+                                      tf_model_name: UserConflicts
+                                      api_name: userConflicts
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: List that contains the connected organization configurations associated with the identity provider.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.NestedSetValue[TFResultsAssociatedOrgsModel]
+                            schema: customtypes.NewNestedSetType[TFResultsAssociatedOrgsModel](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: associated_orgs
+                          tf_model_name: AssociatedOrgs
+                          api_name: associatedOrgs
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Identifier of the intended recipient of the token.
+                          computed_optional_required: computed
+                          tf_schema_name: audience
+                          tf_model_name: Audience
+                          api_name: audience
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique string that identifies the intended audience of the SAML assertion.
+                          computed_optional_required: computed
+                          tf_schema_name: audience_uri
+                          tf_model_name: AudienceUri
+                          api_name: audienceUri
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Indicates whether authorization is granted based on group membership or user ID.
+                          computed_optional_required: computed
+                          tf_schema_name: authorization_type
+                          tf_model_name: AuthorizationType
+                          api_name: authorizationType
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Client identifier that is assigned to an application by the Identity Provider.
+                          computed_optional_required: computed
+                          tf_schema_name: client_id
+                          tf_model_name: ClientId
+                          api_name: clientId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Date that the identity provider was created on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                          computed_optional_required: computed
+                          tf_schema_name: created_at
+                          tf_model_name: CreatedAt
+                          api_name: createdAt
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: The description of the identity provider.
+                          computed_optional_required: computed
+                          tf_schema_name: description
+                          tf_model_name: Description
+                          api_name: description
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Human-readable label that identifies the identity provider.
+                          computed_optional_required: computed
+                          tf_schema_name: display_name
+                          tf_model_name: DisplayName
+                          api_name: displayName
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Identifier of the claim which contains IdP Group IDs in the token.
+                          computed_optional_required: computed
+                          tf_schema_name: groups_claim
+                          tf_model_name: GroupsClaim
+                          api_name: groupsClaim
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-hexadecimal digit string that identifies the identity provider.
+                          computed_optional_required: computed
+                          tf_schema_name: id
+                          tf_model_name: Id
+                          api_name: id
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: String enum that indicates the type of the identity provider. Default is WORKFORCE.
+                          computed_optional_required: computed
+                          tf_schema_name: idp_type
+                          tf_model_name: IdpType
+                          api_name: idpType
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique string that identifies the issuer of the SAML Assertion or OIDC metadata/discovery document URL.
+                          computed_optional_required: computed
+                          tf_schema_name: issuer_uri
+                          tf_model_name: IssuerUri
+                          api_name: issuerUri
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Legacy 20-hexadecimal digit string that identifies the identity provider.
+                          computed_optional_required: computed
+                          tf_schema_name: okta_idp_id
+                          tf_model_name: OktaIdpId
+                          api_name: oktaIdpId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - single_nested:
+                            nested_object:
+                                attributes:
+                                    - list_nested:
+                                        nested_object:
+                                            attributes:
+                                                - string: {}
+                                                  description: Latest date that the certificate is valid. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: not_after
+                                                  tf_model_name: NotAfter
+                                                  api_name: notAfter
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                                - string: {}
+                                                  description: Earliest date that the certificate is valid. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                                                  computed_optional_required: computed
+                                                  tf_schema_name: not_before
+                                                  tf_model_name: NotBefore
+                                                  api_name: notBefore
+                                                  req_body_usage: omit_always
+                                                  sensitive: false
+                                                  create_only: false
+                                                  present_in_any_response: false
+                                                  request_only_required_on_create: false
+                                      description: List of certificates in the file.
+                                      custom_type:
+                                        package: customtypes
+                                        model: customtypes.NestedListValue[TFResultsPemFileInfoCertificatesModel]
+                                        schema: customtypes.NewNestedListType[TFResultsPemFileInfoCertificatesModel](ctx)
+                                      computed_optional_required: computed
+                                      tf_schema_name: certificates
+                                      tf_model_name: Certificates
+                                      api_name: certificates
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Human-readable label given to the file.
+                                      computed_optional_required: computed
+                                      tf_schema_name: file_name
+                                      tf_model_name: FileName
+                                      api_name: fileName
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: PEM file information for the identity provider's current certificates.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.ObjectValue[TFResultsPemFileInfoModel]
+                            schema: customtypes.NewObjectType[TFResultsPemFileInfoModel](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: pem_file_info
+                          tf_model_name: PemFileInfo
+                          api_name: pemFileInfo
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: String enum that indicates the protocol of the identity provider. Either SAML or OIDC.
+                          computed_optional_required: computed
+                          tf_schema_name: protocol
+                          tf_model_name: Protocol
+                          api_name: protocol
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: SAML Authentication Request Protocol HTTP method binding (POST or REDIRECT) that Federated Authentication uses to send the authentication request.
+                          computed_optional_required: computed
+                          tf_schema_name: request_binding
+                          tf_model_name: RequestBinding
+                          api_name: requestBinding
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - list:
+                            element_type: 4
+                          description: Scopes that MongoDB applications will request from the authorization endpoint.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.ListValue[types.String]
+                            schema: customtypes.NewListType[types.String](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: requested_scopes
+                          tf_model_name: RequestedScopes
+                          api_name: requestedScopes
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Signature algorithm that Federated Authentication uses to encrypt the identity provider signature.
+                          computed_optional_required: computed
+                          tf_schema_name: response_signature_algorithm
+                          tf_model_name: ResponseSignatureAlgorithm
+                          api_name: responseSignatureAlgorithm
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Custom SSO Url for the identity provider.
+                          computed_optional_required: computed
+                          tf_schema_name: slug
+                          tf_model_name: Slug
+                          api_name: slug
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - bool: {}
+                          description: Flag that indicates whether the identity provider has SSO debug enabled.
+                          computed_optional_required: computed
+                          tf_schema_name: sso_debug_enabled
+                          tf_model_name: SsoDebugEnabled
+                          api_name: ssoDebugEnabled
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: URL that points to the receiver of the SAML authentication request.
+                          computed_optional_required: computed
+                          tf_schema_name: sso_url
+                          tf_model_name: SsoUrl
+                          api_name: ssoUrl
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: String enum that indicates whether the identity provider is active.
+                          computed_optional_required: computed
+                          tf_schema_name: status
+                          tf_model_name: Status
+                          api_name: status
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Date that the identity provider was last updated on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                          computed_optional_required: computed
+                          tf_schema_name: updated_at
+                          tf_model_name: UpdatedAt
+                          api_name: updatedAt
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Identifier of the claim which contains the user ID in the token.
+                          computed_optional_required: computed
+                          tf_schema_name: user_claim
+                          tf_model_name: UserClaim
+                          api_name: userClaim
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of returned documents that MongoDB Cloud provides when completing this request.
+              custom_type:
+                package: customtypes
+                model: customtypes.NestedListValue[TFResultsModel]
+                schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: results
+              tf_model_name: Results
+              api_name: results
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders/{id}
+        list:
+            http_method: GET
+            path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders
+        version_header: application/vnd.atlas.2025-03-12+json
+name: federated_settings_identity_provider_api
+packageName: federatedsettingsidentityproviderapi
