@@ -849,31 +849,3 @@ resources:
           sensitive: true
         notifications.ops_genie_api_key:
           sensitive: true
-
-  federated_settings_identity_provider_api:
-    read:
-      path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders/{identityProviderId}
-      method: GET
-    create:
-      path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders
-      method: POST
-    update:
-      path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders/{identityProviderId}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders/{identityProviderId}
-      method: DELETE
-    version_header: application/vnd.atlas.2025-03-12+json
-    schema:
-      aliases:
-        identityProviderId: id # path param name does not match the API response property.
-    datasources:
-        read:
-          path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders/{identityProviderId}
-          method: GET
-        list:
-          path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders
-          method: GET
-        schema:
-          aliases:
-            identityProviderId: id # path param name does not match the API response property.
