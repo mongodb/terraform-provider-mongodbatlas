@@ -16,8 +16,8 @@ func GenerateDataSourceSchemaGoCode(input *codespec.Resource) ([]byte, error) {
 	}
 
 	dsSchema := input.DataSources.Schema
-	schemaAttrs := GenerateDataSourceSchemaAttributes(dsSchema.Attributes)
-	dsModel := GenerateDataSourceTypedModels(dsSchema.Attributes)
+	schemaAttrs := GenerateDataSourceSchemaAttributes(*dsSchema.SingularDSAttributes)
+	dsModel := GenerateDataSourceTypedModels(*dsSchema.SingularDSAttributes)
 
 	// Collect imports (dsschema is hardcoded in the template)
 	var imports []string
