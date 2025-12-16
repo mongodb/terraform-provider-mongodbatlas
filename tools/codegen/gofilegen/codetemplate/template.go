@@ -67,6 +67,7 @@ type Wait struct {
 type Param struct {
 	PascalCaseName string
 	CamelCaseName  string
+	Type           string // "string", "int64", "bool", "list", "set"
 }
 
 type MoveState struct {
@@ -97,6 +98,7 @@ type PluralDataSourceFileInputs struct {
 	ReadPath       string
 	ReadMethod     string
 	PathParams     []Param
+	QueryParams    []Param
 }
 
 type PluralDataSourceSchemaFileInputs struct {

@@ -4,8 +4,28 @@ package {{ .PackageName }}
 
 import (
 	"context"
+	{{- if .QueryParams }}
+	{{- $needsFmt := false }}
+	{{- $needsStrings := false }}
+	{{- range .QueryParams }}
+	{{- if or (eq .Type "int64") (eq .Type "bool") }}
+	{{- $needsFmt = true }}
+	{{- else if or (eq .Type "list") (eq .Type "set") }}
+	{{- $needsStrings = true }}
+	{{- end }}
+	{{- end }}
+	{{- if $needsFmt }}
+	"fmt"
+	{{- end }}
+	{{- if $needsStrings }}
+	"strings"
+	{{- end }}
+	{{- end }}
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	{{- if .QueryParams }}
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	{{- end }}
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -49,10 +69,43 @@ func pluralDataSourceReadAPICallParams(model *TFPluralDSModel) *config.APICallPa
 		"{{ .CamelCaseName }}": model.{{ .PascalCaseName }}.ValueString(),
 	{{- end }}
 	}
+	queryParams := map[string]string{}
+	{{- range .QueryParams }}
+	{{- if eq .Type "string" }}
+	if !model.{{ .PascalCaseName }}.IsNull() && !model.{{ .PascalCaseName }}.IsUnknown() {
+		queryParams["{{ .CamelCaseName }}"] = model.{{ .PascalCaseName }}.ValueString()
+	}
+	{{- else if eq .Type "int64" }}
+	if !model.{{ .PascalCaseName }}.IsNull() && !model.{{ .PascalCaseName }}.IsUnknown() {
+		queryParams["{{ .CamelCaseName }}"] = fmt.Sprintf("%d", model.{{ .PascalCaseName }}.ValueInt64())
+	}
+	{{- else if eq .Type "bool" }}
+	if !model.{{ .PascalCaseName }}.IsNull() && !model.{{ .PascalCaseName }}.IsUnknown() {
+		queryParams["{{ .CamelCaseName }}"] = fmt.Sprintf("%t", model.{{ .PascalCaseName }}.ValueBool())
+	}
+	{{- else if or (eq .Type "list") (eq .Type "set") }}
+	if !model.{{ .PascalCaseName }}.IsNull() && !model.{{ .PascalCaseName }}.IsUnknown() {
+		elements := make([]types.String, 0, len(model.{{ .PascalCaseName }}.Elements()))
+		diags := model.{{ .PascalCaseName }}.ElementsAs(context.TODO(), &elements, false)
+		if !diags.HasError() {
+			var values []string
+			for _, elem := range elements {
+				if !elem.IsNull() && !elem.IsUnknown() {
+					values = append(values, elem.ValueString())
+				}
+			}
+			if len(values) > 0 {
+				queryParams["{{ .CamelCaseName }}"] = strings.Join(values, ",")
+			}
+		}
+	}
+	{{- end }}
+	{{- end }}
 	return &config.APICallParams{
 		VersionHeader: "{{ .VersionHeader }}",
 		RelativePath:  "{{ .ReadPath }}",
 		PathParams:    pathParams,
+		QueryParams:   queryParams,
 		Method:        "{{ .ReadMethod }}",
 	}
 }

@@ -33,7 +33,7 @@ func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSou
 		return nil
 	}
 
-	dsConfig.SchemaOptions.Ignores = append(dsConfig.SchemaOptions.Ignores, "total_count")
+	dsConfig.SchemaOptions.Ignores = append(dsConfig.SchemaOptions.Ignores, "total_count", "envelope", "items_per_page", "page_num")
 
 	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.SingularDSAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations for singular data source: %w", err)

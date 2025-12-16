@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/format"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/codetemplate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/resource"
@@ -42,6 +43,7 @@ func GeneratePluralGoCode(input *codespec.Resource) ([]byte, error) {
 
 	listOp := input.DataSources.Operations.List
 	pathParams := resource.GetPathParams(listOp.Path)
+	queryParams := getQueryParams(*input.DataSources.Schema.PluralDSAttributes)
 
 	tmplInputs := codetemplate.PluralDataSourceFileInputs{
 		PackageName:    input.PackageName,
@@ -50,6 +52,7 @@ func GeneratePluralGoCode(input *codespec.Resource) ([]byte, error) {
 		ReadPath:       listOp.Path,
 		ReadMethod:     listOp.HTTPMethod,
 		PathParams:     pathParams,
+		QueryParams:    queryParams,
 	}
 	result := codetemplate.ApplyPluralDataSourceFileTemplate(&tmplInputs)
 
@@ -58,4 +61,43 @@ func GeneratePluralGoCode(input *codespec.Resource) ([]byte, error) {
 		return nil, fmt.Errorf("failed to format generated Go code (plural data source): %w", err)
 	}
 	return formattedResult, nil
+}
+
+// getQueryParams extracts query parameters from plural data source attributes.
+// Query parameters are optional top-level attributes
+func getQueryParams(attributes codespec.Attributes) []codetemplate.Param {
+	var queryParams []codetemplate.Param
+
+	for _, attr := range attributes {
+		// Only consider optional attributes as query parameters
+		if attr.ComputedOptionalRequired == codespec.Optional {
+			attrType := getAttributeType(&attr)
+			param := codetemplate.Param{
+				PascalCaseName: stringcase.Capitalize(attr.TFModelName),
+				CamelCaseName:  stringcase.Uncapitalize(attr.TFModelName),
+				Type:           attrType,
+			}
+			queryParams = append(queryParams, param)
+		}
+	}
+
+	return queryParams
+}
+
+// getAttributeType returns the type of an attribute for query parameter handling
+func getAttributeType(attr *codespec.Attribute) string {
+	switch {
+	case attr.String != nil:
+		return "string"
+	case attr.Int64 != nil:
+		return "int64"
+	case attr.Bool != nil:
+		return "bool"
+	case attr.List != nil:
+		return "list"
+	case attr.Set != nil:
+		return "set"
+	default:
+		return "unknown"
+	}
 }
