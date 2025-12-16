@@ -4,7 +4,7 @@ subcategory: "Log Integration"
 
 # Data Source: mongodbatlas_log_integration
 
-`mongodbatlas_log_integration` describes the configuration for a log integration identified by its unique ID. Log integrations are managed at the project level and allow you to continually export mongod, mongos, and audit logs to an AWS S3 bucket with 1-minute log export intervals.
+`mongodbatlas_log_integration` describes the configuration for a log integration identified by its unique ID. Log integrations are managed at the project level and allow you to continually export `mongod`, `mongos`, and audit logs to an AWS S3 bucket with 1-minute log export intervals.
 
 To use this data source, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
 
