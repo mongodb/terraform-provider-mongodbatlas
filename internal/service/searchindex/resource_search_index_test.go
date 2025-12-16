@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -191,10 +192,58 @@ func TestAccSearchIndex_updatedToEmptyMappingsFields(t *testing.T) {
 func TestAccSearchIndex_withVector(t *testing.T) {
 	resource.ParallelTest(t, *basicVectorTestCase(t))
 }
+
 func TestAccSearchIndex_withNumPartitions(t *testing.T) {
-	resource.ParallelTest(t, *numPartitionsTestCase(t))
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t, true)
+		indexName              = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: configSearchWithNumPartitions(projectID, indexName, clusterName, nil),
+				Check:  checkSearchWithNumPartitions(projectID, indexName, clusterName, nil),
+			},
+			{
+				Config: configSearchWithNumPartitions(projectID, indexName, clusterName, conversion.IntPtr(2)),
+				Check:  checkSearchWithNumPartitions(projectID, indexName, clusterName, conversion.IntPtr(2)),
+			},
+			{
+				Config: configSearchWithNumPartitions(projectID, indexName, clusterName, nil),
+				Check:  checkSearchWithNumPartitions(projectID, indexName, clusterName, nil),
+			},
+		},
+	})
 }
 
+func TestAccVectorSearchIndex_withNumPartitions(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t, true)
+		indexName              = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: configVectorSearchWithNumPartitions(projectID, indexName, clusterName, nil),
+				Check:  checkVectorSearchWithNumPartitions(projectID, indexName, clusterName, nil),
+			},
+			{
+				Config: configVectorSearchWithNumPartitions(projectID, indexName, clusterName, conversion.IntPtr(2)),
+				Check:  checkVectorSearchWithNumPartitions(projectID, indexName, clusterName, conversion.IntPtr(2)),
+			},
+			{
+				Config: configVectorSearchWithNumPartitions(projectID, indexName, clusterName, nil),
+				Check:  checkVectorSearchWithNumPartitions(projectID, indexName, clusterName, nil),
+			},
+		},
+	})
+}
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	var (
@@ -536,15 +585,20 @@ func configVector(projectID, indexName, clusterName string) string {
 		data "mongodbatlas_search_index" "data_index" {
 			cluster_name     = mongodbatlas_search_index.test.cluster_name
 			project_id       = mongodbatlas_search_index.test.project_id
-			index_id 				 = mongodbatlas_search_index.test.index_id
+			index_id         = mongodbatlas_search_index.test.index_id
 		}
 	`, clusterName, projectID, indexName, database, collection, fieldsJSON)
 }
 
-func configSearchWithNumPartitions(projectID, indexName, clusterName string, numPartitions int) string {
+func configVectorSearchWithNumPartitions(projectID, indexName, clusterName string, numPartitions *int) string {
+	var numPartitionsLine string
+	hasNumPartitions := numPartitions != nil
+	if hasNumPartitions {
+		numPartitionsLine = fmt.Sprintf("num_partitions   = %d", *numPartitions)
+	}
 	return fmt.Sprintf(`
 
-		resource "mongodbatlas_search_deployment" "test" {
+			resource "mongodbatlas_search_deployment" "test" {
 			cluster_name = %[1]q
 			project_id   = %[2]q
 			specs = [
@@ -554,6 +608,34 @@ func configSearchWithNumPartitions(projectID, indexName, clusterName string, num
 				}
 			]
 		}
+		resource "mongodbatlas_search_index" "test" {
+			cluster_name     = %[1]q
+			project_id       = %[2]q
+			name             = %[3]q
+			database         = %[4]q
+			collection_name  = %[5]q
+		
+			type = "vectorSearch"
+			%[6]s
+			fields = <<-EOF
+	    %[7]s
+			EOF
+		}
+	
+		data "mongodbatlas_search_index" "data_index" {
+			cluster_name     = mongodbatlas_search_index.test.cluster_name
+			project_id       = mongodbatlas_search_index.test.project_id
+			index_id         = mongodbatlas_search_index.test.index_id
+		}
+	`, clusterName, projectID, indexName, database, collection, numPartitionsLine, fieldsJSON)
+}
+func configSearchWithNumPartitions(projectID, indexName, clusterName string, numPartitions *int) string {
+	var numPartitionsLine string
+	hasNumPartitions := numPartitions != nil
+	if hasNumPartitions {
+		numPartitionsLine = fmt.Sprintf("num_partitions   = %d", *numPartitions)
+	}
+	return fmt.Sprintf(`
 
 		resource "mongodbatlas_search_index" "test" {
 			cluster_name     = %[1]q
@@ -564,18 +646,41 @@ func configSearchWithNumPartitions(projectID, indexName, clusterName string, num
 			analyzer         = "lucene.standard"
 			search_analyzer  = "lucene.standard"
 			mappings_dynamic = true
-			num_partitions   = %[6]d
 			type             = "search"
-			
-			depends_on = [mongodbatlas_search_deployment.test]
+			%[6]s
+
+		depends_on = [mongodbatlas_search_deployment.test]	
 		}
-	
+
 		data "mongodbatlas_search_index" "data_index" {
 			cluster_name     = mongodbatlas_search_index.test.cluster_name
 			project_id       = mongodbatlas_search_index.test.project_id
-			index_id 		 = mongodbatlas_search_index.test.index_id
+			index_id         = mongodbatlas_search_index.test.index_id
 		}
-	`, clusterName, projectID, indexName, database, collection, numPartitions)
+	`, clusterName, projectID, indexName, database, collection, numPartitionsLine)
+}
+func checkVectorSearchWithNumPartitions(projectID, indexName, clusterName string, numPartitions *int) resource.TestCheckFunc {
+	indexType := "vectorSearch"
+	mappingsDynamic := "true"
+	checks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttrWith(resourceName, "fields", acc.JSONEquals(fieldsJSON)),
+		resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(fieldsJSON)),
+	}
+
+	if numPartitions != nil {
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, "num_partitions", fmt.Sprintf("%d", *numPartitions)),
+			resource.TestCheckResourceAttr(datasourceName, "num_partitions", fmt.Sprintf("%d", *numPartitions)),
+		)
+	} else {
+		var ret int
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, "num_partitions", strconv.Itoa(ret)),
+			resource.TestCheckResourceAttr(datasourceName, "num_partitions", strconv.Itoa(ret)),
+		)
+	}
+
+	return checkAggr(projectID, clusterName, indexName, indexType, mappingsDynamic, checks...)
 }
 
 func checkVector(projectID, indexName, clusterName string) resource.TestCheckFunc {
@@ -586,41 +691,29 @@ func checkVector(projectID, indexName, clusterName string) resource.TestCheckFun
 		resource.TestCheckResourceAttrWith(datasourceName, "fields", acc.JSONEquals(fieldsJSON)))
 }
 
-func checkSearchWithNumPartitions(projectID, indexName, clusterName string, numPartitions int) resource.TestCheckFunc {
+func checkSearchWithNumPartitions(projectID, indexName, clusterName string, numPartitions *int) resource.TestCheckFunc {
 	indexType := "search"
 	mappingsDynamic := "true"
 	checks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "analyzer", "lucene.standard"),
 		resource.TestCheckResourceAttr(resourceName, "search_analyzer", "lucene.standard"),
-		resource.TestCheckResourceAttr(resourceName, "num_partitions", fmt.Sprintf("%d", numPartitions)),
 		resource.TestCheckResourceAttr(datasourceName, "analyzer", "lucene.standard"),
 		resource.TestCheckResourceAttr(datasourceName, "search_analyzer", "lucene.standard"),
-		resource.TestCheckResourceAttr(datasourceName, "num_partitions", fmt.Sprintf("%d", numPartitions)),
+	}
+
+	if numPartitions != nil {
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, "num_partitions", fmt.Sprintf("%d", *numPartitions)),
+			resource.TestCheckResourceAttr(datasourceName, "num_partitions", fmt.Sprintf("%d", *numPartitions)),
+		)
+	} else {
+		var ret int
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, "num_partitions", strconv.Itoa(ret)),
+			resource.TestCheckResourceAttr(datasourceName, "num_partitions", strconv.Itoa(ret)),
+		)
 	}
 	return checkAggr(projectID, clusterName, indexName, indexType, mappingsDynamic, checks...)
-}
-
-func numPartitionsTestCase(tb testing.TB) *resource.TestCase {
-	tb.Helper()
-	var (
-		projectID, clusterName = acc.ClusterNameExecution(tb, true)
-		indexName              = acc.RandomName()
-	)
-	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroySearchIndex,
-		Steps: []resource.TestStep{
-			{
-				Config: configSearchWithNumPartitions(projectID, indexName, clusterName, 2),
-				Check:  checkSearchWithNumPartitions(projectID, indexName, clusterName, 2),
-			},
-			{
-				Config: configSearchWithNumPartitions(projectID, indexName, clusterName, 4),
-				Check:  checkSearchWithNumPartitions(projectID, indexName, clusterName, 4),
-			},
-		},
-	}
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
