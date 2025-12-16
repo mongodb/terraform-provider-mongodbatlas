@@ -20,14 +20,10 @@ This approach ensures continuous log delivery during migration without gaps.
 
 ## Examples
 
-The examples are organized as follows:
-
-- **For users directly utilizing the `mongodbatlas_push_based_log_export` resource**: please check the [basic/](./basic/README.md) folder. This shows a step-by-step migration through three phases:
-  - `v1/` - Original configuration with `mongodbatlas_push_based_log_export`
-  - `v2/` - Both resources running during migration
-  - `v3/` - Final configuration with only `mongodbatlas_log_integration`
-
-- **For users employing modules to manage log exports**: please see the [module_maintainer/](./module_maintainer/README.md) and [module_user/](./module_user/README.md) folders. These folders illustrate the migration process from both the maintainer's and the user's perspectives, using a feature flag approach.
+Please check the [basic/](./basic/README.md) folder. This shows a step-by-step migration through three phases:
+- `v1/` - Original configuration with `mongodbatlas_push_based_log_export`
+- `v2/` - Both resources running during migration
+- `v3/` - Final configuration with only `mongodbatlas_log_integration`
 
 ## Important Considerations
 

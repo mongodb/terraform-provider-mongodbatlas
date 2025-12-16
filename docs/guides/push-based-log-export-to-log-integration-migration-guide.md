@@ -105,10 +105,6 @@ Confirm the migration is complete:
 
 If you are using modules to manage log exports, the migration follows a similar create-before-destroy approach with a feature flag pattern.
 
-For complete working examples, see:
-- [Module maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_push_based_log_export_to_log_integration/module_maintainer)
-- [Module user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_push_based_log_export_to_log_integration/module_user)
-
 ### Module Maintainer Steps
 
 1. **Create a new module version** that uses `mongodbatlas_log_integration` and includes a flag (e.g., `skip_push_based_log_export`) to control the lifecycle of the old resource:
