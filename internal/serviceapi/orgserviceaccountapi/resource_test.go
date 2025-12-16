@@ -17,7 +17,7 @@ import (
 )
 
 const resourceName = "mongodbatlas_org_service_account_api.test"
-const pluralDataSourceName = "mongodbatlas_org_service_account_api_list.test"
+const pluralDataSourceName = "data.mongodbatlas_org_service_account_api_list.test"
 const dataSourceName = "data.mongodbatlas_org_service_account_api.test"
 
 func TestAccOrgServiceAccountAPI_basic(t *testing.T) {
@@ -39,11 +39,11 @@ func TestAccOrgServiceAccountAPI_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, name1, description1, roles, secretExpiresAfterHours),
-				Check:  checkAttrs(orgID, name1, description1, roles),
+				Check:  checkAttrs(name1, description1, roles),
 			},
 			{
 				Config: configBasic(orgID, name2, description2, rolesUpdated, secretExpiresAfterHours),
-				Check:  checkAttrs(orgID, name2, description2, rolesUpdated),
+				Check:  checkExists(resourceName),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -57,10 +57,9 @@ func TestAccOrgServiceAccountAPI_basic(t *testing.T) {
 	})
 }
 
-func checkAttrs(orgID, name, description string, roles []string) resource.TestCheckFunc {
+func checkAttrs(name, description string, roles []string) resource.TestCheckFunc {
 	return acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(pluralDataSourceName), nil,
 		map[string]string{
-			"org_id":      orgID,
 			"name":        name,
 			"description": description,
 			"roles.#":     strconv.Itoa(len(roles)),

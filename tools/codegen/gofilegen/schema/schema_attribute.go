@@ -46,11 +46,6 @@ func generateSchemaAttributesWithGenerator(attrs codespec.Attributes, genFunc fu
 	}
 }
 
-// dataSourceAttrGenerator wraps resource generators to produce data source schema code.
-func dataSourceAttrGenerator(attr *codespec.Attribute) attributeGenerator {
-	return dataSourceAttrGeneratorWithPrefix(attr, "DS")
-}
-
 // dataSourceAttrGeneratorWithPrefix wraps resource generators to produce data source schema code with a specific prefix.
 func dataSourceAttrGeneratorWithPrefix(attr *codespec.Attribute, dsPrefix string) attributeGenerator {
 	return &dsAttrGeneratorWrapper{inner: generator(attr), attr: attr, dsPrefix: dsPrefix}
