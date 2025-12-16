@@ -5,7 +5,7 @@ import (
 )
 
 // CustomHooks aggregates all hook interfaces.
-// Resource implementations typically satisfy this via embedding NoOpCustomCodeHooks and overriding only the hooks they care about.
+// Resource implementations satisfy this interface by embedding NoOpCustomCodeHooks and overriding hooks where custom logic is needed.
 type CustomHooks interface {
 	CreateAPICallHooks
 	ReadAPICallHooks

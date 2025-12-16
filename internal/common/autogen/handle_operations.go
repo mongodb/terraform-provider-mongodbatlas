@@ -319,7 +319,6 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 		callParams := wait.CallParams(model)
 		modifiedParams := hooks.PreReadAPICall(*callParams)
 		callResult := callAPIWithoutBody(ctx, client, modifiedParams)
-		// TODO fix?
 		callResult = hooks.PostReadAPICall(HandleReadReq{
 			ReadAPICallHooks: hooks,
 			Client:           client,
