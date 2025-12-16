@@ -63,7 +63,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 						},
 						"operator": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Comparison operator to apply when checking the current metric value against **matcher[n].value**.",
+							MarkdownDescription: "Comparison operator to apply when checking the current metric value against **matcher[n].value**. The `REGEX` operator only supports inclusive matches. Use the `NOT_CONTAINS` operator to exclude values.",
 						},
 						"value": dsschema.StringAttribute{
 							Computed:            true,
@@ -213,12 +213,12 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 						},
 						"webhook_secret": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Authentication secret for a webhook-based alert.\n\nAtlas returns this value if you set `\"notifications.[n].typeName\" :\"WEBHOOK\"` and either:\n* You set `notification.[n].webhookSecret` to a non-empty string\n* You set a default webhookSecret either on the Integrations page, or with the [Integrations API](#tag/Third-Party-Service-Integrations/operation/createIntegration)\n\n**NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.",
+							MarkdownDescription: "Authentication secret for a webhook-based alert.\n\nAtlas returns this value if you set `\"notifications.[n].typeName\" :\"WEBHOOK\"` and either:\n* You set `notification.[n].webhookSecret` to a non-empty string\n* You set a default webhookSecret either on the Integrations page, or with the Integrations API\n\n**NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.",
 							Sensitive:           true,
 						},
 						"webhook_url": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Target URL for a webhook-based alert.\n\nAtlas returns this value if you set `\"notifications.[n].typeName\" :\"WEBHOOK\"` and either:\n* You set `notification.[n].webhookURL` to a non-empty string\n* You set a default webhookUrl either on the [Integrations](https://www.mongodb.com/docs/atlas/tutorial/third-party-service-integrations/#std-label-third-party-integrations) page, or with the [Integrations API](#tag/Third-Party-Service-Integrations/operation/createIntegration)\n\n**NOTE**: When you view or edit the alert for a Webhook URL notification, the URL appears partially redacted.",
+							MarkdownDescription: "Target URL for a webhook-based alert.\n\nAtlas returns this value if you set `\"notifications.[n].typeName\" :\"WEBHOOK\"` and either:\n* You set `notification.[n].webhookURL` to a non-empty string\n* You set a default webhookUrl either on the Integrations page, or with the Integrations API\n\n**NOTE**: When you view or edit the alert for a Webhook URL notification, the URL appears partially redacted.",
 						},
 					},
 				},

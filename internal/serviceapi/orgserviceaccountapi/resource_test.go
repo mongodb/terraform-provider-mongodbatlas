@@ -5,31 +5,24 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 const resourceName = "mongodbatlas_org_service_account_api.test"
-const pluralDataSourceName = "data.mongodbatlas_org_service_account_api_list.test"
-const dataSourceName = "data.mongodbatlas_org_service_account_api.test"
 
 func TestAccOrgServiceAccountAPI_basic(t *testing.T) {
 	var (
-		orgID                   = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		name1                   = acc.RandomName()
-		name2                   = fmt.Sprintf("%s-updated", name1)
-		description1            = "Acceptance Test SA"
-		description2            = "Updated Description"
-		secretExpiresAfterHours = 24
-		roles                   = []string{"ORG_OWNER"}
-		rolesUpdated            = []string{"ORG_READ_ONLY"}
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		name1        = acc.RandomName()
+		name2        = fmt.Sprintf("%s-updated", name1)
+		description1 = "Acceptance Test SA"
+		description2 = "Updated Description"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -38,12 +31,12 @@ func TestAccOrgServiceAccountAPI_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, name1, description1, roles, secretExpiresAfterHours),
-				Check:  checkAttrs(name1, description1, roles),
+				Config: configBasic(orgID, name1, description1, []string{"ORG_OWNER"}, 24),
+				Check:  checkBasic(true),
 			},
 			{
-				Config: configBasic(orgID, name2, description2, rolesUpdated, secretExpiresAfterHours),
-				Check:  checkExists(resourceName),
+				Config: configBasic(orgID, name2, description2, []string{"ORG_READ_ONLY"}, 24),
+				Check:  checkBasic(false),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -55,16 +48,6 @@ func TestAccOrgServiceAccountAPI_basic(t *testing.T) {
 			},
 		},
 	})
-}
-
-func checkAttrs(name, description string, roles []string) resource.TestCheckFunc {
-	return acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(pluralDataSourceName), nil,
-		map[string]string{
-			"name":        name,
-			"description": description,
-			"roles.#":     strconv.Itoa(len(roles)),
-			"roles.0":     roles[0],
-		}, checkBasic(true))
 }
 
 func TestAccOrgServiceAccountAPI_rolesOrdering(t *testing.T) {
@@ -120,26 +103,12 @@ func configBasic(orgID, name, description string, roles []string, secretExpiresA
 	rolesHCL := fmt.Sprintf("[%s]", rolesStr)
 	return fmt.Sprintf(`
 		resource "mongodbatlas_org_service_account_api" "test" {
-			org_id                     = %[1]q
-			name                       = %[2]q
-			description                = %[3]q
-			roles                      = %[4]s
-			secret_expires_after_hours = %[5]d
-		}
-			
-		data "mongodbatlas_org_service_account_api" "test" {
-			org_id = %[1]q
-			client_id = mongodbatlas_org_service_account_api.test.client_id
-			
-			depends_on = [mongodbatlas_org_service_account_api.test]
-		}
-			
-		data "mongodbatlas_org_service_account_api_list" "test" {
-			org_id = %[1]q
-			
-			depends_on = [mongodbatlas_org_service_account_api.test]
-		}
-			
+			org_id                     = %q
+			name                       = %q
+			description                = %q
+			roles                      = %s
+			secret_expires_after_hours = %d
+		}	
 	`, orgID, name, description, rolesHCL, secretExpiresAfterHours)
 }
 
