@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -107,7 +108,7 @@ func configBasic(orgID, name, description string, roles []string, secretExpiresA
 			description                = %q
 			roles                      = %s
 			secret_expires_after_hours = %d
-		}
+		}	
 	`, orgID, name, description, rolesHCL, secretExpiresAfterHours)
 }
 

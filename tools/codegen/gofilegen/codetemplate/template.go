@@ -26,6 +26,12 @@ var dataSourceFileTemplate string
 //go:embed data-source-schema-file.go.tmpl
 var dataSourceSchemaFileTemplate string
 
+//go:embed plural-data-source-file.go.tmpl
+var pluralDataSourceFileTemplate string
+
+//go:embed plural-data-source-schema-file.go.tmpl
+var pluralDataSourceSchemaFileTemplate string
+
 type ResourceFileInputs struct {
 	PackageName   string
 	ResourceName  string
@@ -84,6 +90,23 @@ type DataSourceSchemaFileInputs struct {
 	Imports            []string
 }
 
+type PluralDataSourceFileInputs struct {
+	PackageName    string
+	DataSourceName string
+	VersionHeader  string
+	ReadPath       string
+	ReadMethod     string
+	PathParams     []Param
+}
+
+type PluralDataSourceSchemaFileInputs struct {
+	DeprecationMessage *string
+	PackageName        string
+	SchemaAttributes   string
+	PluralDSModel      string
+	Imports            []string
+}
+
 func ApplySchemaFileTemplate(inputs *SchemaFileInputs) bytes.Buffer {
 	return applyTemplate(schemaFileTemplate, inputs)
 }
@@ -98,6 +121,14 @@ func ApplyDataSourceFileTemplate(inputs *DataSourceFileInputs) bytes.Buffer {
 
 func ApplyDataSourceSchemaFileTemplate(inputs *DataSourceSchemaFileInputs) bytes.Buffer {
 	return applyTemplate(dataSourceSchemaFileTemplate, inputs)
+}
+
+func ApplyPluralDataSourceFileTemplate(inputs *PluralDataSourceFileInputs) bytes.Buffer {
+	return applyTemplate(pluralDataSourceFileTemplate, inputs)
+}
+
+func ApplyPluralDataSourceSchemaFileTemplate(inputs *PluralDataSourceSchemaFileInputs) bytes.Buffer {
+	return applyTemplate(pluralDataSourceSchemaFileTemplate, inputs)
 }
 
 func applyTemplate[T any](templateStr string, inputs T) bytes.Buffer {
