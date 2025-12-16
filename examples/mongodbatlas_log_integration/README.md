@@ -4,9 +4,9 @@ This example demonstrates how to configure a log integration to export MongoDB A
 
 ## Prerequisites
 
-- MongoDB Atlas account with Organization Owner or Project Owner role
-- AWS account with permissions to create S3 buckets and IAM roles
-- Terraform >= 1.0
+- MongoDB Atlas account with Organization Owner or Project Owner role.
+- AWS account with permissions to create S3 buckets and IAM roles.
+- Terraform >= `1.0`.
 
 ## Resources Created
 
@@ -14,13 +14,13 @@ This example creates the following resources:
 
 ### MongoDB Atlas
 - Project
-- Cloud Provider Access Setup and Authorization
-- Log Integration configuration
+- Cloud Provider Access Setup and Authorization.
+- Log Integration configuration.
 
 ### AWS
-- S3 bucket for storing logs
-- IAM role for Atlas to assume
-- IAM policy for S3 access
+- S3 bucket for storing logs.
+- IAM role for Atlas to assume.
+- IAM policy for S3 access.
 
 ## Usage
 
@@ -44,14 +44,14 @@ terraform apply
 ## Log Types
 
 The `log_types` attribute supports the following values:
-- `MONGOD` - MongoDB server logs
-- `MONGOS` - MongoDB router logs
-- `MONGOD_AUDIT` - MongoDB server audit logs
-- `MONGOS_AUDIT` - MongoDB router audit logs
+- `MONGOD` - MongoDB server logs.
+- `MONGOS` - MongoDB router logs.
+- `MONGOD_AUDIT` - MongoDB server audit logs.
+- `MONGOS_AUDIT` - MongoDB router audit logs.
 
 ## Notes
 
-- The requesting Service Account or API Key must have the Organization Owner or Project Owner role
-- MongoDB Cloud will add sub-directories based on the log type under the specified `prefix_path`
-- Optional: Use `kms_key` to specify an AWS KMS key ID or ARN for server-side encryption
+- The requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+- MongoDB Cloud will add sub-directories based on the log type under the specified `prefix_path`.
+- Optional: Use `kms_key` to specify an AWS KMS key ID or ARN for server-side encryption.
 
