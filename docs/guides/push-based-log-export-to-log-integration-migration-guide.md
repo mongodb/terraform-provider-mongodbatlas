@@ -195,10 +195,9 @@ Atlas guarantees **at least once delivery** of logs. During the overlap period w
 
 ### Delay for Removal
 
-The prescribed delay between creating the new resource and destroying the old one ensures:
+The delay between creating the new resource and destroying the old one ensures:
 - Uninterrupted log flow during migration
-- Ample time to verify the new resource's functionality
-- Confidence that no log data is lost during the transition
+- Time to verify the new resource's functionality
 
 ## Recommended Best Practices
 
