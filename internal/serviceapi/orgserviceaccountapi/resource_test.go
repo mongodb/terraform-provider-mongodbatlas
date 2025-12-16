@@ -60,11 +60,11 @@ func TestAccOrgServiceAccountAPI_basic(t *testing.T) {
 func checkAttrs(orgID, name, description string, roles []string) resource.TestCheckFunc {
 	return acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(pluralDataSourceName), nil,
 		map[string]string{
-			"org_id":                     orgID,
-			"name":                       name,
-			"description":                description,
-			"roles.#":                    strconv.Itoa(len(roles)),
-			"roles.0":                    roles[0],
+			"org_id":      orgID,
+			"name":        name,
+			"description": description,
+			"roles.#":     strconv.Itoa(len(roles)),
+			"roles.0":     roles[0],
 		}, checkBasic(true))
 }
 
