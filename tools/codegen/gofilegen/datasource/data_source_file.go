@@ -67,7 +67,7 @@ func GeneratePluralGoCode(input *codespec.Resource) ([]byte, error) {
 // pluralizeName converts a resource name to its plural form for data sources.
 // For names ending with "_api", it inserts "s" before "_api".
 // E.g., "stream_instance_api" becomes "stream_instances_api"
-// This approach may not always be correct & will be improved in the future, for example,
+// This approach may not always be correct & should be improved in the future, for example,
 // "resource_policy_api" becomes "resource_policys_api" instead of "resource_policies_api"
 func pluralizeName(name string) string {
 	const apiSuffix = "_api"

@@ -256,7 +256,7 @@ type APICallParams struct {
 	VersionHeader string
 	RelativePath  string
 	PathParams    map[string]string
-	QueryParams   map[string]string // paramter values may be of type: string, int64, bool, list(string), set(string)
+	QueryParams   map[string]string // parameter values may be of type: string, int64, bool, list(string), set(string)
 	Method        string
 }
 

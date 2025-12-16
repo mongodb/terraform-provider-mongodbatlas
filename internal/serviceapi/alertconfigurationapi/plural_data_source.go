@@ -16,7 +16,7 @@ var _ datasource.DataSourceWithConfigure = &pluralDS{}
 func PluralDataSource() datasource.DataSource {
 	return &pluralDS{
 		DSCommon: config.DSCommon{
-			DataSourceName: "alert_configuration_api_list",
+			DataSourceName: "alert_configurations_api",
 		},
 	}
 }
@@ -39,19 +39,21 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 		Resp:       resp,
 		Client:     d.Client,
 		Config:     &tfConfig,
-		CallParams: pluralDataSourceReadAPICallParams(&tfConfig),
+		CallParams: pluralDataSourceReadAPICallParams(ctx, &tfConfig),
 	}
 	autogen.HandleDataSourceReadList(ctx, reqHandle)
 }
 
-func pluralDataSourceReadAPICallParams(model *TFPluralDSModel) *config.APICallParams {
+func pluralDataSourceReadAPICallParams(ctx context.Context, model *TFPluralDSModel) *config.APICallParams {
 	pathParams := map[string]string{
 		"groupId": model.GroupId.ValueString(),
 	}
+	queryParams := map[string]string{}
 	return &config.APICallParams{
 		VersionHeader: "application/vnd.atlas.2023-01-01+json",
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/alertConfigs",
 		PathParams:    pathParams,
+		QueryParams:   queryParams,
 		Method:        "GET",
 	}
 }

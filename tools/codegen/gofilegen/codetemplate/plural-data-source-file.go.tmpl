@@ -59,12 +59,12 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 		Resp:       resp,
 		Client:     d.Client,
 		Config:     &tfConfig,
-		CallParams: pluralDataSourceReadAPICallParams(&tfConfig),
+		CallParams: pluralDataSourceReadAPICallParams(ctx, &tfConfig),
 	}
 	autogen.HandleDataSourceReadList(ctx, reqHandle)
 }
 
-func pluralDataSourceReadAPICallParams(model *TFPluralDSModel) *config.APICallParams {
+func pluralDataSourceReadAPICallParams(ctx context.Context, model *TFPluralDSModel) *config.APICallParams {
 	pathParams := map[string]string{ {{range .PathParams }}
 		"{{ .CamelCaseName }}": model.{{ .PascalCaseName }}.ValueString(),
 	{{- end }}
@@ -86,7 +86,7 @@ func pluralDataSourceReadAPICallParams(model *TFPluralDSModel) *config.APICallPa
 	{{- else if or (eq .Type "list") (eq .Type "set") }}
 	if !model.{{ .PascalCaseName }}.IsNull() && !model.{{ .PascalCaseName }}.IsUnknown() {
 		elements := make([]types.String, 0, len(model.{{ .PascalCaseName }}.Elements()))
-		diags := model.{{ .PascalCaseName }}.ElementsAs(context.TODO(), &elements, false)
+		diags := model.{{ .PascalCaseName }}.ElementsAs(ctx, &elements, false)
 		if !diags.HasError() {
 			var values []string
 			for _, elem := range elements {

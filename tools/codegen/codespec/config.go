@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 )
 
-var datasourceIgnoredAttributes = []string{"total_count", "envelope", "items_per_page", "page_num", "links", "pretty"}
+var datasourceIgnoredAttributes = []string{"total_count", "envelope", "items_per_page", "page_num", "links", "pretty", "include_count"}
 
 const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. " +
 	"When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for " +

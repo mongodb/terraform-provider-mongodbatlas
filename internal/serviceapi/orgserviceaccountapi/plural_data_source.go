@@ -39,12 +39,12 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 		Resp:       resp,
 		Client:     d.Client,
 		Config:     &tfConfig,
-		CallParams: pluralDataSourceReadAPICallParams(&tfConfig),
+		CallParams: pluralDataSourceReadAPICallParams(ctx, &tfConfig),
 	}
 	autogen.HandleDataSourceReadList(ctx, reqHandle)
 }
 
-func pluralDataSourceReadAPICallParams(model *TFPluralDSModel) *config.APICallParams {
+func pluralDataSourceReadAPICallParams(ctx context.Context, model *TFPluralDSModel) *config.APICallParams {
 	pathParams := map[string]string{
 		"orgId": model.OrgId.ValueString(),
 	}
