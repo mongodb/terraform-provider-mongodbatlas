@@ -811,6 +811,9 @@ resources:
       read:
         path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
         method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/alertConfigs
+        method: GET
       schema:
         aliases:
           alertConfigId: id
