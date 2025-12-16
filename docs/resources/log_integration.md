@@ -74,10 +74,10 @@ output "log_integration_bucket_name" {
 - `integration_id` (String) Unique 24-character hexadecimal digit string that identifies the log integration configuration.
 
 ## Import 
-Log integration resource can be imported using the project ID and log integration ID, separated by a hyphen, e.g.
+Log integration resource can be imported using the project ID and log integration ID, separated by a slash, e.g.
 
 ```
-$ terraform import mongodbatlas_log_integration.test 650972848269185c55f40ca1-6789abcd1234ef5678901234
+$ terraform import mongodbatlas_log_integration.test 650972848269185c55f40ca1/6789abcd1234ef5678901234
 ```
 
 For more information see: [MongoDB Atlas API - Log Integration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-push-based-log-export) Documentation.
