@@ -42,10 +42,10 @@ func TestBuildQueryParamMap(t *testing.T) {
 	})
 
 	tests := []struct {
-		name           string
-		args           []autogen.QueryParamArg
 		expectedOutput map[string]string
 		customAssert   func(*testing.T, map[string]string)
+		name           string
+		args           []autogen.QueryParamArg
 	}{
 		{
 			name:           "should return empty map when no args provided",

@@ -11,8 +11,8 @@ import (
 )
 
 type QueryParamArg struct {
-	APIName string // The name to use in the API query string
-	Value   any    // The Terraform value (types.String, types.Int64, types.Bool, types.List, types.Set)
+	Value   any
+	APIName string
 }
 
 // BuildQueryParamMap builds a query parameter map from Terraform values.
