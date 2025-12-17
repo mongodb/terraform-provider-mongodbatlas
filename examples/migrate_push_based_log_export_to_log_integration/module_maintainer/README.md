@@ -12,7 +12,7 @@ As a module maintainer, you need to provide a migration path for your users. Thi
 - **v2/** - Updated module with:
   - New `mongodbatlas_log_integration` resource (always created)
   - Feature flag `skip_push_based_log_export` to control the old resource lifecycle
-  - Distinct prefix paths to avoid conflicts during migration
+  - Required `prefix_path` variable (no default) forcing users to specify a distinct S3 path for the new resource, preventing log conflicts during migration
 
 ## Migration Workflow
 
