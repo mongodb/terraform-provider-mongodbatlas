@@ -2,13 +2,6 @@
 
 This directory contains examples demonstrating how to migrate from `mongodbatlas_push_based_log_export` to `mongodbatlas_log_integration` using a **create-before-destroy** pattern. For more details, please refer to the [Migration Guide: Push-Based Log Export to Log Integration](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/push-based-log-export-to-log-integration-migration-guide).
 
-## Overview
-
-The `mongodbatlas_log_integration` resource provides enhanced log export capabilities compared to `mongodbatlas_push_based_log_export`:
-- Faster log export intervals (1 minute vs 5 minutes)
-- Configurable log types (`MONGOD`, `MONGOS`, `MONGOD_AUDIT`, `MONGOS_AUDIT`)
-- Optional AWS KMS key support for server-side encryption
-
 ## Migration Approach
 
 Unlike migrations that use the `moved` block, this migration follows a **create-before-destroy** pattern:
