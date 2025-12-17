@@ -8,8 +8,8 @@ module "log_export" {
   project_id      = var.project_id
   bucket_name     = var.bucket_name
   iam_role_id     = var.iam_role_id
-  prefix_path     = "atlas-logs"     # No longer used (old resource removed)
-  new_prefix_path = "atlas-logs"     # Can use original path now
+  prefix_path     = "atlas-logs" # No longer used (old resource removed)
+  new_prefix_path = "atlas-logs" # Can use original path now
   log_types       = ["MONGOD", "MONGOS", "MONGOD_AUDIT", "MONGOS_AUDIT"]
 
   # Remove old resource - migration complete
