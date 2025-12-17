@@ -200,7 +200,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"cloud_provider": schema.StringAttribute{
 						Required:            true,
-						MarkdownDescription: "Label that identifies the cloud service provider where MongoDB Cloud performs stream processing. Currently, this parameter only supports AWS and AZURE.",
+						MarkdownDescription: "Human-readable label that identifies the cloud provider.",
 					},
 					"region": schema.StringAttribute{
 						Required:            true,

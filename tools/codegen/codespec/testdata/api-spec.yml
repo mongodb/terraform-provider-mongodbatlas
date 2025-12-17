@@ -9,6 +9,25 @@ tags:
   - description: Test Resource root description.
     name: Test Resource
 paths:
+  "/api/atlas/v2/groups/{groupId}/testResources":
+    get:
+      description: LIST API description
+      operationId: listTestResourceConfigurations
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedTestResourceResponse"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: List all Test Resource configurations for a project
+      tags:
+        - Test Resource
   "/api/atlas/v2/groups/{groupId}/testResource":
     delete:
       description: DELETE API description
@@ -915,6 +934,16 @@ components:
           type: number
           format: double
           default: 2.0
+    PaginatedTestResourceResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/TestResource"
+        totalCount:
+          type: integer
+          format: int32
     TestResourceNoUpdate:
       type: object
       properties:

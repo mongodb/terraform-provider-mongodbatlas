@@ -48,8 +48,8 @@ func PreCheckBasicSleep(tb testing.TB, clusterInfo *ClusterInfo, projectID, clus
 }
 
 // PreCheck checks common Atlas environment variables and MONGODB_ATLAS_PROJECT_ID.
-// Deprecated: it should not be used as MONGODB_ATLAS_PROJECT_ID is not intended to be used in CI.
-// Use PreCheckBasic instead.
+
+// Deprecated: it should not be used as MONGODB_ATLAS_PROJECT_ID is not intended to be used in CI, use PreCheckBasic instead.
 func PreCheck(tb testing.TB) {
 	tb.Helper()
 	PreCheckBasic(tb)

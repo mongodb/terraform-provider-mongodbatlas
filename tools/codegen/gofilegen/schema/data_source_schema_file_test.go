@@ -3,10 +3,12 @@ package schema_test
 import (
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20240530005/admin"
+
+	"github.com/sebdah/goldie/v2"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/schema"
-	"github.com/sebdah/goldie/v2"
-	"go.mongodb.org/atlas-sdk/v20240530005/admin"
 )
 
 type dsSchemaGenerationTestCase struct {
@@ -22,7 +24,7 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 				PackageName: "testname",
 				DataSources: &codespec.DataSources{
 					Schema: &codespec.DataSourceSchema{
-						Attributes: []codespec.Attribute{
+						SingularDSAttributes: &codespec.Attributes{
 							{
 								TFSchemaName:             "string_attr",
 								TFModelName:              "StringAttr",
@@ -70,7 +72,7 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 				PackageName: "testname",
 				DataSources: &codespec.DataSources{
 					Schema: &codespec.DataSourceSchema{
-						Attributes: []codespec.Attribute{
+						SingularDSAttributes: &codespec.Attributes{
 							{
 								TFSchemaName:             "nested_object_attr",
 								TFModelName:              "NestedObjectAttr",
@@ -132,7 +134,7 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 				DataSources: &codespec.DataSources{
 					Schema: &codespec.DataSourceSchema{
 						DeprecationMessage: admin.PtrString("This data source is deprecated. Please use the test_name_new data source instead."),
-						Attributes: []codespec.Attribute{
+						SingularDSAttributes: &codespec.Attributes{
 							{
 								TFSchemaName:             "string_attr",
 								TFModelName:              "StringAttr",
@@ -152,7 +154,7 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 				PackageName: "testname",
 				DataSources: &codespec.DataSources{
 					Schema: &codespec.DataSourceSchema{
-						Attributes: []codespec.Attribute{
+						SingularDSAttributes: &codespec.Attributes{
 							{
 								TFSchemaName:             "project_id",
 								TFModelName:              "ProjectId",
