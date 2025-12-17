@@ -56,10 +56,11 @@ type DataSources struct {
 
 // DataSourceSchema holds schema information specific to data sources
 type DataSourceSchema struct {
-	SingularDSDescription *string    `yaml:"singular_ds_description,omitempty"`
-	PluralDSDescription   *string    `yaml:"plural_ds_description,omitempty"`
-	DeprecationMessage    *string    `yaml:"deprecation_message,omitempty"`
-	Attributes            Attributes `yaml:"attributes"`
+	SingularDSDescription *string     `yaml:"singular_ds_description,omitempty"`
+	SingularDSAttributes  *Attributes `yaml:"singular_ds_attributes,omitempty"`
+	PluralDSDescription   *string     `yaml:"plural_ds_description,omitempty"`
+	PluralDSAttributes    *Attributes `yaml:"plural_ds_attributes,omitempty"`
+	DeprecationMessage    *string     `yaml:"deprecation_message,omitempty"`
 }
 
 type APIOperations struct {

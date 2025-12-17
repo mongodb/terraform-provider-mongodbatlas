@@ -1,0 +1,223 @@
+schema:
+    description: Creates a new log integration configuration identified by a unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+    attributes:
+        - string: {}
+          description: Human-readable label that identifies the S3 bucket name for storing log files.
+          computed_optional_required: required
+          tf_schema_name: bucket_name
+          tf_model_name: BucketName
+          api_name: bucketName
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
+          computed_optional_required: required
+          tf_schema_name: iam_role_id
+          tf_model_name: IamRoleId
+          api_name: iamRoleId
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-character hexadecimal digit string that identifies the log integration configuration.
+          computed_optional_required: computed
+          tf_schema_name: integration_id
+          tf_model_name: IntegrationId
+          api_name: id
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
+          computed_optional_required: optional
+          tf_schema_name: kms_key
+          tf_model_name: KmsKey
+          api_name: kmsKey
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - set:
+            element_type: 4
+          description: 'Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.'
+          custom_type:
+            package: customtypes
+            model: customtypes.SetValue[types.String]
+            schema: customtypes.NewSetType[types.String](ctx)
+          computed_optional_required: optional
+          tf_schema_name: log_types
+          tf_model_name: LogTypes
+          api_name: logTypes
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
+          computed_optional_required: required
+          tf_schema_name: prefix_path
+          tf_model_name: PrefixPath
+          api_name: prefixPath
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
+          computed_optional_required: required
+          tf_schema_name: type
+          tf_model_name: Type
+          api_name: type
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{projectId}/logIntegrations/{integrationId}
+    create:
+        http_method: POST
+        path: /api/atlas/v2/groups/{projectId}/logIntegrations
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{projectId}/logIntegrations/{integrationId}
+    update:
+        http_method: PUT
+        path: /api/atlas/v2/groups/{projectId}/logIntegrations/{integrationId}
+    version_header: application/vnd.atlas.2025-03-12+json
+data_sources:
+    schema:
+        singular_ds_description: Returns the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+        attributes:
+            - string: {}
+              description: Human-readable label that identifies the S3 bucket name for storing log files.
+              computed_optional_required: computed
+              tf_schema_name: bucket_name
+              tf_model_name: BucketName
+              api_name: bucketName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
+              computed_optional_required: computed
+              tf_schema_name: iam_role_id
+              tf_model_name: IamRoleId
+              api_name: iamRoleId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique identifier of the log integration configuration.
+              computed_optional_required: required
+              tf_schema_name: integration_id
+              tf_model_name: IntegrationId
+              api_name: id
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
+              computed_optional_required: computed
+              tf_schema_name: kms_key
+              tf_model_name: KmsKey
+              api_name: kmsKey
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - set:
+                element_type: 4
+              description: 'Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.'
+              custom_type:
+                package: customtypes
+                model: customtypes.SetValue[types.String]
+                schema: customtypes.NewSetType[types.String](ctx)
+              computed_optional_required: computed
+              tf_schema_name: log_types
+              tf_model_name: LogTypes
+              api_name: logTypes
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
+              computed_optional_required: computed
+              tf_schema_name: prefix_path
+              tf_model_name: PrefixPath
+              api_name: prefixPath
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: |-
+                Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+                **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
+              computed_optional_required: computed
+              tf_schema_name: type
+              tf_model_name: Type
+              api_name: type
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/logIntegrations/{integrationId}
+        list:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/logIntegrations/
+        version_header: application/vnd.atlas.2025-03-12+json
+name: log_integration
+packageName: logintegration

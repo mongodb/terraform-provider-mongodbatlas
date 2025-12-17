@@ -746,7 +746,7 @@ resources:
             computed: true
 
   org_service_account_api:
-    read:
+    read: &org-service-account-read-op
       path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
       method: GET
     create:
@@ -764,6 +764,16 @@ resources:
           sensitive: true
         roles:
           type: set
+    datasources:
+      read: *org-service-account-read-op
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/serviceAccounts
+        method: GET
+      schema:
+        overrides:
+          secrets.secret:
+            sensitive: true
+        ignores: ["links"]
 
   org_service_account_secret_api:
     read:
@@ -802,7 +812,7 @@ resources:
         path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
         method: GET
       list:
-        path: /api/atlas/v2/groups/{groupId}/alertConfigs/
+        path: /api/atlas/v2/groups/{groupId}/alertConfigs
         method: GET
       schema:
         aliases:
@@ -839,3 +849,34 @@ resources:
           sensitive: true
         notifications.ops_genie_api_key:
           sensitive: true
+
+  log_integration:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+      method: PUT
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+      method: DELETE
+    schema:
+      aliases:
+        groupId: projectId
+        alertConfigId: integrationId
+        id: integrationId
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/logIntegrations/
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+          alertConfigId: integrationId
+          id: integrationId
