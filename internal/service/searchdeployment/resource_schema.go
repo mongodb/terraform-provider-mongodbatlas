@@ -64,9 +64,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Create:            true,
 				Update:            true,
 				Delete:            true,
-				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate("3h"),
-				UpdateDescription: constant.TimeoutDescriptionCreateReadUpdate("3h"),
-				DeleteDescription: constant.TimeoutDescriptionDelete("3h"),
+				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate(constant.DefaultTimeoutDocumentation),
+				UpdateDescription: constant.TimeoutDescriptionCreateReadUpdate(constant.DefaultTimeoutDocumentation),
+				DeleteDescription: constant.TimeoutDescriptionDelete(constant.DefaultTimeoutDocumentation),
 			}),
 			"skip_wait_on_update": schema.BoolAttribute{
 				Description: "If true, the resource update is executed without waiting until the [state](#state_name-1) is `IDLE`, making the operation faster. This might cause update errors to go unnoticed and lead to non-empty plans at the next terraform execution.",

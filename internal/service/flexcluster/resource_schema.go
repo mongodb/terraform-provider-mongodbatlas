@@ -159,9 +159,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Create:            true,
 				Update:            true,
 				Delete:            true,
-				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate("3h"),
-				UpdateDescription: constant.TimeoutDescriptionCreateReadUpdate("3h"),
-				DeleteDescription: constant.TimeoutDescriptionDelete("3h"),
+				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate(constant.DefaultTimeoutDocumentation),
+				UpdateDescription: constant.TimeoutDescriptionCreateReadUpdate(constant.DefaultTimeoutDocumentation),
+				DeleteDescription: constant.TimeoutDescriptionDelete(constant.DefaultTimeoutDocumentation),
 			}),
 		},
 	}

@@ -45,8 +45,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create:            true,
 				Delete:            true,
-				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate("3h"),
-				DeleteDescription: constant.TimeoutDescriptionDelete("3h"),
+				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate(constant.DefaultTimeoutDocumentation),
+				DeleteDescription: constant.TimeoutDescriptionDelete(constant.DefaultTimeoutDocumentation),
 			}),
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed: true,

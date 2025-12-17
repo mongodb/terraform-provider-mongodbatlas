@@ -3,7 +3,8 @@ package constant
 import "time"
 
 const (
-	DefaultTimeout = 3 * time.Hour
+	DefaultTimeout              = 3 * time.Hour
+	DefaultTimeoutDocumentation = "3h"
 )
 
 const (
