@@ -12,10 +12,10 @@ page_title: "Migration Guide: Push-Based Log Export to Log Integration"
 
 The `mongodbatlas_log_integration` resource provides enhanced log export capabilities compared to `mongodbatlas_push_based_log_export`:
 
-1. **Faster Log Export**: Logs are exported every **1 minute** instead of every 5 minutes
-2. **Log Type Selection**: Choose specific log types to export (`MONGOD`, `MONGOS`, `MONGOD_AUDIT`, `MONGOS_AUDIT`)
-3. **Enhanced Encryption**: Optional AWS KMS key support for server-side encryption
-4. **Future-Proof**: New log integration features will be developed using this resource
+1. **Faster Log Export**: Logs are exported every **1 minute** instead of every 5 minutes.
+2. **Log Type Selection**: Choose specific log types to export (`MONGOD`, `MONGOS`, `MONGOD_AUDIT`, `MONGOS_AUDIT`).
+3. **Enhanced Encryption**: Optional AWS KMS key support for server-side encryption.
+4. **Future-Proof**: This resource serves as the foundation for new log integration features.
 
 ## Main Differences Between Resources
 
@@ -30,8 +30,8 @@ The `mongodbatlas_log_integration` resource provides enhanced log export capabil
 ## Migration Approach
 
 This migration uses a **create-before-destroy** pattern rather than a `moved` block. This approach:
-- Ensures continuous log delivery during migration
-- Allows validation of the new configuration before removing the old one
+- Ensures continuous log delivery during migration.
+- Allows validation of the new configuration before removing the old one.
 
 ~> **Important:** Some log duplication may occur during the overlap period. To minimize this, configure distinct prefix paths for the old and new configurations.
 
@@ -68,8 +68,8 @@ Run `terraform apply` to create the new log integration.
 ### Step 2: Test the New Configuration
 
 Validate that the new `mongodbatlas_log_integration` resource is functioning correctly:
-- Check for logs appearing in the S3 bucket at the new prefix path
-- Verify the expected log types are being exported
+- Check for logs appearing in the S3 bucket at the new prefix path.
+- Verify the expected log types are being exported.
 
 ### Step 3: Remove the Old Resource
 
@@ -97,9 +97,9 @@ Run `terraform apply` to remove the old resource.
 ### Step 4: Verify Final Configuration
 
 Confirm the migration is complete:
-- Verify logs continue to appear at the new prefix path
-- Ensure the old log export is no longer active
-- Optionally, consolidate prefix paths after the old resource is fully removed
+- Verify logs continue to appear at the new prefix path.
+- Ensure the old log export is no longer active.
+- Optionally, consolidate prefix paths after the old resource is fully removed.
 
 ## Migration for Modules
 
@@ -145,8 +145,8 @@ resource "mongodbatlas_log_integration" "this" {
 ### Module User Steps
 
 1. **Upgrade to the new module version** with `skip_push_based_log_export = false`:
-   - The `mongodbatlas_log_integration` resource is created
-   - The `mongodbatlas_push_based_log_export` resource still exists
+   - The `mongodbatlas_log_integration` resource is created.
+   - The `mongodbatlas_push_based_log_export` resource still exists.
 
 ```terraform
 module "log_export" {
@@ -165,8 +165,8 @@ module "log_export" {
 ```
 
 2. **Set `skip_push_based_log_export = true`** after validating the new configuration:
-   - The `mongodbatlas_log_integration` resource continues to exist
-   - The `mongodbatlas_push_based_log_export` resource is destroyed
+   - The `mongodbatlas_log_integration` resource continues to exist.
+   - The `mongodbatlas_push_based_log_export` resource is destroyed.
 
 ```terraform
 module "log_export" {
@@ -190,83 +190,21 @@ module "log_export" {
 
 Atlas guarantees **at least once delivery** of logs. During the overlap period when both resources are active, there will be duplicated logs in the destination, particularly if the prefix paths are the same. To manage this:
 
-- **Use distinct paths** for the old and new configurations until the old resource is fully removed
-- **Alternatively**, manually deactivate the old configuration in the Atlas UI once the new resource is active to eliminate any overlap or duplication
+- **Use distinct paths** for the old and new configurations until the old resource is fully removed.
 
 ### Delay for Removal
 
-The prescribed delay between creating the new resource and destroying the old one ensures:
-- Uninterrupted log flow during migration
-- Ample time to verify the new resource's functionality
-- Confidence that no log data is lost during the transition
+The delay between creating the new resource and destroying the old one ensures:
+- Uninterrupted log flow during migration.
+- Time to verify the new resource's functionality.
 
 ## Recommended Best Practices
 
-1. **Use distinct prefix paths** when configuring the new `mongodbatlas_log_integration` resource during migration
-2. **Perform rigorous validation** and testing of the new resource before destroying the old resource
-3. **Monitor log delivery** in your S3 bucket throughout the migration process
-4. **Back up your Terraform state file** before starting the migration
-5. **Plan for log duplication** during the overlap period and consider how to handle duplicate logs in downstream processing
-
-## Example: Complete Migration
-
-### Before Migration
-
-```terraform
-resource "mongodbatlas_push_based_log_export" "logs" {
-  project_id  = var.project_id
-  bucket_name = aws_s3_bucket.log_bucket.bucket
-  iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-  prefix_path = "atlas-logs"
-}
-
-output "log_prefix" {
-  value = mongodbatlas_push_based_log_export.logs.prefix_path
-}
-```
-
-### During Migration (Both Resources Active)
-
-```terraform
-# Keep old resource temporarily
-resource "mongodbatlas_push_based_log_export" "logs" {
-  project_id  = var.project_id
-  bucket_name = aws_s3_bucket.log_bucket.bucket
-  iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-  prefix_path = "atlas-logs"
-}
-
-# Add new resource with distinct prefix
-resource "mongodbatlas_log_integration" "logs" {
-  project_id  = var.project_id
-  bucket_name = aws_s3_bucket.log_bucket.bucket
-  iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-  prefix_path = "atlas-logs-new"
-  type        = "S3_LOG_EXPORT"
-  log_types   = ["MONGOD", "MONGOS", "MONGOD_AUDIT", "MONGOS_AUDIT"]
-}
-```
-
-### After Migration
-
-```terraform
-resource "mongodbatlas_log_integration" "logs" {
-  project_id  = var.project_id
-  bucket_name = aws_s3_bucket.log_bucket.bucket
-  iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-  prefix_path = "atlas-logs"  # Can revert to original prefix after old resource is removed
-  type        = "S3_LOG_EXPORT"
-  log_types   = ["MONGOD", "MONGOS", "MONGOD_AUDIT", "MONGOS_AUDIT"]
-}
-
-output "log_prefix" {
-  value = mongodbatlas_log_integration.logs.prefix_path
-}
-
-output "log_integration_id" {
-  value = mongodbatlas_log_integration.logs.integration_id
-}
-```
+1. **Use distinct prefix paths** when configuring the new `mongodbatlas_log_integration` resource during migration.
+2. **Perform rigorous validation** and testing of the new resource before destroying the old resource.
+3. **Monitor log delivery** in your S3 bucket throughout the migration process.
+4. **Back up your Terraform state file** before starting the migration.
+5. **Plan for log duplication** during the overlap period and consider how to handle duplicate logs in downstream processing.
 
 ## Further Resources
 

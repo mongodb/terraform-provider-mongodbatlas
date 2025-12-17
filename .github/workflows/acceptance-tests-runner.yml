@@ -132,6 +132,8 @@ on:
         required: true
       aws_access_key_id:
         required: true
+      aws_kms_key_id:
+        required: true
       aws_secret_access_key:
         required: true
       aws_s3_bucket_federation:
@@ -308,6 +310,7 @@ jobs:
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/projectsettingsapi/*.go'
             - 'internal/serviceapi/resourcepolicyapi/*.go'
+            - 'internal/serviceapi/logintegration/*.go'
           autogen_slow:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/clusterapi/*.go'
@@ -662,6 +665,7 @@ jobs:
           AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+          AWS_KMS_KEY_ID: ${{ secrets.aws_kms_key_id }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
             ./internal/serviceapi/clusterapi

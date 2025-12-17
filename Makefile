@@ -219,10 +219,11 @@ access-token-revoke: ## Revoke an OAuth2 access token. Usage: make access-token-
 	@go run ./tools/access-token/*.go revoke $(token)
 
 .PHONY: enable-autogen
-enable-autogen: ## Enable use of autogen resources in the provider
+enable-autogen: ## Enable use of autogen resources and data sources in the provider
 	$(eval filename := ./internal/provider/provider.go)
 	$(eval resources := $(shell ls -d internal/serviceapi/*/ | xargs -n1 basename))
-	$(foreach resource,$(resources),make add-lines filename=${filename} find="project.Resource," add="$(resource).Resource,\n";)
+	$(foreach resource,$(resources),make add-lines-if-missing filename=${filename} resource=${resource};)
+	$(foreach resource,$(resources),make add-datasource-if-exists filename=${filename} resource=${resource};)
 	goimports -w ${filename}
 
 .PHONY: delete-lines ${filename} ${delete}
@@ -237,6 +238,18 @@ add-lines:
 	rm -f file.tmp
 	sed 's/${find}/${add}${find}/' "${filename}" > "file.tmp"
 	mv file.tmp ${filename}
+
+.PHONY: add-lines-if-missing ${filename} ${resource}
+add-lines-if-missing:
+	@if ! grep -q "${resource}.Resource," "${filename}" 2>/dev/null; then \
+		make add-lines filename=${filename} find="project.Resource," add="${resource}.Resource,\n"; \
+	fi
+
+.PHONY: add-datasource-if-exists ${filename} ${resource}
+add-datasource-if-exists:
+	@if [ -f "internal/serviceapi/${resource}/data_source.go" ] && ! grep -q "${resource}.DataSource," "${filename}" 2>/dev/null; then \
+		make add-lines filename=${filename} find="project.DataSource," add="${resource}.DataSource,\n"; \
+	fi
 
 .PHONY: change-lines ${filename} ${find} ${new}
 change-lines:

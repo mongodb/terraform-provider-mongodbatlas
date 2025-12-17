@@ -33,12 +33,15 @@ func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSou
 		return nil
 	}
 
-	// Apply attribute-level transformations (aliases, overrides, ignores) - excludes create-only for data sources
-	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, &ds.Schema.Attributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
-		return fmt.Errorf("failed to apply attribute transformations: %w", err)
+	dsConfig.SchemaOptions.Ignores = append(dsConfig.SchemaOptions.Ignores, "total_count")
+
+	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.SingularDSAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
+		return fmt.Errorf("failed to apply attribute transformations for singular data source: %w", err)
+	}
+	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.PluralDSAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
+		return fmt.Errorf("failed to apply attribute transformations for plural data source: %w", err)
 	}
 
-	// Alias placeholders in operation paths after attribute transformations
 	applyAliasToPathParams(&ds.Operations, dsConfig.SchemaOptions.Aliases)
 	return nil
 }
@@ -106,6 +109,10 @@ func applyDataSourceAttributeTransformations(schemaOptions config.SchemaOptions,
 }
 
 func applyAttributeTransformationsList(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths, transformationList []AttributeTransformation) error {
+	if attributes == nil {
+		return nil
+	}
+
 	ignoredAttrs := getIgnoredAttributesMap(schemaOptions.Ignores)
 
 	var finalAttributes Attributes
@@ -169,8 +176,8 @@ func getIgnoredAttributesMap(ignores []string) map[string]bool {
 	return ignoredAttrs
 }
 
-func shouldIgnoreAttribute(attrName string, ignoredAttrs map[string]bool) bool {
-	return ignoredAttrs[attrName]
+func shouldIgnoreAttribute(attrPathName string, ignoredAttrs map[string]bool) bool {
+	return ignoredAttrs[attrPathForTransformations(attrPathName)]
 }
 
 func applyAliasToAttribute(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) {
@@ -232,7 +239,7 @@ func requestOnlyRequiredOnCreateTransformation(attr *Attribute, _ *attrPaths, _ 
 }
 
 func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.SchemaOptions) error {
-	if override, ok := schemaOptions.Overrides[attrPathName]; ok {
+	if override, ok := schemaOptions.Overrides[attrPathForTransformations(attrPathName)]; ok {
 		if override.Description != "" {
 			attr.Description = &override.Description
 		}
@@ -350,4 +357,8 @@ func setCreateOnlyValue(attr *Attribute) {
 	if attr.ReqBodyUsage == OmitAlways || attr.ReqBodyUsage == OmitInUpdateBody {
 		attr.CreateOnly = true
 	}
+}
+
+func attrPathForTransformations(attrPathName string) string {
+	return strings.TrimPrefix(attrPathName, "results.")
 }

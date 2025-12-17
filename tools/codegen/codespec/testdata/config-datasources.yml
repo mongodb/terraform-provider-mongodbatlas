@@ -16,6 +16,9 @@ resources:
       read:
         path: /api/atlas/v2/groups/{groupId}/testResource
         method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/testResources
+        method: GET
       schema:
         # Test aliasing groupId -> projectId to verify duplicate detection during merge
         # (path param groupId should alias to projectId, and if response has projectId it should be deduplicated)
