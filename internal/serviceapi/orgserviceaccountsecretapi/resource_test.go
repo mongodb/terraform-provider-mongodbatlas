@@ -14,6 +14,7 @@ import (
 const resourceName = "mongodbatlas_org_service_account_secret_api.test"
 
 func TestAccOrgServiceAccountSecretAPI_basic(t *testing.T) {
+	acc.SkipTestForCI(t) // needs CLOUDP-366217 to be complete, uses autogen data source not registered in provider
 	var (
 		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name  = acc.RandomName()

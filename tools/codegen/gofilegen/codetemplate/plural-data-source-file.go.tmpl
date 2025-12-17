@@ -23,7 +23,6 @@ func PluralDataSource() datasource.DataSource {
 
 type pluralDS struct {
 	config.DSCommon
-	autogen.NoOpCustomCodeHooks
 }
 
 func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -37,7 +36,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 		return
 	}
 	reqHandle := autogen.HandleReadReq{
-		ReadAPICallHooks: d,
+		Hooks: d,
 		RespDiags:        &resp.Diagnostics,
 		RespState:        &resp.State,
 		Client:     d.Client,

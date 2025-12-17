@@ -8,11 +8,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
+// Resource hooks
+var _ autogen.PostReadAPICallHook = (*rs)(nil)
+
 type response struct {
 	Secrets []map[string]any
 }
-
-// Resource hooks
 
 func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
 	var responseJSON response
@@ -32,6 +33,8 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 }
 
 // Data source hooks
+var _ autogen.PreReadAPICallHook = (*ds)(nil)
+var _ autogen.PostReadAPICallHook = (*ds)(nil)
 
 func (d *ds) PreReadAPICall(callParams config.APICallParams) config.APICallParams {
 	callParams.Method = "GET"
