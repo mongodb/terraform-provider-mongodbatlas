@@ -191,7 +191,6 @@ module "log_export" {
 Atlas guarantees **at least once delivery** of logs. During the overlap period when both resources are active, there will be duplicated logs in the destination, particularly if the prefix paths are the same. To manage this:
 
 - **Use distinct paths** for the old and new configurations until the old resource is fully removed
-- **Alternatively**, manually deactivate the old configuration in the Atlas UI once the new resource is active to eliminate any overlap or duplication
 
 ### Delay for Removal
 
