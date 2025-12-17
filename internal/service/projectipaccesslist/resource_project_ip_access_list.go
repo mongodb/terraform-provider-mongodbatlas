@@ -280,6 +280,7 @@ func isEntryInProjectAccessList(ctx context.Context, connV2 *admin.APIClient, pr
 	return &out, true, nil
 }
 
+// Update is supported only for the comment field, the rest of the fields will trigger a replace.
 func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var projectIPAccessListState *TfProjectIPAccessListModel
 	var projectIPAccessListPlan *TfProjectIPAccessListModel
