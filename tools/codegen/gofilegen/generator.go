@@ -72,11 +72,14 @@ func GenerateCodeForResource(resourceModel *codespec.Resource, packageDir string
 		}
 		generatedFiles = append(generatedFiles, files...)
 
-		files, err = generateComponentFiles(resourceModel, packageDir, pluralDataSourceComponent, writeFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate plural data source: %w", err)
+		// Only generate plural data source if a list operation is present
+		if resourceModel.DataSources.Operations.List != nil {
+			files, err = generateComponentFiles(resourceModel, packageDir, pluralDataSourceComponent, writeFile)
+			if err != nil {
+				return nil, fmt.Errorf("failed to generate plural data source: %w", err)
+			}
+			generatedFiles = append(generatedFiles, files...)
 		}
-		generatedFiles = append(generatedFiles, files...)
 	}
 
 	// Format all generated files: goimports per file, fieldalignment on package
