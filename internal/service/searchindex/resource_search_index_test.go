@@ -198,7 +198,7 @@ func TestAccSearchIndex_withNumPartitions(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
@@ -224,7 +224,7 @@ func TestAccVectorSearchIndex_withNumPartitions(t *testing.T) {
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
 		indexName              = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroySearchIndex,
@@ -683,14 +683,13 @@ func checkVectorSearchWithNumPartitions(projectID, indexName, clusterName string
 
 	if numPartitions != nil {
 		checks = append(checks,
-			resource.TestCheckResourceAttr(resourceName, "num_partitions", fmt.Sprintf("%d", *numPartitions)),
-			resource.TestCheckResourceAttr(datasourceName, "num_partitions", fmt.Sprintf("%d", *numPartitions)),
+			resource.TestCheckResourceAttr(resourceName, "num_partitions", strconv.Itoa(*numPartitions)),
+			resource.TestCheckResourceAttr(datasourceName, "num_partitions", strconv.Itoa(*numPartitions)),
 		)
 	} else {
-		var ret int
 		checks = append(checks,
-			resource.TestCheckResourceAttr(resourceName, "num_partitions", strconv.Itoa(ret)),
-			resource.TestCheckResourceAttr(datasourceName, "num_partitions", strconv.Itoa(ret)),
+			resource.TestCheckResourceAttr(resourceName, "num_partitions", "0"),
+			resource.TestCheckResourceAttr(datasourceName, "num_partitions", "0"),
 		)
 	}
 
@@ -717,14 +716,13 @@ func checkSearchWithNumPartitions(projectID, indexName, clusterName string, numP
 
 	if numPartitions != nil {
 		checks = append(checks,
-			resource.TestCheckResourceAttr(resourceName, "num_partitions", fmt.Sprintf("%d", *numPartitions)),
-			resource.TestCheckResourceAttr(datasourceName, "num_partitions", fmt.Sprintf("%d", *numPartitions)),
+			resource.TestCheckResourceAttr(resourceName, "num_partitions", strconv.Itoa(*numPartitions)),
+			resource.TestCheckResourceAttr(datasourceName, "num_partitions", strconv.Itoa(*numPartitions)),
 		)
 	} else {
-		var ret int
 		checks = append(checks,
-			resource.TestCheckResourceAttr(resourceName, "num_partitions", strconv.Itoa(ret)),
-			resource.TestCheckResourceAttr(datasourceName, "num_partitions", strconv.Itoa(ret)),
+			resource.TestCheckResourceAttr(resourceName, "num_partitions", "0"),
+			resource.TestCheckResourceAttr(datasourceName, "num_partitions", "0"),
 		)
 	}
 	return checkAggr(projectID, clusterName, indexName, indexType, mappingsDynamic, checks...)
