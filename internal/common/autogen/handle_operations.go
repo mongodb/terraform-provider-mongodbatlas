@@ -96,7 +96,7 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 
 type HandleReadReq struct {
 	ReadAPICallHooks ReadAPICallHooks
-	State            any
+	State            any // either req.State or req.Config is passed depending on whether the read is for a resource or a data source
 	RespState        *tfsdk.State
 	Client           *config.MongoDBClient
 	CallParams       *config.APICallParams
@@ -157,13 +157,11 @@ func handleReadCore(
 }
 
 // HandleDataSourceReadList handles the read operation for a plural data source (list) with automatic pagination.
-func HandleDataSourceReadList(ctx context.Context, req HandleDataSourceReadReq) {
-	d := &req.Resp.Diagnostics
-
+func HandleDataSourceReadList(ctx context.Context, req HandleReadReq) {
 	// Fetch all pages using dsschema.AllPages
 	allResults, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[json.RawMessage], *http.Response, error) {
 		// Build API call params with pagination query parameters
-		paginatedParams := &config.APICallParams{
+		paginatedParams := config.APICallParams{
 			VersionHeader: req.CallParams.VersionHeader,
 			RelativePath:  req.CallParams.RelativePath,
 			PathParams:    req.CallParams.PathParams,
@@ -173,25 +171,27 @@ func HandleDataSourceReadList(ctx context.Context, req HandleDataSourceReadReq) 
 			Method: req.CallParams.Method,
 		}
 
-		bodyResp, apiResp, err := callAPIWithoutBody(ctx, req.Client, paginatedParams)
-		if err != nil {
-			return nil, apiResp, err
+		modifiedParams := req.ReadAPICallHooks.PreReadAPICall(paginatedParams)
+		callResult := callAPIWithoutBody(ctx, req.Client, modifiedParams)
+		callResult = req.ReadAPICallHooks.PostReadAPICall(req, callResult)
+		if callResult.Err != nil {
+			return nil, callResult.Resp, callResult.Err
 		}
-		if notFound(bodyResp, apiResp) {
-			return nil, apiResp, fmt.Errorf("resource not found")
+		if notFound(callResult.Body, callResult.Resp) {
+			return nil, callResult.Resp, fmt.Errorf("resource not found")
 		}
 
 		// Parse response to extract results and pagination info
 		var pageResp paginatedAPIResponse
-		if err := json.Unmarshal(bodyResp, &pageResp); err != nil {
-			return nil, apiResp, err
+		if err := json.Unmarshal(callResult.Body, &pageResp); err != nil {
+			return nil, callResult.Resp, err
 		}
 
-		return &pageResp, apiResp, nil
+		return &pageResp, callResult.Resp, nil
 	})
 
 	if err != nil {
-		addError(d, opRead, errCallingAPI, err)
+		addError(req.RespDiags, opRead, errCallingAPI, err)
 		return
 	}
 
@@ -201,21 +201,21 @@ func HandleDataSourceReadList(ctx context.Context, req HandleDataSourceReadReq) 
 	}
 	fullResponseBytes, err := json.Marshal(fullResponse)
 	if err != nil {
-		addError(d, opRead, errUnmarshallingResponse, err)
+		addError(req.RespDiags, opRead, errUnmarshallingResponse, err)
 		return
 	}
 
 	// Unmarshal into the model
-	if err := Unmarshal(fullResponseBytes, req.Config); err != nil {
-		addError(d, opRead, errUnmarshallingResponse, err)
+	if err := Unmarshal(fullResponseBytes, req.State); err != nil {
+		addError(req.RespDiags, opRead, errUnmarshallingResponse, err)
 		return
 	}
-	if err := ResolveUnknowns(req.Config); err != nil {
-		addError(d, opRead, errResolvingResponse, err)
+	if err := ResolveUnknowns(req.State); err != nil {
+		addError(req.RespDiags, opRead, errResolvingResponse, err)
 		return
 	}
 
-	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Config)...)
+	req.RespDiags.Append(req.RespState.Set(ctx, req.State)...)
 }
 
 // paginatedAPIResponse wraps raw API response to implement dsschema.PaginateResponse interface

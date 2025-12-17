@@ -22,6 +22,7 @@ func PluralDataSource() datasource.DataSource {
 }
 
 type pluralDS struct {
+	autogen.NoOpCustomCodeHooks
 	config.DSCommon
 }
 
@@ -35,11 +36,13 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := autogen.HandleDataSourceReadReq{
-		Resp:       resp,
-		Client:     d.Client,
-		Config:     &tfConfig,
-		CallParams: pluralDataSourceReadAPICallParams(&tfConfig),
+	reqHandle := autogen.HandleReadReq{
+		ReadAPICallHooks: d,
+		RespDiags:        &resp.Diagnostics,
+		RespState:        &resp.State,
+		Client:           d.Client,
+		State:            &tfConfig,
+		CallParams:       pluralDataSourceReadAPICallParams(&tfConfig),
 	}
 	autogen.HandleDataSourceReadList(ctx, reqHandle)
 }
