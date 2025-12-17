@@ -311,13 +311,13 @@ func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateR
 		CIDRBlock:        projectIPAccessListState.CIDRBlock,
 		IPAddress:        projectIPAccessListState.IPAddress,
 		AWSSecurityGroup: projectIPAccessListState.AWSSecurityGroup,
-		Timeouts:         projectIPAccessListState.Timeouts,
 
-		// Only comment can be updated
-		Comment: projectIPAccessListPlan.Comment,
+		// Only comment and timeoutscan be updated
+		Comment:  projectIPAccessListPlan.Comment,
+		Timeouts: projectIPAccessListPlan.Timeouts,
 	}
 
-	timeout, diags := projectIPAccessListState.Timeouts.Update(ctx, timeoutUpdate)
+	timeout, diags := projectIPAccessListPlan.Timeouts.Update(ctx, timeoutUpdate)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
