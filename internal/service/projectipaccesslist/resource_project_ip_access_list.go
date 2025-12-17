@@ -296,28 +296,35 @@ func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	if projectIPAccessListPlan.CIDRBlock.IsNull() && projectIPAccessListPlan.IPAddress.IsNull() && projectIPAccessListPlan.AWSSecurityGroup.IsNull() {
-		resp.Diagnostics.AddError("validation error", "cidr_block, ip_address or aws_security_group needs to contain a value")
-		return
-	}
-
 	projectID := projectIPAccessListState.ProjectID.ValueString()
 
-	accessListEntry := projectIPAccessListPlan.CIDRBlock.ValueString()
-	if projectIPAccessListPlan.IPAddress.ValueString() != "" {
-		accessListEntry = projectIPAccessListPlan.IPAddress.ValueString()
-	} else if projectIPAccessListPlan.AWSSecurityGroup.ValueString() != "" {
-		accessListEntry = projectIPAccessListPlan.AWSSecurityGroup.ValueString()
+	accessListEntry := projectIPAccessListState.CIDRBlock.ValueString()
+	if projectIPAccessListState.IPAddress.ValueString() != "" {
+		accessListEntry = projectIPAccessListState.IPAddress.ValueString()
+	} else if projectIPAccessListState.AWSSecurityGroup.ValueString() != "" {
+		accessListEntry = projectIPAccessListState.AWSSecurityGroup.ValueString()
 	}
 
-	timeout, diags := projectIPAccessListPlan.Timeouts.Update(ctx, timeoutUpdate)
+	updatedProjectIPAccessList := &TfProjectIPAccessListModel{
+		ID:               projectIPAccessListState.ID,
+		ProjectID:        projectIPAccessListState.ProjectID,
+		CIDRBlock:        projectIPAccessListState.CIDRBlock,
+		IPAddress:        projectIPAccessListState.IPAddress,
+		AWSSecurityGroup: projectIPAccessListState.AWSSecurityGroup,
+		Timeouts:         projectIPAccessListState.Timeouts,
+
+		// Only comment can be updated
+		Comment: projectIPAccessListPlan.Comment,
+	}
+
+	timeout, diags := projectIPAccessListState.Timeouts.Update(ctx, timeoutUpdate)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		_, _, err := connV2.ProjectIPAccessListApi.CreateAccessListEntry(ctx, projectID, NewMongoDBProjectIPAccessList(projectIPAccessListPlan)).Execute()
+		_, _, err := connV2.ProjectIPAccessListApi.CreateAccessListEntry(ctx, projectID, NewMongoDBProjectIPAccessList(updatedProjectIPAccessList)).Execute()
 		if err != nil {
 			if strings.Contains(err.Error(), "Unexpected error") ||
 				strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
@@ -344,6 +351,6 @@ func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	projectIPAccessListNewModel := NewTfProjectIPAccessListModel(projectIPAccessListPlan, accessList)
+	projectIPAccessListNewModel := NewTfProjectIPAccessListModel(updatedProjectIPAccessList, accessList)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &projectIPAccessListNewModel)...)
 }
