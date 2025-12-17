@@ -306,34 +306,16 @@ func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, na
 		errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s.delete' operation: %w", name, err))
 	}
 
-	var commonParameters []*high.Parameter
-	var commonParametersPath string
-
-	if resourceConfig.Read != nil {
-		commonParametersPath = resourceConfig.Read.Path
-	} else if resourceConfig.DataSources != nil {
-		if resourceConfig.DataSources.Read != nil {
-			commonParametersPath = resourceConfig.DataSources.Read.Path
-		} else if resourceConfig.DataSources.List != nil {
-			commonParametersPath = resourceConfig.DataSources.List.Path
-		}
-	}
-	if commonParametersPath != "" {
-		params, err := extractCommonParameters(spec.Paths, commonParametersPath)
-		if err != nil {
-			errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s' common parameters: %w", name, err))
-		}
-		commonParameters = params
+	commonParameters, err := getCommonParameters(spec.Paths, resourceConfig)
+	if err != nil {
+		errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s' common parameters: %w", name, err))
 	}
 
 	if readOp != nil && readOp.Deprecated != nil && *readOp.Deprecated {
 		resourceDeprecationMsg = conversion.StringPtr(DefaultDeprecationMsg)
 	}
 
-	var description string
-	if createOp != nil {
-		description = createOp.Description
-	}
+	description := getDescription(createOp)
 
 	return APISpecResource{
 		Description:        &description,
@@ -379,6 +361,33 @@ func extractOpFromPathItem(pathItem *high.PathItem, apiOp *config.APIOperation) 
 	default:
 		return nil, fmt.Errorf("method '%s' not found at OpenAPI path '%s'", apiOp.Method, apiOp.Path)
 	}
+}
+
+func getCommonParameters(paths *high.Paths, resourceConfig *config.Resource) ([]*high.Parameter, error) {
+	var commonParametersPath string
+
+	if resourceConfig.Read != nil {
+		commonParametersPath = resourceConfig.Read.Path
+	} else if resourceConfig.DataSources != nil {
+		if resourceConfig.DataSources.Read != nil {
+			commonParametersPath = resourceConfig.DataSources.Read.Path
+		} else if resourceConfig.DataSources.List != nil {
+			commonParametersPath = resourceConfig.DataSources.List.Path
+		}
+	}
+
+	if commonParametersPath == "" {
+		return nil, nil
+	}
+
+	return extractCommonParameters(paths, commonParametersPath)
+}
+
+func getDescription(createOp *high.Operation) string {
+	if createOp != nil {
+		return createOp.Description
+	}
+	return ""
 }
 
 func extractCommonParameters(paths *high.Paths, path string) ([]*high.Parameter, error) {
