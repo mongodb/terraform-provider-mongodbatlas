@@ -306,17 +306,37 @@ func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, na
 		errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s.delete' operation: %w", name, err))
 	}
 
-	commonParameters, err := extractCommonParameters(spec.Paths, resourceConfig.Read.Path)
-	if err != nil {
-		errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s' common parameters: %w", name, err))
+	var commonParameters []*high.Parameter
+	var commonParametersPath string
+
+	if resourceConfig.Read != nil {
+		commonParametersPath = resourceConfig.Read.Path
+	} else if resourceConfig.DataSources != nil {
+		if resourceConfig.DataSources.Read != nil {
+			commonParametersPath = resourceConfig.DataSources.Read.Path
+		} else if resourceConfig.DataSources.List != nil {
+			commonParametersPath = resourceConfig.DataSources.List.Path
+		}
+	}
+	if commonParametersPath != "" {
+		params, err := extractCommonParameters(spec.Paths, commonParametersPath)
+		if err != nil {
+			errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s' common parameters: %w", name, err))
+		}
+		commonParameters = params
 	}
 
-	if readOp.Deprecated != nil && *readOp.Deprecated {
+	if readOp != nil && readOp.Deprecated != nil && *readOp.Deprecated {
 		resourceDeprecationMsg = conversion.StringPtr(DefaultDeprecationMsg)
 	}
 
+	var description string
+	if createOp != nil {
+		description = createOp.Description
+	}
+
 	return APISpecResource{
-		Description:        &createOp.Description,
+		Description:        &description,
 		DeprecationMessage: resourceDeprecationMsg,
 		CreateOp:           createOp,
 		ReadOp:             readOp,
