@@ -25,7 +25,6 @@ func Resource() resource.Resource {
 }
 
 type rs struct {
-	autogen.NoOpCustomCodeHooks
 	config.RSCommon
 }
 
@@ -50,12 +49,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Method:        "POST",
 	}
 	reqHandle := autogen.HandleCreateReq{
-		CreateAPICallHooks: r,
-		ReadAPICallHooks:   r,
-		Resp:               resp,
-		Client:             r.Client,
-		Plan:               &plan,
-		CallParams:         &callParams,
+		Hooks:      r,
+		Resp:       resp,
+		Client:     r.Client,
+		Plan:       &plan,
+		CallParams: &callParams,
 	}
 	autogen.HandleCreate(ctx, reqHandle)
 }
@@ -67,12 +65,12 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	reqHandle := autogen.HandleReadReq{
-		ReadAPICallHooks: r,
-		RespDiags:        &resp.Diagnostics,
-		RespState:        &resp.State,
-		Client:           r.Client,
-		State:            &state,
-		CallParams:       readAPICallParams(&state),
+		Hooks:      r,
+		RespDiags:  &resp.Diagnostics,
+		RespState:  &resp.State,
+		Client:     r.Client,
+		State:      &state,
+		CallParams: readAPICallParams(&state),
 	}
 	autogen.HandleRead(ctx, reqHandle)
 }
@@ -96,12 +94,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Method:        "PATCH",
 	}
 	reqHandle := autogen.HandleUpdateReq{
-		UpdateAPICallHooks: r,
-		ReadAPICallHooks:   r,
-		Resp:               resp,
-		Client:             r.Client,
-		Plan:               &plan,
-		CallParams:         &callParams,
+		Hooks:      r,
+		Resp:       resp,
+		Client:     r.Client,
+		Plan:       &plan,
+		CallParams: &callParams,
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
 }
