@@ -20,7 +20,7 @@ This approach ensures continuous log delivery during migration without gaps.
 
 ## Examples
 
-Please check the [basic/](./basic/README.md) folder. This shows a step-by-step migration through three phases:
+Please check the [direct-resource-usage/](./direct-resource-usage/README.md) folder. This shows a step-by-step migration through three phases:
 - `v1/` - Original configuration with `mongodbatlas_push_based_log_export`
 - `v2/` - Both resources running during migration
 - `v3/` - Final configuration with only `mongodbatlas_log_integration`

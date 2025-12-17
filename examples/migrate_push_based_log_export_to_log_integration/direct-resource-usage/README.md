@@ -1,4 +1,4 @@
-# Basic Migration from `mongodbatlas_push_based_log_export` to `mongodbatlas_log_integration`
+# Direct Resource Usage Migration from `mongodbatlas_push_based_log_export` to `mongodbatlas_log_integration`
 
 This example demonstrates how to migrate a `mongodbatlas_push_based_log_export` resource to `mongodbatlas_log_integration` using a create-before-destroy pattern (see alternatives and more details in the [push-based log export to log integration migration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/push-based-log-export-to-log-integration-migration-guide)).
 
