@@ -312,7 +312,7 @@ func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateR
 		IPAddress:        projectIPAccessListState.IPAddress,
 		AWSSecurityGroup: projectIPAccessListState.AWSSecurityGroup,
 
-		// Only comment and timeoutscan be updated
+		// Only comment and timeouts can be updated without replace.
 		Comment:  projectIPAccessListPlan.Comment,
 		Timeouts: projectIPAccessListPlan.Timeouts,
 	}
