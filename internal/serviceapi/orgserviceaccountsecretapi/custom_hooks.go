@@ -16,6 +16,9 @@ type response struct {
 }
 
 func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
+	if result.Err != nil {
+		return result
+	}
 	var responseJSON response
 	if err := json.Unmarshal(result.Body, &responseJSON); err != nil {
 		return autogen.APICallResult{Body: nil, Err: err}
@@ -43,6 +46,9 @@ func (d *ds) PreReadAPICall(callParams config.APICallParams) config.APICallParam
 }
 
 func (d *ds) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
+	if result.Err != nil {
+		return result
+	}
 	var responseJSON response
 	if err := json.Unmarshal(result.Body, &responseJSON); err != nil {
 		return autogen.APICallResult{Body: nil, Err: err}
