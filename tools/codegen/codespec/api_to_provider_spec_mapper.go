@@ -106,7 +106,11 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	updateOp := oasResource.UpdateOp
 	readOp := oasResource.ReadOp
 
-	createPathParams := pathParamsToAttributes(createOp)
+	var createPathParams Attributes
+	if createOp != nil {
+		createPathParams = pathParamsToAttributes(createOp)
+	}
+
 	var configuredVersion *string
 	if resourceConfig.VersionHeader != "" {
 		configuredVersion = &resourceConfig.VersionHeader
@@ -115,20 +119,21 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	var createRequestAttributes, updateRequestAttributes, createResponseAttributes, readResponseAttributes Attributes
 	var err error
 
-	if !resourceConfig.Create.SchemaIgnore {
+	if resourceConfig.Create != nil && !resourceConfig.Create.SchemaIgnore && createOp != nil {
 		createRequestAttributes, err = opRequestToAttributes(createOp, configuredVersion)
 		if err != nil {
 			return nil, fmt.Errorf("failed to process create request attributes for %s: %w", name, err)
 		}
 		createResponseAttributes = opResponseToAttributes(createOp, configuredVersion)
 	}
+
 	if resourceConfig.Update != nil && !resourceConfig.Update.SchemaIgnore {
 		updateRequestAttributes, err = opRequestToAttributes(updateOp, configuredVersion)
 		if err != nil {
 			return nil, fmt.Errorf("failed to process update request attributes for %s: %w", name, err)
 		}
 	}
-	if !resourceConfig.Read.SchemaIgnore {
+	if resourceConfig.Read != nil && !resourceConfig.Read.SchemaIgnore && readOp != nil {
 		readResponseAttributes = opResponseToAttributes(readOp, configuredVersion)
 	}
 
@@ -140,14 +145,17 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		readResponse:     readResponseAttributes,
 	})
 
-	schema := &Schema{
-		Description:        oasResource.Description,
-		DeprecationMessage: resourceConfig.DeprecationMessage,
-		Attributes:         attributes,
+	var schema *Schema
+	if createOp != nil || readOp != nil || updateOp != nil {
+		schema = &Schema{
+			Description:        oasResource.Description,
+			DeprecationMessage: resourceConfig.DeprecationMessage,
+			Attributes:         attributes,
+		}
 	}
 
 	operations := getOperationsFromConfig(resourceConfig)
-	if operations.VersionHeader == "" { // version was not defined in config file
+	if operations.VersionHeader == "" && readOp != nil { // version was not defined in config file
 		operations.VersionHeader = getLatestVersionFromAPISpec(readOp)
 	}
 
