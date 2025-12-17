@@ -36,10 +36,10 @@ func NewTfProjectIPAccessListModel(projectIPAccessListModel *TfProjectIPAccessLi
 	return &TfProjectIPAccessListModel{
 		ID:               types.StringValue(id),
 		ProjectID:        types.StringValue(projectIPAccessList.GetGroupId()),
-		CIDRBlock:        types.StringValue(projectIPAccessList.GetCidrBlock()),
-		IPAddress:        types.StringValue(projectIPAccessList.GetIpAddress()),
-		AWSSecurityGroup: types.StringValue(projectIPAccessList.GetAwsSecurityGroup()),
-		Comment:          types.StringValue(projectIPAccessList.GetComment()),
+		CIDRBlock:        conversion.StringNullIfEmpty(projectIPAccessList.GetCidrBlock()),
+		IPAddress:        conversion.StringNullIfEmpty(projectIPAccessList.GetIpAddress()),
+		AWSSecurityGroup: conversion.StringNullIfEmpty(projectIPAccessList.GetAwsSecurityGroup()),
+		Comment:          conversion.StringNullIfEmpty(projectIPAccessList.GetComment()),
 		Timeouts:         projectIPAccessListModel.Timeouts,
 	}
 }
@@ -47,10 +47,10 @@ func NewTfProjectIPAccessListModel(projectIPAccessListModel *TfProjectIPAccessLi
 func NewTfProjectIPAccessListDSModel(ctx context.Context, accessList *admin.NetworkPermissionEntry) (*TfProjectIPAccessListDSModel, diag.Diagnostics) {
 	databaseUserModel := &TfProjectIPAccessListDSModel{
 		ProjectID:        types.StringValue(accessList.GetGroupId()),
-		Comment:          types.StringValue(accessList.GetComment()),
-		CIDRBlock:        types.StringValue(accessList.GetCidrBlock()),
-		IPAddress:        types.StringValue(accessList.GetIpAddress()),
-		AWSSecurityGroup: types.StringValue(accessList.GetAwsSecurityGroup()),
+		Comment:          conversion.StringNullIfEmpty(accessList.GetComment()),
+		CIDRBlock:        conversion.StringNullIfEmpty(accessList.GetCidrBlock()),
+		IPAddress:        conversion.StringNullIfEmpty(accessList.GetIpAddress()),
+		AWSSecurityGroup: conversion.StringNullIfEmpty(accessList.GetAwsSecurityGroup()),
 	}
 
 	entry := accessList.GetCidrBlock()

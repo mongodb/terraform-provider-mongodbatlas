@@ -56,7 +56,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"aws_security_group": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -68,14 +67,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"comment": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
 			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Read:   true,
+				Update: true,
 				Delete: true,
 			}),
 		},

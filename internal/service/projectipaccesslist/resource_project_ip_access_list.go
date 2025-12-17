@@ -20,9 +20,11 @@ import (
 const (
 	errorAccessListCreate = "error creating Project IP Access List information: %s"
 	errorAccessListRead   = "error getting Project IP Access List information: %s"
+	errorAccessListUpdate = "error updating Project IP Access List information: %s"
 	errorAccessListDelete = "error deleting Project IP Access List information: %s"
 	timeoutCreateDelete   = 45 * time.Minute
 	timeoutRead           = 2 * time.Minute
+	timeoutUpdate         = 45 * time.Minute
 	timeoutRetryItem      = 2 * time.Minute
 	minTimeoutCreate      = 10 * time.Second
 	delayCreate           = 10 * time.Second
@@ -278,6 +280,69 @@ func isEntryInProjectAccessList(ctx context.Context, connV2 *admin.APIClient, pr
 	return &out, true, nil
 }
 
-// Update is not supported
 func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var projectIPAccessListState *TfProjectIPAccessListModel
+	var projectIPAccessListPlan *TfProjectIPAccessListModel
+	connV2 := r.Client.AtlasV2
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &projectIPAccessListState)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &projectIPAccessListPlan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if projectIPAccessListPlan.CIDRBlock.IsNull() && projectIPAccessListPlan.IPAddress.IsNull() && projectIPAccessListPlan.AWSSecurityGroup.IsNull() {
+		resp.Diagnostics.AddError("validation error", "cidr_block, ip_address or aws_security_group needs to contain a value")
+		return
+	}
+
+	projectID := projectIPAccessListState.ProjectID.ValueString()
+
+	accessListEntry := projectIPAccessListPlan.CIDRBlock.ValueString()
+	if projectIPAccessListPlan.IPAddress.ValueString() != "" {
+		accessListEntry = projectIPAccessListPlan.IPAddress.ValueString()
+	} else if projectIPAccessListPlan.AWSSecurityGroup.ValueString() != "" {
+		accessListEntry = projectIPAccessListPlan.AWSSecurityGroup.ValueString()
+	}
+
+	timeout, diags := projectIPAccessListPlan.Timeouts.Update(ctx, timeoutUpdate)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
+		_, _, err := connV2.ProjectIPAccessListApi.CreateAccessListEntry(ctx, projectID, NewMongoDBProjectIPAccessList(projectIPAccessListPlan)).Execute()
+		if err != nil {
+			if strings.Contains(err.Error(), "Unexpected error") ||
+				strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
+				strings.Contains(err.Error(), "500") {
+				return retry.RetryableError(err)
+			}
+			return retry.NonRetryableError(fmt.Errorf(errorAccessListUpdate, err))
+		}
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError("error updating project ip access list", err.Error())
+		return
+	}
+
+	accessList, httpResponse, err := connV2.ProjectIPAccessListApi.GetAccessListEntry(ctx, projectID, accessListEntry).Execute()
+	if err != nil {
+		if validate.StatusNotFound(httpResponse) {
+			resp.Diagnostics.AddError("error getting project ip access list information after update", "entry not found after update")
+			return
+		}
+		resp.Diagnostics.AddError("error getting project ip access list information after update", err.Error())
+		return
+	}
+
+	projectIPAccessListNewModel := NewTfProjectIPAccessListModel(projectIPAccessListPlan, accessList)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &projectIPAccessListNewModel)...)
 }

@@ -38,6 +38,10 @@ func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
 				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(ipAddress, "", "", comment)...),
 			},
 			{
+				Config: configWithIPAddress(projectID, ipAddress, updatedComment),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(ipAddress, "", "", updatedComment)...),
+			},
+			{
 				Config: configWithIPAddress(projectID, updatedIPAddress, updatedComment),
 				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(updatedIPAddress, "", "", updatedComment)...),
 			},
@@ -70,6 +74,10 @@ func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", cidrBlock, "", comment)...),
 			},
 			{
+				Config: configWithCIDRBlock(projectID, cidrBlock, updatedComment),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", cidrBlock, "", updatedComment)...),
+			},
+			{
 				Config: configWithCIDRBlock(projectID, updatedCIDRBlock, updatedComment),
 				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", updatedCIDRBlock, "", updatedComment)...),
 			},
@@ -99,6 +107,10 @@ func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 			{
 				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
 				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", awsSGroup, comment)...),
+			},
+			{
+				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, updatedComment),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", awsSGroup, updatedComment)...),
 			},
 			{
 				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment),
