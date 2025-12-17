@@ -77,14 +77,22 @@ func validateRequiredOperations(resourceConfigs map[string]config.Resource) erro
 	var validationErrors []error
 	for name := range resourceConfigs {
 		resourceConfig := resourceConfigs[name]
-		if resourceConfig.Create == nil {
-			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Create operation in config file", name))
+		dataSourceOnly := resourceConfig.Create == nil && resourceConfig.Read == nil && resourceConfig.DataSources != nil
+
+		if !dataSourceOnly {
+			if resourceConfig.Create == nil {
+				validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Create operation in config file", name))
+			}
+			if resourceConfig.Read == nil {
+				validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Read operation in config file", name))
+			}
 		}
-		if resourceConfig.Read == nil {
-			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Read operation in config file", name))
-		}
-		if resourceConfig.DataSources != nil && resourceConfig.DataSources.Read == nil && resourceConfig.DataSources.List == nil {
-			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing DataSource Read or List operation in config file", name))
+
+		// Validate that if datasources block is configured, at least one of Read or List operation must be present
+		if resourceConfig.DataSources != nil {
+			if resourceConfig.DataSources.Read == nil && resourceConfig.DataSources.List == nil {
+				validationErrors = append(validationErrors, fmt.Errorf("resource %s missing datasources Read or List operation in config file", name))
+			}
 		}
 	}
 	if len(validationErrors) > 0 {
