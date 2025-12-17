@@ -1,6 +1,4 @@
 # AWS resources for log export
-# Note: This is a simplified example. In production, ensure proper security settings.
-
 resource "aws_s3_bucket" "log_bucket" {
   bucket        = var.s3_bucket_name
   force_destroy = true
