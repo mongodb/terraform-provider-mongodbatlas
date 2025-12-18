@@ -627,6 +627,7 @@ jobs:
             ./internal/serviceapi/orgserviceaccountapi
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/projectsettingsapi
+            ./internal/serviceapi/federatedsettingsidentityproviderapi
         run: make testacc
       - name: Acceptance Tests (Resource Policy API)
         env:

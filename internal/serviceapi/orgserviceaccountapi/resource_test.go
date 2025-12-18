@@ -117,7 +117,7 @@ func configBasic(orgID, name, description string, roles []string, secretExpiresA
 			client_id = mongodbatlas_org_service_account_api.test.client_id
 		}
 		
-		data "mongodbatlas_org_service_account_api_list" "test" {
+		data "mongodbatlas_org_service_accounts_api" "test" {
 			org_id = %[1]q
 			depends_on = [mongodbatlas_org_service_account_api.test]
 		}
