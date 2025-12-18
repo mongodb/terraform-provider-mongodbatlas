@@ -35,12 +35,10 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := autogen.HandleReadReq{
-		Hooks:      d,
-		RespDiags:  &resp.Diagnostics,
-		RespState:  &resp.State,
+	reqHandle := autogen.HandleDataSourceReadReq{
+		Resp:       resp,
 		Client:     d.Client,
-		State:      &tfConfig,
+		Config:     &tfConfig,
 		CallParams: pluralDataSourceReadAPICallParams(ctx, &tfConfig),
 	}
 	autogen.HandleDataSourceReadList(ctx, reqHandle)
@@ -50,10 +48,17 @@ func pluralDataSourceReadAPICallParams(ctx context.Context, model *TFPluralDSMod
 	pathParams := map[string]string{
 		"orgId": model.OrgId.ValueString(),
 	}
+	queryParams := autogen.BuildQueryParamMap(ctx, []autogen.QueryParamArg{
+		{APIName: "name", Value: model.Name},
+		{APIName: "limit", Value: model.Limit},
+		{APIName: "includeDeleted", Value: model.IncludeDeleted},
+		{APIName: "types", Value: model.Types},
+	})
 	return &config.APICallParams{
 		VersionHeader: "application/vnd.atlas.2024-08-05+json",
 		RelativePath:  "/api/atlas/v2/orgs/{orgId}/serviceAccounts",
 		PathParams:    pathParams,
+		QueryParams:   queryParams,
 		Method:        "GET",
 	}
 }
