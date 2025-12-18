@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"go/ast"
 	"go/format"
 	"go/parser"
@@ -8,7 +9,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"golang.org/x/tools/go/ast/astutil"
 )
@@ -39,60 +39,57 @@ func main() {
 		log.Fatalf("[ERROR] Failed to parse AST: %v", err)
 	}
 
-	// 1. Update Imports
-	for pkg := range components {
-		astutil.AddImport(fset, node, importPrefix+pkg)
-	}
-
-	// 2. Inject Registrations
-	// Maps the function name in provider.go to the file-suffix/component-type logic
-	updateRegistrations(node, components, "Resources", "Resource", ComponentResource)
-	updateRegistrations(node, components, "DataSources", "DataSource", ComponentSingularDatasource)
-	updateRegistrations(node, components, "DataSources", "PluralDataSource", ComponentPluralDatasource)
-
-	// 3. Save Changes
-	f, err := os.OpenFile(providerFilePath, os.O_WRONLY|os.O_TRUNC, 0644)
-	if err != nil {
-		log.Fatalf("[ERROR] Failed to open provider file: %v", err)
-	}
-	defer f.Close()
-
-	if err := format.Node(f, fset, node); err != nil {
-		log.Fatalf("[ERROR] Failed to format and write: %v", err)
+	// Move file operations to a separate function to ensure defer f.Close() runs
+	if err := runTransformAndSave(fset, node, components); err != nil {
+		log.Fatalf("[ERROR] %v", err)
 	}
 
 	log.Println("[INFO] Provider updated successfully.")
 }
 
-func updateRegistrations(node *ast.File, components AutogenComponents, funcName, suffix, componentType string) {
+func runTransformAndSave(fset *token.FileSet, node *ast.File, components AutogenComponents) error {
+	// 1. Update Imports
+	for pkg := range components {
+		astutil.AddImport(fset, node, importPrefix+pkg)
+	}
+
+	// 2. Inject Registrations (Targeting specific variable names)
+	updateRegistrations(node, "Resources", "resources", "Resource", ComponentResource, components)
+	updateRegistrations(node, "DataSources", "dataSources", "DataSource", ComponentSingularDatasource, components)
+	updateRegistrations(node, "DataSources", "dataSources", "PluralDataSource", ComponentPluralDatasource, components)
+
+	// 3. Save Changes using modern octal literal 0o644
+	f, err := os.OpenFile(providerFilePath, os.O_WRONLY|os.O_TRUNC, 0o644)
+	if err != nil {
+		return fmt.Errorf("failed to open provider file: %w", err)
+	}
+	defer f.Close()
+
+	if err := format.Node(f, fset, node); err != nil {
+		return fmt.Errorf("failed to format and write: %w", err)
+	}
+	return nil
+}
+
+func updateRegistrations(node *ast.File, funcName, varName, suffix, componentType string, components AutogenComponents) {
 	for _, decl := range node.Decls {
 		fn, ok := decl.(*ast.FuncDecl)
 		if !ok || fn.Name.Name != funcName {
 			continue
 		}
 
-		// Search for the specific variable assignment: dataSources := []...{...}
-		// or resources := []...{...}
 		ast.Inspect(fn.Body, func(n ast.Node) bool {
 			assign, ok := n.(*ast.AssignStmt)
 			if !ok || len(assign.Lhs) == 0 {
 				return true
 			}
 
-			// Identify the variable name (e.g., "dataSources" or "resources")
+			// Check if the variable name on the Left Hand Side matches our target (e.g., "dataSources")
 			ident, ok := assign.Lhs[0].(*ast.Ident)
-			if !ok {
+			if !ok || ident.Name != varName {
 				return true
 			}
 
-			// Targeting the primary slices specifically.
-			// In Provider.go these are usually named "resources" and "dataSources"
-			targetName := strings.ToLower(funcName[:1]) + funcName[1:]
-			if ident.Name != targetName {
-				return true // Skip things like "analyticsDataSources"
-			}
-
-			// Now find the CompositeLit within this specific assignment
 			for _, rhs := range assign.Rhs {
 				if cl, ok := rhs.(*ast.CompositeLit); ok {
 					for pkg, types := range components {
@@ -105,7 +102,7 @@ func updateRegistrations(node *ast.File, components AutogenComponents, funcName,
 					}
 				}
 			}
-			return false
+			return false // Stop once we've handled the target variable
 		})
 	}
 }
@@ -125,13 +122,13 @@ func discoverAutogenComponents(dir string) (AutogenComponents, error) {
 		path := filepath.Join(dir, pkg)
 
 		var list []string
-		if fileExists(filepath.Join(path, "resource.go")) {
+		if _, err := os.Stat(filepath.Join(path, "resource.go")); err == nil {
 			list = append(list, ComponentResource)
 		}
-		if fileExists(filepath.Join(path, "data_source.go")) {
+		if _, err := os.Stat(filepath.Join(path, "data_source.go")); err == nil {
 			list = append(list, ComponentSingularDatasource)
 		}
-		if fileExists(filepath.Join(path, "plural_data_source.go")) {
+		if _, err := os.Stat(filepath.Join(path, "plural_data_source.go")); err == nil {
 			list = append(list, ComponentPluralDatasource)
 		}
 
@@ -140,11 +137,6 @@ func discoverAutogenComponents(dir string) (AutogenComponents, error) {
 		}
 	}
 	return components, nil
-}
-
-func fileExists(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil
 }
 
 func hasComponent(list []string, target string) bool {
