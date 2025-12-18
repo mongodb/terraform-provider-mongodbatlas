@@ -406,12 +406,6 @@ func getCommonParameters(paths *high.Paths, resourceConfig *config.Resource) ([]
 
 	if resourceConfig.Read != nil {
 		commonParametersPath = resourceConfig.Read.Path
-	} else if resourceConfig.DataSources != nil {
-		if resourceConfig.DataSources.Read != nil {
-			commonParametersPath = resourceConfig.DataSources.Read.Path
-		} else if resourceConfig.DataSources.List != nil {
-			commonParametersPath = resourceConfig.DataSources.List.Path
-		}
 	}
 
 	if commonParametersPath == "" {
