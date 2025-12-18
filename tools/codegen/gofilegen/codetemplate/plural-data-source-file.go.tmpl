@@ -39,20 +39,29 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 		Resp:       resp,
 		Client:     d.Client,
 		Config:     &tfConfig,
-		CallParams: pluralDataSourceReadAPICallParams(&tfConfig),
+		CallParams: pluralDataSourceReadAPICallParams(ctx, &tfConfig),
 	}
 	autogen.HandleDataSourceReadList(ctx, reqHandle)
 }
 
-func pluralDataSourceReadAPICallParams(model *TFPluralDSModel) *config.APICallParams {
+func pluralDataSourceReadAPICallParams(ctx context.Context, model *TFPluralDSModel) *config.APICallParams {
 	pathParams := map[string]string{ {{range .PathParams }}
 		"{{ .CamelCaseName }}": model.{{ .PascalCaseName }}.ValueString(),
 	{{- end }}
 	}
+	{{- if .QueryParams }}
+	queryParams := autogen.BuildQueryParamMap(ctx, []autogen.QueryParamArg{ {{range .QueryParams }}
+		{APIName: "{{ .CamelCaseName }}", Value: model.{{ .PascalCaseName }}},
+	{{- end }}
+	})
+	{{- end }}
 	return &config.APICallParams{
 		VersionHeader: "{{ .VersionHeader }}",
 		RelativePath:  "{{ .ReadPath }}",
 		PathParams:    pathParams,
+		{{- if .QueryParams }}
+		QueryParams:   queryParams,
+		{{- end }}
 		Method:        "{{ .ReadMethod }}",
 	}
 }

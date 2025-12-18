@@ -185,17 +185,16 @@ func sortAttributes(attrs Attributes) {
 }
 
 // mergeDataSourceAttributes merges path parameters with response attributes for data sources.
-// Path params are enforced as required; response attributes are marked computed (including all nested attributes).
+// params are enforced as required/optional; response attributes are marked computed (including all nested attributes).
 // Aliases are applied to both path params and response attributes during merge to properly detect duplicates.
 // If duplicates exist (same TFSchemaName after aliasing), Required always wins over Computed.
-func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map[string]string) Attributes {
+func mergeDataSourceAttributes(params, responseAttrs Attributes, aliases map[string]string) Attributes {
 	merged := make(map[string]*Attribute) // key by TFSchemaName
 
 	// Add path params as required (they identify the data source)
 	// Apply aliases to path params during merge
-	for i := range pathParams {
-		attr := pathParams[i] // create a copy
-		attr.ComputedOptionalRequired = Required
+	for i := range params {
+		attr := params[i] // create a copy
 		attr.ReqBodyUsage = OmitAlways
 
 		// Apply alias if configured
@@ -221,8 +220,8 @@ func mergeDataSourceAttributes(pathParams, responseAttrs Attributes, aliases map
 		}
 
 		if existing, found := merged[attr.TFSchemaName]; found {
-			// Duplicate found: keep Required over Computed (Required always wins)
-			if existing.ComputedOptionalRequired != Required {
+			// Duplicate found: keep Required over Computed (Required/Optional always wins)
+			if existing.ComputedOptionalRequired != Required && existing.ComputedOptionalRequired != Optional {
 				merged[attr.TFSchemaName] = &attr
 			}
 			// else: existing is Required, keep it
