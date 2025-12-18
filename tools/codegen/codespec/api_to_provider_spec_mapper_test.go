@@ -2015,7 +2015,6 @@ func TestConvertToProviderSpec_withDataSourceOnly(t *testing.T) {
 	require.NotNil(t, resultsAttr, "results attribute should be present in plural data source")
 	assert.Equal(t, codespec.Computed, resultsAttr.ComputedOptionalRequired)
 	require.NotNil(t, resultsAttr.ListNested, "results should be list nested")
-
 }
 
 // TestConvertToProviderSpec_withDataSourceOnly_listOnly verifies that when only

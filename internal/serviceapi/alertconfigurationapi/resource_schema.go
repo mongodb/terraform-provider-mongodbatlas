@@ -265,14 +265,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Matchers         customtypes.NestedListValue[TFMatchersModel]      `tfsdk:"matchers"`
-	Notifications    customtypes.NestedListValue[TFNotificationsModel] `tfsdk:"notifications"`
 	Created          types.String                                      `tfsdk:"created" autogen:"omitjson"`
 	Enabled          types.Bool                                        `tfsdk:"enabled"`
 	EventTypeName    types.String                                      `tfsdk:"event_type_name"`
 	GroupId          types.String                                      `tfsdk:"group_id" autogen:"omitjson"`
 	Id               types.String                                      `tfsdk:"id" autogen:"omitjson"`
+	Matchers         customtypes.NestedListValue[TFMatchersModel]      `tfsdk:"matchers"`
 	MetricThreshold  customtypes.ObjectValue[TFMetricThresholdModel]   `tfsdk:"metric_threshold"`
+	Notifications    customtypes.NestedListValue[TFNotificationsModel] `tfsdk:"notifications"`
 	SeverityOverride types.String                                      `tfsdk:"severity_override"`
 	Threshold        customtypes.ObjectValue[TFThresholdModel]         `tfsdk:"threshold"`
 	Updated          types.String                                      `tfsdk:"updated" autogen:"omitjson"`

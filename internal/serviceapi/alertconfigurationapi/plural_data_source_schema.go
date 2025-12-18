@@ -263,14 +263,14 @@ type TFPluralDSModel struct {
 	Results customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
 }
 type TFPluralDSResultsModel struct {
-	Matchers         customtypes.NestedListValue[TFPluralDSResultsMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
-	Notifications    customtypes.NestedListValue[TFPluralDSResultsNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
 	Created          types.String                                                     `tfsdk:"created" autogen:"omitjson"`
 	Enabled          types.Bool                                                       `tfsdk:"enabled" autogen:"omitjson"`
 	EventTypeName    types.String                                                     `tfsdk:"event_type_name" autogen:"omitjson"`
 	GroupId          types.String                                                     `tfsdk:"group_id" autogen:"omitjson"`
 	Id               types.String                                                     `tfsdk:"id" autogen:"omitjson"`
+	Matchers         customtypes.NestedListValue[TFPluralDSResultsMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
 	MetricThreshold  customtypes.ObjectValue[TFPluralDSResultsMetricThresholdModel]   `tfsdk:"metric_threshold" autogen:"omitjson"`
+	Notifications    customtypes.NestedListValue[TFPluralDSResultsNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
 	SeverityOverride types.String                                                     `tfsdk:"severity_override" autogen:"omitjson"`
 	Threshold        customtypes.ObjectValue[TFPluralDSResultsThresholdModel]         `tfsdk:"threshold" autogen:"omitjson"`
 	Updated          types.String                                                     `tfsdk:"updated" autogen:"omitjson"`

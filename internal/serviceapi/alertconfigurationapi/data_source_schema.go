@@ -246,14 +246,14 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
-	Matchers         customtypes.NestedListValue[TFDSMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
-	Notifications    customtypes.NestedListValue[TFDSNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
 	Created          types.String                                        `tfsdk:"created" autogen:"omitjson"`
 	Enabled          types.Bool                                          `tfsdk:"enabled" autogen:"omitjson"`
 	EventTypeName    types.String                                        `tfsdk:"event_type_name" autogen:"omitjson"`
 	GroupId          types.String                                        `tfsdk:"group_id" autogen:"omitjson"`
 	Id               types.String                                        `tfsdk:"id" apiname:"alertConfigId" autogen:"omitjson"`
+	Matchers         customtypes.NestedListValue[TFDSMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
 	MetricThreshold  customtypes.ObjectValue[TFDSMetricThresholdModel]   `tfsdk:"metric_threshold" autogen:"omitjson"`
+	Notifications    customtypes.NestedListValue[TFDSNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
 	SeverityOverride types.String                                        `tfsdk:"severity_override" autogen:"omitjson"`
 	Threshold        customtypes.ObjectValue[TFDSThresholdModel]         `tfsdk:"threshold" autogen:"omitjson"`
 	Updated          types.String                                        `tfsdk:"updated" autogen:"omitjson"`
