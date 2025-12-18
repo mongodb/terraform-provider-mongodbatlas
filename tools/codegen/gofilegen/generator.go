@@ -69,7 +69,7 @@ func GenerateCodeForResource(resourceModel *codespec.Resource, packageDir string
 		generatedFiles = append(generatedFiles, files...)
 
 		// Generate plural data source files if plural data source is defined
-		if pluralDataSourceIsDefined(*resourceModel.DataSources) {
+		if isPluralDataSourceDefined(*resourceModel.DataSources) {
 			files, err = generateComponentFiles(resourceModel, packageDir, pluralDataSourceComponent, writeFile)
 			if err != nil {
 				return nil, fmt.Errorf("failed to generate plural data source: %w", err)
@@ -84,7 +84,7 @@ func GenerateCodeForResource(resourceModel *codespec.Resource, packageDir string
 	return generatedFiles, nil
 }
 
-func pluralDataSourceIsDefined(dataSources codespec.DataSources) bool {
+func isPluralDataSourceDefined(dataSources codespec.DataSources) bool {
 	return dataSources.Schema != nil && dataSources.Schema.PluralDSAttributes != nil && len(*dataSources.Schema.PluralDSAttributes) > 0
 }
 
