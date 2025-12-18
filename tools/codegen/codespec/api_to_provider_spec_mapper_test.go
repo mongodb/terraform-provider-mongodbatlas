@@ -1944,3 +1944,127 @@ func TestConvertToProviderSpec_withPluralDataSource(t *testing.T) {
 	assert.Contains(t, ds.Operations.List.Path, "{projectId}",
 		"Plural data source List path should use aliased path param placeholder")
 }
+
+// TestConvertToProviderSpec_withDataSourceOnly verifies a data-source-only config
+// produces an empty resource and generates the configured data source ops/schemas
+// (singular and/or plural) with required path params and computed attributes.
+func TestConvertToProviderSpec_withDataSourceOnly(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      "testdata/config-datasources.yml",
+		inputResourceName:    "test_resource_with_datasource_only",
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Len(t, result.Resources, 1)
+
+	// Resource should be empty (no CRUD)
+	res := result.Resources[0]
+	assert.Nil(t, res.Schema)
+	assert.Nil(t, res.Operations.Create)
+	assert.Nil(t, res.Operations.Read)
+	assert.Nil(t, res.Operations.Update)
+	assert.Nil(t, res.Operations.Delete)
+	assert.Nil(t, res.MoveState)
+	assert.Empty(t, res.IDAttributes)
+
+	// Data sources should be present
+	ds := res.DataSources
+	require.NotNil(t, ds)
+	assert.NotNil(t, ds.Operations.Read)
+	assert.NotNil(t, ds.Operations.List)
+
+	require.NotNil(t, ds.Schema)
+	require.NotNil(t, ds.Schema.SingularDSAttributes)
+	require.NotNil(t, ds.Schema.PluralDSAttributes)
+
+	// Singular data source: path param required, response attrs computed
+	var projectIDAttr *codespec.Attribute
+	var computedAttr *codespec.Attribute
+	for i := range *ds.Schema.SingularDSAttributes {
+		attr := &(*ds.Schema.SingularDSAttributes)[i]
+		if attr.TFSchemaName == "project_id" {
+			projectIDAttr = attr
+		}
+		if attr.TFSchemaName == "str_req_attr1" {
+			computedAttr = attr
+		}
+	}
+	require.NotNil(t, projectIDAttr, "project_id should be present in singular data source")
+	assert.Equal(t, codespec.Required, projectIDAttr.ComputedOptionalRequired)
+	assert.Equal(t, "groupId", projectIDAttr.APIName)
+	require.NotNil(t, computedAttr, "expected str_req_attr1 in singular data source")
+	assert.Equal(t, codespec.Computed, computedAttr.ComputedOptionalRequired)
+
+	// Plural data source: path param required, results list is computed
+	var pluralProjectIDAttr *codespec.Attribute
+	var resultsAttr *codespec.Attribute
+	for i := range *ds.Schema.PluralDSAttributes {
+		attr := &(*ds.Schema.PluralDSAttributes)[i]
+		if attr.TFSchemaName == "project_id" {
+			pluralProjectIDAttr = attr
+		}
+		if attr.TFSchemaName == "results" {
+			resultsAttr = attr
+		}
+	}
+	require.NotNil(t, pluralProjectIDAttr, "project_id should be present in plural data source")
+	assert.Equal(t, codespec.Required, pluralProjectIDAttr.ComputedOptionalRequired)
+	require.NotNil(t, resultsAttr, "results attribute should be present in plural data source")
+	assert.Equal(t, codespec.Computed, resultsAttr.ComputedOptionalRequired)
+	require.NotNil(t, resultsAttr.ListNested, "results should be list nested")
+
+}
+
+// TestConvertToProviderSpec_withDataSourceOnly_listOnly verifies that when only
+// a plural data source is configured (no CRUD, no singular), the model contains
+// no resource schema/ops, no singular data source, and only the plural data source.
+func TestConvertToProviderSpec_withDataSourceOnly_listOnly(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      "testdata/config-datasources.yml",
+		inputResourceName:    "test_resource_with_datasource_list_only",
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Len(t, result.Resources, 1)
+
+	res := result.Resources[0]
+	assert.Nil(t, res.Schema)
+	assert.Nil(t, res.Operations.Create)
+	assert.Nil(t, res.Operations.Read)
+	assert.Nil(t, res.Operations.Update)
+	assert.Nil(t, res.Operations.Delete)
+
+	ds := res.DataSources
+	require.NotNil(t, ds)
+	assert.Nil(t, ds.Operations.Read)
+	require.NotNil(t, ds.Operations.List)
+
+	require.NotNil(t, ds.Schema)
+	if ds.Schema.SingularDSAttributes != nil {
+		assert.Empty(t, *ds.Schema.SingularDSAttributes, "singular data source attributes should be absent for list-only config")
+	}
+	require.NotNil(t, ds.Schema.PluralDSAttributes)
+
+	var projectIDAttr *codespec.Attribute
+	var resultsAttr *codespec.Attribute
+	for i := range *ds.Schema.PluralDSAttributes {
+		attr := &(*ds.Schema.PluralDSAttributes)[i]
+		if attr.TFSchemaName == "project_id" {
+			projectIDAttr = attr
+		}
+		if attr.TFSchemaName == "results" {
+			resultsAttr = attr
+		}
+	}
+	require.NotNil(t, projectIDAttr, "project_id should be present in plural data source")
+	assert.Equal(t, codespec.Required, projectIDAttr.ComputedOptionalRequired)
+	require.NotNil(t, resultsAttr, "results attribute should be present in plural data source")
+	assert.Equal(t, codespec.Computed, resultsAttr.ComputedOptionalRequired)
+	require.NotNil(t, resultsAttr.ListNested, "results should be list nested")
+}
