@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"testing"
 
+	fwProvider "github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	fwProvider "github.com/hashicorp/terraform-plugin-framework/provider"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
@@ -112,8 +112,8 @@ func muxProviderFactory(t *testing.T, clientModifier HTTPClientModifier) func() 
 	}
 	mockedProvider := &ProviderMocked{
 		MongodbatlasProvider: fwProviderInstanceTyped,
-		ClientModifier:      clientModifier,
-		t:                   t,
+		ClientModifier:       clientModifier,
+		t:                    t,
 	}
 	upgradedSdkProvider, err := tf5to6server.UpgradeServer(t.Context(), v2Provider.GRPCProvider)
 	if err != nil {
