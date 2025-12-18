@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_project_ip_access_list:: Enables in-place updates for the `comment` field instead of requiring a replace.
+```
