@@ -81,12 +81,7 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 				return nil, "failed", fmt.Errorf(errorAccessListCreate, err)
 			}
 
-			accessListEntry := projectIPAccessListModel.IPAddress.ValueString()
-			if projectIPAccessListModel.CIDRBlock.ValueString() != "" {
-				accessListEntry = projectIPAccessListModel.CIDRBlock.ValueString()
-			} else if projectIPAccessListModel.AWSSecurityGroup.ValueString() != "" {
-				accessListEntry = projectIPAccessListModel.AWSSecurityGroup.ValueString()
-			}
+			accessListEntry := getAccessListEntry(projectIPAccessListModel)
 
 			entry, exists, err := isEntryInProjectAccessList(ctx, connV2, projectID, accessListEntry)
 			if err != nil {
@@ -118,7 +113,7 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 
 	entry, ok := accessList.(*admin.NetworkPermissionEntry)
 	if !ok {
-		resp.Diagnostics.AddError("error", errorAccessListCreate)
+		resp.Diagnostics.AddError("error", fmt.Sprintf("unexpected type %T returned from state change, expected *admin.NetworkPermissionEntry", accessList))
 		return
 	}
 
@@ -185,12 +180,7 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	entry := projectIPAccessListModelState.CIDRBlock.ValueString()
-	if projectIPAccessListModelState.IPAddress.ValueString() != "" {
-		entry = projectIPAccessListModelState.IPAddress.ValueString()
-	} else if projectIPAccessListModelState.AWSSecurityGroup.ValueString() != "" {
-		entry = projectIPAccessListModelState.AWSSecurityGroup.ValueString()
-	}
+	entry := getAccessListEntry(projectIPAccessListModelState)
 
 	connV2 := r.Client.AtlasV2
 	projectID := projectIPAccessListModelState.ProjectID.ValueString()
@@ -298,12 +288,7 @@ func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateR
 
 	projectID := projectIPAccessListState.ProjectID.ValueString()
 
-	accessListEntry := projectIPAccessListState.CIDRBlock.ValueString()
-	if projectIPAccessListState.IPAddress.ValueString() != "" {
-		accessListEntry = projectIPAccessListState.IPAddress.ValueString()
-	} else if projectIPAccessListState.AWSSecurityGroup.ValueString() != "" {
-		accessListEntry = projectIPAccessListState.AWSSecurityGroup.ValueString()
-	}
+	accessListEntry := getAccessListEntry(projectIPAccessListState)
 
 	updatedProjectIPAccessList := &TfProjectIPAccessListModel{
 		ID:               projectIPAccessListState.ID,
@@ -337,20 +322,34 @@ func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateR
 	})
 
 	if err != nil {
-		resp.Diagnostics.AddError("error updating project ip access list", err.Error())
+		resp.Diagnostics.AddError("error updating project ip access list during patch", err.Error())
 		return
 	}
 
-	accessList, httpResponse, err := connV2.ProjectIPAccessListApi.GetAccessListEntry(ctx, projectID, accessListEntry).Execute()
-	if err != nil {
-		if validate.StatusNotFound(httpResponse) {
-			resp.Diagnostics.AddError("error getting project ip access list information after update", "entry not found after update")
-			return
+	err = retry.RetryContext(ctx, timeout, func() *retry.RetryError {
+		accessList, httpResponse, err := connV2.ProjectIPAccessListApi.GetAccessListEntry(ctx, projectID, accessListEntry).Execute()
+		if err != nil {
+			// case 404
+			// deleted in the backend case
+			if validate.StatusNotFound(httpResponse) {
+				resp.Diagnostics.AddError("error getting project ip access list information after update", "entry not found after update")
+				return nil
+			}
+
+			if validate.StatusInternalServerError(httpResponse) {
+				return retry.RetryableError(err)
+			}
+
+			resp.Diagnostics.AddError("error getting project ip access list information after update", err.Error())
+			return nil
 		}
-		resp.Diagnostics.AddError("error getting project ip access list information after update", err.Error())
-		return
-	}
 
-	projectIPAccessListNewModel := NewTfProjectIPAccessListModel(updatedProjectIPAccessList, accessList)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &projectIPAccessListNewModel)...)
+		projectIPAccessListNewModel := NewTfProjectIPAccessListModel(updatedProjectIPAccessList, accessList)
+		resp.Diagnostics.Append(resp.State.Set(ctx, &projectIPAccessListNewModel)...)
+		return nil
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError("error updating project ip access list during read", err.Error())
+	}
 }

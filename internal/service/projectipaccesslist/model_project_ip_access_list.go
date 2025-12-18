@@ -9,6 +9,32 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312011/admin"
 )
 
+func getAccessListEntry(model *TfProjectIPAccessListModel) string {
+	if model.CIDRBlock.ValueString() != "" {
+		return model.CIDRBlock.ValueString()
+	}
+	if model.IPAddress.ValueString() != "" {
+		return model.IPAddress.ValueString()
+	}
+	if model.AWSSecurityGroup.ValueString() != "" {
+		return model.AWSSecurityGroup.ValueString()
+	}
+	return ""
+}
+
+func getAccessListEntryFromAPI(entry *admin.NetworkPermissionEntry) string {
+	if entry.GetCidrBlock() != "" {
+		return entry.GetCidrBlock()
+	}
+	if entry.GetIpAddress() != "" {
+		return entry.GetIpAddress()
+	}
+	if entry.GetAwsSecurityGroup() != "" {
+		return entry.GetAwsSecurityGroup()
+	}
+	return ""
+}
+
 func NewMongoDBProjectIPAccessList(projectIPAccessListModel *TfProjectIPAccessListModel) *[]admin.NetworkPermissionEntry {
 	return &[]admin.NetworkPermissionEntry{
 		{
@@ -21,12 +47,7 @@ func NewMongoDBProjectIPAccessList(projectIPAccessListModel *TfProjectIPAccessLi
 }
 
 func NewTfProjectIPAccessListModel(projectIPAccessListModel *TfProjectIPAccessListModel, projectIPAccessList *admin.NetworkPermissionEntry) *TfProjectIPAccessListModel {
-	entry := projectIPAccessList.GetIpAddress()
-	if projectIPAccessList.GetCidrBlock() != "" {
-		entry = projectIPAccessList.GetCidrBlock()
-	} else if projectIPAccessList.GetAwsSecurityGroup() != "" {
-		entry = projectIPAccessList.GetAwsSecurityGroup()
-	}
+	entry := getAccessListEntryFromAPI(projectIPAccessList)
 
 	id := conversion.EncodeStateID(map[string]string{
 		"entry":      entry,
@@ -53,12 +74,7 @@ func NewTfProjectIPAccessListDSModel(ctx context.Context, accessList *admin.Netw
 		AWSSecurityGroup: conversion.StringNullIfEmpty(accessList.GetAwsSecurityGroup()),
 	}
 
-	entry := accessList.GetCidrBlock()
-	if accessList.GetIpAddress() != "" {
-		entry = accessList.GetIpAddress()
-	} else if accessList.GetAwsSecurityGroup() != "" {
-		entry = accessList.GetAwsSecurityGroup()
-	}
+	entry := getAccessListEntryFromAPI(accessList)
 
 	id := conversion.EncodeStateID(map[string]string{
 		"entry":      entry,
