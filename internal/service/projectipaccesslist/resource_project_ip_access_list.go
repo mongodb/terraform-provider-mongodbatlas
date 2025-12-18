@@ -81,7 +81,12 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 				return nil, "failed", fmt.Errorf(errorAccessListCreate, err)
 			}
 
-			accessListEntry := getAccessListEntry(projectIPAccessListModel)
+			accessListEntry := projectIPAccessListModel.IPAddress.ValueString()
+			if projectIPAccessListModel.CIDRBlock.ValueString() != "" {
+				accessListEntry = projectIPAccessListModel.CIDRBlock.ValueString()
+			} else if projectIPAccessListModel.AWSSecurityGroup.ValueString() != "" {
+				accessListEntry = projectIPAccessListModel.AWSSecurityGroup.ValueString()
+			}
 
 			entry, exists, err := isEntryInProjectAccessList(ctx, connV2, projectID, accessListEntry)
 			if err != nil {
@@ -180,7 +185,12 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	entry := getAccessListEntry(projectIPAccessListModelState)
+	entry := projectIPAccessListModelState.CIDRBlock.ValueString()
+	if projectIPAccessListModelState.IPAddress.ValueString() != "" {
+		entry = projectIPAccessListModelState.IPAddress.ValueString()
+	} else if projectIPAccessListModelState.AWSSecurityGroup.ValueString() != "" {
+		entry = projectIPAccessListModelState.AWSSecurityGroup.ValueString()
+	}
 
 	connV2 := r.Client.AtlasV2
 	projectID := projectIPAccessListModelState.ProjectID.ValueString()
@@ -320,7 +330,12 @@ func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateR
 				return nil, "failed", fmt.Errorf(errorAccessListUpdate, err)
 			}
 
-			accessListEntry := getAccessListEntry(updatedProjectIPAccessList)
+			accessListEntry := updatedProjectIPAccessList.IPAddress.ValueString()
+			if updatedProjectIPAccessList.CIDRBlock.ValueString() != "" {
+				accessListEntry = updatedProjectIPAccessList.CIDRBlock.ValueString()
+			} else if updatedProjectIPAccessList.AWSSecurityGroup.ValueString() != "" {
+				accessListEntry = updatedProjectIPAccessList.AWSSecurityGroup.ValueString()
+			}
 
 			entry, exists, err := isEntryInProjectAccessList(ctx, connV2, projectID, accessListEntry)
 			if err != nil {
