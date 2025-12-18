@@ -71,14 +71,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
+	Specs                    customtypes.NestedListValue[TFSpecsModel] `tfsdk:"specs"`
 	ClusterName              types.String                              `tfsdk:"cluster_name" autogen:"omitjson"`
 	EncryptionAtRestProvider types.String                              `tfsdk:"encryption_at_rest_provider" autogen:"omitjson"`
 	GroupId                  types.String                              `tfsdk:"group_id" autogen:"omitjson"`
 	Id                       types.String                              `tfsdk:"id" autogen:"omitjson"`
-	Specs                    customtypes.NestedListValue[TFSpecsModel] `tfsdk:"specs"`
 	StateName                types.String                              `tfsdk:"state_name" autogen:"omitjson"`
-	DeleteOnCreateTimeout    types.Bool                                `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
 	Timeouts                 timeouts.Value                            `tfsdk:"timeouts" autogen:"omitjson"`
+	DeleteOnCreateTimeout    types.Bool                                `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
 }
 type TFSpecsModel struct {
 	InstanceSize types.String `tfsdk:"instance_size"`

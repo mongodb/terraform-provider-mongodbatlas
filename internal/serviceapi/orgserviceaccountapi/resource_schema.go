@@ -86,14 +86,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
+	Roles                   customtypes.SetValue[types.String]         `tfsdk:"roles"`
+	Secrets                 customtypes.NestedSetValue[TFSecretsModel] `tfsdk:"secrets" autogen:"omitjson"`
 	ClientId                types.String                               `tfsdk:"client_id" autogen:"omitjson"`
 	CreatedAt               types.String                               `tfsdk:"created_at" autogen:"omitjson"`
 	Description             types.String                               `tfsdk:"description"`
 	Name                    types.String                               `tfsdk:"name"`
 	OrgId                   types.String                               `tfsdk:"org_id" autogen:"omitjson"`
-	Roles                   customtypes.SetValue[types.String]         `tfsdk:"roles"`
 	SecretExpiresAfterHours types.Int64                                `tfsdk:"secret_expires_after_hours" autogen:"omitjsonupdate"`
-	Secrets                 customtypes.NestedSetValue[TFSecretsModel] `tfsdk:"secrets" autogen:"omitjson"`
 }
 type TFSecretsModel struct {
 	CreatedAt         types.String `tfsdk:"created_at" autogen:"omitjson"`
