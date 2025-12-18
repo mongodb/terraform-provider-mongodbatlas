@@ -34,23 +34,6 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the alert configuration.",
 			},
-			"links": dsschema.ListNestedAttribute{
-				Computed:            true,
-				MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-				CustomType:          customtypes.NewNestedListType[TFDSLinksModel](ctx),
-				NestedObject: dsschema.NestedAttributeObject{
-					Attributes: map[string]dsschema.Attribute{
-						"href": dsschema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-						"rel": dsschema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-					},
-				},
-			},
 			"matchers": dsschema.ListNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "List of rules that determine whether MongoDB Cloud checks an object for the alert configuration.",
@@ -263,22 +246,17 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
+	Matchers         customtypes.NestedListValue[TFDSMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
+	Notifications    customtypes.NestedListValue[TFDSNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
 	Created          types.String                                        `tfsdk:"created" autogen:"omitjson"`
 	Enabled          types.Bool                                          `tfsdk:"enabled" autogen:"omitjson"`
 	EventTypeName    types.String                                        `tfsdk:"event_type_name" autogen:"omitjson"`
 	GroupId          types.String                                        `tfsdk:"group_id" autogen:"omitjson"`
 	Id               types.String                                        `tfsdk:"id" apiname:"alertConfigId" autogen:"omitjson"`
-	Links            customtypes.NestedListValue[TFDSLinksModel]         `tfsdk:"links" autogen:"omitjson"`
-	Matchers         customtypes.NestedListValue[TFDSMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
 	MetricThreshold  customtypes.ObjectValue[TFDSMetricThresholdModel]   `tfsdk:"metric_threshold" autogen:"omitjson"`
-	Notifications    customtypes.NestedListValue[TFDSNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
 	SeverityOverride types.String                                        `tfsdk:"severity_override" autogen:"omitjson"`
 	Threshold        customtypes.ObjectValue[TFDSThresholdModel]         `tfsdk:"threshold" autogen:"omitjson"`
 	Updated          types.String                                        `tfsdk:"updated" autogen:"omitjson"`
-}
-type TFDSLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
 }
 type TFDSMatchersModel struct {
 	FieldName types.String `tfsdk:"field_name" autogen:"omitjson"`

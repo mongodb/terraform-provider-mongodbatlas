@@ -18,23 +18,6 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 			},
-			"links": dsschema.ListNestedAttribute{
-				Computed:            true,
-				MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-				CustomType:          customtypes.NewNestedListType[TFPluralDSLinksModel](ctx),
-				NestedObject: dsschema.NestedAttributeObject{
-					Attributes: map[string]dsschema.Attribute{
-						"href": dsschema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-						"rel": dsschema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-					},
-				},
-			},
 			"results": dsschema.ListNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "List of returned documents that MongoDB Cloud provides when completing this request.",
@@ -60,23 +43,6 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 						"id": dsschema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies this alert configuration.",
-						},
-						"links": dsschema.ListNestedAttribute{
-							Computed:            true,
-							MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-							CustomType:          customtypes.NewNestedListType[TFPluralDSResultsLinksModel](ctx),
-							NestedObject: dsschema.NestedAttributeObject{
-								Attributes: map[string]dsschema.Attribute{
-									"href": dsschema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-									},
-									"rel": dsschema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-									},
-								},
-							},
 						},
 						"matchers": dsschema.ListNestedAttribute{
 							Computed:            true,
@@ -294,30 +260,20 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 
 type TFPluralDSModel struct {
 	GroupId types.String                                        `tfsdk:"group_id" autogen:"omitjson"`
-	Links   customtypes.NestedListValue[TFPluralDSLinksModel]   `tfsdk:"links" autogen:"omitjson"`
 	Results customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
 }
-type TFPluralDSLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
-}
 type TFPluralDSResultsModel struct {
+	Matchers         customtypes.NestedListValue[TFPluralDSResultsMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
+	Notifications    customtypes.NestedListValue[TFPluralDSResultsNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
 	Created          types.String                                                     `tfsdk:"created" autogen:"omitjson"`
 	Enabled          types.Bool                                                       `tfsdk:"enabled" autogen:"omitjson"`
 	EventTypeName    types.String                                                     `tfsdk:"event_type_name" autogen:"omitjson"`
 	GroupId          types.String                                                     `tfsdk:"group_id" autogen:"omitjson"`
 	Id               types.String                                                     `tfsdk:"id" autogen:"omitjson"`
-	Links            customtypes.NestedListValue[TFPluralDSResultsLinksModel]         `tfsdk:"links" autogen:"omitjson"`
-	Matchers         customtypes.NestedListValue[TFPluralDSResultsMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
 	MetricThreshold  customtypes.ObjectValue[TFPluralDSResultsMetricThresholdModel]   `tfsdk:"metric_threshold" autogen:"omitjson"`
-	Notifications    customtypes.NestedListValue[TFPluralDSResultsNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
 	SeverityOverride types.String                                                     `tfsdk:"severity_override" autogen:"omitjson"`
 	Threshold        customtypes.ObjectValue[TFPluralDSResultsThresholdModel]         `tfsdk:"threshold" autogen:"omitjson"`
 	Updated          types.String                                                     `tfsdk:"updated" autogen:"omitjson"`
-}
-type TFPluralDSResultsLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
 }
 type TFPluralDSResultsMatchersModel struct {
 	FieldName types.String `tfsdk:"field_name" autogen:"omitjson"`

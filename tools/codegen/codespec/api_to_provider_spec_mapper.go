@@ -257,6 +257,36 @@ func pathParamsToAttributes(createOp *high.Operation) Attributes {
 	return pathAttributes
 }
 
+func queryParamsToAttributes(op *high.Operation) Attributes {
+	if op == nil {
+		return Attributes{}
+	}
+
+	queryParams := op.Parameters
+
+	queryAttributes := Attributes{}
+	for _, param := range queryParams {
+		if param.In != OASQueryParam {
+			continue
+		}
+
+		s, err := BuildSchema(param.Schema)
+		if err != nil {
+			continue
+		}
+
+		paramName := param.Name
+		s.Schema.Description = param.Description
+		parameterAttribute, err := s.buildResourceAttr(paramName, "", Optional, false)
+		if err != nil {
+			log.Printf("[WARN] Query param %s could not be mapped: %s", paramName, err)
+			continue
+		}
+		queryAttributes = append(queryAttributes, *parameterAttribute)
+	}
+	return queryAttributes
+}
+
 func opRequestToAttributes(op *high.Operation, configuredVersion *string) (Attributes, error) {
 	if op == nil {
 		return nil, nil
@@ -460,10 +490,11 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 		}
 
 		readResponseAttributes := opResponseToAttributes(oasListOp, configuredVersion)
-		pathParams := pathParamsToAttributes(oasListOp)
+		params := pathParamsToAttributes(oasListOp)
+		params = append(params, queryParamsToAttributes(oasListOp)...)
 
 		// Merge all attributes, applying aliases to path params during merge to avoid duplicates
-		pluralAttributes = mergeDataSourceAttributes(pathParams, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
+		pluralAttributes = mergeDataSourceAttributes(params, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
 
 		listOp = &APIOperation{
 			HTTPMethod: dsConfig.List.Method,
