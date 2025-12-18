@@ -51,6 +51,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Method:        "POST",
 	}
 	reqHandle := autogen.HandleCreateReq{
+		Hooks:      r,
 		Resp:       resp,
 		Client:     r.Client,
 		Plan:       &plan,
@@ -66,7 +67,9 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	reqHandle := autogen.HandleReadReq{
-		Resp:       resp,
+		Hooks:      r,
+		RespDiags:  &resp.Diagnostics,
+		RespState:  &resp.State,
 		Client:     r.Client,
 		State:      &state,
 		CallParams: readAPICallParams(&state),
@@ -93,6 +96,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Method:        "PATCH",
 	}
 	reqHandle := autogen.HandleUpdateReq{
+		Hooks:      r,
 		Resp:       resp,
 		Client:     r.Client,
 		Plan:       &plan,
@@ -107,7 +111,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := deleteRequest(r.Client, &state, &resp.Diagnostics)
+	reqHandle := deleteRequest(r, r.Client, &state, &resp.Diagnostics)
 	autogen.HandleDelete(ctx, *reqHandle)
 }
 
@@ -129,11 +133,12 @@ func readAPICallParams(model any) *config.APICallParams {
 	}
 }
 
-func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
+func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
 		"projectId": model.ProjectId.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
+		Hooks:  r,
 		Client: client,
 		State:  model,
 		Diags:  diags,

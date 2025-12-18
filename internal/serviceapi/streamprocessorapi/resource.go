@@ -57,12 +57,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	reqHandle := autogen.HandleCreateReq{
+		Hooks:      r,
 		Resp:       resp,
 		Client:     r.Client,
 		Plan:       &plan,
 		CallParams: &callParams,
 		DeleteReq: func(model any) *autogen.HandleDeleteReq {
-			return deleteRequest(r.Client, model.(*TFModel), &resp.Diagnostics)
+			return deleteRequest(r, r.Client, model.(*TFModel), &resp.Diagnostics)
 		},
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		Wait: &autogen.WaitReq{
@@ -85,7 +86,9 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	reqHandle := autogen.HandleReadReq{
-		Resp:       resp,
+		Hooks:      r,
+		RespDiags:  &resp.Diagnostics,
+		RespState:  &resp.State,
 		Client:     r.Client,
 		State:      &state,
 		CallParams: readAPICallParams(&state),
@@ -119,6 +122,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	reqHandle := autogen.HandleUpdateReq{
+		Hooks:      r,
 		Resp:       resp,
 		Client:     r.Client,
 		Plan:       &plan,
@@ -142,7 +146,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := deleteRequest(r.Client, &state, &resp.Diagnostics)
+	reqHandle := deleteRequest(r, r.Client, &state, &resp.Diagnostics)
 	timeout, diags := state.Timeouts.Delete(ctx, 300*time.Second)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -180,13 +184,14 @@ func readAPICallParams(model any) *config.APICallParams {
 	}
 }
 
-func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
+func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
 		"groupId":    model.GroupId.ValueString(),
 		"tenantName": model.TenantName.ValueString(),
 		"name":       model.Name.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
+		Hooks:  r,
 		Client: client,
 		State:  model,
 		Diags:  diags,

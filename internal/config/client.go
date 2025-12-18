@@ -256,11 +256,11 @@ type APICallParams struct {
 	VersionHeader string
 	RelativePath  string
 	PathParams    map[string]string
-	QueryParams   map[string]string
+	QueryParams   map[string]string // Original types (string, int64, bool, list) are formatted to string before being added.
 	Method        string
 }
 
-func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParams, bodyReq []byte) (*http.Response, error) {
+func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params APICallParams, bodyReq []byte) (*http.Response, error) {
 	localBasePath, _ := c.AtlasV2.GetConfig().ServerURLWithContext(ctx, "")
 	localVarPath := localBasePath + params.RelativePath
 

@@ -66,6 +66,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 	{{- end }}
 	reqHandle := autogen.HandleCreateReq {
+		Hooks: r,
 		Resp: resp,
 		Client: r.Client,
 		Plan: &plan,
@@ -73,7 +74,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		{{- with .APIOperations.Create.Wait }}
 		{{- if $.APIOperations.Delete }}
 		DeleteReq: func(model any) *autogen.HandleDeleteReq {
-			return deleteRequest(r.Client, model.(*TFModel), &resp.Diagnostics)
+			return deleteRequest(r, r.Client, model.(*TFModel), &resp.Diagnostics)
 		},
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		{{- end }}
@@ -98,7 +99,9 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	reqHandle := autogen.HandleReadReq {
-		Resp: resp,
+		Hooks: r,
+		RespDiags:        &resp.Diagnostics,
+		RespState:        &resp.State,
 		Client: r.Client,
 		State: &state,
 		CallParams: readAPICallParams(&state),
@@ -134,6 +137,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	{{ end -}}
 	reqHandle := autogen.HandleUpdateReq {
+		Hooks: r,
 		Resp: resp,
 		Client: r.Client,
 		Plan: &plan,
@@ -163,7 +167,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := deleteRequest(r.Client, &state, &resp.Diagnostics)
+	reqHandle := deleteRequest(r, r.Client, &state, &resp.Diagnostics)
 	{{- with .APIOperations.Delete.Wait }}
 	timeout, diags := state.Timeouts.Delete(ctx, {{ .TimeoutSeconds }}*time.Second)
 	resp.Diagnostics.Append(diags...)
@@ -204,12 +208,13 @@ func readAPICallParams(model any) *config.APICallParams {
 }
 
 {{with .APIOperations.Delete}}
-func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
+func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{ {{range .PathParams }}
 		"{{ .CamelCaseName }}": model.{{ .PascalCaseName }}.ValueString(),
 	{{- end }}
 	}
 	return &autogen.HandleDeleteReq{
+		Hooks: r,
 		Client: client,
 		State: model,
 		Diags: diags,

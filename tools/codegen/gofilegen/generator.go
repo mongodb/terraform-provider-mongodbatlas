@@ -68,17 +68,24 @@ func GenerateCodeForResource(resourceModel *codespec.Resource, packageDir string
 		}
 		generatedFiles = append(generatedFiles, files...)
 
-		files, err = generateComponentFiles(resourceModel, packageDir, pluralDataSourceComponent, writeFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate plural data source: %w", err)
+		// Generate plural data source files if plural data source is defined
+		if isPluralDataSourceDefined(*resourceModel.DataSources) {
+			files, err = generateComponentFiles(resourceModel, packageDir, pluralDataSourceComponent, writeFile)
+			if err != nil {
+				return nil, fmt.Errorf("failed to generate plural data source: %w", err)
+			}
+			generatedFiles = append(generatedFiles, files...)
 		}
-		generatedFiles = append(generatedFiles, files...)
 	}
 
 	// Format all generated files: goimports per file, fieldalignment on package
 	FormatGeneratedFiles(generatedFiles, packageDir)
 
 	return generatedFiles, nil
+}
+
+func isPluralDataSourceDefined(dataSources codespec.DataSources) bool {
+	return dataSources.Schema != nil && dataSources.Schema.PluralDSAttributes != nil && len(*dataSources.Schema.PluralDSAttributes) > 0
 }
 
 // generateComponentFiles generates schema and implementation files for a resource or data source
