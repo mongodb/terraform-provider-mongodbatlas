@@ -367,7 +367,7 @@ func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateR
 
 	entry, ok := accessList.(*admin.NetworkPermissionEntry)
 	if !ok {
-		resp.Diagnostics.AddError("error", fmt.Sprintf("unexpected type %T returned from state change, expected *admin.NetworkPermissionEntry", accessList))
+		resp.Diagnostics.AddError("error", errorAccessListUpdate)
 		return
 	}
 
