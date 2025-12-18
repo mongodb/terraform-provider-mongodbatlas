@@ -344,9 +344,12 @@ func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, na
 		errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s.delete' operation: %w", name, err))
 	}
 
-	commonParameters, err := getCommonParameters(spec.Paths, resourceConfig)
-	if err != nil {
-		errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s' common parameters: %w", name, err))
+	var commonParameters []*high.Parameter
+	if resourceConfig.Read != nil {
+		commonParameters, err = extractCommonParameters(spec.Paths, resourceConfig.Read.Path)
+		if err != nil {
+			errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s' common parameters: %w", name, err))
+		}
 	}
 
 	if readOp != nil && readOp.Deprecated != nil && *readOp.Deprecated {
@@ -399,20 +402,6 @@ func extractOpFromPathItem(pathItem *high.PathItem, apiOp *config.APIOperation) 
 	default:
 		return nil, fmt.Errorf("method '%s' not found at OpenAPI path '%s'", apiOp.Method, apiOp.Path)
 	}
-}
-
-func getCommonParameters(paths *high.Paths, resourceConfig *config.Resource) ([]*high.Parameter, error) {
-	var commonParametersPath string
-
-	if resourceConfig.Read != nil {
-		commonParametersPath = resourceConfig.Read.Path
-	}
-
-	if commonParametersPath == "" {
-		return nil, nil
-	}
-
-	return extractCommonParameters(paths, commonParametersPath)
 }
 
 func getDescription(createOp *high.Operation) string {
