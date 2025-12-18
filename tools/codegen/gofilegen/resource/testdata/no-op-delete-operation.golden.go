@@ -49,6 +49,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Method:        "POST",
 	}
 	reqHandle := autogen.HandleCreateReq{
+		Hooks:      r,
 		Resp:       resp,
 		Client:     r.Client,
 		Plan:       &plan,
@@ -64,7 +65,9 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	reqHandle := autogen.HandleReadReq{
-		Resp:       resp,
+		Hooks:      r,
+		RespDiags:  &resp.Diagnostics,
+		RespState:  &resp.State,
 		Client:     r.Client,
 		State:      &state,
 		CallParams: readAPICallParams(&state),
@@ -91,6 +94,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Method:        "PATCH",
 	}
 	reqHandle := autogen.HandleUpdateReq{
+		Hooks:      r,
 		Resp:       resp,
 		Client:     r.Client,
 		Plan:       &plan,
