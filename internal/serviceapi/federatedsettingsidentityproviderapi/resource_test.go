@@ -7,13 +7,17 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 const resourceName = "mongodbatlas_federated_settings_identity_provider_api.test"
-const dataSourceName = "data.mongodbatlas_federated_settings_identity_provider_api.test"
-const dataSourcePluralName = "data.mongodbatlas_federated_settings_identity_providers_api.test"
+
+var (
+	oidcProtocol = "OIDC"
+	samlProtocol = "SAML"
+)
 
 func TestAccFederatedSettingsIdentityProviderAPI_OIDCWorkforce(t *testing.T) {
 	resource.ParallelTest(t, *basicOIDCWorkforceTestCase(t))
@@ -46,7 +50,7 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 	)
 	checks := []resource.TestCheckFunc{}
 	checks = acc.AddAttrChecks(resourceName, checks, attrMapCheck)
-	checks = acc.AddAttrChecks(dataSourceName, checks, attrMapCheck)
+	checks = acc.AddAttrChecks("data.mongodbatlas_federated_settings_identity_provider_api.test", checks, attrMapCheck)
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckFederatedSettingsIdentityProvider(tb) },
@@ -63,7 +67,7 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "description", description2),
 					resource.TestCheckResourceAttr(resourceName, "audience", audience2),
 					resource.TestCheckResourceAttr(resourceName, "name", "OIDC-CRUD-test"),
-					resource.TestCheckResourceAttr(dataSourceName, "display_name", "OIDC-CRUD-test"),
+					resource.TestCheckResourceAttr("data.mongodbatlas_federated_settings_identity_provider_api.test", "display_name", "OIDC-CRUD-test"),
 				),
 			},
 			// {
@@ -79,7 +83,7 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 
 func configOIDCWorkforceBasic(federationSettingsID, associatedDomain, description, audience string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_federated_settings_identity_provider" "test" {
+	resource "mongodbatlas_federated_settings_identity_provider_api" "test" {
         federation_settings_id 		= %[1]q
 		associated_domains 			= [%[3]q]
 		audience 					= %[2]q
@@ -95,8 +99,81 @@ func configOIDCWorkforceBasic(federationSettingsID, associatedDomain, descriptio
 		idp_type 					= "WORKFORCE"
 	  }
 	  
-	  data "mongodbatlas_federated_settings_identity_provider" "test" {
-		federation_settings_id = mongodbatlas_federated_settings_identity_provider.test.federation_settings_id
-		identity_provider_id   = mongodbatlas_federated_settings_identity_provider.test.idp_id
+	  data "mongodbatlas_federated_settings_identity_provider_api" "test" {
+		federation_settings_id = mongodbatlas_federated_settings_identity_provider_api.test.federation_settings_id
+		identity_provider_id   = mongodbatlas_federated_settings_identity_provider_api.test.idp_id
 	  }`, federationSettingsID, audience, associatedDomain, description)
+}
+
+func TestAccFederatedSettingsIdentityProvidersDS_basic(t *testing.T) {
+	var (
+		dataSourceName      = "data.mongodbatlas_federated_settings_identity_providers_api.test"
+		federatedSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckFederatedSettings(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKFORCE), []string{oidcProtocol, samlProtocol}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "results.#", "2"),
+				),
+			},
+			{
+				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKFORCE), []string{samlProtocol}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "results.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "results.0.display_name", "SAML-test"),
+				),
+			},
+			{
+				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKFORCE), []string{oidcProtocol}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "results.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "results.0.display_name", "OIDC-test"),
+				),
+			},
+			{
+				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKFORCE), []string{}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "results.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "results.0.display_name", "SAML-test"), // if no protocol is specified, it defaults to SAML
+				),
+			},
+			{
+				Config: configPluralDS(federatedSettingsID, conversion.StringPtr(federatedsettingsidentityprovider.WORKLOAD), []string{}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(dataSourceName, "federation_settings_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "results.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func configPluralDS(federatedSettingsID string, idpType *string, protocols []string) string {
+	var protocolString string
+	if len(protocols) > 1 {
+		protocolString = fmt.Sprintf(`protocols = [%[1]q, %[2]q]`, protocols[0], protocols[1])
+	} else if len(protocols) > 0 {
+		protocolString = fmt.Sprintf(`protocols = [%[1]q]`, protocols[0])
+	}
+	var idpTypeString string
+	if idpType != nil {
+		idpTypeString = fmt.Sprintf(`idp_types = [%[1]q]`, *idpType)
+	}
+
+	return fmt.Sprintf(`
+		data "mongodbatlas_federated_settings_identity_providers_api" "test" {
+			federation_settings_id = "%[1]s"
+			%[2]s
+			%[3]s
+		}
+`, federatedSettingsID, protocolString, idpTypeString)
 }
