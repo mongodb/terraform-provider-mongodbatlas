@@ -288,8 +288,6 @@ func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateR
 
 	projectID := projectIPAccessListState.ProjectID.ValueString()
 
-	accessListEntry := getAccessListEntry(projectIPAccessListState)
-
 	updatedProjectIPAccessList := &TfProjectIPAccessListModel{
 		ID:               projectIPAccessListState.ID,
 		ProjectID:        projectIPAccessListState.ProjectID,
@@ -308,48 +306,59 @@ func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		_, _, err := connV2.ProjectIPAccessListApi.CreateAccessListEntry(ctx, projectID, NewMongoDBProjectIPAccessList(updatedProjectIPAccessList)).Execute()
-		if err != nil {
-			if strings.Contains(err.Error(), "Unexpected error") ||
-				strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
-				strings.Contains(err.Error(), "500") {
-				return retry.RetryableError(err)
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{"pending"},
+		Target:  []string{"updated", "failed"},
+		Refresh: func() (any, string, error) {
+			_, _, err := connV2.ProjectIPAccessListApi.CreateAccessListEntry(ctx, projectID, NewMongoDBProjectIPAccessList(updatedProjectIPAccessList)).Execute()
+			if err != nil {
+				if strings.Contains(err.Error(), "Unexpected error") ||
+					strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
+					strings.Contains(err.Error(), "500") {
+					return nil, "pending", nil
+				}
+				return nil, "failed", fmt.Errorf(errorAccessListUpdate, err)
 			}
-			return retry.NonRetryableError(fmt.Errorf(errorAccessListUpdate, err))
-		}
-		return nil
-	})
 
+			accessListEntry := getAccessListEntry(updatedProjectIPAccessList)
+
+			entry, exists, err := isEntryInProjectAccessList(ctx, connV2, projectID, accessListEntry)
+			if err != nil {
+				if strings.Contains(err.Error(), "500") {
+					return nil, "pending", nil
+				}
+				if strings.Contains(err.Error(), "404") {
+					return nil, "pending", nil
+				}
+				return nil, "failed", fmt.Errorf(errorAccessListUpdate, err)
+			}
+			if !exists {
+				return nil, "pending", nil
+			}
+
+			return entry, "updated", nil
+		},
+		Timeout:    timeout,
+		Delay:      delayCreate,
+		MinTimeout: minTimeoutCreate,
+	}
+
+	// Wait, catching any errors
+	accessList, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		resp.Diagnostics.AddError("error updating project ip access list during patch", err.Error())
+		resp.Diagnostics.AddError("error while waiting for resource update", err.Error())
 		return
 	}
 
-	err = retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		accessList, httpResponse, err := connV2.ProjectIPAccessListApi.GetAccessListEntry(ctx, projectID, accessListEntry).Execute()
-		if err != nil {
-			// case 404
-			// deleted in the backend case
-			if validate.StatusNotFound(httpResponse) {
-				resp.Diagnostics.AddError("error getting project ip access list information after update", "entry not found after update")
-				return nil
-			}
+	entry, ok := accessList.(*admin.NetworkPermissionEntry)
+	if !ok {
+		resp.Diagnostics.AddError("error", fmt.Sprintf("unexpected type %T returned from state change, expected *admin.NetworkPermissionEntry", accessList))
+		return
+	}
 
-			if validate.StatusInternalServerError(httpResponse) {
-				return retry.RetryableError(err)
-			}
-
-			resp.Diagnostics.AddError("error getting project ip access list information after update", err.Error())
-			return nil
-		}
-
-		projectIPAccessListNewModel := NewTfProjectIPAccessListModel(updatedProjectIPAccessList, accessList)
-		resp.Diagnostics.Append(resp.State.Set(ctx, &projectIPAccessListNewModel)...)
-		return nil
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError("error updating project ip access list during read", err.Error())
+	projectIPAccessListNewModel := NewTfProjectIPAccessListModel(updatedProjectIPAccessList, entry)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &projectIPAccessListNewModel)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 }
