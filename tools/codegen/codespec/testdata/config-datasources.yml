@@ -24,3 +24,22 @@ resources:
         # (path param groupId should alias to projectId, and if response has projectId it should be deduplicated)
         aliases:
           groupId: projectId
+  test_resource_with_datasource_only:
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/testResource
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/testResources
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+  test_resource_with_datasource_list_only:
+    datasources:
+      list:
+        path: /api/atlas/v2/groups/{groupId}/testResources
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -52,9 +53,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Describes whether or not the feature is enabled and what status it is in.",
 			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Create: true,
-				Update: true,
-				Delete: true,
+				Create:            true,
+				Update:            true,
+				Delete:            true,
+				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate("15m"),
+				UpdateDescription: constant.TimeoutDescriptionCreateReadUpdate("15m"),
+				DeleteDescription: constant.TimeoutDescriptionDelete("15m"),
 			}),
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed: true,

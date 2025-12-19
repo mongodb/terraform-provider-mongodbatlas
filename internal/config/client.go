@@ -260,7 +260,7 @@ type APICallParams struct {
 	Method        string
 }
 
-func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParams, bodyReq []byte) (*http.Response, error) {
+func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params APICallParams, bodyReq []byte) (*http.Response, error) {
 	localBasePath, _ := c.AtlasV2.GetConfig().ServerURLWithContext(ctx, "")
 	localVarPath := localBasePath + params.RelativePath
 
