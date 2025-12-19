@@ -619,6 +619,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN: ${{ inputs.mongodb_atlas_federated_settings_associated_domain }}
+          MONGODB_ATLAS_FEDERATION_SETTINGS_ID: ${{ inputs.mongodb_atlas_federation_settings_id }}
+          MONGODB_ATLAS_FEDERATED_ORG_ID: ${{ inputs.mongodb_atlas_federated_org_id }}
           ACCTEST_PACKAGES: |
             ./internal/serviceapi/auditingapi
             ./internal/serviceapi/customdbroleapi
