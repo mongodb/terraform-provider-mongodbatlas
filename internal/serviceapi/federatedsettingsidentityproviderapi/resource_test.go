@@ -177,7 +177,7 @@ func configOIDCWorkloadBasic(federationSettingsID, description, audience, author
 	  
 	  data "mongodbatlas_federated_settings_identity_provider_api" "test" {
 		federation_settings_id = mongodbatlas_federated_settings_identity_provider_api.test.federation_settings_id
-		identity_provider_id   = mongodbatlas_federated_settings_identity_provider_api.test.idp_id
+		id   = mongodbatlas_federated_settings_identity_provider_api.test.id
 	  }
 	  data "mongodbatlas_federated_settings_identity_providers_api" "test" {
 		federation_settings_id 	= mongodbatlas_federated_settings_identity_provider_api.test.federation_settings_id
