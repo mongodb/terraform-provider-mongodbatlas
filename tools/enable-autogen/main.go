@@ -24,7 +24,10 @@ func main() {
 	}
 	s := string(content)
 
-	entries, _ := os.ReadDir(serviceapi)
+	entries, err := os.ReadDir(serviceapi)
+	if err != nil {
+		log.Fatalf("Failed to read serviceapi directory: %v", err)
+	}
 	for _, entry := range entries {
 		if !entry.IsDir() {
 			continue
