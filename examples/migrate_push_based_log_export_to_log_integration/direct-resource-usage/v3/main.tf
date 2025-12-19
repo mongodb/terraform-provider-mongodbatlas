@@ -32,6 +32,16 @@ resource "mongodbatlas_log_integration" "logs" {
   log_types   = ["MONGOD", "MONGOS", "MONGOD_AUDIT", "MONGOS_AUDIT"]
 }
 
+# Data sources for reading log integration configuration
+data "mongodbatlas_log_integration" "logs" {
+  project_id     = mongodbatlas_log_integration.logs.project_id
+  integration_id = mongodbatlas_log_integration.logs.integration_id
+}
+
+data "mongodbatlas_log_integrations" "all" {
+  project_id = mongodbatlas_log_integration.logs.project_id
+}
+
 output "log_prefix" {
   description = "Prefix path for the log integration"
   value       = mongodbatlas_log_integration.logs.prefix_path
@@ -40,5 +50,15 @@ output "log_prefix" {
 output "log_integration_id" {
   description = "ID of the log integration"
   value       = mongodbatlas_log_integration.logs.integration_id
+}
+
+output "log_integration_bucket_name" {
+  description = "Bucket name from the singular data source"
+  value       = data.mongodbatlas_log_integration.logs.bucket_name
+}
+
+output "log_integrations_count" {
+  description = "Total number of log integrations in the project"
+  value       = length(data.mongodbatlas_log_integrations.all.results)
 }
 

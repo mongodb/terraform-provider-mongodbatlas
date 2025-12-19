@@ -219,12 +219,8 @@ access-token-revoke: ## Revoke an OAuth2 access token. Usage: make access-token-
 	@go run ./tools/access-token/*.go revoke $(token)
 
 .PHONY: enable-autogen
-enable-autogen: ## Enable use of autogen resources and data sources in the provider
-	$(eval filename := ./internal/provider/provider.go)
-	$(eval resources := $(shell ls -d internal/serviceapi/*/ | xargs -n1 basename))
-	$(foreach resource,$(resources),make add-lines-if-missing filename=${filename} resource=${resource};)
-	$(foreach resource,$(resources),make add-datasource-if-exists filename=${filename} resource=${resource};)
-	goimports -w ${filename}
+enable-autogen: ## Enable use of autogen resources and datasources in the provider
+	@go run tools/enable-autogen/main.go
 
 .PHONY: delete-lines ${filename} ${delete}
 delete-lines:

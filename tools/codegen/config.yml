@@ -894,6 +894,9 @@ resources:
       read:
         path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
         method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/logIntegrations
+        method: GET
       schema:
         aliases:
           groupId: projectId
