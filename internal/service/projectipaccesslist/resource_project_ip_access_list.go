@@ -77,7 +77,7 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 	if entry == nil {
-		resp.Diagnostics.AddError("error", errorAccessListCreate)
+		resp.Diagnostics.AddError("error", fmt.Errorf(errorAccessListCreate, "entry is nil").Error())
 		return
 	}
 
@@ -253,7 +253,7 @@ func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 	if entry == nil {
-		resp.Diagnostics.AddError("error", errorAccessListUpdate)
+		resp.Diagnostics.AddError("error", fmt.Errorf(errorAccessListUpdate, "entry is nil").Error())
 		return
 	}
 
