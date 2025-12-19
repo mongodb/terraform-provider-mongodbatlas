@@ -73,7 +73,7 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 
 	entry, err := createOrUpdate(ctx, connV2, projectIPAccessListModel, timeout, errorAccessListCreate)
 	if err != nil {
-		resp.Diagnostics.AddError("error while waiting for resource creation", err.Error())
+		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
 	}
 	if entry == nil {
@@ -249,7 +249,7 @@ func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateR
 
 	entry, err := createOrUpdate(ctx, connV2, updatedProjectIPAccessList, timeout, errorAccessListUpdate)
 	if err != nil {
-		resp.Diagnostics.AddError("error while waiting for resource update", err.Error())
+		resp.Diagnostics.AddError("error updating resource", err.Error())
 		return
 	}
 	if entry == nil {
