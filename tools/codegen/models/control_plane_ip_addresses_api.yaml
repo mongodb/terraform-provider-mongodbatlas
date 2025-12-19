@@ -1,0 +1,144 @@
+operations:
+    version_header: ""
+data_sources:
+    schema:
+        singular_ds_description: Returns all control plane IP addresses.
+        singular_ds_attributes:
+            - single_nested:
+                nested_object:
+                    attributes:
+                        - map:
+                            element_type: 4
+                          description: Control plane IP addresses in AWS. Each key identifies an Amazon Web Services (AWS) region. Each value identifies control plane IP addresses in the AWS region.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.MapValue[types.String]
+                            schema: customtypes.NewMapType[types.String](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: aws
+                          tf_model_name: Aws
+                          api_name: aws
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - map:
+                            element_type: 4
+                          description: Control plane IP addresses in Azure. Each key identifies an Azure region. Each value identifies control plane IP addresses in the Azure region.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.MapValue[types.String]
+                            schema: customtypes.NewMapType[types.String](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: azure
+                          tf_model_name: Azure
+                          api_name: azure
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - map:
+                            element_type: 4
+                          description: Control plane IP addresses in GCP. Each key identifies a Google Cloud (GCP) region. Each value identifies control plane IP addresses in the GCP region.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.MapValue[types.String]
+                            schema: customtypes.NewMapType[types.String](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: gcp
+                          tf_model_name: Gcp
+                          api_name: gcp
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of inbound IP addresses to the Atlas control plane, categorized by cloud provider. If your application allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your API requests can reach the Atlas control plane.
+              custom_type:
+                package: customtypes
+                model: customtypes.ObjectValue[TFInboundModel]
+                schema: customtypes.NewObjectType[TFInboundModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: inbound
+              tf_model_name: Inbound
+              api_name: inbound
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - single_nested:
+                nested_object:
+                    attributes:
+                        - map:
+                            element_type: 4
+                          description: Control plane IP addresses in AWS. Each key identifies an Amazon Web Services (AWS) region. Each value identifies control plane IP addresses in the AWS region.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.MapValue[types.String]
+                            schema: customtypes.NewMapType[types.String](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: aws
+                          tf_model_name: Aws
+                          api_name: aws
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - map:
+                            element_type: 4
+                          description: Control plane IP addresses in Azure. Each key identifies an Azure region. Each value identifies control plane IP addresses in the Azure region.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.MapValue[types.String]
+                            schema: customtypes.NewMapType[types.String](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: azure
+                          tf_model_name: Azure
+                          api_name: azure
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - map:
+                            element_type: 4
+                          description: Control plane IP addresses in GCP. Each key identifies a Google Cloud (GCP) region. Each value identifies control plane IP addresses in the GCP region.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.MapValue[types.String]
+                            schema: customtypes.NewMapType[types.String](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: gcp
+                          tf_model_name: Gcp
+                          api_name: gcp
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of outbound IP addresses from the Atlas control plane, categorized by cloud provider. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that Atlas can communicate with your webhooks and KMS.
+              custom_type:
+                package: customtypes
+                model: customtypes.ObjectValue[TFOutboundModel]
+                schema: customtypes.NewObjectType[TFOutboundModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: outbound
+              tf_model_name: Outbound
+              api_name: outbound
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+        plural_ds_attributes: []
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/unauth/controlPlaneIPAddresses
+        version_header: application/vnd.atlas.2023-11-15+json
+name: control_plane_ip_addresses_api
+packageName: controlplaneipaddressesapi
