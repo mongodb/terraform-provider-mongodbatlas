@@ -200,12 +200,8 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	currentTier := state.Tier.ValueString()
-	plannedTier := plan.Tier.ValueString()
-	tierChanged := currentTier != plannedTier
-
-	// we must stop the current stream processor if the current state is started or the tier is updated
-	if currentState == StartedState && (plannedState != StartedState || tierChanged) {
+	// we must stop the current stream processor if the current state is started
+	if currentState == StartedState {
 		_, err := connV2.StreamsApi.StopStreamProcessorWithParams(ctx,
 			&admin.StopStreamProcessorApiParams{
 				GroupId:       plan.ProjectID.ValueString(),
