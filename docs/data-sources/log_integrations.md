@@ -2,13 +2,13 @@
 subcategory: "Log Integration"
 ---
 
-# Data Source: mongodbatlas_log_integration
+# Data Source: mongodbatlas_log_integrations
 
-`mongodbatlas_log_integration` describes the configuration for a log integration identified by its unique ID. Log integrations are managed at the project level and allow you to continually export `mongod`, `mongos`, and audit logs to an AWS S3 bucket with 1-minute log export intervals.
+`mongodbatlas_log_integrations` returns all log integrations in a project. Log integrations allow you to continually export `mongod`, `mongos`, and audit logs to an AWS S3 bucket with 1-minute log export intervals.
 
 To use this data source, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
 
-## Example Usage
+## Example Usages
 ```terraform
 resource "mongodbatlas_project" "project" {
   name   = var.atlas_project_name
@@ -63,15 +63,26 @@ output "log_integrations_results" {
 
 ### Required
 
-- `integration_id` (String) Unique identifier of the log integration configuration.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
 
 **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
 
+### Optional
+
+- `integration_type` (String) Optional filter by integration type (e.g., 'S3_LOG_EXPORT').
+
 ### Read-Only
+
+- `results` (Attributes List) List of returned documents that MongoDB Cloud provides when completing this request. (see [below for nested schema](#nestedatt--results))
+
+<a id="nestedatt--results"></a>
+### Nested Schema for `results`
+
+Read-Only:
 
 - `bucket_name` (String) Human-readable label that identifies the S3 bucket name for storing log files.
 - `iam_role_id` (String) Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
+- `integration_id` (String) Unique 24-character hexadecimal digit string that identifies the log integration configuration.
 - `kms_key` (String) AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
 - `log_types` (Set of String) Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.
 - `prefix_path` (String) S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
