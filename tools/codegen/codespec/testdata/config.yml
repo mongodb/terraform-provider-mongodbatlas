@@ -99,6 +99,24 @@ resources:
       path: /api/atlas/v2/dynamicJsonProperties
       method: DELETE
 
+  test_resource_with_tags_and_labels_as_map_type:
+    read:
+      path: /api/atlas/v2/tagsAndLabels
+      method: GET
+    create:
+      path: /api/atlas/v2/tagsAndLabels
+      method: POST
+    update:
+      path: /api/atlas/v2/tagsAndLabels
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/tagsAndLabels
+      method: DELETE
+    datasources:
+      read:
+        path: /api/atlas/v2/tagsAndLabels
+        method: GET
+      
   test_resource_move_state:
     read:
       path: /api/atlas/v2/groups/{groupId}/simpleTestResource
