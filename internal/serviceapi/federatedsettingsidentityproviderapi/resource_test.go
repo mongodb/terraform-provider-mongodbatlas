@@ -169,7 +169,7 @@ func configOIDCWorkloadBasic(federationSettingsID, description, audience, author
 		description 				= %[3]q
 		issuer_uri 					= "https://token.actions.githubusercontent.com"
 		idp_type 					= %[4]q
-		name 						= "OIDC-workload-CRUD"
+		display_name 				= "OIDC-workload-CRUD"
 		protocol 					= "OIDC"
 		groups_claim				= %[6]s
 		user_claim 					= "sub"
