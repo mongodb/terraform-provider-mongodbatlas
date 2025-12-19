@@ -344,14 +344,6 @@ func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, na
 		errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s.delete' operation: %w", name, err))
 	}
 
-	var commonParameters []*high.Parameter
-	if resourceConfig.Read != nil {
-		commonParameters, err = extractCommonParameters(spec.Paths, resourceConfig.Read.Path)
-		if err != nil {
-			errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s' common parameters: %w", name, err))
-		}
-	}
-
 	if readOp != nil && readOp.Deprecated != nil && *readOp.Deprecated {
 		resourceDeprecationMsg = conversion.StringPtr(DefaultDeprecationMsg)
 	}
@@ -365,7 +357,6 @@ func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, na
 		ReadOp:             readOp,
 		UpdateOp:           updateOp,
 		DeleteOp:           deleteOp,
-		CommonParameters:   commonParameters,
 	}, errResult
 }
 
@@ -409,16 +400,6 @@ func getDescription(createOp *high.Operation) string {
 		return createOp.Description
 	}
 	return ""
-}
-
-func extractCommonParameters(paths *high.Paths, path string) ([]*high.Parameter, error) {
-	if paths.PathItems.GetOrZero(path) == nil {
-		return nil, fmt.Errorf("path '%s' not found in OpenAPI spec", path)
-	}
-
-	pathItem, _ := paths.PathItems.Get(path)
-
-	return pathItem.Parameters, nil
 }
 
 // apiSpecToDataSourcesModel creates a DataSources model from the API spec using the datasources config.
