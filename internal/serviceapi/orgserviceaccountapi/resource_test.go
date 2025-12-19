@@ -127,23 +127,18 @@ func configBasic(orgID, name, description string, roles []string, secretExpiresA
 }
 
 func checkBasic(isCreate bool) resource.TestCheckFunc {
-	// Common attributes for resource and data sources
 	commonAttrsSet := []string{"client_id", "created_at", "secrets.0.id", "secrets.0.created_at", "secrets.0.expires_at"}
 	commonAttrsMap := map[string]string{"secrets.#": "1"}
 
-	// Use CheckRSAndDS for common attributes across resource and both data sources
 	checks := acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), commonAttrsSet, commonAttrsMap, checkExists(resourceName))
 
-	// Add secret-specific checks (different for resource vs data sources)
 	additionalChecks := []resource.TestCheckFunc{}
 	if isCreate {
-		// secret value is only present in the first apply
 		additionalChecks = acc.AddAttrSetChecks(resourceName, additionalChecks, "secrets.0.secret")
 	} else {
 		additionalChecks = acc.AddAttrSetChecks(resourceName, additionalChecks, "secrets.0.masked_secret_value")
 	}
 
-	// Data sources always have masked_secret_value
 	additionalChecks = acc.AddAttrSetChecks(dataSourceName, additionalChecks, "secrets.0.masked_secret_value")
 	additionalChecks = acc.AddAttrSetChecksPrefix(dataSourcePluralName, additionalChecks, []string{"secrets.0.masked_secret_value"}, "results.0")
 
