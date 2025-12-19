@@ -46,8 +46,16 @@ data "mongodbatlas_log_integration" "example" {
   integration_id = mongodbatlas_log_integration.example.integration_id
 }
 
+data "mongodbatlas_log_integrations" "example" {
+  project_id = mongodbatlas_log_integration.example.project_id
+}
+
 output "log_integration_bucket_name" {
   value = data.mongodbatlas_log_integration.example.bucket_name
+}
+
+output "log_integrations_results" {
+  value = data.mongodbatlas_log_integrations.example.results
 }
 ```
 
@@ -58,6 +66,7 @@ output "log_integration_bucket_name" {
 
 - `bucket_name` (String) Human-readable label that identifies the S3 bucket name for storing log files.
 - `iam_role_id` (String) Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
+- `log_types` (Set of String) Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.
 - `prefix_path` (String) S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
 
@@ -67,7 +76,6 @@ output "log_integration_bucket_name" {
 ### Optional
 
 - `kms_key` (String) AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
-- `log_types` (Set of String) Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.
 
 ### Read-Only
 

@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	resourceName       = "mongodbatlas_log_integration.test"
-	dataSourceName     = "data.mongodbatlas_log_integration.test"
-	nonEmptyPrefixPath = "push-log-prefix-v3"
+	resourceName         = "mongodbatlas_log_integration.test"
+	dataSourceName       = "data.mongodbatlas_log_integration.test"
+	pluralDataSourceName = "data.mongodbatlas_log_integrations.test"
+	nonEmptyPrefixPath   = "push-log-prefix-v3"
 )
 
 func TestAccLogIntegration_basic(t *testing.T) {
@@ -43,7 +44,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 			{
 				Config: configWithDataSource(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					append(commonChecks(s3BucketName, nonEmptyPrefixPath), dataSourceChecks(s3BucketName, nonEmptyPrefixPath)...)...,
+					append(append(commonChecks(s3BucketName, nonEmptyPrefixPath), dataSourceChecks(s3BucketName, nonEmptyPrefixPath)...), pluralDataSourceChecks(s3BucketName, nonEmptyPrefixPath)...)...,
 				),
 			},
 			{
@@ -77,6 +78,18 @@ func dataSourceChecks(s3BucketName, prefixPath string) []resource.TestCheckFunc 
 	return acc.AddAttrSetChecks(dataSourceName, checks, "project_id", "iam_role_id", "integration_id")
 }
 
+func pluralDataSourceChecks(s3BucketName, prefixPath string) []resource.TestCheckFunc {
+	mapChecks := map[string]string{
+		"results.#":             "1",
+		"results.0.bucket_name": s3BucketName,
+		"results.0.prefix_path": prefixPath,
+		"results.0.type":        "S3_LOG_EXPORT",
+		"results.0.log_types.#": "1",
+	}
+	checks := acc.AddAttrChecks(pluralDataSourceName, nil, mapChecks)
+	return acc.AddAttrSetChecks(pluralDataSourceName, checks, "project_id", "results.0.iam_role_id", "results.0.integration_id")
+}
+
 func configWithDataSource(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string) string {
 	return fmt.Sprintf(`
 		%s
@@ -84,6 +97,10 @@ func configWithDataSource(projectID, s3BucketName, s3BucketPolicyName, awsIAMRol
 		data "mongodbatlas_log_integration" "test" {
 			project_id     = mongodbatlas_log_integration.test.project_id
 			integration_id = mongodbatlas_log_integration.test.integration_id
+		}
+
+		data "mongodbatlas_log_integrations" "test" {
+			project_id = mongodbatlas_log_integration.test.project_id
 		}
 	`, configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath, true, false, ""))
 }
