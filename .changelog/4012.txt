@@ -1,7 +1,7 @@
 ```release-note:note
-data-source/mongodbatlas_push_based_log_export: Deprecates this datasource in favour of `data.mongodbatlas_log_integration`
+data-source/mongodbatlas_push_based_log_export: Deprecates this data source in favor of `data.mongodbatlas_log_integration`
 ```
 
 ```release-note:note
-resource/mongodbatlas_push_based_log_export: Deprecates this resource in favour of `mongodbatlas_log_integration`
+resource/mongodbatlas_push_based_log_export: Deprecates this resource in favor of `mongodbatlas_log_integration`
 ```
