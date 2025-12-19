@@ -864,6 +864,14 @@ resources:
         notifications.ops_genie_api_key:
           sensitive: true
 
+  control_plane_ip_addresses_api:
+    datasources:
+      read:
+        path: /api/atlas/v2/unauth/controlPlaneIPAddresses
+        method: GET
+      schema:
+        ignores: ["links"]
+
   log_integration:
     read:
       path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
@@ -885,9 +893,6 @@ resources:
     datasources:
       read:
         path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
-        method: GET
-      list:
-        path: /api/atlas/v2/groups/{groupId}/logIntegrations/
         method: GET
       schema:
         aliases:

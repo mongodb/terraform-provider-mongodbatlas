@@ -60,7 +60,7 @@ const (
 	ProviderMetaModuleVersionDesc  = "The version of the module using the provider"
 )
 
-type MongodbtlasProvider struct {
+type MongodbatlasProvider struct {
 }
 
 type tfModel struct {
@@ -85,12 +85,12 @@ type tfAssumeRoleModel struct {
 	RoleARN types.String `tfsdk:"role_arn"`
 }
 
-func (p *MongodbtlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+func (p *MongodbatlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "mongodbatlas"
 	resp.Version = version.ProviderVersion
 }
 
-func (p *MongodbtlasProvider) MetaSchema(ctx context.Context, req provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
+func (p *MongodbatlasProvider) MetaSchema(ctx context.Context, req provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
 	resp.Schema = metaschema.Schema{
 		Attributes: map[string]metaschema.Attribute{
 			ProviderMetaModuleName: metaschema.StringAttribute{
@@ -110,7 +110,7 @@ func (p *MongodbtlasProvider) MetaSchema(ctx context.Context, req provider.MetaS
 	}
 }
 
-func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *MongodbatlasProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Blocks: map[string]schema.Block{
 			"assume_role": fwAssumeRoleSchema,
@@ -189,7 +189,7 @@ var fwAssumeRoleSchema = schema.ListNestedBlock{
 	},
 }
 
-func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *MongodbatlasProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	providerVars := getProviderVars(ctx, req, resp)
 	if resp.Diagnostics.HasError() {
 		return
@@ -256,7 +256,7 @@ func applyGovBaseURLIfNeeded(providerBaseURL string, providerIsMongodbGovCloud b
 	return providerBaseURL
 }
 
-func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {
+func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.DataSource {
 	dataSources := []func() datasource.DataSource{
 		project.DataSource,
 		project.PluralDataSource,
@@ -311,7 +311,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 	return analyticsDataSources
 }
 
-func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
+func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Resource {
 	resources := []func() resource.Resource{
 		project.Resource,
 		logintegration.Resource,
@@ -345,7 +345,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 }
 
 func NewFrameworkProvider() provider.Provider {
-	return &MongodbtlasProvider{}
+	return &MongodbatlasProvider{}
 }
 
 func MuxProviderFactory() func() tfprotov6.ProviderServer {

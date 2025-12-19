@@ -1,5 +1,5 @@
 schema:
-    description: Creates a new log integration configuration identified by a unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+    description: Creates a new log integration configuration identified by a unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
     attributes:
         - string: {}
           description: Human-readable label that identifies the S3 bucket name for storing log files.
@@ -66,7 +66,7 @@ schema:
             package: customtypes
             model: customtypes.SetValue[types.String]
             schema: customtypes.NewSetType[types.String](ctx)
-          computed_optional_required: optional
+          computed_optional_required: required
           tf_schema_name: log_types
           tf_model_name: LogTypes
           api_name: logTypes
@@ -113,8 +113,8 @@ operations:
     version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
     schema:
-        singular_ds_description: Returns the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
-        attributes:
+        singular_ds_description: Returns the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+        singular_ds_attributes:
             - string: {}
               description: Human-readable label that identifies the S3 bucket name for storing log files.
               computed_optional_required: computed
@@ -211,13 +211,11 @@ data_sources:
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
+        plural_ds_attributes: []
     operations:
         read:
             http_method: GET
             path: /api/atlas/v2/groups/{projectId}/logIntegrations/{integrationId}
-        list:
-            http_method: GET
-            path: /api/atlas/v2/groups/{projectId}/logIntegrations/
         version_header: application/vnd.atlas.2025-03-12+json
 name: log_integration
 packageName: logintegration

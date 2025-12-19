@@ -37,7 +37,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.",
 			},
 			"log_types": schema.SetAttribute{
-				Optional:            true,
+				Required:            true,
 				MarkdownDescription: "Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.",
 				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
