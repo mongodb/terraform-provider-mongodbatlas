@@ -77,14 +77,22 @@ func validateRequiredOperations(resourceConfigs map[string]config.Resource) erro
 	var validationErrors []error
 	for name := range resourceConfigs {
 		resourceConfig := resourceConfigs[name]
-		if resourceConfig.Create == nil {
-			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Create operation in config file", name))
+		dataSourceOnly := resourceConfig.Create == nil && resourceConfig.Read == nil && resourceConfig.DataSources != nil
+
+		if !dataSourceOnly {
+			if resourceConfig.Create == nil {
+				validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Create operation in config file", name))
+			}
+			if resourceConfig.Read == nil {
+				validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Read operation in config file", name))
+			}
 		}
-		if resourceConfig.Read == nil {
-			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Read operation in config file", name))
-		}
-		if resourceConfig.DataSources != nil && resourceConfig.DataSources.Read == nil && resourceConfig.DataSources.List == nil {
-			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing DataSource Read or List operation in config file", name))
+
+		// Validate that if datasources block is configured, at least one of Read or List operation must be present
+		if resourceConfig.DataSources != nil {
+			if resourceConfig.DataSources.Read == nil && resourceConfig.DataSources.List == nil {
+				validationErrors = append(validationErrors, fmt.Errorf("resource %s missing datasources Read or List operation in config file", name))
+			}
 		}
 	}
 	if len(validationErrors) > 0 {
@@ -98,7 +106,11 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	updateOp := oasResource.UpdateOp
 	readOp := oasResource.ReadOp
 
-	createPathParams := pathParamsToAttributes(createOp)
+	var createPathParams Attributes
+	if createOp != nil {
+		createPathParams = pathParamsToAttributes(createOp)
+	}
+
 	var configuredVersion *string
 	if resourceConfig.VersionHeader != "" {
 		configuredVersion = &resourceConfig.VersionHeader
@@ -107,20 +119,21 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	var createRequestAttributes, updateRequestAttributes, createResponseAttributes, readResponseAttributes Attributes
 	var err error
 
-	if !resourceConfig.Create.SchemaIgnore {
+	if resourceConfig.Create != nil && !resourceConfig.Create.SchemaIgnore && createOp != nil {
 		createRequestAttributes, err = opRequestToAttributes(createOp, configuredVersion)
 		if err != nil {
 			return nil, fmt.Errorf("failed to process create request attributes for %s: %w", name, err)
 		}
 		createResponseAttributes = opResponseToAttributes(createOp, configuredVersion)
 	}
+
 	if resourceConfig.Update != nil && !resourceConfig.Update.SchemaIgnore {
 		updateRequestAttributes, err = opRequestToAttributes(updateOp, configuredVersion)
 		if err != nil {
 			return nil, fmt.Errorf("failed to process update request attributes for %s: %w", name, err)
 		}
 	}
-	if !resourceConfig.Read.SchemaIgnore {
+	if resourceConfig.Read != nil && !resourceConfig.Read.SchemaIgnore && readOp != nil {
 		readResponseAttributes = opResponseToAttributes(readOp, configuredVersion)
 	}
 
@@ -132,14 +145,17 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		readResponse:     readResponseAttributes,
 	})
 
-	schema := &Schema{
-		Description:        oasResource.Description,
-		DeprecationMessage: resourceConfig.DeprecationMessage,
-		Attributes:         attributes,
+	var schema *Schema
+	if createOp != nil || readOp != nil || updateOp != nil {
+		schema = &Schema{
+			Description:        oasResource.Description,
+			DeprecationMessage: resourceConfig.DeprecationMessage,
+			Attributes:         attributes,
+		}
 	}
 
 	operations := getOperationsFromConfig(resourceConfig)
-	if operations.VersionHeader == "" { // version was not defined in config file
+	if operations.VersionHeader == "" && readOp != nil { // version was not defined in config file
 		operations.VersionHeader = getLatestVersionFromAPISpec(readOp)
 	}
 
@@ -328,23 +344,19 @@ func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, na
 		errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s.delete' operation: %w", name, err))
 	}
 
-	commonParameters, err := extractCommonParameters(spec.Paths, resourceConfig.Read.Path)
-	if err != nil {
-		errResult = errors.Join(errResult, fmt.Errorf("unable to extract '%s' common parameters: %w", name, err))
-	}
-
-	if readOp.Deprecated != nil && *readOp.Deprecated {
+	if readOp != nil && readOp.Deprecated != nil && *readOp.Deprecated {
 		resourceDeprecationMsg = conversion.StringPtr(DefaultDeprecationMsg)
 	}
 
+	description := getDescription(createOp)
+
 	return APISpecResource{
-		Description:        &createOp.Description,
+		Description:        &description,
 		DeprecationMessage: resourceDeprecationMsg,
 		CreateOp:           createOp,
 		ReadOp:             readOp,
 		UpdateOp:           updateOp,
 		DeleteOp:           deleteOp,
-		CommonParameters:   commonParameters,
 	}, errResult
 }
 
@@ -383,14 +395,11 @@ func extractOpFromPathItem(pathItem *high.PathItem, apiOp *config.APIOperation) 
 	}
 }
 
-func extractCommonParameters(paths *high.Paths, path string) ([]*high.Parameter, error) {
-	if paths.PathItems.GetOrZero(path) == nil {
-		return nil, fmt.Errorf("path '%s' not found in OpenAPI spec", path)
+func getDescription(createOp *high.Operation) string {
+	if createOp != nil {
+		return createOp.Description
 	}
-
-	pathItem, _ := paths.PathItems.Get(path)
-
-	return pathItem.Parameters, nil
+	return ""
 }
 
 // apiSpecToDataSourcesModel creates a DataSources model from the API spec using the datasources config.

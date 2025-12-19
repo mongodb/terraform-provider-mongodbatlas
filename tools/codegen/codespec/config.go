@@ -17,6 +17,9 @@ const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resour
 	"transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`."
 
 func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resource *Resource) error {
+	if resource == nil || resource.Schema == nil {
+		return nil
+	}
 	// Start with empty paths for both schemaPath (snake_case) and apiPath (camelCase)
 	if err := applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
