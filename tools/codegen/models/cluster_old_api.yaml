@@ -491,31 +491,8 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-        - list_nested:
-            nested_object:
-                attributes:
-                    - string: {}
-                      description: Key applied to tag and categorize this component.
-                      computed_optional_required: optional
-                      tf_schema_name: key
-                      tf_model_name: Key
-                      api_name: key
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-                    - string: {}
-                      description: Value set to the Key applied to tag and categorize this component.
-                      computed_optional_required: optional
-                      tf_schema_name: value
-                      tf_model_name: Value
-                      api_name: value
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
+        - map:
+            element_type: 4
           description: |-
             Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
 
@@ -523,8 +500,8 @@ schema:
           deprecation_message: This attribute has been deprecated
           custom_type:
             package: customtypes
-            model: customtypes.NestedListValue[TFLabelsModel]
-            schema: customtypes.NewNestedListType[TFLabelsModel](ctx)
+            model: customtypes.MapValue[types.String]
+            schema: customtypes.NewMapType[types.String](ctx)
           computed_optional_required: optional
           tf_schema_name: labels
           tf_model_name: Labels
@@ -534,6 +511,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          list_type_as_map: true
         - single_nested:
             nested_object:
                 attributes:
@@ -1256,36 +1234,13 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-        - list_nested:
-            nested_object:
-                attributes:
-                    - string: {}
-                      description: 'Constant that defines the set of the tag. For example, `environment` in the `environment : production` tag.'
-                      computed_optional_required: required
-                      tf_schema_name: key
-                      tf_model_name: Key
-                      api_name: key
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-                    - string: {}
-                      description: 'Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.'
-                      computed_optional_required: required
-                      tf_schema_name: value
-                      tf_model_name: Value
-                      api_name: value
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
+        - map:
+            element_type: 4
           description: List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.
           custom_type:
             package: customtypes
-            model: customtypes.NestedListValue[TFTagsModel]
-            schema: customtypes.NewNestedListType[TFTagsModel](ctx)
+            model: customtypes.MapValue[types.String]
+            schema: customtypes.NewMapType[types.String](ctx)
           computed_optional_required: optional
           tf_schema_name: tags
           tf_model_name: Tags
@@ -1295,6 +1250,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          list_type_as_map: true
         - bool:
             default: false
           description: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster.
