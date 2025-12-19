@@ -162,7 +162,7 @@ func configOIDCWorkloadBasic(federationSettingsID, description, audience, author
 		groupsClaimRaw = `null`
 	}
 	return fmt.Sprintf(`
-	resource "mongodbatlas_federated_settings_identity_provider" "test" {
+	resource "mongodbatlas_federated_settings_identity_provider_api" "test" {
         federation_settings_id 		= %[1]q
 		audience 					= %[2]q
 		authorization_type			= %[5]q
@@ -175,15 +175,15 @@ func configOIDCWorkloadBasic(federationSettingsID, description, audience, author
 		user_claim 					= "sub"
 	  }
 	  
-	  data "mongodbatlas_federated_settings_identity_provider" "test" {
+	  data "mongodbatlas_federated_settings_identity_provider_api" "test" {
 		federation_settings_id = mongodbatlas_federated_settings_identity_provider.test.federation_settings_id
-		identity_provider_id   = mongodbatlas_federated_settings_identity_provider.test.idp_id
+		identity_provider_id   = mongodbatlas_federated_settings_identity_provider_api.test.idp_id
 	  }
-	  data "mongodbatlas_federated_settings_identity_providers" "test" {
-		federation_settings_id 	= mongodbatlas_federated_settings_identity_provider.test.federation_settings_id
+	  data "mongodbatlas_federated_settings_identity_providers_api" "test" {
+		federation_settings_id 	= mongodbatlas_federated_settings_identity_provider_api.test.federation_settings_id
 		idp_type 				= [%[4]q]
 		protocol 				= [%[7]q]
-		depends_on 				= [mongodbatlas_federated_settings_identity_provider.test]
+		depends_on 				= [mongodbatlas_federated_settings_identity_provider_api.test]
 	  }
 	  `, federationSettingsID, audience, description, federatedsettingsidentityprovider.WORKLOAD, authorizationType, groupsClaimRaw, federatedsettingsidentityprovider.OIDC)
 }
@@ -199,7 +199,7 @@ func configOIDCWorkforceBasic(federationSettingsID, associatedDomain, descriptio
 		description 				= %[4]q
 		groups_claim				= "groups"
 		issuer_uri 					= "https://token.actions.githubusercontent.com"
-		displayName 						= "OIDC-CRUD-test"
+		display_name 						= "OIDC-CRUD-test"
 		protocol 					= "OIDC"
 		requested_scopes 			= ["profiles"]
 		user_claim 					= "sub"
