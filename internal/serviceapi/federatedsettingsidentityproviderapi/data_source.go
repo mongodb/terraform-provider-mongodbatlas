@@ -48,11 +48,12 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 
 func dataSourceReadAPICallParams(model *TFDSModel) *config.APICallParams {
 	pathParams := map[string]string{
-		"id": model.Id.ValueString(),
+		"federationSettingsId": model.FederationSettingsId.ValueString(),
+		"id":                   model.Id.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: "application/vnd.atlas.2025-03-12+json",
-		RelativePath:  "/api/atlas/v2/federationSettings/{id}/identityProviders",
+		RelativePath:  "/api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders/{id}",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}

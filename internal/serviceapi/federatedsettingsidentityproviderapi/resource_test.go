@@ -101,7 +101,7 @@ func configOIDCWorkforceBasic(federationSettingsID, associatedDomain, descriptio
 	  
 	  data "mongodbatlas_federated_settings_identity_provider_api" "test" {
 		federation_settings_id = mongodbatlas_federated_settings_identity_provider_api.test.federation_settings_id
-		identity_provider_id   = mongodbatlas_federated_settings_identity_provider_api.test.idp_id
+		id                     = mongodbatlas_federated_settings_identity_provider_api.test.id
 	  }`, federationSettingsID, audience, associatedDomain, description)
 }
 
@@ -160,13 +160,13 @@ func TestAccFederatedSettingsIdentityProvidersDS_basic(t *testing.T) {
 func configPluralDS(federatedSettingsID string, idpType *string, protocols []string) string {
 	var protocolString string
 	if len(protocols) > 1 {
-		protocolString = fmt.Sprintf(`protocols = [%[1]q, %[2]q]`, protocols[0], protocols[1])
+		protocolString = fmt.Sprintf(`protocol = [%[1]q, %[2]q]`, protocols[0], protocols[1])
 	} else if len(protocols) > 0 {
-		protocolString = fmt.Sprintf(`protocols = [%[1]q]`, protocols[0])
+		protocolString = fmt.Sprintf(`protocol = [%[1]q]`, protocols[0])
 	}
 	var idpTypeString string
 	if idpType != nil {
-		idpTypeString = fmt.Sprintf(`idp_types = [%[1]q]`, *idpType)
+		idpTypeString = fmt.Sprintf(`idp_type = [%[1]q]`, *idpType)
 	}
 
 	return fmt.Sprintf(`

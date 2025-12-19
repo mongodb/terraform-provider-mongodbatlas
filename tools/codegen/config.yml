@@ -869,7 +869,7 @@ resources:
         identityProviderId: id # path param name does not match the API response property
     datasources:
       read:
-        path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders
+        path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders/{identityProviderId}
         method: GET
       list:
         path: /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders
@@ -877,4 +877,4 @@ resources:
       version_header: application/vnd.atlas.2025-03-12+json
       schema:
         aliases:
-          federationSettingsId: id # path param name does not match the API response property
+          identityProviderId: id # path param name does not match the API response property

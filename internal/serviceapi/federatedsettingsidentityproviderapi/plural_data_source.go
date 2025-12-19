@@ -46,7 +46,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 
 func pluralDataSourceReadAPICallParams(ctx context.Context, model *TFPluralDSModel) *config.APICallParams {
 	pathParams := map[string]string{
-		"id": model.Id.ValueString(),
+		"federationSettingsId": model.FederationSettingsId.ValueString(),
 	}
 	queryParams := autogen.BuildQueryParamMap(ctx, []autogen.QueryParamArg{
 		{APIName: "idpType", Value: model.IdpType},
@@ -54,7 +54,7 @@ func pluralDataSourceReadAPICallParams(ctx context.Context, model *TFPluralDSMod
 	})
 	return &config.APICallParams{
 		VersionHeader: "application/vnd.atlas.2025-03-12+json",
-		RelativePath:  "/api/atlas/v2/federationSettings/{id}/identityProviders",
+		RelativePath:  "/api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders",
 		PathParams:    pathParams,
 		QueryParams:   queryParams,
 		Method:        "GET",

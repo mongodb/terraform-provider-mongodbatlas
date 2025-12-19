@@ -14,7 +14,7 @@ import (
 func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 	return dsschema.Schema{
 		Attributes: map[string]dsschema.Attribute{
-			"id": dsschema.StringAttribute{
+			"federation_settings_id": dsschema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your federation.",
 			},
@@ -68,7 +68,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 										Computed:            true,
 										MarkdownDescription: "Value that indicates whether domain restriction is enabled for this connected org.",
 									},
-									"identity_provider_id": dsschema.StringAttribute{
+									"id": dsschema.StringAttribute{
 										Computed:            true,
 										MarkdownDescription: "Legacy 20-hexadecimal digit string that identifies the UI access identity provider that this connected org config is associated with. This id can be found within the Federation Management Console > Identity Providers tab by clicking the info icon in the IdP ID row of a configured identity provider.",
 									},
@@ -130,7 +130,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 													Computed:            true,
 													MarkdownDescription: "Email address of the MongoDB Cloud user linked to the federated organization.",
 												},
-												"id": dsschema.StringAttribute{
+												"federation_settings_id": dsschema.StringAttribute{
 													Computed:            true,
 													MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the federation to which this MongoDB Cloud user belongs.",
 												},
@@ -278,10 +278,10 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFPluralDSModel struct {
-	Id       types.String                                        `tfsdk:"id" apiname:"federationSettingsId" autogen:"omitjson"`
-	IdpType  customtypes.ListValue[types.String]                 `tfsdk:"idp_type" autogen:"omitjson"`
-	Protocol customtypes.ListValue[types.String]                 `tfsdk:"protocol" autogen:"omitjson"`
-	Results  customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
+	FederationSettingsId types.String                                        `tfsdk:"federation_settings_id" autogen:"omitjson"`
+	IdpType              customtypes.ListValue[types.String]                 `tfsdk:"idp_type" autogen:"omitjson"`
+	Protocol             customtypes.ListValue[types.String]                 `tfsdk:"protocol" autogen:"omitjson"`
+	Results              customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
 }
 type TFPluralDSResultsModel struct {
 	RequestedScopes            customtypes.ListValue[types.String]                              `tfsdk:"requested_scopes" autogen:"omitjson"`
@@ -317,7 +317,7 @@ type TFPluralDSResultsAssociatedOrgsModel struct {
 	PostAuthRoleGrants            customtypes.SetValue[types.String]                                             `tfsdk:"post_auth_role_grants" autogen:"omitjson"`
 	RoleMappings                  customtypes.NestedSetValue[TFPluralDSResultsAssociatedOrgsRoleMappingsModel]   `tfsdk:"role_mappings" autogen:"omitjson"`
 	UserConflicts                 customtypes.NestedListValue[TFPluralDSResultsAssociatedOrgsUserConflictsModel] `tfsdk:"user_conflicts" autogen:"omitjson"`
-	IdentityProviderId            types.String                                                                   `tfsdk:"identity_provider_id" autogen:"omitjson"`
+	Id                            types.String                                                                   `tfsdk:"id" apiname:"identityProviderId" autogen:"omitjson"`
 	OrgId                         types.String                                                                   `tfsdk:"org_id" autogen:"omitjson"`
 	DomainRestrictionEnabled      types.Bool                                                                     `tfsdk:"domain_restriction_enabled" autogen:"omitjson"`
 }
@@ -332,11 +332,11 @@ type TFPluralDSResultsAssociatedOrgsRoleMappingsRoleAssignmentsModel struct {
 	Role    types.String `tfsdk:"role" autogen:"omitjson"`
 }
 type TFPluralDSResultsAssociatedOrgsUserConflictsModel struct {
-	EmailAddress types.String `tfsdk:"email_address" autogen:"omitjson"`
-	Id           types.String `tfsdk:"id" apiname:"federationSettingsId" autogen:"omitjson"`
-	FirstName    types.String `tfsdk:"first_name" autogen:"omitjson"`
-	LastName     types.String `tfsdk:"last_name" autogen:"omitjson"`
-	UserId       types.String `tfsdk:"user_id" autogen:"omitjson"`
+	EmailAddress         types.String `tfsdk:"email_address" autogen:"omitjson"`
+	FederationSettingsId types.String `tfsdk:"federation_settings_id" autogen:"omitjson"`
+	FirstName            types.String `tfsdk:"first_name" autogen:"omitjson"`
+	LastName             types.String `tfsdk:"last_name" autogen:"omitjson"`
+	UserId               types.String `tfsdk:"user_id" autogen:"omitjson"`
 }
 type TFPluralDSResultsPemFileInfoModel struct {
 	Certificates customtypes.NestedListValue[TFPluralDSResultsPemFileInfoCertificatesModel] `tfsdk:"certificates" autogen:"omitjson"`
