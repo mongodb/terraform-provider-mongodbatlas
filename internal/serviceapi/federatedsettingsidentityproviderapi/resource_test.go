@@ -69,7 +69,7 @@ func basicOIDCWorkforceTestCase(tb testing.TB) *resource.TestCase {
 					// checkExistsManaged(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "description", description2),
 					resource.TestCheckResourceAttr(resourceName, "audience", audience2),
-					resource.TestCheckResourceAttr(resourceName, "name", "OIDC-CRUD-test"),
+					resource.TestCheckResourceAttr(resourceName, "display_name", "OIDC-CRUD-test"),
 					resource.TestCheckResourceAttr("data.mongodbatlas_federated_settings_identity_provider_api.test", "display_name", "OIDC-CRUD-test"),
 				),
 			},
@@ -176,7 +176,7 @@ func configOIDCWorkloadBasic(federationSettingsID, description, audience, author
 	  }
 	  
 	  data "mongodbatlas_federated_settings_identity_provider_api" "test" {
-		federation_settings_id = mongodbatlas_federated_settings_identity_provider.test.federation_settings_id
+		federation_settings_id = mongodbatlas_federated_settings_identity_provider_api.test.federation_settings_id
 		identity_provider_id   = mongodbatlas_federated_settings_identity_provider_api.test.idp_id
 	  }
 	  data "mongodbatlas_federated_settings_identity_providers_api" "test" {
