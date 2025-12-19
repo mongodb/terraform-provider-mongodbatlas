@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20250312011/admin"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
@@ -15,6 +17,8 @@ import (
 )
 
 const resourceName = "mongodbatlas_org_service_account_api.test"
+const dataSourceName = "data.mongodbatlas_org_service_account_api.test"
+const dataSourcePluralName = "data.mongodbatlas_org_service_accounts_api.test"
 
 func TestAccOrgServiceAccountAPI_basic(t *testing.T) {
 	var (
@@ -103,27 +107,41 @@ func configBasic(orgID, name, description string, roles []string, secretExpiresA
 	rolesHCL := fmt.Sprintf("[%s]", rolesStr)
 	return fmt.Sprintf(`
 		resource "mongodbatlas_org_service_account_api" "test" {
-			org_id                     = %q
-			name                       = %q
-			description                = %q
-			roles                      = %s
-			secret_expires_after_hours = %d
-		}	
+			org_id                     = %[1]q
+			name                       = %[2]q
+			description                = %[3]q
+			roles                      = %[4]s
+			secret_expires_after_hours = %[5]d
+		}
+
+		data "mongodbatlas_org_service_account_api" "test" {
+			org_id = %[1]q
+			client_id = mongodbatlas_org_service_account_api.test.client_id
+		}
+		data "mongodbatlas_org_service_accounts_api" "test" {
+			org_id = %[1]q
+			depends_on = [mongodbatlas_org_service_account_api.test]
+		}
 	`, orgID, name, description, rolesHCL, secretExpiresAfterHours)
 }
 
 func checkBasic(isCreate bool) resource.TestCheckFunc {
-	setAttrsChecks := []string{"client_id", "created_at", "secrets.0.id", "secrets.0.created_at", "secrets.0.expires_at"}
+	commonAttrsSet := []string{"client_id", "created_at", "secrets.0.id", "secrets.0.created_at", "secrets.0.expires_at"}
+	commonAttrsMap := map[string]string{"secrets.#": "1"}
+
+	checks := acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), commonAttrsSet, commonAttrsMap, checkExists(resourceName))
+
+	additionalChecks := []resource.TestCheckFunc{}
 	if isCreate {
-		setAttrsChecks = append(setAttrsChecks, "secrets.0.secret") // secret value is only present in the first apply
+		additionalChecks = acc.AddAttrSetChecks(resourceName, additionalChecks, "secrets.0.secret")
 	} else {
-		setAttrsChecks = append(setAttrsChecks, "secrets.0.masked_secret_value")
+		additionalChecks = acc.AddAttrSetChecks(resourceName, additionalChecks, "secrets.0.masked_secret_value")
 	}
-	mapChecks := map[string]string{"secrets.#": "1"}
-	checks := acc.AddAttrSetChecks(resourceName, nil, setAttrsChecks...)
-	checks = acc.AddAttrChecks(resourceName, checks, mapChecks)
-	checks = append(checks, checkExists(resourceName))
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+
+	additionalChecks = acc.AddAttrSetChecks(dataSourceName, additionalChecks, "secrets.0.masked_secret_value")
+	additionalChecks = acc.AddAttrSetChecksPrefix(dataSourcePluralName, additionalChecks, []string{"secrets.0.masked_secret_value"}, "results.0")
+
+	return resource.ComposeAggregateTestCheckFunc(checks, resource.ComposeAggregateTestCheckFunc(additionalChecks...))
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
