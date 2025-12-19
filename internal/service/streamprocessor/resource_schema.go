@@ -96,7 +96,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.",
 			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Create: true,
+				Create:            true,
+				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate(constant.DefaultTimeoutDocumentation),
 			}),
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed: true,

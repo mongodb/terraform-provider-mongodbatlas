@@ -2,18 +2,18 @@
 # Development Best Practices
 
 ## Table of Contents
-- [Creating New Resource and Data Sources](#creating-new-resources-and-data-sources)
-    - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
-    - [Auto-Generating Resources](#auto-generating-resources)
-
-- Each resource (and associated data sources) is in a package in `internal/service`.
-- There can be multiple helper files and they can also be used from other resources, e.g. `common_advanced_cluster.go` defines functions that are also used from other resources using `advancedcluster.FunctionName`.
-
-### Creating New Resource and Data Sources
+- [Development Best Practices](#development-best-practices)
+  - [Table of Contents](#table-of-contents)
+  - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
+  - [Auto-Generating Resources \& Data Sources](#auto-generating-resources--data-sources)
+    - [(Recommended) Using internal tool](#recommended-using-internal-tool)
+    - [(Legacy) Using schema generation HashiCorp tooling](#legacy-using-schema-generation-hashicorp-tooling)
+      - [Running the command](#running-the-command)
+      - [Considerations over generated schema and types](#considerations-over-generated-schema-and-types)
 
 A set of commands have been defined with the intention of speeding up development process, while also preserving common conventions throughout our codebase.
 
-#### Scaffolding Initial Code and File Structure
+## Scaffolding Initial Code and File Structure
 
 This command can be used the following way:
 ```bash
@@ -26,9 +26,9 @@ This will generate resource/data source files and accompanying test files needed
 
 As a follow up step, use [Auto-Generating Resources](#auto-generating-resources) to autogenerate the schema via the Open API specification. This will require making adjustments to the generated `./internal/service/<resource_name>/tfplugingen/generator_config.yml` file.
 
-#### Auto-Generating Resources
+## Auto-Generating Resources & Data Sources
 
-##### (Recommended) Using internal tool
+### (Recommended) Using internal tool
 
 The generation command makes use of a configuration file defined under [`./tools/codegen/config.yml`](../tools/codegen/config.yml). The structure of this configuration file can be found under  [`./tools/codegen/config/config_model.go`](../tools/codegen/config/config_model.go).
 
@@ -38,21 +38,29 @@ The generation command takes a single optional argument `resource_name`. If not 
 make resource-generation-pipeline resource_name=search_deployment_api
 ```
 
+
 As a result, content of schemas and models will be written into the corresponding resource packages:
 `./internal/serviceapi/<resource-package>/resource_schema.go`
 
 And operations will be written into:
 `./internal/serviceapi/<resource-package>/resource.go`
 
-**Note**: Data source schema generation is currently not supported.
+Data sources are automatically generated as part of the same generation process when a `datasources` block is configured in `tools/codegen/config.yml`. The tool generates both singular and plural data sources:
 
+**Singular Data Source** (generated when `datasources.read` is configured):
+- `./internal/serviceapi/<resource-package>/data_source_schema.go`
+- `./internal/serviceapi/<resource-package>/data_source.go`
 
-##### (Legacy) Using schema generation HashiCorp tooling
+**Plural Data Source** (generated when `datasources.list` is configured):
+- `./internal/serviceapi/<resource-package>/plural_data_source_schema.go`
+- `./internal/serviceapi/<resource-package>/plural_data_source.go`
+
+### (Legacy) Using schema generation HashiCorp tooling
 
 
 Complementary to the `scaffold` command, there is a command which generates the initial Terraform schema definition and associated Go types for a resource or data source. This processes leverages [Code Generation Tools](https://developer.hashicorp.com/terraform/plugin/code-generation) developed by HashiCorp, which in turn make use of the [Atlas Admin API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/) OpenAPI Specification.
 
-###### Running the command
+#### Running the command
 
 Both `tfplugingen-openapi` and `tfplugingen-framework` must be installed. This can be done by running `make tools`.
 
@@ -71,7 +79,7 @@ Note: if the resulting file paths already exist the content will be stored in fi
 
 Note: you can override the Open API description of a field with a custom description via the [overrides](https://developer.hashicorp.com/terraform/plugin/code-generation/openapi-generator#overriding-attribute-descriptions) param. See this [example](internal/service/searchdeployment/tfplugingen/generator_config.yml).
 
-###### Considerations over generated schema and types
+#### Considerations over generated schema and types
 
 - Generated Go type should include a TF prefix to follow the convention in our codebase, this will not be present in generated code.
 - Some attribute names may need to be adjusted if there is a difference in how they are named in Terraform vs the API. An examples of this is `group_id` → `project_id`.

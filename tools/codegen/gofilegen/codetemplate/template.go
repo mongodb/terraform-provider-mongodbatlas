@@ -97,6 +97,7 @@ type PluralDataSourceFileInputs struct {
 	ReadPath       string
 	ReadMethod     string
 	PathParams     []Param
+	QueryParams    []Param
 }
 
 type PluralDataSourceSchemaFileInputs struct {

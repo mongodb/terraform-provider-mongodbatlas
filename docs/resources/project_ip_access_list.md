@@ -76,6 +76,7 @@ resource "mongodbatlas_project_ip_access_list" "test" {
 * `cidr_block` - (Optional) Range of IP addresses in CIDR notation to be added to the access list. Your access list entry can include only one `awsSecurityGroup`, one `cidrBlock`, or one `ipAddress`.
 * `ip_address` - (Optional) Single IP address to be added to the access list. Mutually exclusive with `awsSecurityGroup` and `cidrBlock`.
 * `comment` - (Optional) Comment to add to the access list entry.
+* `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 -> **NOTE:** One of the following attributes must set:  `aws_security_group`, `cidr_block`  or `ip_address`.
 
@@ -84,6 +85,16 @@ resource "mongodbatlas_project_ip_access_list" "test" {
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - Unique identifier used for terraform for internal manages and can be used to import.
+
+<a id="nestedatt--timeouts"></a>
+### Nested Schema for `timeouts`
+
+Optional:
+
+- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), and "h" (hours). Default: `45m`.
+- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), and "h" (hours). Default: `2m`.
+- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), and "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs. Default: `45m`.
+
 
 ## Import
 
