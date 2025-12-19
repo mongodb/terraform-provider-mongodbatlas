@@ -6,18 +6,17 @@ import (
 	"net/http"
 	"testing"
 
+	fwProvider "github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	fwProvider "github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 type HTTPClientModifier interface {
@@ -27,13 +26,13 @@ type HTTPClientModifier interface {
 
 type ProviderMocked struct {
 	// Embed directly to support the same methods
-	*provider.MongodbtlasProvider
+	*provider.MongodbatlasProvider
 	ClientModifier HTTPClientModifier
 	t              *testing.T
 }
 
 func (p *ProviderMocked) Configure(ctx context.Context, req fwProvider.ConfigureRequest, resp *fwProvider.ConfigureResponse) {
-	p.MongodbtlasProvider.Configure(ctx, req, resp)
+	p.MongodbatlasProvider.Configure(ctx, req, resp)
 	rd := resp.ResourceData
 	client, ok := rd.(*config.MongoDBClient)
 	if !ok {
@@ -107,14 +106,14 @@ func muxProviderFactory(t *testing.T, clientModifier HTTPClientModifier) func() 
 		return resp, diags
 	}
 	fwProviderInstance := provider.NewFrameworkProvider()
-	fwProviderInstanceTyped, ok := fwProviderInstance.(*provider.MongodbtlasProvider)
+	fwProviderInstanceTyped, ok := fwProviderInstance.(*provider.MongodbatlasProvider)
 	if !ok {
-		log.Fatal("Failed to cast provider to MongodbtlasProvider")
+		log.Fatal("Failed to cast provider to MongodbatlasProvider")
 	}
 	mockedProvider := &ProviderMocked{
-		MongodbtlasProvider: fwProviderInstanceTyped,
-		ClientModifier:      clientModifier,
-		t:                   t,
+		MongodbatlasProvider: fwProviderInstanceTyped,
+		ClientModifier:       clientModifier,
+		t:                    t,
 	}
 	upgradedSdkProvider, err := tf5to6server.UpgradeServer(t.Context(), v2Provider.GRPCProvider)
 	if err != nil {
