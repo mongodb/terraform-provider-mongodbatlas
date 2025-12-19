@@ -887,7 +887,7 @@ resources:
         path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
         method: GET
       list:
-        path: /api/atlas/v2/groups/{groupId}/logIntegrations/
+        path: /api/atlas/v2/groups/{groupId}/logIntegrations
         method: GET
       schema:
         aliases:

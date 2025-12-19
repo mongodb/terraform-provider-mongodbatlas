@@ -37,10 +37,12 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := autogen.HandleDataSourceReadReq{
-		Resp:       resp,
+	reqHandle := autogen.HandleReadReq{
+		Hooks:      d,
+		RespDiags:  &resp.Diagnostics,
+		RespState:  &resp.State,
 		Client:     d.Client,
-		Config:     &tfConfig,
+		State:      &tfConfig,
 		CallParams: dataSourceReadAPICallParams(&tfConfig),
 	}
 	autogen.HandleDataSourceRead(ctx, reqHandle)
