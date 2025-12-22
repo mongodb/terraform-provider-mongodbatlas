@@ -135,12 +135,14 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
 	region := d.Get("region").(string)
-	portMappingEnabled := conversion.Pointer(d.Get("port_mapping_enabled").(bool))
 
 	request := &admin.CloudProviderEndpointServiceRequest{
-		ProviderName:       providerName,
-		Region:             region,
-		PortMappingEnabled: portMappingEnabled,
+		ProviderName: providerName,
+		Region:       region,
+	}
+
+	if portMappingEnabled, ok := d.GetOk("port_mapping_enabled"); ok {
+		request.PortMappingEnabled = conversion.Pointer(portMappingEnabled.(bool))
 	}
 
 	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.CreatePrivateEndpointService(ctx, projectID, request).Execute()
