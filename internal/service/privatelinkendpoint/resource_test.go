@@ -106,6 +106,7 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "region"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "region", region),
+					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "false"),
 				),
 			},
 			{
