@@ -141,9 +141,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err := d.Set("gcp_status", serviceEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
 		}
-	}
 
-	if strings.EqualFold(providerName, "gcp") {
 		if err := d.Set("port_mapping_enabled", serviceEndpoint.GetPortMappingEnabled()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "port_mapping_enabled", privateLinkID, err))
 		}
