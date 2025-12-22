@@ -48,7 +48,7 @@ func TestAccServiceAccount_basic(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "client_id",
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				ImportStateVerifyIgnore:              []string{"secret_expires_after_hours"}, // secretExpiresAfterHours is not returned in response, import UX to be revised in CLOUDP-349629
+				ImportStateVerifyIgnore:              []string{"secret_expires_after_hours"},
 			},
 		},
 	})
