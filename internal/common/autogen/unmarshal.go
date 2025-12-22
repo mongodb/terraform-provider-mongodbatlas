@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"slices"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
@@ -50,8 +49,12 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 			continue // skip fields that cannot be set
 		}
 
-		// Get the API name (JSON field name) for this model field
-		apiName := getAPINameFromTag(field.Tag, field.Name)
+		tags := GetPropertyTags(&field)
+		apiName := stringcase.Uncapitalize(field.Name)
+		// Override with apiname tag if present
+		if tags.APIName != nil {
+			apiName = *tags.APIName
+		}
 
 		// Look up the JSON property
 		attrObjJSON, ok := objJSON[apiName]
@@ -72,6 +75,7 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 
 func unmarshalAttr(attrObjJSON any, fieldModel reflect.Value, structField *reflect.StructField) error {
 	attrNameModel := structField.Name
+	tags := GetPropertyTags(structField)
 
 	oldVal, ok := fieldModel.Interface().(attr.Value)
 	if !ok {
@@ -79,9 +83,13 @@ func unmarshalAttr(attrObjJSON any, fieldModel reflect.Value, structField *refle
 	}
 
 	if !oldVal.IsNull() && !oldVal.IsUnknown() { // Check if oldVal is a known value
-		if slices.Contains(strings.Split(structField.Tag.Get(tagKey), ","), tagSensitive) { // Field contains the "sensitive" tag
+		if tags.Sensitive {
 			return nil // skip sensitive fields that are already set in the plan/state to avoid overwriting with redacted values
 		}
+	}
+
+	if tags.ListAsMap {
+		attrObjJSON = modifyJSONFromListToMap(attrObjJSON)
 	}
 
 	valueType := oldVal.Type(context.Background())
@@ -184,6 +192,12 @@ func getObjectValueTFAttr(ctx context.Context, objJSON map[string]any, obj custo
 }
 
 func getMapValueTFAttr(ctx context.Context, mapJSON map[string]any, m customtypes.MapValueInterface) (attr.Value, error) {
+	if len(mapJSON) == 0 && len(m.Elements()) == 0 {
+		// Keep current map if both model and JSON maps are zero-len (empty or null) so config is preserved.
+		// It avoids inconsistent result after apply when user explicitly sets an empty map in config.
+		return m, nil
+	}
+
 	mapAttrs := make(map[string]attr.Value, len(mapJSON))
 	elemType := m.ElementType(ctx)
 
@@ -207,6 +221,13 @@ func getNestedMapValueTFAttr(ctx context.Context, mapJSON map[string]any, m cust
 	}
 
 	oldMapVal := reflect.ValueOf(oldMapPtr).Elem()
+	oldMapLen := oldMapVal.Len()
+
+	if len(mapJSON) == 0 && oldMapLen == 0 {
+		// Keep current map if both model and JSON map are zero-len (empty or null) so config is preserved.
+		// It avoids inconsistent result after apply when user explicitly sets an empty map in config.
+		return m, nil
+	}
 
 	mapPtr := m.NewEmptyMapPtr()
 	mapVal := reflect.ValueOf(mapPtr).Elem()
