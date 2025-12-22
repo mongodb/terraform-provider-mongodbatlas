@@ -2,6 +2,7 @@ package pushbasedlogexport
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -16,8 +17,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
+const pushBasedLogExportMigrationGuide = "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/push-based-log-export-to-log-integration-migration-guide"
+
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "resource", "mongodbatlas_log_integration", pushBasedLogExportMigrationGuide),
 		Attributes: map[string]schema.Attribute{
 			"bucket_name": schema.StringAttribute{
 				Required:            true,
