@@ -137,6 +137,10 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"port_mapping_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(2 * time.Hour),
@@ -290,6 +294,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	if providerName == "GCP" {
+		if err := d.Set("port_mapping_enabled", privateEndpoint.GetPortMappingEnabled()); err != nil {
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "port_mapping_enabled", privateLinkID, err))
+		}
+
 		if err := d.Set("gcp_status", privateEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
 		}

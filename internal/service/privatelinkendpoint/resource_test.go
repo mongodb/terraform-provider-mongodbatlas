@@ -106,6 +106,81 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "region"),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "region", region),
+					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "false"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicitly_enabled(t *testing.T) {
+	var (
+		resourceName       = "mongodbatlas_privatelink_endpoint.test"
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = "test-acc-tf-p-gcp-port-based-routing-feature-flag-enabled"
+		region             = "us-west3"
+		providerName       = "GCP"
+		portMappingEnabled = true
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPortMapping(orgID, projectName, providerName, region, portMappingEnabled),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "region"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "region", region),
+					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicitly_disabled(t *testing.T) {
+	var (
+		resourceName       = "mongodbatlas_privatelink_endpoint.test"
+		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName        = "test-acc-tf-p-gcp-port-based-routing-feature-flag-enabled"
+		region             = "us-west4"
+		providerName       = "GCP"
+		portMappingEnabled = false
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPortMapping(orgID, projectName, providerName, region, portMappingEnabled),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "region"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "region", region),
+					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "false"),
 				),
 			},
 			{
@@ -209,4 +284,18 @@ func configBasic(orgID, projectName, providerName, region string) string {
 			region        = %[4]q
 		}
 	`, orgID, projectName, providerName, region)
+}
+
+func configWithPortMapping(orgID, projectName, providerName, region string, portMappingEnabled bool) string {
+	return fmt.Sprintf(`  
+		data "mongodbatlas_project" "test" {        
+			name   = %[2]q      
+		}        
+		resource "mongodbatlas_privatelink_endpoint" "test" {        
+			project_id         = data.mongodbatlas_project.test.id        
+			provider_name      = %[3]q        
+			region             = %[4]q        
+			port_mapping_enabled = %[5]t      
+		}        
+	`, orgID, projectName, providerName, region, portMappingEnabled)
 }
