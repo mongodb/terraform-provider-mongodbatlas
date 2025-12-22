@@ -745,8 +745,8 @@ resources:
             optional: true
             computed: true
 
-  org_service_account_api:
-    read: &org-service-account-read-op
+  service_account:
+    read: &service-account-read-op
       path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
       method: GET
     create:
@@ -765,7 +765,7 @@ resources:
         roles:
           type: set
     datasources:
-      read: *org-service-account-read-op
+      read: *service-account-read-op
       list:
         path: /api/atlas/v2/orgs/{orgId}/serviceAccounts
         method: GET

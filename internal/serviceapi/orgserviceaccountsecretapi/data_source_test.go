@@ -45,7 +45,7 @@ func configDataSourceInvalidClientID(orgID string) string {
 
 func configDataSourceInvalidSecretID(orgID, saName string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_org_service_account_api" "test" {
+		resource "mongodbatlas_service_account" "test" {
 			org_id                     = %[1]q
 			name                       = %[2]q
 			description                = "Acceptance Test SA for data source errors"
@@ -54,8 +54,8 @@ func configDataSourceInvalidSecretID(orgID, saName string) string {
 		}
 
 		data "mongodbatlas_org_service_account_secret_api" "test" {
-			org_id    = mongodbatlas_org_service_account_api.test.org_id
-			client_id = mongodbatlas_org_service_account_api.test.client_id
+			org_id    = mongodbatlas_service_account.test.org_id
+			client_id = mongodbatlas_service_account.test.client_id
 			id        = "000000000000000000000001"
 		}
 	`, orgID, saName)
