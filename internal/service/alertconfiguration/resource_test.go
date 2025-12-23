@@ -649,6 +649,30 @@ func TestAccConfigRSAlertConfiguration_withSeverityOverride(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSAlertConfiguration_withoutIntervalMin(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy(),
+		Steps: []resource.TestStep{
+			{
+				Config: configWithoutIntervalMin(projectID, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "event_type", "NO_PRIMARY"),
+					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "notification.0.interval_min", "5"),
+				),
+			},
+		},
+	})
+}
+
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -1084,6 +1108,24 @@ func configWithPagerDutyAndIntervalMin(projectID, serviceKey string, enabled boo
 			}
 		}
 	`, projectID, serviceKey, enabled)
+}
+
+func configWithoutIntervalMin(projectID string, enabled bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = %[1]q
+			enabled    = %[2]t
+			event_type = "NO_PRIMARY"
+
+			notification {
+				type_name     = "GROUP"
+				delay_min     = 0
+				sms_enabled   = false
+				email_enabled = true
+				roles         = ["GROUP_OWNER"]
+			}
+		}
+	`, projectID, enabled)
 }
 
 func configWithEmptyMetricThresholdConfig(projectID string, enabled bool) string {

@@ -2,6 +2,7 @@ package alertconfiguration
 
 import (
 	"fmt"
+	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20250312011/admin"
 
@@ -9,6 +10,8 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
+
+const minIntervalMin = 5
 
 func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificationRootForGroup, error) {
 	notifications := make([]admin.AlertsNotificationRootForGroup, len(list))
@@ -23,7 +26,7 @@ func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificatio
 			DelayMin:                 conversion.Pointer(int(n.DelayMin.ValueInt64())),
 			EmailAddress:             n.EmailAddress.ValueStringPointer(),
 			EmailEnabled:             n.EmailEnabled.ValueBoolPointer(),
-			IntervalMin:              conversion.Int64PtrToIntPtr(n.IntervalMin.ValueInt64Pointer()),
+			IntervalMin:              IntervalMinValue(n.TypeName.ValueString(), n.IntervalMin.ValueInt64Pointer()),
 			MobileNumber:             n.MobileNumber.ValueStringPointer(),
 			OpsGenieApiKey:           n.OpsGenieAPIKey.ValueStringPointer(),
 			OpsGenieRegion:           n.OpsGenieRegion.ValueStringPointer(),
@@ -43,6 +46,26 @@ func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificatio
 		}
 	}
 	return &notifications, nil
+}
+
+// IntervalMinValue returns the interval_min value for a notification.
+// For notification types that don't support interval_min (PAGER_DUTY, OPS_GENIE, VICTOR_OPS),
+// it returns nil. For other types, it ensures the value is at least minIntervalMin (5).
+// This fixes the issue where default Atlas alerts have interval_min=0, which causes
+// NOTIFICATION_INTERVAL_OUT_OF_RANGE errors when imported and managed via Terraform.
+func IntervalMinValue(typeName string, intervalMin *int64) *int {
+	// PAGER_DUTY, OPS_GENIE, and VICTOR_OPS don't support interval_min
+	if strings.EqualFold(typeName, pagerDuty) ||
+		strings.EqualFold(typeName, opsGenie) ||
+		strings.EqualFold(typeName, victorOps) {
+		return nil
+	}
+
+	// For other notification types, ensure interval_min is at least minIntervalMin
+	if intervalMin == nil || *intervalMin < minIntervalMin {
+		return conversion.Pointer(minIntervalMin)
+	}
+	return conversion.Pointer(int(*intervalMin))
 }
 
 func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.StreamProcessorMetricThreshold {

@@ -561,3 +561,79 @@ func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
 		})
 	}
 }
+
+func TestIntervalMinValue(t *testing.T) {
+	five := int64(5)
+	ten := int64(10)
+	zero := int64(0)
+	three := int64(3)
+
+	testCases := map[string]struct {
+		intervalMin    *int64
+		expectedResult *int
+		typeName       string
+	}{
+		"GROUP notification with nil interval_min defaults to 5": {
+			typeName:       "GROUP",
+			intervalMin:    nil,
+			expectedResult: admin.PtrInt(5),
+		},
+		"GROUP notification with interval_min=0 defaults to 5": {
+			typeName:       "GROUP",
+			intervalMin:    &zero,
+			expectedResult: admin.PtrInt(5),
+		},
+		"GROUP notification with interval_min=3 (less than min) defaults to 5": {
+			typeName:       "GROUP",
+			intervalMin:    &three,
+			expectedResult: admin.PtrInt(5),
+		},
+		"GROUP notification with interval_min=5 keeps value": {
+			typeName:       "GROUP",
+			intervalMin:    &five,
+			expectedResult: admin.PtrInt(5),
+		},
+		"GROUP notification with interval_min=10 keeps value": {
+			typeName:       "GROUP",
+			intervalMin:    &ten,
+			expectedResult: admin.PtrInt(10),
+		},
+		"ORG notification with nil interval_min defaults to 5": {
+			typeName:       "ORG",
+			intervalMin:    nil,
+			expectedResult: admin.PtrInt(5),
+		},
+		"EMAIL notification with nil interval_min defaults to 5": {
+			typeName:       "EMAIL",
+			intervalMin:    nil,
+			expectedResult: admin.PtrInt(5),
+		},
+		"PAGER_DUTY notification returns nil regardless of interval_min": {
+			typeName:       "PAGER_DUTY",
+			intervalMin:    &ten,
+			expectedResult: nil,
+		},
+		"pager_duty (lowercase) notification returns nil": {
+			typeName:       "pager_duty",
+			intervalMin:    &ten,
+			expectedResult: nil,
+		},
+		"OPS_GENIE notification returns nil regardless of interval_min": {
+			typeName:       "OPS_GENIE",
+			intervalMin:    &ten,
+			expectedResult: nil,
+		},
+		"VICTOR_OPS notification returns nil regardless of interval_min": {
+			typeName:       "VICTOR_OPS",
+			intervalMin:    &ten,
+			expectedResult: nil,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			result := alertconfiguration.IntervalMinValue(tc.typeName, tc.intervalMin)
+			assert.Equal(t, tc.expectedResult, result, "intervalMinValue did not return expected result")
+		})
+	}
+}
