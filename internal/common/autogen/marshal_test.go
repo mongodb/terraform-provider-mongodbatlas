@@ -645,6 +645,7 @@ func TestMarshalCustomTypeNestedMap(t *testing.T) {
 					}
 				}
 			},
+			"attrNestedMapNull": {},
 			"attrNestedMapEmpty": {}
 		}
 	`
@@ -694,7 +695,7 @@ func TestMarshalListAsMap(t *testing.T) {
 				}
 			],
 			"attrListAsMapEmpty": [],
-			"attrListAsMapNull": [],
+			"attrListAsMapNull": []
 		}
 	`
 	rawCreate, err := autogen.Marshal(&model, false)
