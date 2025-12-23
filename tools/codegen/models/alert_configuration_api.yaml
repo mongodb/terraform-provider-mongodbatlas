@@ -102,6 +102,7 @@ schema:
           description: List of rules that determine whether MongoDB Cloud checks an object for the alert configuration.
           custom_type:
             package: customtypes
+            name: Matchers
             model: customtypes.NestedListValue[TFMatchersModel]
             schema: customtypes.NewNestedListType[TFMatchersModel](ctx)
           computed_optional_required: optional
@@ -175,6 +176,7 @@ schema:
           description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics about the serverless database.
           custom_type:
             package: customtypes
+            name: MetricThreshold
             model: customtypes.ObjectValue[TFMetricThresholdModel]
             schema: customtypes.NewObjectType[TFMetricThresholdModel](ctx)
           computed_optional_required: optional
@@ -581,6 +583,7 @@ schema:
           description: List that contains the targets that MongoDB Cloud sends notifications.
           custom_type:
             package: customtypes
+            name: Notifications
             model: customtypes.NestedListValue[TFNotificationsModel]
             schema: customtypes.NewNestedListType[TFNotificationsModel](ctx)
           computed_optional_required: optional
@@ -665,6 +668,7 @@ schema:
           description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
           custom_type:
             package: customtypes
+            name: Threshold
             model: customtypes.ObjectValue[TFThresholdModel]
             schema: customtypes.NewObjectType[TFThresholdModel](ctx)
           computed_optional_required: optional
@@ -806,6 +810,7 @@ data_sources:
               description: List of rules that determine whether MongoDB Cloud checks an object for the alert configuration.
               custom_type:
                 package: customtypes
+                name: Matchers
                 model: customtypes.NestedListValue[TFMatchersModel]
                 schema: customtypes.NewNestedListType[TFMatchersModel](ctx)
               computed_optional_required: computed
@@ -879,6 +884,7 @@ data_sources:
               description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics about the serverless database.
               custom_type:
                 package: customtypes
+                name: MetricThreshold
                 model: customtypes.ObjectValue[TFMetricThresholdModel]
                 schema: customtypes.NewObjectType[TFMetricThresholdModel](ctx)
               computed_optional_required: computed
@@ -1285,6 +1291,7 @@ data_sources:
               description: List that contains the targets that MongoDB Cloud sends notifications.
               custom_type:
                 package: customtypes
+                name: Notifications
                 model: customtypes.NestedListValue[TFNotificationsModel]
                 schema: customtypes.NewNestedListType[TFNotificationsModel](ctx)
               computed_optional_required: computed
@@ -1369,6 +1376,7 @@ data_sources:
               description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
               custom_type:
                 package: customtypes
+                name: Threshold
                 model: customtypes.ObjectValue[TFThresholdModel]
                 schema: customtypes.NewObjectType[TFThresholdModel](ctx)
               computed_optional_required: computed
@@ -1508,6 +1516,7 @@ data_sources:
                           description: List of rules that determine whether MongoDB Cloud checks an object for the alert configuration.
                           custom_type:
                             package: customtypes
+                            name: ResultsMatchers
                             model: customtypes.NestedListValue[TFResultsMatchersModel]
                             schema: customtypes.NewNestedListType[TFResultsMatchersModel](ctx)
                           computed_optional_required: computed
@@ -1581,6 +1590,7 @@ data_sources:
                           description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics about the serverless database.
                           custom_type:
                             package: customtypes
+                            name: ResultsMetricThreshold
                             model: customtypes.ObjectValue[TFResultsMetricThresholdModel]
                             schema: customtypes.NewObjectType[TFResultsMetricThresholdModel](ctx)
                           computed_optional_required: computed
@@ -1987,6 +1997,7 @@ data_sources:
                           description: List that contains the targets that MongoDB Cloud sends notifications.
                           custom_type:
                             package: customtypes
+                            name: ResultsNotifications
                             model: customtypes.NestedListValue[TFResultsNotificationsModel]
                             schema: customtypes.NewNestedListType[TFResultsNotificationsModel](ctx)
                           computed_optional_required: computed
@@ -2071,6 +2082,7 @@ data_sources:
                           description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
                           custom_type:
                             package: customtypes
+                            name: ResultsThreshold
                             model: customtypes.ObjectValue[TFResultsThresholdModel]
                             schema: customtypes.NewObjectType[TFResultsThresholdModel](ctx)
                           computed_optional_required: computed
@@ -2096,6 +2108,7 @@ data_sources:
               description: List of returned documents that MongoDB Cloud provides when completing this request.
               custom_type:
                 package: customtypes
+                name: Results
                 model: customtypes.NestedListValue[TFResultsModel]
                 schema: customtypes.NewNestedListType[TFResultsModel](ctx)
               computed_optional_required: computed

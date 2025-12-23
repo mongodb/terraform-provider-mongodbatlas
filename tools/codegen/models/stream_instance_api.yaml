@@ -142,6 +142,7 @@ schema:
                       description: User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.
                       custom_type:
                         package: customtypes
+                        name: ConnectionsAuthentication
                         model: customtypes.ObjectValue[TFConnectionsAuthenticationModel]
                         schema: customtypes.NewObjectType[TFConnectionsAuthenticationModel](ctx)
                       computed_optional_required: computed
@@ -181,6 +182,7 @@ schema:
                       description: AWS configurations for AWS-based connection types.
                       custom_type:
                         package: customtypes
+                        name: ConnectionsAws
                         model: customtypes.ObjectValue[TFConnectionsAwsModel]
                         schema: customtypes.NewObjectType[TFConnectionsAwsModel](ctx)
                       computed_optional_required: computed
@@ -269,6 +271,7 @@ schema:
                       description: The name of a Built in or Custom DB Role to connect to an Atlas Cluster.
                       custom_type:
                         package: customtypes
+                        name: ConnectionsDbRoleToExecute
                         model: customtypes.ObjectValue[TFConnectionsDbRoleToExecuteModel]
                         schema: customtypes.NewObjectType[TFConnectionsDbRoleToExecuteModel](ctx)
                       computed_optional_required: computed
@@ -360,6 +363,7 @@ schema:
                                   description: Information about networking access.
                                   custom_type:
                                     package: customtypes
+                                    name: ConnectionsNetworkingAccess
                                     model: customtypes.ObjectValue[TFConnectionsNetworkingAccessModel]
                                     schema: customtypes.NewObjectType[TFConnectionsNetworkingAccessModel](ctx)
                                   computed_optional_required: computed
@@ -374,6 +378,7 @@ schema:
                       description: Networking configuration for Streams connections.
                       custom_type:
                         package: customtypes
+                        name: ConnectionsNetworking
                         model: customtypes.ObjectValue[TFConnectionsNetworkingModel]
                         schema: customtypes.NewObjectType[TFConnectionsNetworkingModel](ctx)
                       computed_optional_required: computed
@@ -413,6 +418,7 @@ schema:
                       description: Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.
                       custom_type:
                         package: customtypes
+                        name: ConnectionsSecurity
                         model: customtypes.ObjectValue[TFConnectionsSecurityModel]
                         schema: customtypes.NewObjectType[TFConnectionsSecurityModel](ctx)
                       computed_optional_required: computed
@@ -449,6 +455,7 @@ schema:
           description: List of connections configured in the stream workspace.
           custom_type:
             package: customtypes
+            name: Connections
             model: customtypes.NestedListValue[TFConnectionsModel]
             schema: customtypes.NewNestedListType[TFConnectionsModel](ctx)
           computed_optional_required: computed
@@ -488,6 +495,7 @@ schema:
           description: Information about the cloud provider region in which MongoDB Cloud processes the stream.
           custom_type:
             package: customtypes
+            name: DataProcessRegion
             model: customtypes.ObjectValue[TFDataProcessRegionModel]
             schema: customtypes.NewObjectType[TFDataProcessRegionModel](ctx)
           computed_optional_required: optional
@@ -558,6 +566,7 @@ schema:
           description: Sample connections to add to SPI.
           custom_type:
             package: customtypes
+            name: SampleConnections
             model: customtypes.ObjectValue[TFSampleConnectionsModel]
             schema: customtypes.NewObjectType[TFSampleConnectionsModel](ctx)
           computed_optional_required: optional
@@ -597,6 +606,7 @@ schema:
           description: Configuration options for an Atlas Stream Processing Workspace.
           custom_type:
             package: customtypes
+            name: StreamConfig
             model: customtypes.ObjectValue[TFStreamConfigModel]
             schema: customtypes.NewObjectType[TFStreamConfigModel](ctx)
           computed_optional_required: optional

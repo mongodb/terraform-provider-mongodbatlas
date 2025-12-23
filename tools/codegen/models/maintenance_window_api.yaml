@@ -96,6 +96,7 @@ schema:
           description: Defines the a window where maintenance will not begin within.
           custom_type:
             package: customtypes
+            name: ProtectedHours
             model: customtypes.ObjectValue[TFProtectedHoursModel]
             schema: customtypes.NewObjectType[TFProtectedHoursModel](ctx)
           computed_optional_required: optional

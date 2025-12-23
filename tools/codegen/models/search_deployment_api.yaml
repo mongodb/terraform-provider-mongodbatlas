@@ -79,6 +79,7 @@ schema:
             **NOTE**: We accept a single configuration for all nodes currently.
           custom_type:
             package: customtypes
+            name: Specs
             model: customtypes.NestedListValue[TFSpecsModel]
             schema: customtypes.NewNestedListType[TFSpecsModel](ctx)
           computed_optional_required: required
