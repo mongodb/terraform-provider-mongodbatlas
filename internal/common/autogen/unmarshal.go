@@ -50,11 +50,7 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 		}
 
 		tags := GetPropertyTags(&field)
-		apiName := stringcase.Uncapitalize(field.Name)
-		// Override with apiname tag if present
-		if tags.APIName != nil {
-			apiName = *tags.APIName
-		}
+		apiName := getAPINameFromTag(field.Name, tags)
 
 		// Look up the JSON property
 		attrObjJSON, ok := objJSON[apiName]
