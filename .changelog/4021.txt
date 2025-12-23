@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_alert_configuration: Sets default `interval_min` to 5 when not specified
+```
