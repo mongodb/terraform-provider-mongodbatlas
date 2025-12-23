@@ -50,16 +50,10 @@ func configBasic(orgID, projectName string, withTags bool) string {
 	tags := ""
 	if withTags {
 		tags = `
-		tags = [
-			{
-				key   = "firstKey"
-				value = "firstValue"
-			},
-			{
-				key   = "secondKey"
-				value = "secondValue"
-			},
-		]`
+		tags = {
+			firstKey = "firstValue"
+			secondKey = "secondValue"
+		}`
 	}
 
 	return fmt.Sprintf(`
