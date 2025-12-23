@@ -1,4 +1,4 @@
-package orgserviceaccountapi_test
+package serviceaccount_test
 
 import (
 	"os"

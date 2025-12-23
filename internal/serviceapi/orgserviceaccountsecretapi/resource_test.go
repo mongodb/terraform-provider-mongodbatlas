@@ -43,7 +43,7 @@ func TestAccOrgServiceAccountSecretAPI_basic(t *testing.T) {
 
 func configBasic(orgID, saName string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_org_service_account_api" "test" {
+		resource "mongodbatlas_service_account" "test" {
 			org_id                     = %[1]q
 			name                       = %[2]q
 			description                = "Acceptance Test SA"
@@ -52,7 +52,7 @@ func configBasic(orgID, saName string) string {
 		}
 		resource "mongodbatlas_org_service_account_secret_api" "test" {
 			org_id                     = %[1]q
-			client_id 				   = mongodbatlas_org_service_account_api.test.client_id
+			client_id 				   = mongodbatlas_service_account.test.client_id
 			secret_expires_after_hours = 12
 		}
 

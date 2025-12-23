@@ -1,4 +1,4 @@
-package orgserviceaccountapi_test
+package serviceaccount_test
 
 import (
 	"context"
@@ -16,11 +16,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-const resourceName = "mongodbatlas_org_service_account_api.test"
-const dataSourceName = "data.mongodbatlas_org_service_account_api.test"
-const dataSourcePluralName = "data.mongodbatlas_org_service_accounts_api.test"
+const resourceName = "mongodbatlas_service_account.test"
+const dataSourceName = "data.mongodbatlas_service_account.test"
+const dataSourcePluralName = "data.mongodbatlas_service_accounts.test"
 
-func TestAccOrgServiceAccountAPI_basic(t *testing.T) {
+func TestAccServiceAccount_basic(t *testing.T) {
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name1        = acc.RandomName()
@@ -48,13 +48,13 @@ func TestAccOrgServiceAccountAPI_basic(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "client_id",
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				ImportStateVerifyIgnore:              []string{"secret_expires_after_hours"}, // secretExpiresAfterHours is not returned in response, import UX to be revised in CLOUDP-349629
+				ImportStateVerifyIgnore:              []string{"secret_expires_after_hours"},
 			},
 		},
 	})
 }
 
-func TestAccOrgServiceAccountAPI_rolesOrdering(t *testing.T) {
+func TestAccServiceAccount_rolesOrdering(t *testing.T) {
 	var (
 		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name  = acc.RandomName()
@@ -75,7 +75,7 @@ func TestAccOrgServiceAccountAPI_rolesOrdering(t *testing.T) {
 	})
 }
 
-func TestAccOrgServiceAccountAPI_createOnlyAttributes(t *testing.T) {
+func TestAccServiceAccount_createOnlyAttributes(t *testing.T) {
 	var (
 		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name  = acc.RandomName()
@@ -106,7 +106,7 @@ func configBasic(orgID, name, description string, roles []string, secretExpiresA
 	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	rolesHCL := fmt.Sprintf("[%s]", rolesStr)
 	return fmt.Sprintf(`
-		resource "mongodbatlas_org_service_account_api" "test" {
+		resource "mongodbatlas_service_account" "test" {
 			org_id                     = %[1]q
 			name                       = %[2]q
 			description                = %[3]q
@@ -114,13 +114,13 @@ func configBasic(orgID, name, description string, roles []string, secretExpiresA
 			secret_expires_after_hours = %[5]d
 		}
 
-		data "mongodbatlas_org_service_account_api" "test" {
+		data "mongodbatlas_service_account" "test" {
 			org_id = %[1]q
-			client_id = mongodbatlas_org_service_account_api.test.client_id
+			client_id = mongodbatlas_service_account.test.client_id
 		}
-		data "mongodbatlas_org_service_accounts_api" "test" {
+		data "mongodbatlas_service_accounts" "test" {
 			org_id = %[1]q
-			depends_on = [mongodbatlas_org_service_account_api.test]
+			depends_on = [mongodbatlas_service_account.test]
 		}
 	`, orgID, name, description, rolesHCL, secretExpiresAfterHours)
 }
@@ -165,7 +165,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 
 func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_org_service_account_api" {
+		if rs.Type != "mongodbatlas_service_account" {
 			continue
 		}
 		orgID := rs.Primary.Attributes["org_id"]
