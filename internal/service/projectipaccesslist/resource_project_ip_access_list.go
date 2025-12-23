@@ -264,18 +264,17 @@ func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateR
 	}
 }
 
+// HELP-67341: The post operation behaves both as a POST and a PUT.
 func createOrUpdate(ctx context.Context, connV2 *admin.APIClient, projectIPAccessListModel *TfProjectIPAccessListModel, timeout time.Duration, errorMsg string) (*admin.NetworkPermissionEntry, error) {
 	projectID := projectIPAccessListModel.ProjectID.ValueString()
 	stateConf := &retry.StateChangeConf{
 		Pending: []string{"pending"},
 		Target:  []string{"created", "failed"},
 		Refresh: func() (any, string, error) {
-			_, _, err := connV2.ProjectIPAccessListApi.CreateAccessListEntry(ctx, projectID, NewMongoDBProjectIPAccessList(projectIPAccessListModel)).Execute()
+			_, httpResponse, err := connV2.ProjectIPAccessListApi.CreateAccessListEntry(ctx, projectID, NewMongoDBProjectIPAccessList(projectIPAccessListModel)).Execute()
 			// Atlas Create is called inside refresh because this limitation: This endpoint doesn't support concurrent POST requests. You must submit multiple POST requests synchronously.
 			if err != nil {
-				if strings.Contains(err.Error(), "Unexpected error") ||
-					strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
-					strings.Contains(err.Error(), "500") {
+				if validate.StatusInternalServerError(httpResponse) {
 					return nil, "pending", nil
 				}
 				return nil, "failed", fmt.Errorf(errorMsg, err)
