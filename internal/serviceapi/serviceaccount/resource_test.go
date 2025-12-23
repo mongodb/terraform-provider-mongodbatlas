@@ -126,7 +126,7 @@ func configBasic(orgID, name, description string, roles []string, secretExpiresA
 }
 
 func checkBasic(isCreate bool) resource.TestCheckFunc {
-	commonAttrsSet := []string{"client_id", "created_at", "secrets.0.id", "secrets.0.created_at", "secrets.0.expires_at"}
+	commonAttrsSet := []string{"client_id", "created_at", "secrets.0.secret_id", "secrets.0.created_at", "secrets.0.expires_at"}
 	commonAttrsMap := map[string]string{"secrets.#": "1"}
 
 	checks := acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), commonAttrsSet, commonAttrsMap, checkExists(resourceName))

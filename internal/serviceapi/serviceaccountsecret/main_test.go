@@ -1,4 +1,4 @@
-package orgserviceaccountsecretapi_test
+package serviceaccountsecret_test
 
 import (
 	"os"

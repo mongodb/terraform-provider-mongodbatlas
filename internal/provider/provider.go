@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
@@ -48,6 +47,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccount"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccountsecret"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -304,6 +304,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		advancedcluster.PluralDataSource,
 		serviceaccount.DataSource,
 		serviceaccount.PluralDataSource,
+		serviceaccountsecret.DataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
@@ -337,6 +338,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		clouduserteamassignment.Resource,
 		advancedcluster.Resource,
 		serviceaccount.Resource,
+		serviceaccountsecret.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {

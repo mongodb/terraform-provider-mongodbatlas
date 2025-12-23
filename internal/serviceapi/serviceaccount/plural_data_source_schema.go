@@ -60,7 +60,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 										Computed:            true,
 										MarkdownDescription: "The date for the expiration of the secret. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
 									},
-									"id": dsschema.StringAttribute{
+									"secret_id": dsschema.StringAttribute{
 										Computed:            true,
 										MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the secret.",
 									},
@@ -71,11 +71,6 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 									"masked_secret_value": dsschema.StringAttribute{
 										Computed:            true,
 										MarkdownDescription: "The masked Service Account secret.",
-									},
-									"secret": dsschema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: "The secret for the Service Account. It will be returned only the first time after creation.",
-										Sensitive:           true,
 									},
 								},
 							},
@@ -102,8 +97,7 @@ type TFPluralDSResultsModel struct {
 type TFPluralDSResultsSecretsModel struct {
 	CreatedAt         types.String `tfsdk:"created_at" autogen:"omitjson"`
 	ExpiresAt         types.String `tfsdk:"expires_at" autogen:"omitjson"`
-	Id                types.String `tfsdk:"id" autogen:"omitjson"`
+	SecretId          types.String `tfsdk:"secret_id" apiname:"id" autogen:"omitjson"`
 	LastUsedAt        types.String `tfsdk:"last_used_at" autogen:"omitjson"`
 	MaskedSecretValue types.String `tfsdk:"masked_secret_value" autogen:"omitjson"`
-	Secret            types.String `tfsdk:"secret" autogen:"sensitive,omitjson"`
 }
