@@ -649,11 +649,6 @@ func TestAccConfigRSAlertConfiguration_withSeverityOverride(t *testing.T) {
 	})
 }
 
-// TestAccConfigRSAlertConfiguration_withoutIntervalMin reproduces the issue where default alerts
-// created by Atlas have interval_min=0 (or unset). When these alerts are imported via the data source
-// and then managed via Terraform, the generated HCL omits interval_min. During create/update,
-// the API rejects requests with NOTIFICATION_INTERVAL_OUT_OF_RANGE because interval_min must be >= 5.
-// This test mimics the scenario by creating an alert without interval_min specified.
 func TestAccConfigRSAlertConfiguration_withoutIntervalMin(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
@@ -665,17 +660,12 @@ func TestAccConfigRSAlertConfiguration_withoutIntervalMin(t *testing.T) {
 		CheckDestroy:             checkDestroy(),
 		Steps: []resource.TestStep{
 			{
-				// This test reproduces the issue where alerts imported from Atlas data source
-				// don't have interval_min set (because Atlas returns 0 for some default alerts).
-				// The API requires interval_min >= 5, so this should fail with current implementation.
-				// Once fixed, this test should pass and interval_min should default to 5.
 				Config: configWithoutIntervalMin(projectID, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "event_type", "NO_PRIMARY"),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
-					// After the fix, interval_min should be set to minimum value of 5
 					resource.TestCheckResourceAttr(resourceName, "notification.0.interval_min", "5"),
 				),
 			},
@@ -1120,11 +1110,6 @@ func configWithPagerDutyAndIntervalMin(projectID, serviceKey string, enabled boo
 	`, projectID, serviceKey, enabled)
 }
 
-// configWithoutIntervalMin creates an alert configuration without specifying interval_min.
-// This mimics the HCL output from the data source when importing default Atlas alerts
-// that have interval_min=0 (which is omitted from the generated HCL).
-// The API requires interval_min >= 5, so this configuration will fail with
-// NOTIFICATION_INTERVAL_OUT_OF_RANGE unless the provider handles this case.
 func configWithoutIntervalMin(projectID string, enabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_alert_configuration" "test" {
