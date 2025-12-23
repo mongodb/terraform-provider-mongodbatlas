@@ -46,6 +46,6 @@ data "mongodbatlas_search_index" "test" {
 * `type_sets` - Set of type set definitions (when present). Each item includes:
   * `name` - Type set name.
   * `types` - JSON array string describing the types for the set.
-* `num_partitions` - Number of index partitions, returns 0 if not set in the resource
+* `num_partitions` - Number of index partitions.
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/atlas-search/) - [and MongoDB Atlas API - Search](https://docs.atlas.mongodb.com/reference/api/atlas-search/) Documentation for more information.
