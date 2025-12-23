@@ -85,7 +85,7 @@ func unmarshalAttr(attrObjJSON any, fieldModel reflect.Value, structField *refle
 	}
 
 	if tags.ListAsMap {
-		attrObjJSON = modifyJSONFromListToMap(attrObjJSON)
+		attrObjJSON = ModifyJSONFromListToMap(attrObjJSON)
 	}
 
 	valueType := oldVal.Type(context.Background())

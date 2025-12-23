@@ -91,7 +91,7 @@ func marshalAttr(attrNameJSON string, attrValModel reflect.Value, objJSON map[st
 	// Emit value if non-nil, or emit null on update when configured by includeNullOnUpdate
 	if val != nil || (isUpdate && tags.IncludeNullOnUpdate) {
 		if tags.ListAsMap {
-			val = modifyJSONFromMapToList(val)
+			val = ModifyJSONFromMapToList(val)
 		}
 		objJSON[attrNameJSON] = val
 	}
