@@ -305,7 +305,7 @@ jobs:
             - 'internal/serviceapi/databaseuserapi/*.go'
             - 'internal/serviceapi/maintenancewindowapi/*.go'
             - 'internal/serviceapi/serviceaccount/*.go'
-            - 'internal/serviceapi/serviceaccount/*.go'
+            - 'internal/serviceapi/orgserviceaccountsecretapi/*.go'
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/projectsettingsapi/*.go'
             - 'internal/serviceapi/resourcepolicyapi/*.go'
@@ -625,7 +625,7 @@ jobs:
             ./internal/serviceapi/customdbroleapi
             ./internal/serviceapi/databaseuserapi
             ./internal/serviceapi/maintenancewindowapi
-            ./internal/serviceapi/orgserviceaccountapi
+            ./internal/serviceapi/serviceaccount
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/projectsettingsapi
         run: make testacc
