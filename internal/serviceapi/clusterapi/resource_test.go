@@ -74,22 +74,13 @@ func configBasic(groupID, clusterName, instanceSize string, withTagsAndLabels, s
 	additionalConfigStr := ""
 	if withTagsAndLabels {
 		additionalConfigStr += `
-			tags = [
-				{
-					key   = "tagKey"
-					value = "tagValue"
-				},
-				{
-					key   = "tagKey2"
-					value = "tagValue2"
-				},
-			]
-			labels = [
-				{
-					key   = "labelKey"
-					value = "labelValue"
-				},
-			]
+			tags = {
+				tagKey = "tagValue"
+				tagKey2 = "tagValue2"
+			}
+			labels = {
+				labelKey = "labelValue"
+			}
 		`
 	}
 	if shortTimeout {
