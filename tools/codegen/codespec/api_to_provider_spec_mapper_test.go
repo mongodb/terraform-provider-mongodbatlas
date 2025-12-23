@@ -2067,3 +2067,27 @@ func TestConvertToProviderSpec_withDataSourceOnly_listOnly(t *testing.T) {
 	assert.Equal(t, codespec.Computed, resultsAttr.ComputedOptionalRequired)
 	require.NotNil(t, resultsAttr.ListNested, "results should be list nested")
 }
+
+func TestConvertToProviderSpec_withTagsAndLabelsAsMapType(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_with_tags_and_labels_as_map_type",
+	}
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+
+	resourceAttrs := []codespec.Attribute(result.Resources[0].Schema.Attributes)
+	dataSourceAttrs := []codespec.Attribute(*result.Resources[0].DataSources.Schema.SingularDSAttributes)
+
+	assert.Len(t, resourceAttrs, 2, "Expected resource to have 2 attributes")
+	assert.Len(t, dataSourceAttrs, 2, "Expected data source to have 2 attributes")
+
+	// Verify resource and data source attributes: two map attributes named "labels" and "tags"
+	for _, attr := range append(resourceAttrs, dataSourceAttrs...) {
+		assert.NotNil(t, attr.Map, "Attribute %s should be a map type", attr.TFSchemaName)
+		assert.Nil(t, attr.ListNested, "Attribute %s should be a map type", attr.TFSchemaName)
+		assert.True(t, attr.ListTypeAsMap, "Attribute %s should have correct flag", attr.TFSchemaName)
+		assert.Contains(t, []string{"labels", "tags"}, attr.TFSchemaName, "Resource attribute should be either 'labels' or 'tags'")
+	}
+}

@@ -208,22 +208,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Internal classification of the cluster's role. Possible values: NONE (regular user cluster), SYSTEM_CLUSTER (system cluster for backup), INTERNAL_SHADOW_CLUSTER (internal use shadow cluster for testing).",
 			},
-			"labels": schema.ListNestedAttribute{
+			"labels": schema.MapAttribute{
 				Optional:            true,
 				MarkdownDescription: "Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.\n\nCluster labels are deprecated and will be removed in a future release. We strongly recommend that you use Resource Tags instead.",
-				CustomType:          customtypes.NewNestedListType[TFLabelsModel](ctx),
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"key": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "Key applied to tag and categorize this component.",
-						},
-						"value": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "Value set to the Key applied to tag and categorize this component.",
-						},
-					},
-				},
+				CustomType:          customtypes.NewMapType[types.String](ctx),
+				ElementType:         types.StringType,
 			},
 			"mongo_db_employee_access_grant": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -599,22 +588,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Human-readable label that indicates any current activity being taken on this cluster by the Atlas control plane. With the exception of CREATING and DELETING states, clusters should always be available and have a Primary node even when in states indicating ongoing activity.\n\n - `IDLE`: Atlas is making no changes to this cluster and all changes requested via the UI or API can be assumed to have been applied.\n - `CREATING`: A cluster being provisioned for the very first time returns state CREATING until it is ready for connections. Ensure IP Access List and DB Users are configured before attempting to connect.\n - `UPDATING`: A change requested via the UI, API, AutoScaling, or other scheduled activity is taking place.\n - `DELETING`: The cluster is in the process of deletion and will soon be deleted.\n - `REPAIRING`: One or more nodes in the cluster are being returned to service by the Atlas control plane. Other nodes should continue to provide service as normal.",
 			},
-			"tags": schema.ListNestedAttribute{
+			"tags": schema.MapAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.",
-				CustomType:          customtypes.NewNestedListType[TFTagsModel](ctx),
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"key": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "Constant that defines the set of the tag. For example, `environment` in the `environment : production` tag.",
-						},
-						"value": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.",
-						},
-					},
-				},
+				CustomType:          customtypes.NewMapType[types.String](ctx),
+				ElementType:         types.StringType,
 			},
 			"termination_protection_enabled": schema.BoolAttribute{
 				Computed:            true,
@@ -647,9 +625,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Labels                                        customtypes.NestedListValue[TFLabelsModel]                 `tfsdk:"labels"`
-	Tags                                          customtypes.NestedListValue[TFTagsModel]                   `tfsdk:"tags"`
 	ReplicationSpecs                              customtypes.NestedListValue[TFReplicationSpecsModel]       `tfsdk:"replication_specs"`
+	Labels                                        customtypes.MapValue[types.String]                         `tfsdk:"labels" autogen:"listasmap"`
+	Tags                                          customtypes.MapValue[types.String]                         `tfsdk:"tags" autogen:"listasmap"`
 	InternalClusterRole                           types.String                                               `tfsdk:"internal_cluster_role" autogen:"omitjson"`
 	MongoDBVersion                                types.String                                               `tfsdk:"mongo_db_version" autogen:"omitjson"`
 	ConfigServerManagementMode                    types.String                                               `tfsdk:"config_server_management_mode"`
@@ -713,10 +691,6 @@ type TFConnectionStringsPrivateEndpointEndpointsModel struct {
 	EndpointId   types.String `tfsdk:"endpoint_id" autogen:"omitjson"`
 	ProviderName types.String `tfsdk:"provider_name" autogen:"omitjson"`
 	Region       types.String `tfsdk:"region" autogen:"omitjson"`
-}
-type TFLabelsModel struct {
-	Key   types.String `tfsdk:"key"`
-	Value types.String `tfsdk:"value"`
 }
 type TFMongoDBEmployeeAccessGrantModel struct {
 	ExpirationTime types.String `tfsdk:"expiration_time"`
@@ -810,8 +784,4 @@ type TFReplicationSpecsRegionConfigsReadOnlySpecsModel struct {
 	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
 	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
 	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
-}
-type TFTagsModel struct {
-	Key   types.String `tfsdk:"key"`
-	Value types.String `tfsdk:"value"`
 }

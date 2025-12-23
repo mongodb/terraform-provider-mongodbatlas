@@ -567,6 +567,38 @@ paths:
             application/vnd.atlas.2024-05-30+json:
               schema:
                 $ref: "#/components/schemas/DynamicJsonProps"
+  "/api/atlas/v2/tagsAndLabels":
+    post:
+      requestBody:
+        content:
+          application/vnd.atlas.2024-05-30+json:
+            schema:
+              $ref: "#/components/schemas/TagsAndLabels"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/TagsAndLabels"
+    get:
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/TagsAndLabels"
+    patch:
+      requestBody:
+        content:
+          application/vnd.atlas.2024-05-30+json:
+            schema:
+              $ref: "#/components/schemas/TagsAndLabels"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/TagsAndLabels"
   "/api/atlas/v2/groups/{groupId}/simpleTestResource":
     delete:
       description: DELETE API description
@@ -858,6 +890,28 @@ components:
     accepted:
       description: Accepted.
   schemas:
+    TagsAndLabels:
+      type: object
+      properties:
+        tags:
+          $ref: "#/components/schemas/Tags"
+        labels:
+          $ref: "#/components/schemas/Tags"
+    Tags:
+      type: array
+      items:
+        type: object 
+        properties:
+          key:
+            description: "Constant that defines the set of the tag. For example, `environment` in the `environment : production` tag."
+            type: string
+          value:
+            description: "Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag."
+            type: string
+        required:
+          - key
+          - value
+    
     DynamicJsonProps:
       type: object
       properties:

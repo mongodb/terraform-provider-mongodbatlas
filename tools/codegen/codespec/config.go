@@ -93,6 +93,7 @@ type AttributeTransformation func(attr *Attribute, paths *attrPaths, schemaOptio
 var transformations = []AttributeTransformation{
 	aliasTransformation,
 	overridesTransformation,
+	tagsAndLabelsAsMapTypeTransformation,
 	createOnlyTransformation,
 	requestOnlyRequiredOnCreateTransformation,
 }
@@ -100,6 +101,7 @@ var transformations = []AttributeTransformation{
 var dataSourceTransformations = []AttributeTransformation{
 	aliasTransformation,
 	overridesTransformation,
+	tagsAndLabelsAsMapTypeTransformation,
 	// Note: createOnlyTransformation is excluded for data sources (read-only, no create operation)
 }
 
@@ -365,4 +367,39 @@ func setCreateOnlyValue(attr *Attribute) {
 
 func attrPathForTransformations(attrPathName string) string {
 	return strings.TrimPrefix(attrPathName, "results.")
+}
+
+// tagsAndLabelsAsMapTypeTransformation transforms attributes that represent collections of key/value pairs (tags and labels) from a nested list of objects into a Map type.
+// This makes the Terraform schema expose a Map type while the underlying Atlas API still uses the array of {key, value} objects.
+func tagsAndLabelsAsMapTypeTransformation(attr *Attribute, _ *attrPaths, _ config.SchemaOptions) error {
+	if attr.TFSchemaName != "tags" && attr.TFSchemaName != "labels" {
+		return nil
+	}
+
+	// We only transform attributes that are currently modeled as list_nested with a nested object that has exactly "key" and "value" string attributes.
+	if attr.ListNested == nil || attr.Map != nil || attr.MapNested != nil {
+		return nil
+	}
+	nestedAttrs := attr.ListNested.NestedObject.Attributes
+	if len(nestedAttrs) != 2 {
+		return nil
+	}
+	for i := range nestedAttrs {
+		nested := nestedAttrs[i]
+		if nested.TFSchemaName != "key" && nested.TFSchemaName != "value" {
+			return nil
+		}
+		if nested.String == nil {
+			return nil
+		}
+	}
+
+	// Rewrite the attribute as a Map of strings with the standard custom map type.
+	attr.ListNested = nil
+	attr.CustomType = NewCustomMapType(String)
+	attr.Map = &MapAttribute{
+		ElementType: String,
+	}
+	attr.ListTypeAsMap = true
+	return nil
 }
