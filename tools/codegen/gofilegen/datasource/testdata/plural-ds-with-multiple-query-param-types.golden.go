@@ -17,7 +17,7 @@ var _ datasource.DataSourceWithConfigure = &pluralDS{}
 func PluralDataSource() datasource.DataSource {
 	return &pluralDS{
 		DSCommon: config.DSCommon{
-			DataSourceName: "service_account",
+			DataSourceName: "service_accounts",
 		},
 	}
 }
