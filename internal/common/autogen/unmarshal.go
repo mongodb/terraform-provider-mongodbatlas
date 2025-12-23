@@ -50,11 +50,7 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 		}
 
 		tags := GetPropertyTags(&field)
-		apiName := stringcase.Uncapitalize(field.Name)
-		// Override with apiname tag if present
-		if tags.APIName != nil {
-			apiName = *tags.APIName
-		}
+		apiName := getAPINameFromTag(field.Name, tags)
 
 		// Look up the JSON property
 		attrObjJSON, ok := objJSON[apiName]
@@ -89,7 +85,7 @@ func unmarshalAttr(attrObjJSON any, fieldModel reflect.Value, structField *refle
 	}
 
 	if tags.ListAsMap {
-		attrObjJSON = modifyJSONFromListToMap(attrObjJSON)
+		attrObjJSON = ModifyJSONFromListToMap(attrObjJSON)
 	}
 
 	valueType := oldVal.Type(context.Background())

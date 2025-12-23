@@ -50,17 +50,22 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 		if isUpdate && tags.OmitJSONUpdate {
 			continue // skip fields with tag `omitjsonupdate` if in update mode
 		}
-		apiName := stringcase.Uncapitalize(attrTypeModel.Name)
-		// Override with apiname tag if present
-		if tags.APIName != nil {
-			apiName = *tags.APIName
-		}
+		apiName := getAPINameFromTag(attrTypeModel.Name, tags)
 		attrValModel := valModel.Field(i)
 		if err := marshalAttr(apiName, attrValModel, objJSON, isUpdate, tags); err != nil {
 			return nil, err
 		}
 	}
 	return objJSON, nil
+}
+
+// getAPINameFromTag extracts the API name from the apiname tag if present (e.g., apiname:"groupId"),
+// otherwise returns the model name uncapitalized as the default JSON name.
+func getAPINameFromTag(modelName string, propertyTags PropertyTags) string {
+	if propertyTags.APIName != nil {
+		return *propertyTags.APIName
+	}
+	return stringcase.Uncapitalize(modelName)
 }
 
 func marshalAttr(attrNameJSON string, attrValModel reflect.Value, objJSON map[string]any, isUpdate bool, tags PropertyTags) error {
@@ -86,7 +91,7 @@ func marshalAttr(attrNameJSON string, attrValModel reflect.Value, objJSON map[st
 	// Emit value if non-nil, or emit null on update when configured by includeNullOnUpdate
 	if val != nil || (isUpdate && tags.IncludeNullOnUpdate) {
 		if tags.ListAsMap {
-			val = modifyJSONFromMapToList(val)
+			val = ModifyJSONFromMapToList(val)
 		}
 		objJSON[attrNameJSON] = val
 	}

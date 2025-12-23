@@ -2,7 +2,7 @@ package autogen
 
 import "slices"
 
-func modifyJSONFromListToMap(attrObjJSON any) any {
+func ModifyJSONFromListToMap(attrObjJSON any) any {
 	if attrObjJSON == nil {
 		return nil
 	}
@@ -45,7 +45,7 @@ func modifyJSONFromListToMap(attrObjJSON any) any {
 	return result
 }
 
-func modifyJSONFromMapToList(val any) any {
+func ModifyJSONFromMapToList(val any) any {
 	if val == nil {
 		return nil
 	}
