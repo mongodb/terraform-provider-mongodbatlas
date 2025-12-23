@@ -372,7 +372,6 @@ func attrPathForTransformations(attrPathName string) string {
 // tagsAndLabelsAsMapTypeTransformation transforms attributes that represent collections of key/value pairs (tags and labels) from a nested list of objects into a Map type.
 // This makes the Terraform schema expose a Map type while the underlying Atlas API still uses the array of {key, value} objects.
 func tagsAndLabelsAsMapTypeTransformation(attr *Attribute, _ *attrPaths, _ config.SchemaOptions) error {
-	// Only consider top-level attributes named "tags" or "labels".
 	if attr.TFSchemaName != "tags" && attr.TFSchemaName != "labels" {
 		return nil
 	}
