@@ -226,7 +226,7 @@ func TestMarshalUpdateAbsentAttrs(t *testing.T) {
 		AttrIntIncludeNull:          types.Int64Null(),
 		AttrBoolIncludeNull:         types.BoolNull(),
 	}
-	// null list and set root elements are sent as empty arrays in update.
+	// null list, set and map elements are sent with empty values in update.
 	// fields with includenullonupdate tag are included even when null during updates.
 	const expectedJSON = `
 		{
@@ -234,12 +234,14 @@ func TestMarshalUpdateAbsentAttrs(t *testing.T) {
 			"attrListIncludeNull": null,
 			"attrSet": [],
 			"attrSetIncludeNull": null,
+			"attrMap": {},
+			"attrMapIncludeNull": null,
+			"attrNestedMap": {},
+			"attrNestedMapIncludeNull": null,
 			"attrNestedList": [],
 			"attrNestedListIncludeNull": null,
 			"attrNestedSet": [],
 			"attrNestedSetIncludeNull": null,
-			"attrMapIncludeNull": null,
-			"attrNestedMapIncludeNull": null,
 			"attrNestedObjectIncludeNull": null,
 			"attrStringIncludeNull": null,
 			"attrIntIncludeNull": null,
@@ -643,9 +645,62 @@ func TestMarshalCustomTypeNestedMap(t *testing.T) {
 					}
 				}
 			},
+			"attrNestedMapNull": {},
 			"attrNestedMapEmpty": {}
 		}
 	`
+	rawUpdate, err := autogen.Marshal(&model, true)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedUpdateJSON, string(rawUpdate))
+}
+
+func TestMarshalListAsMap(t *testing.T) {
+	model := struct {
+		AttrListAsMapWithValues customtypes.MapValue[types.String] `tfsdk:"attr_list_as_map_with_values" autogen:"listasmap"`
+		AttrListAsMapEmpty      customtypes.MapValue[types.String] `tfsdk:"attr_list_as_map_empty" autogen:"listasmap"`
+		AttrListAsMapNull       customtypes.MapValue[types.String] `tfsdk:"attr_list_as_map_null" autogen:"listasmap"`
+	}{
+		AttrListAsMapWithValues: customtypes.NewMapValue[types.String](t.Context(), map[string]attr.Value{
+			"key1": types.StringValue("val1"),
+			"key2": types.StringValue("val2"),
+		}),
+		AttrListAsMapEmpty: customtypes.NewMapValue[types.String](t.Context(), map[string]attr.Value{}),
+		AttrListAsMapNull:  customtypes.NewMapValueNull[types.String](t.Context()),
+	}
+	const expectedCreateJSON = `
+		{ 
+			"attrListAsMapWithValues": [
+				{
+					"key": "key1",
+					"value": "val1"
+				},
+				{
+					"key": "key2",
+					"value": "val2"
+				}
+			],
+			"attrListAsMapEmpty": []
+		}
+	`
+	const expectedUpdateJSON = `
+		{ 
+			"attrListAsMapWithValues": [
+				{
+					"key": "key1",
+					"value": "val1"
+				},
+				{
+					"key": "key2",
+					"value": "val2"
+				}
+			],
+			"attrListAsMapEmpty": [],
+			"attrListAsMapNull": []
+		}
+	`
+	rawCreate, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedCreateJSON, string(rawCreate))
 	rawUpdate, err := autogen.Marshal(&model, true)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedUpdateJSON, string(rawUpdate))
