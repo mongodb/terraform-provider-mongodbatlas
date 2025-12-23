@@ -278,6 +278,14 @@ func applyTypeOverride(override *config.Override, attr *Attribute) error {
 			attr.List = nil
 			return nil
 		}
+		if attr.ListNested != nil {
+			if attr.CustomType != nil {
+				attr.CustomType = NewCustomNestedSetType(attr.TFModelName)
+			}
+			attr.SetNested = &SetNestedAttribute{NestedObject: attr.ListNested.NestedObject}
+			attr.ListNested = nil
+			return nil
+		}
 	case config.List:
 		if attr.Set != nil {
 			if attr.CustomType != nil {
@@ -285,6 +293,14 @@ func applyTypeOverride(override *config.Override, attr *Attribute) error {
 			}
 			attr.List = &ListAttribute{ElementType: attr.Set.ElementType}
 			attr.Set = nil
+			return nil
+		}
+		if attr.SetNested != nil {
+			if attr.CustomType != nil {
+				attr.CustomType = NewCustomNestedListType(attr.TFModelName)
+			}
+			attr.ListNested = &ListNestedAttribute{NestedObject: attr.SetNested.NestedObject}
+			attr.SetNested = nil
 			return nil
 		}
 	default:
