@@ -91,7 +91,7 @@ An example implementation can be found in:
 
 - `internal/serviceapi/orgserviceaccountsecretapi/resource_custom_hooks.go`
 
-In this example, a custom `PostReadAPICall` implementation filters the raw API response to return only the specific secret matching the Terraform resource’s ID, mimicing the read response of a single secret which is not available in the API.
+In this example, a custom `PostReadAPICall` implementation filters the raw API response to return only the specific secret matching the Terraform resource’s ID, mimicking the read response of a single secret which is not available in the API.
 
 
 
