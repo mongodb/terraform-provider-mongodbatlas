@@ -58,6 +58,7 @@ data_sources:
               description: List of inbound IP addresses to the Atlas control plane, categorized by cloud provider. If your application allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your API requests can reach the Atlas control plane.
               custom_type:
                 package: customtypes
+                name: Inbound
                 model: customtypes.ObjectValue[TFInboundModel]
                 schema: customtypes.NewObjectType[TFInboundModel](ctx)
               computed_optional_required: computed
@@ -123,6 +124,7 @@ data_sources:
               description: List of outbound IP addresses from the Atlas control plane, categorized by cloud provider. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that Atlas can communicate with your webhooks and KMS.
               custom_type:
                 package: customtypes
+                name: Outbound
                 model: customtypes.ObjectValue[TFOutboundModel]
                 schema: customtypes.NewObjectType[TFOutboundModel](ctx)
               computed_optional_required: computed

@@ -40,10 +40,10 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
-			"secrets": dsschema.SetNestedAttribute{
+			"secrets": dsschema.ListNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "A list of secrets associated with the specified Service Account.",
-				CustomType:          customtypes.NewNestedSetType[TFDSSecretsModel](ctx),
+				CustomType:          customtypes.NewNestedListType[TFDSSecretsModel](ctx),
 				NestedObject: dsschema.NestedAttributeObject{
 					Attributes: map[string]dsschema.Attribute{
 						"created_at": dsschema.StringAttribute{
@@ -79,13 +79,13 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
-	ClientId    types.String                                 `tfsdk:"client_id" autogen:"omitjson"`
-	CreatedAt   types.String                                 `tfsdk:"created_at" autogen:"omitjson"`
-	Description types.String                                 `tfsdk:"description" autogen:"omitjson"`
-	Name        types.String                                 `tfsdk:"name" autogen:"omitjson"`
-	OrgId       types.String                                 `tfsdk:"org_id" autogen:"omitjson"`
-	Roles       customtypes.SetValue[types.String]           `tfsdk:"roles" autogen:"omitjson"`
-	Secrets     customtypes.NestedSetValue[TFDSSecretsModel] `tfsdk:"secrets" autogen:"omitjson"`
+	ClientId    types.String                                  `tfsdk:"client_id" autogen:"omitjson"`
+	CreatedAt   types.String                                  `tfsdk:"created_at" autogen:"omitjson"`
+	Description types.String                                  `tfsdk:"description" autogen:"omitjson"`
+	Name        types.String                                  `tfsdk:"name" autogen:"omitjson"`
+	OrgId       types.String                                  `tfsdk:"org_id" autogen:"omitjson"`
+	Roles       customtypes.SetValue[types.String]            `tfsdk:"roles" autogen:"omitjson"`
+	Secrets     customtypes.NestedListValue[TFDSSecretsModel] `tfsdk:"secrets" autogen:"omitjson"`
 }
 type TFDSSecretsModel struct {
 	CreatedAt         types.String `tfsdk:"created_at" autogen:"omitjson"`

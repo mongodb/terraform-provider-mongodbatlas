@@ -76,6 +76,7 @@ schema:
           description: Group of settings that configures a subset of the advanced configuration details.
           custom_type:
             package: customtypes
+            name: AdvancedConfiguration
             model: customtypes.ObjectValue[TFAdvancedConfigurationModel]
             schema: customtypes.NewObjectType[TFAdvancedConfigurationModel](ctx)
           computed_optional_required: computed_optional
@@ -127,6 +128,7 @@ schema:
           description: Settings needed to configure the MongoDB Connector for Business Intelligence for this cluster.
           custom_type:
             package: customtypes
+            name: BiConnector
             model: customtypes.ObjectValue[TFBiConnectorModel]
             schema: customtypes.NewObjectType[TFBiConnectorModel](ctx)
           computed_optional_required: computed_optional
@@ -276,6 +278,7 @@ schema:
                                   description: List that contains the private endpoints through which you connect to MongoDB Cloud when you use **connectionStrings.privateEndpoint[n].connectionString** or **connectionStrings.privateEndpoint[n].srvConnectionString**.
                                   custom_type:
                                     package: customtypes
+                                    name: ConnectionStringsPrivateEndpointEndpoints
                                     model: customtypes.NestedListValue[TFConnectionStringsPrivateEndpointEndpointsModel]
                                     schema: customtypes.NewNestedListType[TFConnectionStringsPrivateEndpointEndpointsModel](ctx)
                                   computed_optional_required: computed
@@ -323,6 +326,7 @@ schema:
                       description: List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes.
                       custom_type:
                         package: customtypes
+                        name: ConnectionStringsPrivateEndpoint
                         model: customtypes.NestedListValue[TFConnectionStringsPrivateEndpointModel]
                         schema: customtypes.NewNestedListType[TFConnectionStringsPrivateEndpointModel](ctx)
                       computed_optional_required: computed
@@ -370,6 +374,7 @@ schema:
           description: Collection of Uniform Resource Locators that point to the MongoDB database.
           custom_type:
             package: customtypes
+            name: ConnectionStrings
             model: customtypes.ObjectValue[TFConnectionStringsModel]
             schema: customtypes.NewObjectType[TFConnectionStringsModel](ctx)
           computed_optional_required: computed
@@ -540,6 +545,7 @@ schema:
           description: MongoDB employee granted access level and expiration for a cluster.
           custom_type:
             package: customtypes
+            name: MongoDBEmployeeAccessGrant
             model: customtypes.ObjectValue[TFMongoDBEmployeeAccessGrantModel]
             schema: customtypes.NewObjectType[TFMongoDBEmployeeAccessGrantModel](ctx)
           computed_optional_required: optional
@@ -718,6 +724,7 @@ schema:
                                               description: Options that determine how this cluster handles CPU scaling.
                                               custom_type:
                                                 package: customtypes
+                                                name: ReplicationSpecsRegionConfigsAnalyticsAutoScalingCompute
                                                 model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel]
                                                 schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel](ctx)
                                               computed_optional_required: optional
@@ -746,6 +753,7 @@ schema:
                                               description: Setting that enables disk auto-scaling.
                                               custom_type:
                                                 package: customtypes
+                                                name: ReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGB
                                                 model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel]
                                                 schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel](ctx)
                                               computed_optional_required: optional
@@ -760,6 +768,7 @@ schema:
                                   description: Options that determine how this cluster handles resource scaling.
                                   custom_type:
                                     package: customtypes
+                                    name: ReplicationSpecsRegionConfigsAnalyticsAutoScaling
                                     model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingModel]
                                     schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingModel](ctx)
                                   computed_optional_required: optional
@@ -830,6 +839,7 @@ schema:
                                   description: Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads.If you don't specify this parameter, no read-only nodes are deployed to the region.
                                   custom_type:
                                     package: customtypes
+                                    name: ReplicationSpecsRegionConfigsAnalyticsSpecs
                                     model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsSpecsModel]
                                     schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsSpecsModel](ctx)
                                   computed_optional_required: computed_optional
@@ -898,6 +908,7 @@ schema:
                                               description: Options that determine how this cluster handles CPU scaling.
                                               custom_type:
                                                 package: customtypes
+                                                name: ReplicationSpecsRegionConfigsAutoScalingCompute
                                                 model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingComputeModel]
                                                 schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAutoScalingComputeModel](ctx)
                                               computed_optional_required: computed_optional
@@ -926,6 +937,7 @@ schema:
                                               description: Setting that enables disk auto-scaling.
                                               custom_type:
                                                 package: customtypes
+                                                name: ReplicationSpecsRegionConfigsAutoScalingDiskGB
                                                 model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel]
                                                 schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel](ctx)
                                               computed_optional_required: computed_optional
@@ -940,6 +952,7 @@ schema:
                                   description: Options that determine how this cluster handles resource scaling.
                                   custom_type:
                                     package: customtypes
+                                    name: ReplicationSpecsRegionConfigsAutoScaling
                                     model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingModel]
                                     schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAutoScalingModel](ctx)
                                   computed_optional_required: computed_optional
@@ -1032,6 +1045,7 @@ schema:
                                   description: Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region.
                                   custom_type:
                                     package: customtypes
+                                    name: ReplicationSpecsRegionConfigsElectableSpecs
                                     model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsElectableSpecsModel]
                                     schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsElectableSpecsModel](ctx)
                                   computed_optional_required: optional
@@ -1127,6 +1141,7 @@ schema:
                                   description: Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads.If you don't specify this parameter, no read-only nodes are deployed to the region.
                                   custom_type:
                                     package: customtypes
+                                    name: ReplicationSpecsRegionConfigsReadOnlySpecs
                                     model: customtypes.ObjectValue[TFReplicationSpecsRegionConfigsReadOnlySpecsModel]
                                     schema: customtypes.NewObjectType[TFReplicationSpecsRegionConfigsReadOnlySpecsModel](ctx)
                                   computed_optional_required: computed_optional
@@ -1157,6 +1172,7 @@ schema:
                         If you set `"replicationSpecs[n].regionConfigs[m].analyticsSpecs.instanceSize" : "M30"`, set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize" : `"M30"` if you have electable nodes and `"replicationSpecs[n].regionConfigs[m].readOnlySpecs.instanceSize" : `"M30"` if you have read-only nodes.
                       custom_type:
                         package: customtypes
+                        name: ReplicationSpecsRegionConfigs
                         model: customtypes.NestedListValue[TFReplicationSpecsRegionConfigsModel]
                         schema: customtypes.NewNestedListType[TFReplicationSpecsRegionConfigsModel](ctx)
                       computed_optional_required: optional
@@ -1193,6 +1209,7 @@ schema:
           description: List of settings that configure your cluster regions. For Global Clusters, each object in the array represents a zone where your clusters nodes deploy. For non-Global sharded clusters and replica sets, this array has one object representing where your clusters nodes deploy.
           custom_type:
             package: customtypes
+            name: ReplicationSpecs
             model: customtypes.NestedListValue[TFReplicationSpecsModel]
             schema: customtypes.NewNestedListType[TFReplicationSpecsModel](ctx)
           computed_optional_required: optional

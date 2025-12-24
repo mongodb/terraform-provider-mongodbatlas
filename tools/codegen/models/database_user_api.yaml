@@ -152,6 +152,7 @@ schema:
           description: List that provides the pairings of one role with one applicable database.
           custom_type:
             package: customtypes
+            name: Roles
             model: customtypes.NestedListValue[TFRolesModel]
             schema: customtypes.NewNestedListType[TFRolesModel](ctx)
           computed_optional_required: optional
@@ -191,6 +192,7 @@ schema:
           description: List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces in the project.
           custom_type:
             package: customtypes
+            name: Scopes
             model: customtypes.NestedListValue[TFScopesModel]
             schema: customtypes.NewNestedListType[TFScopesModel](ctx)
           computed_optional_required: optional

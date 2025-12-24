@@ -54,6 +54,7 @@ schema:
                       description: List of resources on which you grant the action.
                       custom_type:
                         package: customtypes
+                        name: ActionsResources
                         model: customtypes.NestedListValue[TFActionsResourcesModel]
                         schema: customtypes.NewNestedListType[TFActionsResourcesModel](ctx)
                       computed_optional_required: optional
@@ -68,6 +69,7 @@ schema:
           description: List of the individual privilege actions that the role grants.
           custom_type:
             package: customtypes
+            name: Actions
             model: customtypes.NestedListValue[TFActionsModel]
             schema: customtypes.NewNestedListType[TFActionsModel](ctx)
           computed_optional_required: optional
@@ -121,6 +123,7 @@ schema:
           description: List of the built-in roles that this custom role inherits.
           custom_type:
             package: customtypes
+            name: InheritedRoles
             model: customtypes.NestedSetValue[TFInheritedRolesModel]
             schema: customtypes.NewNestedSetType[TFInheritedRolesModel](ctx)
           computed_optional_required: optional

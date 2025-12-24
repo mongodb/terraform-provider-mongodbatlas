@@ -222,6 +222,7 @@ const (
 
 type CustomType struct {
 	Package CustomTypePackage `yaml:"package"`
+	Name    string            `yaml:"name,omitempty"` // Nested object name without the "TF" & "Model" prefix and suffix. Used for type overrides.
 	Model   string            `yaml:"model"`
 	Schema  string            `yaml:"schema"`
 }
@@ -235,6 +236,7 @@ var CustomTypeJSONVar = CustomType{
 func NewCustomObjectType(name string) *CustomType {
 	return &CustomType{
 		Package: CustomTypesPkg,
+		Name:    name,
 		Model:   fmt.Sprintf("customtypes.ObjectValue[TF%sModel]", name),
 		Schema:  fmt.Sprintf("customtypes.NewObjectType[TF%sModel](ctx)", name),
 	}
@@ -252,6 +254,7 @@ func NewCustomListType(elemType ElemType) *CustomType {
 func NewCustomNestedListType(name string) *CustomType {
 	return &CustomType{
 		Package: CustomTypesPkg,
+		Name:    name,
 		Model:   fmt.Sprintf("customtypes.NestedListValue[TF%sModel]", name),
 		Schema:  fmt.Sprintf("customtypes.NewNestedListType[TF%sModel](ctx)", name),
 	}
@@ -269,6 +272,7 @@ func NewCustomSetType(elemType ElemType) *CustomType {
 func NewCustomNestedSetType(name string) *CustomType {
 	return &CustomType{
 		Package: CustomTypesPkg,
+		Name:    name,
 		Model:   fmt.Sprintf("customtypes.NestedSetValue[TF%sModel]", name),
 		Schema:  fmt.Sprintf("customtypes.NewNestedSetType[TF%sModel](ctx)", name),
 	}

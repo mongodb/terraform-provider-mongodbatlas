@@ -713,3 +713,171 @@ func TestApplyTransformationsToDataSources_NilInputs(t *testing.T) {
 	err = codespec.ApplyTransformationsToDataSources(&config.DataSources{}, &codespec.DataSources{})
 	require.NoError(t, err)
 }
+
+func TestApplyTransformationsToDataSources_TypeOverride(t *testing.T) {
+	inputDataSources := &codespec.DataSources{
+		Schema: &codespec.DataSourceSchema{
+			SingularDSAttributes: &codespec.Attributes{
+				// List to Set
+				{
+					TFSchemaName:             "list_attr",
+					TFModelName:              "ListAttr",
+					APIName:                  "listAttr",
+					ComputedOptionalRequired: codespec.ComputedOptional,
+					CustomType:               codespec.NewCustomListType(codespec.String),
+					List: &codespec.ListAttribute{
+						ElementType: codespec.String,
+					},
+					ReqBodyUsage: codespec.AllRequestBodies,
+				},
+				// Set to List
+				{
+					TFSchemaName:             "set_attr",
+					TFModelName:              "SetAttr",
+					APIName:                  "setAttr",
+					ComputedOptionalRequired: codespec.ComputedOptional,
+					CustomType:               codespec.NewCustomSetType(codespec.String),
+					Set: &codespec.SetAttribute{
+						ElementType: codespec.String,
+					},
+					ReqBodyUsage: codespec.AllRequestBodies,
+				},
+				// ListNested to SetNested
+				{
+					TFSchemaName:             "nested_list_attr",
+					TFModelName:              "NestedListAttr",
+					APIName:                  "nestedListAttr",
+					ComputedOptionalRequired: codespec.ComputedOptional,
+					CustomType:               codespec.NewCustomNestedListType("NestedListAttr"),
+					ListNested: &codespec.ListNestedAttribute{
+						NestedObject: codespec.NestedAttributeObject{
+							Attributes: codespec.Attributes{
+								{
+									TFSchemaName:             "name",
+									TFModelName:              "Name",
+									APIName:                  "name",
+									ComputedOptionalRequired: codespec.Optional,
+									String:                   &codespec.StringAttribute{},
+									ReqBodyUsage:             codespec.AllRequestBodies,
+								},
+							},
+						},
+					},
+					ReqBodyUsage: codespec.AllRequestBodies,
+				},
+				// SetNested to ListNested
+				{
+					TFSchemaName:             "nested_set_attr",
+					TFModelName:              "NestedSetAttr",
+					APIName:                  "nestedSetAttr",
+					ComputedOptionalRequired: codespec.ComputedOptional,
+					CustomType:               codespec.NewCustomNestedSetType("NestedSetAttr"),
+					SetNested: &codespec.SetNestedAttribute{
+						NestedObject: codespec.NestedAttributeObject{
+							Attributes: codespec.Attributes{
+								{
+									TFSchemaName:             "value",
+									TFModelName:              "Value",
+									APIName:                  "value",
+									ComputedOptionalRequired: codespec.Optional,
+									String:                   &codespec.StringAttribute{},
+									ReqBodyUsage:             codespec.AllRequestBodies,
+								},
+							},
+						},
+					},
+					ReqBodyUsage: codespec.AllRequestBodies,
+				},
+			},
+		},
+		Operations: codespec.APIOperations{},
+	}
+
+	inputConfig := &config.DataSources{
+		SchemaOptions: config.SchemaOptions{
+			Overrides: map[string]config.Override{
+				"list_attr":        {Type: conversion.Pointer(config.Set)},
+				"set_attr":         {Type: conversion.Pointer(config.List)},
+				"nested_list_attr": {Type: conversion.Pointer(config.Set)},
+				"nested_set_attr":  {Type: conversion.Pointer(config.List)},
+			},
+		},
+	}
+
+	expectedAttributes := codespec.Attributes{
+		// List to Set
+		{
+			TFSchemaName:             "list_attr",
+			TFModelName:              "ListAttr",
+			APIName:                  "listAttr",
+			ComputedOptionalRequired: codespec.ComputedOptional,
+			CustomType:               codespec.NewCustomSetType(codespec.String),
+			Set: &codespec.SetAttribute{
+				ElementType: codespec.String,
+			},
+			ReqBodyUsage: codespec.AllRequestBodies,
+		},
+		// Set to List
+		{
+			TFSchemaName:             "set_attr",
+			TFModelName:              "SetAttr",
+			APIName:                  "setAttr",
+			ComputedOptionalRequired: codespec.ComputedOptional,
+			CustomType:               codespec.NewCustomListType(codespec.String),
+			List: &codespec.ListAttribute{
+				ElementType: codespec.String,
+			},
+			ReqBodyUsage: codespec.AllRequestBodies,
+		},
+		// ListNested to SetNested
+		{
+			TFSchemaName:             "nested_list_attr",
+			TFModelName:              "NestedListAttr",
+			APIName:                  "nestedListAttr",
+			ComputedOptionalRequired: codespec.ComputedOptional,
+			CustomType:               codespec.NewCustomNestedSetType("NestedListAttr"),
+			SetNested: &codespec.SetNestedAttribute{
+				NestedObject: codespec.NestedAttributeObject{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "name",
+							TFModelName:              "Name",
+							APIName:                  "name",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.AllRequestBodies,
+						},
+					},
+				},
+			},
+			ReqBodyUsage: codespec.AllRequestBodies,
+		},
+		// SetNested to ListNested
+		{
+			TFSchemaName:             "nested_set_attr",
+			TFModelName:              "NestedSetAttr",
+			APIName:                  "nestedSetAttr",
+			ComputedOptionalRequired: codespec.ComputedOptional,
+			CustomType:               codespec.NewCustomNestedListType("NestedSetAttr"),
+			ListNested: &codespec.ListNestedAttribute{
+				NestedObject: codespec.NestedAttributeObject{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "value",
+							TFModelName:              "Value",
+							APIName:                  "value",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.AllRequestBodies,
+						},
+					},
+				},
+			},
+			ReqBodyUsage: codespec.AllRequestBodies,
+		},
+	}
+
+	err := codespec.ApplyTransformationsToDataSources(inputConfig, inputDataSources)
+	require.NoError(t, err)
+	assert.Equal(t, expectedAttributes, *inputDataSources.Schema.SingularDSAttributes)
+}

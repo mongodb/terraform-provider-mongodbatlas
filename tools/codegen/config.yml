@@ -760,6 +760,8 @@ resources:
       method: DELETE
     schema:
       overrides:
+        secrets:
+          type: list
         secrets.secret:
           sensitive: true
         roles:
@@ -771,6 +773,8 @@ resources:
         method: GET
       schema:
         overrides:
+          secrets:
+            type: list
           secrets.secret:
             sensitive: true
         ignores: ["links"]
