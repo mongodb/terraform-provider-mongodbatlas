@@ -93,5 +93,3 @@ An example implementation can be found in:
 
 In this example, a custom `PostReadAPICall` implementation filters the raw API response to return only the specific secret matching the Terraform resource’s ID, mimicking the read response of a single secret which is not available in the API.
 
-
-
