@@ -2,15 +2,13 @@
 # Development Best Practices
 
 ## Table of Contents
-- [Development Best Practices](#development-best-practices)
-  - [Table of Contents](#table-of-contents)
-  - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
-  - [Auto-Generating Resources \& Data Sources (Internal tool)](#auto-generating-resources--data-sources)
-    - [Customizing Generated Resources \& Data Sources](#customizing-generated-resources--data-sources)
-
-A set of commands have been defined with the intention of speeding up development process, while also preserving common conventions throughout our codebase.
+- [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
+- [Auto-Generating Resources \& Data Sources (Internal tool)](#auto-generating-resources--data-sources)
+  - [Customizing Generated Resources \& Data Sources](#customizing-generated-resources--data-sources)
 
 ## Scaffolding Initial Code and File Structure
+
+**Note**: This command is relevant when developing a new resource or data sources manually. For full autogeneration reference section below.
 
 This command can be used the following way:
 ```bash
@@ -33,6 +31,10 @@ The generation command takes a single optional argument `resource_name`. If not 
 make resource-generation-pipeline resource_name=search_deployment_api
 ```
 
+If you wish to generate resource/data source code without fetching latest changes from the API Spec the following command can be used:
+```bash
+make resource-code-generation
+```
 
 As a result, content of schemas and models will be written into the corresponding resource packages:
 `./internal/serviceapi/<resource-package>/resource_schema.go`
