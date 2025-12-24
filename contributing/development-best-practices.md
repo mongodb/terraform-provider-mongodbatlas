@@ -31,7 +31,7 @@ The generation command takes a single optional argument `resource_name`. If not 
 make resource-generation-pipeline resource_name=search_deployment_api
 ```
 
-If you wish to generate resource/data source code without fetching latest changes from the API Spec the following command can be used:
+If you wish to generate resource/data source code without fetching latest changes from the API Spec, use the following command:
 ```bash
 make resource-code-generation
 ```
