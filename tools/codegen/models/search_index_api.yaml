@@ -133,6 +133,7 @@ schema:
                       description: List of user-defined methods to convert database field text into searchable words.
                       custom_type:
                         package: customtypes
+                        name: DefinitionAnalyzers
                         model: customtypes.NestedListValue[TFDefinitionAnalyzersModel]
                         schema: customtypes.NewNestedListType[TFDefinitionAnalyzersModel](ctx)
                       computed_optional_required: optional
@@ -197,6 +198,7 @@ schema:
                       description: Index specifications for the collection's fields.
                       custom_type:
                         package: customtypes
+                        name: DefinitionMappings
                         model: customtypes.ObjectValue[TFDefinitionMappingsModel]
                         schema: customtypes.NewObjectType[TFDefinitionMappingsModel](ctx)
                       computed_optional_required: optional
@@ -289,6 +291,7 @@ schema:
                                   description: Data set that stores words and their applicable synonyms.
                                   custom_type:
                                     package: customtypes
+                                    name: DefinitionSynonymsSource
                                     model: customtypes.ObjectValue[TFDefinitionSynonymsSourceModel]
                                     schema: customtypes.NewObjectType[TFDefinitionSynonymsSourceModel](ctx)
                                   computed_optional_required: required
@@ -303,6 +306,7 @@ schema:
                       description: Rule sets that map words to their synonyms in this index.
                       custom_type:
                         package: customtypes
+                        name: DefinitionSynonyms
                         model: customtypes.NestedListValue[TFDefinitionSynonymsModel]
                         schema: customtypes.NewNestedListType[TFDefinitionSynonymsModel](ctx)
                       computed_optional_required: optional
@@ -347,6 +351,7 @@ schema:
                       description: Type sets for the index.
                       custom_type:
                         package: customtypes
+                        name: DefinitionTypeSets
                         model: customtypes.NestedListValue[TFDefinitionTypeSetsModel]
                         schema: customtypes.NewNestedListType[TFDefinitionTypeSetsModel](ctx)
                       computed_optional_required: optional
@@ -361,6 +366,7 @@ schema:
           description: The index definition to update the search index to.
           custom_type:
             package: customtypes
+            name: Definition
             model: customtypes.ObjectValue[TFDefinitionModel]
             schema: customtypes.NewObjectType[TFDefinitionModel](ctx)
           computed_optional_required: required
@@ -496,6 +502,7 @@ schema:
                       description: List of user-defined methods to convert database field text into searchable words.
                       custom_type:
                         package: customtypes
+                        name: LatestDefinitionAnalyzers
                         model: customtypes.NestedListValue[TFLatestDefinitionAnalyzersModel]
                         schema: customtypes.NewNestedListType[TFLatestDefinitionAnalyzersModel](ctx)
                       computed_optional_required: computed
@@ -560,6 +567,7 @@ schema:
                       description: Index specifications for the collection's fields.
                       custom_type:
                         package: customtypes
+                        name: LatestDefinitionMappings
                         model: customtypes.ObjectValue[TFLatestDefinitionMappingsModel]
                         schema: customtypes.NewObjectType[TFLatestDefinitionMappingsModel](ctx)
                       computed_optional_required: computed
@@ -652,6 +660,7 @@ schema:
                                   description: Data set that stores words and their applicable synonyms.
                                   custom_type:
                                     package: customtypes
+                                    name: LatestDefinitionSynonymsSource
                                     model: customtypes.ObjectValue[TFLatestDefinitionSynonymsSourceModel]
                                     schema: customtypes.NewObjectType[TFLatestDefinitionSynonymsSourceModel](ctx)
                                   computed_optional_required: computed
@@ -666,6 +675,7 @@ schema:
                       description: Rule sets that map words to their synonyms in this index.
                       custom_type:
                         package: customtypes
+                        name: LatestDefinitionSynonyms
                         model: customtypes.NestedListValue[TFLatestDefinitionSynonymsModel]
                         schema: customtypes.NewNestedListType[TFLatestDefinitionSynonymsModel](ctx)
                       computed_optional_required: computed
@@ -710,6 +720,7 @@ schema:
                       description: Type sets for the index.
                       custom_type:
                         package: customtypes
+                        name: LatestDefinitionTypeSets
                         model: customtypes.NestedListValue[TFLatestDefinitionTypeSetsModel]
                         schema: customtypes.NewNestedListType[TFLatestDefinitionTypeSetsModel](ctx)
                       computed_optional_required: computed
@@ -723,6 +734,7 @@ schema:
                       request_only_required_on_create: false
           custom_type:
             package: customtypes
+            name: LatestDefinition
             model: customtypes.ObjectValue[TFLatestDefinitionModel]
             schema: customtypes.NewObjectType[TFLatestDefinitionModel](ctx)
           computed_optional_required: computed
@@ -762,6 +774,7 @@ schema:
           description: Object which includes the version number of the index definition and the time that the index definition was created.
           custom_type:
             package: customtypes
+            name: LatestDefinitionVersion
             model: customtypes.ObjectValue[TFLatestDefinitionVersionModel]
             schema: customtypes.NewObjectType[TFLatestDefinitionVersionModel](ctx)
           computed_optional_required: computed
@@ -880,6 +893,7 @@ schema:
                                   description: The vector search index definition set by the user.
                                   custom_type:
                                     package: customtypes
+                                    name: StatusDetailMainIndexDefinition
                                     model: customtypes.ObjectValue[TFStatusDetailMainIndexDefinitionModel]
                                     schema: customtypes.NewObjectType[TFStatusDetailMainIndexDefinitionModel](ctx)
                                   computed_optional_required: computed
@@ -919,6 +933,7 @@ schema:
                                   description: Object which includes the version number of the index definition and the time that the index definition was created.
                                   custom_type:
                                     package: customtypes
+                                    name: StatusDetailMainIndexDefinitionVersion
                                     model: customtypes.ObjectValue[TFStatusDetailMainIndexDefinitionVersionModel]
                                     schema: customtypes.NewObjectType[TFStatusDetailMainIndexDefinitionVersionModel](ctx)
                                   computed_optional_required: computed
@@ -974,6 +989,7 @@ schema:
                       description: Contains status information about a vector search index.
                       custom_type:
                         package: customtypes
+                        name: StatusDetailMainIndex
                         model: customtypes.ObjectValue[TFStatusDetailMainIndexModel]
                         schema: customtypes.NewObjectType[TFStatusDetailMainIndexModel](ctx)
                       computed_optional_required: computed
@@ -1048,6 +1064,7 @@ schema:
                                   description: The vector search index definition set by the user.
                                   custom_type:
                                     package: customtypes
+                                    name: StatusDetailStagedIndexDefinition
                                     model: customtypes.ObjectValue[TFStatusDetailStagedIndexDefinitionModel]
                                     schema: customtypes.NewObjectType[TFStatusDetailStagedIndexDefinitionModel](ctx)
                                   computed_optional_required: computed
@@ -1087,6 +1104,7 @@ schema:
                                   description: Object which includes the version number of the index definition and the time that the index definition was created.
                                   custom_type:
                                     package: customtypes
+                                    name: StatusDetailStagedIndexDefinitionVersion
                                     model: customtypes.ObjectValue[TFStatusDetailStagedIndexDefinitionVersionModel]
                                     schema: customtypes.NewObjectType[TFStatusDetailStagedIndexDefinitionVersionModel](ctx)
                                   computed_optional_required: computed
@@ -1142,6 +1160,7 @@ schema:
                       description: Contains status information about a vector search index.
                       custom_type:
                         package: customtypes
+                        name: StatusDetailStagedIndex
                         model: customtypes.ObjectValue[TFStatusDetailStagedIndexModel]
                         schema: customtypes.NewObjectType[TFStatusDetailStagedIndexModel](ctx)
                       computed_optional_required: computed
@@ -1175,6 +1194,7 @@ schema:
           description: List of documents detailing index status on each host.
           custom_type:
             package: customtypes
+            name: StatusDetail
             model: customtypes.NestedListValue[TFStatusDetailModel]
             schema: customtypes.NewNestedListType[TFStatusDetailModel](ctx)
           computed_optional_required: computed

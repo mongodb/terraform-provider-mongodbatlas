@@ -46,10 +46,10 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							CustomType:          customtypes.NewSetType[types.String](ctx),
 							ElementType:         types.StringType,
 						},
-						"secrets": dsschema.SetNestedAttribute{
+						"secrets": dsschema.ListNestedAttribute{
 							Computed:            true,
 							MarkdownDescription: "A list of secrets associated with the specified Service Account.",
-							CustomType:          customtypes.NewNestedSetType[TFPluralDSResultsSecretsModel](ctx),
+							CustomType:          customtypes.NewNestedListType[TFPluralDSResultsSecretsModel](ctx),
 							NestedObject: dsschema.NestedAttributeObject{
 								Attributes: map[string]dsschema.Attribute{
 									"created_at": dsschema.StringAttribute{
@@ -92,12 +92,12 @@ type TFPluralDSModel struct {
 	Results customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
 }
 type TFPluralDSResultsModel struct {
-	ClientId    types.String                                              `tfsdk:"client_id" autogen:"omitjson"`
-	CreatedAt   types.String                                              `tfsdk:"created_at" autogen:"omitjson"`
-	Description types.String                                              `tfsdk:"description" autogen:"omitjson"`
-	Name        types.String                                              `tfsdk:"name" autogen:"omitjson"`
-	Roles       customtypes.SetValue[types.String]                        `tfsdk:"roles" autogen:"omitjson"`
-	Secrets     customtypes.NestedSetValue[TFPluralDSResultsSecretsModel] `tfsdk:"secrets" autogen:"omitjson"`
+	ClientId    types.String                                               `tfsdk:"client_id" autogen:"omitjson"`
+	CreatedAt   types.String                                               `tfsdk:"created_at" autogen:"omitjson"`
+	Description types.String                                               `tfsdk:"description" autogen:"omitjson"`
+	Name        types.String                                               `tfsdk:"name" autogen:"omitjson"`
+	Roles       customtypes.SetValue[types.String]                         `tfsdk:"roles" autogen:"omitjson"`
+	Secrets     customtypes.NestedListValue[TFPluralDSResultsSecretsModel] `tfsdk:"secrets" autogen:"omitjson"`
 }
 type TFPluralDSResultsSecretsModel struct {
 	CreatedAt         types.String `tfsdk:"created_at" autogen:"omitjson"`

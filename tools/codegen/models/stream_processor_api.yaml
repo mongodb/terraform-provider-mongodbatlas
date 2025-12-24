@@ -68,6 +68,7 @@ schema:
                       description: Dead letter queue for the stream processor.
                       custom_type:
                         package: customtypes
+                        name: OptionsDlq
                         model: customtypes.ObjectValue[TFOptionsDlqModel]
                         schema: customtypes.NewObjectType[TFOptionsDlqModel](ctx)
                       computed_optional_required: optional
@@ -93,6 +94,7 @@ schema:
           description: Optional configuration for the stream processor.
           custom_type:
             package: customtypes
+            name: Options
             model: customtypes.ObjectValue[TFOptionsModel]
             schema: customtypes.NewObjectType[TFOptionsModel](ctx)
           computed_optional_required: computed_optional
