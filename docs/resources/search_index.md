@@ -237,6 +237,8 @@ EOF
     EOF
   ```
 
+* `num_partitions` - (Optional) Number of index partitions. Allowed values are [1, 2, 4]. Default value is 1.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:

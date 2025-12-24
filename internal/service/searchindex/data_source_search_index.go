@@ -118,6 +118,10 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 				},
 			},
 		},
+		"num_partitions": {
+			Type:     schema.TypeInt,
+			Computed: true,
+		},
 	}
 }
 
@@ -221,6 +225,10 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 	}
 	if err := d.Set("stored_source", strStoredSource); err != nil {
 		return diag.Errorf("error setting `stored_source` for search index (%s): %s", d.Id(), err)
+	}
+
+	if err := d.Set("num_partitions", searchIndex.LatestDefinition.NumPartitions); err != nil {
+		return diag.Errorf("error setting `num_partitions` for search index (%s): %s", d.Id(), err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
