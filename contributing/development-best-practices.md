@@ -8,7 +8,7 @@
 
 ## Scaffolding Initial Code and File Structure
 
-**Note**: This command is relevant when developing a new resource or data sources manually. For full autogeneration reference section below.
+**Note**: This command is relevant when developing a new resource or data source manually. For full autogeneration, reference the section below.
 
 This command can be used the following way:
 ```bash
