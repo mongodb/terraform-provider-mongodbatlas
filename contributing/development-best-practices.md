@@ -69,7 +69,7 @@ These options are defined per resource in `tools/codegen/config.yml` (see the co
 
 - **Description overrides**: Use `schema.overrides.<attribute>.description` sparingly to correct or clarify attribute descriptions when the OpenAPI or Atlas documentation is misleading, incomplete, or too low-level. Keep wording consistent with other resources and focused on what the Terraform user needs to know, without changing the underlying API semantics.
 
-- **`sensitive`**: Marks attributes as sensitive, which is especially helpful when the API specification does not annotate secret properties with `format: password`. Use this to ensure secrets are not displayed in plan/apply output or stored in plain text in state.
+- **`sensitive`**: Marks attributes as sensitive, which is especially helpful when the API specification does not annotate secret properties with `format: password`. Use this to ensure secrets are not displayed in plan/apply outputs.
 
 - **Type overrides for collection types**: For collection attributes, you can override the default collection kind (e.g. `list` vs `set`) to better match the behavior of the underlying API. This is only supported for collection types and should be used when ordering or uniqueness semantics matter to users.
 
