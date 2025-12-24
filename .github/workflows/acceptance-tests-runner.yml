@@ -305,7 +305,7 @@ jobs:
             - 'internal/serviceapi/databaseuserapi/*.go'
             - 'internal/serviceapi/maintenancewindowapi/*.go'
             - 'internal/serviceapi/serviceaccount/*.go'
-            - 'internal/serviceapi/orgserviceaccountsecretapi/*.go'
+            - 'internal/serviceapi/serviceaccountsecret/*.go'
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/projectsettingsapi/*.go'
             - 'internal/serviceapi/resourcepolicyapi/*.go'

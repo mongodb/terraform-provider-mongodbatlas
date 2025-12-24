@@ -1,4 +1,4 @@
-package orgserviceaccountsecretapi
+package serviceaccountsecret
 
 import (
 	"encoding/json"
@@ -22,7 +22,7 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 		return autogen.APICallResult{Body: nil, Err: err}
 	}
 
-	id := req.State.(*TFModel).Id.ValueString()
+	id := req.State.(*TFModel).SecretId.ValueString()
 	for _, secret := range responseJSON.Secrets {
 		if secret["id"] == id {
 			marshaledSecret, err := json.Marshal(secret)

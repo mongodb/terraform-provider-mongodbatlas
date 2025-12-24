@@ -759,9 +759,11 @@ resources:
       path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
       method: DELETE
     schema:
+      aliases:
+        secrets.id: secretId
       overrides:
         secrets:
-          type: list
+          type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
         secrets.secret:
           sensitive: true
         roles:
@@ -772,14 +774,15 @@ resources:
         path: /api/atlas/v2/orgs/{orgId}/serviceAccounts
         method: GET
       schema:
+        ignores: ["secrets.secret", "links"] # `secret` is never populated in read response, no value in adding for data source
+        aliases:
+          secrets.id: secretId
+          results.secrets.id: secretId
         overrides:
           secrets:
             type: list
-          secrets.secret:
-            sensitive: true
-        ignores: ["links"]
 
-  org_service_account_secret_api:
+  service_account_secret:
     read:
      # get operation for a single secret is not available, individual secret is found in service account read looking in `secrets` property with custom code hooks
       path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
@@ -792,10 +795,10 @@ resources:
       path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets/{secretId}
       method: DELETE
     version_header: application/vnd.atlas.2024-08-05+json
-    id_attributes: ["org_id", "client_id", "id"]
+    id_attributes: ["org_id", "client_id", "secret_id"]
     schema:
       aliases:
-        secretId: id # path param name does not match the API response property.
+        id: secretId
       overrides:
         secret:
           sensitive: true
@@ -806,11 +809,12 @@ resources:
         method: POST 
       schema:
         ignores: ["secret"] # `secret` is never populated in read response, no value in adding for data source
+        aliases:
+          id: secretId
         overrides:
-          id:
+          secret_id:
             computability:
               required: true
-            
 
   alert_configuration_api:
     read:

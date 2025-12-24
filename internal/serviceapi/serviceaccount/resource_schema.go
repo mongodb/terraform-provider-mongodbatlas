@@ -61,7 +61,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "The date for the expiration of the secret. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
 						},
-						"id": schema.StringAttribute{
+						"secret_id": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the secret.",
 						},
@@ -98,7 +98,7 @@ type TFModel struct {
 type TFSecretsModel struct {
 	CreatedAt         types.String `tfsdk:"created_at" autogen:"omitjson"`
 	ExpiresAt         types.String `tfsdk:"expires_at" autogen:"omitjson"`
-	Id                types.String `tfsdk:"id" autogen:"omitjson"`
+	SecretId          types.String `tfsdk:"secret_id" apiname:"id" autogen:"omitjson"`
 	LastUsedAt        types.String `tfsdk:"last_used_at" autogen:"omitjson"`
 	MaskedSecretValue types.String `tfsdk:"masked_secret_value" autogen:"omitjson"`
 	Secret            types.String `tfsdk:"secret" autogen:"sensitive,omitjson"`
