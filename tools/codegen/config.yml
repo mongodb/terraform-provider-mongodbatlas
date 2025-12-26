@@ -745,77 +745,6 @@ resources:
             optional: true
             computed: true
 
-  service_account:
-    read: &service-account-read-op
-      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
-      method: GET
-    create:
-      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts
-      method: POST
-    update:
-      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
-      method: DELETE
-    schema:
-      aliases:
-        secrets.id: secretId
-      overrides:
-        secrets:
-          type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
-        secrets.secret:
-          sensitive: true
-        roles:
-          type: set
-    datasources:
-      read: *service-account-read-op
-      list:
-        path: /api/atlas/v2/orgs/{orgId}/serviceAccounts
-        method: GET
-      schema:
-        ignores: ["secrets.secret", "links"] # `secret` is never populated in read response, no value in adding for data source
-        aliases:
-          secrets.id: secretId
-          results.secrets.id: secretId
-        overrides:
-          secrets:
-            type: list
-
-  service_account_secret:
-    read:
-     # get operation for a single secret is not available, individual secret is found in service account read looking in `secrets` property with custom code hooks
-      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
-      method: GET
-      schema_ignore: true
-    create:
-      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
-      method: POST
-    delete:
-      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets/{secretId}
-      method: DELETE
-    version_header: application/vnd.atlas.2024-08-05+json
-    id_attributes: ["org_id", "client_id", "secret_id"]
-    schema:
-      aliases:
-        id: secretId
-      overrides:
-        secret:
-          sensitive: true
-    datasources:
-      read:
-        # configures POST operation to have an accurate response schema, read operation is adjusted with custom code hooks
-        path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
-        method: POST 
-      schema:
-        ignores: ["secret"] # `secret` is never populated in read response, no value in adding for data source
-        aliases:
-          id: secretId
-        overrides:
-          secret_id:
-            computability:
-              required: true
-
   alert_configuration_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
@@ -879,3 +808,113 @@ resources:
         method: GET
       schema:
         ignores: ["links"]
+
+  service_account:
+    read: &service-account-read-op
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: DELETE
+    schema:
+      aliases:
+        secrets.id: secretId
+      overrides:
+        secrets:
+          type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
+        secrets.secret:
+          sensitive: true
+        roles:
+          type: set
+    datasources:
+      read: *service-account-read-op
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/serviceAccounts
+        method: GET
+      schema:
+        ignores: ["secrets.secret", "links"] # `secret` is never populated in read response, no value in adding for data source
+        aliases:
+          secrets.id: secretId
+          results.secrets.id: secretId
+        overrides:
+          secrets:
+            type: list
+
+  service_account_secret:
+    read:
+      # get operation for a single secret is not available, individual secret is found in service account read looking in `secrets` property with custom code hooks
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: GET
+      schema_ignore: true
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
+      method: POST
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets/{secretId}
+      method: DELETE
+    version_header: application/vnd.atlas.2024-08-05+json
+    id_attributes: ["org_id", "client_id", "secret_id"]
+    schema:
+      aliases:
+        id: secretId
+      overrides:
+        secret:
+          sensitive: true
+    datasources:
+      read:
+        # configures POST operation to have an accurate response schema, read operation is adjusted with custom code hooks
+        path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
+        method: POST
+      schema:
+        ignores: ["secret"] # `secret` is never populated in read response, no value in adding for data source
+        aliases:
+          id: secretId
+        overrides:
+          secret_id:
+            computability:
+              required: true
+
+  service_account_project_assignment:
+    read: &service-account-project-assignment-read-op
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}:invite
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+      method: DELETE
+    schema:
+      ignores: ["secrets", "name", "description", "created_at"] # These belong to the service_account, removing from the assignment schema.
+      aliases:
+        groupId: projectId
+      overrides:
+        project_id:
+          # The API description mentions using the /groups endpoint to fetch user's projects, removing that part.
+          description: "Unique 24-hexadecimal digit string that identifies your project."
+    datasources:
+      read: *service-account-project-assignment-read-op
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/groups
+        method: GET
+      schema:
+        ignores: ["links", "secrets", "name", "description", "created_at"] # These belong to the service_account, removing from the assignment schema.
+        aliases:
+          groupId: projectId
+          results.groupId: projectId
+        overrides:
+          # API descriptions mention using the /orgs and /groups endpoints to fetch user's orgs/projects, removing that part.
+          org_id:
+            description: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects."
+          project_id:
+            description: "Unique 24-hexadecimal digit string that identifies your project."
+
