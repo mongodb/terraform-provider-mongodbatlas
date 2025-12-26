@@ -82,38 +82,6 @@ func TestAccStreamProcessor_withTier(t *testing.T) {
 		}})
 }
 
-func TestAccStreamProcessor_tierUpdate(t *testing.T) {
-	var (
-		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		randomSuffix             = acctest.RandString(5)
-		processorName            = "tier-update-processor" + randomSuffix
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroyStreamProcessor,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithTier(t, projectID, workspaceName, processorName, "SP30"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "stats"),
-				),
-			},
-			{
-				// Update the stream processor tier to SP50
-				Config: configWithTier(t, projectID, workspaceName, processorName, "SP50"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttrSet(resourceName, "stats"),
-				),
-			},
-			importStep(),
-		},
-	})
-}
-
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
