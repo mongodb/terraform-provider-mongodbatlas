@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -19,10 +20,11 @@ const resourceName = "mongodbatlas_service_account_project_assignment.test"
 const dataSourceName = "data.mongodbatlas_service_account_project_assignment.test"
 const dataSourcePluralName = "data.mongodbatlas_service_account_project_assignments.test"
 
-func TestAccServiceAccountProjectAssignment_basic(t *testing.T) {
+func TestAccServiceAccountProjectAssignment_singleAssignment(t *testing.T) {
 	var (
-		orgID     = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectID = acc.ProjectIDExecution(t)
+		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectIDs    = acc.MultipleProjectIDsExecution(t, 1)
+		resourceName0 = resourceName + "_0"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,13 +33,13 @@ func TestAccServiceAccountProjectAssignment_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectID, []string{"GROUP_OWNER", "GROUP_READ_ONLY"}),
-				Check:  checkBasic(projectID),
+				Config: configBasic(orgID, projectIDs, []string{"GROUP_OWNER", "GROUP_READ_ONLY"}),
+				Check:  checkBasic(projectIDs),
 			},
 			{
-				ResourceName:                         resourceName,
-				ImportStateIdFunc:                    importStateIDFunc(resourceName),
-				ImportStateVerifyIdentifierAttribute: "client_id",
+				ResourceName:                         resourceName0,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName0),
+				ImportStateVerifyIdentifierAttribute: "project_id",
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 			},
@@ -45,9 +47,65 @@ func TestAccServiceAccountProjectAssignment_basic(t *testing.T) {
 	})
 }
 
-func configBasic(orgID, projectID string, roles []string) string {
-	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
-	rolesHCL := fmt.Sprintf("[%s]", rolesStr)
+func TestAccServiceAccountProjectAssignment_multipleAssignments(t *testing.T) {
+	var (
+		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectIDs    = acc.MultipleProjectIDsExecution(t, 2)
+		resourceName0 = resourceName + "_0"
+		resourceName1 = resourceName + "_1"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(orgID, projectIDs, []string{"GROUP_OWNER", "GROUP_READ_ONLY"}),
+				Check:  checkBasic(projectIDs),
+			},
+			{
+				ResourceName:                         resourceName0,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName0),
+				ImportStateVerifyIdentifierAttribute: "project_id",
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+			},
+			{
+				ResourceName:                         resourceName1,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName1),
+				ImportStateVerifyIdentifierAttribute: "project_id",
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+			},
+		},
+	})
+}
+
+func configBasic(orgID string, projectIDs, roles []string) string {
+	rolesStr := fmt.Sprintf("[%s]", `"`+strings.Join(roles, `", "`)+`"`)
+
+	assignmentsStr := ""
+	resourceNames := []string{}
+	for i, projectID := range projectIDs {
+		assignmentsStr += fmt.Sprintf(`
+			resource "mongodbatlas_service_account_project_assignment" "test_%[1]d" {
+				client_id  = mongodbatlas_service_account.test.client_id
+				project_id = %[2]q
+				roles      = %[3]s
+			}
+
+			data "mongodbatlas_service_account_project_assignment" "test_%[1]d" {
+			  client_id = mongodbatlas_service_account.test.client_id
+			  project_id = %[2]q
+			  depends_on = [mongodbatlas_service_account_project_assignment.test_%[1]d]
+			}
+		`, i, projectID, rolesStr)
+		resourceNames = append(resourceNames, fmt.Sprintf("%s_%d", resourceName, i))
+	}
+
+	resourceNamesStr := fmt.Sprintf("[%s]", `"`+strings.Join(resourceNames, `", "`)+`"`)
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_service_account" "test" {
 			org_id                     = %[1]q
@@ -57,36 +115,31 @@ func configBasic(orgID, projectID string, roles []string) string {
 			secret_expires_after_hours = 8
 		}
 
-		resource "mongodbatlas_service_account_project_assignment" "test" {
-			client_id  = mongodbatlas_service_account.test.client_id
-			project_id = %[2]q
-			roles      = %[3]s
-		}
-
-		data "mongodbatlas_service_account_project_assignment" "test" {
-          client_id = mongodbatlas_service_account.test.client_id
-		  project_id = %[2]q
-		  depends_on = [mongodbatlas_service_account_project_assignment.test]
-		}
+		%[2]s
 
 		data "mongodbatlas_service_account_project_assignments" "test" {
 		  org_id = %[1]q
 		  client_id = mongodbatlas_service_account.test.client_id
-		  depends_on = [mongodbatlas_service_account_project_assignment.test]
+		  depends_on = %[3]s
 		}
-	`, orgID, projectID, rolesHCL)
+	`, orgID, assignmentsStr, resourceNamesStr)
 }
 
-func checkBasic(projectID string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		acc.CheckRSAndDS(
+func checkBasic(projectIDs []string) resource.TestCheckFunc {
+	attrsSet := []string{"client_id", "project_id"}
+	attrsMap := map[string]string{"roles.#": "2"}
+	checks := []resource.TestCheckFunc{}
+	for i := range projectIDs {
+		resourceName := fmt.Sprintf("%s_%d", resourceName, i)
+		dataSourceName := fmt.Sprintf("%s_%d", dataSourceName, i)
+		checks = append(checks, acc.CheckRSAndDS(
 			resourceName, admin.PtrString(dataSourceName), nil,
-			[]string{"client_id", "project_id"},
-			map[string]string{"roles.#": "2"},
+			attrsSet, attrsMap,
 			checkExists(resourceName),
-		),
-		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.project_id", projectID),
-	)
+		))
+	}
+	checks = append(checks, resource.TestCheckResourceAttr(dataSourcePluralName, "results.#", strconv.Itoa(len(projectIDs))))
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
