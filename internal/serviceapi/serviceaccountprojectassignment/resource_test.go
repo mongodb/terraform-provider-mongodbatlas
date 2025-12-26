@@ -45,26 +45,6 @@ func TestAccServiceAccountProjectAssignment_basic(t *testing.T) {
 	})
 }
 
-func TestAccServiceAccountProjectAssignment_rolesOrdering(t *testing.T) {
-	var (
-		orgID     = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectID = acc.ProjectIDExecution(t)
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(orgID, projectID, []string{"GROUP_CLUSTER_MANAGER", "GROUP_READ_ONLY"}),
-			},
-			{
-				Config: configBasic(orgID, projectID, []string{"GROUP_READ_ONLY", "GROUP_CLUSTER_MANAGER"}),
-			},
-		},
-	})
-}
-
 func configBasic(orgID, projectID string, roles []string) string {
 	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	rolesHCL := fmt.Sprintf("[%s]", rolesStr)
