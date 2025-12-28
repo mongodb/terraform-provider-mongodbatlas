@@ -475,8 +475,8 @@ github.com/openlyinc/pointy v1.1.2 h1:LywVV2BWC5Sp5v7FoP4bUD+2Yn5k0VNeRbU5vq9jUM
 github.com/openlyinc/pointy v1.1.2/go.mod h1:w2Sytx+0FVuMKn37xpXIAyBNhFNBIJGR/v2m7ik1WtM=
 github.com/pb33f/jsonpath v0.7.0 h1:3oG6yu1RqNoMZpqnRjBMqi8fSIXWoDAKDrsB0QGTcoU=
 github.com/pb33f/jsonpath v0.7.0/go.mod h1:/+JlSIjWA2ijMVYGJ3IQPF4Q1nLMYbUTYNdk0exCDPQ=
-github.com/pb33f/libopenapi v0.30.4 h1:NDLNO5nYdgqNyj/XRfYDgE+kshvUh6TT9YS07Okwzt4=
-github.com/pb33f/libopenapi v0.30.4/go.mod h1:oaebeA5l58AFbZ7qRKTtMnu15JEiPlaBas1vLDcw9vs=
+github.com/pb33f/libopenapi v0.31.0 h1:ROlGX5KvtUlAV1zZhigbd4lq7zTD3JzrUU04dyzZQE0=
+github.com/pb33f/libopenapi v0.31.0/go.mod h1:oaebeA5l58AFbZ7qRKTtMnu15JEiPlaBas1vLDcw9vs=
 github.com/pb33f/ordered-map/v2 v2.3.0 h1:k2OhVEQkhTCQMhAicQ3Z6iInzoZNQ7L9MVomwKBZ5WQ=
 github.com/pb33f/ordered-map/v2 v2.3.0/go.mod h1:oe5ue+6ZNhy7QN9cPZvPA23Hx0vMHnNVeMg4fGdCANw=
 github.com/pierrec/lz4 v2.0.5+incompatible/go.mod h1:pdkljMzZIN41W+lC3N2tnIh5sFi+IEE17M5jbnwPHcY=
