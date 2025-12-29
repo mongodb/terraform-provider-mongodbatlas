@@ -45,23 +45,23 @@ func SetupSharedResources() func() {
 }
 
 func cleanupSharedResources() {
-	projectID := projectIDLocal()
-	if projectID == "" && len(sharedInfo.projects) > 0 {
-		projectID = sharedInfo.projects[0].id
+	firstProjectID := projectIDLocal()
+	if firstProjectID == "" && len(sharedInfo.projects) > 0 {
+		firstProjectID = sharedInfo.projects[0].id
 	}
 	if sharedInfo.clusterName != "" {
-		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", sharedInfo.clusterName, projectID)
-		deleteCluster(projectID, sharedInfo.clusterName)
+		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", sharedInfo.clusterName, firstProjectID)
+		deleteCluster(firstProjectID, sharedInfo.clusterName)
 	}
 	if sharedInfo.streamInstanceName != "" {
-		_, err := clean.RemoveStreamInstances(context.TODO(), false, ConnV2(), projectID)
+		_, err := clean.RemoveStreamInstances(context.TODO(), false, ConnV2(), firstProjectID)
 		if err != nil {
-			fmt.Printf("Failed to delete stream instances: for execution project %s, error: %s\n", projectID, err)
+			fmt.Printf("Failed to delete stream instances: for execution project %s, error: %s\n", firstProjectID, err)
 		}
 	}
 	if sharedInfo.privateLinkEndpointID != "" {
-		fmt.Printf("Deleting execution private link endpoint: %s, project id: %s, provider: %s\n", sharedInfo.privateLinkEndpointID, projectID, sharedInfo.privateLinkProviderName)
-		deletePrivateLinkEndpoint(projectID, sharedInfo.privateLinkProviderName, sharedInfo.privateLinkEndpointID)
+		fmt.Printf("Deleting execution private link endpoint: %s, project id: %s, provider: %s\n", sharedInfo.privateLinkEndpointID, firstProjectID, sharedInfo.privateLinkProviderName)
+		deletePrivateLinkEndpoint(firstProjectID, sharedInfo.privateLinkProviderName, sharedInfo.privateLinkEndpointID)
 	}
 	for i, project := range sharedInfo.projects {
 		fmt.Printf("Deleting execution project (%d): %s, id: %s\n", i+1, project.name, project.id)
@@ -78,23 +78,11 @@ func ProjectIDExecution(tb testing.TB) string {
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
 
-	sharedInfo.mu.Lock()
-	defer sharedInfo.mu.Unlock()
-
 	if id := projectIDLocal(); id != "" {
 		return id
 	}
 
-	// lazy creation so it's only done if really needed
-	if len(sharedInfo.projects) == 0 {
-		projectName := RandomProjectName()
-		tb.Logf("Creating execution project (%d): %s\n", len(sharedInfo.projects)+1, projectName)
-		projectID := createProject(tb, projectName)
-		sharedInfo.projects = append(sharedInfo.projects, projectInfo{
-			id:   projectID,
-			name: projectName,
-		})
-	}
+	createSharedProjects(tb, 1)
 	return sharedInfo.projects[0].id
 }
 
@@ -108,10 +96,28 @@ func MultipleProjectIDsExecution(tb testing.TB, count int) []string {
 	require.Positive(tb, count, "count must be greater than 0")
 
 	if id := projectIDLocal(); id != "" {
-		if count > 1 {
-			panic("MONGODB_ATLAS_PROJECT_ID must be unset to execute tests that require > 1 projects")
+		projectIDs := []string{id}
+		for i := range count - 1 {
+			if id = projectIDLocalN(i + 1); id == "" {
+				panic(fmt.Sprintf("MONGODB_ATLAS_PROJECT_ID_%d expected to be set (test requires %d projects)", i+1, count))
+			}
+			projectIDs = append(projectIDs, id)
 		}
-		return []string{id}
+		return projectIDs
+	}
+
+	createSharedProjects(tb, count)
+	projectIDs := make([]string, count)
+	for i, project := range sharedInfo.projects {
+		projectIDs[i] = project.id
+	}
+	return projectIDs
+}
+
+func createSharedProjects(tb testing.TB, count int) {
+	tb.Helper()
+	if len(sharedInfo.projects) >= count {
+		return
 	}
 
 	sharedInfo.mu.Lock()
@@ -126,12 +132,6 @@ func MultipleProjectIDsExecution(tb testing.TB, count int) []string {
 			name: projectName,
 		})
 	}
-
-	projectIDs := make([]string, count)
-	for i, project := range sharedInfo.projects {
-		projectIDs[i] = project.id
-	}
-	return projectIDs
 }
 
 // ProjectIDExecutionWithFreeCluster is identical to ProjectIDExecutionWithCluster but also contemplates the restriction of `MaxFreeTierClusterCount`

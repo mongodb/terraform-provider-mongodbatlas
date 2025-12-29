@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -105,4 +106,8 @@ func createStreamInstance(tb testing.TB, projectID, name string) {
 
 func projectIDLocal() string {
 	return os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+}
+
+func projectIDLocalN(n int) string {
+	return os.Getenv("MONGODB_ATLAS_PROJECT_ID_" + strconv.Itoa(n))
 }
