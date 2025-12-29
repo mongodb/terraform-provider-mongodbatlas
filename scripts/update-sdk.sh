@@ -24,9 +24,8 @@ CURRENT_SDK_RELEASE=$(grep 'go.mongodb.org/atlas-sdk/v' go.mod |
 echo "CURRENT_SDK_RELEASE: $CURRENT_SDK_RELEASE"
 
 API_URL="https://api.github.com/repos/mongodb/atlas-sdk-go/releases/latest"
-CURL_OPTS="-sSfL -X GET -H Authorization: Bearer ${GITHUB_TOKEN}"
 
-LATEST_SDK_TAG=$(curl ${CURL_OPTS} "${API_URL}" | jq -r '.tag_name')
+LATEST_SDK_TAG=$(curl -sSfL -X GET -H "Authorization: Bearer ${GITHUB_TOKEN}" "${API_URL}" | jq -r '.tag_name')
 echo "LATEST_SDK_TAG: $LATEST_SDK_TAG"
 
 LATEST_SDK_RELEASE=$(echo "${LATEST_SDK_TAG}" | cut -d '.' -f 1)
