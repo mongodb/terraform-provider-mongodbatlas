@@ -39,6 +39,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountaccesslistentry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamaccountdetails"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
@@ -308,6 +309,8 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		serviceaccountsecret.DataSource,
 		serviceaccountprojectassignment.DataSource,
 		serviceaccountprojectassignment.PluralDataSource,
+		serviceaccountaccesslistentry.DataSource,
+		serviceaccountaccesslistentry.PluralDataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
@@ -343,6 +346,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		serviceaccount.Resource,
 		serviceaccountsecret.Resource,
 		serviceaccountprojectassignment.Resource,
+		serviceaccountaccesslistentry.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {
