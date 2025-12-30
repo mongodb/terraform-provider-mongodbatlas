@@ -402,6 +402,7 @@ jobs:
           service_account:
             - 'internal/common/autogen/*.go'
             - 'internal/service/serviceaccountaccesslistentry/*.go'
+            - 'internal/serviceapi/projectserviceaccount/*.go'
             - 'internal/serviceapi/serviceaccount/*.go'
             - 'internal/serviceapi/serviceaccountprojectassignment/*.go'
             - 'internal/serviceapi/serviceaccountsecret/*.go'
@@ -1375,6 +1376,7 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
             ./internal/service/serviceaccountaccesslistentry
+            ./internal/serviceapi/projectserviceaccount
             ./internal/serviceapi/serviceaccount
             ./internal/serviceapi/serviceaccountprojectassignment
             ./internal/serviceapi/serviceaccountsecret
