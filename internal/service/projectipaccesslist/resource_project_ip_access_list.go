@@ -18,14 +18,16 @@ import (
 )
 
 const (
-	errorAccessListCreate = "error creating Project IP Access List information: %s"
-	errorAccessListRead   = "error getting Project IP Access List information: %s"
-	errorAccessListDelete = "error deleting Project IP Access List information: %s"
-	timeoutCreateDelete   = 45 * time.Minute
-	timeoutRead           = 2 * time.Minute
-	timeoutRetryItem      = 2 * time.Minute
-	minTimeoutCreate      = 10 * time.Second
-	delayCreate           = 10 * time.Second
+	errorAccessListCreate  = "error creating Project IP Access List information: %s"
+	errorAccessListRead    = "error getting Project IP Access List information: %s"
+	errorAccessListUpdate  = "error updating Project IP Access List information: %s"
+	errorAccessListDelete  = "error deleting Project IP Access List information: %s"
+	timeoutCreateDelete    = 45 * time.Minute
+	timeoutRead            = 2 * time.Minute
+	timeoutUpdate          = 45 * time.Minute
+	timeoutRetryItem       = 2 * time.Minute
+	delayCreateUpdate      = 10 * time.Second
+	minTimeoutCreateUpdate = 10 * time.Second
 )
 
 type projectIPAccessListRS struct {
@@ -63,60 +65,19 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 	}
 
 	connV2 := r.Client.AtlasV2
-	projectID := projectIPAccessListModel.ProjectID.ValueString()
-	stateConf := &retry.StateChangeConf{
-		Pending: []string{"pending"},
-		Target:  []string{"created", "failed"},
-		Refresh: func() (any, string, error) {
-			_, _, err := connV2.ProjectIPAccessListApi.CreateAccessListEntry(ctx, projectID, NewMongoDBProjectIPAccessList(projectIPAccessListModel)).Execute()
-			// Atlas Create is called inside refresh because this limitation: This endpoint doesn't support concurrent POST requests. You must submit multiple POST requests synchronously.
-			if err != nil {
-				if strings.Contains(err.Error(), "Unexpected error") ||
-					strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
-					strings.Contains(err.Error(), "500") {
-					return nil, "pending", nil
-				}
-				return nil, "failed", fmt.Errorf(errorAccessListCreate, err)
-			}
-
-			accessListEntry := projectIPAccessListModel.IPAddress.ValueString()
-			if projectIPAccessListModel.CIDRBlock.ValueString() != "" {
-				accessListEntry = projectIPAccessListModel.CIDRBlock.ValueString()
-			} else if projectIPAccessListModel.AWSSecurityGroup.ValueString() != "" {
-				accessListEntry = projectIPAccessListModel.AWSSecurityGroup.ValueString()
-			}
-
-			entry, exists, err := isEntryInProjectAccessList(ctx, connV2, projectID, accessListEntry)
-			if err != nil {
-				if strings.Contains(err.Error(), "500") {
-					return nil, "pending", nil
-				}
-				if strings.Contains(err.Error(), "404") {
-					return nil, "pending", nil
-				}
-				return nil, "failed", fmt.Errorf(errorAccessListCreate, err)
-			}
-			if !exists {
-				return nil, "pending", nil
-			}
-
-			return entry, "created", nil
-		},
-		Timeout:    timeoutCreateDelete,
-		Delay:      delayCreate,
-		MinTimeout: minTimeoutCreate,
-	}
-
-	// Wait, catching any errors
-	accessList, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		resp.Diagnostics.AddError("error while waiting for resource creation", err.Error())
+	timeout, diags := projectIPAccessListModel.Timeouts.Create(ctx, timeoutCreateDelete)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	entry, ok := accessList.(*admin.NetworkPermissionEntry)
-	if !ok {
-		resp.Diagnostics.AddError("error", errorAccessListCreate)
+	entry, err := createOrUpdate(ctx, connV2, projectIPAccessListModel, timeout, errorAccessListCreate)
+	if err != nil {
+		resp.Diagnostics.AddError("error creating resource", err.Error())
+		return
+	}
+	if entry == nil {
+		resp.Diagnostics.AddError("error", fmt.Errorf(errorAccessListCreate, "entry is nil").Error())
 		return
 	}
 
@@ -252,6 +213,115 @@ func (r *projectIPAccessListRS) ImportState(ctx context.Context, req resource.Im
 	}))...)
 }
 
+// Update is supported only for the comment field. The rest of the fields trigger a replace.
+func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var projectIPAccessListState *TfProjectIPAccessListModel
+	var projectIPAccessListPlan *TfProjectIPAccessListModel
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &projectIPAccessListState)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &projectIPAccessListPlan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	updatedProjectIPAccessList := &TfProjectIPAccessListModel{
+		ID:               projectIPAccessListState.ID,
+		ProjectID:        projectIPAccessListState.ProjectID,
+		CIDRBlock:        projectIPAccessListState.CIDRBlock,
+		IPAddress:        projectIPAccessListState.IPAddress,
+		AWSSecurityGroup: projectIPAccessListState.AWSSecurityGroup,
+
+		// Only comment and timeouts can be updated without replace.
+		Comment:  projectIPAccessListPlan.Comment,
+		Timeouts: projectIPAccessListPlan.Timeouts,
+	}
+
+	connV2 := r.Client.AtlasV2
+	timeout, diags := updatedProjectIPAccessList.Timeouts.Update(ctx, timeoutUpdate)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	entry, err := createOrUpdate(ctx, connV2, updatedProjectIPAccessList, timeout, errorAccessListUpdate)
+	if err != nil {
+		resp.Diagnostics.AddError("error updating resource", err.Error())
+		return
+	}
+	if entry == nil {
+		resp.Diagnostics.AddError("error", fmt.Errorf(errorAccessListUpdate, "entry is nil").Error())
+		return
+	}
+
+	projectIPAccessListNewModel := NewTfProjectIPAccessListModel(updatedProjectIPAccessList, entry)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &projectIPAccessListNewModel)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+}
+
+// HELP-67341: The post operation behaves both as a POST and a PUT.
+func createOrUpdate(ctx context.Context, connV2 *admin.APIClient, projectIPAccessListModel *TfProjectIPAccessListModel, timeout time.Duration, errorMsg string) (*admin.NetworkPermissionEntry, error) {
+	projectID := projectIPAccessListModel.ProjectID.ValueString()
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{"pending"},
+		Target:  []string{"created", "failed"},
+		Refresh: func() (any, string, error) {
+			_, httpResponse, err := connV2.ProjectIPAccessListApi.CreateAccessListEntry(ctx, projectID, NewMongoDBProjectIPAccessList(projectIPAccessListModel)).Execute()
+			// Atlas Create is called inside refresh because this limitation: This endpoint doesn't support concurrent POST requests. You must submit multiple POST requests synchronously.
+			if err != nil {
+				if validate.StatusInternalServerError(httpResponse) {
+					return nil, "pending", nil
+				}
+				return nil, "failed", fmt.Errorf(errorMsg, err)
+			}
+
+			accessListEntry := projectIPAccessListModel.IPAddress.ValueString()
+			if projectIPAccessListModel.CIDRBlock.ValueString() != "" {
+				accessListEntry = projectIPAccessListModel.CIDRBlock.ValueString()
+			} else if projectIPAccessListModel.AWSSecurityGroup.ValueString() != "" {
+				accessListEntry = projectIPAccessListModel.AWSSecurityGroup.ValueString()
+			}
+
+			entry, exists, err := isEntryInProjectAccessList(ctx, connV2, projectID, accessListEntry)
+			if err != nil {
+				if strings.Contains(err.Error(), "500") {
+					return nil, "pending", nil
+				}
+				if strings.Contains(err.Error(), "404") {
+					return nil, "pending", nil
+				}
+				return nil, "failed", fmt.Errorf(errorMsg, err)
+			}
+			if !exists {
+				return nil, "pending", nil
+			}
+
+			return entry, "created", nil
+		},
+		Timeout:    timeout,
+		Delay:      delayCreateUpdate,
+		MinTimeout: minTimeoutCreateUpdate,
+	}
+
+	// Wait, catching any errors
+	accessList, err := stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	entry, ok := accessList.(*admin.NetworkPermissionEntry)
+	if !ok {
+		return nil, fmt.Errorf(errorMsg, "invalid result type")
+	}
+
+	return entry, nil
+}
+
 func isEntryInProjectAccessList(ctx context.Context, connV2 *admin.APIClient, projectID, entry string) (*admin.NetworkPermissionEntry, bool, error) {
 	var out admin.NetworkPermissionEntry
 	err := retry.RetryContext(ctx, timeoutRetryItem, func() *retry.RetryError {
@@ -276,8 +346,4 @@ func isEntryInProjectAccessList(ctx context.Context, connV2 *admin.APIClient, pr
 	}
 
 	return &out, true, nil
-}
-
-// Update is not supported
-func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 }
