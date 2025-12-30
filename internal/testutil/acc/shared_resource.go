@@ -17,6 +17,26 @@ const (
 	MaxFreeTierClusterCount   = 1  // Project can have at most 1 free tier cluster
 )
 
+type projectInfo struct {
+	id                   string
+	name                 string
+	nodeCount            int
+	freeTierClusterCount int
+}
+
+var sharedInfo = struct {
+	clusterName             string
+	streamInstanceName      string
+	privateLinkEndpointID   string
+	privateLinkProviderName string
+	projects                []projectInfo
+	mu                      sync.Mutex
+	muSleep                 sync.Mutex
+	init                    bool
+}{
+	projects: []projectInfo{},
+}
+
 // SetupSharedResources must be called from TestMain test package in order to use ProjectIDExecution.
 // It returns the cleanup function that must be called at the end of TestMain.
 func SetupSharedResources() func() {
@@ -25,35 +45,23 @@ func SetupSharedResources() func() {
 }
 
 func cleanupSharedResources() {
+	firstProjectID := projectIDLocal()
+	if firstProjectID == "" && len(sharedInfo.projects) > 0 {
+		firstProjectID = sharedInfo.projects[0].id
+	}
 	if sharedInfo.clusterName != "" {
-		projectID := sharedInfo.projectID
-		if projectID == "" {
-			projectID = projectIDLocal()
-		}
-		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", sharedInfo.clusterName, projectID)
-		deleteCluster(projectID, sharedInfo.clusterName)
+		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", sharedInfo.clusterName, firstProjectID)
+		deleteCluster(firstProjectID, sharedInfo.clusterName)
 	}
 	if sharedInfo.streamInstanceName != "" {
-		projectID := sharedInfo.projectID
-		if projectID == "" {
-			projectID = projectIDLocal() // Maybe we are using an existing project, but stream instance is not used
-		}
-		_, err := clean.RemoveStreamInstances(context.TODO(), false, ConnV2(), projectID)
+		_, err := clean.RemoveStreamInstances(context.TODO(), false, ConnV2(), firstProjectID)
 		if err != nil {
-			fmt.Printf("Failed to delete stream instances: for execution project %s, error: %s\n", projectID, err)
+			fmt.Printf("Failed to delete stream instances: for execution project %s, error: %s\n", firstProjectID, err)
 		}
 	}
 	if sharedInfo.privateLinkEndpointID != "" {
-		projectID := sharedInfo.projectID
-		if projectID == "" {
-			projectID = projectIDLocal()
-		}
-		fmt.Printf("Deleting execution private link endpoint: %s, project id: %s, provider: %s\n", sharedInfo.privateLinkEndpointID, projectID, sharedInfo.privateLinkProviderName)
-		deletePrivateLinkEndpoint(projectID, sharedInfo.privateLinkProviderName, sharedInfo.privateLinkEndpointID)
-	}
-	if sharedInfo.projectID != "" {
-		fmt.Printf("Deleting execution project: %s, id: %s\n", sharedInfo.projectName, sharedInfo.projectID)
-		deleteProject(sharedInfo.projectID)
+		fmt.Printf("Deleting execution private link endpoint: %s, project id: %s, provider: %s\n", sharedInfo.privateLinkEndpointID, firstProjectID, sharedInfo.privateLinkProviderName)
+		deletePrivateLinkEndpoint(firstProjectID, sharedInfo.privateLinkProviderName, sharedInfo.privateLinkEndpointID)
 	}
 	for i, project := range sharedInfo.projects {
 		fmt.Printf("Deleting execution project (%d): %s, id: %s\n", i+1, project.name, project.id)
@@ -70,21 +78,60 @@ func ProjectIDExecution(tb testing.TB) string {
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
 
-	sharedInfo.mu.Lock()
-	defer sharedInfo.mu.Unlock()
-
 	if id := projectIDLocal(); id != "" {
 		return id
 	}
 
-	// lazy creation so it's only done if really needed
-	if sharedInfo.projectID == "" {
-		sharedInfo.projectName = RandomProjectName()
-		tb.Logf("Creating execution project: %s\n", sharedInfo.projectName)
-		sharedInfo.projectID = createProject(tb, sharedInfo.projectName)
+	createSharedProjects(tb, 1)
+	return sharedInfo.projects[0].id
+}
+
+// MultipleProjectIDsExecution returns multiple project ids created for test execution in the resource package.
+// Even if a GH test group is run, every resource/package will create its own projects, not shared projects for all the test group.
+// Panics when `MONGODB_ATLAS_PROJECT_ID` is defined and more than 1 project is requested.
+func MultipleProjectIDsExecution(tb testing.TB, count int) []string {
+	tb.Helper()
+	SkipInUnitTest(tb)
+	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
+	require.Positive(tb, count, "count must be greater than 0")
+
+	if id := projectIDLocal(); id != "" {
+		projectIDs := []string{id}
+		for i := range count - 1 {
+			if id = projectIDLocalN(i + 1); id == "" {
+				panic(fmt.Sprintf("MONGODB_ATLAS_PROJECT_ID_%d expected to be set (test requires %d projects)", i+1, count))
+			}
+			projectIDs = append(projectIDs, id)
+		}
+		return projectIDs
 	}
 
-	return sharedInfo.projectID
+	createSharedProjects(tb, count)
+	projectIDs := make([]string, count)
+	for i, project := range sharedInfo.projects {
+		projectIDs[i] = project.id
+	}
+	return projectIDs
+}
+
+func createSharedProjects(tb testing.TB, count int) {
+	tb.Helper()
+	if len(sharedInfo.projects) >= count {
+		return
+	}
+
+	sharedInfo.mu.Lock()
+	defer sharedInfo.mu.Unlock()
+
+	for len(sharedInfo.projects) < count {
+		projectName := RandomProjectName()
+		tb.Logf("Creating execution project (%d): %s\n", len(sharedInfo.projects)+1, projectName)
+		projectID := createProject(tb, projectName)
+		sharedInfo.projects = append(sharedInfo.projects, projectInfo{
+			id:   projectID,
+			name: projectName,
+		})
+	}
 }
 
 // ProjectIDExecutionWithFreeCluster is identical to ProjectIDExecutionWithCluster but also contemplates the restriction of `MaxFreeTierClusterCount`
@@ -122,10 +169,7 @@ func ClusterNameExecution(tb testing.TB, populateSampleData bool) (projectID, cl
 		return existingProjectIDClusterName()
 	}
 
-	projectID = sharedInfo.projectID
-	if projectID == "" {
-		projectID = ProjectIDExecution(tb) // ensure the execution project is created before cluster creation
-	}
+	projectID = ProjectIDExecution(tb) // ensure the execution project is created before cluster creation
 
 	sharedInfo.mu.Lock()
 	defer sharedInfo.mu.Unlock()
@@ -205,28 +249,6 @@ func PrivateLinkEndpointIDExecution(tb testing.TB, providerName, region string) 
 	}
 
 	return projectID, sharedInfo.privateLinkEndpointID
-}
-
-type projectInfo struct {
-	id                   string
-	name                 string
-	nodeCount            int
-	freeTierClusterCount int
-}
-
-var sharedInfo = struct {
-	projectName             string
-	clusterName             string
-	streamInstanceName      string
-	privateLinkEndpointID   string
-	privateLinkProviderName string
-	projectID               string
-	projects                []projectInfo
-	mu                      sync.Mutex
-	muSleep                 sync.Mutex
-	init                    bool
-}{
-	projects: []projectInfo{},
 }
 
 // NextProjectIDClusterName is an internal method used when we want to reuse a projectID respecting `MaxClustersNodesPerProject` and `MaxFreeTierClusterCount`
