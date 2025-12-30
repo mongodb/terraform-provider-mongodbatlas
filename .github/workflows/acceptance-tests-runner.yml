@@ -245,7 +245,7 @@ jobs:
         id: get_last_release
         shell: bash
         run: |
-          LAST_RELEASE=$(curl -H 'Authorization: Bearer ${{ github.token }}' -sSfL -X GET https://api.github.com/repos/mongodb/terraform-provider-mongodbatlas/releases/latest | jq -r '.tag_name | ltrimstr("v")')
+          LAST_RELEASE=$(curl -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' -sSfL -X GET https://api.github.com/repos/mongodb/terraform-provider-mongodbatlas/releases/latest | jq -r '.tag_name | ltrimstr("v")')
           echo "Last release: $LAST_RELEASE"
           echo "last_provider_version=${LAST_RELEASE}" >> "${GITHUB_OUTPUT}"
 
