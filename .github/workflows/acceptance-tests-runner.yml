@@ -281,6 +281,7 @@ jobs:
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
+      service_account: ${{ steps.filter.outputs.service_account == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
@@ -304,9 +305,6 @@ jobs:
             - 'internal/serviceapi/customdbroleapi/*.go'
             - 'internal/serviceapi/databaseuserapi/*.go'
             - 'internal/serviceapi/maintenancewindowapi/*.go'
-            - 'internal/serviceapi/serviceaccount/*.go'
-            - 'internal/serviceapi/serviceaccountprojectassignment/*.go'
-            - 'internal/serviceapi/serviceaccountsecret/*.go'
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/projectsettingsapi/*.go'
             - 'internal/serviceapi/resourcepolicyapi/*.go'
@@ -401,6 +399,12 @@ jobs:
             - 'internal/service/searchindex/*.go'
           serverless:
             - 'internal/service/serverlessinstance/*.go'
+          service_account:
+            - 'internal/common/autogen/*.go'
+            - 'internal/service/serviceaccountaccesslistentry/*.go'
+            - 'internal/serviceapi/serviceaccount/*.go'
+            - 'internal/serviceapi/serviceaccountprojectassignment/*.go'
+            - 'internal/serviceapi/serviceaccountsecret/*.go'
           stream:
             - 'internal/service/streamaccountdetails/*.go'
             - 'internal/service/streamconnection/*.go'
@@ -626,7 +630,6 @@ jobs:
             ./internal/serviceapi/customdbroleapi
             ./internal/serviceapi/databaseuserapi
             ./internal/serviceapi/maintenancewindowapi
-            ./internal/serviceapi/serviceaccount
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/projectsettingsapi
         run: make testacc
@@ -1349,6 +1352,32 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
             ./internal/service/serverlessinstance
+        run: make testacc
+
+  service_account:
+    needs: [change-detection, get-provider-version]
+    if: ${{ needs.change-detection.outputs.service_account == 'true' || inputs.test_group == 'service_account' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_PACKAGES: |
+            ./internal/service/serviceaccountaccesslistentry
+            ./internal/serviceapi/serviceaccount
+            ./internal/serviceapi/serviceaccountprojectassignment
+            ./internal/serviceapi/serviceaccountsecret
         run: make testacc
 
   stream:
