@@ -1,3 +1,8 @@
+variables:
+  # API descriptions mention using the /orgs and /groups endpoints to fetch user's orgs/projects, removing that part.
+  org_id_description: &org_id_description "Unique 24-hexadecimal digit string that identifies the organization that contains your projects."
+  project_id_description: &project_id_description "Unique 24-hexadecimal digit string that identifies your project."
+
 resources:
   # Singleton resource in project.
   # Create, Delete and Update uses PATCH.
@@ -826,6 +831,12 @@ resources:
       aliases:
         secrets.id: secretId
       overrides:
+        # The API description mentions using the /org endpoint to fetch user's organizations, removing that part.
+        org_id:
+          description: *org_id_description
+        secret_expires_after_hours:
+          # Adding clarification that the attribute is required for creation and can't be updated later.
+          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later."
         secrets:
           type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
         secrets.secret:
@@ -843,6 +854,9 @@ resources:
           secrets.id: secretId
           results.secrets.id: secretId
         overrides:
+          # The API description mentions using the /org endpoint to fetch user's organizations, removing that part.
+          org_id:
+            description: *org_id_description
           secrets:
             type: list
 
@@ -865,8 +879,10 @@ resources:
         secrets.id: secretId
       overrides:
         project_id:
-          # The API description mentions using the /groups endpoint to fetch user's projects, removing that part.
-          description: "Unique 24-hexadecimal digit string that identifies your project."
+          description: *project_id_description
+        secret_expires_after_hours:
+          # Adding clarification that the attribute is required for creation and can't be updated later.
+          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later."
         secrets:
           type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
         secrets.secret:
@@ -886,8 +902,7 @@ resources:
           results.secrets.id: secretId
         overrides:
           project_id:
-            # The API description mentions using the /groups endpoint to fetch user's projects, removing that part.
-            description: "Unique 24-hexadecimal digit string that identifies your project."
+            description: *project_id_description
           secrets:
             type: list
 
@@ -944,8 +959,7 @@ resources:
         groupId: projectId
       overrides:
         project_id:
-          # The API description mentions using the /groups endpoint to fetch user's projects, removing that part.
-          description: "Unique 24-hexadecimal digit string that identifies your project."
+          description: *project_id_description
     datasources:
       read: *service-account-project-assignment-read-op
       list:
@@ -957,9 +971,7 @@ resources:
           groupId: projectId
           results.groupId: projectId
         overrides:
-          # API descriptions mention using the /orgs and /groups endpoints to fetch user's orgs/projects, removing that part.
           org_id:
-            description: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects."
+            description: *org_id_description
           project_id:
-            description: "Unique 24-hexadecimal digit string that identifies your project."
-
+            description: *project_id_description

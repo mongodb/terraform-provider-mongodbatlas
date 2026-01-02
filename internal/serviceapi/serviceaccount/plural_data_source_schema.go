@@ -16,7 +16,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 		Attributes: map[string]dsschema.Attribute{
 			"org_id": dsschema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects.",
 			},
 			"results": dsschema.ListNestedAttribute{
 				Computed:            true,
