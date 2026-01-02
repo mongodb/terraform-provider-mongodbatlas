@@ -4,7 +4,7 @@ subcategory: "Service Accounts"
 
 # Resource: mongodbatlas_service_account
 
-`mongodbatlas_service_account` provides a Service Account resource. The resource lets you create, update, delete and import a Service Account for the specified Organization.
+`mongodbatlas_service_account` provides a Service Account resource. The resource lets you create, update, delete, and import a Service Account for the specified Organization.
 
 ## Example Usages
 
