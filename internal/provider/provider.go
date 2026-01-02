@@ -48,6 +48,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccount"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccountsecret"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccount"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccountprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccountsecret"
@@ -314,6 +315,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		serviceaccountaccesslistentry.PluralDataSource,
 		projectserviceaccount.DataSource,
 		projectserviceaccount.PluralDataSource,
+		projectserviceaccountsecret.DataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
@@ -351,6 +353,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		serviceaccountprojectassignment.Resource,
 		serviceaccountaccesslistentry.Resource,
 		projectserviceaccount.Resource,
+		projectserviceaccountsecret.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {

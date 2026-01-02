@@ -403,6 +403,7 @@ jobs:
             - 'internal/common/autogen/*.go'
             - 'internal/service/serviceaccountaccesslistentry/*.go'
             - 'internal/serviceapi/projectserviceaccount/*.go'
+            - 'internal/serviceapi/projectserviceaccountsecret/*.go'
             - 'internal/serviceapi/serviceaccount/*.go'
             - 'internal/serviceapi/serviceaccountprojectassignment/*.go'
             - 'internal/serviceapi/serviceaccountsecret/*.go'
@@ -1377,6 +1378,7 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/service/serviceaccountaccesslistentry
             ./internal/serviceapi/projectserviceaccount
+            ./internal/serviceapi/projectserviceaccountsecret
             ./internal/serviceapi/serviceaccount
             ./internal/serviceapi/serviceaccountprojectassignment
             ./internal/serviceapi/serviceaccountsecret
