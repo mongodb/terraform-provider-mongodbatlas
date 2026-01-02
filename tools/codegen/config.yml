@@ -846,6 +846,51 @@ resources:
           secrets:
             type: list
 
+  project_service_account:
+    read: &project-service-account-read-op
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+      method: DELETE
+    schema:
+      aliases:
+        groupId: projectId
+        secrets.id: secretId
+      overrides:
+        project_id:
+          # The API description mentions using the /groups endpoint to fetch user's projects, removing that part.
+          description: "Unique 24-hexadecimal digit string that identifies your project."
+        secrets:
+          type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
+        secrets.secret:
+          sensitive: true
+        roles:
+          type: set
+    datasources:
+      read: *project-service-account-read-op
+      list:
+        path: /api/atlas/v2/groups/{groupId}/serviceAccounts
+        method: GET
+      schema:
+        ignores: [ "secrets.secret", "links" ] # `secret` is never populated in read response, no value in adding for data source
+        aliases:
+          groupId: projectId
+          secrets.id: secretId
+          results.secrets.id: secretId
+        overrides:
+          project_id:
+            # The API description mentions using the /groups endpoint to fetch user's projects, removing that part.
+            description: "Unique 24-hexadecimal digit string that identifies your project."
+          secrets:
+            type: list
+
   service_account_secret:
     read:
       # get operation for a single secret is not available, individual secret is found in service account read looking in `secrets` property with custom code hooks
