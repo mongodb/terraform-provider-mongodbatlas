@@ -835,8 +835,8 @@ resources:
         org_id:
           description: *org_id_description
         secret_expires_after_hours:
-          # Adding clarification that the attribute is required for creation and can't be updated early.
-          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required in creation and cannot be updated later."
+          # Adding clarification that the attribute is required for creation and can't be updated later.
+          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later."
         secrets:
           type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
         secrets.secret:
@@ -881,8 +881,8 @@ resources:
         project_id:
           description: *project_id_description
         secret_expires_after_hours:
-          # Adding clarification that the attribute is required for creation and can't be updated early.
-          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required in creation and cannot be updated later."
+          # Adding clarification that the attribute is required for creation and can't be updated later.
+          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later."
         secrets:
           type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
         secrets.secret:

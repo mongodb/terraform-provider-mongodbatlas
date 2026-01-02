@@ -9,7 +9,7 @@ subcategory: "Service Accounts"
 ## Example Usages
 
 ```terraform
-resource "mongodbatlas_service_account" "example" {
+resource "mongodbatlas_service_account" "this" {
   org_id                     = var.org_id
   name                       = "example-service-account"
   description                = "Example Service Account"
@@ -17,25 +17,31 @@ resource "mongodbatlas_service_account" "example" {
   secret_expires_after_hours = 2160 # 90 days
 }
 
-data "mongodbatlas_service_account" "example" {
+data "mongodbatlas_service_account" "this" {
   org_id    = var.org_id
-  client_id = mongodbatlas_service_account.example.client_id
+  client_id = mongodbatlas_service_account.this.client_id
 }
 
-data "mongodbatlas_service_accounts" "example" {
+data "mongodbatlas_service_accounts" "this" {
   org_id = var.org_id
 }
 
 output "service_account_client_id" {
-  value = mongodbatlas_service_account.example.client_id
+  value = mongodbatlas_service_account.this.client_id
 }
 
 output "service_account_name" {
-  value = data.mongodbatlas_service_account.example.name
+  value = data.mongodbatlas_service_account.this.name
+}
+
+output "service_account_first_secret" {
+  description = "The secret value of the first secret created with the service account. Only available after initial creation."
+  value       = try(mongodbatlas_service_account.this.secrets[0].secret, null)
+  sensitive   = true
 }
 
 output "service_accounts_results" {
-  value = data.mongodbatlas_service_accounts.example.results
+  value = data.mongodbatlas_service_accounts.this.results
 }
 ```
 
@@ -51,7 +57,7 @@ output "service_accounts_results" {
 
 ### Optional
 
-- `secret_expires_after_hours` (Number) The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required in creation and cannot be updated later.
+- `secret_expires_after_hours` (Number) The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later.
 
 ### Read-Only
 
@@ -72,9 +78,8 @@ Read-Only:
 - `secret_id` (String) Unique 24-hexadecimal digit string that identifies the secret.
 
 ## Import 
-You can import the Service Account resource by using the Organization ID and Client ID, in the format `ORG_ID/CLIENT_ID`, e.g.
+Import the Service Account resource by using the Organization ID and Client ID in the format `ORG_ID/CLIENT_ID`, e.g.
 ```
 $ terraform import mongodbatlas_service_account.test 6117ac2fe2a3d04ed27a987v/mdb_sa_id_1234567890abcdef12345678
 ```
-
-For more information see: [MongoDB Atlas API - Service Accounts](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createorgserviceaccount) Documentation.
+For more information, see [Create One Organization Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorgserviceaccount) in the MongoDB Atlas API documentation.

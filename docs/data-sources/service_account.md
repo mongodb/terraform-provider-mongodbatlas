@@ -8,7 +8,7 @@ subcategory: "Service Accounts"
 
 ## Example Usages
 ```terraform
-resource "mongodbatlas_service_account" "example" {
+resource "mongodbatlas_service_account" "this" {
   org_id                     = var.org_id
   name                       = "example-service-account"
   description                = "Example Service Account"
@@ -16,25 +16,31 @@ resource "mongodbatlas_service_account" "example" {
   secret_expires_after_hours = 2160 # 90 days
 }
 
-data "mongodbatlas_service_account" "example" {
+data "mongodbatlas_service_account" "this" {
   org_id    = var.org_id
-  client_id = mongodbatlas_service_account.example.client_id
+  client_id = mongodbatlas_service_account.this.client_id
 }
 
-data "mongodbatlas_service_accounts" "example" {
+data "mongodbatlas_service_accounts" "this" {
   org_id = var.org_id
 }
 
 output "service_account_client_id" {
-  value = mongodbatlas_service_account.example.client_id
+  value = mongodbatlas_service_account.this.client_id
 }
 
 output "service_account_name" {
-  value = data.mongodbatlas_service_account.example.name
+  value = data.mongodbatlas_service_account.this.name
+}
+
+output "service_account_first_secret" {
+  description = "The secret value of the first secret created with the service account. Only available after initial creation."
+  value       = try(mongodbatlas_service_account.this.secrets[0].secret, null)
+  sensitive   = true
 }
 
 output "service_accounts_results" {
-  value = data.mongodbatlas_service_accounts.example.results
+  value = data.mongodbatlas_service_accounts.this.results
 }
 ```
 
@@ -65,5 +71,4 @@ Read-Only:
 - `masked_secret_value` (String) The masked Service Account secret.
 - `secret_id` (String) Unique 24-hexadecimal digit string that identifies the secret.
 
-For more information see: [MongoDB Atlas API - Service Accounts](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorgserviceaccount) Documentation.
-
+For more information, see [MongoDB Atlas API - Return One Organization Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorgserviceaccount) in the MongoDB Atlas API documentation.
