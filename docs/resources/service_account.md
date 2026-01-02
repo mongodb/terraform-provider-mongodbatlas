@@ -6,6 +6,8 @@ subcategory: "Service Accounts"
 
 `mongodbatlas_service_account` provides a Service Account resource. The resource lets you create, update, delete, and import a Service Account for the specified Organization.
 
+~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform will expose sensitive organizational secrets in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
+
 ## Example Usages
 
 ```terraform
@@ -82,4 +84,5 @@ Import the Service Account resource by using the Organization ID and Client ID i
 ```
 $ terraform import mongodbatlas_service_account.test 6117ac2fe2a3d04ed27a987v/mdb_sa_id_1234567890abcdef12345678
 ```
-For more information, see [Create One Organization Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorgserviceaccount) in the MongoDB Atlas API documentation.
+
+For more information, see [Create One Organization Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createorgserviceaccount) in the MongoDB Atlas API documentation.
