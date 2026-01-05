@@ -3,6 +3,7 @@
 BUG FIXES:
 
 * data-source/mongodbatlas_advanced_clusters: Fixes datasource to handle CLUSTER_NOT_FOUND errors from List operation gracefully instead of failing ([#3995](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3995))
+* resource/mongodbatlas_project_ip_access_list:: Enables in-place updates for `comment` attribute instead of requiring a replace ([#4003](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4003))
 
 ## 2.3.0 (December 09, 2025)
 
