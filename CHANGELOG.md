@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_search_index: Adds `num_partitions` attribute ([#3982](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3982))
+* data-source/mongodbatlas_search_indexes: Adds `num_partitions` attribute ([#3982](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3982))
+* resource/mongodbatlas_search_index: Adds `num_partitions` attribute ([#3982](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3982))
+
 BUG FIXES:
 
 * data-source/mongodbatlas_advanced_clusters: Fixes datasource to handle CLUSTER_NOT_FOUND errors from List operation gracefully instead of failing ([#3995](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3995))
