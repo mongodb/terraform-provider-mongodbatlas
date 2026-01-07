@@ -3,7 +3,7 @@ provider "mongodbatlas" {
   client_secret = var.atlas_client_secret
 }
 
-# New module usage (cloud user org assignment + team assignments)
+# New module usage
 module "org_membership" {
   source   = "../../module_maintainer/v2"
   org_id   = var.org_id

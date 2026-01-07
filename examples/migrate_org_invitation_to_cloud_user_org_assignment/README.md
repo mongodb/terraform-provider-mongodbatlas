@@ -16,7 +16,9 @@ This combined example is organized into step subfolders (v1–v3):
 Module-based examples:
 - module_maintainer/v1: legacy module using `mongodbatlas_org_invitation` with `teams_ids`.
 - module_maintainer/v2: migrated module using `mongodbatlas_cloud_user_org_assignment` + `mongodbatlas_cloud_user_team_assignment` with a `moved` block.
+- module_maintainer/v3: final module after migration (no `moved` block needed).
 - module_user/v1: legacy module consumption (no imports needed).
-- module_user/v2: migrated module consumption with root-level imports for org/team assignments.
+- module_user/v2: migrated module consumption with root-level imports for team assignments.
+- module_user/v3: final module consumption after migration (no import blocks needed).
 
 Navigate into each version folder to see the step-specific configuration.

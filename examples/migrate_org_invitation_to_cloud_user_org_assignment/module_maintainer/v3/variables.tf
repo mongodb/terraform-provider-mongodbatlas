@@ -5,7 +5,7 @@ variable "org_id" {
 
 variable "username" {
   type        = string
-  description = "Email/username of the Atlas user to invite"
+  description = "Email/username of the Atlas user to assign"
 }
 
 variable "roles" {
@@ -15,7 +15,7 @@ variable "roles" {
 
 variable "team_ids" {
   type        = set(string)
-  description = "Team IDs to include on the invitation)"
+  description = "Team IDs to assign to the user"
   default     = []
 }
 
