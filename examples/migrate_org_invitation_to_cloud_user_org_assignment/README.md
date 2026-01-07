@@ -13,7 +13,7 @@ This combined example is organized into step subfolders (v1–v3):
   - remove moved and import blocks,
   - keep only `mongodbatlas_cloud_user_org_assignment` and `mongodbatlas_cloud_user_team_assignment`.
 
-Module-based examples (mirroring the guide’s module maintainer/user flows):
+Module-based examples:
 - module_maintainer/v1: legacy module using `mongodbatlas_org_invitation` with `teams_ids`.
 - module_maintainer/v2: migrated module using `mongodbatlas_cloud_user_org_assignment` + `mongodbatlas_cloud_user_team_assignment` with a `moved` block.
 - module_user/v1: legacy module consumption (no imports needed).

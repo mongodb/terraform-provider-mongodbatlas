@@ -173,20 +173,73 @@ config and state:
 #### Module considerations
 
 - **Module maintainers**
-  - Add `mongodbatlas_cloud_user_org_assignment` inside the module and a `moved` block from `mongodbatlas_org_invitation`; remove the old resource and publish a new version.
-  - If `teams_ids` were used, model them as `mongodbatlas_cloud_user_team_assignment` resources in the module that will be imported by module users.
-  - Terraform doesn’t allow import blocks in the module ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document the import ID formats for users:
-        - Org assignment: `org_id/user_id`
-        - Team assignment (if applicable): `org_id/team_id/user_id`
+  - Define `mongodbatlas_cloud_user_org_assignment` and, if `team_ids` are used, `mongodbatlas_cloud_user_team_assignment` inside the module.
+  - Example **old** module implementation:
+    ```terraform
+    resource "mongodbatlas_org_invitation" "this" {
+      org_id    = var.org_id
+      username  = var.username
+      roles     = var.roles
+      teams_ids = var.team_ids
+    }
+    ```
+  - Example **new** module implementation:
+    ```terraform
+    resource "mongodbatlas_cloud_user_org_assignment" "this" {
+      org_id   = var.org_id
+      username = var.username
+      roles    = { org_roles = var.roles }
+    }
+
+    resource "mongodbatlas_cloud_user_team_assignment" "team" {
+      for_each = var.team_ids
+      org_id   = var.org_id
+      team_id  = each.key
+      user_id  = mongodbatlas_cloud_user_org_assignment.this.user_id
+    }
+
+    moved {
+      from = mongodbatlas_org_invitation.this
+      to   = mongodbatlas_cloud_user_org_assignment.this
+    }
+    ```
+  - Terraform doesn’t allow import blocks in the module ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document import IDs for users:
+        - Org assignment: `org_id/user_id` (or `org_id/username`)
+        - Team assignment: `org_id/team_id/user_id` (or `org_id/team_id/username`)
+  - Publish a new module version.
 
 - **Module users**
-  - Upgrade the module (`terraform init -upgrade`) and run `terraform plan` **but do not apply**.
-  - Org assignment moves happen automatically via the module’s moved {}—no imports or state edits needed.
-  - For team assignments, if applicable, add **root-level** `import {}` blocks (or run `terraform import`) for each existing:
-        - Team assignment: `org_id/team_id/user_id`
-  - Re-run `terraform plan` to confirm import & moved operations, then `terraform apply`.
+  - Upgrade to the new module version (`terraform init -upgrade`) and run `terraform plan` (do not apply yet).
+  - Example **old** module usage:
+    ```terraform
+    module "org_membership" {
+      source   = "..."
+      org_id   = var.org_id
+      username = var.username
+      roles    = ["ORG_MEMBER"]
+      team_ids = ["<TEAM_ID_1>", "<TEAM_ID_2>"]
+    }
+    ```
+  - Example **new** module usage:
+    ```terraform
+    module "org_membership" {
+      source   = "..."
+      org_id   = var.org_id
+      username = var.username
+      roles    = ["ORG_MEMBER"]
+      team_ids = ["<TEAM_ID_1>", "<TEAM_ID_2>"]
+    }
+    ```
+  - Root-level imports for team assignments (the org assignment is handled by the `moved` block in the module):
+    ```terraform
+    import {
+      for_each = toset(var.team_ids)
+      to       = module.org_membership.mongodbatlas_cloud_user_team_assignment.team[each.key]
+      id       = "${var.org_id}/${each.key}/${var.username}" # or user_id
+    }
+    ```
+  - Re-run `terraform plan` to confirm imports (and moved block, if used), then `terraform apply`.
 
-  
 ---
 
 ### Use-case 2: Pending invites without `team_ids`
@@ -362,11 +415,12 @@ Then:
 
 ### Examples
 
-For complete, working configurations that mirror the use-cases above, see the
-examples in the provider repository:
-[migrate_org_invitation_to_cloud_user_org_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_org_invitation_to_cloud_user_org_assignment).
-These include root-level setups for multiple approaches (e.g., moved blocks and
-imports) across different versions.
+For complete working examples, see:
+- Root (v1–v3): [migrate_org_invitation_to_cloud_user_org_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_org_invitation_to_cloud_user_org_assignment)
+- Module maintainer (v1 legacy → v2 migrated): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer)
+- Module user (v1 legacy → v2 migrated with imports): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_user)
+
+These include root-level setups for multiple approaches (moved blocks and imports) across different versions.
 
 ### Notes and tips
 
