@@ -38,8 +38,10 @@ jobs:
         permissions: {}
         steps:
             - name: Validation of version format
+              env:
+                  VERSION_NUMBER: ${{ inputs.version_number }}
               run: |
-                  echo "${{ inputs.version_number }}" | grep -P '^v1\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'
+                  echo "$VERSION_NUMBER" | grep -P '^v1\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'
             - name: Checkout
               uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
               with:
