@@ -58,7 +58,6 @@ func TestAccStreamProcessor_withTier(t *testing.T) {
 		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		randomSuffix             = acctest.RandString(5)
 		processorName            = "new-processor-tier" + randomSuffix
-		tier                     = "SP30"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -67,15 +66,19 @@ func TestAccStreamProcessor_withTier(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithTier(t, projectID, workspaceName, processorName, tier),
+				Config: configWithTier(t, projectID, workspaceName, processorName, "SP30"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "tier", "SP30"),
+					resource.TestCheckResourceAttr(resourceName, "state", "STARTED"),
 				),
 			},
 			{
 				Config: configWithTier(t, projectID, workspaceName, processorName, "SP50"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "tier", "SP50"),
+					resource.TestCheckResourceAttr(resourceName, "state", "STARTED"),
 				),
 			},
 			importStep(),
@@ -725,10 +728,9 @@ func configWithTier(t *testing.T, projectID, workspaceName, processorName, tier 
 	}
 
 	data "mongodbatlas_stream_processor" "test" {
-		project_id     = %[1]q
-		workspace_name = %[2]q
-		processor_name = %[3]q
-		depends_on     = [mongodbatlas_stream_processor.processor]
+		project_id     = mongodbatlas_stream_processor.processor.project_id
+		workspace_name = mongodbatlas_stream_processor.processor.workspace_name
+		processor_name = mongodbatlas_stream_processor.processor.processor_name
 	}
 
 	data "mongodbatlas_stream_processors" "test" {
