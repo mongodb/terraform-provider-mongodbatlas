@@ -121,12 +121,11 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 
 func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicitly_enabled(t *testing.T) {
 	var (
-		resourceName       = "mongodbatlas_privatelink_endpoint.test"
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = "test-acc-tf-p-gcp-port-based-routing-feature-flag-enabled"
-		region             = "us-west3"
-		providerName       = "GCP"
-		portMappingEnabled = true
+		resourceName = "mongodbatlas_privatelink_endpoint.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = "test-acc-tf-p-gcp-port-based-routing-feature-flag-enabled"
+		region       = "us-west3"
+		providerName = "GCP"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -135,7 +134,7 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithPortMapping(orgID, projectName, providerName, region, portMappingEnabled),
+				Config: configWithPortMapping(orgID, projectName, providerName, region, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -144,6 +143,18 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "true"),
+				),
+			},
+			{
+				Config: configWithPortMapping(orgID, projectName, providerName, region, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "region"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "region", region),
+					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "false"),
 				),
 			},
 			{
@@ -158,12 +169,11 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 
 func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicitly_disabled(t *testing.T) {
 	var (
-		resourceName       = "mongodbatlas_privatelink_endpoint.test"
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = "test-acc-tf-p-gcp-port-based-routing-feature-flag-enabled"
-		region             = "us-west4"
-		providerName       = "GCP"
-		portMappingEnabled = false
+		resourceName = "mongodbatlas_privatelink_endpoint.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = "test-acc-tf-p-gcp-port-based-routing-feature-flag-enabled"
+		region       = "us-west4"
+		providerName = "GCP"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -172,7 +182,7 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithPortMapping(orgID, projectName, providerName, region, portMappingEnabled),
+				Config: configWithPortMapping(orgID, projectName, providerName, region, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -181,6 +191,18 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "false"),
+				),
+			},
+			{
+				Config: configWithPortMapping(orgID, projectName, providerName, region, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "region"),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "region", region),
+					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "true"),
 				),
 			},
 			{
