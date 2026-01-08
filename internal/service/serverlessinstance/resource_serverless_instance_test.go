@@ -19,10 +19,12 @@ const (
 )
 
 func TestAccServerlessInstance_basic(t *testing.T) {
+	t.Skip("Serverless API EOL Jan 15 2026")
 	resource.ParallelTest(t, *basicTestCase(t))
 }
 
 func TestAccServerlessInstance_withTags(t *testing.T) {
+	t.Skip("Serverless API EOL Jan 15 2026")
 	var (
 		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomClusterName()
@@ -92,6 +94,7 @@ func TestAccServerlessInstance_withTags(t *testing.T) {
 }
 
 func TestAccServerlessInstance_autoIndexing(t *testing.T) {
+	t.Skip("Serverless API EOL Jan 15 2026")
 	var (
 		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomClusterName()
