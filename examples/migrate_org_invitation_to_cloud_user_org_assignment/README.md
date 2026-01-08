@@ -4,17 +4,9 @@ This example demonstrates migrating from `mongodbatlas_org_invitation` to `mongo
 
 ## Basic usage (direct resource usage)
 
-- `basic/v1`: Initial state with `mongodbatlas_org_invitation` (with `teams_ids`).
-- `basic/v2`: Migration step with `moved` block and `import` blocks for team assignments.
-- `basic/v3`: Final clean configuration using only `mongodbatlas_cloud_user_org_assignment` and `mongodbatlas_cloud_user_team_assignment`.
+- [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/basic): Direct resource usage without modules.
 
 ## Module-based examples
 
-- `module_maintainer/v1`: Legacy module using `mongodbatlas_org_invitation` with `teams_ids`.
-- `module_maintainer/v2`: Migrated module with `moved` block.
-- `module_maintainer/v3`: Final module (no `moved` block needed).
-- `module_user/v1`: Legacy module consumption.
-- `module_user/v2`: Migration with root-level imports for team assignments.
-- `module_user/v3`: Final clean configuration (no import blocks needed).
-
-Navigate into each version folder to see the step-specific configuration.
+- [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer): How module maintainers should migrate.
+- [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_user): How module consumers should migrate.
