@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.4.0 (January 08, 2026)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_search_index: Adds `num_partitions` attribute ([#3982](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3982))
