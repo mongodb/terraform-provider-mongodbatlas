@@ -2,7 +2,7 @@
 
 This example demonstrates how module consumers should migrate when upgrading to a module that uses `mongodbatlas_cloud_user_org_assignment`.
 
-For migration steps, see the [Migration Guide](../../../docs/guides/atlas-user-management.md).
+For migration steps, see the [Migration Guide](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/docs/guides/atlas-user-management.md).
 
 ## v1: Initial State
 
