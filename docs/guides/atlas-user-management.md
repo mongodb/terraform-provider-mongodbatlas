@@ -203,9 +203,9 @@ config and state:
       to   = mongodbatlas_cloud_user_org_assignment.this
     }
     ```
-  - Terraform doesn’t allow import blocks in the module ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document import IDs for users:
-        - Org assignment: `org_id/user_id` (or `org_id/username`)
-        - Team assignment: `org_id/team_id/user_id` (or `org_id/team_id/username`)
+  - Terraform doesn't allow import blocks in the module ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document import IDs for users:
+      - Org assignment: `org_id/user_id` (or `org_id/username`)
+      - Team assignment: `org_id/team_id/user_id` (or `org_id/team_id/username`)
   - Publish a new module version.
 
 - **Module users**
