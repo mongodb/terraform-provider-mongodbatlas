@@ -4,9 +4,9 @@ This example demonstrates migrating from `mongodbatlas_org_invitation` to `mongo
 
 ## Basic usage (direct resource usage)
 
-- [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/basic): Direct resource usage without modules.
+- [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/basic): Direct resource usage without modules.
 
 ## Module-based examples
 
-- [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer): How module maintainers should migrate.
-- [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_user): How module consumers should migrate.
+- [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer): How module maintainers should migrate.
+- [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_user): How module consumers should migrate.

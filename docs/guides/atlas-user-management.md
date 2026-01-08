@@ -179,14 +179,14 @@ config and state:
     - Org assignment: `org_id/user_id` (or `org_id/username`)
     - Team assignment: `org_id/team_id/user_id` (or `org_id/team_id/username`)
   - Publish a new module version.
-  - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer) for complete implementation.
+  - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer) for complete implementation.
 
 - **Module users**
   - Upgrade to the new module version (`terraform init -upgrade`).
   - Add `import` blocks for team assignments (the org assignment is handled by the `moved` block in the module).
   - Run `terraform plan` — expect `has moved to` for org assignment and `will be imported` for team assignments.
   - Run `terraform apply`.
-  - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_user) for complete implementation.
+  - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_user) for complete implementation.
 
 ---
 
@@ -364,9 +364,9 @@ Then:
 ### Examples
 
 For complete working examples, see:
-- Basic usage (v1–v3): [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/basic)
-- Module maintainer (v1–v3): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer)
-- Module user (v1–v3): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_user)
+- Basic usage (v1–v3): [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/basic)
+- Module maintainer (v1–v3): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer)
+- Module user (v1–v3): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_user)
 
 ### Notes and tips
 
