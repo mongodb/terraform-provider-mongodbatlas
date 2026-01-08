@@ -1,0 +1,15 @@
+```release-note:enhancement
+resource/mongodbatlas_privatelink_endpoint_service: Adds `port_mapping_enabled` attribute
+```
+
+```release-note:enhancement
+resource/mongodbatlas_privatelink_endpoint: Adds `port_mapping_enabled` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_privatelink_endpoint_service: Adds `port_mapping_enabled` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_privatelink_endpoint: Adds `port_mapping_enabled` attribute
+```

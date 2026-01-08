@@ -200,6 +200,7 @@ In addition to all arguments above, the following attributes are exported:
 * `endpoint_group_name` - (Optional) Unique identifier of the endpoint group. The endpoint group encompasses all of the endpoints that you created in GCP.
 * `endpoints` - Collection of individual private endpoints that comprise your network endpoint group.
   * `status` - Status of the endpoint. Atlas returns one of the [values shown above](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/#std-label-ref-status-field).
+* `port_mapping_enabled` - Flag that indicates whether this endpoint service uses PSC port-mapping.
 
 ## Import
 Private Endpoint Link Connection can be imported using project ID and username, in the format `{project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}`, e.g.

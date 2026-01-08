@@ -81,6 +81,10 @@ func DataSource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"port_mapping_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -141,6 +145,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if err := d.Set("service_attachment_names", privateEndpoint.GetServiceAttachmentNames()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "service_attachment_names", privateLinkID, err))
+	}
+
+	if err := d.Set("port_mapping_enabled", privateEndpoint.GetPortMappingEnabled()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "port_mapping_enabled", privateLinkID, err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
