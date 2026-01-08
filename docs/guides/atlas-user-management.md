@@ -814,7 +814,7 @@ Keep
 
 For complete, working configurations that demonstrate the migration process, see
 the examples in the provider repository:
-[migrate_team_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_team_project_assignment).
+[migrate_team_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_team_project_assignment).
 
 The examples include:
 
