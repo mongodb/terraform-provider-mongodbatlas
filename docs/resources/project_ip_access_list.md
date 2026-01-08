@@ -66,7 +66,7 @@ resource "mongodbatlas_project_ip_access_list" "test" {
 
 
 ### Further Examples
-- [Project IP Access List](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.3.0/examples/mongodbatlas_project_ip_access_list)
+- [Project IP Access List](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.4.0/examples/mongodbatlas_project_ip_access_list)
 
 
 ## Argument Reference
