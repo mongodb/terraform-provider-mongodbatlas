@@ -204,16 +204,13 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if id == "" || projectID == "" || clientID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		projectServiceAccount, _, err := acc.ConnV2().ServiceAccountsApi.GetGroupServiceAccount(context.Background(), projectID, clientID).Execute()
+
+		exists, err := secretExists(projectID, clientID, id)
 		if err != nil {
 			return fmt.Errorf("failed to get project service account: %w", err)
 		}
-		if projectServiceAccount.Secrets != nil {
-			for _, secret := range *projectServiceAccount.Secrets {
-				if secret.Id == id {
-					return nil
-				}
-			}
+		if exists {
+			return nil
 		}
 		return fmt.Errorf("project service account secret (%s/%s/%s) does not exist", id, projectID, clientID)
 	}
@@ -232,19 +229,29 @@ func checkDestroy(s *terraform.State) error {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
 
-		projectServiceAccount, _, err := acc.ConnV2().ServiceAccountsApi.GetGroupServiceAccount(context.Background(), projectID, clientID).Execute()
-		if err == nil && projectServiceAccount.Secrets != nil {
-			for _, secret := range *projectServiceAccount.Secrets {
-				if secret.Id == id {
-					return fmt.Errorf("project service account secret (%s/%s/%s) still exists", id, projectID, clientID)
-				}
-			}
+		if exists, _ := secretExists(projectID, clientID, id); exists {
+			return fmt.Errorf("project service account secret (%s/%s/%s) still exists", id, projectID, clientID)
 		}
 
 		// Delete the service account (project_service_account DELETE only removes the project assignment)
 		_, _ = acc.ConnV2().ServiceAccountsApi.DeleteOrgServiceAccount(context.Background(), clientID, orgID).Execute()
 	}
 	return nil
+}
+
+func secretExists(projectID, clientID, secretID string) (bool, error) {
+	projectServiceAccount, _, err := acc.ConnV2().ServiceAccountsApi.GetGroupServiceAccount(context.Background(), projectID, clientID).Execute()
+	if err != nil {
+		return false, err
+	}
+	if projectServiceAccount.Secrets != nil {
+		for _, secret := range *projectServiceAccount.Secrets {
+			if secret.Id == secretID {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
