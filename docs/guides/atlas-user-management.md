@@ -176,8 +176,8 @@ config and state:
   - Add `mongodbatlas_cloud_user_org_assignment` and a `moved` block from `mongodbatlas_org_invitation`.
   - If `teams_ids` were used, add `mongodbatlas_cloud_user_team_assignment` resources that will be imported by module users.
   - Terraform doesn't allow import blocks in modules ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document import IDs for users:
-      - Org assignment: `org_id/user_id` (or `org_id/username`)
-      - Team assignment: `org_id/team_id/user_id` (or `org_id/team_id/username`)
+    - Org assignment: `org_id/user_id` (or `org_id/username`)
+    - Team assignment: `org_id/team_id/user_id` (or `org_id/team_id/username`)
   - Publish a new module version.
   - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer) for complete implementation.
 
