@@ -854,7 +854,6 @@ resources:
           secrets.id: secretId
           results.secrets.id: secretId
         overrides:
-          # The API description mentions using the /org endpoint to fetch user's organizations, removing that part.
           org_id:
             description: *org_id_description
           secrets:
@@ -924,6 +923,8 @@ resources:
       aliases:
         id: secretId
       overrides:
+        org_id:
+          description: *org_id_description
         secret:
           sensitive: true
         secret_expires_after_hours:
@@ -939,6 +940,8 @@ resources:
         aliases:
           id: secretId
         overrides:
+          org_id:
+            description: *org_id_description
           secret_id:
             computability:
               required: true
