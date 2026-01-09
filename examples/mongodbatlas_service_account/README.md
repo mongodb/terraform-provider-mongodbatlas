@@ -6,11 +6,14 @@ This example shows how to create a Service Account in MongoDB Atlas.
 
 When a Service Account is created, a secret is automatically generated. The secret value is only returned once at creation time.
 
-The example includes a sensitive output `service_account_first_secret` that captures this initial secret. You can retrieve it using:
+The example includes a sensitive output `service_account_first_secret` that captures this initial secret. 
+You can retrieve it using (**warning**: this prints the secret to your terminal):
 
 ```bash
 terraform output -raw service_account_first_secret
 ```
+
+For secret rotation, see [Guide: Service Account Secret Rotation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/service-account-secret-rotation).
 
 ## Variables Required to be set:
 - `atlas_client_id`: MongoDB Atlas Service Account Client ID
