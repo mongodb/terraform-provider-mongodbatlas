@@ -13,7 +13,7 @@ Service Accounts are the recommended method to manage authentication to the Atla
 ## Before You Begin
 
 - **Backup your Terraform state file** before making any changes.
-- **Test the rotation process in a non-production environment** if possible.
+- **Test the process in a non-production environment** if possible.
 - **Secrets handling** - Managing Service Accounts with Terraform will expose sensitive organizational secrets in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
 
@@ -351,3 +351,7 @@ output "project_service_account_first_secret" {
 4. Re-run `terraform plan` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.`
 
 ---
+
+- **Important:** The Service Account secret is only returned once at creation time. Make sure to save it securely before proceeding.
+
+- After successful migration, ensure no references to PAK resources remain in your configuration.
