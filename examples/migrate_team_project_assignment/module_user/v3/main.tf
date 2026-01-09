@@ -1,7 +1,6 @@
 provider "mongodbatlas" {
   client_id     = var.atlas_client_id
   client_secret = var.atlas_client_secret
-  base_url      = "https://cloud-dev.mongodb.com/"
 }
 
 # Final module usage (no import blocks needed after migration)
