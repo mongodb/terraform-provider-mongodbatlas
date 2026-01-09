@@ -808,20 +808,17 @@ Keep
   - Re-run `terraform plan` to confirm import operations, then `terraform apply`.
 
 
+- See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_team_project_assignment/module_maintainer) for complete implementation.
+- See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_team_project_assignment/module_user) for complete implementation.
+
 ---
 
 ### Examples
 
-For complete, working configurations that demonstrate the migration process, see
-the examples in the provider repository:
-[migrate_team_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_team_project_assignment).
-
-The examples include:
-
-- **v1**: Original configuration using deprecated `teams` attribute in
-  `mongodbatlas_project` resource.
-- **v2**: Final configuration using `mongodbatlas_team_project_assignment`
-  resource for team-to-project assignments.
+For complete, working examples that demonstrate the migration process, see:
+- Basic usage (v1–v2): [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_team_project_assignment/basic)
+- Module maintainer (v1–v3): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_team_project_assignment/module_maintainer)
+- Module user (v1–v3): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_team_project_assignment/module_user)
 
 ---
 
