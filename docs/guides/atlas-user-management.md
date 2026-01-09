@@ -519,96 +519,16 @@ The legacy `mongodbatlas_team.usernames` list maps to individual
 cannot be used. Existing team memberships must be imported.
 
 - **Module maintainers**
-  - Define `mongodbatlas_cloud_user_team_assignment` inside the module.
-  - Example **old** module implementation:
-    ```terraform
-      variable "org_id"    { type = string }
-    variable "team_name" { type = string }
-    variable "usernames" { type = list(string) }
-
-    resource "mongodbatlas_team" "this" {
-      org_id    = var.org_id
-      name      = var.team_name
-      usernames = var.usernames  # deprecated
-    }
-    ```
-  - Example **new** module implementation:
-    ```terraform
-    variable "org_id"    { type = string }
-    variable "team_name" { type = string }
-    variable "user_ids"  { type = set(string) }
-
-    resource "mongodbatlas_team" "this" {
-      org_id = var.org_id
-      name   = var.team_name
-      # removed deprecated usernames
-    }
-
-    resource "mongodbatlas_cloud_user_team_assignment" "this" {
-      for_each = var.user_ids
-      
-      org_id   = var.org_id
-      team_id  = mongodbatlas_team.this.team_id
-      user_id  = each.value
-    }
-    ```
-  - Terraform doesn’t allow import blocks in the module ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document the import ID formats for users:
-      - Team assignment: `org_id/team_id/user_id` (or `org_id/team_id/username`)
+  - Replace the deprecated `usernames` attribute with `mongodbatlas_cloud_user_team_assignment` resources inside the module.
+  - Terraform doesn't allow import blocks in modules ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document the import ID format for users: `org_id/team_id/user_id` (or `org_id/team_id/username`).
   - Publish a new module version.
+  - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_user_team_assignment/module_maintainer) for complete implementation.
 
 - **Module users**
-  - Upgrade to the new module version (`terraform init -upgrade`) and run terraform plan but **do not apply**.
-  - Example **old** module usage (using deprecated resources):
-    ```hcl
-    module "user_team_assignment" {  
-      source     = "./old_module"  
-      org_id     = var.org_id  
-      team_name  = var.team_name  
-      usernames  = var.usernames 
-    }
-    ```
-  - Example **new** module usage:
-    ```hcl
-    data "mongodbatlas_team" "this" {  
-      org_id = var.org_id  
-      name   = var.team_name
-    }
-
-    locals {  
-      user_ids = toset([
-        for user in data.mongodbatlas_team.this.users : user.id
-      ]) 
-    }
-
-    module "user_team_assignment" {
-      source     = "./new_module"
-      org_id     = var.org_id
-      team_name  = var.team_name
-      user_ids = local.user_ids   # replaced deprecated usernames
-    }
-    ```
-  - Add an `import block` (or `terraform import`) to import the resources and iterate through the list of users:
-    ```terraform
-    import { 
-        for_each = local.team_assignments
-        to       = module.user_team_assignment.mongodbatlas_cloud_user_team_assignment.this[each.key]
-        id       = "${var.org_id}/${data.mongodbatlas_team.this.team_id}/${each.value}"
-    }
-    ```
-  - Run `terraform plan` to review the changes.
-      - Ensure that Terraform imports the user-team assignments and does not plan to create these.
-      - Ensure that Terraform does not plan to modify the `mongodbatlas_team` resource.
-  - Run `terraform apply` to apply the migration.
-
-For complete working examples, see:
-
-- [Old module definition](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_user_team_assignment/module_maintainer/v1)
-  and
-  [old module usage](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_user_team_assignment/module_user/v1).
-- [New module definition](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_user_team_assignment/module_maintainer/v2)
-  and
-  [new module usage](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_user_team_assignment/module_user/v2).
-- [mongodbatlas_cloud_user_team_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_cloud_user_team_assignment/main.tf).
+  - Upgrade to the new module version (`terraform init -upgrade`) and run `terraform plan` but **do not apply**.
+  - Add `import` blocks (or use `terraform import`) for each existing team assignment.
+  - Run `terraform plan` to confirm import operations, then `terraform apply`.
+  - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_user_team_assignment/module_user) for complete implementation.
 
 ---
 
@@ -921,7 +841,7 @@ Run `terraform apply` to create the assignment with the new resource & delete th
 
 - **Module users**
   - Upgrade to the new module version and run `terraform plan`.
-  - Expect to see planned creation of `mongodbatlas_cloud_user_project_assignment` and deletion of `mongodbatlas_project_invitation`.
+  - Expect to see planned creation `mongodbatlas_cloud_user_project_assignment` and deletion of `mongodbatlas_project_invitation`.
   - Run `terraform apply`.
   - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment/module_user) for complete implementation.
 
