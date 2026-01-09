@@ -6,8 +6,8 @@ For migration steps, see the [Migration Guide](https://github.com/mongodb/terraf
 
 ## v1: Initial State
 
-Using the legacy module version that relies on `mongodbatlas_atlas_user`:
-- Exposes all module outputs (user_id, username, email_address, first_name, last_name, org_roles, project_roles)
+Uses the legacy module version that relies on `mongodbatlas_atlas_user`:
+- Exposes all module outputs (`user_id`, `username`, `email_address`, `first_name`, `last_name`, `org_roles`, `project_roles`)
 
 ## v2: Migration
 
