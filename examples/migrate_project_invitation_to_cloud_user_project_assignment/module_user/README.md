@@ -10,7 +10,7 @@ Using the legacy module version that relies on `mongodbatlas_project_invitation`
 
 ## v2: Migration
 
-Update module source to v2. Terraform will plan to delete the old `mongodbatlas_project_invitation` and create the new `mongodbatlas_cloud_user_project_assignment`.
+Update module source to v2. The module's `removed` block will remove the old `mongodbatlas_project_invitation` from state (without deleting it from Atlas), and Terraform will create the new `mongodbatlas_cloud_user_project_assignment`.
 
 ## v3: Cleaned Up Configuration
 

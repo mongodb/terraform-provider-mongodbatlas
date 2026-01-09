@@ -921,7 +921,7 @@ Run `terraform apply` to create the assignment with the new resource & delete th
 
 - **Module users**
   - Upgrade to the new module version and run `terraform plan`.
-  - Expect to see planned creation `mongodbatlas_cloud_user_project_assignment` and deletion of `mongodbatlas_project_invitation`.
+  - Expect to see planned creation of `mongodbatlas_cloud_user_project_assignment` and deletion of `mongodbatlas_project_invitation`.
   - Run `terraform apply`.
   - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment/module_user) for complete implementation.
 

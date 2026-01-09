@@ -11,12 +11,13 @@ This example demonstrates the legacy pattern (prior to v2.0.0) for managing proj
 ## v2: Migration
 
 - Replace `mongodbatlas_project_invitation` with `mongodbatlas_cloud_user_project_assignment`.
-- Terraform will plan to delete the old resource and create the new one.
+- Uses a `removed` block with `destroy = false` to remove the old resource from state without deleting it from Atlas.
+- Terraform will create the new assignment resource.
 
 See `module_user/v2` for an example of how to consume this module.
 
 ## v3: Cleaned Up Configuration
 
 Final module definition after migration is complete:
-- The `moved` block from v2 has been removed since all users have migrated.
+- The `removed` block is not needed since all users have migrated.
 - Uses `mongodbatlas_cloud_user_project_assignment` resource.
