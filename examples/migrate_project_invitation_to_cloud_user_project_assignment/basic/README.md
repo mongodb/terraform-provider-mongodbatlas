@@ -2,19 +2,72 @@
 
 This example demonstrates how to migrate from the deprecated `mongodbatlas_project_invitation` resource to the new `mongodbatlas_cloud_user_project_assignment` resource.
 
-## Migration Phases
+For migration steps, see the [Migration Guide](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/docs/guides/atlas-user-management.md).
 
 ### v1: Initial State (Deprecated Resource)
+
 Shows the original configuration using deprecated `mongodbatlas_project_invitation` for pending invitations.
 
 ### v2: Migration Phase (Re-creation with Removed Block)
+
 Demonstrates the migration approach:
 - Adds new `mongodbatlas_cloud_user_project_assignment` resource
 - Uses `removed` block to cleanly remove old resource from state
 - Shows both removed block and manual state removal options
 
+**Key differences:**
+
+Old resource (`mongodbatlas_project_invitation`):
+- Only managed pending invitations
+- Removed from state when user accepted invitation
+- Limited to invitation lifecycle only
+
+New resource (`mongodbatlas_cloud_user_project_assignment`):
+- Manages active project membership
+- Exposes `user_id` (not available in old resource)
+- Supports import for existing users
+- Works for both pending and active users
+
+**Migration approach:**
+1. **Add new resource**: Re-creates the pending invitation with new API
+2. **Remove old resource**: Uses `removed` block to clean up Terraform state
+3. **Validate**: Check that the new resource works as expected
+
+**Alternative removal method:**
+
+If you prefer manual state removal instead of the `removed` block:
+
+```bash
+# Remove from configuration first, then:
+terraform state rm mongodbatlas_project_invitation.pending_user
+```
+
+**Usage:**
+1. Apply this configuration: `terraform apply`
+2. Review the validation outputs to ensure migration success
+3. Check `migration_validation.ready_for_v3` is `true`
+4. Once validated, proceed to v3
+
+**Expected behavior:**
+- The user should receive a new invitation email (since we're re-creating the invitation)
+- The old invitation remains valid until it expires or is accepted
+- Terraform state is cleaned up properly
+
 ### v3: Final State (New Resource Only)
+
 Clean final configuration using only `mongodbatlas_cloud_user_project_assignment`.
+
+**Key improvements:**
+- **Persistent management**: Resource doesn't disappear when user accepts invitation
+- **User ID access**: Provides user_id for use in other resources
+- **Import support**: Can import existing project members
+- **Cleaner lifecycle**: No surprise state removals
+
+**Enhanced functionality:**
+- **Data source**: Read existing user assignments
+- **Import**: Bring existing project members under Terraform management
+- **User ID exposure**: Reference users by ID in other resources
+- **Active membership**: Manage actual project membership, not just invitations
 
 ## Important Notes
 
@@ -47,6 +100,7 @@ roles       = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"]
 ```
 
 Alternatively, set environment variables:
+
 ```bash
 export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
 export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
