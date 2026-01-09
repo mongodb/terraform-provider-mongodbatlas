@@ -1,23 +1,40 @@
-# Basic Migration Example
+# Migration Example: Team Project Attribute to Team Project Assignment
 
-This example demonstrates direct resource usage for migrating from `mongodbatlas_project.teams` to `mongodbatlas_team_project_assignment`.
+This example demonstrates how to migrate from the deprecated `mongodbatlas_project.teams` attribute to the new `mongodbatlas_team_project_assignment` resource.
 
-For migration steps, see the [Migration Guide](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/docs/guides/atlas-user-management.md).
+## Migration Phases
 
-## v1: Initial State
+### v1: Initial State (Deprecated Resource)
+Shows the original configuration using deprecated `mongodbatlas_project.teams` attribute for team assignments.
 
-Uses the deprecated `mongodbatlas_project.teams` inline block to assign teams to the project.
+### v2: Final State (New Resource Only)
+Update the configuration to use `mongodbatlas_team_project_assignment` and migrate away from deprecated `mongodbatlas_project.teams`.
 
-## v2: Migration
+## Usage
 
-- Add `ignore_changes = [teams]` lifecycle rule to the project.
-- Define `mongodbatlas_team_project_assignment` resources for each team.
-- Add `import` blocks to import existing team-project assignments.
-- Run `terraform plan` — expect `will be imported` for each team assignment.
+1. Start with v1 to understand the original setup with team assignments
+2. Apply v2 configuration to import existing assignments with new resource and no longer use deprecated attribute teams
 
-## v3: Cleaned Up Configuration
+## Prerequisites
 
-Final configuration after migration:
-- Uses only `mongodbatlas_team_project_assignment` resources.
-- Keep `ignore_changes = [teams]` until the provider removes the teams attribute.
-- No import blocks.
+- MongoDB Atlas Terraform Provider 2.0.0 or later
+- Valid MongoDB Atlas and Team IDs
+
+## Variables
+
+Set these variables for all versions:
+
+```terraform
+client_id     = <ATLAS_CLIENT_ID>  # Optional, can use env vars
+client_secret = <ATLAS_CLIENT_SECRET> # Optional, can use env vars
+team_id_1    = <TEAM_ID_1>         # Team to assign
+team_id_2    = <TEAM_ID_2>         # Another team to assign
+team_1_roles = ["GROUP_OWNER"]
+team_2_roles = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_WRITE"]
+```
+
+Alternatively, set environment variables:
+```bash
+export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
+export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
+```
