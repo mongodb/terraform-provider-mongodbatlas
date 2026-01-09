@@ -73,4 +73,4 @@ Read-Only:
 - `masked_secret_value` (String) The masked Service Account secret.
 - `secret_id` (String) Unique 24-hexadecimal digit string that identifies the secret.
 
-For more information, see [MongoDB Atlas API - Return One Organization Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorgserviceaccount) in the MongoDB Atlas API documentation.
+For more information, see [Return One Organization Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorgserviceaccount) in the MongoDB Atlas API documentation.
