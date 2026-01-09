@@ -917,31 +917,23 @@ Run `terraform apply` to create the assignment with the new resource & delete th
   - Keep inputs consistent (`project_id`, `username`, `roles`) so the new resource re-creates the pending invite with the same roles.
   - Remove the deprecated `mongodbatlas_project_invitation` resource block from the module.
   - Publish a new module version.
+  - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment/module_maintainer) for complete implementation.
 
 - **Module users**
   - Upgrade to the new module version and run `terraform plan`.
   - Expect to see planned creation `mongodbatlas_cloud_user_project_assignment` and deletion of `mongodbatlas_project_invitation`.
   - Run `terraform apply`.
+  - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment/module_user) for complete implementation.
 
 ---
 
 ### Examples
 
-For complete, working configurations that demonstrate the migration process, see
-the examples in the provider repository:
-[migrate_project_invitation_to_cloud_user_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_project_invitation_to_cloud_user_project_assignment).
+For complete, working configurations that demonstrate the migration process, see:
 
-The examples include:
-
-- **v1**: Original configuration using deprecated
-  `mongodbatlas_project_invitation`
-- **v2**: Migration phase with re-creation using new resource and clean state
-  removal
-- **v3**: Final clean configuration using only
-  `mongodbatlas_cloud_user_project_assignment`
-
-These examples provide practical validation of the migration steps and
-demonstrate the re-creation approach for pending invitations.
+- Basic usage (v1–v3): [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment/basic)
+- Module maintainer (v1–v3): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment/module_maintainer)
+- Module user (v1–v3): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment/module_user)
 
 ---
 
