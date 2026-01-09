@@ -255,8 +255,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	_, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
 	if err != nil {
-		// Refresh state from API to prevent state corruption when update fails
-		_ = resourceRead(ctx, d, meta)
 		return diag.FromErr(fmt.Errorf(errorMaintenanceUpdate, projectID, err))
 	}
 
@@ -267,7 +265,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	return resourceRead(ctx, d, meta)
+	return nil
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
