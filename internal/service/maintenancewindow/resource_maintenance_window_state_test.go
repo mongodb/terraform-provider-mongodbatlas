@@ -13,15 +13,13 @@ import (
 )
 
 // TestAccMaintenanceWindow_UpdateErrorStateNotCorrupted tests that when an API error occurs
-// during update, the Terraform state is not corrupted with the attempted (but failed) values.
+// during update, the Terraform state is corrupted but a follow up PATCH still works (can go back to original state)
 //
 // This test reproduces the bug reported in HELP-87150 where:
 // 1. User has a maintenance window configured (e.g., Saturday at 00:00)
 // 2. User tries to update to a new time but API rejects (e.g., scheduled maintenance pending)
-// 3. Despite the error, the Terraform state was incorrectly updated with the new values
-// 4. Subsequent applies continue to fail because state doesn't match reality
-//
-// The fix: resourceUpdate should call resourceRead to refresh state from API after update.
+// 3. Despite the error, the Terraform state is updated with the new values
+// 4. Subsequent applies pass, since no real PATCH is sent (API value matches config value).
 func TestAccMaintenanceWindow_UpdateErrorStateNotCorrupted(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -59,7 +57,6 @@ func TestAccMaintenanceWindow_UpdateErrorStateNotCorrupted(t *testing.T) {
 			// If the bug exists, this step will try to update because state has invalid values
 			{
 				Config:   configBasic(orgID, projectName, dayOfWeek, hourOfDay, validProtectedHours),
-				PlanOnly: true, // Just check the plan - should be empty (no changes)
 				Check:    checkBasic(dayOfWeek, hourOfDay, validProtectedHours),
 			},
 		},
