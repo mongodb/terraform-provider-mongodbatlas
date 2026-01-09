@@ -191,24 +191,6 @@ output "service_account_first_secret" {
 
 ---
 
-#### Module considerations
-
-- **Module maintainers**
-  - Add Service Account resources alongside existing PAK resources in the module.
-  - Expose the Service Account secret as a module output.
-  - Document that users should test Service Accounts before removing PAKs.
-  - Publish a new module version.
-
-- **Module users**
-  - Upgrade the module (`terraform init -upgrade`) and run `terraform plan` **but do not apply**.
-  - Review the planned Service Account resources.
-  - Run `terraform apply` to create Service Account resources alongside PAK resources.
-  - Save the Service Account secret from the module output.
-  - Test Service Accounts before proceeding to remove PAK resources.
-  - Once validated, update the module to the version that removes PAK resources, then run `terraform apply`.
-
----
-
 - **Important:** The Service Account secret is only returned once at creation time. Make sure to save it securely before proceeding.
 
 - After successful migration, ensure no references to PAK resources remain in your configuration.
