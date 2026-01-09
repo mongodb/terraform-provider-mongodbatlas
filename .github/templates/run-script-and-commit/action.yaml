@@ -42,7 +42,18 @@ runs:
         token: ${{ inputs.apix_bot_pat }}
         ref: ${{ inputs.branch }}
 
+    - name: Check if Go project
+      id: check-go
+      shell: bash
+      run: |
+        if [ -f "${{ format('{0}go.mod', inputs.repo-path) }}" ]; then
+          echo "is_go_project=true" >> $GITHUB_OUTPUT
+        else
+          echo "is_go_project=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: Set up Go
+      if: steps.check-go.outputs.is_go_project == 'true'
       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
       with:
         go-version-file: ${{ format('{0}go.mod', inputs.repo-path) }}
