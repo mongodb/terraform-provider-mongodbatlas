@@ -24,9 +24,9 @@ inputs:
   passphrase:
     description: "Passphrase for the GPG key."
     required: true
-  repo-path:
-    description: "Path to the repository."
-    default: ""
+  go-mod-path:
+    description: "Path to go.mod file. If the file exists, Go will be set up."
+    default: "go.mod"
     required: false
   branch:
     description: "Branch to checkout."
@@ -43,23 +43,11 @@ runs:
         token: ${{ inputs.apix_bot_pat }}
         ref: ${{ inputs.branch }}
 
-    - name: Check if Go project
-      id: check-go
-      shell: bash
-      run: |
-        GO_MOD_PATH="${{ inputs.repo-path }}go.mod"
-        echo "go_mod_path=$GO_MOD_PATH" >> $GITHUB_OUTPUT
-        if [ -f "$GO_MOD_PATH" ]; then
-          echo "is_go_project=true" >> $GITHUB_OUTPUT
-        else
-          echo "is_go_project=false" >> $GITHUB_OUTPUT
-        fi
-
     - name: Set up Go
-      if: steps.check-go.outputs.is_go_project == 'true'
+      if: ${{ hashFiles(inputs.go-mod-path) != '' }}
       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
       with:
-        go-version-file: ${{ steps.check-go.outputs.go_mod_path }}
+        go-version-file: ${{ inputs.go-mod-path }}
     - name: Run specified script
       shell: bash
       run: ${{ inputs.script_call }}
