@@ -46,7 +46,9 @@ runs:
       id: check-go
       shell: bash
       run: |
-        if [ -f "${{ format('{0}go.mod', inputs.repo-path) }}" ]; then
+        GO_MOD_PATH="${{ inputs.repo-path }}go.mod"
+        echo "go_mod_path=$GO_MOD_PATH" >> $GITHUB_OUTPUT
+        if [ -f "$GO_MOD_PATH" ]; then
           echo "is_go_project=true" >> $GITHUB_OUTPUT
         else
           echo "is_go_project=false" >> $GITHUB_OUTPUT
@@ -56,7 +58,7 @@ runs:
       if: steps.check-go.outputs.is_go_project == 'true'
       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
       with:
-        go-version-file: ${{ format('{0}go.mod', inputs.repo-path) }}
+        go-version-file: ${{ steps.check-go.outputs.go_mod_path }}
     - name: Run specified script
       shell: bash
       run: ${{ inputs.script_call }}
