@@ -1193,33 +1193,27 @@ Run `terraform plan` to ensure no unexpected changes, then `terraform apply`.
 Since data sources don’t live in state, in this case migration is about replacing data sources and updating attribute references (and, if needed, module inputs/outputs).
 
 - **Module maintainers**
-  - Replace deprecated data sources with the new resources as mentioned in above steps.
+  - Replace deprecated data sources with the new data sources as mentioned in above steps.
   - Update attribute references as mentioned above.
   - Publish a new module version.
+  - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_atlas_user_and_atlas_users/module_maintainer) for complete implementation.
 
 - **Module users**
   - Upgrade to the new module version and run `terraform plan`.
-  - Update your references to the module’s outputs/variables to match the new attribute structure (use the mapping above).
+  - Update your references to the module's outputs/variables to match the new attribute structure (use the mapping above).
   - Re-run `terraform plan` to confirm reads succeed and the output shape is as expected, then proceed as usual.
-
+  - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_atlas_user_and_atlas_users/module_user) for complete implementation.
 
 
 ---
 
 ### Examples
 
-For complete, working configurations that demonstrate the migration process, see
-the examples in the provider repository:
-[migrate_atlas_user_and_atlas_users](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_atlas_user_and_atlas_users).
+For complete, working configurations that demonstrate the migration process, see:
 
-The examples include:
-
-- **v1**: Original configuration using deprecated data sources
-- **v2**: Migration phase with side-by-side comparison and validation
-- **v3**: Final clean configuration using only new data sources
-
-These examples provide practical validation of the migration steps and
-demonstrate the attribute mappings in working Terraform code.
+- Basic usage (v1–v3): [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_atlas_user_and_atlas_users/basic)
+- Module maintainer (v1–v3): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_atlas_user_and_atlas_users/module_maintainer)
+- Module user (v1–v3): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_atlas_user_and_atlas_users/module_user)
 
 ---
 
