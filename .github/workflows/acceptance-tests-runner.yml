@@ -280,7 +280,6 @@ jobs:
       resource_policy: ${{ steps.filter.outputs.resource_policy == 'true' || env.mustTrigger == 'true' }}
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
-      serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
@@ -398,8 +397,6 @@ jobs:
             - 'internal/service/searchdeployment/*.go'
           search_index:
             - 'internal/service/searchindex/*.go'
-          serverless:
-            - 'internal/service/serverlessinstance/*.go'
           stream:
             - 'internal/service/streamaccountdetails/*.go'
             - 'internal/service/streamconnection/*.go'
@@ -1325,31 +1322,6 @@ jobs:
           ACCTEST_PACKAGES: ./internal/service/searchindex
         run: make testacc
   
-  serverless:
-    needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.serverless == 'true' || inputs.test_group == 'serverless' }}
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
-      - name: Acceptance Tests
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: |
-            ./internal/service/serverlessinstance
-        run: make testacc
-
   stream:
       needs: [ change-detection, get-provider-version ]
       if: ${{ needs.change-detection.outputs.stream == 'true' || inputs.test_group == 'stream' }}
