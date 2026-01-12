@@ -3,6 +3,11 @@ variable "org_id" {
   type        = string
 }
 
+variable "project_name" {
+  description = "The name of the MongoDB Atlas project"
+  type        = string
+}
+
 variable "team_id_1" {
   description = "The ID of the first team"
   type        = string

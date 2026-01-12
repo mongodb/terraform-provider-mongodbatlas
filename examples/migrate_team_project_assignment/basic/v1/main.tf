@@ -12,7 +12,7 @@ locals {
 
 # Using deprecated team block inside mongodbatlas_project to assign teams to the project
 resource "mongodbatlas_project" "this" {
-  name   = "this"
+  name   = var.project_name
   org_id = var.org_id
 
   dynamic "teams" {

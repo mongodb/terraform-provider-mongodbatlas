@@ -12,7 +12,7 @@ locals {
 
 # Ignore the deprecated teams block in mongodbatlas_project
 resource "mongodbatlas_project" "this" {
-  name   = "this"
+  name   = var.project_name
   org_id = var.org_id
   lifecycle {
     ignore_changes = [teams]
