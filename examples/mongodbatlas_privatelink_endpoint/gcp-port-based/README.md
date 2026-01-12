@@ -1,7 +1,13 @@
-# Example with GCP
+# Example with GCP with Port-Based
 
-This project demonstrates the **legacy PSC architecture** for setting up GCP Private Service Connect with MongoDB Atlas, which requires 50 endpoints.
+This project demonstrates the **new PSC port-based architecture** for setting up GCP Private Service Connect with MongoDB Atlas, which requires only 1 endpoint.
 
+## Architecture Comparison
+
+| Feature | Legacy Architecture | New Port-Based Architecture |
+|---------|-------------------|---------------------------|
+| Endpoints Required | 50 | 1 |
+| `port_mapping_enabled` | `false` (or omitted) | `true` |
 
 ## Dependencies
 
@@ -52,24 +58,9 @@ $ terraform plan
 ```
 This project currently does the below deployments:
 
-- MongoDB Atlas GCP Private Endpoint (legacy architecture with 50 endpoints)
+- MongoDB Atlas GCP Private Endpoint (using new PSC port-based architecture with 1 endpoint)
 - Google resource Compute Network, SubNetwork, Address and Forwarding Rule
 - Google Private Service Connect (PSC)-MongoDB Private Link
-
-## Architecture Options
-
-This example demonstrates the **legacy PSC architecture** which requires 50 endpoints.
-
-For the **new PSC port-based architecture** (which requires only 1 endpoint and is enabled with `port_mapping_enabled = true`), see the [`gcp-port-based`](../gcp-port-based/) example.
-
-### Architecture Comparison
-
-| Feature | Legacy Architecture (this example) | New Port-Based Architecture |
-|---------|-----------------------------------|---------------------------|
-| Endpoints Required | 50 | 1 |
-| `port_mapping_enabled` | `false` (or omitted) | `true` |
-| Setup Complexity | Higher (50 addresses/rules) | Lower (1 address/rule) |
-| Location | This directory | `gcp-port-based/` directory |
 
 **4\. Execute the Terraform apply.**
 
@@ -86,3 +77,24 @@ Once you are finished your testing, ensure you destroy the resources to avoid un
 ``` bash
 $ terraform destroy
 ```
+
+## Key Differences from Legacy Architecture
+
+The main difference in this example is the `port_mapping_enabled = true` setting on the `mongodbatlas_privatelink_endpoint` resource:
+
+```hcl
+resource "mongodbatlas_privatelink_endpoint" "test" {
+  project_id           = var.project_id
+  provider_name        = "GCP"
+  region               = var.gcp_region
+  port_mapping_enabled = true  # This enables the new architecture
+  # ...
+}
+```
+
+With this setting:
+- Only **1 Google Compute Address** is needed (instead of 50)
+- Only **1 Google Compute Forwarding Rule** is needed (instead of 50)
+- The `endpoints` block in `mongodbatlas_privatelink_endpoint_service` contains exactly **1 endpoint**
+
+For the legacy architecture example (50 endpoints), see the [`gcp/`](../gcp/) directory example.

@@ -1,10 +1,12 @@
-# Example with GCP (Legacy Architecture - 50 endpoints)
-# This example demonstrates the legacy PSC architecture which requires 50 endpoints.
-# For the new port-based architecture, see the gcp-port-based directory.
+# Example with GCP with Port-Based (1 endpoint)
+# This example demonstrates the new PSC port-based architecture which requires only 1 endpoint.
+# The new architecture is enabled by setting port_mapping_enabled = true on the endpoint resource.
+# This simplifies setup and management compared to the legacy architecture which requires 50 endpoints.
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id               = var.project_id
   provider_name            = "GCP"
   region                   = var.gcp_region
+  port_mapping_enabled     = true # Enable new PSC port-based architecture (requires 1 endpoint instead of 50)
   delete_on_create_timeout = true
   timeouts {
     create = "10m"
@@ -27,31 +29,35 @@ resource "google_compute_subnetwork" "default" {
   network       = google_compute_network.default.id
 }
 
-# Create Google 50 Addresses (required for legacy architecture)
+# Create Google Address (1 address for new PSC port-based architecture)
+# Note: Legacy architecture requires 50 addresses. With port_mapping_enabled = true, only 1 is needed.
 resource "google_compute_address" "default" {
-  count        = 50
   project      = google_compute_subnetwork.default.project
-  name         = "tf-test${count.index}"
+  name         = "tf-test-psc-endpoint"
   subnetwork   = google_compute_subnetwork.default.id
   address_type = "INTERNAL"
-  address      = "10.0.42.${count.index}"
+  address      = "10.0.42.1"
   region       = google_compute_subnetwork.default.region
 
   depends_on = [mongodbatlas_privatelink_endpoint.test]
 }
 
-# Create 50 Forwarding rules (required for legacy architecture)
+# Create Forwarding Rule (1 rule for new PSC port-based architecture)
+# Note: Legacy architecture requires 50 forwarding rules. With port_mapping_enabled = true, only 1 is needed.
+# The service_attachment_names list will contain exactly one service attachment when using the new architecture.
 resource "google_compute_forwarding_rule" "default" {
-  count                 = 50
-  target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[count.index]
-  project               = google_compute_address.default[count.index].project
-  region                = google_compute_address.default[count.index].region
-  name                  = google_compute_address.default[count.index].name
-  ip_address            = google_compute_address.default[count.index].id
+  target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[0]
+  project               = google_compute_address.default.project
+  region                = google_compute_address.default.region
+  name                  = google_compute_address.default.name
+  ip_address            = google_compute_address.default.id
   network               = google_compute_network.default.id
   load_balancing_scheme = ""
 }
 
+# Create MongoDB Atlas Private Endpoint Service
+# With port_mapping_enabled = true on the endpoint, the endpoints list should contain exactly one endpoint.
+# The endpoint_group_name (endpoint_service_id) is ignored in the new architecture but still required.
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
   project_id               = mongodbatlas_privatelink_endpoint.test.project_id
   private_link_id          = mongodbatlas_privatelink_endpoint.test.private_link_id
@@ -63,13 +69,10 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
     create = "10m"
     delete = "10m"
   }
-  dynamic "endpoints" {
-    for_each = google_compute_address.default
-
-    content {
-      ip_address    = endpoints.value["address"]
-      endpoint_name = google_compute_forwarding_rule.default[endpoints.key].name
-    }
+  # New PSC port-based architecture requires exactly 1 endpoint
+  endpoints {
+    ip_address    = google_compute_address.default.address
+    endpoint_name = google_compute_forwarding_rule.default.name
   }
 
   depends_on = [google_compute_forwarding_rule.default]

@@ -73,7 +73,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 }
 ```
 
-## Example with GCP
+## Example with GCP (Legacy Architecture)
 
 ```terraform
 resource "mongodbatlas_privatelink_endpoint" "test" {
@@ -97,7 +97,7 @@ resource "google_compute_subnetwork" "default" {
   network       = google_compute_network.default.id
 }
 
-# Create Google 50 Addresses
+# Create Google 50 Addresses (required for legacy architecture)
 resource "google_compute_address" "default" {
   count        = 50
   project      = google_compute_subnetwork.default.project
@@ -110,7 +110,7 @@ resource "google_compute_address" "default" {
   depends_on = [mongodbatlas_privatelink_endpoint.test]
 }
 
-# Create 50 Forwarding rules
+# Create 50 Forwarding rules (required for legacy architecture)
 resource "google_compute_forwarding_rule" "default" {
   count                 = 50
   target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[count.index]
@@ -144,10 +144,79 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 
 ```
 
+## Example with GCP (Port-Based Architecture)
+
+The new PSC port-based architecture simplifies setup by requiring only 1 endpoint instead of 50. Enable it by setting `port_mapping_enabled = true` on the endpoint resource.
+
+```terraform
+resource "mongodbatlas_privatelink_endpoint" "test" {
+  project_id           = var.project_id
+  provider_name        = "GCP"
+  region               = var.gcp_region
+  port_mapping_enabled = true # Enable new PSC port-based architecture
+}
+
+# Create a Google Network
+resource "google_compute_network" "default" {
+  project = var.gcp_project
+  name    = "my-network"
+}
+
+# Create a Google Sub Network
+resource "google_compute_subnetwork" "default" {
+  project       = google_compute_network.default.project
+  name          = "my-subnet"
+  ip_cidr_range = "10.0.0.0/16"
+  region        = var.gcp_region
+  network       = google_compute_network.default.id
+}
+
+# Create Google Address (1 address for new PSC port-based architecture)
+resource "google_compute_address" "default" {
+  project      = google_compute_subnetwork.default.project
+  name         = "tf-test-psc-endpoint"
+  subnetwork   = google_compute_subnetwork.default.id
+  address_type = "INTERNAL"
+  address      = "10.0.42.1"
+  region       = google_compute_subnetwork.default.region
+
+  depends_on = [mongodbatlas_privatelink_endpoint.test]
+}
+
+# Create Forwarding Rule (1 rule for new PSC port-based architecture)
+resource "google_compute_forwarding_rule" "default" {
+  target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[0]
+  project               = google_compute_address.default.project
+  region                = google_compute_address.default.region
+  name                  = google_compute_address.default.name
+  ip_address            = google_compute_address.default.id
+  network               = google_compute_network.default.id
+  load_balancing_scheme = ""
+}
+
+resource "mongodbatlas_privatelink_endpoint_service" "test" {
+  project_id          = mongodbatlas_privatelink_endpoint.test.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
+  provider_name       = "GCP"
+  endpoint_service_id = google_compute_network.default.name
+  gcp_project_id      = var.gcp_project
+
+  # New PSC port-based architecture requires exactly 1 endpoint
+  endpoints {
+    ip_address    = google_compute_address.default.address
+    endpoint_name = google_compute_forwarding_rule.default.name
+  }
+
+  depends_on = [google_compute_forwarding_rule.default]
+}
+
+```
+
 ### Further Examples
 - [AWS PrivateLink Endpoint and Service](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
 - [Azure Private Link Endpoint and Service](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/azure)
-- [GCP Private Service Connect Endpoint and Service](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/gcp)
+- [GCP Private Service Connect Endpoint and Service (Legacy Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/gcp)
+- [GCP Private Service Connect Endpoint and Service (Port-Based Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-based)
 
 ## Argument Reference
 
@@ -157,7 +226,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 * `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS`, `AZURE` or `GCP`.
 * `private_endpoint_ip_address` - (Optional) Private IP address of the private endpoint network interface you created in your Azure VNet. Only for `AZURE`.
 * `gcp_project_id` - (Optional) Unique identifier of the GCP project in which you created your endpoints. Only for `GCP`.
-* `endpoints` - (Optional) Collection of individual private endpoints that comprise your endpoint group. Only for `GCP`. See below.
+* `endpoints` - (Optional) Collection of individual private endpoints that comprise your endpoint group. Only for `GCP`. See below. **Note:** For the legacy architecture, 50 endpoints are required. For the new port-based architecture (enabled with `port_mapping_enabled = true` on the endpoint resource), exactly 1 endpoint is required.
 * `timeouts`- (Optional) The duration of time to wait for Private Endpoint Service to be created or deleted. The timeout value is defined by a signed sequence of decimal numbers with a time unit suffix such as: `1h45m`, `300s`, `10m`, etc. The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Private Endpoint create & delete is `2h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 * `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 
@@ -200,7 +269,7 @@ In addition to all arguments above, the following attributes are exported:
 * `endpoint_group_name` - (Optional) Unique identifier of the endpoint group. The endpoint group encompasses all of the endpoints that you created in GCP.
 * `endpoints` - Collection of individual private endpoints that comprise your network endpoint group.
   * `status` - Status of the endpoint. Atlas returns one of the [values shown above](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/#std-label-ref-status-field).
-* `port_mapping_enabled` - Flag that indicates whether this endpoint service uses PSC port-mapping.
+* `port_mapping_enabled` - Flag that indicates whether this endpoint service uses PSC port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the new PSC port-based architecture (requires 1 endpoint). When `false`, it uses the legacy architecture (requires 50 endpoints). Only applicable for GCP provider.
 
 ## Import
 Private Endpoint Link Connection can be imported using project ID and username, in the format `{project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}`, e.g.
