@@ -4,7 +4,7 @@
 
 resource "mongodbatlas_project_service_account" "this" {
   project_id                 = var.project_id
-  name                       = var.service_account_name
+  name                       = var.project_service_account_name
   description                = "Description for the Project Service Account"
   roles                      = var.project_roles
   secret_expires_after_hours = var.secret_expires_after_hours

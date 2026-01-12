@@ -21,7 +21,7 @@ variable "project_id" {
   type        = string
 }
 
-variable "service_account_name" {
+variable "project_service_account_name" {
   description = "Name for the Project Service Account"
   type        = string
   default     = "example-project-service-account"
