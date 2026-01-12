@@ -29,7 +29,7 @@ variable "service_account_name" {
 variable "org_roles" {
   description = "Organization roles for the API Key and Service Account"
   type        = list(string)
-  default     = ["ORG_READ_ONLY"]
+  default     = ["ORG_MEMBER"]
 }
 
 variable "project_roles" {

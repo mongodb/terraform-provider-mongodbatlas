@@ -6,9 +6,9 @@ page_title: "Migration Guide: Programmatic API Keys (PAKs) to Service Accounts (
 
 ## Overview
 
-Service Accounts are the recommended method to manage authentication to the Atlas Administration API. Service Accounts provide improved security over API keys by using the industry standard OAuth 2.0 protocol with the Client Credentials flow. This guide covers migrating from Programmatic API Keys (PAKs) to Service Accounts (SAs) in MongoDB Atlas.
+This guide explains how to migrate from Programmatic API Key (PAK) resources to Service Account (SA) resources.
 
-**Note:** Migration to Service Accounts is **not required**. If you are currently using API Key resources, you may continue to do so. This guide is for users who wish to adopt Service Accounts for greater security or best practices, but existing PAK configurations will continue to work and are supported.
+**Note:** Migration to Service Accounts is **not required**. If you are currently using API Key resources, you may continue to do so. This guide is for users who wish to adopt Service Accounts for greater security or best practices, but existing PAK configurations will continue to work and be supported.
 
 ## Before You Begin
 
@@ -31,7 +31,7 @@ The following table shows the mapping between organization-level PAK resources a
 
 | PAK Resource | Service Account Resource | Notes |
 |--------------|-------------------------|-------|
-| `mongodbatlas_api_key` | `mongodbatlas_service_account` | Organization-level API key / Service Account |
+| `mongodbatlas_api_key` | `mongodbatlas_service_account` | API key / Service Account |
 | `mongodbatlas_api_key_project_assignment` | `mongodbatlas_service_account_project_assignment` | Project assignment |
 | `mongodbatlas_access_list_api_key` | `mongodbatlas_service_account_access_list_entry` | IP access list entry |
 
@@ -41,29 +41,28 @@ The following table shows the mapping between organization-level PAK resources a
 
 For complete working examples, see the [organization-level migration example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_pak_to_service_account/org_level).
 
-### Step 1: Initial State - PAK Resources Only
+### Step 1: Initial Configuration - PAK Resources Only
 
-This is your starting configuration with organization-level PAK resources (org PAK + assignment to project + access list entry):
+Original configuration with PAK resources:
 
 ```terraform
-# Organization-level Programmatic API Key
-resource "mongodbatlas_api_key" "example" {
+resource "mongodbatlas_api_key" "this" {
   org_id      = var.org_id
-  description = "Example API Key for project access"
-  role_names  = ["ORG_READ_ONLY"]
+  description = "Example API Key"
+  role_names  = ["ORG_MEMBER"]
 }
 
 # Project assignment for the API Key
-resource "mongodbatlas_api_key_project_assignment" "example" {
+resource "mongodbatlas_api_key_project_assignment" "this" {
   project_id = var.project_id
-  api_key_id = mongodbatlas_api_key.example.api_key_id
+  api_key_id = mongodbatlas_api_key.this.api_key_id
   roles      = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"]
 }
 
 # IP Access List entry for the API Key
-resource "mongodbatlas_access_list_api_key" "example" {
+resource "mongodbatlas_access_list_api_key" "this" {
   org_id     = var.org_id
-  api_key_id = mongodbatlas_api_key.example.api_key_id
+  api_key_id = mongodbatlas_api_key.this.api_key_id
   cidr_block = "192.168.1.100/32"
   # Alternative: ip_address = "192.168.1.100"
 }
@@ -74,56 +73,31 @@ resource "mongodbatlas_access_list_api_key" "example" {
 Add the Service Account resources to your configuration while keeping the existing PAK resources. This allows both authentication methods to work simultaneously, enabling you to test Service Accounts before removing PAKs.
 
 ```terraform
-# Service Account (new)
-resource "mongodbatlas_service_account" "example" {
+resource "mongodbatlas_service_account" "this" {
   org_id                     = var.org_id
   name                       = "example-service-account"
-  description                = "Example Service Account for project access"
-  roles                      = ["ORG_READ_ONLY"]
+  description                = "Example Service Account"
+  roles                      = ["ORG_MEMBER"]
   secret_expires_after_hours = 2160 # 90 days
 }
 
-# Service Account Project Assignment (new)
-resource "mongodbatlas_service_account_project_assignment" "example" {
+resource "mongodbatlas_service_account_project_assignment" "this" {
   project_id = var.project_id
-  client_id  = mongodbatlas_service_account.example.client_id
+  client_id  = mongodbatlas_service_account.this.client_id
   roles      = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"]
 }
 
-# Service Account Access List Entry (new)
-resource "mongodbatlas_service_account_access_list_entry" "example" {
+resource "mongodbatlas_service_account_access_list_entry" "this" {
   org_id     = var.org_id
-  client_id  = mongodbatlas_service_account.example.client_id
+  client_id  = mongodbatlas_service_account.this.client_id
   cidr_block = "192.168.1.100/32"
   # Alternative: ip_address = "192.168.1.100"
 }
 
-# Output to capture the secret (add this before running apply)
 output "service_account_first_secret" {
   description = "The secret value of the first secret created with the service account. Only available after initial creation."
-  value       = try(mongodbatlas_service_account.example.secrets[0].secret, null)
+  value       = try(mongodbatlas_service_account.this.secrets[0].secret, null)
   sensitive   = true
-}
-```
-
-```terraform
-# Keep existing PAK resources (for now)
-resource "mongodbatlas_api_key" "example" {
-  org_id      = var.org_id
-  description = "Example API Key for project access"
-  role_names  = ["ORG_READ_ONLY"]
-}
-
-resource "mongodbatlas_api_key_project_assignment" "example" {
-  project_id = var.project_id
-  api_key_id = mongodbatlas_api_key.example.api_key_id
-  roles      = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"]
-}
-
-resource "mongodbatlas_access_list_api_key" "example" {
-  org_id     = var.org_id
-  api_key_id = mongodbatlas_api_key.example.api_key_id
-  cidr_block = "192.168.1.100/32"
 }
 ```
 
@@ -131,50 +105,38 @@ resource "mongodbatlas_access_list_api_key" "example" {
 
 1. Run `terraform plan` to review the changes.
 2. Run `terraform apply` to create the Service Account resources.
-3. **Important**: Save the Service Account secret from the output. The secret value is only returned once at creation time.
-
-   You can retrieve it using:
+3. Retrieve and securely store the `service_account_first_secret` value (**warning**: this prints the secret to your terminal):
 
    ```bash
    terraform output -raw service_account_first_secret
    ```
 
-4. Test your Service Account by updating your provider configuration or using it in your applications.
-5. Verify that both PAK and SA authentication methods work correctly.
-6. Re-run `terraform plan` to ensure you have no unexpected changes: `No changes. Your infrastructure matches the configuration.`
+4. Verify that both PAK and SA authentication methods work correctly.
+5. Re-run `terraform plan` to ensure you have no unexpected changes: `No changes. Your infrastructure matches the configuration.`
 
 ### Step 3: Final State - Remove PAK Resources, SA Resources Only
 
-Once you've verified that the Service Account works correctly, remove the PAK resources from your Terraform configuration:
-
-Once you've verified that the Service Account works correctly, remove the PAK resources from your Terraform configuration:
+Once you have verified that the Service Account works correctly, remove the PAK resources from your configuration:
 
 ```terraform
-# Service Account Resources (FINAL STATE)
-resource "mongodbatlas_service_account" "example" {
+resource "mongodbatlas_service_account" "this" {
   org_id                     = var.org_id
   name                       = "example-service-account"
-  description                = "Example Service Account for project access"
-  roles                      = ["ORG_READ_ONLY"]
+  description                = "Example Service Account"
+  roles                      = ["ORG_MEMBER"]
   secret_expires_after_hours = 2160 # 90 days
 }
 
-resource "mongodbatlas_service_account_project_assignment" "example" {
+resource "mongodbatlas_service_account_project_assignment" "this" {
   project_id = var.project_id
-  client_id  = mongodbatlas_service_account.example.client_id
+  client_id  = mongodbatlas_service_account.this.client_id
   roles      = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"]
 }
 
-resource "mongodbatlas_service_account_access_list_entry" "example" {
+resource "mongodbatlas_service_account_access_list_entry" "this" {
   org_id     = var.org_id
-  client_id  = mongodbatlas_service_account.example.client_id
+  client_id  = mongodbatlas_service_account.this.client_id
   cidr_block = "192.168.1.100/32"
-}
-
-output "service_account_first_secret" {
-  description = "The secret value of the first secret created with the service account. Only available after initial creation."
-  value       = try(mongodbatlas_service_account.example.secrets[0].secret, null)
-  sensitive   = true
 }
 ```
 
@@ -188,12 +150,6 @@ output "service_account_first_secret" {
 3. Verify that your applications and infrastructure continue to work with Service Accounts.
 
 4. Re-run `terraform plan` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.`
-
----
-
-- **Important:** The Service Account secret is only returned once at creation time. Make sure to save it securely before proceeding.
-
-- After successful migration, ensure no references to PAK resources remain in your configuration.
 
 
 </details>
@@ -226,13 +182,12 @@ The following table shows the mapping between project-level PAK resources and th
 
 For complete working examples, see the [project-level migration example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_pak_to_service_account/project_level).
 
-### Step 1: Initial State - PAK Resources Only
+### Step 1: Initial Configuration - PAK Resources Only
 
-This is your starting configuration with project-level PAK resources (project PAK + access list entry):
+Original configuration with PAK resources:
 
 ```terraform
-# Project-level Programmatic API Key
-resource "mongodbatlas_project_api_key" "example" {
+resource "mongodbatlas_project_api_key" "this" {
   description = "Example Project API Key"
   project_assignment {
     project_id = var.project_id
@@ -241,9 +196,9 @@ resource "mongodbatlas_project_api_key" "example" {
 }
 
 # IP Access List entry for the API Key
-resource "mongodbatlas_access_list_api_key" "example" {
+resource "mongodbatlas_access_list_api_key" "this" {
   org_id     = var.org_id
-  api_key_id = mongodbatlas_project_api_key.example.api_key_id
+  api_key_id = mongodbatlas_project_api_key.this.api_key_id
   cidr_block = "192.168.1.100/32"
   # Alternative: ip_address = "192.168.1.100"
 }
@@ -254,8 +209,7 @@ resource "mongodbatlas_access_list_api_key" "example" {
 Add the Service Account resources to your configuration while keeping the existing PAK resources. This allows both authentication methods to work simultaneously, enabling you to test Service Accounts before removing PAKs.
 
 ```terraform
-# Project Service Account (new)
-resource "mongodbatlas_project_service_account" "example" {
+resource "mongodbatlas_project_service_account" "this" {
   project_id                 = var.project_id
   name                       = "example-project-service-account"
   description                = "Example Project Service Account"
@@ -263,36 +217,17 @@ resource "mongodbatlas_project_service_account" "example" {
   secret_expires_after_hours = 2160 # 90 days
 }
 
-# Project Service Account Access List Entry (new)
-resource "mongodbatlas_project_service_account_access_list_entry" "example" {
+resource "mongodbatlas_project_service_account_access_list_entry" "this" {
   project_id = var.project_id
-  client_id  = mongodbatlas_project_service_account.example.client_id
+  client_id  = mongodbatlas_project_service_account.this.client_id
   cidr_block = "192.168.1.100/32"
   # Alternative: ip_address = "192.168.1.100"
 }
 
-# Output to capture the secret (add this before running apply)
 output "project_service_account_first_secret" {
   description = "The secret value of the first secret created with the project service account. Only available after initial creation."
-  value       = try(mongodbatlas_project_service_account.example.secrets[0].secret, null)
+  value       = try(mongodbatlas_project_service_account.this.secrets[0].secret, null)
   sensitive   = true
-}
-```
-
-```terraform
-# Keep existing PAK resources (for now)
-resource "mongodbatlas_project_api_key" "example" {
-  description = "Example Project API Key"
-  project_assignment {
-    project_id = var.project_id
-    role_names = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"]
-  }
-}
-
-resource "mongodbatlas_access_list_api_key" "example" {
-  org_id     = var.org_id
-  api_key_id = mongodbatlas_project_api_key.example.api_key_id
-  cidr_block = "192.168.1.100/32"
 }
 ```
 
@@ -300,25 +235,21 @@ resource "mongodbatlas_access_list_api_key" "example" {
 
 1. Run `terraform plan` to review the changes.
 2. Run `terraform apply` to create the Service Account resource.
-3. **Important**: Save the Service Account secret from the output. The secret value is only returned once at creation time.
-
-   You can retrieve it using:
+3. Retrieve and securely store the `project_service_account_first_secret` value (**warning**: this prints the secret to your terminal):
 
    ```bash
    terraform output -raw project_service_account_first_secret
    ```
 
-4. Test your Service Account by updating your provider configuration or using it in your applications.
-5. Verify that both PAK and SA authentication methods work correctly.
-6. Re-run `terraform plan` to ensure you have no unexpected changes: `No changes. Your infrastructure matches the configuration.`
+4. Verify that both PAK and SA authentication methods work correctly.
+5. Re-run `terraform plan` to ensure you have no unexpected changes: `No changes. Your infrastructure matches the configuration.`
 
 ### Step 3: Final State - Remove PAK Resources, SA Resources Only
 
-Once you've verified that the Service Account works correctly, remove the PAK resources from your Terraform configuration:
+Once you have verified that the Service Account works correctly, remove the PAK resources from your configuration:
 
 ```terraform
-# Project Service Account Resources (FINAL STATE)
-resource "mongodbatlas_project_service_account" "example" {
+resource "mongodbatlas_project_service_account" "this" {
   project_id                 = var.project_id
   name                       = "example-project-service-account"
   description                = "Example Project Service Account"
@@ -326,16 +257,10 @@ resource "mongodbatlas_project_service_account" "example" {
   secret_expires_after_hours = 2160 # 90 days
 }
 
-resource "mongodbatlas_project_service_account_access_list_entry" "example" {
+resource "mongodbatlas_project_service_account_access_list_entry" "this" {
   project_id = var.project_id
-  client_id  = mongodbatlas_project_service_account.example.client_id
+  client_id  = mongodbatlas_project_service_account.this.client_id
   cidr_block = "192.168.1.100/32"
-}
-
-output "project_service_account_first_secret" {
-  description = "The secret value of the first secret created with the project service account. Only available after initial creation."
-  value       = try(mongodbatlas_project_service_account.example.secrets[0].secret, null)
-  sensitive   = true
 }
 ```
 
@@ -349,9 +274,3 @@ output "project_service_account_first_secret" {
 3. Verify that your applications and infrastructure continue to work with Service Accounts.
 
 4. Re-run `terraform plan` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.`
-
----
-
-- **Important:** The Service Account secret is only returned once at creation time. Make sure to save it securely before proceeding.
-
-- After successful migration, ensure no references to PAK resources remain in your configuration.

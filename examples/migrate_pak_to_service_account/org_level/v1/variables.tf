@@ -23,7 +23,7 @@ variable "project_id" {
 variable "org_roles" {
   description = "Organization roles for the API Key"
   type        = list(string)
-  default     = ["ORG_READ_ONLY"]
+  default     = ["ORG_MEMBER"]
 }
 
 variable "project_roles" {
