@@ -111,7 +111,7 @@ output "service_account_first_secret" {
    terraform output -raw service_account_first_secret
    ```
 
-4. Verify that both PAK and SA authentication methods work correctly.
+4. Test your Service Account in your applications and verify that both PAK and SA authentication methods work correctly.
 5. Re-run `terraform plan` to ensure you have no unexpected changes: `No changes. Your infrastructure matches the configuration.`
 
 ### Step 3: Final State - Remove PAK Resources, SA Resources Only
@@ -241,7 +241,7 @@ output "project_service_account_first_secret" {
    terraform output -raw project_service_account_first_secret
    ```
 
-4. Verify that both PAK and SA authentication methods work correctly.
+4. Test your Service Account in your applications and verify that both PAK and SA authentication methods work correctly.
 5. Re-run `terraform plan` to ensure you have no unexpected changes: `No changes. Your infrastructure matches the configuration.`
 
 ### Step 3: Final State - Remove PAK Resources, SA Resources Only
