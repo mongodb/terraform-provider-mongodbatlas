@@ -21,6 +21,12 @@ variable "project_id" {
   type        = string
 }
 
+variable "service_account_name" {
+  description = "Name for the Service Account"
+  type        = string
+  default     = "example-service-account"
+}
+
 variable "org_roles" {
   description = "Organization roles for the Service Account"
   type        = list(string)

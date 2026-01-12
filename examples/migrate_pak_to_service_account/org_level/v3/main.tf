@@ -5,7 +5,7 @@
 resource "mongodbatlas_service_account" "this" {
   org_id                     = var.org_id
   name                       = "Name for the Service Account"
-  description                = "Description for the Service Account"
+  description                = var.service_account_name
   roles                      = var.org_roles
   secret_expires_after_hours = var.secret_expires_after_hours
 }

@@ -50,7 +50,7 @@ project_roles       = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"]
 cidr_block          = "192.168.1.100/32"
 ```
 
-For v2, also set:
+For v2 and v3, also set:
 ```terraform
 service_account_name        = "example-service-account" # Optional
 secret_expires_after_hours = 2160                      # Optional, 90 days default
