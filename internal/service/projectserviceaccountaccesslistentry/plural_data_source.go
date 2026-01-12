@@ -1,4 +1,4 @@
-package serviceaccountaccesslistentry
+package projectserviceaccountaccesslistentry
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 var _ datasource.DataSource = &pluralDS{}
 var _ datasource.DataSourceWithConfigure = &pluralDS{}
 
-const pluralDatasourceName = "service_account_access_list_entries"
+const pluralDatasourceName = "project_service_account_access_list_entries"
 
 func PluralDataSource() datasource.DataSource {
 	return &pluralDS{
@@ -31,29 +31,29 @@ type pluralDS struct {
 
 func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(), &conversion.PluralDataSourceSchemaRequest{
-		RequiredFields: []string{"org_id", "client_id"},
+		RequiredFields: []string{"project_id", "client_id"},
 	})
 }
 
 func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var conf TFServiceAccountAccessListEntriesPluralDSModel
+	var conf TFProjectServiceAccountAccessListEntriesPluralDSModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &conf)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	orgID := conf.OrgID.ValueString()
+	projectID := conf.ProjectID.ValueString()
 	clientID := conf.ClientID.ValueString()
 
 	api := d.Client.AtlasV2.ServiceAccountsApi
 	entries, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.ServiceAccountIPAccessListEntry], *http.Response, error) {
-		return api.ListOrgAccessList(ctx, orgID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslist.ItemsPerPage).Execute()
+		return api.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslist.ItemsPerPage).Execute()
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching list", err.Error())
 		return
 	}
 
-	newServiceAccountAccessListsModel := NewTFServiceAccountAccessListEntriesPluralDSModel(orgID, clientID, entries)
-	resp.Diagnostics.Append(resp.State.Set(ctx, newServiceAccountAccessListsModel)...)
+	newProjectServiceAccountAccessListsModel := NewTFProjectServiceAccountAccessListEntriesPluralDSModel(projectID, clientID, entries)
+	resp.Diagnostics.Append(resp.State.Set(ctx, newProjectServiceAccountAccessListsModel)...)
 }
