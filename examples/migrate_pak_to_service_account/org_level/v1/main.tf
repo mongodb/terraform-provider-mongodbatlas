@@ -20,4 +20,3 @@ resource "mongodbatlas_access_list_api_key" "this" {
   cidr_block = var.cidr_block
   # Alternative: ip_address = "192.168.1.100"
 }
-
