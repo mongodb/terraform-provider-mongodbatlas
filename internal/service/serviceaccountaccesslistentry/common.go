@@ -1,4 +1,4 @@
-package serviceaccountaccesslist
+package serviceaccountaccesslistentry
 
 import (
 	"context"

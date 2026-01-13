@@ -3,6 +3,7 @@ package projectserviceaccountaccesslistentry_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -233,8 +234,9 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_project_service_account_access_list_entry" {
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	for name, rs := range s.RootModule().Resources {
+		if name != resourceName {
 			continue
 		}
 
@@ -250,6 +252,9 @@ func checkDestroy(s *terraform.State) error {
 		if entry != nil {
 			return fmt.Errorf("access list entry (%s/%s/%s) still exists", projectID, clientID, cidrOrIP)
 		}
+
+		// Delete the service account (project_service_account DELETE only removes the project assignment)
+		_, _ = acc.ConnV2().ServiceAccountsApi.DeleteOrgServiceAccount(context.Background(), clientID, orgID).Execute()
 		return nil
 	}
 	return nil

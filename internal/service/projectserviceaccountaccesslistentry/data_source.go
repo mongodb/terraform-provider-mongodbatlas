@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	serviceaccountaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/serviceaccountaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	serviceaccountaccesslistentry "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountaccesslistentry"
 	"go.mongodb.org/atlas-sdk/v20250312011/admin"
 )
 
@@ -75,9 +75,9 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 
 	connV2 := d.Client.AtlasV2
 	listPageFunc := func(ctx context.Context, pageNum int) (*admin.PaginatedServiceAccountIPAccessEntry, *http.Response, error) {
-		return connV2.ServiceAccountsApi.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslist.ItemsPerPage).Execute()
+		return connV2.ServiceAccountsApi.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
 	}
-	entry, _, err := serviceaccountaccesslist.ReadAccessListEntry(ctx, nil, listPageFunc, cidrOrIP)
+	entry, _, err := serviceaccountaccesslistentry.ReadAccessListEntry(ctx, nil, listPageFunc, cidrOrIP)
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return

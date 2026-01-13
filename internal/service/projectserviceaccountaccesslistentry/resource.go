@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	serviceaccountaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/serviceaccountaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	serviceaccountaccesslistentry "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountaccesslistentry"
 	"go.mongodb.org/atlas-sdk/v20250312011/admin"
 )
 
@@ -55,7 +55,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	accessListReq := NewMongoDBProjectServiceAccountAccessListEntry(&plan)
 
 	connV2 := r.Client.AtlasV2
-	firstPage, _, err := connV2.ServiceAccountsApi.CreateAccessList(ctx, projectID, clientID, accessListReq).ItemsPerPage(serviceaccountaccesslist.ItemsPerPage).Execute()
+	firstPage, _, err := connV2.ServiceAccountsApi.CreateAccessList(ctx, projectID, clientID, accessListReq).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
@@ -63,9 +63,9 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	cidrOrIP := getCidrOrIP(&plan)
 	listPageFunc := func(ctx context.Context, pageNum int) (*admin.PaginatedServiceAccountIPAccessEntry, *http.Response, error) {
-		return connV2.ServiceAccountsApi.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslist.ItemsPerPage).Execute()
+		return connV2.ServiceAccountsApi.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
 	}
-	entry, _, err := serviceaccountaccesslist.ReadAccessListEntry(ctx, firstPage, listPageFunc, cidrOrIP)
+	entry, _, err := serviceaccountaccesslistentry.ReadAccessListEntry(ctx, firstPage, listPageFunc, cidrOrIP)
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return
@@ -88,9 +88,9 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 
 	connV2 := r.Client.AtlasV2
 	listPageFunc := func(ctx context.Context, pageNum int) (*admin.PaginatedServiceAccountIPAccessEntry, *http.Response, error) {
-		return connV2.ServiceAccountsApi.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslist.ItemsPerPage).Execute()
+		return connV2.ServiceAccountsApi.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
 	}
-	entry, apiResp, err := serviceaccountaccesslist.ReadAccessListEntry(ctx, nil, listPageFunc, cidrOrIP)
+	entry, apiResp, err := serviceaccountaccesslistentry.ReadAccessListEntry(ctx, nil, listPageFunc, cidrOrIP)
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)

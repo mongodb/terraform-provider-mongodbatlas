@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
-	serviceaccountaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/serviceaccountaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	serviceaccountaccesslistentry "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountaccesslistentry"
 	"go.mongodb.org/atlas-sdk/v20250312011/admin"
 )
 
@@ -47,7 +47,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 
 	api := d.Client.AtlasV2.ServiceAccountsApi
 	entries, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.ServiceAccountIPAccessListEntry], *http.Response, error) {
-		return api.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslist.ItemsPerPage).Execute()
+		return api.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching list", err.Error())
