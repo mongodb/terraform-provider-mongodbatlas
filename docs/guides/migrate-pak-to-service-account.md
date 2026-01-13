@@ -8,13 +8,13 @@ page_title: "Migration Guide: Programmatic API Keys (PAKs) to Service Accounts (
 
 This guide explains how to migrate from Programmatic API Key (PAK) resources to Service Account (SA) resources.
 
-**Note:** Migration to Service Accounts is **not required**. If you are currently using API Key resources, you may continue to do so. This guide is for users who wish to adopt Service Accounts for greater security or best practices, but existing PAK configurations will continue to work and be supported.
+**Note:** Migration to Service Accounts is recommended but **not required**. If you are currently using API Key resources, you may continue to do so. This guide is for users who wish to adopt Service Accounts for greater security or best practices, but existing PAK configurations will continue to work and be supported.
 
 ## Before You Begin
 
 - **Backup your Terraform state file** before making any changes.
 - **Test the process in a non-production environment** if possible.
-- **Secrets handling** - Managing Service Accounts with Terraform will expose sensitive organizational secrets in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
+- **Secrets handling** - Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
 
 ---
@@ -26,7 +26,7 @@ This guide explains how to migrate from Programmatic API Key (PAK) resources to 
 
 **Objective**: Migrate from organization-level PAK resources (`mongodbatlas_api_key`, `mongodbatlas_api_key_project_assignment`, `mongodbatlas_access_list_api_key`) to organization-level Service Account resources (`mongodbatlas_service_account`, `mongodbatlas_service_account_project_assignment`, `mongodbatlas_service_account_access_list_entry`).
 
-## Resource Mapping
+### Resource Mapping
 The following table shows the mapping between organization-level PAK resources and their Service Account equivalents:
 
 | PAK Resource | Service Account Resource | Notes |
@@ -37,7 +37,7 @@ The following table shows the mapping between organization-level PAK resources a
 
 ---
 
-## Migration Steps
+### Migration Steps
 
 For complete working examples, see the [organization-level migration example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_pak_to_service_account/org_level).
 
@@ -165,7 +165,7 @@ resource "mongodbatlas_service_account_access_list_entry" "this" {
 
 **Important:** Organization-level resources (`mongodbatlas_service_account`) are the recommended approach. Project-level resources (`mongodbatlas_project_service_account`) should only be used if you do not have organization-level permissions to manage service accounts. Otherwise, use the [Organization-Level Migration](#organization-level-api-keys-to-service-accounts) approach.
 
-## Resource Mapping
+### Resource Mapping
 
 The following table shows the mapping between project-level PAK resources and their Service Account equivalents:
 
@@ -178,7 +178,7 @@ The following table shows the mapping between project-level PAK resources and th
 
 ---
 
-## Migration Steps
+### Migration Steps
 
 For complete working examples, see the [project-level migration example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_pak_to_service_account/project_level).
 
