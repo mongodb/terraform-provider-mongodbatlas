@@ -1,4 +1,4 @@
-# Example with GCP
+# Example with GCP with legacy PSC architecture and MongoDB Atlas Private Endpoint
 
 This project demonstrates the **legacy PSC architecture** for setting up GCP Private Service Connect with MongoDB Atlas, which requires 50 endpoints.
 

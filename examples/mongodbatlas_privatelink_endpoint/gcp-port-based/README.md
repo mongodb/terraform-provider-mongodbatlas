@@ -1,4 +1,4 @@
-# Example with GCP with Port-Based
+# Example with GCP with Port-Based architecture and MongoDB Atlas Private Endpoint
 
 This project demonstrates the **new PSC port-based architecture** for setting up GCP Private Service Connect with MongoDB Atlas, which requires only 1 endpoint.
 
