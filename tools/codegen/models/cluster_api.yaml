@@ -1498,6 +1498,18 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+        - bool:
+            default: false
+          description: Flag that indicates whether the cluster retains backups.
+          computed_optional_required: computed_optional
+          tf_schema_name: retain_backups
+          tf_model_name: RetainBackups
+          api_name: retainBackups
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string:
             default: ISRGROOTX1
           description: Root Certificate Authority that MongoDB Atlas cluster uses. MongoDB Cloud supports Internet Security Research Group.
