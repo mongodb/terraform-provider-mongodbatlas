@@ -206,7 +206,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: The id of the group that the cluster belongs to.
+                      description: Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.
                       computed_optional_required: computed
                       tf_schema_name: cluster_group_id
                       tf_model_name: ClusterGroupId
@@ -385,6 +385,84 @@ schema:
                       tf_schema_name: networking
                       tf_model_name: Networking
                       api_name: networking
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: The Schema Registry provider.
+                      computed_optional_required: computed
+                      tf_schema_name: provider
+                      tf_model_name: Provider
+                      api_name: provider
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Password or Private Key for authentication.
+                                  computed_optional_required: computed
+                                  tf_schema_name: password
+                                  tf_model_name: Password
+                                  api_name: password
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry.
+                                  computed_optional_required: computed
+                                  tf_schema_name: type
+                                  tf_model_name: Type
+                                  api_name: type
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Username or Public Key for authentication.
+                                  computed_optional_required: computed
+                                  tf_schema_name: username
+                                  tf_model_name: Username
+                                  api_name: username
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: Authentication configuration for Schema Registry.
+                      custom_type:
+                        package: customtypes
+                        name: ConnectionsSchemaRegistryAuthentication
+                        model: customtypes.ObjectValue[TFConnectionsSchemaRegistryAuthenticationModel]
+                        schema: customtypes.NewObjectType[TFConnectionsSchemaRegistryAuthenticationModel](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: schema_registry_authentication
+                      tf_model_name: SchemaRegistryAuthentication
+                      api_name: schemaRegistryAuthentication
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - set:
+                        element_type: 4
+                      description: List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.SetValue[types.String]
+                        schema: customtypes.NewSetType[types.String](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: schema_registry_urls
+                      tf_model_name: SchemaRegistryUrls
+                      api_name: schemaRegistryUrls
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false

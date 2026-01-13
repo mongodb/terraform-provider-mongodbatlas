@@ -280,6 +280,48 @@ components:
             $ref: "#/components/schemas/ApiError"
       description: Unauthorized.
   schemas:
+    AIModelsApiKeyResponse:
+      properties:
+        createdAt:
+          description: UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.
+          readOnly: true
+          type: string
+        createdBy:
+          description: Name of the user that created this API key. If no user name is available, the user ID is returned.
+          readOnly: true
+          type: string
+        groupId:
+          description: ID of the Atlas group this API key belongs to.
+          readOnly: true
+          type: string
+        id:
+          description: Identifier used to reference this API key in admin API calls.
+          readOnly: true
+          type: string
+        lastUsedAt:
+          description: UTC date when the API key was last used. This parameter is formatted as an ISO 8601 timestamp.
+          readOnly: true
+          type: string
+        maskedKey:
+          description: A partially obfuscated version of the API key secret returned when the API key was created.
+          example: al-****odu2
+          readOnly: true
+          type: string
+        name:
+          description: Arbitrary string identifier assigned to this API key for convenient identification.
+          maxLength: 250
+          minLength: 1
+          type: string
+        secret:
+          description: "The full API key secret used for interacting with the embedding / reranking service. Note: this will only be fully populated in the response to a create API key request. Responses to get, list, and update requests will not include the secret."
+          example: al-jZsluhPMzPM9CFXepRWwMwvpZDDra6tZMgoAZKdodu2
+          readOnly: true
+          type: string
+        status:
+          description: A string describing the current status of the API key.
+          readOnly: true
+          type: string
+      type: object
     AWSCustomDNSEnabledView:
       properties:
         enabled:
@@ -459,19 +501,10 @@ components:
     AddOrRemoveGroupRole:
       properties:
         groupRole:
-          description: Project-level role.
-          enum:
-            - GROUP_OWNER
-            - GROUP_CLUSTER_MANAGER
-            - GROUP_STREAM_PROCESSING_OWNER
-            - GROUP_DATA_ACCESS_ADMIN
-            - GROUP_DATA_ACCESS_READ_WRITE
-            - GROUP_DATA_ACCESS_READ_ONLY
-            - GROUP_READ_ONLY
-            - GROUP_SEARCH_INDEX_EDITOR
-            - GROUP_BACKUP_MANAGER
-            - GROUP_OBSERVABILITY_VIEWER
-            - GROUP_DATABASE_ACCESS_ADMIN
+          description: Project-level role to assign to or remove from the MongoDB Cloud user.
+          externalDocs:
+            description: MongoDB Cloud User Roles
+            url: https://www.mongodb.com/docs/atlas/reference/user-roles/
           type: string
       required:
         - groupRole
@@ -802,6 +835,26 @@ components:
             $ref: "#/components/schemas/DiskBackupApiPolicyItem"
           type: array
       type: object
+    AiModelsApiKeyCreateRequest:
+      properties:
+        name:
+          description: A name for the new API key that will be created.
+          maxLength: 250
+          minLength: 1
+          type: string
+      required:
+        - name
+      type: object
+    AiModelsApiKeyUpdateRequest:
+      properties:
+        name:
+          description: A new name for the API key.
+          maxLength: 250
+          minLength: 1
+          type: string
+      required:
+        - name
+      type: object
     AlertView:
       description: Alert represents a notice of warning, a threat or a problem in the system. It can reflect a certain event or condition in the system. An Alert can be acknowledged by the user, but stays open until alert condition is resolved in the system.
       properties:
@@ -998,6 +1051,7 @@ components:
             - ENCRYPTION_AT_REST_CONFIG_NO_LONGER_VALID
             - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRING
             - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRED
+            - ACTIVE_LEGACY_TLS_CONNECTIONS
             - MONGOTUNE_ALERT
             - CLUSTER_INSTANCE_STOP_START
             - CLUSTER_INSTANCE_RESYNC_REQUESTED
@@ -1997,6 +2051,17 @@ components:
       readOnly: true
       title: BSON Timestamp
       type: object
+    ApiChartsDashboardImportResponseView:
+      description: Imported dashboard and associated imported items.
+      properties:
+        dashboard:
+          $ref: "#/components/schemas/ImportedDashboard"
+        items:
+          description: Imported items.
+          items:
+            $ref: "#/components/schemas/ImportedItem"
+          type: array
+      type: object
     ApiCheckpointPartView:
       description: Metadata contained in one document that describes the complete snapshot taken for this node.
       properties:
@@ -2397,6 +2462,110 @@ components:
         - instanceSize
         - nodeCount
       type: object
+    ApiStandbyLinkFailoverRequest:
+      description: Request to initiate a failover operation.
+      properties:
+        type:
+          description: Type of failover operation to perform.
+          enum:
+            - UNPLANNED
+            - PLANNED_REVERSE
+            - PLANNED
+          type: string
+      required:
+        - type
+      type: object
+    ApiStandbyLinkFailoverResponse:
+      description: Response containing failover operation details.
+      properties:
+        id:
+          description: Unique 24-hexadecimal digit string that identifies the failover operation.
+          example: 32b6e34b3d91647abb20e7b8
+          pattern: ^([a-f0-9]{24})$
+          readOnly: true
+          type: string
+        standbyLinkId:
+          description: Unique 24-hexadecimal digit string that identifies the standby link.
+          example: 32b6e34b3d91647abb20e7b8
+          pattern: ^([a-f0-9]{24})$
+          readOnly: true
+          type: string
+        status:
+          description: Current status of the failover operation.
+          enum:
+            - INITIALIZING
+            - IN_PROGRESS
+            - COMPLETE
+          readOnly: true
+          type: string
+        type:
+          description: Type of failover operation to perform.
+          enum:
+            - UNPLANNED
+            - PLANNED_REVERSE
+            - PLANNED
+          type: string
+      type: object
+    ApiStandbyLinkRequest:
+      description: Request body for creating a standby link between clusters.
+      properties:
+        activeClusterUniqueId:
+          description: Unique 24-hexadecimal digit string that identifies the active cluster in the standby link.
+          example: 507f191e810c19729de860ea
+          pattern: ^[a-fA-F0-9]{24}$
+          type: string
+        standbyClusterUniqueId:
+          description: Unique 24-hexadecimal digit string that identifies the standby cluster in the standby link.
+          example: 507f191e810c19729de860eb
+          pattern: ^[a-fA-F0-9]{24}$
+          type: string
+      required:
+        - activeClusterUniqueId
+        - standbyClusterUniqueId
+      type: object
+    ApiStandbyLinkResponse:
+      description: Response body containing standby link information.
+      properties:
+        activeClusterUniqueId:
+          description: Unique 24-hexadecimal digit string that identifies the active cluster in the standby link.
+          example: 507f191e810c19729de860ea
+          pattern: ^[a-fA-F0-9]{24}$
+          type: string
+        groupId:
+          description: Unique 24-hexadecimal digit string that identifies the project containing the clusters in the standby link.
+          example: 32b6e34b3d91647abb20e7b8
+          pattern: ^[a-fA-F0-9]{24}$
+          readOnly: true
+          type: string
+        standbyClusterUniqueId:
+          description: Unique 24-hexadecimal digit string that identifies the standby cluster in the standby link.
+          example: 507f191e810c19729de860eb
+          pattern: ^[a-fA-F0-9]{24}$
+          type: string
+        standbyLinkId:
+          description: Unique 24-hexadecimal digit string that identifies the standby link.
+          example: 507f1f77bcf86cd799439011
+          pattern: ^[a-fA-F0-9]{24}$
+          readOnly: true
+          type: string
+        status:
+          description: Current status of the standby link.
+          example: INITIALIZING
+          readOnly: true
+          type: string
+      required:
+        - activeClusterUniqueId
+        - groupId
+        - standbyClusterUniqueId
+        - standbyLinkId
+        - status
+      type: object
+    ApiVersion:
+      properties:
+        version:
+          description: Object representing a version of the Atlas Admin API.
+          type: string
+      type: object
     AtlasClusterOutageSimulationOutageFilter:
       properties:
         cloudProvider:
@@ -2447,6 +2616,48 @@ components:
           type: boolean
       required:
         - name
+      type: object
+    AtlasRateLimitBucketState:
+      description: Configuration and current state of a single rate limit token bucket.
+      properties:
+        capacity:
+          description: The capacity of the bucket.
+          format: int64
+          readOnly: true
+          type: integer
+        name:
+          description: The name of the bucket.
+          readOnly: true
+          type: string
+        remaining:
+          description: The remaining tokens of the bucket.
+          format: int64
+          readOnly: true
+          type: integer
+      readOnly: true
+      type: object
+    AtlasRateLimitInspectionResponse:
+      description: Rate limit inspection response containing bucket states for debugging and monitoring.
+      properties:
+        limits:
+          description: List of bucket states.
+          items:
+            $ref: "#/components/schemas/AtlasRateLimitBucketState"
+          readOnly: true
+          type: array
+        scope:
+          description: The scope type of the rate limit.
+          enum:
+            - GROUP
+            - ORGANIZATION
+            - USER
+            - IP
+          readOnly: true
+          type: string
+        scopeId:
+          description: The scope id associated to the bucket.
+          readOnly: true
+          type: string
       type: object
     AtlasSearchAnalyzer:
       properties:
@@ -2694,6 +2905,10 @@ components:
           items:
             $ref: "#/components/schemas/ReplicationSpec20240805"
           type: array
+        retainBackups:
+          default: false
+          description: Flag that indicates whether the cluster retains backups.
+          type: boolean
         rootCertType:
           default: ISRGROOTX1
           description: Root Certificate Authority that MongoDB Atlas cluster uses. MongoDB Cloud supports Internet Security Research Group.
@@ -4634,7 +4849,7 @@ components:
               readOnly: true
               type: string
             atlasAzureAppId: &a9
-              description: Azure Active Directory Application ID of Atlas.
+              description: Azure Active Directory Application ID of Atlas. This field is optional and will be derived from the Azure subscription if not provided.
               format: uuid
               type: string
             createdDate: &a10
@@ -4805,7 +5020,7 @@ components:
           readOnly: true
           type: string
         atlasAzureAppId:
-          description: Azure Active Directory Application ID of Atlas.
+          description: Azure Active Directory Application ID of Atlas. This field is optional and will be derived from the Azure subscription if not provided.
           format: uuid
           type: string
         lastUpdatedDate:
@@ -4888,7 +5103,7 @@ components:
           readOnly: true
           type: string
         atlasAzureAppId:
-          description: Azure Active Directory Application ID of Atlas.
+          description: Azure Active Directory Application ID of Atlas. This field is optional and will be derived from the Azure subscription if not provided.
           format: uuid
           type: string
         lastUpdatedDate:
@@ -4968,7 +5183,7 @@ components:
           readOnly: true
           type: string
         atlasAzureAppId:
-          description: Azure Active Directory Application ID of Atlas.
+          description: Azure Active Directory Application ID of Atlas. This field is optional and will be derived from the Azure subscription if not provided.
           format: uuid
           type: string
         lastUpdatedDate:
@@ -6003,6 +6218,10 @@ components:
           items:
             $ref: "#/components/schemas/ReplicationSpec20240805"
           type: array
+        retainBackups:
+          default: false
+          description: Flag that indicates whether the cluster retains backups.
+          type: boolean
         rootCertType:
           default: ISRGROOTX1
           description: Root Certificate Authority that MongoDB Atlas cluster uses. MongoDB Cloud supports Internet Security Research Group.
@@ -7022,25 +7241,6 @@ components:
           minLength: 1
           type: string
       title: Component Label
-      type: object
-    ConfluentSchemaRegistryAuthentication:
-      description: Authentication configuration for Confluent Schema Registry.
-      properties:
-        type:
-          description: Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry.
-          enum:
-            - USER_INFO
-            - SASL_INHERIT
-          type: string
-        password:
-          description: Password for USER_INFO authentication. Required.
-          type: string
-          writeOnly: true
-        username:
-          description: Username for USER_INFO authentication. Required.
-          type: string
-      required:
-        - type
       type: object
     ConnectedOrgConfig:
       properties:
@@ -8842,6 +9042,40 @@ components:
         - retentionUnit
         - retentionValue
       type: object
+    DiskBackupCopyPolicyItem:
+      description: Specifications for one copy policy item.
+      properties:
+        frequencyType:
+          description: Human-readable label that identifies the frequency type associated with the copy policy.
+          enum:
+            - daily
+            - hourly
+            - weekly
+            - monthly
+            - yearly
+            - ondemand
+          type: string
+        id:
+          description: Unique 24-hexadecimal digit string that identifies this copy policy item.
+          example: 32b6e34b3d91647abb20e7b8
+          pattern: ^([a-f0-9]{24})$
+          readOnly: true
+          type: string
+        retentionUnit:
+          description: Unit of time in which MongoDB Cloud measures snapshot copy retention.
+          enum:
+            - days
+            - weeks
+            - months
+            - years
+          type: string
+        retentionValue:
+          description: Duration in days, weeks, months, or years that MongoDB Cloud retains the snapshot copy.
+          format: int32
+          type: integer
+      required:
+        - frequencyType
+      type: object
     DiskBackupCopySetting:
       description: Copy setting item in the desired backup policy.
       properties:
@@ -8852,8 +9086,15 @@ components:
             - AZURE
             - GCP
           type: string
+        copyPolicyItems:
+          description: List that describes retention per copy policy item.
+          items:
+            $ref: "#/components/schemas/DiskBackupCopyPolicyItem"
+          maxItems: 6
+          type: array
         frequencies:
-          description: List that describes which types of snapshots to copy.
+          deprecated: true
+          description: "Deprecated: use copyPolicyItems, which now defines which snapshots to copy and their retention."
           items:
             enum:
               - HOURLY
@@ -8863,6 +9104,7 @@ components:
               - YEARLY
               - ON_DEMAND
             type: string
+          maxItems: 6
           type: array
         regionName:
           description: Target region to copy snapshots belonging to replicationSpecId to. Please supply the 'Atlas Region'.
@@ -8892,8 +9134,15 @@ components:
             - AZURE
             - GCP
           type: string
+        copyPolicyItems:
+          description: List that contains a document for each copy policy item.
+          items:
+            $ref: "#/components/schemas/DiskBackupCopyPolicyItem"
+          maxItems: 6
+          type: array
         frequencies:
-          description: List that describes which types of snapshots to copy.
+          deprecated: true
+          description: "Deprecated: use copyPolicyItems, which now defines which snapshots to copy and their retention."
           items:
             enum:
               - HOURLY
@@ -8903,6 +9152,7 @@ components:
               - YEARLY
               - ON_DEMAND
             type: string
+          maxItems: 6
           type: array
         regionName:
           description: Target region to copy snapshots belonging to zoneId. Please supply the 'Atlas Region'.
@@ -10459,9 +10709,10 @@ components:
         - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRING
         - GROUP_SERVICE_ACCOUNT_SECRETS_NO_LONGER_EXPIRED
         - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRED
+        - ACTIVE_LEGACY_TLS_CONNECTIONS
+        - NO_ACTIVE_LEGACY_TLS_CONNECTIONS
         - INTEGRATION_CONFIGURED
         - INTEGRATION_REMOVED
-        - AUTO_CREATED_INDEX_AUDIT
         - ATTEMPT_KILLOP_AUDIT
         - ATTEMPT_KILLSESSION_AUDIT
         - HOST_UP
@@ -10509,7 +10760,6 @@ components:
         - CLUSTER_RESURRECTED
         - CLUSTER_READY
         - CLUSTER_UPDATE_SUBMITTED
-        - CLUSTER_UPDATE_SUBMITTED_INTERNAL
         - CLUSTER_PROCESS_ARGS_UPDATE_SUBMITTED
         - CLUSTER_MONGOT_PROCESS_ARGS_UPDATE_SUBMITTED
         - CLUSTER_SERVER_PARAMETERS_UPDATE_SUBMITTED
@@ -10551,7 +10801,6 @@ components:
         - RELOAD_SSL_ON_PROCESSES
         - RELOAD_SSL_ON_PROCESSES_REQUESTED
         - CLUSTER_INSTANCE_ADMIN_BACKUP_SNAPSHOT_REQUESTED
-        - UPDATE_BUMPER_FILES
         - DATA_LAKE_QUERY_LOGS_DOWNLOADED
         - FEDERATED_DATABASE_QUERY_LOGS_DOWNLOADED
         - ONLINE_ARCHIVE_QUERY_LOGS_DOWNLOADED
@@ -10576,10 +10825,8 @@ components:
         - PLAN_COMPLETED
         - PLAN_ABANDONED
         - PLAN_DECLINED
-        - PLAN_APPROVED
         - PLAN_FAILURE_COUNT_RESET
         - PLAN_ASAP_REQUESTED
-        - INDEPENDENT_SHARD_SCALING_AVAILABLE
         - INDEPENDENT_SHARD_AUTO_SCALING_AVAILABLE
         - INDEPENDENT_SHARD_SCALING_CLUSTER_MIGRATED
         - INDEPENDENT_SHARD_SCALING_CLUSTER_ROLLED_BACK
@@ -10602,7 +10849,6 @@ components:
         - SCHEDULED_MAINTENANCE
         - PROJECT_SCHEDULED_MAINTENANCE
         - PROJECT_LIMIT_UPDATED
-        - PROJECT_OPERATIONAL_LIMIT_UPDATED
         - PROJECT_ENABLE_EXTENDED_STORAGE_SIZES_UPDATED
         - OS_MAINTENANCE
         - OS_MAINTENANCE_RESTART
@@ -10632,13 +10878,11 @@ components:
         - FEDERATED_DATABASE_CREATED
         - FEDERATED_DATABASE_UPDATED
         - FEDERATED_DATABASE_REMOVED
-        - TENANT_CLUSTER_UPGRADE_FROM_MTM
         - TENANT_SNAPSHOT_FAILED
         - TENANT_RESTORE_FAILED
         - SAMPLE_DATASET_LOAD_REQUESTED
         - CUSTOMER_X509_CRL_UPDATED
         - CONTAINER_SUBNETS_UPDATE_REQUESTED
-        - CLEAR_UNPROVISIONED_TARGET_GROUPS_REQUESTED
         - ONLINE_ARCHIVE_CREATED
         - ONLINE_ARCHIVE_DELETED
         - ONLINE_ARCHIVE_UPDATED
@@ -10667,7 +10911,6 @@ components:
         - AUTO_HEALING_REQUESTED_INSTANCE_REPLACEMENT
         - AUTO_HEALING_REQUESTED_NODE_RESYNC
         - EXTRA_MAINTENANCE_DEFERRAL_GRANTED
-        - ADMIN_NOTE_UPDATED
         - GROUP_AUTOMATION_CONFIG_PUBLISHED
         - CLUSTER_AUTOMATION_CONFIG_PUBLISHED
         - SET_ENSURE_CLUSTER_CONNECTIVITY_AFTER_FOR_CLUSTER
@@ -10678,13 +10921,11 @@ components:
         - INGESTION_PIPELINE_CREATED
         - INGESTION_PIPELINE_UPDATED
         - OS_TUNE_FILE_OVERRIDES
-        - CLUSTER_SYSTEMD_OVERRIDES_CHANGED
         - MONITORING_AGENT_OVERRIDES
         - MONITORING_AGENT_REBALANCE_FLAG
         - MONITORING_AGENT_REBALANCE_TRIGGERED
         - CLUSTER_PREFERRED_CPU_ARCHITECTURE_MODIFIED
         - CLUSTER_FORCE_PLANNED
-        - DATA_PROCESSING_REGION_UPDATED
         - CLUSTER_REGIONAL_OUTAGE_SIMULATION_STARTED
         - CLUSTER_REGIONAL_OUTAGE_SIMULATION_FAILED_TO_START
         - CLUSTER_REGIONAL_OUTAGE_SIMULATION_END_REQUESTED
@@ -10765,12 +11006,10 @@ components:
         - MONGOTUNE_WRITE_BLOCK_POLICY_INELIGIBLE
         - PREDICTIVE_AUTOSCALING_ENABLED
         - PREDICTIVE_AUTOSCALING_DISABLED
-        - DEPUTY_SETTINGS_UPDATED
         - SHADOW_CLUSTER_CREATE_EXPOSURE
         - SHADOW_CLUSTER_DELETE_EXPOSURE
         - SHADOW_CLUSTER_RECORDING_STATUS_UPDATE
         - SHADOW_CLUSTER_REPLAY_STATUS_UPDATE
-        - DB_CHECK_SUBMITTED
         - DB_CHECK_UPDATED
         - CLUSTER_SAMPLED_FOR_DB_CHECK
         - DB_CHECK_SCHEDULED_FOR_CLUSTER
@@ -10814,7 +11053,6 @@ components:
         - SERVERLESS_INSTANCE_UPDATE_COMPLETED
         - SERVERLESS_INSTANCE_DELETE_SUBMITTED
         - SERVERLESS_INSTANCE_DELETED
-        - SERVERLESS_INSTANCE_BLOCKED
         - SERVERLESS_INSTANCE_UNBLOCKED
         - TENANT_ENDPOINT_CREATED
         - TENANT_ENDPOINT_RESERVED
@@ -10898,17 +11136,9 @@ components:
         - USER_ROLES_CHANGED_AUDIT
         - JOIN_GROUP_REQUEST_DENIED_AUDIT
         - JOIN_GROUP_REQUEST_APPROVED_AUDIT
-        - CLUSTER_VERSION_FIXED
-        - CLUSTER_VERSION_UNFIXED
         - CLUSTER_FCV_FIXED
         - CLUSTER_FCV_UNFIXED
         - CLUSTER_FCV_EXPIRATION_DATE_UPDATED
-        - ACME_PROVIDER_FIXED
-        - ACME_PROVIDER_UNFIXED
-        - AGENT_VERSION_FIXED
-        - AGENT_VERSION_UNFIXED
-        - FIXED_VERSION_UPDATED
-        - FIXED_AGENT_VERSION_UPDATED
         - CLUSTER_FCV_DOWNGRADED
         - CLUSTER_BINARY_VERSION_DOWNGRADED
         - CLUSTER_BINARY_VERSION_UPGRADED
@@ -10964,7 +11194,6 @@ components:
         - CHECK_PAYMENT_RECEIVED
         - WIRE_TRANSFER_PAYMENT_RECEIVED
         - DISCOUNT_APPLIED
-        - CREDIT_MOVED
         - CREDIT_ISSUED
         - CREDIT_PULLED_FWD
         - CREDIT_END_DATE_MODIFIED
@@ -11115,7 +11344,6 @@ components:
         - ORG_PUBLIC_API_ACCESS_LIST_NOT_REQUIRED
         - ORG_EMPLOYEE_ACCESS_RESTRICTED
         - ORG_EMPLOYEE_ACCESS_UNRESTRICTED
-        - ORG_SFDC_ACCOUNT_ID_CHANGED
         - ORG_CONNECTED_TO_MLAB
         - ORG_DISCONNECTED_FROM_MLAB
         - ORG_IDP_CERTIFICATE_CURRENT
@@ -12824,6 +13052,8 @@ components:
                The 24-hexadecimal string corresponds to a `Replication Specifications` `id` property.
 
               This parameter returns an empty object if no custom zones exist.
+
+              Example: `{"US-VA": "6716c5a804f4ce77e899bf99", "DE": "6716c5a804f4ce77e899bf9a"}`.
             example: 32b6e34b3d91647abb20e7b8
             pattern: ^([a-f0-9]{24})$
             readOnly: true
@@ -12834,6 +13064,8 @@ components:
              The 24-hexadecimal string corresponds to a `Replication Specifications` `id` property.
 
             This parameter returns an empty object if no custom zones exist.
+
+            Example: `{"US-VA": "6716c5a804f4ce77e899bf99", "DE": "6716c5a804f4ce77e899bf9a"}`.
           readOnly: true
           type: object
         managedNamespaces:
@@ -12857,6 +13089,8 @@ components:
                The 24-hexadecimal string corresponds to a `Replication Specifications` `zoneId` property.
 
               This parameter returns an empty object if no custom zones exist.
+
+              Example: `{"US-VA": "6716c5a804f4ce77e899bf99", "DE": "6716c5a804f4ce77e899bf9a"}`.
             example: 32b6e34b3d91647abb20e7b8
             pattern: ^([a-f0-9]{24})$
             readOnly: true
@@ -12867,6 +13101,8 @@ components:
              The 24-hexadecimal string corresponds to a `Replication Specifications` `zoneId` property.
 
             This parameter returns an empty object if no custom zones exist.
+
+            Example: `{"US-VA": "6716c5a804f4ce77e899bf99", "DE": "6716c5a804f4ce77e899bf9a"}`.
           readOnly: true
           type: object
         managedNamespaces:
@@ -13103,19 +13339,10 @@ components:
           type: array
         roles:
           description: One or more organization or project level roles to assign to the MongoDB Cloud user.
+          externalDocs:
+            description: MongoDB Cloud User Roles
+            url: https://www.mongodb.com/docs/atlas/reference/user-roles/
           items:
-            enum:
-              - GROUP_BACKUP_MANAGER
-              - GROUP_CLUSTER_MANAGER
-              - GROUP_DATA_ACCESS_ADMIN
-              - GROUP_DATA_ACCESS_READ_ONLY
-              - GROUP_DATA_ACCESS_READ_WRITE
-              - GROUP_DATABASE_ACCESS_ADMIN
-              - GROUP_OBSERVABILITY_VIEWER
-              - GROUP_OWNER
-              - GROUP_READ_ONLY
-              - GROUP_SEARCH_INDEX_EDITOR
-              - GROUP_STREAM_PROCESSING_OWNER
             type: string
           type: array
           uniqueItems: true
@@ -13129,19 +13356,10 @@ components:
       properties:
         roles:
           description: One or more project level roles to assign to the MongoDB Cloud user.
+          externalDocs:
+            description: MongoDB Cloud User Roles
+            url: https://www.mongodb.com/docs/atlas/reference/user-roles/
           items:
-            enum:
-              - GROUP_BACKUP_MANAGER
-              - GROUP_CLUSTER_MANAGER
-              - GROUP_DATA_ACCESS_ADMIN
-              - GROUP_DATA_ACCESS_READ_ONLY
-              - GROUP_DATA_ACCESS_READ_WRITE
-              - GROUP_DATABASE_ACCESS_ADMIN
-              - GROUP_OBSERVABILITY_VIEWER
-              - GROUP_OWNER
-              - GROUP_READ_ONLY
-              - GROUP_SEARCH_INDEX_EDITOR
-              - GROUP_STREAM_PROCESSING_OWNER
             type: string
           type: array
           uniqueItems: true
@@ -13154,19 +13372,10 @@ components:
       properties:
         roles:
           description: One or more project-level roles to assign to the MongoDB Cloud user.
+          externalDocs:
+            description: MongoDB Cloud User Roles
+            url: https://www.mongodb.com/docs/atlas/reference/user-roles/
           items:
-            enum:
-              - GROUP_BACKUP_MANAGER
-              - GROUP_CLUSTER_MANAGER
-              - GROUP_DATA_ACCESS_ADMIN
-              - GROUP_DATA_ACCESS_READ_ONLY
-              - GROUP_DATA_ACCESS_READ_WRITE
-              - GROUP_DATABASE_ACCESS_ADMIN
-              - GROUP_OBSERVABILITY_VIEWER
-              - GROUP_OWNER
-              - GROUP_READ_ONLY
-              - GROUP_SEARCH_INDEX_EDITOR
-              - GROUP_STREAM_PROCESSING_OWNER
             type: string
           type: array
           uniqueItems: true
@@ -13294,20 +13503,10 @@ components:
           type: string
         groupRoles:
           description: One or more project-level roles assigned to the MongoDB Cloud user.
+          externalDocs:
+            description: MongoDB Cloud User Roles
+            url: https://www.mongodb.com/docs/atlas/reference/user-roles/
           items:
-            description: Project-level role.
-            enum:
-              - GROUP_OWNER
-              - GROUP_CLUSTER_MANAGER
-              - GROUP_STREAM_PROCESSING_OWNER
-              - GROUP_DATA_ACCESS_ADMIN
-              - GROUP_DATA_ACCESS_READ_WRITE
-              - GROUP_DATA_ACCESS_READ_ONLY
-              - GROUP_READ_ONLY
-              - GROUP_SEARCH_INDEX_EDITOR
-              - GROUP_BACKUP_MANAGER
-              - GROUP_OBSERVABILITY_VIEWER
-              - GROUP_DATABASE_ACCESS_ADMIN
             type: string
           type: array
           uniqueItems: true
@@ -13343,20 +13542,10 @@ components:
           type: string
         roles:
           description: A list of Project roles associated with the Service Account.
+          externalDocs:
+            description: Project-level Roles for Service Accounts
+            url: https://www.mongodb.com/docs/atlas/reference/user-roles/
           items:
-            description: Project roles available for Service Accounts.
-            enum:
-              - GROUP_OWNER
-              - GROUP_READ_ONLY
-              - GROUP_DATA_ACCESS_ADMIN
-              - GROUP_DATA_ACCESS_READ_ONLY
-              - GROUP_DATA_ACCESS_READ_WRITE
-              - GROUP_CLUSTER_MANAGER
-              - GROUP_SEARCH_INDEX_EDITOR
-              - GROUP_STREAM_PROCESSING_OWNER
-              - GROUP_BACKUP_MANAGER
-              - GROUP_OBSERVABILITY_VIEWER
-              - GROUP_DATABASE_ACCESS_ADMIN
             type: string
           type: array
           uniqueItems: true
@@ -13383,20 +13572,10 @@ components:
           type: string
         roles:
           description: A list of project-level roles for the Service Account.
+          externalDocs:
+            description: Project-level Roles for Service Accounts
+            url: https://www.mongodb.com/docs/atlas/reference/user-roles/
           items:
-            description: Project roles available for Service Accounts.
-            enum:
-              - GROUP_OWNER
-              - GROUP_READ_ONLY
-              - GROUP_DATA_ACCESS_ADMIN
-              - GROUP_DATA_ACCESS_READ_ONLY
-              - GROUP_DATA_ACCESS_READ_WRITE
-              - GROUP_CLUSTER_MANAGER
-              - GROUP_SEARCH_INDEX_EDITOR
-              - GROUP_STREAM_PROCESSING_OWNER
-              - GROUP_BACKUP_MANAGER
-              - GROUP_OBSERVABILITY_VIEWER
-              - GROUP_DATABASE_ACCESS_ADMIN
             type: string
           minItems: 1
           type: array
@@ -13415,20 +13594,10 @@ components:
       properties:
         roles:
           description: The Project permissions for the Service Account in the specified Project.
+          externalDocs:
+            description: Project-level Roles for Service Accounts
+            url: https://www.mongodb.com/docs/atlas/reference/user-roles/
           items:
-            description: Project roles available for Service Accounts.
-            enum:
-              - GROUP_OWNER
-              - GROUP_READ_ONLY
-              - GROUP_DATA_ACCESS_ADMIN
-              - GROUP_DATA_ACCESS_READ_ONLY
-              - GROUP_DATA_ACCESS_READ_WRITE
-              - GROUP_CLUSTER_MANAGER
-              - GROUP_SEARCH_INDEX_EDITOR
-              - GROUP_STREAM_PROCESSING_OWNER
-              - GROUP_BACKUP_MANAGER
-              - GROUP_OBSERVABILITY_VIEWER
-              - GROUP_DATABASE_ACCESS_ADMIN
             type: string
           minItems: 1
           type: array
@@ -13452,20 +13621,10 @@ components:
           type: string
         roles:
           description: A list of Project roles associated with the Service Account.
+          externalDocs:
+            description: Project-level Roles for Service Accounts
+            url: https://www.mongodb.com/docs/atlas/reference/user-roles/
           items:
-            description: Project roles available for Service Accounts.
-            enum:
-              - GROUP_OWNER
-              - GROUP_READ_ONLY
-              - GROUP_DATA_ACCESS_ADMIN
-              - GROUP_DATA_ACCESS_READ_ONLY
-              - GROUP_DATA_ACCESS_READ_WRITE
-              - GROUP_CLUSTER_MANAGER
-              - GROUP_SEARCH_INDEX_EDITOR
-              - GROUP_STREAM_PROCESSING_OWNER
-              - GROUP_BACKUP_MANAGER
-              - GROUP_OBSERVABILITY_VIEWER
-              - GROUP_DATABASE_ACCESS_ADMIN
             type: string
           type: array
       type: object
@@ -13517,20 +13676,10 @@ components:
       properties:
         roles:
           description: One or more project-level roles to assign the MongoDB Cloud user.
+          externalDocs:
+            description: MongoDB Cloud User Roles
+            url: https://www.mongodb.com/docs/atlas/reference/user-roles/
           items:
-            description: Project-level role.
-            enum:
-              - GROUP_OWNER
-              - GROUP_CLUSTER_MANAGER
-              - GROUP_STREAM_PROCESSING_OWNER
-              - GROUP_DATA_ACCESS_ADMIN
-              - GROUP_DATA_ACCESS_READ_WRITE
-              - GROUP_DATA_ACCESS_READ_ONLY
-              - GROUP_READ_ONLY
-              - GROUP_SEARCH_INDEX_EDITOR
-              - GROUP_BACKUP_MANAGER
-              - GROUP_OBSERVABILITY_VIEWER
-              - GROUP_DATABASE_ACCESS_ADMIN
             type: string
           minItems: 1
           type: array
@@ -13562,20 +13711,10 @@ components:
           type: string
         roles:
           description: One or more project-level roles assigned to the MongoDB Cloud user.
+          externalDocs:
+            description: MongoDB Cloud User Roles
+            url: https://www.mongodb.com/docs/atlas/reference/user-roles/
           items:
-            description: Project-level role.
-            enum:
-              - GROUP_OWNER
-              - GROUP_CLUSTER_MANAGER
-              - GROUP_STREAM_PROCESSING_OWNER
-              - GROUP_DATA_ACCESS_ADMIN
-              - GROUP_DATA_ACCESS_READ_WRITE
-              - GROUP_DATA_ACCESS_READ_ONLY
-              - GROUP_READ_ONLY
-              - GROUP_SEARCH_INDEX_EDITOR
-              - GROUP_BACKUP_MANAGER
-              - GROUP_OBSERVABILITY_VIEWER
-              - GROUP_DATABASE_ACCESS_ADMIN
             type: string
           readOnly: true
           type: array
@@ -13761,6 +13900,38 @@ components:
           readOnly: true
           type: string
       type: object
+    ImportedDashboard:
+      description: Imported dashboard.
+      properties:
+        embeddingId:
+          description: Embedding ID of the item. This field only returns if embedding is enabled for the entity.
+          type: string
+        id:
+          description: ID of the dashboard.
+          type: string
+        title:
+          description: Title of the dashboard.
+          type: string
+      required:
+        - id
+        - title
+      type: object
+    ImportedItem:
+      description: Imported Item.
+      properties:
+        embeddingId:
+          description: Embedding ID of the item. This will only be returned if embedding is enabled for the entity.
+          type: string
+        id:
+          description: ID of the item.
+          type: string
+        title:
+          description: Title of the item.
+          type: string
+      required:
+        - id
+        - title
+      type: object
     InboundControlPlaneCloudProviderIPAddresses:
       description: List of inbound IP addresses to the Atlas control plane, categorized by cloud provider. If your application allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your API requests can reach the Atlas control plane.
       properties:
@@ -13926,6 +14097,28 @@ components:
           type: object
       type: object
       writeOnly: true
+    Info:
+      description: Information about the MongoDB Atlas Administration API OpenAPI Specification.
+      properties:
+        description:
+          description: Description of the MongoDB Atlas Administration API.
+          example: The MongoDB Atlas Administration API allows developers to manage all components in MongoDB Atlas.
+          type: string
+        license:
+          $ref: "#/components/schemas/License"
+        termsOfService:
+          description: Terms of Service URL.
+          example: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
+          type: string
+        title:
+          description: Title of the MongoDB Atlas Administration API.
+          example: MongoDB Atlas Administration API.
+          type: string
+        version:
+          description: Version of the MongoDB Atlas Administration API.
+          example: "2.0"
+          type: string
+      type: object
     IngestionPipelineRun:
       description: Run details of a Data Lake Pipeline.
       properties:
@@ -15507,6 +15700,18 @@ components:
           description: Human-readable label that identifies the zone in a Global Cluster. Provide this value only if **clusterType** is `GEOSHARDED`.
           type: string
       type: object
+    License:
+      description: License information of the MongoDB Atlas Administration API.
+      properties:
+        name:
+          description: Name of the license.
+          example: CC BY-NC-SA 3.0 US
+          type: string
+        url:
+          description: URL of the license.
+          example: https://creativecommons.org/licenses/by-nc-sa/3.0/us/
+          type: string
+      type: object
     Link:
       properties:
         href:
@@ -16585,6 +16790,11 @@ components:
         - type
       title: Online Archive Schedule
       type: object
+    OpenApiInfo:
+      properties:
+        info:
+          $ref: "#/components/schemas/Info"
+      type: object
     OrgFederationSettings:
       description: Details that define how to connect one MongoDB Cloud organization to one federated authentication service.
       properties:
@@ -17042,20 +17252,11 @@ components:
           pattern: ^([a-f0-9]{24})$
           type: string
         roles:
-          description: One or more project level roles to assign to the MongoDB Cloud user.
+          description: One or more project-level roles to assign to the MongoDB Cloud user.
+          externalDocs:
+            description: MongoDB Atlas User Roles
+            url: https://www.mongodb.com/docs/atlas/reference/user-roles/
           items:
-            enum:
-              - GROUP_BACKUP_MANAGER
-              - GROUP_CLUSTER_MANAGER
-              - GROUP_DATA_ACCESS_ADMIN
-              - GROUP_DATA_ACCESS_READ_ONLY
-              - GROUP_DATA_ACCESS_READ_WRITE
-              - GROUP_DATABASE_ACCESS_ADMIN
-              - GROUP_OBSERVABILITY_VIEWER
-              - GROUP_OWNER
-              - GROUP_READ_ONLY
-              - GROUP_SEARCH_INDEX_EDITOR
-              - GROUP_STREAM_PROCESSING_OWNER
             type: string
           type: array
           uniqueItems: true
@@ -17607,6 +17808,78 @@ components:
           readOnly: true
           type: integer
       type: object
+    PaginatedApiSKUView:
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        results:
+          description: List of returned documents that MongoDB Cloud provides when completing this request.
+          items:
+            $ref: "#/components/schemas/SkuResponse"
+          readOnly: true
+          type: array
+        totalCount:
+          description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+      type: object
+    PaginatedApiStandbyLinkFailoverResponse:
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        results:
+          description: List of returned documents that MongoDB Cloud provides when completing this request.
+          items:
+            $ref: "#/components/schemas/ApiStandbyLinkFailoverResponse"
+          readOnly: true
+          type: array
+        totalCount:
+          description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+      type: object
+    PaginatedApiStandbyLinkResponse:
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        results:
+          description: List of returned documents that MongoDB Cloud provides when completing this request.
+          items:
+            $ref: "#/components/schemas/ApiStandbyLinkResponse"
+          readOnly: true
+          type: array
+        totalCount:
+          description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+      type: object
     PaginatedApiStreamsConnectionView:
       properties:
         links:
@@ -17703,6 +17976,54 @@ components:
           readOnly: true
           type: integer
       type: object
+    PaginatedApiStreamsTransitGatewayAttachmentResponse:
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        results:
+          description: List of returned documents that MongoDB Cloud provides when completing this request.
+          items:
+            $ref: "#/components/schemas/StreamsTransitGatewayAttachmentResponse"
+          readOnly: true
+          type: array
+        totalCount:
+          description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+      type: object
+    PaginatedApiStreamsTransitGatewayRouteResponse:
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        results:
+          description: List of returned documents that MongoDB Cloud provides when completing this request.
+          items:
+            $ref: "#/components/schemas/StreamsTransitGatewayRouteResponse"
+          readOnly: true
+          type: array
+        totalCount:
+          description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+      type: object
     PaginatedApiUserAccessListResponseView:
       properties:
         links:
@@ -17727,6 +18048,30 @@ components:
           readOnly: true
           type: integer
       type: object
+    PaginatedApiVersions:
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        results:
+          description: List of returned documents that MongoDB Cloud provides when completing this request.
+          items:
+            $ref: "#/components/schemas/ApiVersion"
+          readOnly: true
+          type: array
+        totalCount:
+          description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+      type: object
     PaginatedAppUserView:
       properties:
         links:
@@ -17742,6 +18087,31 @@ components:
           description: List of returned documents that MongoDB Cloud provides when completing this request.
           items:
             $ref: "#/components/schemas/CloudAppUser"
+          readOnly: true
+          type: array
+        totalCount:
+          description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+      type: object
+    PaginatedAtlasAiModelsApiKeysResponse:
+      description: List response for AI Model API keys at the organization and project level.
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        results:
+          description: List of returned documents that MongoDB Cloud provides when completing this request.
+          items:
+            $ref: "#/components/schemas/AIModelsApiKeyResponse"
           readOnly: true
           type: array
         totalCount:
@@ -18549,6 +18919,31 @@ components:
           readOnly: true
           type: integer
       type: object
+    PaginatedRateLimitEndpointSets:
+      description: A list of rate limit endpoint sets.
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        results:
+          description: List of returned documents that MongoDB Cloud provides when completing this request.
+          items:
+            $ref: "#/components/schemas/RateLimitEndpointSetResponse"
+          readOnly: true
+          type: array
+        totalCount:
+          description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+      type: object
     PaginatedRestoreJobView:
       properties:
         links:
@@ -18710,6 +19105,30 @@ components:
           description: List of returned documents that MongoDB Cloud provides when completing this request.
           items:
             $ref: "#/components/schemas/BackupSnapshot"
+          readOnly: true
+          type: array
+        totalCount:
+          description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+          format: int32
+          minimum: 0
+          readOnly: true
+          type: integer
+      type: object
+    PaginatedStreamsTransitGatewayInvitationsResponse:
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        results:
+          description: List of returned documents that MongoDB Cloud provides when completing this request.
+          items:
+            $ref: "#/components/schemas/StreamsTransitGatewayInvitationsResponse"
           readOnly: true
           type: array
         totalCount:
@@ -19596,6 +20015,90 @@ components:
             $ref: "#/components/schemas/QueryStatsSummary"
           type: array
       type: object
+    RateLimitEndpointSetCapacity:
+      description: The rate limit capacity for the endpoint set.
+      properties:
+        defaultValue:
+          description: The default request capacity of the endpoint set. Returned if there is a capacity override set for the requested entity.
+          format: int64
+          type: integer
+        value:
+          description: The applied request capacity of the endpoint set.
+          format: int64
+          type: integer
+      type: object
+    RateLimitEndpointSetEndpoint:
+      properties:
+        method:
+          description: The HTTP method of the endpoint.
+          enum:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - PATCH
+          type: string
+        path:
+          description: The URL path of the endpoint.
+          example: /api/atlas/v2/rateLimits
+          type: string
+      type: object
+    RateLimitEndpointSetRefillDurationSeconds:
+      description: The rate limit refill duration for the endpoint set.
+      properties:
+        defaultValue:
+          description: The default rate limit refill duration, in seconds, of the endpoint set. Returned if there is a rate limit refill duration override set for the requested entity.
+          format: int64
+          type: integer
+        value:
+          description: The applied rate limit refill duration of the endpoint set.
+          format: int64
+          type: integer
+      type: object
+    RateLimitEndpointSetRefillRate:
+      description: The rate limit refill rate for the endpoint set.
+      properties:
+        defaultValue:
+          description: The default rate limit refill rate of the endpoint set. Returned if there is a rate limit refill rate override set for the requested entity.
+          format: int64
+          type: integer
+        value:
+          description: The applied rate limit refill rate of the endpoint set.
+          format: int64
+          type: integer
+      type: object
+    RateLimitEndpointSetResponse:
+      properties:
+        capacity:
+          $ref: "#/components/schemas/RateLimitEndpointSetCapacity"
+        endpointSetId:
+          description: The ID of the endpoint set.
+          example: rateLimitsInspection_group
+          type: string
+        endpointSetName:
+          description: The endpoint set name.
+          example: Rate Limits Inspection
+          type: string
+        endpoints:
+          description: A list of endpoints associated with the specified endpoint set.
+          items:
+            $ref: "#/components/schemas/RateLimitEndpointSetEndpoint"
+          maxItems: 100
+          type: array
+          uniqueItems: true
+        refillDurationSeconds:
+          $ref: "#/components/schemas/RateLimitEndpointSetRefillDurationSeconds"
+        refillRate:
+          $ref: "#/components/schemas/RateLimitEndpointSetRefillRate"
+        scope:
+          description: The scope of the endpoint set.
+          enum:
+            - IP
+            - GROUP
+            - ORGANIZATION
+            - USER
+          type: string
+      type: object
     RawMetricUnits:
       default: RAW
       description: Element used to express the quantity. This can be an element of time, storage capacity, and the like.
@@ -19961,6 +20464,25 @@ components:
           readOnly: true
           type: string
       type: object
+    SchemaRegistryAuthentication:
+      description: Authentication configuration for Schema Registry.
+      properties:
+        type:
+          description: Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry.
+          enum:
+            - USER_INFO
+            - SASL_INHERIT
+          type: string
+        password:
+          description: Password or Private Key for authentication.
+          type: string
+          writeOnly: true
+        username:
+          description: Username or Public Key for authentication.
+          type: string
+      required:
+        - type
+      type: object
     SearchIndexCreateRequest:
       properties:
         collectionName:
@@ -20203,6 +20725,14 @@ components:
                 - lucene.turkish
                 - lucene.ukrainian
               type: string
+            sort:
+              description: "Sort definition for the index. When defined, the index will be pre-sorted on thespecified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options.The 'order' field is required (1=ascending, -1=descending).The 'noData' field is optional and controls how missing values are sorted(default: \"lowest\")."
+              example:
+                anotherField:
+                  noData: highest
+                  order: -1
+                fieldName: 1
+              type: object
             storedSource:
               description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. Note that storing all fields (true) is not allowed for vector search indexes. To learn more, see Stored Source Fields.
               example:
@@ -20971,6 +21501,17 @@ components:
         - createSupportingIndexes
       type: object
       writeOnly: true
+    SkuResponse:
+      properties:
+        description:
+          description: Human-readable short summary of what this SKU represents.
+          readOnly: true
+          type: string
+        id:
+          description: Unique string that identifies the SKU.
+          readOnly: true
+          type: string
+      type: object
     Source:
       description: Document that describes the source of the migration.
       properties:
@@ -21129,9 +21670,10 @@ components:
             - Https
             - AWSLambda
             - AWSKinesisDataStreams
+            - SchemaRegistry
           type: string
         clusterGroupId:
-          description: The id of the group that the cluster belongs to.
+          description: Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.
           type: string
         clusterName:
           description: Name of the cluster configured for this connection.
@@ -21168,42 +21710,15 @@ components:
           type: string
         aws:
           $ref: "#/components/schemas/StreamsAWSConnectionConfig"
-      readOnly: true
-      type: object
-    StreamsConnectionPrivatePreview:
-      description: Settings that define a connection to an external data store.
-      properties:
-        type:
-          description: Type of the connection.
-          enum:
-            - Kafka
-            - Cluster
-            - Sample
-            - Https
-            - AWSLambda
-            - AWSKinesisDataStreams
-          type: string
-        links:
-          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-          externalDocs:
-            description: Web Linking Specification (RFC 5988)
-            url: https://datatracker.ietf.org/doc/html/rfc5988
-          items:
-            $ref: "#/components/schemas/Link"
-          readOnly: true
-          type: array
-        name:
-          description: Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-          type: string
         provider:
           description: The Schema Registry provider.
           enum:
             - CONFLUENT
           type: string
         schemaRegistryAuthentication:
-          $ref: "#/components/schemas/ConfluentSchemaRegistryAuthentication"
+          $ref: "#/components/schemas/SchemaRegistryAuthentication"
         schemaRegistryUrls:
-          description: List of Schema Registry URLs.
+          description: List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
           items:
             description: Schema Registry URL.
             format: uri
@@ -21211,8 +21726,7 @@ components:
           maxItems: 10
           type: array
           uniqueItems: true
-      required:
-        - type
+      readOnly: true
       type: object
     StreamsDLQ:
       description: Dead letter queue for the stream processor.
@@ -21565,15 +22079,18 @@ components:
           type: string
         vendor:
           description: |-
-            Vendor that manages the cloud service. The following are the vendor values per provider:
+            Vendor that manages the cloud service. The list of supported vendor values is:
             - AWS
             -- MSK for AWS MSK Kafka clusters
             -- CONFLUENT for Confluent Kafka clusters on AWS
-            -- KINESIS for AWS Kinesis Data Streams (coming soon).
+            -- KINESIS for AWS Kinesis Data Streams
 
             - Azure
             -- EVENTHUB for Azure EventHub.
-            -- CONFLUENT for the Confluent Kafka clusters on Azure
+            -- CONFLUENT for Confluent Kafka clusters on Azure
+
+            - GCP
+            -- CONFLUENT for Confluent Kafka clusters on GCP
 
             **NOTE** Omitting the vendor field will default to using the GENERIC vendor.
           type: string
@@ -21796,6 +22313,130 @@ components:
         region:
           $ref: "#/components/schemas/BaseStreamsRegion"
       type: object
+    StreamsTransitGatewayAttachmentRequest:
+      properties:
+        cloudProvider:
+          description: Provider for the transit gateway resources.
+          type: string
+          writeOnly: true
+        regionName:
+          description: AWS region name.
+          type: string
+          writeOnly: true
+        tgwId:
+          description: AWS transit gateway ID.
+          pattern: ^(tgw-)[0-9a-zA-Z]+$
+          type: string
+        vpcId:
+          description: AWS VPC ID.
+          pattern: ^(vpc-)[0-9a-zA-Z]+$
+          type: string
+          writeOnly: true
+      type: object
+    StreamsTransitGatewayAttachmentResponse:
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        tgwAttachmentId:
+          description: The AWS Transit Gateway Attachment ID.
+          pattern: ^(tgw-attach-)[0-9a-zA-Z]+$
+          readOnly: true
+          type: string
+        tgwId:
+          description: AWS transit gateway ID.
+          pattern: ^(tgw-)[0-9a-zA-Z]+$
+          type: string
+      type: object
+    StreamsTransitGatewayInvitationsResponse:
+      properties:
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        tgwId:
+          description: AWS transit gateway ID.
+          pattern: ^(tgw-)[0-9a-zA-Z]+$
+          type: string
+        tgwResourceShareArn:
+          description: AWS Transit Gateway resource share ARN.
+          type: string
+        tgwResourceShareInvitationArn:
+          description: AWS Transit Gateway resource share invitation ARN.
+          type: string
+      type: object
+    StreamsTransitGatewayResourceShare:
+      properties:
+        cloudProvider:
+          description: Provider for the transit gateway resources.
+          type: string
+        links:
+          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+          externalDocs:
+            description: Web Linking Specification (RFC 5988)
+            url: https://datatracker.ietf.org/doc/html/rfc5988
+          items:
+            $ref: "#/components/schemas/Link"
+          readOnly: true
+          type: array
+        regionName:
+          description: AWS Region name.
+          type: string
+        tgwId:
+          description: AWS transit gateway ID.
+          pattern: ^(tgw-)[0-9a-zA-Z]+$
+          type: string
+        tgwResourceShareArn:
+          description: AWS Transit Gateway resource share ARN.
+          type: string
+        tgwResourceShareInvitationArn:
+          description: AWS Transit Gateway resource share invitation ARN.
+          readOnly: true
+          type: string
+      type: object
+    StreamsTransitGatewayRouteRequest:
+      description: Container for metadata needed to create a Transit Gateway route.
+      properties:
+        destinationCidr:
+          description: The route's destination CIDR.
+          type: string
+        region:
+          description: The region of the Atlas VPCs where this route should take effect.
+          type: string
+        tgwId:
+          description: The AWS ID of the Transit Gateway through which traffic will be routed.
+          type: string
+      type: object
+    StreamsTransitGatewayRouteResponse:
+      description: Container for metadata associated with a Transit Gateway route.
+      properties:
+        destinationCidr:
+          description: The route's destination CIDR.
+          type: string
+        region:
+          description: The region of the Atlas VPCs where this route should take effect.
+          type: string
+        tgwId:
+          description: The AWS ID of the Transit Gateway through which traffic will be routed.
+          type: string
+        tgwRouteId:
+          description: The ID of the Transit Gateway route.
+          example: 32b6e34b3d91647abb20e7b8
+          pattern: ^([a-f0-9]{24})$
+          readOnly: true
+          type: string
+      type: object
     SynonymMappingStatusDetail:
       description: Contains the status of the index's synonym mappings on each search host. This field (and its subfields) only appear if the index has synonyms defined.
       properties:
@@ -21939,18 +22580,9 @@ components:
           type: array
         roleNames:
           description: One or more project-level roles to assign to the team.
-          enum:
-            - GROUP_BACKUP_MANAGER
-            - GROUP_CLUSTER_MANAGER
-            - GROUP_DATA_ACCESS_ADMIN
-            - GROUP_DATA_ACCESS_READ_ONLY
-            - GROUP_DATA_ACCESS_READ_WRITE
-            - GROUP_DATABASE_ACCESS_ADMIN
-            - GROUP_OBSERVABILITY_VIEWER
-            - GROUP_OWNER
-            - GROUP_READ_ONLY
-            - GROUP_SEARCH_INDEX_EDITOR
-            - GROUP_STREAM_PROCESSING_OWNER
+          externalDocs:
+            description: MongoDB Cloud User Roles
+            url: https://www.mongodb.com/docs/atlas/reference/user-roles/
           items:
             type: string
           type: array
@@ -22081,7 +22713,7 @@ components:
         type:
           description: Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the third-party service integration type.
           enum:
-            - S3_LOG_EXPORT
+            - MICROSOFT_TEAMS
           type: string
         region:
           default: US
@@ -22223,34 +22855,6 @@ components:
             **NOTE**: When you view or edit the alert for a Microsoft Teams notification, the URL appears partially redacted.
           example: https://webhook.com/****
           type: string
-        bucketName:
-          description: Human-readable label that identifies the S3 bucket name for storing log files.
-          example: my-log-bucket
-          type: string
-        iamRoleId:
-          description: Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
-          example: 507f1f77bcf86cd799439011
-          type: string
-        kmsKey:
-          description: AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
-          example: arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
-          nullable: true
-          type: string
-        logTypes:
-          description: Array of log types to export to S3.
-          example:
-            - MONGOD
-            - MONGOS
-            - MONGOD_AUDIT
-            - MONGOS_AUDIT
-          items:
-            type: string
-          maxItems: 10
-          type: array
-        prefixPath:
-          description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
-          example: mongo-logs/
-          type: string
       title: Third-Party Integration
       type: object
     TimeMetricUnits:
@@ -22342,20 +22946,11 @@ components:
     UpdateGroupRolesForUser:
       properties:
         groupRoles:
-          description: One or more project level roles to assign to the MongoDB Cloud user.
+          description: One or more project-level roles to assign to the MongoDB Cloud user.
+          externalDocs:
+            description: MongoDB Atlas User Roles
+            url: https://www.mongodb.com/docs/atlas/reference/user-roles/
           items:
-            enum:
-              - GROUP_BACKUP_MANAGER
-              - GROUP_CLUSTER_MANAGER
-              - GROUP_DATA_ACCESS_ADMIN
-              - GROUP_DATA_ACCESS_READ_ONLY
-              - GROUP_DATA_ACCESS_READ_WRITE
-              - GROUP_DATABASE_ACCESS_ADMIN
-              - GROUP_OBSERVABILITY_VIEWER
-              - GROUP_OWNER
-              - GROUP_READ_ONLY
-              - GROUP_SEARCH_INDEX_EDITOR
-              - GROUP_STREAM_PROCESSING_OWNER
             type: string
           type: array
           uniqueItems: true
@@ -23023,6 +23618,14 @@ components:
             - lucene.turkish
             - lucene.ukrainian
           type: string
+        sort:
+          description: "Sort definition for the index. When defined, the index will be pre-sorted on thespecified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options.The 'order' field is required (1=ascending, -1=descending).The 'noData' field is optional and controls how missing values are sorted(default: \"lowest\")."
+          example:
+            anotherField:
+              noData: highest
+              order: -1
+            fieldName: 1
+          type: object
         storedSource:
           description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. Note that storing all fields (true) is not allowed for vector search indexes. To learn more, see Stored Source Fields.
           example:
@@ -23187,6 +23790,14 @@ components:
             - lucene.turkish
             - lucene.ukrainian
           type: string
+        sort:
+          description: "Sort definition for the index. When defined, the index will be pre-sorted on thespecified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options.The 'order' field is required (1=ascending, -1=descending).The 'noData' field is optional and controls how missing values are sorted(default: \"lowest\")."
+          example:
+            anotherField:
+              noData: highest
+              order: -1
+            fieldName: 1
+          type: object
         storedSource:
           description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. Note that storing all fields (true) is not allowed for vector search indexes. To learn more, see Stored Source Fields.
           example:
@@ -23252,7 +23863,7 @@ info:
   termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
   title: MongoDB Atlas Administration API
   version: "2.0"
-  x-xgen-sha: a765bfb29d37be514e812f4366a835e0829253f5
+  x-xgen-sha: d0de7f2622f3bbddb54f0870c90bb0ee880e2c34
 openapi: 3.0.1
 paths:
   /api/atlas/v2:
@@ -24420,7 +25031,7 @@ paths:
         verb: deleteEntry
       x-xgen-operation-id-override: deleteAccessListEntry
     get:
-      description: Returns one access list entry from the specified project's IP access list. Each entry in the project's IP access list contains either one IP address or one CIDR-notated block of IP addresses. MongoDB Cloud only allows client connections to the cluster from entries in the project's IP access list. To use this resource, the requesting Service Account or API Key must have the Project Read Only or Project Charts Admin roles. This resource replaces the whitelist resource. MongoDB Cloud removed whitelists in July 2021. Update your applications to use this new resource. This endpoint (`/groups/{GROUP-ID}/accessList`) manages the Project IP Access List. It doesn't manage the access list for MongoDB Cloud organizations. TheProgrammatic API Keys endpoint (`/orgs/{ORG-ID}/apiKeys/{API-KEY-ID}/accesslist`) manages those access lists.
+      description: Returns one access list entry from the specified project's IP access list. Each entry in the project's IP access list contains either one IP address or one CIDR-notated block of IP addresses. MongoDB Cloud only allows client connections to the cluster from entries in the project's IP access list. To use this resource, the requesting Service Account or API Key must have the Project Read Only or Project Charts Admin roles. This resource replaces the whitelist resource. MongoDB Cloud removed whitelists in July 2021. Update your applications to use this new resource. This endpoint (`/groups/{GROUP-ID}/accessList`) manages the Project IP Access List. It doesn't manage the access list for MongoDB Cloud organizations. The Programmatic API Keys endpoint (`/orgs/{ORG-ID}/apiKeys/{API-KEY-ID}/accesslist`) manages those access lists.
       externalDocs:
         description: IP access list
         url: https://docs.atlas.mongodb.com/security/ip-access-list/#std-label-access-list
@@ -24504,6 +25115,196 @@ paths:
         - Project IP Access List
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Project-IP-Access-List/operation/getGroupAccessListStatus
       x-xgen-operation-id-override: getAccessListStatus
+  /api/atlas/v2/groups/{groupId}/aiModelApiKeys:
+    get:
+      description: Retrieve AI model API keys for the given group.
+      operationId: listGroupAiModelApiKeys
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/pageNum"
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedAtlasAiModelsApiKeysResponse"
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: OK
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return AI Model API Keys for One Group
+      tags:
+        - AI Models
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/listGroupAiModelApiKeys
+      x-xgen-operation-id-override: listGroupModelKeys
+    post:
+      description: Create a new AI model API key for the given group.
+      operationId: createGroupAiModelApiKey
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/AiModelsApiKeyCreateRequest"
+        description: A request containing the name of the new API key.
+        required: true
+      responses:
+        "201":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/AIModelsApiKeyResponse"
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: Created
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Create New AI Model API Key
+      tags:
+        - AI Models
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/createGroupAiModelApiKey
+      x-xgen-operation-id-override: createModelApiKey
+  /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}:
+    delete:
+      description: Delete an existing AI model API key in the given group.
+      operationId: deleteGroupAiModelApiKey
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+        - description: The id of the API key to be deleted.
+          in: path
+          name: apiKeyId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          content:
+            application/vnd.atlas.preview+json:
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: This endpoint does not return a response body.
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Delete Existing AI Model API Key
+      tags:
+        - AI Models
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/deleteGroupAiModelApiKey
+      x-xgen-operation-id-override: deleteModelApiKey
+    get:
+      description: Retrieve a single AI model API key for the given group.
+      operationId: getGroupAiModelApiKey
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+        - description: The id of the API key to be retrieved.
+          in: path
+          name: apiKeyId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/AIModelsApiKeyResponse"
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: OK
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return Single AI Model API Key for One Group
+      tags:
+        - AI Models
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/getGroupAiModelApiKey
+      x-xgen-operation-id-override: getGroupModelKey
+    patch:
+      description: Update an existing AI model API key in the given group.
+      operationId: updateGroupAiModelApiKey
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+        - description: The id of the API key to be updated.
+          in: path
+          name: apiKeyId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/AiModelsApiKeyUpdateRequest"
+        description: A request containing the new name for the API key.
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/AIModelsApiKeyResponse"
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Update Existing AI Model API Key
+      tags:
+        - AI Models
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/updateGroupAiModelApiKey
+      x-xgen-operation-id-override: updateModelApiKey
   /api/atlas/v2/groups/{groupId}/alertConfigs:
     get:
       description: |-
@@ -25984,6 +26785,124 @@ paths:
         - Cloud Backups
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Backups/operation/updateGroupBackupCompliancePolicy
       x-xgen-operation-id-override: updateCompliancePolicy
+  /api/atlas/v2/groups/{groupId}/chartsDashboards/{dashboardId}:export:
+    get:
+      description: Exports the specified Charts dashboard. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
+      operationId: exportGroupChartsDashboard
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - description: ID of the dashboard to export.
+          in: path
+          name: dashboardId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                description: This resource returns an exported Charts dashboard. You can use this response to import to the Charts Dashboard Import endpoint.
+                type: string
+              x-xgen-preview:
+                name: charts-dashboards
+                public: "false"
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Export One Charts Dashboard
+      tags:
+        - Charts Dashboards
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Charts-Dashboards/operation/exportGroupChartsDashboard
+      x-xgen-operation-id-override: exportChartsDashboard
+  /api/atlas/v2/groups/{groupId}/chartsDashboards:import:
+    post:
+      description: Imports the Charts dashboard that the template specifies. Optionally, you can specify `overwrite=true` to import into an existing dashboard. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+      operationId: importGroupChartsDashboards
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/groupId"
+        - description: Setting this to true enables importing into an existing dashboard.
+          in: query
+          name: overwrite
+          schema:
+            type: boolean
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            examples:
+              Sample import response body:
+                description: Sample import response body
+                value:
+                  dashboards:
+                    dashboard-1:
+                      description: Dashboard description
+                      embedding:
+                        anonymousAuthEnabled: true
+                      filters: []
+                      layout: []
+                      title: Dashboard title
+                  dataSources:
+                    data-source-1:
+                      alias: "Sample Data: Movies"
+                      collection: movies
+                      database: sample_data
+                      deployment: sample-data-cluster
+                      sourceType: cluster
+                  exportVersion: 9
+                  items:
+                    item-1:
+                      calculatedFields: []
+                      query: null
+                      sample: false
+                  queries: {}
+            schema:
+              type: object
+            x-xgen-preview:
+              name: charts-dashboards
+              public: "false"
+        description: Schema corresponding to the response fetched from an exported dashboard.
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/ApiChartsDashboardImportResponseView"
+              x-xgen-preview:
+                name: charts-dashboards
+                public: "false"
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "429":
+          $ref: "#/components/responses/tooManyRequests"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Import One Charts Dashboard
+      tags:
+        - Charts Dashboards
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Charts-Dashboards/operation/importGroupChartsDashboards
+      x-xgen-operation-id-override: importChartsDashboards
   /api/atlas/v2/groups/{groupId}/cloudProviderAccess:
     get:
       description: Returns all cloud provider access roles with access to the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
@@ -26439,6 +27358,12 @@ paths:
             schema:
               $ref: "#/components/schemas/ClusterDescription20240805"
             x-xgen-version: 2024-10-23
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/ClusterDescription20240805"
+            x-xgen-preview:
+              public: "true"
+            x-xgen-version: preview
         description: Cluster to create in this project.
         required: true
       responses:
@@ -26463,6 +27388,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/ClusterDescription20240805"
               x-xgen-version: 2024-10-23
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/ClusterDescription20240805"
+              x-xgen-IPA-exception:
+                xgen-IPA-106-create-method-request-body-is-request-suffixed-object: Content predates IPA validation.
+                xgen-IPA-106-create-method-request-has-no-readonly-fields: Content predates IPA validation.
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
           description: Created
         "400":
           $ref: "#/components/responses/badRequest"
@@ -26638,6 +27572,12 @@ paths:
             schema:
               $ref: "#/components/schemas/ClusterDescription20240805"
             x-xgen-version: 2024-10-23
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/ClusterDescription20240805"
+            x-xgen-preview:
+              public: "true"
+            x-xgen-version: preview
         description: Cluster to update in the specified project.
         required: true
       responses:
@@ -26662,6 +27602,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/ClusterDescription20240805"
               x-xgen-version: 2024-10-23
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/ClusterDescription20240805"
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
           description: OK
         "400":
           $ref: "#/components/responses/badRequest"
@@ -28564,6 +29510,22 @@ paths:
                 xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation.
               x-xgen-version: 2023-02-01
             application/vnd.atlas.2024-08-05+json:
+              examples:
+                200 Example:
+                  description: 200 Example
+                  value:
+                    customZoneMapping:
+                      DE: 32b6e34b3d91647abb20e7b8
+                      US-VA: 32b6e34b3d91647abb20e7b8
+                    managedNamespaces:
+                      - collection: collectionNameExample
+                        customShardKey: myShardKey
+                        db: DatabaseExample
+                        isCustomShardKeyHashed: false
+                        isShardKeyUnique: false
+                        numInitialChunks: 42
+                        presplitHashedZones: false
+                    selfManagedSharding: true
               schema:
                 $ref: "#/components/schemas/GeoSharding20240805"
               x-xgen-IPA-exception:
@@ -32432,6 +33394,8 @@ paths:
               - bytesProcessed.weekly
               - bytesProcessed.monthly
             type: string
+          x-xgen-IPA-exception:
+            xgen-IPA-117-description-should-not-use-inline-tables: Description predates IPA validation.
       responses:
         "204":
           content:
@@ -32485,6 +33449,8 @@ paths:
               - bytesProcessed.weekly
               - bytesProcessed.monthly
             type: string
+          x-xgen-IPA-exception:
+            xgen-IPA-117-description-should-not-use-inline-tables: Description predates IPA validation.
       responses:
         "200":
           content:
@@ -32539,6 +33505,8 @@ paths:
               - bytesProcessed.weekly
               - bytesProcessed.monthly
             type: string
+          x-xgen-IPA-exception:
+            xgen-IPA-117-description-should-not-use-inline-tables: Description predates IPA validation.
       requestBody:
         content:
           application/vnd.atlas.2023-01-01+json:
@@ -34395,7 +35363,7 @@ paths:
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/listGroupIntegrations
   /api/atlas/v2/groups/{groupId}/integrations/{integrationType}:
     delete:
-      description: Removes the settings that permit configuring one third-party service integration. These settings apply to all databases managed in one MongoDB Cloud project. If you delete an integration from a project, you remove that integration configuration only for that project. This action doesn't affect any other project or organization's configured `{INTEGRATION-TYPE}` integrations. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. Deleting log export to S3, Splunk, and Datadog is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+      description: Removes the settings that permit configuring one third-party service integration. These settings apply to all databases managed in one MongoDB Cloud project. If you delete an integration from a project, you remove that integration configuration only for that project. This action doesn't affect any other project or organization's configured `{INTEGRATION-TYPE}` integrations. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
       operationId: deleteGroupIntegration
       parameters:
         - description: Human-readable label that identifies the service which you want to integrate with MongoDB Cloud.
@@ -34414,7 +35382,6 @@ paths:
               - HIP_CHAT
               - PROMETHEUS
               - MICROSOFT_TEAMS
-              - S3_LOG_EXPORT
             title: Integration Type
             type: string
         - $ref: "#/components/parameters/envelope"
@@ -34439,9 +35406,11 @@ paths:
       summary: Remove One Third-Party Service Integration
       tags:
         - Third-Party Integrations
+      x-xgen-changelog:
+        2026-01-07: Log export to S3, Splunk, and Datadog is not supported by this API.
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/deleteGroupIntegration
     get:
-      description: Returns the settings for configuring integration with one third-party service. These settings apply to all databases managed in one MongoDB Cloud project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role. Viewing log export to S3, Splunk, and Datadog is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+      description: Returns the settings for configuring integration with one third-party service. These settings apply to all databases managed in one MongoDB Cloud project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
       operationId: getGroupIntegration
       parameters:
         - $ref: "#/components/parameters/envelope"
@@ -34463,7 +35432,6 @@ paths:
               - HIP_CHAT
               - PROMETHEUS
               - MICROSOFT_TEAMS
-              - S3_LOG_EXPORT
             title: Integration Type
             type: string
       responses:
@@ -34490,9 +35458,11 @@ paths:
       summary: Return One Third-Party Service Integration
       tags:
         - Third-Party Integrations
+      x-xgen-changelog:
+        2026-01-07: Log export to S3, Splunk, and Datadog is not supported by this API.
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/getGroupIntegration
     post:
-      description: Adds the settings for configuring one third-party service integration. These settings apply to all databases managed in the specified MongoDB Cloud project. Each project can have only one configuration per `{INTEGRATION-TYPE}`. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. Enabling log export to S3, Splunk, and Datadog is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+      description: Adds the settings for configuring one third-party service integration. These settings apply to all databases managed in the specified MongoDB Cloud project. Each project can have only one configuration per `{INTEGRATION-TYPE}`. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
       operationId: createGroupIntegration
       parameters:
         - description: Human-readable label that identifies the service which you want to integrate with MongoDB Cloud.
@@ -34511,7 +35481,6 @@ paths:
               - HIP_CHAT
               - PROMETHEUS
               - MICROSOFT_TEAMS
-              - S3_LOG_EXPORT
             title: Integration Type
             type: string
         - $ref: "#/components/parameters/envelope"
@@ -34550,9 +35519,11 @@ paths:
       summary: Create One Third-Party Service Integration
       tags:
         - Third-Party Integrations
+      x-xgen-changelog:
+        2026-01-07: Log export to S3, Splunk, and Datadog is not supported by this API.
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/createGroupIntegration
     put:
-      description: Updates the settings for configuring integration with one third-party service. These settings apply to all databases managed in one MongoDB Cloud project. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. Enabling log export to S3, Splunk, and Datadog is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+      description: Updates the settings for configuring integration with one third-party service. These settings apply to all databases managed in one MongoDB Cloud project. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
       operationId: updateGroupIntegration
       parameters:
         - description: Human-readable label that identifies the service which you want to integrate with MongoDB Cloud.
@@ -34571,7 +35542,6 @@ paths:
               - HIP_CHAT
               - PROMETHEUS
               - MICROSOFT_TEAMS
-              - S3_LOG_EXPORT
             title: Integration Type
             type: string
         - $ref: "#/components/parameters/envelope"
@@ -34610,6 +35580,8 @@ paths:
       summary: Update One Third-Party Service Integration
       tags:
         - Third-Party Integrations
+      x-xgen-changelog:
+        2026-01-07: Log export to S3, Splunk, and Datadog is not supported by this API.
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/updateGroupIntegration
   /api/atlas/v2/groups/{groupId}/invites:
     get:
@@ -34960,6 +35932,8 @@ paths:
               - atlas.project.deployment.privateServiceConnectionsPerRegionGroup
               - atlas.project.deployment.privateServiceConnectionsSubnetMask
             type: string
+          x-xgen-IPA-exception:
+            xgen-IPA-117-description-should-not-use-inline-tables: Description predates IPA validation.
         - $ref: "#/components/parameters/envelope"
         - $ref: "#/components/parameters/groupId"
         - $ref: "#/components/parameters/pretty"
@@ -35025,6 +35999,8 @@ paths:
               - atlas.project.deployment.privateServiceConnectionsPerRegionGroup
               - atlas.project.deployment.privateServiceConnectionsSubnetMask
             type: string
+          x-xgen-IPA-exception:
+            xgen-IPA-117-description-should-not-use-inline-tables: Description predates IPA validation.
         - $ref: "#/components/parameters/envelope"
         - $ref: "#/components/parameters/groupId"
         - $ref: "#/components/parameters/pretty"
@@ -35097,6 +36073,8 @@ paths:
               - atlas.project.deployment.privateServiceConnectionsPerRegionGroup
               - atlas.project.deployment.privateServiceConnectionsSubnetMask
             type: string
+          x-xgen-IPA-exception:
+            xgen-IPA-117-description-should-not-use-inline-tables: Description predates IPA validation.
         - $ref: "#/components/parameters/envelope"
         - $ref: "#/components/parameters/groupId"
         - $ref: "#/components/parameters/pretty"
@@ -38666,6 +39644,38 @@ paths:
         - Push-Based Log Export
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Push-Based-Log-Export/operation/createGroupPushBasedLogExport
       x-xgen-operation-id-override: createLogExport
+  /api/atlas/v2/groups/{groupId}/ratelimits:
+    get:
+      description: Retrieve rate limiting bucket state for the specified group.
+      operationId: getGroupRatelimits
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/AtlasRateLimitInspectionResponse"
+              x-xgen-preview:
+                name: rate-limit
+                public: "false"
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return Rate Limit State for One Group
+      tags:
+        - Rate Limit
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limit/operation/getGroupRatelimits
   /api/atlas/v2/groups/{groupId}/sampleDatasetLoad/{name}:
     post:
       description: Requests loading the MongoDB sample dataset into the specified cluster. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
@@ -38783,7 +39793,7 @@ paths:
       description: |-
         Returns details for all serverless instances in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
-        This endpoint also lists Flex clusters that were created using the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or former Serverless instances that have been migrated to Flex clusters, until January 2026 after which this endpoint will be sunset. Continuous backups are not supported and serverlessContinuousBackupEnabled will not take effect on these clusters. Please use the listFlexClusters endpoint instead.
+        This endpoint also lists Flex clusters that were created using the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or former Serverless instances that have been migrated to Flex clusters, until January 2026 after which this endpoint will begin returning an empty list. The endpoint will be removed entirely in January 2027. Continuous backups are not supported and serverlessContinuousBackupEnabled will not take effect on these clusters. Please use the listFlexClusters endpoint instead.
       externalDocs:
         description: listFlexClusters
         url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Clusters/operation/listFlexClusters
@@ -38801,7 +39811,7 @@ paths:
             application/vnd.atlas.2023-01-01+json:
               schema:
                 $ref: "#/components/schemas/PaginatedServerlessInstanceDescriptionView"
-              x-sunset: 2026-01-15
+              x-sunset: 2027-01-15
               x-xgen-version: 2023-01-01
           description: OK
         "401":
@@ -39286,7 +40296,7 @@ paths:
       description: |-
         Returns details for one serverless instance in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
-        This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. Continuous backups are not supported and serverlessContinuousBackupEnabled will not take effect on these clusters. This endpoint will be sunset in January 2026. Please use the getFlexCluster endpoint instead.
+        This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. Continuous backups are not supported and serverlessContinuousBackupEnabled will not take effect on these clusters. This endpoint will be sunset in January 2027. Please use the getFlexCluster endpoint instead.
       externalDocs:
         description: getFlexCluster
         url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Clusters/operation/getFlexCluster
@@ -39308,7 +40318,7 @@ paths:
             application/vnd.atlas.2023-01-01+json:
               schema:
                 $ref: "#/components/schemas/ServerlessInstanceDescription"
-              x-sunset: 2026-01-15
+              x-sunset: 2027-01-15
               x-xgen-IPA-exception:
                 xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation.
               x-xgen-version: 2023-01-01
@@ -39910,6 +40920,340 @@ paths:
       tags:
         - Projects
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Projects/operation/updateGroupSettings
+  /api/atlas/v2/groups/{groupId}/standbyLinks:
+    get:
+      description: Returns all standby links for the specified project. Each standby link represents a disaster recovery relationship between an active cluster and a standby cluster.
+      operationId: listGroupStandbyLinks
+      parameters:
+        - description: Unique 24-hexadecimal digit string that identifies the project.
+          in: path
+          name: groupId
+          required: true
+          schema:
+            pattern: ^[a-fA-F0-9]{24}$
+            type: string
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/pageNum"
+        - $ref: "#/components/parameters/pretty"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedApiStandbyLinkResponse"
+              x-xgen-preview:
+                name: standby-links
+              x-xgen-version: preview
+          description: OK
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return All Standby Links for One Project
+      tags:
+        - Standby Links
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Standby-Links/operation/listGroupStandbyLinks
+    post:
+      description: Creates a disaster recovery standby link between an active cluster and a standby cluster. Both clusters must not already be part of a standby link system, must be single-region clusters, and must be in different regions.
+      operationId: createGroupStandbyLink
+      parameters:
+        - description: Unique 24-hexadecimal digit string that identifies the project containing the clusters.
+          in: path
+          name: groupId
+          required: true
+          schema:
+            pattern: ^[a-fA-F0-9]{24}$
+            type: string
+        - description: Flag that indicates whether to wrap the response in an envelope.
+          in: query
+          name: envelope
+          schema:
+            type: boolean
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/ApiStandbyLinkRequest"
+        description: Request body containing the active and standby cluster identifiers.
+        required: true
+      responses:
+        "201":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/ApiStandbyLinkResponse"
+              x-xgen-preview:
+                name: standby-links
+              x-xgen-version: preview
+          description: Standby link created successfully.
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Create Standby Link
+      tags:
+        - Standby Links
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Standby-Links/operation/createGroupStandbyLink
+  /api/atlas/v2/groups/{groupId}/standbyLinks/{standbyLinkId}:
+    delete:
+      description: Terminates an existing standby link and converts the active and standby clusters back to regular clusters.
+      operationId: deleteGroupStandbyLink
+      parameters:
+        - description: Unique 24-hexadecimal digit string that identifies the project.
+          in: path
+          name: groupId
+          required: true
+          schema:
+            pattern: ^[a-fA-F0-9]{24}$
+            type: string
+        - description: Unique 24-hexadecimal digit string that identifies the standby link.
+          in: path
+          name: standbyLinkId
+          required: true
+          schema:
+            pattern: ^[a-fA-F0-9]{24}$
+            type: string
+        - description: Flag that indicates whether to wrap the response in an envelope.
+          in: query
+          name: envelope
+          schema:
+            type: boolean
+      responses:
+        "204":
+          content:
+            application/vnd.atlas.preview+json:
+              x-xgen-preview:
+                name: standby-links
+          description: Standby link deleted successfully.
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Delete Standby Link
+      tags:
+        - Standby Links
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Standby-Links/operation/deleteGroupStandbyLink
+    get:
+      description: Returns detailed information about a specific standby link including status, group ID, and cluster unique IDs.
+      operationId: getGroupStandbyLink
+      parameters:
+        - description: Unique 24-hexadecimal digit string that identifies the project.
+          in: path
+          name: groupId
+          required: true
+          schema:
+            pattern: ^[a-fA-F0-9]{24}$
+            type: string
+        - description: Unique 24-hexadecimal digit string that identifies the standby link.
+          in: path
+          name: standbyLinkId
+          required: true
+          schema:
+            pattern: ^[a-fA-F0-9]{24}$
+            type: string
+        - description: Flag that indicates whether to wrap the response in an envelope.
+          in: query
+          name: envelope
+          schema:
+            type: boolean
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/ApiStandbyLinkResponse"
+              x-xgen-preview:
+                name: standby-links
+              x-xgen-version: preview
+          description: Standby link retrieved successfully.
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return One Standby Link
+      tags:
+        - Standby Links
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Standby-Links/operation/getGroupStandbyLink
+  /api/atlas/v2/groups/{groupId}/standbyLinks/{standbyLinkId}/failovers:
+    get:
+      description: Returns all failover operations for the specified standby link. Each failover represents a planned or unplanned process to promote a standby cluster to an active cluster.
+      operationId: listGroupStandbyLinkFailovers
+      parameters:
+        - description: Unique 24-hexadecimal digit string that identifies the project.
+          in: path
+          name: groupId
+          required: true
+          schema:
+            pattern: ^[a-fA-F0-9]{24}$
+            type: string
+        - description: Unique 24-hexadecimal digit string that identifies the standby link.
+          in: path
+          name: standbyLinkId
+          required: true
+          schema:
+            pattern: ^[a-fA-F0-9]{24}$
+            type: string
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/pageNum"
+        - $ref: "#/components/parameters/pretty"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedApiStandbyLinkFailoverResponse"
+              x-xgen-preview:
+                name: standby-links
+              x-xgen-version: preview
+          description: OK
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return All Standby Link Failovers
+      tags:
+        - Standby Links
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Standby-Links/operation/listGroupStandbyLinkFailovers
+      x-xgen-operation-id-override: listStandbyLinkFailovers
+    post:
+      description: Creates a new failover operation to promote a standby cluster or reverse cluster roles. The standby link must be in ACTIVE status to initiate a failover.
+      operationId: createGroupStandbyLinkFailover
+      parameters:
+        - description: Unique 24-hexadecimal digit string that identifies the project.
+          in: path
+          name: groupId
+          required: true
+          schema:
+            pattern: ^[a-fA-F0-9]{24}$
+            type: string
+        - description: Unique 24-hexadecimal digit string that identifies the standby link.
+          in: path
+          name: standbyLinkId
+          required: true
+          schema:
+            pattern: ^[a-fA-F0-9]{24}$
+            type: string
+        - description: Flag that indicates whether to wrap the response in an envelope.
+          in: query
+          name: envelope
+          schema:
+            type: boolean
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/ApiStandbyLinkFailoverRequest"
+        description: Request body containing the failover type (PLANNED or UNPLANNED).
+        required: true
+      responses:
+        "201":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/ApiStandbyLinkFailoverResponse"
+              x-xgen-preview:
+                name: standby-links
+              x-xgen-version: preview
+          description: Failover operation created successfully.
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Create Standby Link Failover
+      tags:
+        - Standby Links
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Standby-Links/operation/createGroupStandbyLinkFailover
+      x-xgen-operation-id-override: createStandbyLinkFailover
+  /api/atlas/v2/groups/{groupId}/standbyLinks/{standbyLinkId}/failovers/{failoverId}:
+    get:
+      description: Returns the current status and details of a specific failover operation for a standby link.
+      operationId: getGroupStandbyLinkFailover
+      parameters:
+        - description: Unique 24-hexadecimal digit string that identifies the project.
+          in: path
+          name: groupId
+          required: true
+          schema:
+            pattern: ^[a-fA-F0-9]{24}$
+            type: string
+        - description: Unique 24-hexadecimal digit string that identifies the standby link.
+          in: path
+          name: standbyLinkId
+          required: true
+          schema:
+            pattern: ^[a-fA-F0-9]{24}$
+            type: string
+        - description: Unique 24-hexadecimal digit string that identifies the failover operation.
+          in: path
+          name: failoverId
+          required: true
+          schema:
+            pattern: ^[a-fA-F0-9]{24}$
+            type: string
+        - description: Flag that indicates whether to wrap the response in an envelope.
+          in: query
+          name: envelope
+          schema:
+            type: boolean
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/ApiStandbyLinkFailoverResponse"
+              x-xgen-preview:
+                name: standby-links
+              x-xgen-version: preview
+          description: Failover operation retrieved successfully.
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return One Standby Link Failover
+      tags:
+        - Standby Links
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Standby-Links/operation/getGroupStandbyLinkFailover
+      x-xgen-operation-id-override: getStandbyLinkFailover
   /api/atlas/v2/groups/{groupId}/streams:
     get:
       description: Returns all stream workspaces for the specified project.
@@ -40237,12 +41581,6 @@ paths:
           application/vnd.atlas.2023-02-01+json:
             schema:
               $ref: "#/components/schemas/StreamsConnection"
-          application/vnd.atlas.preview+json:
-            schema:
-              $ref: "#/components/schemas/StreamsConnectionPrivatePreview"
-            x-xgen-preview:
-              name: stream-connection
-            x-xgen-version: preview
         description: Details to create one connection for a streams workspace in the specified project.
         required: true
       responses:
@@ -40252,12 +41590,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/StreamsConnection"
               x-xgen-version: 2023-02-01
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/StreamsConnectionPrivatePreview"
-              x-xgen-preview:
-                name: stream-connection
-              x-xgen-version: preview
           description: OK
         "400":
           $ref: "#/components/responses/badRequest"
@@ -40303,10 +41635,6 @@ paths:
           content:
             application/vnd.atlas.2023-02-01+json:
               x-xgen-version: 2023-02-01
-            application/vnd.atlas.preview+json:
-              x-xgen-preview:
-                name: stream-connection
-              x-xgen-version: preview
           description: Accepted
         "401":
           $ref: "#/components/responses/unauthorized"
@@ -40321,8 +41649,6 @@ paths:
       summary: Delete One Stream Connection
       tags:
         - Streams
-      x-xgen-changelog:
-        2023-09-11: The MongoDB Atlas Streams Processing API is now exposed as part of private preview, but is subject to change until GA.
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamConnection
       x-xgen-operation-id-override: deleteStreamConnection
     get:
@@ -40352,14 +41678,6 @@ paths:
               x-xgen-IPA-exception:
                 xgen-IPA-104-get-method-returns-response-suffixed-object: Exception OK as they are present in existing resource, fixing would require major refactoring.
               x-xgen-version: 2023-02-01
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/StreamsConnectionPrivatePreview"
-              x-xgen-IPA-exception:
-                xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation.
-              x-xgen-preview:
-                name: stream-connection
-              x-xgen-version: preview
           description: OK
         "401":
           $ref: "#/components/responses/unauthorized"
@@ -40400,12 +41718,6 @@ paths:
           application/vnd.atlas.2023-02-01+json:
             schema:
               $ref: "#/components/schemas/StreamsConnection"
-          application/vnd.atlas.preview+json:
-            schema:
-              $ref: "#/components/schemas/StreamsConnectionPrivatePreview"
-            x-xgen-preview:
-              name: stream-connection
-            x-xgen-version: preview
         description: Details to update one connection for a streams workspace in the specified project.
         required: true
       responses:
@@ -40415,12 +41727,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/StreamsConnection"
               x-xgen-version: 2023-02-01
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/StreamsConnectionPrivatePreview"
-              x-xgen-preview:
-                name: stream-connection
-              x-xgen-version: preview
           description: OK
         "400":
           $ref: "#/components/responses/badRequest"
@@ -41180,6 +42486,485 @@ paths:
         - Streams
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/withGroupStreamSampleConnections
       x-xgen-operation-id-override: withStreamSampleConnections
+  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayAttachments:
+    get:
+      description: Returns the Transit Gateway Attachments for this group in the shared Atlas AWS Account.
+      operationId: listGroupStreamsTransitGatewayAttachments
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/pageNum"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedApiStreamsTransitGatewayAttachmentResponse"
+              x-xgen-preview:
+                name: aws-transit-gateway
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return All Transit Gateway Attachments for One Group
+      tags:
+        - Streams
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/listGroupStreamsTransitGatewayAttachments
+      x-xgen-operation-id-override: listTransitGatewayAttachments
+    post:
+      description: Creates Transit Gateway Attachment with the provided VPC for a Transit Gateway that has been shared with an Atlas AWS Account. This Transit Gateway will be used in Atlas Streams private networking connections.
+      operationId: createGroupStreamsTransitGatewayAttachment
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/StreamsTransitGatewayAttachmentRequest"
+        description: Metadata needed for creating a transit gateway attachment.
+        required: true
+      responses:
+        "201":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/StreamsTransitGatewayAttachmentResponse"
+              x-xgen-preview:
+                name: aws-transit-gateway
+              x-xgen-version: preview
+          description: Created
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Create One Transit Gateway Attachment
+      tags:
+        - Streams
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createGroupStreamsTransitGatewayAttachment
+      x-xgen-operation-id-override: createTransitGatewayAttachment
+  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayAttachments/{attachmentId}:
+    delete:
+      description: Deletes a transit gateway attachment.
+      operationId: deleteGroupStreamsTransitGatewayAttachment
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+        - description: Unique identifier that identifies the Transit Gateway Attachment.
+          in: path
+          name: attachmentId
+          required: true
+          schema:
+            example: tgw-attach-01f8100bc7EXAMPLE
+            pattern: ^tgw-attach-[0-9a-zA-Z]+$
+            type: string
+      responses:
+        "204":
+          content:
+            application/vnd.atlas.preview+json:
+              x-xgen-preview:
+                name: aws-transit-gateway
+              x-xgen-version: preview
+          description: No Content
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Delete One Transit Gateway Attachment
+      tags:
+        - Streams
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamsTransitGatewayAttachment
+      x-xgen-operation-id-override: deleteTransitGatewayAttachment
+    get:
+      description: Returns one Transit Gateway Attachment for this group from the shared Atlas AWS Account.
+      operationId: getGroupStreamsTransitGatewayAttachment
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+        - description: Unique identifier that identifies the Transit Gateway Attachment.
+          in: path
+          name: attachmentId
+          required: true
+          schema:
+            example: tgw-attach-01f8100bc7EXAMPLE
+            pattern: ^tgw-attach-[0-9a-zA-Z]+$
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/StreamsTransitGatewayAttachmentResponse"
+              x-xgen-preview:
+                name: aws-transit-gateway
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return One Transit Gateway Attachment for One Group
+      tags:
+        - Streams
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/getGroupStreamsTransitGatewayAttachment
+      x-xgen-operation-id-override: getTransitGatewayAttachment
+  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayInvitations:
+    get:
+      description: Returns the AWS RAM Resource Shares and Transit Gateway IDs for a Transit Gateway that has been shared with an Atlas AWS Account. This only returns the resource shares cached for Atlas Streams Processing.
+      operationId: listGroupStreamsTransitGatewayInvitations
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/pageNum"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedStreamsTransitGatewayInvitationsResponse"
+              x-xgen-preview:
+                name: aws-transit-gateway
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return All Streams Transit Gateway Invitations
+      tags:
+        - Streams
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/listGroupStreamsTransitGatewayInvitations
+      x-xgen-operation-id-override: listTransitGatewayInvitations
+  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayInvitations/{resourceShareArn}:
+    delete:
+      description: Deletes an AWS Resource Share Invitation for a Transit Gateway that has been shared with an Atlas AWS account. This does not delete the resource share invitation from the sender's AWS account. This only deletes the resource share invitation that's cached for Atlas Streams Processing.
+      operationId: deleteGroupStreamsTransitGatewayInvitation
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+        - description: AWS Transit Gateway resource share ARN.
+          in: path
+          name: resourceShareArn
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          content:
+            application/vnd.atlas.preview+json:
+              x-xgen-preview:
+                name: aws-transit-gateway
+              x-xgen-version: preview
+          description: This endpoint does not return a response body.
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Delete One Transit Gateway Invitation
+      tags:
+        - Streams
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamsTransitGatewayInvitation
+      x-xgen-operation-id-override: deleteTransitGatewayInvitation
+    get:
+      description: Returns the details of one AWS Resource Share Invitation for a Transit Gateway that has been shared with an Atlas AWS Account. This only returns the resource share invitation cached for Atlas Streams Processing.
+      operationId: getGroupStreamsTransitGatewayInvitation
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+        - description: AWS Transit Gateway resource share ARN.
+          in: path
+          name: resourceShareArn
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/StreamsTransitGatewayInvitationsResponse"
+              x-xgen-preview:
+                name: aws-transit-gateway
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return One Transit Gateway Invitation
+      tags:
+        - Streams
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/getGroupStreamsTransitGatewayInvitation
+      x-xgen-operation-id-override: getTransitGatewayInvitation
+  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayInvitations:accept:
+    post:
+      description: Accept AWS RAM Resource Share for a Transit Gateway that has been shared with an Atlas AWS account. This Transit Gateway will be used in Atlas Streams private networking connections.
+      operationId: acceptGroupStreamsTransitGatewayInvitations
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/StreamsTransitGatewayResourceShare"
+        description: Detailed information on accepting a transit gateway resource share invitation.
+        required: true
+      responses:
+        "204":
+          content:
+            application/vnd.atlas.preview+json:
+              x-xgen-preview:
+                name: aws-transit-gateway
+              x-xgen-version: preview
+          description: This endpoint does not return a response body.
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Accept Transit Gateway Resource Share Invitations
+      tags:
+        - Streams
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/acceptGroupStreamsTransitGatewayInvitations
+      x-xgen-operation-id-override: acceptTransitGatewayInvitations
+  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayInvitations:reject:
+    post:
+      description: Rejects AWS RAM Resource Share for a Transit Gateway that has been shared with an Atlas AWS account.
+      operationId: rejectGroupStreamsTransitGatewayInvitations
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/StreamsTransitGatewayResourceShare"
+        description: Detailed information on rejecting a transit gateway resource share invitation.
+        required: true
+      responses:
+        "204":
+          content:
+            application/vnd.atlas.preview+json:
+              x-xgen-preview:
+                name: aws-transit-gateway
+              x-xgen-version: preview
+          description: This endpoint does not return a response body.
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Reject Transit Gateway Resource Share Invitations
+      tags:
+        - Streams
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/rejectGroupStreamsTransitGatewayInvitations
+      x-xgen-operation-id-override: rejectTransitGatewayInvitations
+  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayRoutes:
+    get:
+      description: List Transit Gateway routes in the default route table associated with Atlas VPC.
+      operationId: listGroupStreamsTransitGatewayRoutes
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/pageNum"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedApiStreamsTransitGatewayRouteResponse"
+              x-xgen-preview:
+                name: aws-transit-gateway
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return All Transit Gateway Routes in the Default Route Table for One Atlas VPC
+      tags:
+        - Streams
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/listGroupStreamsTransitGatewayRoutes
+      x-xgen-operation-id-override: listTransitGatewayRoutes
+    post:
+      description: Creates a route in the default route table associated with Atlas VPC to route all traffic destined for provided CIDR to the provided Transit Gateway.
+      operationId: createGroupStreamsTransitGatewayRoute
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+      requestBody:
+        content:
+          application/vnd.atlas.preview+json:
+            schema:
+              $ref: "#/components/schemas/StreamsTransitGatewayRouteRequest"
+        description: Metadata needed for creating a transit gateway route.
+        required: true
+      responses:
+        "201":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/StreamsTransitGatewayRouteResponse"
+              x-xgen-preview:
+                name: aws-transit-gateway
+              x-xgen-version: preview
+          description: Created
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Create One Transit Gateway Route in the Default Route Table for One Atlas VPC
+      tags:
+        - Streams
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createGroupStreamsTransitGatewayRoute
+      x-xgen-operation-id-override: createTransitGatewayRoute
+  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayRoutes/{routeId}:
+    delete:
+      description: Deletes a transit gateway route in the default route table associated with Atlas VPC.
+      operationId: deleteGroupStreamsTransitGatewayRoute
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/envelope"
+        - description: The Object ID that uniquely identifies a transit gateway route.
+          in: path
+          name: routeId
+          required: true
+          schema:
+            example: 32b6e34b3d91647abb20e7b8
+            pattern: ^([a-f0-9]{24})$
+            type: string
+      responses:
+        "204":
+          content:
+            application/vnd.atlas.preview+json:
+              x-xgen-preview:
+                name: aws-transit-gateway
+              x-xgen-version: preview
+          description: No Content
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Delete One Transit Gateway Route in the Default Route Table for One Atlas VPC
+      tags:
+        - Streams
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamsTransitGatewayRoute
+      x-xgen-operation-id-override: deleteTransitGatewayRoute
+    get:
+      description: Retrieves a transit gateway route in the default route table associated with Atlas VPC.
+      operationId: getGroupStreamsTransitGatewayRoute
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - description: The Object ID that uniquely identifies a transit gateway route.
+          in: path
+          name: routeId
+          required: true
+          schema:
+            example: 32b6e34b3d91647abb20e7b8
+            pattern: ^([a-f0-9]{24})$
+            type: string
+        - $ref: "#/components/parameters/envelope"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/StreamsTransitGatewayRouteResponse"
+              x-xgen-preview:
+                name: aws-transit-gateway
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return One Transit Gateway Route in the Default Route Table for One Atlas VPC
+      tags:
+        - Streams
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/getGroupStreamsTransitGatewayRoute
+      x-xgen-operation-id-override: getTransitGatewayRoute
   /api/atlas/v2/groups/{groupId}/teams:
     get:
       description: Returns all teams to which the authenticated user has access in the project specified using its unique 24-hexadecimal digit identifier. All members of the team share the same project access. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
@@ -42023,6 +43808,48 @@ paths:
       tags:
         - Projects
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Projects/operation/getGroupByName
+  /api/atlas/v2/openapi/info:
+    get:
+      description: This resource returns general information about the MongoDB Atlas Administration API OpenAPI Specification.
+      operationId: getOpenapiInfo
+      parameters:
+        - $ref: "#/components/parameters/pretty"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/OpenApiInfo"
+              x-sunset: 9999-12-31
+              x-xgen-version: 2024-05-30
+            application/vnd.atlas.2024-08-05+json:
+              schema:
+                $ref: "#/components/schemas/OpenApiInfo"
+              x-xgen-version: 2024-08-05
+            application/vnd.atlas.2025-09-22.upcoming+json:
+              schema:
+                $ref: "#/components/schemas/OpenApiInfo"
+              x-xgen-version: 2025-09-22.upcoming
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/OpenApiInfo"
+              x-sunset: 9999-12-31
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: OK
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return General Information on MongoDB Atlas Administration API OpenAPI Specification
+      tags:
+        - OpenAPI
+      x-xgen-method-verb-override:
+        customMethod: "False"
+        verb: get
   /api/atlas/v2/orgs:
     get:
       description: Returns all organizations to which the requesting Service Account or API Key has access. To use this resource, the requesting Service Account or API Key must have the Organization Member role.
@@ -42063,7 +43890,7 @@ paths:
         - Organizations
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Organizations/operation/listOrgs
     post:
-      description: Creates one organization in MongoDB Cloud and links it to the requesting Service Account's or API Key's organization. To use this resource, the requesting Service Account or API Key must have the Organization Owner role. The requesting Service Account's or API Key's organization must be a paying organization. To learn more, see Configure a Paying Organization in the MongoDB Atlas documentation.
+      description: Creates one organization in MongoDB Cloud and links it to the requesting Service Account's or API Key's organization. To use this resource, the requesting Service Account or API Key must have the Organization Owner role. The requesting Service Account's or API Key's organization must be a paying organization. To learn more, see Configure a Paying Organization in the MongoDB Atlas documentation. Optionally, if federationSettingsId is provided, the new Organization will be linked to the federation. The requesting Service Account or API Key must be an Organization Owner in the federation.
       externalDocs:
         description: Configure a Paying Organization
         url: https://www.mongodb.com/docs/atlas/billing/#configure-a-paying-organization
@@ -42211,6 +44038,76 @@ paths:
       tags:
         - Organizations
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Organizations/operation/updateOrg
+  /api/atlas/v2/orgs/{orgId}/aiModelApiKeys:
+    get:
+      description: Retrieve AI model API keys for the given organization.
+      operationId: listOrgAiModelApiKeys
+      parameters:
+        - $ref: "#/components/parameters/orgId"
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/pageNum"
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedAtlasAiModelsApiKeysResponse"
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: OK
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return AI Model API Keys for One Organization
+      tags:
+        - AI Models
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/listOrgAiModelApiKeys
+      x-xgen-operation-id-override: listOrgModelKeys
+  /api/atlas/v2/orgs/{orgId}/aiModelApiKeys/{apiKeyId}:
+    get:
+      description: Retrieve a single AI model API key for the given organization.
+      operationId: getOrgAiModelApiKey
+      parameters:
+        - $ref: "#/components/parameters/orgId"
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+        - description: The id of the API key to be retrieved.
+          in: path
+          name: apiKeyId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/AIModelsApiKeyResponse"
+              x-xgen-preview:
+                public: "true"
+              x-xgen-version: preview
+          description: OK
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return Single AI Model API Key for One Organization
+      tags:
+        - AI Models
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/getOrgAiModelApiKey
+      x-xgen-operation-id-override: getOrgModelKey
   /api/atlas/v2/orgs/{orgId}/apiKeys:
     get:
       description: Returns all organization API keys for the specified organization. The organization API keys grant programmatic access to an organization. You can't use the API key to log into MongoDB Cloud through the console. To use this resource, the requesting Service Account or API Key must have the Organization Member role.
@@ -43584,6 +45481,38 @@ paths:
         - Resource Policies
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Resource-Policies/operation/getOrgNonCompliantResources
       x-xgen-operation-id-override: getNonCompliantResources
+  /api/atlas/v2/orgs/{orgId}/ratelimits:
+    get:
+      description: Retrieve rate limiting bucket state for the specified organization.
+      operationId: getOrgRatelimits
+      parameters:
+        - $ref: "#/components/parameters/orgId"
+        - $ref: "#/components/parameters/envelope"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/AtlasRateLimitInspectionResponse"
+              x-xgen-preview:
+                name: rate-limit
+                public: "false"
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return Rate Limit State for One Organization
+      tags:
+        - Rate Limit
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limit/operation/getOrgRatelimits
   /api/atlas/v2/orgs/{orgId}/resourcePolicies:
     get:
       description: Return all Atlas Resource Policies for the org.
@@ -45473,6 +47402,205 @@ paths:
         - MongoDB Cloud Users
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/MongoDB-Cloud-Users/operation/removeOrgUserRole
       x-xgen-operation-id-override: removeOrgRole
+  /api/atlas/v2/rateLimits:
+    get:
+      description: Get all rate limits for all v2 Atlas Administration API endpoint sets.
+      operationId: listRateLimits
+      parameters:
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/pageNum"
+        - $ref: "#/components/parameters/pretty"
+        - $ref: "#/components/parameters/envelope"
+        - description: Unique 24-hexadecimal digit string that identifies the Atlas Project to request rate limits for. When this parameter is provided, only group scoped endpoint sets are returned and the limits returned are applicable to the specified project. The requesting user must have the Project Read Only role for the specified project.
+          in: query
+          name: groupId
+          schema:
+            example: 32b6e34b3d91647abb20e7b8
+            pattern: ^([a-f0-9]{24})$
+            type: string
+        - description: Unique 24-hexadecimal digit string that identifies the Atlas Organization to request rate limits for. When this parameter is provided, only organization scoped endpoint sets are returned and the limits returned are applicable to the specified organization. The requesting user must have the Organization Read Only role for the specified organization.
+          in: query
+          name: orgId
+          schema:
+            example: 32b6e34b3d91647abb20e7b8
+            pattern: ^([a-f0-9]{24})$
+            type: string
+        - description: A string that identifies the Atlas user to request rate limits for. The ID can for example be the Service Account Client ID or the API Public Key. When this parameter is provided, only user scoped endpoint sets are returned and the limits returned are applicable to the specified user. The requesting user must be the same as the specified user.
+          in: query
+          name: userId
+          schema:
+            example: mdb_sa_id_1234567890abcdef12345678
+            type: string
+        - description: An IP address to request rate limits for. When this parameter is provided, only IP scoped endpoint sets are returned and the limits returned are applicable to the specified IP address. The requesting user must have the same IP address as the one provided in the request.
+          in: query
+          name: ipAddress
+          schema:
+            example: 127.0.0.1
+            pattern: ^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}|([0-9a-f]{1,4}:){7}[0-9a-f]{1,4}$
+            type: string
+        - description: Filters the returned endpoint sets by the provided endpoint set name. Multiple names may be provided, for example `/rateLimits?name=Name1&name=Name2`. For names that use spaces, replace the space with its URL-encoded value (`%20`).
+          in: query
+          name: name
+          schema:
+            example: Rate Limits Inspection
+            type: string
+        - description: Filters the returned endpoint sets by the provided endpoint path. Multiple paths may be provided, for example `/rateLimits?endpointPath=%2Fapi%2Fatlas%2Fv2%2Fclusters&endpointPath=%2Fapi%2Fatlas%2Fv2%2Fgroups%2F%7BgroupId%7D%2F`. Replace `/`, `{` and `}` with their URL-encoded values (`%2F`, `%7B` and `%7D` respectively).
+          in: query
+          name: endpointPath
+          schema:
+            example: /api/atlas/v2/clusters
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedRateLimitEndpointSets"
+              x-xgen-preview:
+                name: rate-limit
+                public: "false"
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return All Rate Limits
+      tags:
+        - Rate Limit
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limit/operation/listRateLimits
+  /api/atlas/v2/rateLimits/{endpointSetId}:
+    get:
+      description: Get one rate limit endpoint set.
+      operationId: getRateLimit
+      parameters:
+        - description: The ID of the rate limit endpoint set.
+          in: path
+          name: endpointSetId
+          required: true
+          schema:
+            example: rateLimitsInspection_group
+            type: string
+        - $ref: "#/components/parameters/pretty"
+        - $ref: "#/components/parameters/envelope"
+        - description: Unique 24-hexadecimal digit string that identifies the Atlas Project to request rate limits for. When this parameter is provided, the limits returned are applicable to the specified project. The requesting user must have the Project Read Only role for the specified project.
+          in: query
+          name: groupId
+          schema:
+            example: 32b6e34b3d91647abb20e7b8
+            pattern: ^([a-f0-9]{24})$
+            type: string
+        - description: Unique 24-hexadecimal digit string that identifies the Atlas Organization to request rate limits for. When this parameter is provided, the limits returned are applicable to the specified organization. The requesting user must have the Organization Read Only role for the specified organization.
+          in: query
+          name: orgId
+          schema:
+            example: 32b6e34b3d91647abb20e7b8
+            pattern: ^([a-f0-9]{24})$
+            type: string
+        - description: A string that identifies the Atlas user to request rate limits for. The ID can for example be the Service Account Client ID or the API Public Key. When this parameter is provided, the limits returned are applicable to the specified  user. The requesting user must be the same as the specified user.
+          in: query
+          name: userId
+          schema:
+            example: mdb_sa_id_1234567890abcdef12345678
+            type: string
+        - description: An IP address to request rate limits for. When this parameter is provided, the limits returned are applicable to the specified IP address. The requesting user must have the same IP address as the one provided in the request.
+          in: query
+          name: ipAddress
+          schema:
+            example: 127.0.0.1
+            pattern: ^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}|([0-9a-f]{1,4}:){7}[0-9a-f]{1,4}$
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/RateLimitEndpointSetResponse"
+              x-xgen-preview:
+                name: rate-limit
+                public: "false"
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return One Rate Limit
+      tags:
+        - Rate Limit
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limit/operation/getRateLimit
+  /api/atlas/v2/skus:
+    get:
+      description: Returns all available SKUs (Stock Keeping Units) that can appear on MongoDB invoices. SKUs represent different products and services offered by MongoDB.
+      operationId: listSkus
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/includeCount"
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/pageNum"
+        - $ref: "#/components/parameters/pretty"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedApiSKUView"
+              x-xgen-version: 2025-03-12
+          description: OK
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return All Stock Keeping Units
+      tags:
+        - Invoices
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Invoices/operation/listSkus
+  /api/atlas/v2/skus/{skuId}:
+    get:
+      description: Returns details about a single SKU (Stock Keeping Unit) by its identifier. SKUs represent different products and services offered by MongoDB.
+      operationId: getSku
+      parameters:
+        - description: Unique identifier of the SKU to retrieve.
+          example: ATLAS_AWS_INSTANCE_M10
+          in: path
+          name: skuId
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/pretty"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2025-03-12+json:
+              schema:
+                $ref: "#/components/schemas/SkuResponse"
+              x-xgen-version: 2025-03-12
+          description: OK
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return One Stock Keeping Unit
+      tags:
+        - Invoices
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Invoices/operation/getSku
   /api/atlas/v2/unauth/controlPlaneIPAddresses:
     get:
       description: Returns all control plane IP addresses.
@@ -45499,6 +47627,122 @@ paths:
         - Root
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Root/operation/listControlPlaneIpAddresses
       x-xgen-operation-id-override: listControlPlaneAddresses
+  /api/atlas/v2/unauth/openapi/versions:
+    get:
+      description: API that provides a list of available versionsfor a given environment.
+      operationId: listOpenapiVersions
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+        - $ref: "#/components/parameters/itemsPerPage"
+        - $ref: "#/components/parameters/pageNum"
+        - $ref: "#/components/parameters/pretty"
+        - description: The environment to get the versions from. If not provided, it returnsthe versions for the given MongoDB URL. (E.g. prod for cloud.mongodb.com).
+          in: query
+          name: env
+          schema:
+            enum:
+              - dev
+              - qa
+              - prod
+              - stage
+            type: string
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-08-05+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedApiVersions"
+              x-xgen-version: 2024-08-05
+            application/vnd.atlas.2024-08-05+yaml:
+              schema:
+                $ref: "#/components/schemas/PaginatedApiVersions"
+              x-xgen-version: 2024-08-05
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedApiVersions"
+              x-xgen-preview:
+                name: version-resource
+              x-xgen-version: preview
+            application/vnd.atlas.preview+yaml:
+              schema:
+                $ref: "#/components/schemas/PaginatedApiVersions"
+              x-xgen-preview:
+                name: version-resource
+              x-xgen-version: preview
+          description: OK
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return All Versions for One Environment
+      tags:
+        - OpenAPI
+  /api/atlas/v2/unauth/ratelimits:
+    get:
+      description: Retrieve rate limiting bucket state for unauthenticated requests.
+      operationId: listRatelimits
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/AtlasRateLimitInspectionResponse"
+              x-xgen-IPA-exception:
+                xgen-IPA-110-collections-response-define-links-array: The API is in private preview. We will fix this before moving to stable.
+                xgen-IPA-110-collections-response-define-results-array: The API is in private preview. We will fix this before moving to stable.
+                xgen-IPA-110-collections-use-paginated-prefix: The API is in private preview. We will fix this before moving to stable.
+              x-xgen-preview:
+                name: rate-limit
+                public: "false"
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "404":
+          $ref: "#/components/responses/notFound"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return Rate Limit State for Unauthenticated Requests
+      tags:
+        - Rate Limit
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limit/operation/listRatelimits
+  /api/atlas/v2/userRateLimits:
+    get:
+      description: Retrieve rate limiting bucket state for the current user.
+      operationId: listUserRatelimits
+      parameters:
+        - $ref: "#/components/parameters/envelope"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.preview+json:
+              schema:
+                $ref: "#/components/schemas/AtlasRateLimitInspectionResponse"
+              x-xgen-IPA-exception:
+                xgen-IPA-110-collections-response-define-links-array: The API is in private preview. We will fix this before moving to stable.
+                xgen-IPA-110-collections-response-define-results-array: The API is in private preview. We will fix this before moving to stable.
+                xgen-IPA-110-collections-use-paginated-prefix: The API is in private preview. We will fix this before moving to stable.
+              x-xgen-preview:
+                name: rate-limit
+                public: "false"
+              x-xgen-version: preview
+          description: OK
+        "400":
+          $ref: "#/components/responses/badRequest"
+        "401":
+          $ref: "#/components/responses/unauthorized"
+        "403":
+          $ref: "#/components/responses/forbidden"
+        "500":
+          $ref: "#/components/responses/internalServerError"
+      summary: Return Rate Limit State for One User
+      tags:
+        - Rate Limit
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limit/operation/listUserRatelimits
   /api/atlas/v2/users:
     post:
       deprecated: true
@@ -45638,6 +47882,8 @@ tags:
     name: Auditing
   - description: Returns and edits custom DNS configurations for MongoDB Cloud database deployments on AWS. The resource requires your Project ID. If you use the VPC peering on AWS and you use your own DNS servers instead of Amazon Route 53, enable custom DNS. Before 31 March 2020, applications deployed within AWS using custom DNS services and VPC-peered with MongoDB Cloud couldn't connect over private IP addresses. Custom DNS resolved to public IP addresses. AWS internal DNS resolved to private IP addresses. Applications deployed with custom DNS services in AWS should use Private IP for Peering connection strings.
     name: AWS Clusters DNS
+  - description: Returns, adds, and edits Charts Dashboard instances. This resource applies only to projects with a Charts tenant, and requires your Project ID.
+    name: Charts Dashboards
   - description: Manages Cloud Backup snapshots, snapshot export buckets, restore jobs, and schedules. This resource applies only to clusters that use Cloud Backups.
     name: Cloud Backups
   - description: Manages the Cloud Migration Service. Source organizations, projects, and MongoDB clusters reside on Cloud Manager or Ops Manager. Destination organizations, projects, and MongoDB clusters reside on MongoDB Cloud. Source databases can't use any authentication except SCRAM-SHA.
@@ -45695,6 +47941,8 @@ tags:
     name: Network Peering
   - description: Returns, adds, edits, or removes an online archive.
     name: Online Archive
+  - description: Returns information about the MongoDB Atlas Specification.
+    name: OpenAPI
   - description: Returns, adds, and edits organizational units in MongoDB Cloud.
     name: Organizations
   - description: Returns suggested indexes and slow query data for a database deployment. Also enables or disables MongoDB Cloud-managed slow operation thresholds. To view field values in a sample query, you must have the Project Data Access Read Only role or higher. Otherwise, MongoDB Cloud returns redacted data rather than the field values.
@@ -45709,6 +47957,8 @@ tags:
     name: Projects
   - description: You can continually export mongod, mongos, and audit logs to an AWS S3 bucket. The new `/logIntegrations` API provides 1-minute log export. The existing `/pushBasedLogExport` API provides 5-minute log export and will be deprecated in the future. The log export integrations are managed at the project level.
     name: Push-Based Log Export
+  - description: Inspect Rate Limit bucket states.
+    name: Rate Limit
   - description: Configure and manage Atlas Resource Policies within your organization.
     name: Resource Policies
   - description: Creates one index to a database deployment in a rolling manner. Rolling indexes build indexes on the applicable nodes sequentially and may reduce the performance impact of an index build if your deployment's average CPU utilization exceeds (N-1)/N-10% where N is the number of CPU threads available to mongod of if the WiredTiger cache fill ratio regularly exceeds 90%. If your deployment does not meet this criteria, use the default index build. You can't create a rolling index on an `M0` free cluster or `M2/M5` shared cluster.
@@ -45733,6 +47983,8 @@ tags:
     name: Shared-Tier Restore Jobs
   - description: Returns and requests to download shared-tier database deployment snapshots.
     name: Shared-Tier Snapshots
+  - description: Returns, adds, edits, and removes standby links between clusters for disaster recovery within a specified project.
+    name: Standby Links
   - description: Returns, adds, edits, and removes Streams Workspaces. This resource requires your project ID.
     name: Streams
   - description: Returns, adds, edits, or removes teams.
