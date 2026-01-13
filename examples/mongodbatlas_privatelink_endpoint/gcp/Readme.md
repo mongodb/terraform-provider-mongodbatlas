@@ -68,8 +68,6 @@ For the **new PSC port-based architecture** (which requires only 1 endpoint and 
 |---------|-----------------------------------|---------------------------|
 | Endpoints Required | 50 | 1 |
 | `port_mapping_enabled` | `false` (or omitted) | `true` |
-| Setup Complexity | Higher (50 addresses/rules) | Lower (1 address/rule) |
-| Location | This directory | `gcp-port-based/` directory |
 
 **4\. Execute the Terraform apply.**
 
