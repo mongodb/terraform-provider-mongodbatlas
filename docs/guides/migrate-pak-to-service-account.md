@@ -14,7 +14,7 @@ This guide explains how to migrate from Programmatic API Key (PAK) resources to 
 
 - **Backup your Terraform state file** before making any changes.
 - **Test the process in a non-production environment** if possible.
-- **Secrets handling** - Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
+- Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
 
 ---
