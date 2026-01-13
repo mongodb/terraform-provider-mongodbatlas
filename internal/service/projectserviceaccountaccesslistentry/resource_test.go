@@ -3,7 +3,6 @@ package projectserviceaccountaccesslistentry_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -28,7 +27,7 @@ type testEntry struct {
 
 func TestAccProjectServiceAccountAccessListEntry_singleEntry(t *testing.T) {
 	var (
-		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID     = acc.ProjectIDExecution(t)
 		name          = acc.RandomName()
 		cidrEntries   = []testEntry{{cidr: "192.168.1.0/24"}}
 		ipEntries     = []testEntry{{ip: "192.168.1.1"}}
@@ -68,7 +67,7 @@ func TestAccProjectServiceAccountAccessListEntry_singleEntry(t *testing.T) {
 
 func TestAccProjectServiceAccountAccessListEntry_multipleEntries(t *testing.T) {
 	var (
-		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID     = acc.ProjectIDExecution(t)
 		name          = acc.RandomName()
 		entries       = []testEntry{{cidr: "100.200.30.4/32"}, {ip: "4.3.2.1"}, {cidr: "123.234.0.0/16"}}
 		resourceName0 = resourceName + "_0"
