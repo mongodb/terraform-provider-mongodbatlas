@@ -148,6 +148,8 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 
 The new PSC port-based architecture simplifies setup by requiring only 1 endpoint instead of 50. Enable it by setting `port_mapping_enabled = true` on the endpoint resource.
 
+**Important:** For the new port-based architecture, the `endpoint_service_id` must match the `endpoint_name` in the `endpoints` block. Although the new API ignores the `endpoint_service_id` value, it is still required by the Terraform provider.
+
 ```terraform
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id           = var.project_id
@@ -198,7 +200,8 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
   project_id          = mongodbatlas_privatelink_endpoint.test.project_id
   private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
   provider_name       = "GCP"
-  endpoint_service_id = google_compute_network.default.name
+  # For port-based architecture, endpoint_service_id must match the endpoint_name
+  endpoint_service_id = google_compute_forwarding_rule.default.name
   gcp_project_id      = var.gcp_project
 
   # New PSC port-based architecture requires exactly 1 endpoint
@@ -222,7 +225,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 
 * `project_id` - (Required) Unique identifier for the project.
 * `private_link_id` - (Required) Unique identifier of the `AWS` or `AZURE` PrivateLink connection which is created by `mongodbatlas_privatelink_endpoint` resource.
-* `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC with the `AWS`, `AZURE` or `GCP` resource.
+* `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC with the `AWS`, `AZURE` or `GCP` resource. **Note:** For GCP with the new port-based architecture (when `port_mapping_enabled = true` on the endpoint resource), this value must match the `endpoint_name` in the `endpoints` block. Although the new API ignores this value, it is still required by the Terraform provider.
 * `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS`, `AZURE` or `GCP`.
 * `private_endpoint_ip_address` - (Optional) Private IP address of the private endpoint network interface you created in your Azure VNet. Only for `AZURE`.
 * `gcp_project_id` - (Optional) Unique identifier of the GCP project in which you created your endpoints. Only for `GCP`.

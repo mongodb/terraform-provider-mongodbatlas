@@ -57,12 +57,13 @@ resource "google_compute_forwarding_rule" "default" {
 
 # Create MongoDB Atlas Private Endpoint Service
 # With port_mapping_enabled = true on the endpoint, the endpoints list should contain exactly one endpoint.
-# The endpoint_group_name (endpoint_service_id) is ignored in the new architecture but still required.
+# For the new port-based architecture, endpoint_service_id must match the endpoint_name.
+# Although the new API ignores this value, it is still required by the Terraform provider.
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
   project_id               = mongodbatlas_privatelink_endpoint.test.project_id
   private_link_id          = mongodbatlas_privatelink_endpoint.test.private_link_id
   provider_name            = "GCP"
-  endpoint_service_id      = google_compute_network.default.name
+  endpoint_service_id      = google_compute_forwarding_rule.default.name
   gcp_project_id           = var.gcp_project_id
   delete_on_create_timeout = true
   timeouts {
