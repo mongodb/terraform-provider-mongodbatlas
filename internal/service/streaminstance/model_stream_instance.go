@@ -36,14 +36,14 @@ func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceModel
 	return streamTenant, nil
 }
 
-func NewStreamInstanceUpdateReq(ctx context.Context, plan *TFStreamInstanceModel) (*admin.StreamsDataProcessRegion, diag.Diagnostics) {
+func NewStreamInstanceUpdateReq(ctx context.Context, plan *TFStreamInstanceModel) (*admin.StreamsTenantUpdateRequest, diag.Diagnostics) {
 	dataProcessRegion := &TFInstanceProcessRegionSpecModel{}
 	if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil, diags
 	}
-	return &admin.StreamsDataProcessRegion{
-		CloudProvider: dataProcessRegion.CloudProvider.ValueString(),
-		Region:        dataProcessRegion.Region.ValueString(),
+	return &admin.StreamsTenantUpdateRequest{
+		CloudProvider: dataProcessRegion.CloudProvider.ValueStringPointer(),
+		Region:        dataProcessRegion.Region.ValueStringPointer(),
 	}, nil
 }
 
