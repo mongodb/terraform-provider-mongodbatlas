@@ -46,6 +46,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"secret": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "The full API key secret used for interacting with the embedding / reranking service. Note: this will only be fully populated in the response to a create API key request. Responses to get, list, and update requests will not include the secret.",
+				Sensitive:           true,
 			},
 			"status": schema.StringAttribute{
 				Computed:            true,
@@ -63,6 +64,6 @@ type TFModel struct {
 	LastUsedAt types.String `tfsdk:"last_used_at" autogen:"omitjson"`
 	MaskedKey  types.String `tfsdk:"masked_key" autogen:"omitjson"`
 	Name       types.String `tfsdk:"name"`
-	Secret     types.String `tfsdk:"secret" autogen:"omitjson"`
+	Secret     types.String `tfsdk:"secret" autogen:"sensitive,omitjson"`
 	Status     types.String `tfsdk:"status" autogen:"omitjson"`
 }

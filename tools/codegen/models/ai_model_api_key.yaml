@@ -85,7 +85,7 @@ schema:
           tf_model_name: Secret
           api_name: secret
           req_body_usage: omit_always
-          sensitive: false
+          sensitive: true
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
