@@ -8,7 +8,7 @@ page_title: "Migration Guide: Programmatic API Keys (PAKs) to Service Accounts (
 
 This guide explains how to migrate from Programmatic API Key (PAK) resources to Service Account (SA) resources managed by Terraform.
 
-**Important:** The steps in this guide are for migrating Terraform-managed PAK and SA resources (e.g., `mongodbatlas_api_key`, `mongodbatlas_service_account`). This guide does **not** cover switching the Terraform provider authentication method from PAK to SA. For information on configuring the provider to authenticate using Service Accounts instead of Programmatic Access Keys, see the [Provider Configuration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/provider-configuration).
+**Important:** The steps in this guide are for migrating Terraform-managed PAK and SA resources (e.g., `mongodbatlas_api_key`, `mongodbatlas_service_account`). If you are looking to change the Terraform provider authentication method from PAK to SA, refer to the [Provider Configuration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/provider-configuration).
 
 **Note:** Migration to Service Accounts is recommended but **not required**. If you are currently using API Key resources, you may continue to do so. This guide is for users who wish to adopt Service Accounts for greater security or best practices, but existing PAK configurations will continue to work and be supported.
 
@@ -282,10 +282,10 @@ resource "mongodbatlas_project_service_account_access_list_entry" "this" {
 
 ---
 
-## Switching Terraform Provider Authentication
+## Switching the Provider Authentication Method
 
-After migrating your Terraform-managed resources from PAK to SA, you may also want to switch the Terraform provider authentication method from PAK to SA. This is a common use case for migrating to Service Accounts.
+After migrating your Terraform-managed resources from PAK to SA, you may also want to switch the Terraform provider authentication method.
 
 For detailed instructions on configuring Service Account authentication for the provider, see the [Provider Configuration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/provider-configuration).
 
-**Note:** The Service Account used for provider authentication can be created in a separate Terraform configuration or managed outside of Terraform. It's recommended to manage provider authentication credentials separately from the resources they manage to avoid potential lockout scenarios.
+**Note:** The Service Account used for provider authentication should be created in a separate Terraform configuration or managed outside of Terraform. It is recommended to manage provider authentication credentials separately from the resources they manage to avoid potential lockout scenarios.
