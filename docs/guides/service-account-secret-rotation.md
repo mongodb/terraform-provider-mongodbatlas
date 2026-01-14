@@ -22,7 +22,7 @@ This guide applies to both organization-level and project-level service accounts
 
 - **Backup your Terraform state file** before making any changes.
 - **Test the rotation process in a non-production environment** if possible.
-- **Secrets handling** - Managing Service Accounts with Terraform will expose sensitive organizational secrets in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
+- Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
 ## Setup
 
