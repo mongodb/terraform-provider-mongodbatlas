@@ -1,4 +1,4 @@
-package serviceaccountaccesslistentry
+package projectserviceaccountaccesslistentry
 
 import (
 	"context"
@@ -10,11 +10,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	serviceaccountaccesslistentry "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountaccesslistentry"
 	"go.mongodb.org/atlas-sdk/v20250312011/admin"
 )
 
 const (
-	resourceName = "service_account_access_list_entry"
+	resourceName = "project_service_account_access_list_entry"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -38,7 +39,7 @@ func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resou
 }
 
 func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan TFServiceAccountAccessListEntryModel
+	var plan TFProjectServiceAccountAccessListEntryModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -49,12 +50,12 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	orgID := plan.OrgID.ValueString()
+	projectID := plan.ProjectID.ValueString()
 	clientID := plan.ClientID.ValueString()
-	accessListReq := NewMongoDBServiceAccountAccessListEntry(&plan)
+	accessListReq := NewMongoDBProjectServiceAccountAccessListEntry(&plan)
 
 	connV2 := r.Client.AtlasV2
-	firstPage, _, err := connV2.ServiceAccountsApi.CreateOrgAccessList(ctx, orgID, clientID, accessListReq).ItemsPerPage(ItemsPerPage).Execute()
+	firstPage, _, err := connV2.ServiceAccountsApi.CreateAccessList(ctx, projectID, clientID, accessListReq).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
@@ -62,34 +63,34 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	cidrOrIP := getCidrOrIP(&plan)
 	listPageFunc := func(ctx context.Context, pageNum int) (*admin.PaginatedServiceAccountIPAccessEntry, *http.Response, error) {
-		return connV2.ServiceAccountsApi.ListOrgAccessList(ctx, orgID, clientID).PageNum(pageNum).ItemsPerPage(ItemsPerPage).Execute()
+		return connV2.ServiceAccountsApi.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
 	}
-	entry, _, err := ReadAccessListEntry(ctx, firstPage, listPageFunc, cidrOrIP)
+	entry, _, err := serviceaccountaccesslistentry.ReadAccessListEntry(ctx, firstPage, listPageFunc, cidrOrIP)
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return
 	}
 
-	accessListModel := NewTFServiceAccountAccessListModel(orgID, clientID, entry)
+	accessListModel := NewTFProjectServiceAccountAccessListModel(projectID, clientID, entry)
 	resp.Diagnostics.Append(resp.State.Set(ctx, accessListModel)...)
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state TFServiceAccountAccessListEntryModel
+	var state TFProjectServiceAccountAccessListEntryModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	orgID := state.OrgID.ValueString()
+	projectID := state.ProjectID.ValueString()
 	clientID := state.ClientID.ValueString()
 	cidrOrIP := getCidrOrIP(&state)
 
 	connV2 := r.Client.AtlasV2
 	listPageFunc := func(ctx context.Context, pageNum int) (*admin.PaginatedServiceAccountIPAccessEntry, *http.Response, error) {
-		return connV2.ServiceAccountsApi.ListOrgAccessList(ctx, orgID, clientID).PageNum(pageNum).ItemsPerPage(ItemsPerPage).Execute()
+		return connV2.ServiceAccountsApi.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
 	}
-	entry, apiResp, err := ReadAccessListEntry(ctx, nil, listPageFunc, cidrOrIP)
+	entry, apiResp, err := serviceaccountaccesslistentry.ReadAccessListEntry(ctx, nil, listPageFunc, cidrOrIP)
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
@@ -103,23 +104,23 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	accessListModel := NewTFServiceAccountAccessListModel(orgID, clientID, entry)
+	accessListModel := NewTFProjectServiceAccountAccessListModel(projectID, clientID, entry)
 	resp.Diagnostics.Append(resp.State.Set(ctx, accessListModel)...)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state TFServiceAccountAccessListEntryModel
+	var state TFProjectServiceAccountAccessListEntryModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	orgID := state.OrgID.ValueString()
+	projectID := state.ProjectID.ValueString()
 	clientID := state.ClientID.ValueString()
 	cidrOrIP := getCidrOrIP(&state)
 
 	connV2 := r.Client.AtlasV2
-	if _, err := connV2.ServiceAccountsApi.DeleteOrgAccessEntry(ctx, orgID, clientID, cidrOrIP).Execute(); err != nil {
+	if _, err := connV2.ServiceAccountsApi.DeleteGroupAccessEntry(ctx, projectID, clientID, cidrOrIP).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}
@@ -130,13 +131,13 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	if len(parts) != 3 {
 		resp.Diagnostics.AddError(
 			"invalid import ID",
-			"expected format: {org_id}/{client_id}/{cidr_block} or {org_id}/{client_id}/{ip_address}",
+			"expected format: {project_id}/{client_id}/{cidr_block} or {project_id}/{client_id}/{ip_address}",
 		)
 		return
 	}
 
-	orgID, clientID, cidrOrIP := parts[0], parts[1], parts[2]
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("org_id"), orgID)...)
+	projectID, clientID, cidrOrIP := parts[0], parts[1], parts[2]
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("client_id"), clientID)...)
 	if strings.Contains(cidrOrIP, "/") {
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("cidr_block"), cidrOrIP)...)
@@ -145,7 +146,7 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	}
 }
 
-func getCidrOrIP(model *TFServiceAccountAccessListEntryModel) string {
+func getCidrOrIP(model *TFProjectServiceAccountAccessListEntryModel) string {
 	cidrOrIP := model.IPAddress.ValueString()
 	if cidrOrIP == "" {
 		cidrOrIP = model.CIDRBlock.ValueString()

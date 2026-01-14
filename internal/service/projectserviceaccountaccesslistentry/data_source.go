@@ -1,4 +1,4 @@
-package serviceaccountaccesslistentry
+package projectserviceaccountaccesslistentry
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	serviceaccountaccesslistentry "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountaccesslistentry"
 	"go.mongodb.org/atlas-sdk/v20250312011/admin"
 )
 
@@ -32,7 +33,7 @@ type ds struct {
 
 func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(), &conversion.DataSourceSchemaRequest{
-		RequiredFields: []string{"org_id", "client_id"},
+		RequiredFields: []string{"project_id", "client_id"},
 		OverridenFields: map[string]dsschema.Attribute{
 			"cidr_block": dsschema.StringAttribute{
 				Optional:            true,
@@ -57,7 +58,7 @@ func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *dat
 }
 
 func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var conf TFServiceAccountAccessListEntryModel
+	var conf TFProjectServiceAccountAccessListEntryModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &conf)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -68,15 +69,15 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 		return
 	}
 
-	orgID := conf.OrgID.ValueString()
+	projectID := conf.ProjectID.ValueString()
 	clientID := conf.ClientID.ValueString()
 	cidrOrIP := getCidrOrIP(&conf)
 
 	connV2 := d.Client.AtlasV2
 	listPageFunc := func(ctx context.Context, pageNum int) (*admin.PaginatedServiceAccountIPAccessEntry, *http.Response, error) {
-		return connV2.ServiceAccountsApi.ListOrgAccessList(ctx, orgID, clientID).PageNum(pageNum).ItemsPerPage(ItemsPerPage).Execute()
+		return connV2.ServiceAccountsApi.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
 	}
-	entry, _, err := ReadAccessListEntry(ctx, nil, listPageFunc, cidrOrIP)
+	entry, _, err := serviceaccountaccesslistentry.ReadAccessListEntry(ctx, nil, listPageFunc, cidrOrIP)
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return
@@ -86,6 +87,6 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 		return
 	}
 
-	accessListModel := NewTFServiceAccountAccessListModel(orgID, clientID, entry)
+	accessListModel := NewTFProjectServiceAccountAccessListModel(projectID, clientID, entry)
 	resp.Diagnostics.Append(resp.State.Set(ctx, accessListModel)...)
 }
