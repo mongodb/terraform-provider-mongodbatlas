@@ -1,0 +1,121 @@
+schema:
+    description: Create a new AI model API key for the given group.
+    attributes:
+        - string: {}
+          description: UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.
+          computed_optional_required: computed
+          tf_schema_name: created_at
+          tf_model_name: CreatedAt
+          api_name: createdAt
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Name of the user that created this API key. If no user name is available, the user ID is returned.
+          computed_optional_required: computed
+          tf_schema_name: created_by
+          tf_model_name: CreatedBy
+          api_name: createdBy
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: group_id
+          tf_model_name: GroupId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Identifier used to reference this API key in admin API calls.
+          computed_optional_required: computed
+          tf_schema_name: id
+          tf_model_name: Id
+          api_name: id
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: UTC date when the API key was last used. This parameter is formatted as an ISO 8601 timestamp.
+          computed_optional_required: computed
+          tf_schema_name: last_used_at
+          tf_model_name: LastUsedAt
+          api_name: lastUsedAt
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: A partially obfuscated version of the API key secret returned when the API key was created.
+          computed_optional_required: computed
+          tf_schema_name: masked_key
+          tf_model_name: MaskedKey
+          api_name: maskedKey
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: A name for the new API key that will be created.
+          computed_optional_required: required
+          tf_schema_name: name
+          tf_model_name: Name
+          api_name: name
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: 'The full API key secret used for interacting with the embedding / reranking service. Note: this will only be fully populated in the response to a create API key request. Responses to get, list, and update requests will not include the secret.'
+          computed_optional_required: computed
+          tf_schema_name: secret
+          tf_model_name: Secret
+          api_name: secret
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: A string describing the current status of the API key.
+          computed_optional_required: computed
+          tf_schema_name: status
+          tf_model_name: Status
+          api_name: status
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{id}
+    create:
+        http_method: POST
+        path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{id}
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{id}
+    version_header: application/vnd.atlas.preview+json
+name: ai_model_api_key
+packageName: aimodelapikey
