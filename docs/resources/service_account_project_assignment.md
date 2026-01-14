@@ -6,7 +6,7 @@ subcategory: "Service Accounts"
 
 `mongodbatlas_service_account_project_assignment` provides a Service Account Project Assignment resource. The resource lets you assign a Service Account to a Project with specific roles.
 
-~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform will expose sensitive organizational secrets in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
+~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
 ## Example Usages
 

@@ -2,47 +2,47 @@
 subcategory: "Service Accounts"
 ---
 
-# Data Source: mongodbatlas_service_accounts
+# Data Source: mongodbatlas_project_service_accounts
 
-`mongodbatlas_service_accounts` returns all Service Accounts for the specified Organization.
+`mongodbatlas_project_service_accounts` returns all Project Service Accounts for the specified Project.
 
 ~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
 ## Example Usages
 ```terraform
-resource "mongodbatlas_service_account" "this" {
-  org_id                     = var.org_id
-  name                       = "example-service-account"
-  description                = "Example Service Account"
-  roles                      = ["ORG_READ_ONLY"]
+resource "mongodbatlas_project_service_account" "this" {
+  project_id                 = var.project_id
+  name                       = "example-project-service-account"
+  description                = "Example Project Service Account"
+  roles                      = ["GROUP_READ_ONLY"]
   secret_expires_after_hours = 2160 # 90 days
 }
 
-data "mongodbatlas_service_account" "this" {
-  org_id    = var.org_id
-  client_id = mongodbatlas_service_account.this.client_id
+data "mongodbatlas_project_service_account" "this" {
+  project_id = var.project_id
+  client_id  = mongodbatlas_project_service_account.this.client_id
 }
 
-data "mongodbatlas_service_accounts" "this" {
-  org_id = var.org_id
+data "mongodbatlas_project_service_accounts" "this" {
+  project_id = var.project_id
 }
 
 output "service_account_client_id" {
-  value = mongodbatlas_service_account.this.client_id
+  value = mongodbatlas_project_service_account.this.client_id
 }
 
 output "service_account_name" {
-  value = data.mongodbatlas_service_account.this.name
+  value = data.mongodbatlas_project_service_account.this.name
 }
 
 output "service_account_first_secret" {
   description = "The secret value of the first secret created with the service account. Only available after initial creation."
-  value       = try(mongodbatlas_service_account.this.secrets[0].secret, null)
+  value       = try(mongodbatlas_project_service_account.this.secrets[0].secret, null)
   sensitive   = true
 }
 
 output "service_accounts_results" {
-  value = data.mongodbatlas_service_accounts.this.results
+  value = data.mongodbatlas_project_service_accounts.this.results
 }
 ```
 
@@ -51,7 +51,7 @@ output "service_accounts_results" {
 
 ### Required
 
-- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
 
 ### Read-Only
 
@@ -66,7 +66,7 @@ Read-Only:
 - `created_at` (String) The date that the Service Account was created on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 - `description` (String) Human readable description for the Service Account.
 - `name` (String) Human-readable name for the Service Account.
-- `roles` (Set of String) A list of Organization roles associated with the Service Account.
+- `roles` (Set of String) A list of Project roles associated with the Service Account.
 - `secrets` (Attributes List) A list of secrets associated with the specified Service Account. (see [below for nested schema](#nestedatt--results--secrets))
 
 <a id="nestedatt--results--secrets"></a>
@@ -80,4 +80,4 @@ Read-Only:
 - `masked_secret_value` (String) The masked Service Account secret.
 - `secret_id` (String) Unique 24-hexadecimal digit string that identifies the secret.
 
-For more information, see [Return All Organization Service Accounts](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listorgserviceaccounts) in the MongoDB Atlas API documentation.
+For more information, see [Return All Project Service Accounts](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listgroupserviceaccounts) in the MongoDB Atlas API documentation.

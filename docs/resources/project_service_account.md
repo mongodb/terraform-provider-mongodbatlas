@@ -2,48 +2,52 @@
 subcategory: "Service Accounts"
 ---
 
-# Resource: mongodbatlas_service_account
+# Resource: mongodbatlas_project_service_account
 
-`mongodbatlas_service_account` provides a Service Account resource. The resource lets you create, update, delete, and import a Service Account for the specified Organization.
+`mongodbatlas_project_service_account` provides a Project Service Account resource. The resource lets you create, update, delete, and import a Service Account for the specified Project.
+
+~> **IMPORTANT NOTE** The use of `mongodbatlas_project_service_account` resource is not recommended for users with Organization Owner permissions. For Organization Owner permissions, we recommend using the `mongodbatlas_service_account` resource and the `mongodbatlas_service_account_project_assignment` resource to assign the Service Account to projects.
 
 ~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
+
+~> **IMPORTANT:** When you delete a `mongodbatlas_project_service_account` resource, it deassigns the Service Account from the project but does not delete the Service Account itself. The Service Account will remain in your organization and can be reassigned to projects or deleted separately if needed.
 
 ## Example Usages
 
 ```terraform
-resource "mongodbatlas_service_account" "this" {
-  org_id                     = var.org_id
-  name                       = "example-service-account"
-  description                = "Example Service Account"
-  roles                      = ["ORG_READ_ONLY"]
+resource "mongodbatlas_project_service_account" "this" {
+  project_id                 = var.project_id
+  name                       = "example-project-service-account"
+  description                = "Example Project Service Account"
+  roles                      = ["GROUP_READ_ONLY"]
   secret_expires_after_hours = 2160 # 90 days
 }
 
-data "mongodbatlas_service_account" "this" {
-  org_id    = var.org_id
-  client_id = mongodbatlas_service_account.this.client_id
+data "mongodbatlas_project_service_account" "this" {
+  project_id = var.project_id
+  client_id  = mongodbatlas_project_service_account.this.client_id
 }
 
-data "mongodbatlas_service_accounts" "this" {
-  org_id = var.org_id
+data "mongodbatlas_project_service_accounts" "this" {
+  project_id = var.project_id
 }
 
 output "service_account_client_id" {
-  value = mongodbatlas_service_account.this.client_id
+  value = mongodbatlas_project_service_account.this.client_id
 }
 
 output "service_account_name" {
-  value = data.mongodbatlas_service_account.this.name
+  value = data.mongodbatlas_project_service_account.this.name
 }
 
 output "service_account_first_secret" {
   description = "The secret value of the first secret created with the service account. Only available after initial creation."
-  value       = try(mongodbatlas_service_account.this.secrets[0].secret, null)
+  value       = try(mongodbatlas_project_service_account.this.secrets[0].secret, null)
   sensitive   = true
 }
 
 output "service_accounts_results" {
-  value = data.mongodbatlas_service_accounts.this.results
+  value = data.mongodbatlas_project_service_accounts.this.results
 }
 ```
 
@@ -54,8 +58,8 @@ output "service_accounts_results" {
 
 - `description` (String) Human readable description for the Service Account.
 - `name` (String) Human-readable name for the Service Account. The name is modifiable and does not have to be unique.
-- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
-- `roles` (Set of String) A list of organization-level roles for the Service Account.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `roles` (Set of String) A list of project-level roles for the Service Account.
 
 ### Optional
 
@@ -80,9 +84,9 @@ Read-Only:
 - `secret_id` (String) Unique 24-hexadecimal digit string that identifies the secret.
 
 ## Import 
-Import the Service Account resource by using the Organization ID and Client ID in the format `ORG_ID/CLIENT_ID`, e.g.
+Import the Project Service Account resource by using the Project ID and Client ID in the format `PROJECT_ID/CLIENT_ID`, e.g.
 ```
-$ terraform import mongodbatlas_service_account.test 6117ac2fe2a3d04ed27a987v/mdb_sa_id_1234567890abcdef12345678
+$ terraform import mongodbatlas_project_service_account.test 6117ac2fe2a3d04ed27a987v/mdb_sa_id_1234567890abcdef12345678
 ```
 
-For more information, see [Create One Organization Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createorgserviceaccount) in the MongoDB Atlas API documentation.
+For more information, see [Create One Project Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupserviceaccount) in the MongoDB Atlas API documentation.
