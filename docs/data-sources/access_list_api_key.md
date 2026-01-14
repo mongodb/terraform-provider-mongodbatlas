@@ -4,7 +4,7 @@ subcategory: "Programmatic API Keys"
 
 # Data Source: mongodbatlas_access_list_api_key
 
-`mongodbatlas_access_list_api_key` describes an Access List API Key entry resource. The access list grants access from IPs, CIDRs) to clusters within the Project.
+`mongodbatlas_access_list_api_key` describes an Access List API Key entry resource. The access list grants access from IPs or CIDRs to clusters within the Project.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -40,7 +40,7 @@ data "mongodbatlas_access_list_api_key" "test" {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `cidr_block` - Range of IP addresses in CIDR notation included in the API access list.
+* `cidr_block` - Range of IP addresses in CIDR notation included in the API Key access list.
 * `created` - Date and time when the access list entry was created.
 * `access_count` - Total number of requests that have originated from this IP address or CIDR block.
 * `last_used` - Date and time when the API key was last used from this IP address or CIDR block.

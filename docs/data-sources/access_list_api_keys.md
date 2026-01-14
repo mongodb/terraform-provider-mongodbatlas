@@ -4,7 +4,7 @@ subcategory: "Programmatic API Keys"
 
 # Data Source: mongodbatlas_access_list_api_keys
 
-`mongodbatlas_access_list_api_keys` describes all Access List API Key entries. The access list grants access from IPs, CIDRs to clusters within the Project.
+`mongodbatlas_access_list_api_keys` describes all Access List API Key entries. The access list grants access from IPs or CIDRs to clusters within the Project.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
