@@ -27,7 +27,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
-			"id": schema.StringAttribute{
+			"api_key_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Identifier used to reference this API key in admin API calls.",
 			},
@@ -59,7 +59,7 @@ type TFModel struct {
 	CreatedAt  types.String `tfsdk:"created_at" autogen:"omitjson"`
 	CreatedBy  types.String `tfsdk:"created_by" autogen:"omitjson"`
 	ProjectId  types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Id         types.String `tfsdk:"id" autogen:"omitjson"`
+	ApiKeyId   types.String `tfsdk:"api_key_id" apiname:"id" autogen:"omitjson"`
 	LastUsedAt types.String `tfsdk:"last_used_at" autogen:"omitjson"`
 	MaskedKey  types.String `tfsdk:"masked_key" autogen:"omitjson"`
 	Name       types.String `tfsdk:"name"`

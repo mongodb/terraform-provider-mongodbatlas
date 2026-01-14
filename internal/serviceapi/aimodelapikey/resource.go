@@ -87,11 +87,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	// Path params are grabbed from state as they may be computed-only and not present in the plan
 	pathParams := map[string]string{
 		"projectId": state.ProjectId.ValueString(),
-		"id":        state.Id.ValueString(),
+		"apiKeyId":  state.ApiKeyId.ValueString(),
 	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiKeys/{id}",
+		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiKeys/{apiKeyId}",
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
@@ -116,7 +116,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	idAttributes := []string{"project_id", "id"}
+	idAttributes := []string{"project_id", "api_key_id"}
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
@@ -124,11 +124,11 @@ func readAPICallParams(model any) *config.APICallParams {
 	m := model.(*TFModel)
 	pathParams := map[string]string{
 		"projectId": m.ProjectId.ValueString(),
-		"id":        m.Id.ValueString(),
+		"apiKeyId":  m.ApiKeyId.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiKeys/{id}",
+		RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiKeys/{apiKeyId}",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
@@ -137,7 +137,7 @@ func readAPICallParams(model any) *config.APICallParams {
 func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
 		"projectId": model.ProjectId.ValueString(),
-		"id":        model.Id.ValueString(),
+		"apiKeyId":  model.ApiKeyId.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
 		Hooks:  r,
@@ -146,7 +146,7 @@ func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *d
 		Diags:  diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
-			RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiKeys/{id}",
+			RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelApiKeys/{apiKeyId}",
 			PathParams:    pathParams,
 			Method:        "DELETE",
 		},

@@ -20,7 +20,7 @@ resources:
     version_header: application/vnd.atlas.preview+json
     schema:
       aliases:
-        apiKeyId: id # path param name does not match the API response property
+        id: apiKeyId
         groupId: projectId
       overrides:
         project_id:

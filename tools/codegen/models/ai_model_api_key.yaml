@@ -37,8 +37,8 @@ schema:
         - string: {}
           description: Identifier used to reference this API key in admin API calls.
           computed_optional_required: computed
-          tf_schema_name: id
-          tf_model_name: Id
+          tf_schema_name: api_key_id
+          tf_model_name: ApiKeyId
           api_name: id
           req_body_usage: omit_always
           sensitive: false
@@ -103,16 +103,16 @@ schema:
 operations:
     delete:
         http_method: DELETE
-        path: /api/atlas/v2/groups/{projectId}/aiModelApiKeys/{id}
+        path: /api/atlas/v2/groups/{projectId}/aiModelApiKeys/{apiKeyId}
     create:
         http_method: POST
         path: /api/atlas/v2/groups/{projectId}/aiModelApiKeys
     read:
         http_method: GET
-        path: /api/atlas/v2/groups/{projectId}/aiModelApiKeys/{id}
+        path: /api/atlas/v2/groups/{projectId}/aiModelApiKeys/{apiKeyId}
     update:
         http_method: PATCH
-        path: /api/atlas/v2/groups/{projectId}/aiModelApiKeys/{id}
+        path: /api/atlas/v2/groups/{projectId}/aiModelApiKeys/{apiKeyId}
     version_header: application/vnd.atlas.preview+json
 name: ai_model_api_key
 packageName: aimodelapikey
