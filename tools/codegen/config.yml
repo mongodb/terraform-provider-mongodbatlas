@@ -1,4 +1,23 @@
 resources:
+  # TODO: Voyage resource, add to provider list before merging to master in CLOUDP-372674
+  ai_model_api_key:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}
+      method: DELETE
+    schema:
+      aliases:
+        apiKeyId: id # path param name does not match the API response property
+    version_header: application/vnd.atlas.preview+json
+
   # Singleton resource in project.
   # Create, Delete and Update uses PATCH.
   auditing_api:
