@@ -22,6 +22,7 @@ resources:
       aliases:
         id: apiKeyId
         groupId: projectId
+        maskedKey: maskedSecret
       overrides:
         project_id:
           description: *project_id_description

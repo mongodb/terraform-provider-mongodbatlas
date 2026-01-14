@@ -59,8 +59,8 @@ schema:
         - string: {}
           description: A partially obfuscated version of the API key secret returned when the API key was created.
           computed_optional_required: computed
-          tf_schema_name: masked_key
-          tf_model_name: MaskedKey
+          tf_schema_name: masked_secret
+          tf_model_name: MaskedSecret
           api_name: maskedKey
           req_body_usage: omit_always
           sensitive: false
