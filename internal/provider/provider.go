@@ -47,6 +47,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -333,6 +334,9 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		teamprojectassignment.Resource,
 		clouduserteamassignment.Resource,
 		advancedcluster.Resource,
+
+		// TODO: Auto-generated resources, delete this comment before merging to master in CLOUDP-372674
+		aimodelapikey.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {
