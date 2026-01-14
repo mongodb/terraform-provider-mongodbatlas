@@ -22,9 +22,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Name of the user that created this API key. If no user name is available, the user ID is returned.",
 			},
-			"group_id": schema.StringAttribute{
+			"project_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"id": schema.StringAttribute{
@@ -58,7 +58,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 type TFModel struct {
 	CreatedAt  types.String `tfsdk:"created_at" autogen:"omitjson"`
 	CreatedBy  types.String `tfsdk:"created_by" autogen:"omitjson"`
-	GroupId    types.String `tfsdk:"group_id" autogen:"omitjson"`
+	ProjectId  types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	Id         types.String `tfsdk:"id" autogen:"omitjson"`
 	LastUsedAt types.String `tfsdk:"last_used_at" autogen:"omitjson"`
 	MaskedKey  types.String `tfsdk:"masked_key" autogen:"omitjson"`

@@ -24,13 +24,10 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: |-
-            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
-            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          description: Unique 24-hexadecimal digit string that identifies your project.
           computed_optional_required: required
-          tf_schema_name: group_id
-          tf_model_name: GroupId
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
           api_name: groupId
           req_body_usage: omit_always
           sensitive: false
@@ -106,16 +103,16 @@ schema:
 operations:
     delete:
         http_method: DELETE
-        path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{id}
+        path: /api/atlas/v2/groups/{projectId}/aiModelApiKeys/{id}
     create:
         http_method: POST
-        path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys
+        path: /api/atlas/v2/groups/{projectId}/aiModelApiKeys
     read:
         http_method: GET
-        path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{id}
+        path: /api/atlas/v2/groups/{projectId}/aiModelApiKeys/{id}
     update:
         http_method: PATCH
-        path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{id}
+        path: /api/atlas/v2/groups/{projectId}/aiModelApiKeys/{id}
     version_header: application/vnd.atlas.preview+json
 name: ai_model_api_key
 packageName: aimodelapikey

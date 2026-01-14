@@ -1,3 +1,7 @@
+variables:
+  # TODO: project_id_description is taken from SA dev branch so this will at master at some moment, remove this comment before merging to master in CLOUDP-372674
+  project_id_description: &project_id_description "Unique 24-hexadecimal digit string that identifies your project."
+
 resources:
   # TODO: Voyage resource, add to provider list before merging to master in CLOUDP-372674
   ai_model_api_key:
@@ -13,10 +17,14 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}
       method: DELETE
+    version_header: application/vnd.atlas.preview+json
     schema:
       aliases:
         apiKeyId: id # path param name does not match the API response property
-    version_header: application/vnd.atlas.preview+json
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
 
   # Singleton resource in project.
   # Create, Delete and Update uses PATCH.
