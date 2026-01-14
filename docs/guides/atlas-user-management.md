@@ -173,20 +173,21 @@ config and state:
 #### Module considerations
 
 - **Module maintainers**
-  - Add `mongodbatlas_cloud_user_org_assignment` inside the module and a `moved` block from `mongodbatlas_org_invitation`; remove the old resource and publish a new version.
-  - If `teams_ids` were used, model them as `mongodbatlas_cloud_user_team_assignment` resources in the module that will be imported by module users.
-  - Terraform doesn’t allow import blocks in the module ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document the import ID formats for users:
-        - Org assignment: `org_id/user_id`
-        - Team assignment (if applicable): `org_id/team_id/user_id`
+  - Add `mongodbatlas_cloud_user_org_assignment` and a `moved` block from `mongodbatlas_org_invitation`.
+  - If `teams_ids` were used, add `mongodbatlas_cloud_user_team_assignment` resources that will be imported by module users.
+  - Terraform doesn't allow import blocks in modules ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document import IDs for users:
+    - Org assignment: `org_id/user_id` (or `org_id/username`)
+    - Team assignment: `org_id/team_id/user_id` (or `org_id/team_id/username`)
+  - Publish a new module version.
+  - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer) for complete implementation.
 
 - **Module users**
-  - Upgrade the module (`terraform init -upgrade`) and run `terraform plan` **but do not apply**.
-  - Org assignment moves happen automatically via the module’s moved {}—no imports or state edits needed.
-  - For team assignments, if applicable, add **root-level** `import {}` blocks (or run `terraform import`) for each existing:
-        - Team assignment: `org_id/team_id/user_id`
-  - Re-run `terraform plan` to confirm import & moved operations, then `terraform apply`.
+  - Upgrade to the new module version (`terraform init -upgrade`).
+  - Add `import` blocks for team assignments (the org assignment is handled by the `moved` block in the module).
+  - Run `terraform plan` — expect `has moved to` for org assignment and `will be imported` for team assignments.
+  - Run `terraform apply`.
+  - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_user) for complete implementation.
 
-  
 ---
 
 ### Use-case 2: Pending invites without `team_ids`
@@ -362,11 +363,10 @@ Then:
 
 ### Examples
 
-For complete, working configurations that mirror the use-cases above, see the
-examples in the provider repository:
-[migrate_org_invitation_to_cloud_user_org_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_org_invitation_to_cloud_user_org_assignment).
-These include root-level setups for multiple approaches (e.g., moved blocks and
-imports) across different versions.
+For complete working examples, see:
+- Basic usage (v1–v3): [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/basic)
+- Module maintainer (v1–v3): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer)
+- Module user (v1–v3): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_user)
 
 ### Notes and tips
 
@@ -932,7 +932,7 @@ Run `terraform apply` to create the assignment with the new resource & delete th
 
 For complete, working configurations that demonstrate the migration process, see
 the examples in the provider repository:
-[migrate_project_invitation_to_cloud_user_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment).
+[migrate_project_invitation_to_cloud_user_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_project_invitation_to_cloud_user_project_assignment).
 
 The examples include:
 
@@ -1221,7 +1221,7 @@ Since data sources don’t live in state, in this case migration is about replac
 
 For complete, working configurations that demonstrate the migration process, see
 the examples in the provider repository:
-[migrate_atlas_user_and_atlas_users](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_atlas_user_and_atlas_users).
+[migrate_atlas_user_and_atlas_users](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_atlas_user_and_atlas_users).
 
 The examples include:
 

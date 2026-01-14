@@ -41,7 +41,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"org_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"secret": schema.StringAttribute{
@@ -51,7 +51,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"secret_expires_after_hours": schema.Int64Attribute{
 				Optional:            true,
-				MarkdownDescription: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings.",
+				MarkdownDescription: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account Secret and you cannot update it later.",
 				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly(), customplanmodifier.RequestOnlyRequiredOnCreate()},
 			},
 		},

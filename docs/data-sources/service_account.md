@@ -6,6 +6,8 @@ subcategory: "Service Accounts"
 
 `mongodbatlas_service_account` describes a Service Account.
 
+~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform will expose sensitive organizational secrets in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
+
 ## Example Usages
 ```terraform
 resource "mongodbatlas_service_account" "this" {
@@ -71,4 +73,4 @@ Read-Only:
 - `masked_secret_value` (String) The masked Service Account secret.
 - `secret_id` (String) Unique 24-hexadecimal digit string that identifies the secret.
 
-For more information, see [MongoDB Atlas API - Return One Organization Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorgserviceaccount) in the MongoDB Atlas API documentation.
+For more information, see [Return One Organization Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorgserviceaccount) in the MongoDB Atlas API documentation.
