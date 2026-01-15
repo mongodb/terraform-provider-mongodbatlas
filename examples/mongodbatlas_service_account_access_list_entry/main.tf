@@ -20,23 +20,28 @@ resource "mongodbatlas_service_account_access_list_entry" "ip" {
   ip_address = "2.3.4.5"
 }
 
-# Data source to read a single service account access list entry
-data "mongodbatlas_service_account_access_list_entry" "test" {
+# Data source to read a single Service Account Access List entry
+data "mongodbatlas_service_account_access_list_entry" "this" {
   org_id     = mongodbatlas_service_account_access_list_entry.cidr.org_id
   client_id  = mongodbatlas_service_account_access_list_entry.cidr.client_id
   cidr_block = mongodbatlas_service_account_access_list_entry.cidr.cidr_block
 }
 
-# Data source to read all service account access list entries
-data "mongodbatlas_service_account_access_list_entries" "test" {
-  org_id    = mongodbatlas_service_account.this.org_id
-  client_id = mongodbatlas_service_account.this.client_id
+output "access_list_entry_cidr_block" {
+  value = data.mongodbatlas_service_account_access_list_entry.this.cidr_block
 }
 
-output "access_list_entry_cidr_block" {
-  value = data.mongodbatlas_service_account_access_list_entry.test.cidr_block
+# Data source to read all Service Account Access List entries
+data "mongodbatlas_service_account_access_list_entries" "this" {
+  org_id    = mongodbatlas_service_account.this.org_id
+  client_id = mongodbatlas_service_account.this.client_id
+
+  depends_on = [  
+    mongodbatlas_service_account_access_list_entry.cidr,  
+    mongodbatlas_service_account_access_list_entry.ip  
+  ]  
 }
 
 output "all_access_list_entries" {
-  value = data.mongodbatlas_service_account_access_list_entries.test.results
+  value = data.mongodbatlas_service_account_access_list_entries.this.results
 }

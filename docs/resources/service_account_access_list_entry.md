@@ -4,7 +4,7 @@ subcategory: "Service Accounts"
 
 # Resource: mongodbatlas_service_account_access_list_entry
 
-`mongodbatlas_service_account_access_list_entry` provides an IP Access List entry resource for Service Accounts. The access list grants access from IPs or CIDRs to clusters within the Project.
+`mongodbatlas_service_account_access_list_entry` provides a Service Account Access List entry resource. The resource lets you create, delete, and import a Service Account Access List entry for the specified Organization.
 
 ~> **IMPORTANT:** When you remove an entry from the access list, existing connections from the removed address(es) may remain open for a variable amount of time. How much time passes before Atlas closes the connection depends on several factors, including how the connection was established, the particular behavior of the application or driver using the address, and the connection protocol (e.g., TCP or UDP). This is particularly important to consider when changing an existing IP address or CIDR block as they cannot be updated via the Provider, hence a change will force the destruction and recreation of entries.
 
@@ -35,25 +35,30 @@ resource "mongodbatlas_service_account_access_list_entry" "ip" {
   ip_address = "2.3.4.5"
 }
 
-# Data source to read a single service account access list entry
-data "mongodbatlas_service_account_access_list_entry" "test" {
+# Data source to read a single Service Account Access List entry
+data "mongodbatlas_service_account_access_list_entry" "this" {
   org_id     = mongodbatlas_service_account_access_list_entry.cidr.org_id
   client_id  = mongodbatlas_service_account_access_list_entry.cidr.client_id
   cidr_block = mongodbatlas_service_account_access_list_entry.cidr.cidr_block
 }
 
-# Data source to read all service account access list entries
-data "mongodbatlas_service_account_access_list_entries" "test" {
-  org_id    = mongodbatlas_service_account.this.org_id
-  client_id = mongodbatlas_service_account.this.client_id
+output "access_list_entry_cidr_block" {
+  value = data.mongodbatlas_service_account_access_list_entry.this.cidr_block
 }
 
-output "access_list_entry_cidr_block" {
-  value = data.mongodbatlas_service_account_access_list_entry.test.cidr_block
+# Data source to read all Service Account Access List entries
+data "mongodbatlas_service_account_access_list_entries" "this" {
+  org_id    = mongodbatlas_service_account.this.org_id
+  client_id = mongodbatlas_service_account.this.client_id
+
+  depends_on = [  
+    mongodbatlas_service_account_access_list_entry.cidr,  
+    mongodbatlas_service_account_access_list_entry.ip  
+  ]  
 }
 
 output "all_access_list_entries" {
-  value = data.mongodbatlas_service_account_access_list_entries.test.results
+  value = data.mongodbatlas_service_account_access_list_entries.this.results
 }
 ```
 
@@ -85,4 +90,4 @@ Service Account Access List entries can be imported using the `org_id`, `client_
 $ terraform import mongodbatlas_service_account_access_list_entry.test 5d0f1f74cf09a29120e123cd-mdb_sa_id_1234567890abcdef12345678-10.242.88.0/21
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Service-Accounts/operation/createOrgAccessList)
+For more information, see [Add Access List Entries for One Organization Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createorgserviceaccountaccesslist) in the MongoDB Atlas API documentation.
