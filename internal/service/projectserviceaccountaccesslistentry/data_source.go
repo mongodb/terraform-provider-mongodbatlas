@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	serviceaccountaccesslistentry "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountaccesslistentry"
-	"go.mongodb.org/atlas-sdk/v20250312011/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 )
 
 var _ datasource.DataSource = &ds{}
