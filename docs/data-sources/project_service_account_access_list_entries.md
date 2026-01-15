@@ -51,10 +51,10 @@ data "mongodbatlas_project_service_account_access_list_entries" "this" {
   project_id = mongodbatlas_project_service_account.this.project_id
   client_id  = mongodbatlas_project_service_account.this.client_id
 
-  depends_on = [  
-    mongodbatlas_project_service_account_access_list_entry.cidr,  
-    mongodbatlas_project_service_account_access_list_entry.ip  
-  ]  
+  depends_on = [
+    mongodbatlas_project_service_account_access_list_entry.cidr,
+    mongodbatlas_project_service_account_access_list_entry.ip
+  ]
 }
 
 output "all_access_list_entries" {
