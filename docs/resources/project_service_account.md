@@ -8,7 +8,7 @@ subcategory: "Service Accounts"
 
 ~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
-~> **IMPORTANT:** The use of `mongodbatlas_project_service_account` resource is not recommended for users with Organization Owner permissions. Instead, use the `mongodbatlas_service_account` and `mongodbatlas_service_account_project_assignment` resources to manage Service Account project assignments.
+~> **IMPORTANT:** The use of `mongodbatlas_project_service_account` resource is not recommended for users with Organization Owner permissions. Instead, use the [`mongodbatlas_service_account`](service_account.md) and [`mongodbatlas_service_account_project_assignment`](service_account_project_assignment.md) resources to manage Service Account project assignments.
 
 ~> **IMPORTANT:** When you delete a `mongodbatlas_project_service_account` resource, it unassigns the Service Account from the project but doesn't delete the Service Account itself. The Service Account will remain in your organization and you can reassign it to projects or delete it separately if needed.
 
