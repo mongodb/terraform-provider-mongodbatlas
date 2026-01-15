@@ -9,7 +9,7 @@ This example shows how to create Project Service Account Access List entries in 
 - `atlas_client_secret`: MongoDB Atlas Service Account Client Secret (for provider authentication)
 
 ## Prerequisites
-- Service Account with Project Owner permissions
+- Service Account with Project Owner permissions used for Provider Authentication
 
 ## Outputs
 

@@ -9,7 +9,7 @@ This example shows how to create Service Account Access List entries in MongoDB 
 - `atlas_client_secret`: MongoDB Atlas Service Account Client Secret (for provider authentication)
 
 ## Prerequisites
-- Service Account with Organization Owner permissions
+- Service Account with Organization Owner permissions used for Provider Authentication
 
 ## Outputs
 
