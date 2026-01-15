@@ -4,7 +4,7 @@ subcategory: "Programmatic API Keys"
 
 # Resource: mongodbatlas_access_list_api_key
 
-`mongodbatlas_access_list_api_key` provides an IP Access List entry resource. The access list grants access from IPs, CIDRs or AWS Security Groups (if VPC Peering is enabled) to clusters within the Project.
+`mongodbatlas_access_list_api_key` provides an IP Access List entry resource. The access list grants access from IPs or CIDRs to clusters within the Project.
     
 -> **Note:** The `mongodbatlas_access_list_api_key` resource can be used to manage all Programmatic API Keys, regardless of whether they were created at the Organization level or Project level. 
 
@@ -44,7 +44,7 @@ resource "mongodbatlas_access_list_api_key" "test" {
 * `org_id` - (Required) Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
 * `cidr_block` - (Optional) Range of IP addresses in CIDR notation to be added to the access list. Your access list entry can include only one `cidrBlock`, or one `ipAddress`.
 * `ip_address` - (Optional) Single IP address to be added to the access list.
-* `api_key_id` - Unique identifier for the Organization API Key for which you want to create a new access list entry.
+* `api_key_id` - (Required) Unique identifier for the Organization API Key for which you want to create a new access list entry.
 
 -> **NOTE:** One of the following attributes must set: `cidr_block`  or `ip_address` but not both.
 
