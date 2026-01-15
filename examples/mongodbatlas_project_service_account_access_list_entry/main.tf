@@ -8,29 +8,29 @@ resource "mongodbatlas_project_service_account" "this" {
 
 # Add IP Access List Entry to Project Service Account using CIDR Block
 resource "mongodbatlas_project_service_account_access_list_entry" "cidr" {
-  project_id  = var.project_id
-  client_id   = mongodbatlas_project_service_account.this.client_id
-  cidr_block  = "1.2.3.4/32"
+  project_id = var.project_id
+  client_id  = mongodbatlas_project_service_account.this.client_id
+  cidr_block = "1.2.3.4/32"
 }
 
 # Add IP Access List Entry to Project Service Account using IP Address
 resource "mongodbatlas_project_service_account_access_list_entry" "ip" {
-  project_id  = var.project_id
-  client_id   = mongodbatlas_project_service_account.this.client_id
-  ip_address  = "2.3.4.5"
+  project_id = var.project_id
+  client_id  = mongodbatlas_project_service_account.this.client_id
+  ip_address = "2.3.4.5"
 }
 
 # Data source to read a single project service account access list entry
 data "mongodbatlas_project_service_account_access_list_entry" "test" {
-  project_id  = mongodbatlas_project_service_account_access_list_entry.cidr.project_id
-  client_id   = mongodbatlas_project_service_account_access_list_entry.cidr.client_id
-  cidr_block  = mongodbatlas_project_service_account_access_list_entry.cidr.cidr_block
+  project_id = mongodbatlas_project_service_account_access_list_entry.cidr.project_id
+  client_id  = mongodbatlas_project_service_account_access_list_entry.cidr.client_id
+  cidr_block = mongodbatlas_project_service_account_access_list_entry.cidr.cidr_block
 }
 
 # Data source to read all project service account access list entries
 data "mongodbatlas_project_service_account_access_list_entries" "test" {
-  project_id  = mongodbatlas_project_service_account.this.project_id
-  client_id   = mongodbatlas_project_service_account.this.client_id
+  project_id = mongodbatlas_project_service_account.this.project_id
+  client_id  = mongodbatlas_project_service_account.this.client_id
 }
 
 output "access_list_entry_cidr_block" {
