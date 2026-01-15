@@ -6,8 +6,7 @@ subcategory: "Service Accounts"
 
 `mongodbatlas_service_account_access_list_entry` provides an IP Access List entry resource for Service Accounts. The access list grants access from IPs or CIDRs to clusters within the Project.
 
-~> **IMPORTANT:**
-When you remove an entry from the access list, existing connections from the removed address(es) may remain open for a variable amount of time. How much time passes before Atlas closes the connection depends on several factors, including how the connection was established, the particular behavior of the application or driver using the address, and the connection protocol (e.g., TCP or UDP). This is particularly important to consider when changing an existing IP address or CIDR block as they cannot be updated via the Provider, hence a change will force the destruction and recreation of entries.
+~> **IMPORTANT:** When you remove an entry from the access list, existing connections from the removed address(es) may remain open for a variable amount of time. How much time passes before Atlas closes the connection depends on several factors, including how the connection was established, the particular behavior of the application or driver using the address, and the connection protocol (e.g., TCP or UDP). This is particularly important to consider when changing an existing IP address or CIDR block as they cannot be updated via the Provider, hence a change will force the destruction and recreation of entries.
 
 ~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
