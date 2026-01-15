@@ -59,7 +59,7 @@ If `type` is of value `Https` the following additional attributes are defined:
 * `headers` - A map of key-value pairs for optional headers.
 
 If `type` is of value `SchemaRegistry` the following additional attributes are defined:
-* `schema_registry_provider` - The Schema Registry provider. Valid value is `CONFLUENT`.
+* `schema_registry_provider` - The Schema Registry provider. Must be set to `CONFLUENT`.
 * `schema_registry_urls` - List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
 * `schema_registry_authentication` - Authentication configuration for Schema Registry. See [Schema Registry Authentication](#schema-registry-authentication).
 
