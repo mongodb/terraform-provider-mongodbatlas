@@ -51,8 +51,8 @@ cidr_block          = "192.168.1.100/32"
 
 For v2 and v3, also set:
 ```terraform
-project_service_account_name        = "example-project-service-account"
-secret_expires_after_hours = 2160                                # 90 days
+project_service_account_name = "example-project-service-account"
+secret_expires_after_hours   = 2160 # 90 days
 ```
 
 Alternatively, set environment variables:
