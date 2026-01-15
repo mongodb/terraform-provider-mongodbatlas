@@ -5,8 +5,9 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
-	"go.mongodb.org/atlas-sdk/v20250312011/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 )
 
 const (
@@ -228,7 +229,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 
 type tfToSDKUpdateModelTestCase struct {
 	tfModel        *streaminstance.TFStreamInstanceModel
-	expectedSDKReq *admin.StreamsDataProcessRegion
+	expectedSDKReq *admin.StreamsTenantUpdateRequest
 	name           string
 }
 
@@ -243,9 +244,9 @@ func TestStreamInstanceTFToSDKUpdateModel(t *testing.T) {
 				Hostnames:         tfHostnamesList(t, hostnames),
 				InstanceName:      types.StringValue(instanceName),
 			},
-			expectedSDKReq: &admin.StreamsDataProcessRegion{
-				CloudProvider: cloudProvider,
-				Region:        region,
+			expectedSDKReq: &admin.StreamsTenantUpdateRequest{
+				CloudProvider: conversion.StringPtr(cloudProvider),
+				Region:        conversion.StringPtr(region),
 			},
 		},
 	}
