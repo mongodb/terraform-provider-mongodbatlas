@@ -1,0 +1,41 @@
+variable "org_id" {
+  description = "The ID of the MongoDB Atlas organization"
+  type        = string
+}
+
+variable "project_name" {
+  description = "The name of the MongoDB Atlas project"
+  type        = string
+}
+
+variable "team_id_1" {
+  description = "The ID of the first team"
+  type        = string
+}
+
+variable "team_1_roles" {
+  description = "Roles to assign to the first team in the project"
+  type        = list(string)
+}
+
+variable "team_id_2" {
+  description = "The ID of the second team"
+  type        = string
+}
+
+variable "team_2_roles" {
+  description = "Roles to assign to the second team in the project"
+  type        = list(string)
+}
+
+variable "atlas_client_id" {
+  description = "MongoDB Atlas Service Account Client ID"
+  type        = string
+  default     = ""
+}
+variable "atlas_client_secret" {
+  description = "MongoDB Atlas Service Account Client Secret"
+  type        = string
+  sensitive   = true
+  default     = ""
+}

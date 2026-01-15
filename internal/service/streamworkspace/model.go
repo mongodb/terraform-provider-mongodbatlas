@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
-	"go.mongodb.org/atlas-sdk/v20250312011/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 )
 
 // newStreamWorkspaceCreateReq creates an API request for creating a stream workspace.
@@ -48,14 +48,14 @@ func newStreamWorkspaceCreateReq(ctx context.Context, plan *TFModel) (*admin.Str
 }
 
 // newStreamWorkspaceUpdateReq creates an API request for updating a stream workspace.
-func newStreamWorkspaceUpdateReq(ctx context.Context, plan *TFModel) (*admin.StreamsDataProcessRegion, diag.Diagnostics) {
+func newStreamWorkspaceUpdateReq(ctx context.Context, plan *TFModel) (*admin.StreamsTenantUpdateRequest, diag.Diagnostics) {
 	dataProcessRegion := &TFWorkspaceProcessRegionSpecModel{}
 	if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil, diags
 	}
-	return &admin.StreamsDataProcessRegion{
-		CloudProvider: dataProcessRegion.CloudProvider.ValueString(),
-		Region:        dataProcessRegion.Region.ValueString(),
+	return &admin.StreamsTenantUpdateRequest{
+		CloudProvider: dataProcessRegion.CloudProvider.ValueStringPointer(),
+		Region:        dataProcessRegion.Region.ValueStringPointer(),
 	}, nil
 }
 
