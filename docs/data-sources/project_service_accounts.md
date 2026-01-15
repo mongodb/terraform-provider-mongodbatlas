@@ -4,7 +4,7 @@ subcategory: "Service Accounts"
 
 # Data Source: mongodbatlas_project_service_accounts
 
-`mongodbatlas_project_service_accounts` returns all Project Service Accounts for the specified Project.
+`mongodbatlas_project_service_accounts` returns all Service Accounts for the specified Project.
 
 ~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
@@ -36,7 +36,7 @@ output "service_account_name" {
 }
 
 output "service_account_first_secret" {
-  description = "The secret value of the first secret created with the service account. Only available after initial creation."
+  description = "The secret value of the first secret created with the service account. Available only immediately after initial creation."
   value       = try(mongodbatlas_project_service_account.this.secrets[0].secret, null)
   sensitive   = true
 }

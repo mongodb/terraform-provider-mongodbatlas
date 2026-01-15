@@ -6,11 +6,11 @@ subcategory: "Service Accounts"
 
 `mongodbatlas_project_service_account` provides a Project Service Account resource. The resource lets you create, update, delete, and import a Service Account for the specified Project.
 
-~> **IMPORTANT NOTE** The use of `mongodbatlas_project_service_account` resource is not recommended for users with Organization Owner permissions. For Organization Owner permissions, we recommend using the `mongodbatlas_service_account` resource and the `mongodbatlas_service_account_project_assignment` resource to assign the Service Account to projects.
+~> **IMPORTANT NOTE:** The use of `mongodbatlas_project_service_account` resource is not recommended for users with Organization Owner permissions. Instead, use the `mongodbatlas_service_account` and `mongodbatlas_service_account_project_assignment` resources to manage Service Account project assignments.
 
 ~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
-~> **IMPORTANT:** When you delete a `mongodbatlas_project_service_account` resource, it deassigns the Service Account from the project but does not delete the Service Account itself. The Service Account will remain in your organization and can be reassigned to projects or deleted separately if needed.
+~> **IMPORTANT:** When you delete a `mongodbatlas_project_service_account` resource, it unassigns the Service Account from the project but doesn't delete the Service Account itself. The Service Account will remain in your organization and you can reassign it to projects or delete it separately if needed.
 
 ## Example Usages
 
@@ -41,7 +41,7 @@ output "service_account_name" {
 }
 
 output "service_account_first_secret" {
-  description = "The secret value of the first secret created with the service account. Only available after initial creation."
+  description = "The secret value of the first secret created with the service account. Available only immediately after initial creation."
   value       = try(mongodbatlas_project_service_account.this.secrets[0].secret, null)
   sensitive   = true
 }

@@ -4,7 +4,7 @@ This example shows how to create a Service Account in MongoDB Atlas.
 
 ## Important Notes
 
-When a Service Account is created, a secret is automatically generated. The secret value is only returned once at creation time.
+When you create a Service Account, Atlas automatically generates a secret. The secret value returns only once, at creation time.
 
 The example includes a sensitive output `service_account_first_secret` that captures this initial secret. 
 You can retrieve it using (**warning**: this prints the secret to your terminal):
