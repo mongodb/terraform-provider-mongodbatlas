@@ -52,6 +52,10 @@ type TFStreamConnectionModel struct {
 	// https connection
 	Headers types.Map    `tfsdk:"headers"`
 	URL     types.String `tfsdk:"url"`
+	// SchemaRegistry connection
+	SchemaRegistryProvider       types.String `tfsdk:"schema_registry_provider"`
+	SchemaRegistryURLs           types.List   `tfsdk:"schema_registry_urls"`
+	SchemaRegistryAuthentication types.Object `tfsdk:"schema_registry_authentication"`
 }
 
 type TFConnectionAuthenticationModel struct {
@@ -76,6 +80,18 @@ var ConnectionAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]
 	"client_secret":               types.StringType,
 	"scope":                       types.StringType,
 	"sasl_oauthbearer_extensions": types.StringType,
+}}
+
+type TFSchemaRegistryAuthenticationModel struct {
+	Type     types.String `tfsdk:"type"`
+	Username types.String `tfsdk:"username"`
+	Password types.String `tfsdk:"password"`
+}
+
+var SchemaRegistryAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"type":     types.StringType,
+	"username": types.StringType,
+	"password": types.StringType,
 }}
 
 type TFConnectionSecurityModel struct {
@@ -169,7 +185,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 	instanceName := streamConnectionPlan.InstanceName.ValueString()
 	workspaceName := streamConnectionPlan.WorkspaceName.ValueString()
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, &streamConnectionPlan.SchemaRegistryAuthentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -204,7 +220,7 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 
 	instanceName := streamConnectionState.InstanceName.ValueString()
 	workspaceName := streamConnectionState.WorkspaceName.ValueString()
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionState.Authentication, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionState.Authentication, &streamConnectionState.SchemaRegistryAuthentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -240,7 +256,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 
 	instanceName := streamConnectionPlan.InstanceName.ValueString()
 	workspaceName := streamConnectionPlan.WorkspaceName.ValueString()
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, &streamConnectionPlan.SchemaRegistryAuthentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
