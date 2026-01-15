@@ -36,10 +36,10 @@ data "mongodbatlas_service_account_access_list_entries" "this" {
   org_id    = mongodbatlas_service_account.this.org_id
   client_id = mongodbatlas_service_account.this.client_id
 
-  depends_on = [  
-    mongodbatlas_service_account_access_list_entry.cidr,  
-    mongodbatlas_service_account_access_list_entry.ip  
-  ]  
+  depends_on = [
+    mongodbatlas_service_account_access_list_entry.cidr,
+    mongodbatlas_service_account_access_list_entry.ip
+  ]
 }
 
 output "all_access_list_entries" {
