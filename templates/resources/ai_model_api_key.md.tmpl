@@ -1,0 +1,25 @@
+---
+subcategory: "AI Models"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides an AI Model API Key resource. The resource lets you create, update, delete, and import an AI Model API Key for the specified Project. This API Key is used to authenticate requests to Voyage AI embedding and reranking services.
+
+~> **IMPORTANT WARNING:** Managing AI Model API Keys with Terraform will expose sensitive secrets in Terraform's state file. The `secret` attribute contains the full API key and is persisted in Terraform state after creation. We recommend following [Terraform's best practices for sensitive data](https://developer.hashicorp.com/terraform/language/state/sensitive-data). Consider using remote state with encryption enabled.
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+Import the AI Model API Key resource by using the Project ID and API Key ID in the format `PROJECT_ID/API_KEY_ID`, e.g.
+```
+$ terraform import mongodbatlas_ai_model_api_key.example 6117ac2fe2a3d04ed27a987v/507f1f77bcf86cd799439011
+```
+
+~> **NOTE:** When importing an existing AI Model API Key, the `secret` attribute will be null because the secret is only returned by the API at creation time. If you need the secret value, you must create a new API key through Terraform.
+
+For more information, see [Get One AI Model API Key](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Voyage-AI-Model-API-Keys/operation/getAiModelApiKey) in the MongoDB Atlas API documentation.

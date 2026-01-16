@@ -1,0 +1,16 @@
+---
+subcategory: "AI Models"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes an AI Model API Key.
+
+~> **NOTE:** The `secret` attribute is not available through this data source as it is only returned during initial creation. To access the secret, use the resource.
+
+## Example Usages
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information, see [Get One AI Model API Key](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Voyage-AI-Model-API-Keys/operation/getAiModelApiKey) in the MongoDB Atlas API documentation.
