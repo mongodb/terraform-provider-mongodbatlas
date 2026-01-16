@@ -2,6 +2,17 @@ schema:
     description: Create a new AI model API key for the given group.
     attributes:
         - string: {}
+          description: Identifier used to reference this API key in admin API calls.
+          computed_optional_required: computed
+          tf_schema_name: api_key_id
+          tf_model_name: ApiKeyId
+          api_name: apiKeyId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
           description: UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.
           computed_optional_required: computed
           tf_schema_name: created_at
@@ -35,17 +46,6 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Identifier used to reference this API key in admin API calls.
-          computed_optional_required: computed
-          tf_schema_name: api_key_id
-          tf_model_name: ApiKeyId
-          api_name: id
-          req_body_usage: omit_always
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
           description: UTC date when the API key was last used. This parameter is formatted as an ISO 8601 timestamp.
           computed_optional_required: computed
           tf_schema_name: last_used_at
@@ -61,7 +61,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: masked_secret
           tf_model_name: MaskedSecret
-          api_name: maskedKey
+          api_name: maskedSecret
           req_body_usage: omit_always
           sensitive: false
           create_only: false

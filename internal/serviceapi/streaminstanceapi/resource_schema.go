@@ -210,6 +210,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 						},
+						"state": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The state of the connection.",
+						},
 						"type": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Type of the connection.",
@@ -310,6 +314,7 @@ type TFConnectionsModel struct {
 	SchemaRegistryAuthentication customtypes.ObjectValue[TFConnectionsSchemaRegistryAuthenticationModel] `tfsdk:"schema_registry_authentication" autogen:"omitjson"`
 	SchemaRegistryUrls           customtypes.SetValue[types.String]                                      `tfsdk:"schema_registry_urls" autogen:"omitjson"`
 	Security                     customtypes.ObjectValue[TFConnectionsSecurityModel]                     `tfsdk:"security" autogen:"omitjson"`
+	State                        types.String                                                            `tfsdk:"state" autogen:"omitjson"`
 	Type                         types.String                                                            `tfsdk:"type" autogen:"omitjson"`
 	Url                          types.String                                                            `tfsdk:"url" autogen:"omitjson"`
 }

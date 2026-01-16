@@ -20,15 +20,11 @@ resources:
     version_header: application/vnd.atlas.preview+json
     schema:
       aliases:
-        id: apiKeyId
         groupId: projectId
-        maskedKey: maskedSecret
       overrides:
         project_id:
           description: *project_id_description
-        secret:
-          sensitive: true
-
+    
   # Singleton resource in project.
   # Create, Delete and Update uses PATCH.
   auditing_api:
