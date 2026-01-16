@@ -4,7 +4,7 @@ This example shows how to create a Service Account Secret.
 
 ## Important Notes
 
-When you create a Service Account, Atlas automatically generates a secret. The secret value returns only once, at creation time. This example creates a second secret for the same Service Account.
+When you create a Service Account, Atlas automatically generates a secret. The secret value is returned only once, at creation time. This example creates a second secret for the same Service Account.
 
 The example includes a sensitive output `secret` that captures this value. You can retrieve it using (**warning**: this prints the secret to your terminal):
 

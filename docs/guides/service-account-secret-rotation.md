@@ -8,7 +8,7 @@ page_title: "Guide: Service Account Secret Rotation"
 
 ## Overview
 
-When you create a Service Account, Atlas automatically generates a secret. The secret value returns only once, at creation time.
+When you create a Service Account, Atlas automatically generates a secret. The secret value is returned only once, at creation time.
 
 For production environments, you typically want to maintain two secrets at any given time, allowing you to rotate one while the other remains active.
 
