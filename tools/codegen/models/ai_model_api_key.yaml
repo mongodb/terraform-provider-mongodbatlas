@@ -196,17 +196,6 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: 'The full API key secret used for interacting with the embedding / reranking service. Note: this will only be fully populated in the response to a create API key request. Responses to get, list, and update requests will not include the secret.'
-              computed_optional_required: computed
-              tf_schema_name: secret
-              tf_model_name: Secret
-              api_name: secret
-              req_body_usage: omit_always
-              sensitive: true
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
               description: A string describing the current status of the API key.
               computed_optional_required: computed
               tf_schema_name: status
@@ -307,17 +296,6 @@ data_sources:
                           api_name: name
                           req_body_usage: omit_always
                           sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - string: {}
-                          description: 'The full API key secret used for interacting with the embedding / reranking service. Note: this will only be fully populated in the response to a create API key request. Responses to get, list, and update requests will not include the secret.'
-                          computed_optional_required: computed
-                          tf_schema_name: secret
-                          tf_model_name: Secret
-                          api_name: secret
-                          req_body_usage: omit_always
-                          sensitive: true
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false

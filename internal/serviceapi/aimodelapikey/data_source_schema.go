@@ -41,11 +41,6 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
 			},
-			"secret": dsschema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The full API key secret used for interacting with the embedding / reranking service. Note: this will only be fully populated in the response to a create API key request. Responses to get, list, and update requests will not include the secret.",
-				Sensitive:           true,
-			},
 			"status": dsschema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "A string describing the current status of the API key.",
@@ -62,6 +57,5 @@ type TFDSModel struct {
 	MaskedSecret types.String `tfsdk:"masked_secret" autogen:"omitjson"`
 	Name         types.String `tfsdk:"name" autogen:"omitjson"`
 	ProjectId    types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Secret       types.String `tfsdk:"secret" autogen:"sensitive,omitjson"`
 	Status       types.String `tfsdk:"status" autogen:"omitjson"`
 }

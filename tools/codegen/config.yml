@@ -29,7 +29,9 @@ resources:
       list:
         path: *ai_model_api_key_collection_path
         method: GET
-      schema: *ai_model_api_key_schema
+      schema:
+        <<: *ai_model_api_key_schema
+        ignores: ["secret"]
     
   # Singleton resource in project.
   # Create, Delete and Update uses PATCH.
