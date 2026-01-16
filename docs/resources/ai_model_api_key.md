@@ -72,5 +72,3 @@ $ terraform import mongodbatlas_ai_model_api_key.example 1112222b3bf99403840e893
 ```
 
 ~> **NOTE:** When importing an existing AI Model API Key, the `secret` attribute will be null because the secret is only returned by the API at creation time. If you need the secret value, you must create a new API key through Terraform.
-
-For more information, see [Get One AI Model API Key](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Voyage-AI-Model-API-Keys/operation/getAiModelApiKey) in the MongoDB Atlas API documentation.
