@@ -302,6 +302,10 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		apikeyprojectassignment.PluralDataSource,
 		advancedcluster.DataSource,
 		advancedcluster.PluralDataSource,
+
+		// TODO: Auto-generated datasources, delete this comment before merging to master in CLOUDP-372674
+		aimodelapikey.DataSource,
+		aimodelapikey.PluralDataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
