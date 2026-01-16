@@ -3,7 +3,7 @@
 This example shows how to create and assign a Service Account to a Project with specific roles.
 
 ## Prerequisites
-- Service Account with Organization Owner permissions
+- Service Account with Organization Owner permissions used for Provider Authentication
 
 ## Variables Required to be set:
 - `atlas_client_id`: MongoDB Atlas Service Account Client ID

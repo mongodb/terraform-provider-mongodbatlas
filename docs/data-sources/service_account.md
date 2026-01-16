@@ -6,7 +6,7 @@ subcategory: "Service Accounts"
 
 `mongodbatlas_service_account` describes a Service Account.
 
-~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform will expose sensitive organizational secrets in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
+~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
 ## Example Usages
 ```terraform
@@ -36,7 +36,7 @@ output "service_account_name" {
 }
 
 output "service_account_first_secret" {
-  description = "The secret value of the first secret created with the service account. Only available after initial creation."
+  description = "The secret value of the first secret created with the service account. Available only immediately after initial creation."
   value       = try(mongodbatlas_service_account.this.secrets[0].secret, null)
   sensitive   = true
 }

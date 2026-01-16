@@ -4,10 +4,9 @@ This example shows how to create a Project Service Account Secret.
 
 ## Important Notes
 
-When a Project Service Account is created, an initial secret is automatically generated. This example creates a second secret for the same Project Service Account.
+When you create a Project Service Account, Atlas automatically generates a secret. The secret value is returned only once, at creation time. This example creates a second secret for the same Project Service Account.
 
-The secret value is only returned once at creation time. The example includes a sensitive output `secret` that captures this value.
-You can retrieve it using (**warning**: this prints the secret to your terminal):
+The example includes a sensitive output `secret` that captures this value. You can retrieve it using (**warning**: this prints the secret to your terminal):
 
 ```bash
 terraform output -raw secret
@@ -16,7 +15,7 @@ terraform output -raw secret
 For managing and rotating both secrets, see [Guide: Service Account Secret Rotation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/service-account-secret-rotation).
 
 ## Prerequisites
-- Service Account with Project Owner permissions
+- Service Account with Project Owner permissions used for Provider Authentication
 
 ## Variables Required to be set:
 - `atlas_client_id`: MongoDB Atlas Service Account Client ID
