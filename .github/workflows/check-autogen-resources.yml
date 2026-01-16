@@ -1,6 +1,6 @@
-name: 'Check auto-generated resources'
+name: 'Check auto-generated resource code is aligned with serialized models'
 
-# Ensures that the auto-generated resources are up to date given current API Spec and autogen config.
+# Ensures that the auto-generated resources are up to date given current serialized models.
 on:
   push:
     branches:
@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  check-autogen-resources:
+  check-autogen-resource-code:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
         with:
           go-version-file: 'go.mod'
-      - run: make tools resource-code-generation
+      - run: make tools autogen-code-generation
       - name: Find mutations
         id: self_mutation
         run: |-

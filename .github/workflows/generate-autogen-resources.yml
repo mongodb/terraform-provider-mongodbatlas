@@ -19,7 +19,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
       - name: Generate resources
-        run: make tools resource-generation-pipeline
+        run: make tools autogen-pipeline
       # Avoids creating a PR if only the API spec has changed
       - name: Check for changes in ./internal (resource implementations)
         id: check_internal_changes

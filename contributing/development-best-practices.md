@@ -28,12 +28,17 @@ The generation command makes use of a configuration file defined under [`./tools
 The generation command takes a single optional argument `resource_name`. If not provided, all resources defined in the configuration are generated.
 
 ```bash
-make resource-generation-pipeline resource_name=search_deployment_api
+make autogen-pipeline resource_name=search_deployment_api
 ```
 
-If you wish to generate resource/data source code without fetching latest changes from the API Spec, use the following command:
+If you wish to generate resource/data source models without fetching latest changes from the API Spec, use the following command:
 ```bash
-make resource-code-generation
+make autogen-model-generation
+```
+
+If you wish to generate resource/data source code from already serialized models, use the following command:
+```bash
+make autogen-code-generation
 ```
 
 As a result, content of schemas and models will be written into the corresponding resource packages:
