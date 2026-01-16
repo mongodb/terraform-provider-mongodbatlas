@@ -1,9 +1,11 @@
 name: 'Generate auto-generated resources'
 
+# DISABLED
+# This workflow has been disabled to prevent automatic updates to production autogen resources. See: CLOUDP-365514
 # Auto-generates resources and creates a pull request if there are any changes. Runs once per week and can be triggered manually.
 on:
-  schedule:
-    - cron: "30 8 * * WED" # Every Wednesday at 8:30 AM
+  # schedule:
+  #   - cron: "30 8 * * WED" # Every Wednesday at 8:30 AM
   workflow_dispatch:
 
 jobs:
