@@ -44,9 +44,13 @@ resources:
         path: /api/atlas/v2/orgs/{orgId}/aiModelApiKeys
         method: GET
       schema:
+        aliases:
+          groupId: project_id
         overrides:
           org_id:
             description: *org_id_description
+          project_id:
+            description: *project_id_description
         ignores: ["secret"]
 
   # Singleton resource in project.

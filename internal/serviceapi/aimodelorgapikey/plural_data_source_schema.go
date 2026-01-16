@@ -36,9 +36,9 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Name of the user that created this API key. If no user name is available, the user ID is returned.",
 						},
-						"group_id": dsschema.StringAttribute{
+						"project_id": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "ID of the Atlas group this API key belongs to.",
+							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
 						},
 						"last_used_at": dsschema.StringAttribute{
 							Computed:            true,
@@ -71,7 +71,7 @@ type TFPluralDSResultsModel struct {
 	ApiKeyId     types.String `tfsdk:"api_key_id" autogen:"omitjson"`
 	CreatedAt    types.String `tfsdk:"created_at" autogen:"omitjson"`
 	CreatedBy    types.String `tfsdk:"created_by" autogen:"omitjson"`
-	GroupId      types.String `tfsdk:"group_id" autogen:"omitjson"`
+	Project_id   types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	LastUsedAt   types.String `tfsdk:"last_used_at" autogen:"omitjson"`
 	MaskedSecret types.String `tfsdk:"masked_secret" autogen:"omitjson"`
 	Name         types.String `tfsdk:"name" autogen:"omitjson"`

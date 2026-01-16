@@ -25,10 +25,6 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Name of the user that created this API key. If no user name is available, the user ID is returned.",
 			},
-			"group_id": dsschema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "ID of the Atlas group this API key belongs to.",
-			},
 			"last_used_at": dsschema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "UTC date when the API key was last used. This parameter is formatted as an ISO 8601 timestamp.",
@@ -45,6 +41,10 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects.",
 			},
+			"project_id": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+			},
 			"status": dsschema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "A string describing the current status of the API key.",
@@ -57,10 +57,10 @@ type TFDSModel struct {
 	ApiKeyId     types.String `tfsdk:"api_key_id" autogen:"omitjson"`
 	CreatedAt    types.String `tfsdk:"created_at" autogen:"omitjson"`
 	CreatedBy    types.String `tfsdk:"created_by" autogen:"omitjson"`
-	GroupId      types.String `tfsdk:"group_id" autogen:"omitjson"`
 	LastUsedAt   types.String `tfsdk:"last_used_at" autogen:"omitjson"`
 	MaskedSecret types.String `tfsdk:"masked_secret" autogen:"omitjson"`
 	Name         types.String `tfsdk:"name" autogen:"omitjson"`
 	OrgId        types.String `tfsdk:"org_id" autogen:"omitjson"`
+	Project_id   types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	Status       types.String `tfsdk:"status" autogen:"omitjson"`
 }
