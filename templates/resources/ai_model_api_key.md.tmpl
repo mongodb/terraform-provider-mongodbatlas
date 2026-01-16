@@ -4,7 +4,7 @@ subcategory: "AI Models"
 
 # {{.Type}}: {{.Name}}
 
-`{{.Name}}` provides an AI Model API Key resource. The resource lets you create, update, delete, and import an AI Model API Key for the specified Project. This API Key is used to authenticate requests to Voyage AI embedding and reranking services.
+`{{.Name}}` provides an AI Model API Key resource. The resource lets you create, update, delete, and import an AI Model API Key for the specified Project. This API Key is used to authenticate requests to AI embedding and reranking services.
 
 ~> **IMPORTANT WARNING:** Managing AI Model API Keys with Terraform will expose sensitive secrets in Terraform's state file. The `secret` attribute contains the full API key and is persisted in Terraform state after creation. We recommend following [Terraform's best practices for sensitive data](https://developer.hashicorp.com/terraform/language/state/sensitive-data). Consider using remote state with encryption enabled.
 
