@@ -6,8 +6,7 @@ subcategory: "Service Accounts"
 
 `mongodbatlas_service_account_secret` describes a Service Account Secret.
 
-~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform will expose sensitive organizational secrets in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
-
+~> **IMPORTANT WARNING:** Managing Service Accounts with Terraform **exposes sensitive organizational secrets** in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 ## Example Usages
 ```terraform
 resource "mongodbatlas_service_account" "this" {

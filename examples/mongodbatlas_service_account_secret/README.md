@@ -4,10 +4,9 @@ This example shows how to create a Service Account Secret.
 
 ## Important Notes
 
-When a Service Account is created, an initial secret is automatically generated. This example creates a second secret for the same Service Account.
+When you create a Service Account, Atlas automatically generates a secret. The secret value is returned only once, at creation time. This example creates a second secret for the same Service Account.
 
-The secret value is only returned once at creation time. The example includes a sensitive output `secret` that captures this value.
-You can retrieve it using (**warning**: this prints the secret to your terminal):
+The example includes a sensitive output `secret` that captures this value. You can retrieve it using (**warning**: this prints the secret to your terminal):
 
 ```bash
 terraform output -raw secret
