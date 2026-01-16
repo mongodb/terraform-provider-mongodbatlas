@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -548,6 +549,135 @@ func TestAccStreamRSStreamConnection_conflictingFields(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestAccStreamRSStreamConnection_SchemaRegistry(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = acc.RandomName()
+		schemaRegistryURLs      = []string{"https://schemaregistry.example.com", "https://schemaregistry2.example.com"}
+		username                = "user"
+		password                = "password"
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourceConfig + configureSchemaRegistry(projectID, instanceName, connectionName, "CONFLUENT", "USER_INFO", username, password, schemaRegistryURLs),
+				Check:  checkSchemaRegistryAttributes(resourceName, instanceName, connectionName, "CONFLUENT", "USER_INFO", username),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"schema_registry_authentication.password",
+				},
+			},
+		},
+	})
+}
+
+func configureSchemaRegistry(projectID, workspaceName, connectionName, provider, authType, username, password string, urls []string) string {
+	quotedURLs := make([]string, len(urls))
+	for i, url := range urls {
+		quotedURLs[i] = fmt.Sprintf("%q", url)
+	}
+	urlsStr := strings.Join(quotedURLs, ", ")
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_connection" "test" {
+		    project_id = %[1]q
+			workspace_name = %[2]q
+		 	connection_name = %[3]q
+		 	type = "SchemaRegistry"
+            schema_registry_provider = %[4]q
+			schema_registry_urls = [%[5]s]
+		 	schema_registry_authentication = {
+				type = %[6]q
+				username = %[7]q
+				password = %[8]q
+			}
+		}
+	`, projectID, workspaceName, connectionName, provider, urlsStr, authType, username, password)
+}
+
+func checkSchemaRegistryAttributes(resourceName, workspaceName, connectionName, provider, authType, username string) resource.TestCheckFunc {
+	// check map similar to http way of doing it
+	setChecks := []string{"project_id"}
+	mapChecks := map[string]string{
+		"workspace_name":                          workspaceName,
+		"connection_name":                         connectionName,
+		"type":                                    "SchemaRegistry",
+		"schema_registry_provider":                provider,
+		"schema_registry_urls.#":                  "2",
+		"schema_registry_authentication.type":     authType,
+		"schema_registry_authentication.username": username,
+	}
+	extra := []resource.TestCheckFunc{checkStreamConnectionExists()}
+	return acc.CheckRSAndDS(resourceName, conversion.StringPtr(dataSourceName), nil, setChecks, mapChecks, extra...)
+}
+
+func TestAccStreamRSStreamConnection_SchemaRegistrySASLInherit(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = acc.RandomName()
+		schemaRegistryURLs      = []string{"https://schemaregistry.example.com"}
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourceConfig + configureSchemaRegistrySASLInherit(projectID, instanceName, connectionName, "CONFLUENT", schemaRegistryURLs),
+				Check:  checkSchemaRegistrySASLInheritAttributes(resourceName, instanceName, connectionName, "CONFLUENT"),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func configureSchemaRegistrySASLInherit(projectID, workspaceName, connectionName, provider string, urls []string) string {
+	quotedURLs := make([]string, len(urls))
+	for i, url := range urls {
+		quotedURLs[i] = fmt.Sprintf("%q", url)
+	}
+	urlsStr := strings.Join(quotedURLs, ", ")
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_connection" "test" {
+		    project_id = %[1]q
+			workspace_name = %[2]q
+		 	connection_name = %[3]q
+		 	type = "SchemaRegistry"
+            schema_registry_provider = %[4]q
+			schema_registry_urls = [%[5]s]
+		 	schema_registry_authentication = {
+				type = "SASL_INHERIT"
+			}
+		}
+	`, projectID, workspaceName, connectionName, provider, urlsStr)
+}
+
+func checkSchemaRegistrySASLInheritAttributes(resourceName, workspaceName, connectionName, provider string) resource.TestCheckFunc {
+	setChecks := []string{"project_id"}
+	mapChecks := map[string]string{
+		"workspace_name":                      workspaceName,
+		"connection_name":                     connectionName,
+		"type":                                "SchemaRegistry",
+		"schema_registry_provider":            provider,
+		"schema_registry_urls.#":              "1",
+		"schema_registry_authentication.type": "SASL_INHERIT",
+	}
+	extra := []resource.TestCheckFunc{checkStreamConnectionExists()}
+	return acc.CheckRSAndDS(resourceName, conversion.StringPtr(dataSourceName), nil, setChecks, mapChecks, extra...)
 }
 
 func getKafkaAuthenticationConfig(mechanism, username, password, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions, method string) string {

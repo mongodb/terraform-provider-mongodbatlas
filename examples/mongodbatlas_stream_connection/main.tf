@@ -133,6 +133,32 @@ resource "mongodbatlas_stream_connection" "example-https" {
   }
 }
 
+resource "mongodbatlas_stream_connection" "example-schema-registry-user-info" {
+  project_id               = var.project_id
+  workspace_name           = mongodbatlas_stream_instance.example.instance_name
+  connection_name          = "SchemaRegistryUserInfoConnection"
+  type                     = "SchemaRegistry"
+  schema_registry_provider = "CONFLUENT"
+  schema_registry_urls     = ["https://schemaregistry.example.com"]
+  schema_registry_authentication = {
+    type     = "USER_INFO"
+    username = var.schema_registry_username
+    password = var.schema_registry_password
+  }
+}
+
+resource "mongodbatlas_stream_connection" "example-schema-registry-sasl-inherit" {
+  project_id               = var.project_id
+  workspace_name           = mongodbatlas_stream_instance.example.instance_name
+  connection_name          = "SchemaRegistrySASLInheritConnection"
+  type                     = "SchemaRegistry"
+  schema_registry_provider = "CONFLUENT"
+  schema_registry_urls     = ["https://schemaregistry.example.com"]
+  schema_registry_authentication = {
+    type = "SASL_INHERIT"
+  }
+}
+
 data "mongodbatlas_stream_connection" "example-kafka-ssl" {
   project_id      = var.project_id
   workspace_name  = mongodbatlas_stream_instance.example.instance_name

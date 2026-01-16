@@ -176,6 +176,30 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				ElementType: types.StringType,
 				Optional:    true,
 			},
+
+			// SchemaRegistry type specific
+			"schema_registry_provider": schema.StringAttribute{
+				Optional: true,
+			},
+			"schema_registry_urls": schema.ListAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+			},
+			"schema_registry_authentication": schema.SingleNestedAttribute{
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"type": schema.StringAttribute{
+						Optional: true,
+					},
+					"username": schema.StringAttribute{
+						Optional: true,
+					},
+					"password": schema.StringAttribute{
+						Optional:  true,
+						Sensitive: true,
+					},
+				},
+			},
 		},
 	}
 }

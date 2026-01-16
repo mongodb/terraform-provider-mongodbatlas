@@ -149,13 +149,47 @@ resource "mongodbatlas_stream_connection" "example-https" {
 }
 ```
 
+### Example Schema Registry Connection with USER_INFO Authentication
+
+```terraform
+resource "mongodbatlas_stream_connection" "example-schema-registry" {
+  project_id               = var.project_id
+  workspace_name           = mongodbatlas_stream_instance.example.instance_name
+  connection_name          = "SchemaRegistryConnection"
+  type                     = "SchemaRegistry"
+  schema_registry_provider = "CONFLUENT"
+  schema_registry_urls     = ["https://schema-registry.example.com:8081"]
+  schema_registry_authentication = {
+    type     = "USER_INFO"
+    username = "registry-user"
+    password = var.schema_registry_password
+  }
+}
+```
+
+### Example Schema Registry Connection with SASL_INHERIT Authentication
+
+```terraform
+resource "mongodbatlas_stream_connection" "example-schema-registry-sasl" {
+  project_id               = var.project_id
+  workspace_name           = mongodbatlas_stream_instance.example.instance_name
+  connection_name          = "SchemaRegistryConnectionSASL"
+  type                     = "SchemaRegistry"
+  schema_registry_provider = "CONFLUENT"
+  schema_registry_urls     = ["https://schema-registry.example.com:8081"]
+  schema_registry_authentication = {
+    type = "SASL_INHERIT"
+  }
+}
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
 * `instance_name` - (Deprecated) Label that identifies the stream processing workspace. Attribute is deprecated and will be removed in following major versions in favor of `workspace_name`.
 * `workspace_name` - (Optional) Label that identifies the stream processing workspace. Conflicts with `instance_name`.
 * `connection_name` - (Required) Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - (Required) Type of connection. Can be `AWSLambda`, `Cluster`, `Https`, `Kafka` or `Sample`.
+* `type` - (Required) Type of connection. Can be `AWSLambda`, `Cluster`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
 
 ~> **NOTE:** Either `workspace_name` or `instance_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is an alias for `instance_name`. `workspace_name` should be used instead of `instance_name`.
 
@@ -177,6 +211,11 @@ If `type` is of value `AWSLambda` the following additional arguments are defined
 If `type` is of value `Https` the following additional attributes are defined:
 * `url` - URL of the HTTPs endpoint that will be used for creating a connection.
 * `headers` - A map of key-value pairs for optional headers.
+
+If `type` is of value `SchemaRegistry` the following additional arguments are defined:
+* `schema_registry_provider` - The Schema Registry provider. Must be set to `CONFLUENT`.
+* `schema_registry_urls` - List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
+* `schema_registry_authentication` - Authentication configuration for Schema Registry. See [Schema Registry Authentication](#schema-registry-authentication).
 
 ### Authentication
 
@@ -209,6 +248,13 @@ If `type` is of value `Https` the following additional attributes are defined:
 
 ### AWS
 * `role_arn` - Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+
+### Schema Registry Authentication
+* `type` - Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry. Valid values are `USER_INFO` or `SASL_INHERIT`.
+  * `USER_INFO` - Uses username and password authentication for Confluent Schema Registry.
+  * `SASL_INHERIT` - Inherits the authentication configuration from Kafka for the Confluent Schema Registry.
+* `username` - Username for the Schema Registry. Required when `type` is `USER_INFO`.
+* `password` - Password for the Schema Registry. Required when `type` is `USER_INFO`.
 
 ## Import
 
