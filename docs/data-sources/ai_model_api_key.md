@@ -52,5 +52,3 @@ output "ai_model_api_key_secret" {
 - `masked_secret` (String) A partially obfuscated version of the API key secret returned when the API key was created.
 - `name` (String) Arbitrary string identifier assigned to this API key for convenient identification.
 - `status` (String) A string describing the current status of the API key.
-
-For more information, see [Get One AI Model API Key](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Voyage-AI-Model-API-Keys/operation/getAiModelApiKey) in the MongoDB Atlas API documentation.

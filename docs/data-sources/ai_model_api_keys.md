@@ -60,5 +60,3 @@ Read-Only:
 - `name` (String) Arbitrary string identifier assigned to this API key for convenient identification.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
 - `status` (String) A string describing the current status of the API key.
-
-For more information, see [List AI Model API Keys](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Voyage-AI-Model-API-Keys/operation/listAiModelApiKeys) in the MongoDB Atlas API documentation.
