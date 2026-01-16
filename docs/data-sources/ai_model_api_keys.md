@@ -70,3 +70,5 @@ Read-Only:
 - `name` (String) Arbitrary string identifier assigned to this API key for convenient identification.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
 - `status` (String) A string describing the current status of the API key.
+
+For more information, see [Manage AI Model API Keys](https://www.mongodb.com/docs/voyageai/management/api-keys/).

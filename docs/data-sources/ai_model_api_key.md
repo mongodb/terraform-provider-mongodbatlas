@@ -62,3 +62,5 @@ output "ai_model_api_keys_results" {
 - `masked_secret` (String) A partially obfuscated version of the API key secret returned when the API key was created.
 - `name` (String) Arbitrary string identifier assigned to this API key for convenient identification.
 - `status` (String) A string describing the current status of the API key.
+
+For more information, see [Manage AI Model API Keys](https://www.mongodb.com/docs/voyageai/management/api-keys/).
