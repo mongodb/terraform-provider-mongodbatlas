@@ -114,5 +114,246 @@ operations:
         http_method: PATCH
         path: /api/atlas/v2/groups/{projectId}/aiModelApiKeys/{apiKeyId}
     version_header: application/vnd.atlas.preview+json
+data_sources:
+    schema:
+        singular_ds_description: Retrieve a single AI model API key for the given group.
+        singular_ds_attributes:
+            - string: {}
+              description: The id of the API key to be retrieved.
+              computed_optional_required: required
+              tf_schema_name: api_key_id
+              tf_model_name: ApiKeyId
+              api_name: apiKeyId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.
+              computed_optional_required: computed
+              tf_schema_name: created_at
+              tf_model_name: CreatedAt
+              api_name: createdAt
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Name of the user that created this API key. If no user name is available, the user ID is returned.
+              computed_optional_required: computed
+              tf_schema_name: created_by
+              tf_model_name: CreatedBy
+              api_name: createdBy
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: UTC date when the API key was last used. This parameter is formatted as an ISO 8601 timestamp.
+              computed_optional_required: computed
+              tf_schema_name: last_used_at
+              tf_model_name: LastUsedAt
+              api_name: lastUsedAt
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: A partially obfuscated version of the API key secret returned when the API key was created.
+              computed_optional_required: computed
+              tf_schema_name: masked_secret
+              tf_model_name: MaskedSecret
+              api_name: maskedSecret
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Arbitrary string identifier assigned to this API key for convenient identification.
+              computed_optional_required: computed
+              tf_schema_name: name
+              tf_model_name: Name
+              api_name: name
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: 'The full API key secret used for interacting with the embedding / reranking service. Note: this will only be fully populated in the response to a create API key request. Responses to get, list, and update requests will not include the secret.'
+              computed_optional_required: computed
+              tf_schema_name: secret
+              tf_model_name: Secret
+              api_name: secret
+              req_body_usage: omit_always
+              sensitive: true
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: A string describing the current status of the API key.
+              computed_optional_required: computed
+              tf_schema_name: status
+              tf_model_name: Status
+              api_name: status
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+        plural_ds_description: Retrieve AI model API keys for the given group.
+        plural_ds_attributes:
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Identifier used to reference this API key in admin API calls.
+                          computed_optional_required: computed
+                          tf_schema_name: api_key_id
+                          tf_model_name: ApiKeyId
+                          api_name: apiKeyId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.
+                          computed_optional_required: computed
+                          tf_schema_name: created_at
+                          tf_model_name: CreatedAt
+                          api_name: createdAt
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Name of the user that created this API key. If no user name is available, the user ID is returned.
+                          computed_optional_required: computed
+                          tf_schema_name: created_by
+                          tf_model_name: CreatedBy
+                          api_name: createdBy
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-hexadecimal digit string that identifies your project.
+                          computed_optional_required: computed
+                          tf_schema_name: project_id
+                          tf_model_name: ProjectId
+                          api_name: groupId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: UTC date when the API key was last used. This parameter is formatted as an ISO 8601 timestamp.
+                          computed_optional_required: computed
+                          tf_schema_name: last_used_at
+                          tf_model_name: LastUsedAt
+                          api_name: lastUsedAt
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: A partially obfuscated version of the API key secret returned when the API key was created.
+                          computed_optional_required: computed
+                          tf_schema_name: masked_secret
+                          tf_model_name: MaskedSecret
+                          api_name: maskedSecret
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Arbitrary string identifier assigned to this API key for convenient identification.
+                          computed_optional_required: computed
+                          tf_schema_name: name
+                          tf_model_name: Name
+                          api_name: name
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: 'The full API key secret used for interacting with the embedding / reranking service. Note: this will only be fully populated in the response to a create API key request. Responses to get, list, and update requests will not include the secret.'
+                          computed_optional_required: computed
+                          tf_schema_name: secret
+                          tf_model_name: Secret
+                          api_name: secret
+                          req_body_usage: omit_always
+                          sensitive: true
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: A string describing the current status of the API key.
+                          computed_optional_required: computed
+                          tf_schema_name: status
+                          tf_model_name: Status
+                          api_name: status
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of returned documents that MongoDB Cloud provides when completing this request.
+              custom_type:
+                package: customtypes
+                name: Results
+                model: customtypes.NestedListValue[TFResultsModel]
+                schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: results
+              tf_model_name: Results
+              api_name: results
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/aiModelApiKeys/{apiKeyId}
+        list:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/aiModelApiKeys
+        version_header: application/vnd.atlas.preview+json
 name: ai_model_api_key
 packageName: aimodelapikey
