@@ -16,7 +16,7 @@ terraform output -raw secret
 For managing and rotating both secrets, see [Guide: Service Account Secret Rotation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/service-account-secret-rotation).
 
 ## Prerequisites
-- Service Account with Project Owner permissions
+- Service Account with Project Owner permissions used for Provider Authentication
 
 ## Variables Required to be set:
 - `atlas_client_id`: MongoDB Atlas Service Account Client ID
