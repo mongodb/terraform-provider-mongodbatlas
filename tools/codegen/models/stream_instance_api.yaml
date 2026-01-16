@@ -509,6 +509,17 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
+                      description: The state of the connection.
+                      computed_optional_required: computed
+                      tf_schema_name: state
+                      tf_model_name: State
+                      api_name: state
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
                       description: Type of the connection.
                       computed_optional_required: computed
                       tf_schema_name: type

@@ -5,30 +5,34 @@ variables:
 resources:
   # TODO: Voyage resource, add to provider list before merging to master in CLOUDP-372674
   ai_model_api_key:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}
-      method: GET
     create:
-      path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys
+      path: &ai_model_api_key_collection_path /api/atlas/v2/groups/{groupId}/aiModelApiKeys
       method: POST
+    read: &ai-model-api-key-read-op
+      path: &ai_model_api_key_item_path /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}
+      method: GET
     update:
-      path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}
+      path: *ai_model_api_key_item_path
       method: PATCH
     delete:
-      path: /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}
+      path: *ai_model_api_key_item_path
       method: DELETE
     version_header: application/vnd.atlas.preview+json
-    schema:
+    schema: &ai_model_api_key_schema
       aliases:
-        id: apiKeyId
         groupId: projectId
-        maskedKey: maskedSecret
       overrides:
         project_id:
           description: *project_id_description
-        secret:
-          sensitive: true
-
+    datasources:
+      read: *ai-model-api-key-read-op
+      list:
+        path: *ai_model_api_key_collection_path
+        method: GET
+      schema:
+        <<: *ai_model_api_key_schema
+        ignores: ["secret"]
+    
   # Singleton resource in project.
   # Create, Delete and Update uses PATCH.
   auditing_api:

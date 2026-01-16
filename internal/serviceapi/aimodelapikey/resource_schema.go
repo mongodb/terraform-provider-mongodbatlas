@@ -14,6 +14,10 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"api_key_id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Identifier used to reference this API key in admin API calls.",
+			},
 			"created_at": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.",
@@ -26,10 +30,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
-			},
-			"api_key_id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Identifier used to reference this API key in admin API calls.",
 			},
 			"last_used_at": schema.StringAttribute{
 				Computed:            true,
@@ -57,12 +57,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
+	ApiKeyId     types.String `tfsdk:"api_key_id" autogen:"omitjson"`
 	CreatedAt    types.String `tfsdk:"created_at" autogen:"omitjson"`
 	CreatedBy    types.String `tfsdk:"created_by" autogen:"omitjson"`
 	ProjectId    types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	ApiKeyId     types.String `tfsdk:"api_key_id" apiname:"id" autogen:"omitjson"`
 	LastUsedAt   types.String `tfsdk:"last_used_at" autogen:"omitjson"`
-	MaskedSecret types.String `tfsdk:"masked_secret" apiname:"maskedKey" autogen:"omitjson"`
+	MaskedSecret types.String `tfsdk:"masked_secret" autogen:"omitjson"`
 	Name         types.String `tfsdk:"name"`
 	Secret       types.String `tfsdk:"secret" autogen:"sensitive,omitjson"`
 	Status       types.String `tfsdk:"status" autogen:"omitjson"`
