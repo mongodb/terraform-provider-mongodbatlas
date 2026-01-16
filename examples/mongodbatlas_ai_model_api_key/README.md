@@ -22,3 +22,5 @@ terraform output -raw ai_model_api_key_secret
 ## Outputs
 - `ai_model_api_key_id`: The ID of the created AI Model API Key
 - `ai_model_api_key_secret` (sensitive): The secret value (null if resource was imported)
+- `ai_model_api_key_name`: The name of the AI Model API key from the data source
+- `ai_model_api_keys_results`: All AI Model API keys in the project

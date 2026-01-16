@@ -22,3 +22,13 @@ output "ai_model_api_key_secret" {
   value       = mongodbatlas_ai_model_api_key.this.secret
   sensitive   = true
 }
+
+output "ai_model_api_key_name" {
+  description = "The name of the AI Model API key from the data source."
+  value       = data.mongodbatlas_ai_model_api_key.this.name
+}
+
+output "ai_model_api_keys_results" {
+  description = "All AI Model API keys in the project."
+  value       = data.mongodbatlas_ai_model_api_keys.this.results
+}

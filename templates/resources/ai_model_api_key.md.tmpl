@@ -17,7 +17,7 @@ subcategory: "AI Models"
 ## Import
 Import the AI Model API Key resource by using the Project ID and API Key ID in the format `PROJECT_ID/API_KEY_ID`, e.g.
 ```
-$ terraform import mongodbatlas_ai_model_api_key.example 6117ac2fe2a3d04ed27a987v/507f1f77bcf86cd799439011
+$ terraform import mongodbatlas_ai_model_api_key.example 1112222b3bf99403840e8934/6117ac2fe2a3d04ed27a987v
 ```
 
 ~> **NOTE:** When importing an existing AI Model API Key, the `secret` attribute will be null because the secret is only returned by the API at creation time. If you need the secret value, you must create a new API key through Terraform.
