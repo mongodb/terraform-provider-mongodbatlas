@@ -4,7 +4,7 @@ subcategory: "Service Accounts"
 
 # Data Source: mongodbatlas_project_service_account_access_list_entries
 
-`mongodbatlas_project_service_account_access_list_entries` returns all Service Account Access List entries for the specified Project.
+`mongodbatlas_project_service_account_access_list_entries` returns all Access List entries for the specified Project Service Account.
 
 ~> **IMPORTANT:** When you remove an entry from the access list, existing connections from the removed address(es) may remain open for a variable amount of time. How much time passes before Atlas closes the connection depends on several factors, including how the connection was established, the particular behavior of the application or driver using the address, and the connection protocol (e.g., TCP or UDP). This is particularly important to consider when changing an existing IP address or CIDR block as they cannot be updated via the Provider, hence a change will force the destruction and recreation of entries.
 
@@ -35,7 +35,7 @@ resource "mongodbatlas_project_service_account_access_list_entry" "ip" {
   ip_address = "2.3.4.5"
 }
 
-# Data source to read a single Project Service Account Access List entry
+# Data source to read a single Access List entry for the Project Service Account
 data "mongodbatlas_project_service_account_access_list_entry" "this" {
   project_id = mongodbatlas_project_service_account_access_list_entry.cidr.project_id
   client_id  = mongodbatlas_project_service_account_access_list_entry.cidr.client_id
@@ -46,7 +46,7 @@ output "access_list_entry_cidr_block" {
   value = data.mongodbatlas_project_service_account_access_list_entry.this.cidr_block
 }
 
-# Data source to read all Project Service Account Access List entries
+# Data source to read all Access List entries for the Project Service Account
 data "mongodbatlas_project_service_account_access_list_entries" "this" {
   project_id = mongodbatlas_project_service_account.this.project_id
   client_id  = mongodbatlas_project_service_account.this.client_id
@@ -88,4 +88,4 @@ Read-Only:
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies the project.
 - `request_count` (Number) The number of requests that has originated from this network address.
 
-For more information, see [Return All Project Service Account Access List Entries](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listgroupserviceaccountaccesslist) in the MongoDB Atlas API documentation.
+For more information, see [Return All Access List Entries for One Project Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listgroupserviceaccountaccesslist) in the MongoDB Atlas API documentation.

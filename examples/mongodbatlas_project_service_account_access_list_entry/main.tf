@@ -20,7 +20,7 @@ resource "mongodbatlas_project_service_account_access_list_entry" "ip" {
   ip_address = "2.3.4.5"
 }
 
-# Data source to read a single Project Service Account Access List entry
+# Data source to read a single Access List entry for the Project Service Account
 data "mongodbatlas_project_service_account_access_list_entry" "this" {
   project_id = mongodbatlas_project_service_account_access_list_entry.cidr.project_id
   client_id  = mongodbatlas_project_service_account_access_list_entry.cidr.client_id
@@ -31,7 +31,7 @@ output "access_list_entry_cidr_block" {
   value = data.mongodbatlas_project_service_account_access_list_entry.this.cidr_block
 }
 
-# Data source to read all Project Service Account Access List entries
+# Data source to read all Access List entries for the Project Service Account
 data "mongodbatlas_project_service_account_access_list_entries" "this" {
   project_id = mongodbatlas_project_service_account.this.project_id
   client_id  = mongodbatlas_project_service_account.this.client_id
