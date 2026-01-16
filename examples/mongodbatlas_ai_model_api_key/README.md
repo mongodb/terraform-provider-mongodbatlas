@@ -4,7 +4,7 @@ This example shows how to create an AI Model API Key in MongoDB Atlas. AI Model 
 
 ## Important Notes
 
-When an AI Model API Key is created, a secret is automatically generated and stored in Terraform state. The secret can be retrieved from the resource output at any time.
+When an AI Model API Key is created, its secret is automatically generated and stored in Terraform state. The secret can be retrieved from the resource output at any time.
 
 You can retrieve it using (**warning**: this prints the secret to your terminal):
 
