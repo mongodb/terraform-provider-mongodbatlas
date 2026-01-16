@@ -85,7 +85,7 @@ data_sources:
               description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
               computed_optional_required: required
               tf_schema_name: org_id
-              tf_model_name: Org_id
+              tf_model_name: OrgId
               api_name: orgId
               req_body_usage: omit_always
               sensitive: false
@@ -109,7 +109,7 @@ data_sources:
               description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
               computed_optional_required: required
               tf_schema_name: org_id
-              tf_model_name: Org_id
+              tf_model_name: OrgId
               api_name: orgId
               req_body_usage: omit_always
               sensitive: false
@@ -225,10 +225,10 @@ data_sources:
     operations:
         read:
             http_method: GET
-            path: /api/atlas/v2/orgs/{org_id}/aiModelApiKeys/{apiKeyId}
+            path: /api/atlas/v2/orgs/{orgId}/aiModelApiKeys/{apiKeyId}
         list:
             http_method: GET
-            path: /api/atlas/v2/orgs/{org_id}/aiModelApiKeys
+            path: /api/atlas/v2/orgs/{orgId}/aiModelApiKeys
         version_header: application/vnd.atlas.preview+json
 name: ai_model_org_api_key
 packageName: aimodelorgapikey

@@ -50,12 +50,12 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 
 func dataSourceReadAPICallParams(model *TFDSModel) *config.APICallParams {
 	pathParams := map[string]string{
-		"org_id":   model.Org_id.ValueString(),
+		"orgId":    model.OrgId.ValueString(),
 		"apiKeyId": model.ApiKeyId.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: "application/vnd.atlas.preview+json",
-		RelativePath:  "/api/atlas/v2/orgs/{org_id}/aiModelApiKeys/{apiKeyId}",
+		RelativePath:  "/api/atlas/v2/orgs/{orgId}/aiModelApiKeys/{apiKeyId}",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}

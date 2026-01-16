@@ -64,7 +64,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFPluralDSModel struct {
-	Org_id  types.String                                        `tfsdk:"org_id" apiname:"orgId" autogen:"omitjson"`
+	OrgId   types.String                                        `tfsdk:"org_id" autogen:"omitjson"`
 	Results customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
 }
 type TFPluralDSResultsModel struct {

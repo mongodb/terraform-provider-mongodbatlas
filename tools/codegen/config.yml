@@ -44,8 +44,6 @@ resources:
         path: /api/atlas/v2/orgs/{orgId}/aiModelApiKeys
         method: GET
       schema:
-        aliases:
-          orgId: org_id
         overrides:
           org_id:
             description: *org_id_description

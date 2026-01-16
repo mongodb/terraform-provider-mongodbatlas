@@ -61,6 +61,6 @@ type TFDSModel struct {
 	LastUsedAt   types.String `tfsdk:"last_used_at" autogen:"omitjson"`
 	MaskedSecret types.String `tfsdk:"masked_secret" autogen:"omitjson"`
 	Name         types.String `tfsdk:"name" autogen:"omitjson"`
-	Org_id       types.String `tfsdk:"org_id" apiname:"orgId" autogen:"omitjson"`
+	OrgId        types.String `tfsdk:"org_id" autogen:"omitjson"`
 	Status       types.String `tfsdk:"status" autogen:"omitjson"`
 }

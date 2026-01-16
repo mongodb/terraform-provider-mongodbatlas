@@ -50,11 +50,11 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 
 func pluralDataSourceReadAPICallParams(ctx context.Context, model *TFPluralDSModel) *config.APICallParams {
 	pathParams := map[string]string{
-		"org_id": model.Org_id.ValueString(),
+		"orgId": model.OrgId.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: "application/vnd.atlas.preview+json",
-		RelativePath:  "/api/atlas/v2/orgs/{org_id}/aiModelApiKeys",
+		RelativePath:  "/api/atlas/v2/orgs/{orgId}/aiModelApiKeys",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
