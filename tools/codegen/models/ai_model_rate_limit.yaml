@@ -1,0 +1,231 @@
+schema:
+    description: Update an AI model rate limit for the given model group.
+    attributes:
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies your project.
+          computed_optional_required: required
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - string: {}
+          description: The name of the model group to be updated.
+          computed_optional_required: required
+          tf_schema_name: model_group_name
+          tf_model_name: ModelGroupName
+          api_name: modelGroupName
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - list:
+            element_type: 4
+          description: List of embedding model names included in this model group.
+          custom_type:
+            package: customtypes
+            model: customtypes.ListValue[types.String]
+            schema: customtypes.NewListType[types.String](ctx)
+          computed_optional_required: computed
+          tf_schema_name: model_names
+          tf_model_name: ModelNames
+          api_name: modelNames
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - int64: {}
+          description: The number of requests per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+          computed_optional_required: required
+          tf_schema_name: requests_per_minute_limit
+          tf_model_name: RequestsPerMinuteLimit
+          api_name: requestsPerMinuteLimit
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - int64: {}
+          description: The number of tokens per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+          computed_optional_required: required
+          tf_schema_name: tokens_per_minute_limit
+          tf_model_name: TokensPerMinuteLimit
+          api_name: tokensPerMinuteLimit
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+operations:
+    delete:
+        http_method: POST
+        path: /api/atlas/v2/groups/{projectId}/aiModelRateLimits:reset
+    create:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{projectId}/aiModelRateLimits/{modelGroupName}
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{projectId}/aiModelRateLimits/{modelGroupName}
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{projectId}/aiModelRateLimits/{modelGroupName}
+    version_header: application/vnd.atlas.preview+json
+data_sources:
+    schema:
+        singular_ds_description: Retrieve a single AI model rate limit for the given group.
+        singular_ds_attributes:
+            - string: {}
+              description: The name of the model group to be retrieved.
+              computed_optional_required: required
+              tf_schema_name: model_group_name
+              tf_model_name: ModelGroupName
+              api_name: modelGroupName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list:
+                element_type: 4
+              description: List of embedding model names included in this model group.
+              custom_type:
+                package: customtypes
+                model: customtypes.ListValue[types.String]
+                schema: customtypes.NewListType[types.String](ctx)
+              computed_optional_required: computed
+              tf_schema_name: model_names
+              tf_model_name: ModelNames
+              api_name: modelNames
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - int64: {}
+              description: The number of requests per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+              computed_optional_required: computed
+              tf_schema_name: requests_per_minute_limit
+              tf_model_name: RequestsPerMinuteLimit
+              api_name: requestsPerMinuteLimit
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - int64: {}
+              description: The number of tokens per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+              computed_optional_required: computed
+              tf_schema_name: tokens_per_minute_limit
+              tf_model_name: TokensPerMinuteLimit
+              api_name: tokensPerMinuteLimit
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+        plural_ds_description: Retrieve AI model rate limits for the given group.
+        plural_ds_attributes:
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Identifier used to reference this model group.
+                          computed_optional_required: computed
+                          tf_schema_name: model_group_name
+                          tf_model_name: ModelGroupName
+                          api_name: modelGroupName
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - list:
+                            element_type: 4
+                          description: List of embedding model names included in this model group.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.ListValue[types.String]
+                            schema: customtypes.NewListType[types.String](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: model_names
+                          tf_model_name: ModelNames
+                          api_name: modelNames
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - int64: {}
+                          description: The number of requests per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+                          computed_optional_required: computed
+                          tf_schema_name: requests_per_minute_limit
+                          tf_model_name: RequestsPerMinuteLimit
+                          api_name: requestsPerMinuteLimit
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - int64: {}
+                          description: The number of tokens per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+                          computed_optional_required: computed
+                          tf_schema_name: tokens_per_minute_limit
+                          tf_model_name: TokensPerMinuteLimit
+                          api_name: tokensPerMinuteLimit
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of returned documents that MongoDB Cloud provides when completing this request.
+              custom_type:
+                package: customtypes
+                name: Results
+                model: customtypes.NestedListValue[TFResultsModel]
+                schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: results
+              tf_model_name: Results
+              api_name: results
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/aiModelRateLimits/{modelGroupName}
+        list:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/aiModelRateLimits
+        version_header: application/vnd.atlas.preview+json
+name: ai_model_rate_limit
+packageName: aimodelratelimit

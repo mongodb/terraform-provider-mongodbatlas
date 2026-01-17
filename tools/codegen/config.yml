@@ -53,6 +53,49 @@ resources:
             description: *project_id_description
         ignores: ["secret"]
 
+  ai_model_org_rate_limit:
+    version_header: application/vnd.atlas.preview+json
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/aiModelRateLimits/{modelGroupName}
+        method: GET
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/aiModelRateLimits
+        method: GET
+      schema:
+        overrides:
+          org_id:
+            description: *org_id_description
+
+  # PATCH is used for Create and Update, reset custom method for Delete.
+  ai_model_rate_limit:
+    create:
+      path: &ai_model_rate_limit_item_path /api/atlas/v2/groups/{groupId}/aiModelRateLimits/{modelGroupName}
+      method: PATCH
+    read: &ai_model_rate_limit_read_op
+      path: *ai_model_rate_limit_item_path
+      method: GET
+    update:
+      path: *ai_model_rate_limit_item_path
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/aiModelRateLimits:reset
+      method: POST
+    version_header: application/vnd.atlas.preview+json
+    schema: &ai_model_rate_limit_schema
+      aliases:
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+    datasources:
+      read: *ai_model_rate_limit_read_op
+      list:
+        path: /api/atlas/v2/groups/{groupId}/aiModelRateLimits
+        method: GET
+      schema:
+        <<: *ai_model_rate_limit_schema
+
   # Singleton resource in project.
   # Create, Delete and Update uses PATCH.
   auditing_api:
