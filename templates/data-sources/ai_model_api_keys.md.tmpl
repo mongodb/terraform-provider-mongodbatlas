@@ -1,0 +1,16 @@
+---
+subcategory: "AI Models"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` returns all AI Model API Keys for the specified Project.
+
+~> **NOTE:** The `secret` attribute is not available through this data source as it is only returned during initial creation. To access the secret, use the resource.
+
+## Example Usages
+{{ tffile (printf "examples/mongodbatlas_ai_model_api_key/main.tf" )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information, see [Manage AI Model API Keys](https://www.mongodb.com/docs/voyageai/management/api-keys/).
