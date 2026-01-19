@@ -159,7 +159,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if err == nil {
 			return nil
 		}
-		return fmt.Errorf("org service account (%s/%s) does not exist", orgID, clientID)
+		return fmt.Errorf("service account (%s/%s) does not exist", orgID, clientID)
 	}
 }
 
@@ -176,7 +176,7 @@ func checkDestroy(s *terraform.State) error {
 
 		_, _, err := acc.ConnV2().ServiceAccountsApi.GetOrgServiceAccount(context.Background(), orgID, clientID).Execute()
 		if err == nil {
-			return fmt.Errorf("org service account (%s/%s) still exists", orgID, clientID)
+			return fmt.Errorf("service account (%s/%s) still exists", orgID, clientID)
 		}
 	}
 	return nil
