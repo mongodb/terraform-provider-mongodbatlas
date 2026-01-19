@@ -2,10 +2,10 @@ package encryptionatrest
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"reflect"
+	"strings"
 	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312012/admin"
@@ -302,8 +302,8 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 		Pending:    []string{retrystrategy.RetryStrategyPendingState},
 		Target:     []string{retrystrategy.RetryStrategyCompletedState, retrystrategy.RetryStrategyErrorState},
 		Refresh:    ResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx, projectID, connV2.EncryptionAtRestUsingCustomerKeyManagementApi, encryptionAtRestReq),
-		Timeout:    1 * time.Minute,
-		MinTimeout: 1 * time.Second,
+		Timeout:    3 * time.Minute,
+		MinTimeout: 5 * time.Second,
 		Delay:      0,
 	}
 
@@ -329,12 +329,11 @@ func ResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(ctx context.Context, 
 	return func() (any, string, error) {
 		encryptionResp, _, err := client.UpdateEncryptionAtRest(ctx, projectID, encryptionAtRestReq).Execute()
 		if err != nil {
-			if errors.Is(err, errors.New("CANNOT_ASSUME_ROLE")) ||
-				errors.Is(err, errors.New("INVALID_AWS_CREDENTIALS")) ||
-				errors.Is(err, errors.New("CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED")) {
-				log.Printf("warning issue performing authorize EncryptionsAtRest not done try again: %s \n", err.Error())
-				log.Println("retrying ")
-
+			errStr := err.Error()
+			if strings.Contains(errStr, "CANNOT_ASSUME_ROLE") ||
+				strings.Contains(errStr, "INVALID_AWS_CREDENTIALS") ||
+				strings.Contains(errStr, "CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED") {
+				log.Printf("[WARN] error updating EncryptionAtRest: %s \nretrying\n", errStr)
 				return encryptionResp, retrystrategy.RetryStrategyPendingState, nil
 			}
 			return encryptionResp, retrystrategy.RetryStrategyErrorState, err
