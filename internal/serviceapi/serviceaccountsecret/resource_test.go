@@ -203,16 +203,13 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if id == "" || orgID == "" || clientID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		orgServiceAccount, _, err := acc.ConnV2().ServiceAccountsApi.GetOrgServiceAccount(context.Background(), orgID, clientID).Execute()
+
+		exists, err := secretExists(orgID, clientID, id)
 		if err != nil {
 			return fmt.Errorf("failed to get org service account: %w", err)
 		}
-		if orgServiceAccount.Secrets != nil {
-			for _, secret := range *orgServiceAccount.Secrets {
-				if secret.Id == id {
-					return nil
-				}
-			}
+		if exists {
+			return nil
 		}
 		return fmt.Errorf("service account secret (%s/%s/%s) does not exist", id, orgID, clientID)
 	}
@@ -230,16 +227,26 @@ func checkDestroy(s *terraform.State) error {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
 
-		orgServiceAccount, _, err := acc.ConnV2().ServiceAccountsApi.GetOrgServiceAccount(context.Background(), orgID, clientID).Execute()
-		if err == nil && orgServiceAccount.Secrets != nil {
-			for _, secret := range *orgServiceAccount.Secrets {
-				if secret.Id == id {
-					return fmt.Errorf("org service account secret (%s/%s/%s) still exists", id, orgID, clientID)
-				}
-			}
+		if exists, _ := secretExists(orgID, clientID, id); exists {
+			return fmt.Errorf("org service account secret (%s/%s/%s) still exists", id, orgID, clientID)
 		}
 	}
 	return nil
+}
+
+func secretExists(orgID, clientID, secretID string) (bool, error) {
+	orgServiceAccount, _, err := acc.ConnV2().ServiceAccountsApi.GetOrgServiceAccount(context.Background(), orgID, clientID).Execute()
+	if err != nil {
+		return false, err
+	}
+	if orgServiceAccount.Secrets != nil {
+		for _, secret := range *orgServiceAccount.Secrets {
+			if secret.Id == secretID {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
