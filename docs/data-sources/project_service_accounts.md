@@ -36,7 +36,7 @@ output "service_account_name" {
 }
 
 output "service_account_first_secret" {
-  description = "The secret value of the first secret created with the service account. Available only immediately after initial creation."
+  description = "The secret value of the first secret created with the Project Service Account. Available only immediately after initial creation."
   value       = try(mongodbatlas_project_service_account.this.secrets[0].secret, null)
   sensitive   = true
 }

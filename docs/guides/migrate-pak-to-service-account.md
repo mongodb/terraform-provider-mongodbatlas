@@ -97,7 +97,7 @@ resource "mongodbatlas_service_account_access_list_entry" "this" {
 }
 
 output "service_account_first_secret" {
-  description = "The secret value of the first secret created with the service account. Only available after initial creation."
+  description = "The secret value of the first secret created with the Service Account. Available only immediately after initial creation."
   value       = try(mongodbatlas_service_account.this.secrets[0].secret, null)
   sensitive   = true
 }
@@ -165,7 +165,7 @@ resource "mongodbatlas_service_account_access_list_entry" "this" {
 
 **Objective**: Migrate from project-level PAK resources (`mongodbatlas_project_api_key`, `mongodbatlas_access_list_api_key`) to project-level Service Account resources (`mongodbatlas_project_service_account`, `mongodbatlas_project_service_account_access_list_entry`).
 
-**Important:** Organization-level resources (`mongodbatlas_service_account`) are the recommended approach. Project-level resources (`mongodbatlas_project_service_account`) should only be used if you do not have organization-level permissions to manage service accounts. Otherwise, use the [Organization-Level Migration](#organization-level-api-keys-to-service-accounts) approach.
+**Important:** Organization-level resources (`mongodbatlas_service_account`) are the recommended approach. Project-level resources (`mongodbatlas_project_service_account`) should only be used if you do not have organization-level permissions to manage Service Accounts. Otherwise, use the [Organization-Level Migration](#organization-level-api-keys-to-service-accounts) approach.
 
 ### Resource Mapping
 
@@ -174,9 +174,9 @@ The following table shows the mapping between project-level PAK resources and th
 | PAK Resource | Service Account Resource | Notes |
 |--------------|-------------------------|-------|
 | `mongodbatlas_project_api_key` | `mongodbatlas_project_service_account` | Project-level API key / Service Account (use only if you don't have org-level permissions) |
-| `mongodbatlas_access_list_api_key` | `mongodbatlas_project_service_account_access_list_entry` | IP access list entry for project-level service account |
+| `mongodbatlas_access_list_api_key` | `mongodbatlas_project_service_account_access_list_entry` | IP access list entry for project-level Service Account |
 
-**Important:** Organization-level resources (`mongodbatlas_service_account`) are the recommended approach. Project-level resources (`mongodbatlas_project_service_account`) should only be used if you do not have organization-level permissions to manage service accounts.
+**Important:** Organization-level resources (`mongodbatlas_service_account`) are the recommended approach. Project-level resources (`mongodbatlas_project_service_account`) should only be used if you do not have organization-level permissions to manage Service Accounts.
 
 ---
 
@@ -227,7 +227,7 @@ resource "mongodbatlas_project_service_account_access_list_entry" "this" {
 }
 
 output "project_service_account_first_secret" {
-  description = "The secret value of the first secret created with the project service account. Only available after initial creation."
+  description = "The secret value of the first secret created with the Project Service Account. Available only immediately after initial creation."
   value       = try(mongodbatlas_project_service_account.this.secrets[0].secret, null)
   sensitive   = true
 }
