@@ -36,12 +36,30 @@ then
     exit 1
 fi
 
+# changelog-build -local-fs performs internal git checkouts; restore caller's HEAD afterward.
+ORIGINAL_HEAD_REF=$(git -C "$__parent" symbolic-ref -q --short HEAD || true)
+ORIGINAL_HEAD_SHA=$(git -C "$__parent" rev-parse HEAD)
+
+restore_head() {
+  if [ -n "$ORIGINAL_HEAD_REF" ]; then
+    git -C "$__parent" checkout --quiet "$ORIGINAL_HEAD_REF"
+  else
+    git -C "$__parent" checkout --quiet "$ORIGINAL_HEAD_SHA"
+  fi
+}
+
+trap restore_head EXIT
+
 CHANGELOG=$("$(go env GOPATH)"/bin/changelog-build -this-release "$TARGET_SHA" \
                       -last-release "$PREVIOUS_RELEASE_SHA" \
                       -git-dir "$__parent" \
                       -entries-dir .changelog \
                       -changelog-template "$__dir/changelog/changelog.tmpl" \
-                      -note-template "$__dir/changelog/release-note.tmpl")
+                      -note-template "$__dir/changelog/release-note.tmpl" \
+                      -local-fs)
+
+restore_head
+trap - EXIT
 
 if [ -z "$CHANGELOG" ]
 then
