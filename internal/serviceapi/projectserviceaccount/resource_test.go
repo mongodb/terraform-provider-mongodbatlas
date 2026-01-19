@@ -169,7 +169,7 @@ func checkDestroy(s *terraform.State) error {
 		// Delete the service account (project_service_account DELETE only removes the project assignment)
 		_, err = acc.ConnV2().ServiceAccountsApi.DeleteOrgServiceAccount(context.Background(), clientID, orgID).Execute()
 		if err != nil {
-			return fmt.Errorf("failed to cleanup org service account (%s/%s): %w", orgID, clientID, err)
+			return fmt.Errorf("failed to cleanup service account (%s/%s): %w", orgID, clientID, err)
 		}
 	}
 	return nil

@@ -206,7 +206,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 
 		exists, err := secretExists(orgID, clientID, id)
 		if err != nil {
-			return fmt.Errorf("failed to get org service account: %w", err)
+			return fmt.Errorf("failed to get service account: %w", err)
 		}
 		if exists {
 			return nil
@@ -228,7 +228,7 @@ func checkDestroy(s *terraform.State) error {
 		}
 
 		if exists, _ := secretExists(orgID, clientID, id); exists {
-			return fmt.Errorf("org service account secret (%s/%s/%s) still exists", id, orgID, clientID)
+			return fmt.Errorf("service account secret (%s/%s/%s) still exists", id, orgID, clientID)
 		}
 	}
 	return nil
