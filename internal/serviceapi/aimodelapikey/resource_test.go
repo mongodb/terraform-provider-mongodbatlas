@@ -14,17 +14,17 @@ import (
 )
 
 const (
-	resourceName         = "mongodbatlas_ai_model_api_key.test"
-	dataSourceName       = "data.mongodbatlas_ai_model_api_key.test"
-	dataSourcePluralName = "data.mongodbatlas_ai_model_api_keys.test"
 	resourceType         = "mongodbatlas_ai_model_api_key"
+	resourceName         = resourceType + ".test"
+	dataSourceName       = "data." + resourceType + ".test"
+	dataSourcePluralName = "data." + resourceType + "s.test"
 )
 
 func TestAccAIModelAPIKey_basic(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		name        = acc.RandomName()
-		nameUpdated = name + "%s-updated"
+		nameUpdated = name + "-updated"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
