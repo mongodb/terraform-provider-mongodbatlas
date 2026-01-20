@@ -299,6 +299,7 @@ jobs:
           autogen_fast:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/aimodelapikey/*.go'
+            - 'internal/serviceapi/aimodelorgapikey/*.go'
             - 'internal/serviceapi/alertconfigurationapi/*.go'
             - 'internal/serviceapi/auditingapi/*.go'
             - 'internal/serviceapi/customdbroleapi/*.go'
@@ -618,6 +619,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          # No need to include aimodelorgapikey as its tests are in aimodelapikey.
           ACCTEST_PACKAGES: |
             ./internal/serviceapi/aimodelapikey
             ./internal/serviceapi/auditingapi
