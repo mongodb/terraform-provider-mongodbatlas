@@ -839,7 +839,7 @@ resources:
           description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later."
         secrets:
           type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
-          skip_list_merge: true # Prevent keeping old secret values in the state.
+          skip_state_list_merge: true # Prevent keeping old secret values in the state.
         secrets.secret:
           sensitive: true
         roles:
@@ -885,7 +885,7 @@ resources:
           description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later."
         secrets:
           type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
-          skip_list_merge: true # Prevent keeping old secret values in the state.
+          skip_state_list_merge: true # Prevent keeping old secret values in the state.
         secrets.secret:
           sensitive: true
         roles:

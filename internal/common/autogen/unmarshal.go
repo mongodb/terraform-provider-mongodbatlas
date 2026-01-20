@@ -89,7 +89,7 @@ func unmarshalAttr(attrObjJSON any, fieldModel reflect.Value, structField *refle
 	}
 
 	valueType := oldVal.Type(context.Background())
-	newValue, err := getTfAttr(attrObjJSON, valueType, oldVal, attrNameModel, tags.SkipListMerge)
+	newValue, err := getTfAttr(attrObjJSON, valueType, oldVal, attrNameModel, tags.SkipStateListMerge)
 	if err != nil {
 		return err
 	}

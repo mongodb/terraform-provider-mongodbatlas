@@ -346,7 +346,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "apiname-tag",
 		},
-		"Skiplistmerge tag generation": {
+		"Skipstatelistmerge tag generation": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
@@ -370,7 +370,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 									Attributes: []codespec.Attribute{stringAttr},
 								},
 							},
-							SkipListMerge: true,
+							SkipStateListMerge: true,
 						},
 					},
 				},
