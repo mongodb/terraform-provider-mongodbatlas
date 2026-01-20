@@ -48,6 +48,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelapikey"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -306,6 +307,8 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		// TODO: Auto-generated datasources, delete this comment before merging to master in CLOUDP-372674
 		aimodelapikey.DataSource,
 		aimodelapikey.PluralDataSource,
+		aimodelorgapikey.DataSource,
+		aimodelorgapikey.PluralDataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {

@@ -1,9 +1,10 @@
 variables:
   # TODO: project_id_description is taken from SA dev branch so this will at master at some moment, remove this comment before merging to master in CLOUDP-372674
+  org_id_description: &org_id_description "Unique 24-hexadecimal digit string that identifies the organization that contains your projects."
   project_id_description: &project_id_description "Unique 24-hexadecimal digit string that identifies your project."
 
 resources:
-  # TODO: Voyage resource, add to provider list before merging to master in CLOUDP-372674
+  # TODO: Voyage resources, add to provider list before merging to master in CLOUDP-372674
   ai_model_api_key:
     create:
       path: &ai_model_api_key_collection_path /api/atlas/v2/groups/{groupId}/aiModelApiKeys
@@ -32,7 +33,26 @@ resources:
       schema:
         <<: *ai_model_api_key_schema
         ignores: ["secret"]
-    
+
+  ai_model_org_api_key:
+    version_header: application/vnd.atlas.preview+json
+    datasources:
+      read:
+        path: /api/atlas/v2/orgs/{orgId}/aiModelApiKeys/{apiKeyId}
+        method: GET
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/aiModelApiKeys
+        method: GET
+      schema:
+        aliases:
+          groupId: project_id
+        overrides:
+          org_id:
+            description: *org_id_description
+          project_id:
+            description: *project_id_description
+        ignores: ["secret"]
+
   # Singleton resource in project.
   # Create, Delete and Update uses PATCH.
   auditing_api:
