@@ -59,7 +59,6 @@ CHANGELOG=$("$(go env GOPATH)"/bin/changelog-build -this-release "$TARGET_SHA" \
                       -local-fs)
 
 restore_head
-trap - EXIT
 
 if [ -z "$CHANGELOG" ]
 then
