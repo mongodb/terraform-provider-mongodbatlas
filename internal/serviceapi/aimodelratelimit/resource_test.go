@@ -34,7 +34,7 @@ func TestAccAIModelRateLimit_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		// CheckDestroy not used: rate limits are singleton resources that always exist per model group.
+		// CheckDestroy not used: rate limits are singleton resources that always exist per project and model group.
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, projectID, 100, 1000),
