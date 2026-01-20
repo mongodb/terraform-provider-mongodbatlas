@@ -1,5 +1,16 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection: Adds `SchemaRegistry` connection ([#4072](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4072))
+* data-source/mongodbatlas_stream_connections: Adds `SchemaRegistry` connection ([#4072](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4072))
+* resource/mongodbatlas_encryption_at_rest: Increases create timeout from 1 to 3 minutes to support slower eventual consistency of credentials ([#4064](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4064))
+* resource/mongodbatlas_stream_connection: Adds `SchemaRegistry` connection ([#4072](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4072))
+
+BUG FIXES:
+
+* resource/mongodbatlas_encryption_at_rest: Fixes retry process that handles eventual consistency of credentials ([#4064](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4064))
+
 ## 2.4.0 (January 08, 2026)
 
 ENHANCEMENTS:
