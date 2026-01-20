@@ -346,6 +346,37 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "apiname-tag",
 		},
+		"Overwritestate tag generation": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: []codespec.Attribute{
+						{
+							TFSchemaName:             "string_attr",
+							TFModelName:              "StringAttr",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("string description"),
+							ComputedOptionalRequired: codespec.Required,
+						},
+						{
+							TFSchemaName:             "nested_list_attr",
+							TFModelName:              "NestedListAttr",
+							Description:              admin.PtrString("nested list attribute"),
+							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomNestedListType("NestedListAttr"),
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{stringAttr},
+								},
+							},
+							OverwriteState: true,
+						},
+					},
+				},
+			},
+			goldenFileName: "overwrite-state-tag",
+		},
 		"Plan modifiers using create only": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",

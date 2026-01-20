@@ -318,6 +318,7 @@ func TestUnmarshalCustomList(t *testing.T) {
 		AttrCustomNestedListUnknownNotSent customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_unknown_not_sent"`
 		AttrCustomNestedListUnknownSent    customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_unknown_sent"`
 		AttrCustomNestedListZeroInit       customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_zero"`
+		AttrCustomNestedListOverwrite      customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_overwrite" autogen:"overwritestate"`
 	}
 
 	model := modelst{
@@ -345,6 +346,16 @@ func TestUnmarshalCustomList(t *testing.T) {
 		AttrCustomNestedListEmptySent:      customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
 		AttrCustomNestedListUnknownNotSent: customtypes.NewNestedListValueUnknown[unmarshalModelCustomType](ctx),
 		AttrCustomNestedListUnknownSent:    customtypes.NewNestedListValueUnknown[unmarshalModelCustomType](ctx),
+		AttrCustomNestedListOverwrite: customtypes.NewNestedListValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{
+			{
+				AttrString:    types.StringValue("existing overwritten"),
+				AttrInt:       types.Int64Unknown(),
+				AttrFloat:     types.Float64Unknown(),
+				AttrBool:      types.BoolUnknown(),
+				AttrNested:    customtypes.NewObjectValueUnknown[unmarshalModelEmpty](ctx),
+				AttrMANYUpper: types.Int64Value(999),
+			},
+		}),
 	}
 
 	const (
@@ -381,6 +392,14 @@ func TestUnmarshalCustomList(t *testing.T) {
 					{
 						"attrString": "zero init string",
 						"attrNested": {}
+					}
+				],
+				"attrCustomNestedListOverwrite": [
+					{
+						"attrFloat": 2.2,
+						"attrBool": false,
+						"attrNested": {},
+						"attrMANYUpper": 456
 					}
 				]
 			}
@@ -432,6 +451,16 @@ func TestUnmarshalCustomList(t *testing.T) {
 				AttrBool:      types.BoolNull(),
 				AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
 				AttrMANYUpper: types.Int64Null(),
+			},
+		}),
+		AttrCustomNestedListOverwrite: customtypes.NewNestedListValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{
+			{
+				AttrString:    types.StringNull(),
+				AttrInt:       types.Int64Null(),
+				AttrFloat:     types.Float64Value(2.2),
+				AttrBool:      types.BoolValue(false),
+				AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
+				AttrMANYUpper: types.Int64Value(456),
 			},
 		}),
 	}

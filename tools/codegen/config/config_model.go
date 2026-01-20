@@ -55,6 +55,7 @@ type Override struct {
 	Computability       *Computability `yaml:"computability,omitempty"`
 	Sensitive           *bool          `yaml:"sensitive"`
 	IncludeNullOnUpdate *bool          `yaml:"include_null_on_update"`
+	OverwriteState      *bool          `yaml:"overwrite_state"`
 	Type                *Type          `yaml:"type"`
 	Description         string         `yaml:"description"`
 	PlanModifiers       []PlanModifier `yaml:"plan_modifiers"`
