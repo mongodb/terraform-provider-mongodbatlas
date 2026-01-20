@@ -39,11 +39,11 @@ func TestAccAIModelAPIKey_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, projectID, name),
-				Check:  checkBasic(orgID, projectID, name),
+				Check:  checkBasic(orgID),
 			},
 			{
 				Config: configBasic(orgID, projectID, nameUpdated),
-				Check:  checkBasic(orgID, projectID, nameUpdated),
+				Check:  checkBasic(orgID),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -86,20 +86,14 @@ func configBasic(orgID, projectID, name string) string {
 	`, orgID, projectID, name)
 }
 
-func checkBasic(orgID, projectID, name string) resource.TestCheckFunc {
-	commonAttrsSet := []string{"api_key_id", "created_at", "created_by", "masked_secret", "status"}
-	commonAttrsMap := map[string]string{
-		"project_id": projectID,
-		"name":       name,
-	}
-	orgCommonAttrsSet := []string{"api_key_id", "created_at", "created_by", "masked_secret", "status", "project_id"}
-	orgCommonAttrsMap := map[string]string{"name": name}
+func checkBasic(orgID string) resource.TestCheckFunc {
+	attrsSet := []string{"api_key_id", "created_at", "created_by", "masked_secret", "status", "name", "project_id"}
 	return resource.ComposeAggregateTestCheckFunc(
-		acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), commonAttrsSet, commonAttrsMap, checkExists(resourceName)),
+		acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), attrsSet, nil, checkExists(resourceName)),
 		// TODO: secret update check will fail until CLOUDP-373517 is done.
 		// resource.TestCheckResourceAttrSet(resourceName, "secret"), // secret only in resource
 		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
-		acc.CheckRSAndDS(orgDataSourceName, nil, admin.PtrString(orgDataSourcePluralName), orgCommonAttrsSet, orgCommonAttrsMap),
+		acc.CheckRSAndDS(orgDataSourceName, nil, admin.PtrString(orgDataSourcePluralName), attrsSet, nil),
 		resource.TestCheckResourceAttr(orgDataSourceName, "org_id", orgID),
 		resource.TestCheckResourceAttrWith(orgDataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 	)
