@@ -3,6 +3,7 @@ package aimodelapikey_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -14,14 +15,18 @@ import (
 )
 
 const (
-	resourceType         = "mongodbatlas_ai_model_api_key"
-	resourceName         = resourceType + ".test"
-	dataSourceName       = "data." + resourceType + ".test"
-	dataSourcePluralName = "data." + resourceType + "s.test"
+	resourceType            = "mongodbatlas_ai_model_api_key"
+	resourceName            = resourceType + ".test"
+	dataSourceName          = "data." + resourceType + ".test"
+	dataSourcePluralName    = "data." + resourceType + "s.test"
+	orgDataSourceType       = "mongodbatlas_ai_model_org_api_key"
+	orgDataSourceName       = "data." + orgDataSourceType + ".test"
+	orgDataSourcePluralName = "data." + orgDataSourceType + "s.test"
 )
 
 func TestAccAIModelAPIKey_basic(t *testing.T) {
 	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID   = acc.ProjectIDExecution(t)
 		name        = acc.RandomName()
 		nameUpdated = name + "-updated"
@@ -33,12 +38,12 @@ func TestAccAIModelAPIKey_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, name),
-				Check:  checkBasic(projectID, name),
+				Config: configBasic(orgID, projectID, name),
+				Check:  checkBasic(orgID, projectID, name),
 			},
 			{
-				Config: configBasic(projectID, nameUpdated),
-				Check:  checkBasic(projectID, nameUpdated),
+				Config: configBasic(orgID, projectID, nameUpdated),
+				Check:  checkBasic(orgID, projectID, nameUpdated),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -52,37 +57,65 @@ func TestAccAIModelAPIKey_basic(t *testing.T) {
 	})
 }
 
-func configBasic(projectID, name string) string {
+func configBasic(orgID, projectID, name string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_ai_model_api_key" "test" {
-			project_id = %[1]q
-			name       = %[2]q
+			project_id = %[2]q
+			name       = %[3]q
 		}
 
 		data "mongodbatlas_ai_model_api_key" "test" {
-			project_id = %[1]q
+			project_id = %[2]q
 			api_key_id = mongodbatlas_ai_model_api_key.test.api_key_id
 		}
 
 		data "mongodbatlas_ai_model_api_keys" "test" {
-			project_id = %[1]q
+			project_id = %[2]q
 			depends_on = [mongodbatlas_ai_model_api_key.test]
 		}
-	`, projectID, name)
+
+		data "mongodbatlas_ai_model_org_api_key" "test" {
+			org_id     = %[1]q
+			api_key_id = mongodbatlas_ai_model_api_key.test.api_key_id
+		}
+
+		data "mongodbatlas_ai_model_org_api_keys" "test" {
+			org_id     = %[1]q
+			depends_on = [mongodbatlas_ai_model_api_key.test]
+		}
+	`, orgID, projectID, name)
 }
 
-func checkBasic(projectID, name string) resource.TestCheckFunc {
+func checkBasic(orgID, projectID, name string) resource.TestCheckFunc {
 	commonAttrsSet := []string{"api_key_id", "created_at", "created_by", "masked_secret", "status"}
 	commonAttrsMap := map[string]string{
 		"project_id": projectID,
 		"name":       name,
+	}
+	orgCommonAttrsSet := []string{"api_key_id", "created_at", "created_by", "masked_secret", "status", "project_id"}
+	orgCommonAttrsMap := map[string]string{
+		"org_id": orgID,
+		"name":   name,
 	}
 	return resource.ComposeAggregateTestCheckFunc(
 		acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), commonAttrsSet, commonAttrsMap, checkExists(resourceName)),
 		// TODO: secret update check will fail until CLOUDP-373517 is done.
 		// resource.TestCheckResourceAttrSet(resourceName, "secret"), // secret only in resource
 		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
+		// Org-level data sources (only data sources, no resource)
+		checkOrgDataSources(orgCommonAttrsSet, orgCommonAttrsMap),
+		resource.TestCheckResourceAttrWith(orgDataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 	)
+}
+
+func checkOrgDataSources(attrsSet []string, attrsMap map[string]string) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{}
+	checks = acc.AddAttrChecks(orgDataSourceName, checks, attrsMap)
+	checks = acc.AddAttrSetChecks(orgDataSourceName, checks, attrsSet...)
+	// org_id is at top level of plural DS, not in each result
+	checks = acc.AddAttrChecksPrefix(orgDataSourcePluralName, checks, attrsMap, "results.0", "org_id")
+	checks = acc.AddAttrSetChecksPrefix(orgDataSourcePluralName, checks, attrsSet, "results.0")
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
