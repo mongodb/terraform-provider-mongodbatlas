@@ -93,29 +93,16 @@ func checkBasic(orgID, projectID, name string) resource.TestCheckFunc {
 		"name":       name,
 	}
 	orgCommonAttrsSet := []string{"api_key_id", "created_at", "created_by", "masked_secret", "status", "project_id"}
-	orgCommonAttrsMap := map[string]string{
-		"org_id": orgID,
-		"name":   name,
-	}
+	orgCommonAttrsMap := map[string]string{"name": name}
 	return resource.ComposeAggregateTestCheckFunc(
 		acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), commonAttrsSet, commonAttrsMap, checkExists(resourceName)),
 		// TODO: secret update check will fail until CLOUDP-373517 is done.
 		// resource.TestCheckResourceAttrSet(resourceName, "secret"), // secret only in resource
 		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
-		// Org-level data sources (only data sources, no resource)
-		checkOrgDataSources(orgCommonAttrsSet, orgCommonAttrsMap),
+		acc.CheckRSAndDS(orgDataSourceName, nil, admin.PtrString(orgDataSourcePluralName), orgCommonAttrsSet, orgCommonAttrsMap),
+		resource.TestCheckResourceAttr(orgDataSourceName, "org_id", orgID),
 		resource.TestCheckResourceAttrWith(orgDataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 	)
-}
-
-func checkOrgDataSources(attrsSet []string, attrsMap map[string]string) resource.TestCheckFunc {
-	checks := []resource.TestCheckFunc{}
-	checks = acc.AddAttrChecks(orgDataSourceName, checks, attrsMap)
-	checks = acc.AddAttrSetChecks(orgDataSourceName, checks, attrsSet...)
-	// org_id is at top level of plural DS, not in each result
-	checks = acc.AddAttrChecksPrefix(orgDataSourcePluralName, checks, attrsMap, "results.0", "org_id")
-	checks = acc.AddAttrSetChecksPrefix(orgDataSourcePluralName, checks, attrsSet, "results.0")
-	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
