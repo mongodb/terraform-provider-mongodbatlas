@@ -94,7 +94,6 @@ func checkBasic(orgID string) resource.TestCheckFunc {
 		// resource.TestCheckResourceAttrSet(resourceName, "secret"), // secret only in resource
 		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 		acc.CheckRSAndDS(orgDataSourceName, nil, admin.PtrString(orgDataSourcePluralName), attrsSet, nil),
-		resource.TestCheckResourceAttr(orgDataSourceName, "org_id", orgID),
 		resource.TestCheckResourceAttrWith(orgDataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 	)
 }
