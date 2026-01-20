@@ -39,11 +39,11 @@ func TestAccAIModelAPIKey_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, projectID, name),
-				Check:  checkBasic(orgID),
+				Check:  checkBasic(),
 			},
 			{
 				Config: configBasic(orgID, projectID, nameUpdated),
-				Check:  checkBasic(orgID),
+				Check:  checkBasic(),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -86,7 +86,7 @@ func configBasic(orgID, projectID, name string) string {
 	`, orgID, projectID, name)
 }
 
-func checkBasic(orgID string) resource.TestCheckFunc {
+func checkBasic() resource.TestCheckFunc {
 	attrsSet := []string{"api_key_id", "created_at", "created_by", "masked_secret", "status", "name", "project_id"}
 	return resource.ComposeAggregateTestCheckFunc(
 		acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), attrsSet, nil, checkExists(resourceName)),
