@@ -80,7 +80,7 @@ func checkBasic(projectID, name string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), commonAttrsSet, commonAttrsMap, checkExists(resourceName)),
 		// TODO: secret update check will fail until CLOUDP-373517 is done.
-		//resource.TestCheckResourceAttrSet(resourceName, "secret"), // secret only in resource
+		// resource.TestCheckResourceAttrSet(resourceName, "secret"), // secret only in resource
 		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 	)
 }
