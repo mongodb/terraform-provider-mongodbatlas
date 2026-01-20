@@ -1,0 +1,21 @@
+---
+subcategory: "AI Models"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` returns all AI Model API Keys across all projects in the specified organization.
+
+~> **NOTE:** AI Model API Keys are always associated with a specific project. This organization-level data source provides a consolidated view of all API keys across all projects within the organization.
+
+## Example Usages
+
+```terraform
+data "mongodbatlas_ai_model_org_api_keys" "this" {
+  org_id = var.org_id
+}
+```
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information, see [Manage AI Model API Keys](https://www.mongodb.com/docs/voyageai/management/api-keys/).
