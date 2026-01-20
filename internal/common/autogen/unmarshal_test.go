@@ -318,7 +318,7 @@ func TestUnmarshalCustomList(t *testing.T) {
 		AttrCustomNestedListUnknownNotSent customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_unknown_not_sent"`
 		AttrCustomNestedListUnknownSent    customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_unknown_sent"`
 		AttrCustomNestedListZeroInit       customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_zero"`
-		AttrCustomNestedListOverwrite      customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_overwrite" autogen:"overwritestate"`
+		AttrCustomNestedListOverwrite      customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_overwrite" autogen:"skiplistmerge"`
 	}
 
 	model := modelst{

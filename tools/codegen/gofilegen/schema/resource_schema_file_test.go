@@ -346,7 +346,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "apiname-tag",
 		},
-		"Overwritestate tag generation": {
+		"Skiplistmerge tag generation": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
@@ -370,12 +370,12 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 									Attributes: []codespec.Attribute{stringAttr},
 								},
 							},
-							OverwriteState: true,
+							SkipListMerge: true,
 						},
 					},
 				},
 			},
-			goldenFileName: "overwrite-state-tag",
+			goldenFileName: "skip-list-merge-tag",
 		},
 		"Plan modifiers using create only": {
 			inputModel: codespec.Resource{

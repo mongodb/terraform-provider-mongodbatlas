@@ -263,8 +263,8 @@ func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.S
 				return err
 			}
 		}
-		if override.OverwriteState != nil {
-			attr.OverwriteState = *override.OverwriteState
+		if override.SkipListMerge != nil {
+			attr.SkipListMerge = *override.SkipListMerge
 		}
 	}
 	return nil

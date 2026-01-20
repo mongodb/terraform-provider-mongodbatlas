@@ -87,7 +87,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	Roles                   customtypes.SetValue[types.String]          `tfsdk:"roles"`
-	Secrets                 customtypes.NestedListValue[TFSecretsModel] `tfsdk:"secrets" autogen:"overwritestate,omitjson"`
+	Secrets                 customtypes.NestedListValue[TFSecretsModel] `tfsdk:"secrets" autogen:"skiplistmerge,omitjson"`
 	ClientId                types.String                                `tfsdk:"client_id" autogen:"omitjson"`
 	CreatedAt               types.String                                `tfsdk:"created_at" autogen:"omitjson"`
 	Description             types.String                                `tfsdk:"description"`

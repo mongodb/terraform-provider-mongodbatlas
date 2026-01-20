@@ -102,8 +102,8 @@ func typedModelProperty(attr *codespec.Attribute, isDataSource bool, dsPrefix st
 		autogenTags = append(autogenTags, "listasmap")
 	}
 
-	if attr.OverwriteState {
-		autogenTags = append(autogenTags, "overwritestate")
+	if attr.SkipListMerge {
+		autogenTags = append(autogenTags, "skiplistmerge")
 	}
 
 	switch attr.ReqBodyUsage {

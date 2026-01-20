@@ -89,7 +89,7 @@ func unmarshalAttr(attrObjJSON any, fieldModel reflect.Value, structField *refle
 	}
 
 	valueType := oldVal.Type(context.Background())
-	newValue, err := getTfAttr(attrObjJSON, valueType, oldVal, attrNameModel, tags.OverwriteState)
+	newValue, err := getTfAttr(attrObjJSON, valueType, oldVal, attrNameModel, tags.SkipListMerge)
 	if err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func setAttrTfModel(name string, field reflect.Value, val attr.Value) error {
 	return nil
 }
 
-func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string, overwriteState bool) (attr.Value, error) {
+func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string, skipListMerge bool) (attr.Value, error) {
 	nameErr := stringcase.ToSnakeCase(name)
 	if _, ok := valueType.(jsontypes.NormalizedType); ok {
 		return getNormalizedJSONAttrValue(value, nameErr)
@@ -144,7 +144,7 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string, o
 		case customtypes.ListValueInterface:
 			return getListValueTFAttr(context.Background(), v, oldVal, nameErr)
 		case customtypes.NestedListValueInterface:
-			return getNestedListValueTFAttr(context.Background(), v, oldVal, overwriteState)
+			return getNestedListValueTFAttr(context.Background(), v, oldVal, skipListMerge)
 		case customtypes.SetValueInterface:
 			return getSetValueTFAttr(context.Background(), v, oldVal, nameErr)
 		case customtypes.NestedSetValueInterface:
@@ -300,7 +300,7 @@ func getArrayTFAttr(arrayJSON []any, elemType attr.Type, nameErr string) ([]attr
 	return slice, nil
 }
 
-func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.NestedListValueInterface, overwriteState bool) (attr.Value, error) {
+func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.NestedListValueInterface, skipListMerge bool) (attr.Value, error) {
 	oldSlicePtr, diags := list.SlicePtrAsAny(ctx)
 	if diags.HasError() {
 		return nil, fmt.Errorf("unmarshal failed to convert list: %v", diags)
@@ -320,7 +320,7 @@ func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customt
 
 	for i, item := range arrayJSON {
 		elementVal := sliceVal.Index(i)
-		if !overwriteState && i < oldSliceLen {
+		if !skipListMerge && i < oldSliceLen {
 			elementVal.Set(oldSliceVal.Index(i))
 		}
 		elementPtr := elementVal.Addr().Interface()

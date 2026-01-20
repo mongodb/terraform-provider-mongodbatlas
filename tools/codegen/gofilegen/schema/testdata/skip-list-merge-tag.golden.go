@@ -36,7 +36,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	StringAttr     types.String                                       `tfsdk:"string_attr"`
-	NestedListAttr customtypes.NestedListValue[TFNestedListAttrModel] `tfsdk:"nested_list_attr" autogen:"overwritestate"`
+	NestedListAttr customtypes.NestedListValue[TFNestedListAttrModel] `tfsdk:"nested_list_attr" autogen:"skiplistmerge"`
 }
 type TFNestedListAttrModel struct {
 	StringAttr types.String `tfsdk:"string_attr"`
