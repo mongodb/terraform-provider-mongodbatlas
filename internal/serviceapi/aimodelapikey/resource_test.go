@@ -16,12 +16,12 @@ import (
 
 const (
 	resourceType            = "mongodbatlas_ai_model_api_key"
-	resourceName            = resourceType + ".test"
-	dataSourceName          = "data." + resourceType + ".test"
-	dataSourcePluralName    = "data." + resourceType + "s.test"
+	resourceName            = resourceType + ".this"
+	dataSourceName          = "data." + resourceType + ".this"
+	dataSourcePluralName    = "data." + resourceType + "s.this"
 	orgDataSourceType       = "mongodbatlas_ai_model_org_api_key"
-	orgDataSourceName       = "data." + orgDataSourceType + ".test"
-	orgDataSourcePluralName = "data." + orgDataSourceType + "s.test"
+	orgDataSourceName       = "data." + orgDataSourceType + ".this"
+	orgDataSourcePluralName = "data." + orgDataSourceType + "s.this"
 )
 
 func TestAccAIModelAPIKey_basic(t *testing.T) {
@@ -59,29 +59,29 @@ func TestAccAIModelAPIKey_basic(t *testing.T) {
 
 func configBasic(orgID, projectID, name string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_ai_model_api_key" "test" {
+		resource "mongodbatlas_ai_model_api_key" "this" {
 			project_id = %[2]q
 			name       = %[3]q
 		}
 
-		data "mongodbatlas_ai_model_api_key" "test" {
+		data "mongodbatlas_ai_model_api_key" "this" {
 			project_id = %[2]q
-			api_key_id = mongodbatlas_ai_model_api_key.test.api_key_id
+			api_key_id = mongodbatlas_ai_model_api_key.this.api_key_id
 		}
 
-		data "mongodbatlas_ai_model_api_keys" "test" {
+		data "mongodbatlas_ai_model_api_keys" "this" {
 			project_id = %[2]q
-			depends_on = [mongodbatlas_ai_model_api_key.test]
+			depends_on = [mongodbatlas_ai_model_api_key.this]
 		}
 
-		data "mongodbatlas_ai_model_org_api_key" "test" {
+		data "mongodbatlas_ai_model_org_api_key" "this" {
 			org_id     = %[1]q
-			api_key_id = mongodbatlas_ai_model_api_key.test.api_key_id
+			api_key_id = mongodbatlas_ai_model_api_key.this.api_key_id
 		}
 
-		data "mongodbatlas_ai_model_org_api_keys" "test" {
+		data "mongodbatlas_ai_model_org_api_keys" "this" {
 			org_id     = %[1]q
-			depends_on = [mongodbatlas_ai_model_api_key.test]
+			depends_on = [mongodbatlas_ai_model_api_key.this]
 		}
 	`, orgID, projectID, name)
 }
