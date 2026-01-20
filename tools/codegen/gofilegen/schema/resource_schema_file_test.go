@@ -375,7 +375,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 			},
-			goldenFileName: "skip-list-merge-tag",
+			goldenFileName: "skip-state-list-merge-tag",
 		},
 		"Plan modifiers using create only": {
 			inputModel: codespec.Resource{
