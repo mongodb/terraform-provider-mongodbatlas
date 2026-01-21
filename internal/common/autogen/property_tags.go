@@ -13,6 +13,7 @@ const (
 	tagValOmitJSONUpdate      = "omitjsonupdate"
 	tagValIncludeNullOnUpdate = "includenullonupdate"
 	tagValListAsMap           = "listasmap"
+	tagValSkipStateListMerge  = "skipstatelistmerge"
 	tagAPIName                = "apiname" // e.g., apiname:"groupId" means JSON field is "groupId", used if the API name is different from the uncapitalized model name
 )
 
@@ -23,6 +24,7 @@ type PropertyTags struct {
 	OmitJSONUpdate      bool
 	IncludeNullOnUpdate bool
 	ListAsMap           bool
+	SkipStateListMerge  bool
 }
 
 func GetPropertyTags(field *reflect.StructField) PropertyTags {
@@ -33,6 +35,7 @@ func GetPropertyTags(field *reflect.StructField) PropertyTags {
 		OmitJSONUpdate:      slices.Contains(tags, tagValOmitJSONUpdate),
 		IncludeNullOnUpdate: slices.Contains(tags, tagValIncludeNullOnUpdate),
 		ListAsMap:           slices.Contains(tags, tagValListAsMap),
+		SkipStateListMerge:  slices.Contains(tags, tagValSkipStateListMerge),
 	}
 	if apiName := field.Tag.Get(tagAPIName); apiName != "" {
 		result.APIName = &apiName
