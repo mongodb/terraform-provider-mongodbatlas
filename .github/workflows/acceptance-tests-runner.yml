@@ -398,8 +398,8 @@ jobs:
             - 'internal/service/searchindex/*.go'
           service_account:
             - 'internal/common/autogen/*.go'
-            - 'internal/service/serviceaccountaccesslistentry/*.go'
             - 'internal/service/projectserviceaccountaccesslistentry/*.go'
+            - 'internal/service/serviceaccountaccesslistentry/*.go'
             - 'internal/serviceapi/projectserviceaccount/*.go'
             - 'internal/serviceapi/projectserviceaccountsecret/*.go'
             - 'internal/serviceapi/serviceaccount/*.go'
