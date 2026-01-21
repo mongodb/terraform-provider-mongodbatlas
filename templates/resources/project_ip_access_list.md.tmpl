@@ -16,34 +16,34 @@ subcategory: "Projects"
 
 ### Using CIDR Block
 ```terraform
-resource "mongodbatlas_project_ip_access_list" "test" {
-  project_id = "<PROJECT-ID>"
+resource "mongodbatlas_project_ip_access_list" "this" {
+  project_id = var.project_id
   cidr_block = "1.2.3.4/32"
-  comment    = "cidr block for tf acc testing"
+  comment    = "cidr block test"
 }
 ```
 
 ### Using IP Address
 ```terraform
-resource "mongodbatlas_project_ip_access_list" "test" {
-  project_id = "<PROJECT-ID>"
+resource "mongodbatlas_project_ip_access_list" "this" {
+  project_id = var.project_id
   ip_address = "2.3.4.5"
-  comment    = "ip address for tf acc testing"
+  comment    = "ip address test"
 }
 ```
 
 ### Using an AWS Security Group
 ```terraform
-resource "mongodbatlas_network_container" "test" {
-  project_id       = "<PROJECT-ID>"
+resource "mongodbatlas_network_container" "this" {
+  project_id       = var.project_id
   atlas_cidr_block = "192.168.208.0/21"
   provider_name    = "AWS"
   region_name      = "US_EAST_1"
 }
 
-resource "mongodbatlas_network_peering" "test" {
-  project_id             = "<PROJECT-ID>"
-  container_id           = mongodbatlas_network_container.test.container_id
+resource "mongodbatlas_network_peering" "this" {
+  project_id             = var.project_id
+  container_id           = mongodbatlas_network_container.this.container_id
   accepter_region_name   = "us-east-1"
   provider_name          = "AWS"
   route_table_cidr_block = "172.31.0.0/16"
@@ -51,12 +51,12 @@ resource "mongodbatlas_network_peering" "test" {
   aws_account_id         = "232589400519"
 }
 
-resource "mongodbatlas_project_ip_access_list" "test" {
-  project_id         = "<PROJECT-ID>"
+resource "mongodbatlas_project_ip_access_list" "this" {
+  project_id         = var.project_id
   aws_security_group = "sg-0026348ec11780bd1"
-  comment            = "TestAcc for awsSecurityGroup"
+  comment            = "AWS Security Group test"
 
-  depends_on = ["mongodbatlas_network_peering.test"]
+  depends_on = ["mongodbatlas_network_peering.this"]
 }
 ```
 
@@ -73,7 +73,7 @@ resource "mongodbatlas_project_ip_access_list" "test" {
 IP Access List entries can be imported using the `project_id` and `cidr_block` or `ip_address`, e.g.
 
 ```
-$ terraform import mongodbatlas_project_ip_access_list.test 5d0f1f74cf09a29120e123cd-10.242.88.0/21
+$ terraform import mongodbatlas_project_ip_access_list.this 5d0f1f74cf09a29120e123cd-10.242.88.0/21
 ```
 
 For more information, see [MongoDB Atlas API Reference](https://docs.atlas.mongodb.com/reference/api/access-lists/).

@@ -12,44 +12,44 @@ subcategory: "Projects"
 
 ### Using CIDR Block
 ```terraform
-resource "mongodbatlas_project_ip_access_list" "test" {
-  project_id = "<PROJECT-ID>"
+resource "mongodbatlas_project_ip_access_list" "this" {
+  project_id = var.project_id
   cidr_block = "1.2.3.4/32"
-  comment    = "cidr block for tf acc testing"
+  comment    = "cidr block test"
 }
 
-data "mongodbatlas_project_ip_access_list" "test" {
-	project_id = mongodbatlas_project_ip_access_list.test.project_id
-	cidr_block = mongodbatlas_project_ip_access_list.test.cidr_block
+data "mongodbatlas_project_ip_access_list" "this" {
+	project_id = mongodbatlas_project_ip_access_list.this.project_id
+	cidr_block = mongodbatlas_project_ip_access_list.this.cidr_block
 }
 ```
 
 ### Using IP Address
 ```terraform
-resource "mongodbatlas_project_ip_access_list" "test" {
-  project_id = "<PROJECT-ID>"
+resource "mongodbatlas_project_ip_access_list" "this" {
+  project_id = var.project_id
   ip_address = "2.3.4.5"
-  comment    = "ip address for tf acc testing"
+  comment    = "ip address test"
 }
 
-data "mongodbatlas_project_ip_access_list" "test" {
-	project_id = mongodbatlas_project_ip_access_list.test.project_id
-	ip_address = mongodbatlas_project_ip_access_list.test.ip_address
+data "mongodbatlas_project_ip_access_list" "this" {
+	project_id = mongodbatlas_project_ip_access_list.this.project_id
+	ip_address = mongodbatlas_project_ip_access_list.this.ip_address
 }
 ```
 
 ### Using an AWS Security Group
 ```terraform
-resource "mongodbatlas_network_container" "test" {
-  project_id       = "<PROJECT-ID>"
+resource "mongodbatlas_network_container" "this" {
+  project_id       = var.project_id
   atlas_cidr_block = "192.168.208.0/21"
   provider_name    = "AWS"
   region_name      = "US_EAST_1"
 }
 
-resource "mongodbatlas_network_peering" "test" {
-  project_id             = "<PROJECT-ID>"
-  container_id           = mongodbatlas_network_container.test.container_id
+resource "mongodbatlas_network_peering" "this" {
+  project_id             = var.project_id
+  container_id           = mongodbatlas_network_container.this.container_id
   accepter_region_name   = "us-east-1"
   provider_name          = "AWS"
   route_table_cidr_block = "172.31.0.0/16"
@@ -57,17 +57,17 @@ resource "mongodbatlas_network_peering" "test" {
   aws_account_id         = "232589400519"
 }
 
-resource "mongodbatlas_project_ip_access_list" "test" {
-  project_id         = "<PROJECT-ID>"
+resource "mongodbatlas_project_ip_access_list" "this" {
+  project_id         = var.project_id
   aws_security_group = "sg-0026348ec11780bd1"
-  comment            = "TestAcc for awsSecurityGroup"
+  comment            = "AWS Security Group test"
 
-  depends_on = [mongodbatlas_network_peering.test]
+  depends_on = [mongodbatlas_network_peering.this]
 }
 
-data "mongodbatlas_project_ip_access_list" "test" {
-	project_id = mongodbatlas_project_ip_access_list.test.project_id
-	aws_security_group = mongodbatlas_project_ip_access_list.test.aws_security_group
+data "mongodbatlas_project_ip_access_list" "this" {
+	project_id = mongodbatlas_project_ip_access_list.this.project_id
+	aws_security_group = mongodbatlas_project_ip_access_list.this.aws_security_group
 }
 ```
 
