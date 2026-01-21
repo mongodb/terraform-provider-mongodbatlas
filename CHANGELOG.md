@@ -1,5 +1,27 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_project_service_account` ([#4038](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4038))
+* **New Data Source:** `data-source/mongodbatlas_project_service_account_secret` ([#4041](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4041))
+* **New Data Source:** `data-source/mongodbatlas_project_service_accounts` ([#4038](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4038))
+* **New Data Source:** `data-source/mongodbatlas_service_account` ([#4018](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4018))
+* **New Data Source:** `data-source/mongodbatlas_service_account_project_assignment` ([#4030](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4030))
+* **New Data Source:** `data-source/mongodbatlas_service_account_project_assignments` ([#4030](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4030))
+* **New Data Source:** `data-source/mongodbatlas_service_account_secret` ([#4027](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4027))
+* **New Data Source:** `data-source/mongodbatlas_service_accounts` ([#4018](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4018))
+* **New Data Source:** `data-source/project_service_account_access_list_entries` ([#4060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4060))
+* **New Data Source:** `data-source/project_service_account_access_list_entry` ([#4060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4060))
+* **New Data Source:** `data-source/service_account_access_list_entries` ([#4037](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4037))
+* **New Data Source:** `data-source/service_account_access_list_entry` ([#4037](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4037))
+* **New Resource:** `resource/mongodbatlas_project_service_account` ([#4038](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4038))
+* **New Resource:** `resource/mongodbatlas_project_service_account_secret` ([#4041](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4041))
+* **New Resource:** `resource/mongodbatlas_service_account` ([#4018](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4018))
+* **New Resource:** `resource/mongodbatlas_service_account_project_assignment` ([#4030](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4030))
+* **New Resource:** `resource/mongodbatlas_service_account_secret` ([#4027](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4027))
+* **New Resource:** `resource/project_service_account_access_list_entry` ([#4060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4060))
+* **New Resource:** `resource/service_account_access_list_entry` ([#4037](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4037))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_stream_connection: Adds `SchemaRegistry` connection ([#4072](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4072))
