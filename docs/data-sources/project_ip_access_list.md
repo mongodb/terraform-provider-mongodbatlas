@@ -80,9 +80,9 @@ data "mongodbatlas_project_ip_access_list" "test" {
 
 ### Optional
 
-- `aws_security_group` (String)
-- `cidr_block` (String)
-- `ip_address` (String)
+- `aws_security_group` (String) Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`.
+- `cidr_block` (String) Range of IP addresses in CIDR notation to be added to the access list. Mutually exclusive with `ip_address` and `aws_security_group`.
+- `ip_address` (String) Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`.
 
 ### Read-Only
 

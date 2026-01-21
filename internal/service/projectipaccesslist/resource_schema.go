@@ -14,6 +14,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
+const (
+	cidrBlockDesc        = "Range of IP addresses in CIDR notation to be added to the access list. Mutually exclusive with `ip_address` and `aws_security_group`."
+	ipAddressDesc        = "Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`."
+	awsSecurityGroupDesc = "Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`."
+)
+
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		MarkdownDescription: "Provides an IP Access List entry resource. The access list grants access from IPs, CIDRs or AWS Security Groups (if VPC Peering is enabled) to clusters within the Project.",
@@ -42,7 +48,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						path.MatchRelative().AtParent().AtName("ip_address"),
 					}...),
 				},
-				MarkdownDescription: "Range of IP addresses in CIDR notation to be added to the access list. Mutually exclusive with `cidr_block` and `ip_address`.",
+				MarkdownDescription: cidrBlockDesc,
 			},
 			"ip_address": schema.StringAttribute{
 				Optional: true,
@@ -57,7 +63,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						path.MatchRelative().AtParent().AtName("cidr_block"),
 					}...),
 				},
-				MarkdownDescription: "Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`.",
+				MarkdownDescription: ipAddressDesc,
 			},
 			"aws_security_group": schema.StringAttribute{
 				Optional: true,
@@ -71,7 +77,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						path.MatchRelative().AtParent().AtName("cidr_block"),
 					}...),
 				},
-				MarkdownDescription: "Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`.",
+				MarkdownDescription: awsSecurityGroupDesc,
 			},
 			"comment": schema.StringAttribute{
 				Optional:            true,
