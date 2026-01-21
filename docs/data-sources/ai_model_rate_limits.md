@@ -9,10 +9,10 @@ subcategory: "AI Models"
 ## Example Usages
 ```terraform
 resource "mongodbatlas_ai_model_rate_limit" "this" {
-  project_id                 = var.project_id
-  model_group_name           = "embed_large"
-  requests_per_minute_limit  = 100
-  tokens_per_minute_limit    = 10000
+  project_id                = var.project_id
+  model_group_name          = "embed_large"
+  requests_per_minute_limit = 100
+  tokens_per_minute_limit   = 10000
 }
 
 data "mongodbatlas_ai_model_rate_limit" "this" {
