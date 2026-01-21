@@ -263,6 +263,9 @@ func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.S
 				return err
 			}
 		}
+		if override.SkipStateListMerge != nil {
+			attr.SkipStateListMerge = *override.SkipStateListMerge
+		}
 	}
 	return nil
 }
