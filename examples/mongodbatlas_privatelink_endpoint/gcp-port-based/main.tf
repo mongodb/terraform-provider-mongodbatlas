@@ -1,7 +1,7 @@
 # Example with GCP with Port-Based (1 endpoint)
 # This example demonstrates the new PSC port-based architecture which requires only 1 endpoint.
 # The new architecture is enabled by setting port_mapping_enabled = true on the endpoint resource.
-# This simplifies setup and management compared to the legacy architecture which requires multiple endpoints..
+# This simplifies setup and management compared to the legacy architecture which requires multiple endpoints.
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id               = var.project_id
   provider_name            = "GCP"
