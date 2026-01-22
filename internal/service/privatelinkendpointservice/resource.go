@@ -155,10 +155,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
-	endpointServiceID := d.Get("endpoint_service_id").(string)
-	pEIA, pEIAOk := d.GetOk("private_endpoint_ip_address")
-	gPI, gPIOk := d.GetOk("gcp_project_id")
-	e, eOk := d.GetOk("endpoints")
+	endpointServiceID := conversion.GetEncodedID(d.Get("endpoint_service_id").(string), "endpoint_service_id")
+	privateEndpointIP, hasPrivateEndpointIP := d.GetOk("private_endpoint_ip_address")
+	gcpProjectID, hasGCPProjectID := d.GetOk("gcp_project_id")
+	endpoints, hasEndpoints := d.GetOk("endpoints")
 
 	createEndpointRequest := &admin.CreateEndpointRequest{}
 
@@ -166,30 +166,30 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	case providerName == "AWS":
 		createEndpointRequest.Id = &endpointServiceID
 	case providerName == "AZURE":
-		if !pEIAOk {
+		if !hasPrivateEndpointIP {
 			return diag.FromErr(errors.New("`private_endpoint_ip_address` must be set when `provider_name` is `AZURE`"))
 		}
 		createEndpointRequest.Id = &endpointServiceID
-		createEndpointRequest.PrivateEndpointIPAddress = conversion.Pointer(pEIA.(string))
-	case providerName == "GCP" && gPIOk && pEIAOk && !eOk:
+		createEndpointRequest.PrivateEndpointIPAddress = conversion.Pointer(privateEndpointIP.(string))
+	case providerName == "GCP" && hasGCPProjectID && hasPrivateEndpointIP && !hasEndpoints:
 		createEndpointRequest.EndpointGroupName = &endpointServiceID
-		createEndpointRequest.GcpProjectId = conversion.Pointer(gPI.(string))
+		createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
 		singleEndpoint := admin.CreateGCPForwardingRuleRequest{
-			IpAddress:    conversion.Pointer(pEIA.(string)),
+			IpAddress:    conversion.Pointer(privateEndpointIP.(string)),
 			EndpointName: &endpointServiceID,
 		}
-		endpoints := []admin.CreateGCPForwardingRuleRequest{singleEndpoint}
-		createEndpointRequest.Endpoints = &endpoints
-	case providerName == "GCP" && gPIOk && !pEIAOk && eOk:
+		endpointsList := []admin.CreateGCPForwardingRuleRequest{singleEndpoint}
+		createEndpointRequest.Endpoints = &endpointsList
+	case providerName == "GCP" && hasGCPProjectID && !hasPrivateEndpointIP && hasEndpoints:
 		createEndpointRequest.EndpointGroupName = &endpointServiceID
-		createEndpointRequest.GcpProjectId = conversion.Pointer(gPI.(string))
-		createEndpointRequest.Endpoints = expandGCPEndpoints(e.([]any))
+		createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
+		createEndpointRequest.Endpoints = expandGCPEndpoints(endpoints.([]any))
 	default:
 		if providerName == "GCP" {
-			if !gPIOk {
+			if !hasGCPProjectID {
 				return diag.FromErr(errors.New("`gcp_project_id` must be set for GCP"))
 			}
-			if pEIAOk && eOk {
+			if hasPrivateEndpointIP && hasEndpoints {
 				return diag.FromErr(errors.New("for GCP, provide either `private_endpoint_ip_address` (new architecture) or `endpoints` (legacy architecture), but not both"))
 			}
 			return diag.FromErr(errors.New("for GCP, provide either `private_endpoint_ip_address` (new architecture) or `endpoints` (legacy architecture)"))
