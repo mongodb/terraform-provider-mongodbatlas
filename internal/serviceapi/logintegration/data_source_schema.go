@@ -32,7 +32,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"log_types": dsschema.SetAttribute{
 				Computed:            true,
-				MarkdownDescription: "Array of log types exported to Datadog. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT, ATLAS_SEARCH. Note: ATLAS_SEARCH is currently in private preview and may not be supported for all customers.",
+				MarkdownDescription: "Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.",
 				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
