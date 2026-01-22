@@ -51,9 +51,9 @@ Once maintenance is scheduled for your cluster, you cannot change your maintenan
 * `project_id` - The unique identifier of the project for the Maintenance Window.
 * `day_of_week` - (Required) Day of the week when you would like the maintenance window to start as a 1-based integer: Su=1, M=2, T=3, W=4, T=5, F=6, Sa=7.
 * `hour_of_day` - (Required) Hour of the day when you would like the maintenance window to start. This parameter uses the 24-hour clock, where midnight is 0, noon is 12. Uses the project's configured timezone.
-* `defer` - Defer the next scheduled maintenance for the given project for one week.
-* `auto_defer` - Defer any scheduled maintenance for the given project for one week.
-* `auto_defer_once_enabled` - Flag that indicates whether you want to defer all maintenance windows one week they would be triggered.
+* `defer` - (Optional) Defer the next scheduled maintenance event for the given project by one week. Only works when maintenance is already scheduled.
+* `auto_defer` - (Optional) Boolean flag to toggle automatic deferral on/off. Each change flips the current state. Achieves the same outcome as `auto_defer_once_enabled` but through a toggle operation.
+* `auto_defer_once_enabled` - (Optional) When `true`, enables automatic deferral of all scheduled maintenance for the given project by one week. Achieves the same outcome as `auto_defer` but by directly setting the value to true or false. If `auto_defer` is modified triggering a toggle, it will impact the value of this attribute.
 * `protected_hours` - (Optional) Defines the time period during which there will be no standard updates to the clusters. See [Protected Hours](#protected-hours).
 
 ### Protected Hours
