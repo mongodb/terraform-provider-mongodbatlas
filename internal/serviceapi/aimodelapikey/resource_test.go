@@ -90,8 +90,7 @@ func checkBasic() resource.TestCheckFunc {
 	attrsSet := []string{"api_key_id", "created_at", "created_by", "masked_secret", "status", "name", "project_id"}
 	return resource.ComposeAggregateTestCheckFunc(
 		acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(dataSourcePluralName), attrsSet, nil, checkExists(resourceName)),
-		// TODO: secret update check will fail until CLOUDP-373517 is done.
-		// resource.TestCheckResourceAttrSet(resourceName, "secret"), // secret only in resource
+		resource.TestCheckResourceAttrSet(resourceName, "secret"), // secret only in resource
 		resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
 		acc.CheckRSAndDS(orgDataSourceName, nil, admin.PtrString(orgDataSourcePluralName), attrsSet, nil),
 		resource.TestCheckResourceAttrWith(orgDataSourcePluralName, "results.#", acc.IntGreatThan(0)),

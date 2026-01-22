@@ -89,6 +89,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          immutable_computed: true
         - string: {}
           description: A string describing the current status of the API key.
           computed_optional_required: computed
