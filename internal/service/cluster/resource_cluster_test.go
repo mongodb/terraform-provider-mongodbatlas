@@ -1046,7 +1046,7 @@ func TestAccCluster_tenant(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
-					// We need to check for both 10 (expected) and 5 as API encounters flakiness (~75% success rate)
+					// We need to check for both 10 (expected) and 5 as API encounters flakiness (~75% success rate), related ticket: CLOUDP-375027
 					resource.TestCheckResourceAttrWith(resourceName, "disk_size_gb", acc.MatchesExpression(`^(5|10)$`)),
 				),
 			},
