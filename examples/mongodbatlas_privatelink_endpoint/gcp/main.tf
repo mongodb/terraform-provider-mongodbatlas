@@ -1,5 +1,5 @@
-# Example with GCP (Legacy Architecture - 50 endpoints)
-# This example demonstrates the legacy PSC architecture which requires 50 endpoints.
+# Example with GCP (Legacy Architecture)
+# This example demonstrates the legacy PSC architecture.
 # For the new port-based architecture, see the gcp-port-based directory.
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id               = var.project_id
@@ -27,7 +27,7 @@ resource "google_compute_subnetwork" "default" {
   network       = google_compute_network.default.id
 }
 
-# Create Google 50 Addresses (required for legacy architecture)
+# Create Google 50 Addresses
 resource "google_compute_address" "default" {
   count        = 50
   project      = google_compute_subnetwork.default.project
@@ -40,7 +40,7 @@ resource "google_compute_address" "default" {
   depends_on = [mongodbatlas_privatelink_endpoint.test]
 }
 
-# Create 50 Forwarding rules (required for legacy architecture)
+# Create 50 Forwarding rules
 resource "google_compute_forwarding_rule" "default" {
   count                 = 50
   target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[count.index]
@@ -56,7 +56,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
   project_id               = mongodbatlas_privatelink_endpoint.test.project_id
   private_link_id          = mongodbatlas_privatelink_endpoint.test.private_link_id
   provider_name            = "GCP"
-  endpoint_service_id      = google_compute_network.default.name
+  endpoint_service_id      = "the-endpoint-group-name"
   gcp_project_id           = var.gcp_project_id
   delete_on_create_timeout = true
   timeouts {
@@ -83,7 +83,7 @@ data "mongodbatlas_advanced_cluster" "cluster" {
 }
 
 locals {
-  endpoint_service_id = google_compute_network.default.name
+  endpoint_service_id = "the-endpoint-group-name"
   private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings : cs.private_endpoint]), [])
   connection_strings = [
     for pe in local.private_endpoints : pe.srv_connection_string

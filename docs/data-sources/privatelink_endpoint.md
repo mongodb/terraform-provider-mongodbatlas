@@ -58,6 +58,6 @@ In addition to all arguments above, the following attributes are exported:
 * `endpoint_group_names` - GCP network endpoint groups corresponding to the Private Service Connect endpoint service.
 * `region_name` - GCP region for the Private Service Connect endpoint service.
 * `service_attachment_names` - Unique alphanumeric and special character strings that identify the service attachments associated with the GCP Private Service Connect endpoint service.
-* `port_mapping_enabled` - Flag that indicates whether this endpoint service uses PSC port-mapping.
+* `port_mapping_enabled` - Flag that indicates whether this endpoint service uses PSC port-mapping. When `true`, the endpoint service uses the new PSC port-based architecture (requires 1 endpoint). When `false`, it uses the legacy architecture. Only applicable for GCP provider.
 
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/private-endpoints-service-get-one/) Documentation for more information.

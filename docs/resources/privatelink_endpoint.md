@@ -48,7 +48,7 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws), [AZURE regions](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure) and [GCP regions](https://docs.atlas.mongodb.com/reference/google-gcp/#std-label-google-gcp)
 * `timeouts`- (Optional) The duration of time to wait for Private Endpoint to be created or deleted. The timeout value is defined by a signed sequence of decimal numbers with a time unit suffix such as: `1h45m`, `300s`, `10m`, etc. The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Private Endpoint create & delete is `1h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 * `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
-* `port_mapping_enabled` - (Optional) Flag that indicates whether this endpoint service uses PSC port-mapping. When set to `true`, enables the new PSC port-based architecture for GCP, which requires only 1 endpoint instead of 50 endpoints required by the legacy architecture. Defaults to `false`. Only applicable for GCP provider.
+* `port_mapping_enabled` - (Optional) Flag that indicates whether this endpoint service uses PSC port-mapping. When set to `true`, enables the new PSC port-based architecture for GCP, which requires only 1 endpoint. Defaults to `false`. Only applicable for GCP provider.
 
 ## Attributes Reference
 
@@ -67,7 +67,7 @@ GCP:
   * `endpoint_group_names` - GCP network endpoint groups corresponding to the Private Service Connect endpoint service.
   * `region_name` - GCP region for the Private Service Connect endpoint service.
   * `service_attachment_names` - Unique alphanumeric and special character strings that identify the service attachments associated with the GCP Private Service Connect endpoint service. Returns an empty list while Atlas creates the service attachments.
-* `status` - Status of the AWS PrivateLink connection or Status of the Azure Private Link Service. Atlas returns one of the following values:
+* `status` - Status of the AWS PrivateLink connection or Status of the Azure/GCP Private Link Service. Atlas returns one of the following values:
   AWS:
     * `AVAILABLE` 	Atlas is creating the network load balancer and VPC endpoint service.
     * `WAITING_FOR_USER` The Atlas network load balancer and VPC endpoint service are created and ready to receive connection requests. When you receive this status, create an interface endpoint to continue configuring the AWS PrivateLink connection.

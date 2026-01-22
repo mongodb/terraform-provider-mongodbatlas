@@ -148,7 +148,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 
 The new PSC port-based architecture simplifies setup by requiring only 1 endpoint instead of 50. Enable it by setting `port_mapping_enabled = true` on the endpoint resource.
 
-**Important:** For the new port-based architecture, the `endpoint_service_id` must match the `endpoint_name` in the `endpoints` block. Although the new API ignores the `endpoint_service_id` value, it is still required by the Terraform provider.
+**Important:** For the new port-based architecture, use `endpoint_service_id` (the forwarding rule name) and `private_endpoint_ip_address` (the IP address). The `endpoints` list is no longer used for the new architecture.
 
 ```terraform
 resource "mongodbatlas_privatelink_endpoint" "test" {
@@ -197,18 +197,12 @@ resource "google_compute_forwarding_rule" "default" {
 }
 
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id          = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
-  provider_name       = "GCP"
-  # For port-based architecture, endpoint_service_id must match the endpoint_name
-  endpoint_service_id = google_compute_forwarding_rule.default.name
-  gcp_project_id      = var.gcp_project
-
-  # New PSC port-based architecture requires exactly 1 endpoint
-  endpoints {
-    ip_address    = google_compute_address.default.address
-    endpoint_name = google_compute_forwarding_rule.default.name
-  }
+  project_id                = mongodbatlas_privatelink_endpoint.test.project_id
+  private_link_id            = mongodbatlas_privatelink_endpoint.test.private_link_id
+  provider_name              = "GCP"
+  endpoint_service_id        = google_compute_forwarding_rule.default.name
+  private_endpoint_ip_address = google_compute_address.default.address
+  gcp_project_id            = var.gcp_project_id
 
   depends_on = [google_compute_forwarding_rule.default]
 }
@@ -224,12 +218,12 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique identifier for the project.
-* `private_link_id` - (Required) Unique identifier of the `AWS` or `AZURE` PrivateLink connection which is created by `mongodbatlas_privatelink_endpoint` resource.
-* `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC with the `AWS`, `AZURE` or `GCP` resource. **Note:** For GCP with the new port-based architecture (when `port_mapping_enabled = true` on the endpoint resource), this value must match the `endpoint_name` in the `endpoints` block. Although the new API ignores this value, it is still required by the Terraform provider.
+* `private_link_id` - (Required) Unique identifier of the `AWS`, `AZURE` or `GCP` PrivateLink connection which is created by `mongodbatlas_privatelink_endpoint` resource.
+* `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC with the `AWS`, `AZURE` or `GCP` resource. For GCP legacy architecture, this can be any identifier string. For GCP port-based architecture (when `port_mapping_enabled = true` on the endpoint resource), this should be the forwarding rule name.
 * `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS`, `AZURE` or `GCP`.
-* `private_endpoint_ip_address` - (Optional) Private IP address of the private endpoint network interface you created in your Azure VNet. Only for `AZURE`.
-* `gcp_project_id` - (Optional) Unique identifier of the GCP project in which you created your endpoints. Only for `GCP`.
-* `endpoints` - (Optional) Collection of individual private endpoints that comprise your endpoint group. Only for `GCP`. See below. **Note:** For the legacy architecture, 50 endpoints are required. For the new port-based architecture (enabled with `port_mapping_enabled = true` on the endpoint resource), exactly 1 endpoint is required.
+* `private_endpoint_ip_address` - (Optional) Private IP address of the private endpoint network interface. **Required for `AZURE`.** For GCP port-based architecture (when `port_mapping_enabled = true` on the endpoint resource), this is required and should be the IP address of the forwarding rule. For GCP legacy architecture, this is not used.
+* `gcp_project_id` - (Optional) Unique identifier of the GCP project in which you created your endpoints. **Required for `GCP`** (both legacy and port-based architectures). Only for `GCP`.
+* `endpoints` - (Optional) Collection of individual private endpoints that comprise your endpoint group. Only for `GCP` legacy architecture (when `port_mapping_enabled = false` on the endpoint resource). **Note:** For the new port-based architecture, this field is no longer used - use `endpoint_service_id` and `private_endpoint_ip_address` instead.
 * `timeouts`- (Optional) The duration of time to wait for Private Endpoint Service to be created or deleted. The timeout value is defined by a signed sequence of decimal numbers with a time unit suffix such as: `1h45m`, `300s`, `10m`, etc. The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Private Endpoint create & delete is `2h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 * `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 
@@ -269,10 +263,10 @@ In addition to all arguments above, the following attributes are exported:
   * `AVAILABLE` - Atlas approved the connection to your private endpoint.
   * `FAILED` - Atlas failed to accept the connection your private endpoint.
   * `DELETING` - Atlas is removing the connection to your private endpoint from the Private Link service.
-* `endpoint_group_name` - (Optional) Unique identifier of the endpoint group. The endpoint group encompasses all of the endpoints that you created in GCP.
-* `endpoints` - Collection of individual private endpoints that comprise your network endpoint group.
+* `gcp_endpoint_status` - Status of the individual GCP endpoint. Only populated for port-based architecture (when `port_mapping_enabled = true` on the endpoint resource). Returns one of the following values: `INITIATING`, `AVAILABLE`, `FAILED`, `DELETING`.
+* `endpoints` - Collection of individual private endpoints that comprise your network endpoint group. Only populated for legacy GCP architecture.
   * `status` - Status of the endpoint. Atlas returns one of the [values shown above](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/#std-label-ref-status-field).
-* `port_mapping_enabled` - Flag that indicates whether this endpoint service uses PSC port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the new PSC port-based architecture (requires 1 endpoint). When `false`, it uses the legacy architecture (requires 50 endpoints). Only applicable for GCP provider.
+* `port_mapping_enabled` - Flag that indicates whether this endpoint service uses PSC port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the new PSC port-based architecture (requires 1 endpoint). When `false`, it uses the legacy architecture. Only applicable for GCP provider.
 
 ## Import
 Private Endpoint Link Connection can be imported using project ID and username, in the format `{project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}`, e.g.

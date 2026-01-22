@@ -6,7 +6,7 @@ This project demonstrates the **new PSC port-based architecture** for setting up
 
 | Feature | Legacy Architecture | New Port-Based Architecture |
 |---------|-------------------|---------------------------|
-| Endpoints Required | 50 | 1 |
+| Endpoints Required | up to 100 | 1 |
 | `port_mapping_enabled` | `false` (or omitted) | `true` |
 
 ## Dependencies
@@ -93,8 +93,9 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 ```
 
 With this setting:
-- Only **1 Google Compute Address** is needed (instead of 50)
-- Only **1 Google Compute Forwarding Rule** is needed (instead of 50)
-- The `endpoints` block in `mongodbatlas_privatelink_endpoint_service` contains exactly **1 endpoint**
+- Only **1 Google Compute Address** is needed
+- Only **1 Google Compute Forwarding Rule** is needed
+- Use `endpoint_service_id` (the forwarding rule name) and `private_endpoint_ip_address` (the IP address) in `mongodbatlas_privatelink_endpoint_service`
+- The `endpoints` list is **no longer used** for the new architecture
 
-For the legacy architecture example (50 endpoints), see the [`gcp/`](../gcp/) directory example.
+For the legacy architecture example, see the [`gcp/`](../gcp/) directory example.

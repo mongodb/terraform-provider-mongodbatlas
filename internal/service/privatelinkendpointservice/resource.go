@@ -73,7 +73,7 @@ func Resource() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Computed:      true,
-				ConflictsWith: []string{"gcp_project_id", "endpoints"},
+				ConflictsWith: []string{"endpoints"},
 			},
 			"private_endpoint_resource_id": {
 				Type:     schema.TypeString,
@@ -95,15 +95,10 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"endpoint_group_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"gcp_project_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"private_endpoint_ip_address"},
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 			"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
 				Type:        schema.TypeBool,
@@ -137,6 +132,11 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"gcp_endpoint_status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Status of the GCP endpoint. Only populated for port-based architecture.",
+			},
 			"port_mapping_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -162,22 +162,39 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	createEndpointRequest := &admin.CreateEndpointRequest{}
 
-	switch providerName {
-	case "AWS":
+	switch {
+	case providerName == "AWS":
 		createEndpointRequest.Id = &endpointServiceID
-	case "AZURE":
+	case providerName == "AZURE":
 		if !pEIAOk {
 			return diag.FromErr(errors.New("`private_endpoint_ip_address` must be set when `provider_name` is `AZURE`"))
 		}
 		createEndpointRequest.Id = &endpointServiceID
 		createEndpointRequest.PrivateEndpointIPAddress = conversion.Pointer(pEIA.(string))
-	case "GCP":
-		if !gPIOk || !eOk {
-			return diag.FromErr(errors.New("`gcp_project_id`, `endpoints` must be set when `provider_name` is `GCP`"))
+	case providerName == "GCP" && gPIOk && pEIAOk && !eOk:
+		createEndpointRequest.EndpointGroupName = &endpointServiceID
+		createEndpointRequest.GcpProjectId = conversion.Pointer(gPI.(string))
+		singleEndpoint := admin.CreateGCPForwardingRuleRequest{
+			IpAddress:    conversion.Pointer(pEIA.(string)),
+			EndpointName: &endpointServiceID,
 		}
+		endpoints := []admin.CreateGCPForwardingRuleRequest{singleEndpoint}
+		createEndpointRequest.Endpoints = &endpoints
+	case providerName == "GCP" && gPIOk && !pEIAOk && eOk:
 		createEndpointRequest.EndpointGroupName = &endpointServiceID
 		createEndpointRequest.GcpProjectId = conversion.Pointer(gPI.(string))
 		createEndpointRequest.Endpoints = expandGCPEndpoints(e.([]any))
+	default:
+		if providerName == "GCP" {
+			if !gPIOk {
+				return diag.FromErr(errors.New("`gcp_project_id` must be set for GCP"))
+			}
+			if pEIAOk && eOk {
+				return diag.FromErr(errors.New("for GCP, provide either `private_endpoint_ip_address` (new architecture) or `endpoints` (legacy architecture), but not both"))
+			}
+			return diag.FromErr(errors.New("for GCP, provide either `private_endpoint_ip_address` (new architecture) or `endpoints` (legacy architecture)"))
+		}
+		return diag.FromErr(fmt.Errorf("unsupported provider: %s", providerName))
 	}
 
 	_, _, err := connV2.PrivateEndpointServicesApi.CreatePrivateEndpoint(ctx, projectID, providerName, privateLinkID, createEndpointRequest).Execute()
@@ -263,12 +280,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "aws_connection_status", endpointServiceID, err))
 	}
 
-	if providerName == "AZURE" {
-		if err := d.Set("azure_status", privateEndpoint.GetStatus()); err != nil {
-			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
-		}
-	}
-
 	if err := d.Set("interface_endpoint_id", privateEndpoint.GetInterfaceEndpointId()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "interface_endpoint_id", endpointServiceID, err))
 	}
@@ -277,29 +288,47 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_connection_name", endpointServiceID, err))
 	}
 
-	if err := d.Set("private_endpoint_ip_address", privateEndpoint.GetPrivateEndpointIPAddress()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
-	}
-
 	if err := d.Set("private_endpoint_resource_id", privateEndpoint.GetPrivateEndpointResourceId()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_resource_id", endpointServiceID, err))
+	}
+
+	if strings.EqualFold(providerName, "azure") {
+		if err := d.Set("azure_status", privateEndpoint.GetStatus()); err != nil {
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
+		}
+
+		if err := d.Set("private_endpoint_ip_address", privateEndpoint.GetPrivateEndpointIPAddress()); err != nil {
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
+		}
 	}
 
 	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoint_service_id", endpointServiceID, err))
 	}
 
-	if err := d.Set("endpoints", flattenGCPEndpoints(privateEndpoint.Endpoints)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoints", endpointServiceID, err))
-	}
-
-	if providerName == "GCP" {
+	if strings.EqualFold(providerName, "gcp") {
 		if err := d.Set("port_mapping_enabled", privateEndpoint.GetPortMappingEnabled()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "port_mapping_enabled", privateLinkID, err))
 		}
 
 		if err := d.Set("gcp_status", privateEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
+		}
+
+		if privateEndpoint.GetPortMappingEnabled() && privateEndpoint.Endpoints != nil && len(*privateEndpoint.Endpoints) == 1 {
+			firstEndpoint := (*privateEndpoint.Endpoints)[0]
+
+			if err := d.Set("gcp_endpoint_status", firstEndpoint.GetStatus()); err != nil {
+				return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_endpoint_status", endpointServiceID, err))
+			}
+
+			if err := d.Set("private_endpoint_ip_address", firstEndpoint.GetIpAddress()); err != nil {
+				return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
+			}
+		} else {
+			if err := d.Set("endpoints", flattenGCPEndpoints(privateEndpoint.Endpoints)); err != nil {
+				return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoints", endpointServiceID, err))
+			}
 		}
 	}
 
@@ -463,8 +492,6 @@ func expandGCPEndpoints(tfList []any) *[]admin.CreateGCPForwardingRuleRequest {
 
 func flattenGCPEndpoint(apiObject admin.GCPConsumerForwardingRule) map[string]any {
 	tfMap := map[string]any{}
-
-	log.Printf("[DEBIG] apiObject : %+v", apiObject)
 
 	tfMap["endpoint_name"] = apiObject.GetEndpointName()
 	tfMap["ip_address"] = apiObject.GetIpAddress()

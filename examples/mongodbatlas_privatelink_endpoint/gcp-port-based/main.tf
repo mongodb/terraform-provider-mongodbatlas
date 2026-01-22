@@ -1,12 +1,12 @@
 # Example with GCP with Port-Based (1 endpoint)
 # This example demonstrates the new PSC port-based architecture which requires only 1 endpoint.
 # The new architecture is enabled by setting port_mapping_enabled = true on the endpoint resource.
-# This simplifies setup and management compared to the legacy architecture which requires 50 endpoints.
+# This simplifies setup and management compared to the legacy architecture which requires multiple endpoints..
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id               = var.project_id
   provider_name            = "GCP"
   region                   = var.gcp_region
-  port_mapping_enabled     = true # Enable new PSC port-based architecture (requires 1 endpoint instead of 50)
+  port_mapping_enabled     = true # Enable new PSC port-based architecture
   delete_on_create_timeout = true
   timeouts {
     create = "10m"
@@ -30,7 +30,6 @@ resource "google_compute_subnetwork" "default" {
 }
 
 # Create Google Address (1 address for new PSC port-based architecture)
-# Note: Legacy architecture requires 50 addresses. With port_mapping_enabled = true, only 1 is needed.
 resource "google_compute_address" "default" {
   project      = google_compute_subnetwork.default.project
   name         = "tf-test-psc-endpoint"
@@ -43,7 +42,6 @@ resource "google_compute_address" "default" {
 }
 
 # Create Forwarding Rule (1 rule for new PSC port-based architecture)
-# Note: Legacy architecture requires 50 forwarding rules. With port_mapping_enabled = true, only 1 is needed.
 # The service_attachment_names list will contain exactly one service attachment when using the new architecture.
 resource "google_compute_forwarding_rule" "default" {
   target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[0]
@@ -56,24 +54,19 @@ resource "google_compute_forwarding_rule" "default" {
 }
 
 # Create MongoDB Atlas Private Endpoint Service
-# With port_mapping_enabled = true on the endpoint, the endpoints list should contain exactly one endpoint.
-# For the new port-based architecture, endpoint_service_id must match the endpoint_name.
-# Although the new API ignores this value, it is still required by the Terraform provider.
+# For the new port-based architecture, endpoint_service_id must match the forwarding rule name 
+# and private_endpoint_ip_address the IP address. The endpoints list is no longer used for the new architecture.
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id               = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id          = mongodbatlas_privatelink_endpoint.test.private_link_id
-  provider_name            = "GCP"
-  endpoint_service_id      = google_compute_forwarding_rule.default.name
+  project_id                = mongodbatlas_privatelink_endpoint.test.project_id
+  private_link_id           = mongodbatlas_privatelink_endpoint.test.private_link_id
+  provider_name             = "GCP"
+  endpoint_service_id       = google_compute_forwarding_rule.default.name
+  private_endpoint_ip_address = google_compute_address.default.address
   gcp_project_id           = var.gcp_project_id
   delete_on_create_timeout = true
   timeouts {
     create = "10m"
     delete = "10m"
-  }
-  # New PSC port-based architecture requires exactly 1 endpoint
-  endpoints {
-    ip_address    = google_compute_address.default.address
-    endpoint_name = google_compute_forwarding_rule.default.name
   }
 
   depends_on = [google_compute_forwarding_rule.default]
