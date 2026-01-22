@@ -57,13 +57,13 @@ resource "google_compute_forwarding_rule" "default" {
 # For the new port-based architecture, endpoint_service_id must match the forwarding rule name 
 # and private_endpoint_ip_address the IP address. The endpoints list is no longer used for the new architecture.
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id                = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id           = mongodbatlas_privatelink_endpoint.test.private_link_id
-  provider_name             = "GCP"
-  endpoint_service_id       = google_compute_forwarding_rule.default.name
+  project_id                  = mongodbatlas_privatelink_endpoint.test.project_id
+  private_link_id             = mongodbatlas_privatelink_endpoint.test.private_link_id
+  provider_name               = "GCP"
+  endpoint_service_id         = google_compute_forwarding_rule.default.name
   private_endpoint_ip_address = google_compute_address.default.address
-  gcp_project_id           = var.gcp_project_id
-  delete_on_create_timeout = true
+  gcp_project_id              = var.gcp_project_id
+  delete_on_create_timeout    = true
   timeouts {
     create = "10m"
     delete = "10m"
