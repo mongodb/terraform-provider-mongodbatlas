@@ -326,6 +326,7 @@ data_sources:
               description: List of returned documents that MongoDB Cloud provides when completing this request.
               custom_type:
                 package: customtypes
+                name: Results
                 model: customtypes.NestedListValue[TFResultsModel]
                 schema: customtypes.NewNestedListType[TFResultsModel](ctx)
               computed_optional_required: computed
