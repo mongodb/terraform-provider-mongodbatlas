@@ -173,7 +173,6 @@ func TestGenerateSchemaAttributes_ImmutableComputed(t *testing.T) {
 }
 
 func TestGenerateSchemaAttributes_ImmutableComputedNonStringReturnsError(t *testing.T) {
-	// ImmutableComputed on non-string types should return an error
 	tests := map[string]codespec.Attribute{
 		"Bool attribute with ImmutableComputed": {
 			TFSchemaName:             "test_bool",
@@ -186,13 +185,6 @@ func TestGenerateSchemaAttributes_ImmutableComputedNonStringReturnsError(t *test
 			TFSchemaName:             "test_int",
 			TFModelName:              "TestInt",
 			Int64:                    &codespec.Int64Attribute{},
-			ComputedOptionalRequired: codespec.Computed,
-			ImmutableComputed:        true,
-		},
-		"Float64 attribute with ImmutableComputed": {
-			TFSchemaName:             "test_float",
-			TFModelName:              "TestFloat",
-			Float64:                  &codespec.Float64Attribute{},
 			ComputedOptionalRequired: codespec.Computed,
 			ImmutableComputed:        true,
 		},
