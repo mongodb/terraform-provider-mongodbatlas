@@ -266,6 +266,9 @@ func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.S
 		if override.SkipStateListMerge != nil {
 			attr.SkipStateListMerge = *override.SkipStateListMerge
 		}
+		if override.ImmutableComputed != nil {
+			attr.ImmutableComputed = *override.ImmutableComputed
+		}
 	}
 	return nil
 }
