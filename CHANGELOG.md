@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.5.0 (January 22, 2026)
+
 FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_project_service_account` ([#4038](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4038))
