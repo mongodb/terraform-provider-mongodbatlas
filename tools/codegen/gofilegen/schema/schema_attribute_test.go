@@ -99,7 +99,8 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			result := schema.GenerateSchemaAttributes([]codespec.Attribute{tc.attribute})
+			result, err := schema.GenerateSchemaAttributes([]codespec.Attribute{tc.attribute})
+			assert.NoError(t, err)
 			code := result.Code
 			if !tc.hasPlanModifier {
 				assert.NotContains(t, code, "PlanModifiers:")
@@ -117,6 +118,96 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 		})
 	}
 }
+
+func TestGenerateSchemaAttributes_ImmutableComputed(t *testing.T) {
+	tests := map[string]struct {
+		attribute       codespec.Attribute
+		hasPlanModifier bool
+	}{
+		"No ImmutableComputed - no plan modifiers": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "test_string",
+				TFModelName:              "TestString",
+				String:                   &codespec.StringAttribute{},
+				ComputedOptionalRequired: codespec.Computed,
+				ImmutableComputed:        false,
+			},
+			hasPlanModifier: false,
+		},
+		"String attribute with ImmutableComputed - uses UseStateForUnknown()": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "test_string",
+				TFModelName:              "TestString",
+				String:                   &codespec.StringAttribute{},
+				ComputedOptionalRequired: codespec.Computed,
+				ImmutableComputed:        true,
+			},
+			hasPlanModifier: true,
+		},
+		"Sensitive string attribute with ImmutableComputed - uses UseStateForUnknown()": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "secret",
+				TFModelName:              "Secret",
+				String:                   &codespec.StringAttribute{},
+				ComputedOptionalRequired: codespec.Computed,
+				Sensitive:                true,
+				ImmutableComputed:        true,
+			},
+			hasPlanModifier: true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			result, err := schema.GenerateSchemaAttributes([]codespec.Attribute{tc.attribute})
+			assert.NoError(t, err)
+			code := result.Code
+			if !tc.hasPlanModifier {
+				assert.NotContains(t, code, "PlanModifiers:")
+				return
+			}
+			assert.Contains(t, code, "PlanModifiers:")
+			assert.Contains(t, code, "stringplanmodifier.UseStateForUnknown()")
+		})
+	}
+}
+
+func TestGenerateSchemaAttributes_ImmutableComputedNonStringReturnsError(t *testing.T) {
+	// ImmutableComputed on non-string types should return an error
+	tests := map[string]codespec.Attribute{
+		"Bool attribute with ImmutableComputed": {
+			TFSchemaName:             "test_bool",
+			TFModelName:              "TestBool",
+			Bool:                     &codespec.BoolAttribute{},
+			ComputedOptionalRequired: codespec.Computed,
+			ImmutableComputed:        true,
+		},
+		"Int64 attribute with ImmutableComputed": {
+			TFSchemaName:             "test_int",
+			TFModelName:              "TestInt",
+			Int64:                    &codespec.Int64Attribute{},
+			ComputedOptionalRequired: codespec.Computed,
+			ImmutableComputed:        true,
+		},
+		"Float64 attribute with ImmutableComputed": {
+			TFSchemaName:             "test_float",
+			TFModelName:              "TestFloat",
+			Float64:                  &codespec.Float64Attribute{},
+			ComputedOptionalRequired: codespec.Computed,
+			ImmutableComputed:        true,
+		},
+	}
+
+	for name, attr := range tests {
+		t.Run(name, func(t *testing.T) {
+			_, err := schema.GenerateSchemaAttributes([]codespec.Attribute{attr})
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), "immutableComputed is only supported for string attributes")
+			assert.Contains(t, err.Error(), attr.TFSchemaName)
+		})
+	}
+}
+
 func TestGenerateSchemaAttributes_RequestOnlyRequiredOnCreate(t *testing.T) {
 	tests := map[string]struct {
 		attribute       codespec.Attribute
@@ -146,7 +237,8 @@ func TestGenerateSchemaAttributes_RequestOnlyRequiredOnCreate(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			result := schema.GenerateSchemaAttributes([]codespec.Attribute{tc.attribute})
+			result, err := schema.GenerateSchemaAttributes([]codespec.Attribute{tc.attribute})
+			assert.NoError(t, err)
 			code := result.Code
 			if !tc.hasPlanModifier {
 				assert.NotContains(t, code, "PlanModifiers:")
