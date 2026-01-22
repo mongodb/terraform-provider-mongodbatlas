@@ -10,7 +10,7 @@ type timeoutAttributeGenerator struct {
 	timeouts codespec.TimeoutsAttribute
 }
 
-func (s *timeoutAttributeGenerator) AttributeCode() CodeStatement {
+func (s *timeoutAttributeGenerator) AttributeCode() (CodeStatement, error) {
 	var optionProperties string
 	for _, op := range s.timeouts.ConfigurableTimeouts {
 		switch op {
@@ -29,5 +29,5 @@ func (s *timeoutAttributeGenerator) AttributeCode() CodeStatement {
 			%s
 		})`, optionProperties),
 		Imports: []string{"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"},
-	}
+	}, nil
 }

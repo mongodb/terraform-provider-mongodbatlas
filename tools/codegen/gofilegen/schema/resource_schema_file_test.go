@@ -346,6 +346,64 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "apiname-tag",
 		},
+		"Skipstatelistmerge tag generation": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: []codespec.Attribute{
+						{
+							TFSchemaName:             "string_attr",
+							TFModelName:              "StringAttr",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("string description"),
+							ComputedOptionalRequired: codespec.Required,
+						},
+						{
+							TFSchemaName:             "nested_list_attr",
+							TFModelName:              "NestedListAttr",
+							Description:              admin.PtrString("nested list attribute"),
+							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomNestedListType("NestedListAttr"),
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{stringAttr},
+								},
+							},
+							SkipStateListMerge: true,
+						},
+					},
+				},
+			},
+			goldenFileName: "skip-state-list-merge-tag",
+		},
+		"Plan modifiers using immutable computed": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: []codespec.Attribute{
+						{
+							TFSchemaName:             "secret",
+							TFModelName:              "Secret",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("The secret for the service account"),
+							ComputedOptionalRequired: codespec.Computed,
+							Sensitive:                true,
+							ImmutableComputed:        true,
+						},
+						{
+							TFSchemaName:             "name",
+							TFModelName:              "Name",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("Name of the service account"),
+							ComputedOptionalRequired: codespec.Optional,
+						},
+					},
+				},
+			},
+			goldenFileName: "plan-modifiers-immutable-computed",
+		},
 		"Plan modifiers using create only": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",

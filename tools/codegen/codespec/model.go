@@ -128,6 +128,8 @@ type Attribute struct {
 	PresentInAnyResponse        bool                     `yaml:"present_in_any_response"`
 	RequestOnlyRequiredOnCreate bool                     `yaml:"request_only_required_on_create"` // Flags API property only present in create request body as required. These properties are intentionally modified to optional attributes to preserve creation validation, but allows omitting value on imports.
 	ListTypeAsMap               bool                     `yaml:"list_type_as_map,omitempty"`      // Flags API property to be defined as a Map type while API defines as list of key-value pairs (used for tags and labels).
+	SkipStateListMerge          bool                     `yaml:"skip_state_list_merge,omitempty"` // When true, nested list elements are not merged with state during unmarshal.
+	ImmutableComputed           bool                     `yaml:"immutable_computed,omitempty"`    // When true, adds UseStateForUnknown plan modifier for computed attributes.
 }
 
 type ComputedOptionalRequired string
