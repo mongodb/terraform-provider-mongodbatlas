@@ -58,6 +58,7 @@ func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 						path.MatchRelative().AtParent().AtName("ip_address"),
 					}...),
 				},
+				MarkdownDescription: cidrBlockDesc,
 			},
 			"ip_address": schema.StringAttribute{
 				Optional: true,
@@ -69,6 +70,7 @@ func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 						path.MatchRelative().AtParent().AtName("cidr_block"),
 					}...),
 				},
+				MarkdownDescription: ipAddressDesc,
 			},
 			"aws_security_group": schema.StringAttribute{
 				Optional: true,
@@ -79,6 +81,7 @@ func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.Schem
 						path.MatchRelative().AtParent().AtName("cidr_block"),
 					}...),
 				},
+				MarkdownDescription: awsSecurityGroupDesc,
 			},
 		},
 	})
