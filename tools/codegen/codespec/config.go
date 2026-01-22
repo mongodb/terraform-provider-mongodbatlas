@@ -92,7 +92,7 @@ type AttributeTransformation func(attr *Attribute, paths *attrPaths, schemaOptio
 
 var transformations = []AttributeTransformation{
 	aliasTransformation,
-	commonOverridesTransformation,
+	commonRSAndDSOverridesTransformation,
 	immutableComputedOverrideTransformation,
 	tagsAndLabelsAsMapTypeTransformation,
 	createOnlyTransformation,
@@ -101,7 +101,7 @@ var transformations = []AttributeTransformation{
 
 var dataSourceTransformations = []AttributeTransformation{
 	aliasTransformation,
-	commonOverridesTransformation,
+	commonRSAndDSOverridesTransformation,
 	tagsAndLabelsAsMapTypeTransformation,
 	// Note: resource-specific transformations (createOnly, requestOnlyRequiredOnCreate, immutableComputed) are excluded for data sources
 }
@@ -227,7 +227,7 @@ func aliasTransformation(attr *Attribute, paths *attrPaths, schemaOptions config
 	return nil
 }
 
-func commonOverridesTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
+func commonRSAndDSOverridesTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
 	// Overrides use the snake_case schemaPath
 	override, ok := schemaOptions.Overrides[attrPathForTransformations(paths.schemaPath)]
 	if !ok {
