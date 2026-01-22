@@ -56,7 +56,7 @@ type Override struct {
 	Sensitive           *bool          `yaml:"sensitive"`
 	IncludeNullOnUpdate *bool          `yaml:"include_null_on_update"`
 	SkipStateListMerge  *bool          `yaml:"skip_state_list_merge"`
-	ImmutableComputed   *bool          `yaml:"immutable_computed"`
+	ImmutableComputed   *bool          `yaml:"immutable_computed"` // Currently supported for string attributes, support for additional types can be added as needed.
 	Type                *Type          `yaml:"type"`
 	Description         string         `yaml:"description"`
 	PlanModifiers       []PlanModifier `yaml:"plan_modifiers"`
