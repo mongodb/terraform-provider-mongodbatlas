@@ -25,6 +25,14 @@ resources:
       overrides:
         project_id:
           description: *project_id_description
+        created_at:
+          immutable_computed: true # Reduces plan verbosity.
+        created_by:
+          immutable_computed: true # Reduces plan verbosity.
+        masked_secret:
+          immutable_computed: true # Reduces plan verbosity.
+        secret:
+          immutable_computed: true # Preserves value in state across updates, reduces plan verbosity.
     datasources:
       read: *ai-model-api-key-read-op
       list:

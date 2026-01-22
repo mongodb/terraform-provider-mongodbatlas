@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
@@ -21,10 +22,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"created_at": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"created_by": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Name of the user that created this API key. If no user name is available, the user ID is returned.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
@@ -38,6 +41,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"masked_secret": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "A partially obfuscated version of the API key secret returned when the API key was created.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"name": schema.StringAttribute{
 				Required:            true,
@@ -47,6 +51,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "The full API key secret used for interacting with the embedding / reranking service. Note: this will only be fully populated in the response to a create API key request. Responses to get, list, and update requests will not include the secret.",
 				Sensitive:           true,
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"status": schema.StringAttribute{
 				Computed:            true,
