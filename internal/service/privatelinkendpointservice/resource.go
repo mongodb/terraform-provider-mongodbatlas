@@ -155,7 +155,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
-	endpointServiceID := conversion.GetEncodedID(d.Get("endpoint_service_id").(string), "endpoint_service_id")
+	endpointServiceID := d.Get("endpoint_service_id").(string)
 	privateEndpointIP, hasPrivateEndpointIP := d.GetOk("private_endpoint_ip_address")
 	gcpProjectID, hasGCPProjectID := d.GetOk("gcp_project_id")
 	endpoints, hasEndpoints := d.GetOk("endpoints")
