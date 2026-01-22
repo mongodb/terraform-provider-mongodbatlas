@@ -8,6 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/schema"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
@@ -100,7 +101,7 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			result, err := schema.GenerateSchemaAttributes([]codespec.Attribute{tc.attribute})
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			code := result.Code
 			if !tc.hasPlanModifier {
 				assert.NotContains(t, code, "PlanModifiers:")
@@ -160,7 +161,7 @@ func TestGenerateSchemaAttributes_ImmutableComputed(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			result, err := schema.GenerateSchemaAttributes([]codespec.Attribute{tc.attribute})
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			code := result.Code
 			if !tc.hasPlanModifier {
 				assert.NotContains(t, code, "PlanModifiers:")
@@ -193,7 +194,7 @@ func TestGenerateSchemaAttributes_ImmutableComputedNonStringReturnsError(t *test
 	for name, attr := range tests {
 		t.Run(name, func(t *testing.T) {
 			_, err := schema.GenerateSchemaAttributes([]codespec.Attribute{attr})
-			assert.Error(t, err)
+			require.Error(t, err)
 			assert.Contains(t, err.Error(), "immutableComputed is only supported for string attributes")
 			assert.Contains(t, err.Error(), attr.TFSchemaName)
 		})
@@ -230,7 +231,7 @@ func TestGenerateSchemaAttributes_RequestOnlyRequiredOnCreate(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			result, err := schema.GenerateSchemaAttributes([]codespec.Attribute{tc.attribute})
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			code := result.Code
 			if !tc.hasPlanModifier {
 				assert.NotContains(t, code, "PlanModifiers:")
