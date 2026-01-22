@@ -1,13 +1,35 @@
 # Example with GCP with Port-Based architecture and MongoDB Atlas Private Endpoint
 
-This project demonstrates the **new PSC port-based architecture** for setting up GCP Private Service Connect with MongoDB Atlas, which requires only 1 endpoint.
+This project demonstrates the **new GCP port-based architecture** for setting up GCP Private Service Connect with MongoDB Atlas. Unlike the legacy architecture that requires dedicated resources for each Atlas node, the new design uses a single set of resources to support up to 1000 nodes through port mapping, enabling direct targeting of specific nodes using only one customer IP address.
 
 ## Architecture Comparison
 
-| Feature | Legacy Architecture | New Port-Based Architecture |
+| Feature | Legacy Architecture | New Port-Based Architecture (this example) |
 |---------|-------------------|---------------------------|
-| Endpoints Required | up to 100 | 1 |
+| Resources per Atlas node | Dedicated forwarding rule, service attachment, and instance group | Single set of resources for up to 1000 nodes |
 | `port_mapping_enabled` | `false` (or omitted) | `true` |
+| Customer IP addresses | One per Atlas node | One total |
+
+## Terraform Configuration Differences
+
+The main difference is the `port_mapping_enabled = true` setting:
+
+```hcl
+resource "mongodbatlas_privatelink_endpoint" "test" {
+  project_id           = var.project_id
+  provider_name        = "GCP"
+  region               = var.gcp_region
+  port_mapping_enabled = true  # Enables port-based architecture
+  # ...
+}
+```
+- **1 Google Compute Address** (instead of one per Atlas node)
+- **1 Google Compute Forwarding Rule** (instead of one per Atlas node)
+- Use `endpoint_service_id` (forwarding rule name) and `private_endpoint_ip_address` (IP address) in `mongodbatlas_privatelink_endpoint_service`
+- The `endpoints` list is not used for the new architecture
+
+For the legacy architecture example, see the [`gcp/`](../gcp/) directory example.
+
 
 ## Dependencies
 
@@ -56,10 +78,10 @@ Execute the below command and ensure you are happy with the plan.
 ``` bash
 $ terraform plan
 ```
-This project currently does the below deployments:
+This project deploys:
 
-- MongoDB Atlas GCP Private Endpoint (using new PSC port-based architecture with 1 endpoint)
-- Google resource Compute Network, SubNetwork, Address and Forwarding Rule
+- MongoDB Atlas GCP Private Endpoint
+- Google Compute Network, SubNetwork, Address and Forwarding Rule
 - Google Private Service Connect (PSC)-MongoDB Private Link
 
 **4\. Execute the Terraform apply.**
@@ -77,25 +99,3 @@ Once you are finished your testing, ensure you destroy the resources to avoid un
 ``` bash
 $ terraform destroy
 ```
-
-## Key Differences from Legacy Architecture
-
-The main difference in this example is the `port_mapping_enabled = true` setting on the `mongodbatlas_privatelink_endpoint` resource:
-
-```hcl
-resource "mongodbatlas_privatelink_endpoint" "test" {
-  project_id           = var.project_id
-  provider_name        = "GCP"
-  region               = var.gcp_region
-  port_mapping_enabled = true  # This enables the new architecture
-  # ...
-}
-```
-
-With this setting:
-- Only **1 Google Compute Address** is needed
-- Only **1 Google Compute Forwarding Rule** is needed
-- Use `endpoint_service_id` (the forwarding rule name) and `private_endpoint_ip_address` (the IP address) in `mongodbatlas_privatelink_endpoint_service`
-- The `endpoints` list is **no longer used** for the new architecture
-
-For the legacy architecture example, see the [`gcp/`](../gcp/) directory example.

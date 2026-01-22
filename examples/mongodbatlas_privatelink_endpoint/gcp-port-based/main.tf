@@ -1,12 +1,11 @@
-# Example with GCP with Port-Based (1 endpoint)
-# This example demonstrates the new PSC port-based architecture which requires only 1 endpoint.
-# The new architecture is enabled by setting port_mapping_enabled = true on the endpoint resource.
-# This simplifies setup and management compared to the legacy architecture which requires multiple endpoints.
+# Example with GCP (Port-Based Architecture)
+# This example demonstrates the new GCP port-based architecture.
+# For the legacy architecture, see the gcp directory.
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id               = var.project_id
   provider_name            = "GCP"
   region                   = var.gcp_region
-  port_mapping_enabled     = true # Enable new PSC port-based architecture
+  port_mapping_enabled     = true # Enable new GCP port-based architecture
   delete_on_create_timeout = true
   timeouts {
     create = "10m"
@@ -29,7 +28,7 @@ resource "google_compute_subnetwork" "default" {
   network       = google_compute_network.default.id
 }
 
-# Create Google Address (1 address for new PSC port-based architecture)
+# Create Google Address (1 address for new GCP port-based architecture)
 resource "google_compute_address" "default" {
   project      = google_compute_subnetwork.default.project
   name         = "tf-test-psc-endpoint"
@@ -41,7 +40,7 @@ resource "google_compute_address" "default" {
   depends_on = [mongodbatlas_privatelink_endpoint.test]
 }
 
-# Create Forwarding Rule (1 rule for new PSC port-based architecture)
+# Create Forwarding Rule (1 rule for new GCP port-based architecture)
 # The service_attachment_names list will contain exactly one service attachment when using the new architecture.
 resource "google_compute_forwarding_rule" "default" {
   target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[0]

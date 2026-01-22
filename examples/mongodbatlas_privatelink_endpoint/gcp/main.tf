@@ -1,5 +1,5 @@
 # Example with GCP (Legacy Architecture)
-# This example demonstrates the legacy PSC architecture.
+# This example demonstrates the legacy GCP architecture.
 # For the new port-based architecture, see the gcp-port-based directory.
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id               = var.project_id
