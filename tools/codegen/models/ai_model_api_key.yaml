@@ -23,6 +23,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          immutable_computed: true
         - string: {}
           description: Name of the user that created this API key. If no user name is available, the user ID is returned.
           computed_optional_required: computed
@@ -34,6 +35,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          immutable_computed: true
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies your project.
           computed_optional_required: required
@@ -67,6 +69,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          immutable_computed: true
         - string: {}
           description: A name for the new API key that will be created.
           computed_optional_required: required

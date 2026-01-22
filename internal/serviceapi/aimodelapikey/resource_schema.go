@@ -22,10 +22,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"created_at": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"created_by": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Name of the user that created this API key. If no user name is available, the user ID is returned.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
@@ -39,6 +41,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"masked_secret": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "A partially obfuscated version of the API key secret returned when the API key was created.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"name": schema.StringAttribute{
 				Required:            true,
