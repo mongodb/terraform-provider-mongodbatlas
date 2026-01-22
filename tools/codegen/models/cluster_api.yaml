@@ -408,6 +408,856 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Unique 24-hexadecimal digit string that identifies the replication object for a shard in a Cluster. If you include existing shard replication configurations in the request, you must specify this parameter. If you add a new shard to an existing Cluster, you may specify this parameter. The request deletes any existing shards  in the Cluster that you exclude from the request. This corresponds to Shard ID displayed in the UI.
+                      computed_optional_required: computed
+                      tf_schema_name: id
+                      tf_model_name: Id
+                      api_name: id
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - list_nested:
+                        nested_object:
+                            attributes:
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - single_nested:
+                                                nested_object:
+                                                    attributes:
+                                                        - bool: {}
+                                                          description: |-
+                                                            Flag that indicates whether instance size reactive auto-scaling is enabled.
+
+                                                            - Set to `true` to enable instance size reactive auto-scaling. If enabled, you must specify a value for **replicationSpecs[n].regionConfigs[m].autoScaling.compute.maxInstanceSize**.
+                                                            - Set to `false` to disable instance size reactive auto-scaling.
+                                                          computed_optional_required: computed
+                                                          tf_schema_name: enabled
+                                                          tf_model_name: Enabled
+                                                          api_name: enabled
+                                                          req_body_usage: omit_always
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                                        - string: {}
+                                                          description: Instance size boundary to which your cluster can automatically scale.
+                                                          computed_optional_required: computed
+                                                          tf_schema_name: max_instance_size
+                                                          tf_model_name: MaxInstanceSize
+                                                          api_name: maxInstanceSize
+                                                          req_body_usage: omit_always
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                                        - string: {}
+                                                          description: Instance size boundary to which your cluster can automatically scale.
+                                                          computed_optional_required: computed
+                                                          tf_schema_name: min_instance_size
+                                                          tf_model_name: MinInstanceSize
+                                                          api_name: minInstanceSize
+                                                          req_body_usage: omit_always
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                                        - bool: {}
+                                                          description: Flag that indicates whether the instance size may scale down via reactive auto-scaling. MongoDB Cloud requires this parameter if **replicationSpecs[n].regionConfigs[m].autoScaling.compute.enabled** is `true`. If you enable this option, specify a value for **replicationSpecs[n].regionConfigs[m].autoScaling.compute.minInstanceSize**.
+                                                          computed_optional_required: computed
+                                                          tf_schema_name: scale_down_enabled
+                                                          tf_model_name: ScaleDownEnabled
+                                                          api_name: scaleDownEnabled
+                                                          req_body_usage: omit_always
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                              description: Options that determine how this cluster handles CPU scaling.
+                                              custom_type:
+                                                package: customtypes
+                                                name: EffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingCompute
+                                                model: customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel]
+                                                schema: customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel](ctx)
+                                              computed_optional_required: computed
+                                              tf_schema_name: compute
+                                              tf_model_name: Compute
+                                              api_name: compute
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - single_nested:
+                                                nested_object:
+                                                    attributes:
+                                                        - bool: {}
+                                                          description: Flag that indicates whether this cluster enables disk auto-scaling. The maximum memory allowed for the selected cluster tier and the oplog size can limit storage auto-scaling.
+                                                          computed_optional_required: computed
+                                                          tf_schema_name: enabled
+                                                          tf_model_name: Enabled
+                                                          api_name: enabled
+                                                          req_body_usage: omit_always
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                              description: Setting that enables disk auto-scaling.
+                                              custom_type:
+                                                package: customtypes
+                                                name: EffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGB
+                                                model: customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel]
+                                                schema: customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel](ctx)
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_gb
+                                              tf_model_name: DiskGB
+                                              api_name: diskGB
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                  description: Options that determine how this cluster handles resource scaling.
+                                  custom_type:
+                                    package: customtypes
+                                    name: EffectiveReplicationSpecsRegionConfigsAnalyticsAutoScaling
+                                    model: customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingModel]
+                                    schema: customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: analytics_auto_scaling
+                                  tf_model_name: AnalyticsAutoScaling
+                                  api_name: analyticsAutoScaling
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - int64: {}
+                                              description: |-
+                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "Azure"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize" : "M40"` or greater not including `Mxx_NVME` tiers.
+
+                                                The maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.
+                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                Changing this value impacts cluster cost.
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_iops
+                                              tf_model_name: DiskIOPS
+                                              api_name: diskIOPS
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - float64: {}
+                                              description: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_size_gb
+                                              tf_model_name: DiskSizeGB
+                                              api_name: diskSizeGB
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string:
+                                                default: STANDARD
+                                              description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
+                                              computed_optional_required: computed
+                                              tf_schema_name: ebs_volume_type
+                                              tf_model_name: EbsVolumeType
+                                              api_name: ebsVolumeType
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
+                                              computed_optional_required: computed
+                                              tf_schema_name: instance_size
+                                              tf_model_name: InstanceSize
+                                              api_name: instanceSize
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - int64: {}
+                                              description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
+                                              computed_optional_required: computed
+                                              tf_schema_name: node_count
+                                              tf_model_name: NodeCount
+                                              api_name: nodeCount
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                  description: The current hardware specifications for read only nodes in the region.
+                                  custom_type:
+                                    package: customtypes
+                                    name: EffectiveReplicationSpecsRegionConfigsAnalyticsSpecs
+                                    model: customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAnalyticsSpecsModel]
+                                    schema: customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsAnalyticsSpecsModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: analytics_specs
+                                  tf_model_name: AnalyticsSpecs
+                                  api_name: analyticsSpecs
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - single_nested:
+                                                nested_object:
+                                                    attributes:
+                                                        - bool: {}
+                                                          description: |-
+                                                            Flag that indicates whether instance size reactive auto-scaling is enabled.
+
+                                                            - Set to `true` to enable instance size reactive auto-scaling. If enabled, you must specify a value for **replicationSpecs[n].regionConfigs[m].autoScaling.compute.maxInstanceSize**.
+                                                            - Set to `false` to disable instance size reactive auto-scaling.
+                                                          computed_optional_required: computed
+                                                          tf_schema_name: enabled
+                                                          tf_model_name: Enabled
+                                                          api_name: enabled
+                                                          req_body_usage: omit_always
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                                        - string: {}
+                                                          description: Instance size boundary to which your cluster can automatically scale.
+                                                          computed_optional_required: computed
+                                                          tf_schema_name: max_instance_size
+                                                          tf_model_name: MaxInstanceSize
+                                                          api_name: maxInstanceSize
+                                                          req_body_usage: omit_always
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                                        - string: {}
+                                                          description: Instance size boundary to which your cluster can automatically scale.
+                                                          computed_optional_required: computed
+                                                          tf_schema_name: min_instance_size
+                                                          tf_model_name: MinInstanceSize
+                                                          api_name: minInstanceSize
+                                                          req_body_usage: omit_always
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                                        - bool: {}
+                                                          description: Flag that indicates whether the instance size may scale down via reactive auto-scaling. MongoDB Cloud requires this parameter if **replicationSpecs[n].regionConfigs[m].autoScaling.compute.enabled** is `true`. If you enable this option, specify a value for **replicationSpecs[n].regionConfigs[m].autoScaling.compute.minInstanceSize**.
+                                                          computed_optional_required: computed
+                                                          tf_schema_name: scale_down_enabled
+                                                          tf_model_name: ScaleDownEnabled
+                                                          api_name: scaleDownEnabled
+                                                          req_body_usage: omit_always
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                              description: Options that determine how this cluster handles CPU scaling.
+                                              custom_type:
+                                                package: customtypes
+                                                name: EffectiveReplicationSpecsRegionConfigsAutoScalingCompute
+                                                model: customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAutoScalingComputeModel]
+                                                schema: customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsAutoScalingComputeModel](ctx)
+                                              computed_optional_required: computed
+                                              tf_schema_name: compute
+                                              tf_model_name: Compute
+                                              api_name: compute
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - single_nested:
+                                                nested_object:
+                                                    attributes:
+                                                        - bool: {}
+                                                          description: Flag that indicates whether this cluster enables disk auto-scaling. The maximum memory allowed for the selected cluster tier and the oplog size can limit storage auto-scaling.
+                                                          computed_optional_required: computed
+                                                          tf_schema_name: enabled
+                                                          tf_model_name: Enabled
+                                                          api_name: enabled
+                                                          req_body_usage: omit_always
+                                                          sensitive: false
+                                                          create_only: false
+                                                          present_in_any_response: true
+                                                          request_only_required_on_create: false
+                                              description: Setting that enables disk auto-scaling.
+                                              custom_type:
+                                                package: customtypes
+                                                name: EffectiveReplicationSpecsRegionConfigsAutoScalingDiskGB
+                                                model: customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAutoScalingDiskGBModel]
+                                                schema: customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsAutoScalingDiskGBModel](ctx)
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_gb
+                                              tf_model_name: DiskGB
+                                              api_name: diskGB
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                  description: Options that determine how this cluster handles resource scaling.
+                                  custom_type:
+                                    package: customtypes
+                                    name: EffectiveReplicationSpecsRegionConfigsAutoScaling
+                                    model: customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAutoScalingModel]
+                                    schema: customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsAutoScalingModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: auto_scaling
+                                  tf_model_name: AutoScaling
+                                  api_name: autoScaling
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: "Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when **providerName** is `TENANT` and **electableSpecs.instanceSize** is `M0`, `M2` or `M5`. \n\nPlease note that  using an instanceSize of M2 or M5 will create a Flex cluster instead. Support for the instanceSize of M2 or M5 will be discontinued in January 2026. We recommend using the createFlexCluster API for such configurations moving forward."
+                                  computed_optional_required: computed
+                                  tf_schema_name: backing_provider_name
+                                  tf_model_name: BackingProviderName
+                                  api_name: backingProviderName
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - int64: {}
+                                              description: |-
+                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "Azure"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize" : "M40"` or greater not including `Mxx_NVME` tiers.
+
+                                                The maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.
+                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                Changing this value impacts cluster cost.
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_iops
+                                              tf_model_name: DiskIOPS
+                                              api_name: diskIOPS
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - float64: {}
+                                              description: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_size_gb
+                                              tf_model_name: DiskSizeGB
+                                              api_name: diskSizeGB
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string:
+                                                default: STANDARD
+                                              description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
+                                              computed_optional_required: computed
+                                              tf_schema_name: ebs_volume_type
+                                              tf_model_name: EbsVolumeType
+                                              api_name: ebsVolumeType
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
+                                              computed_optional_required: computed
+                                              tf_schema_name: instance_size
+                                              tf_model_name: InstanceSize
+                                              api_name: instanceSize
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - int64: {}
+                                              description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
+                                              computed_optional_required: computed
+                                              tf_schema_name: node_count
+                                              tf_model_name: NodeCount
+                                              api_name: nodeCount
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                  description: The current hardware specifications for read only nodes in the region.
+                                  custom_type:
+                                    package: customtypes
+                                    name: EffectiveReplicationSpecsRegionConfigsEffectiveAnalyticsSpecs
+                                    model: customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsEffectiveAnalyticsSpecsModel]
+                                    schema: customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsEffectiveAnalyticsSpecsModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: effective_analytics_specs
+                                  tf_model_name: EffectiveAnalyticsSpecs
+                                  api_name: effectiveAnalyticsSpecs
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - int64: {}
+                                              description: |-
+                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "Azure"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize" : "M40"` or greater not including `Mxx_NVME` tiers.
+
+                                                The maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.
+                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                Changing this value impacts cluster cost.
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_iops
+                                              tf_model_name: DiskIOPS
+                                              api_name: diskIOPS
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - float64: {}
+                                              description: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_size_gb
+                                              tf_model_name: DiskSizeGB
+                                              api_name: diskSizeGB
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string:
+                                                default: STANDARD
+                                              description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
+                                              computed_optional_required: computed
+                                              tf_schema_name: ebs_volume_type
+                                              tf_model_name: EbsVolumeType
+                                              api_name: ebsVolumeType
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
+                                              computed_optional_required: computed
+                                              tf_schema_name: instance_size
+                                              tf_model_name: InstanceSize
+                                              api_name: instanceSize
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - int64: {}
+                                              description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
+                                              computed_optional_required: computed
+                                              tf_schema_name: node_count
+                                              tf_model_name: NodeCount
+                                              api_name: nodeCount
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                  description: The current hardware specifications for read only nodes in the region.
+                                  custom_type:
+                                    package: customtypes
+                                    name: EffectiveReplicationSpecsRegionConfigsEffectiveElectableSpecs
+                                    model: customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsEffectiveElectableSpecsModel]
+                                    schema: customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsEffectiveElectableSpecsModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: effective_electable_specs
+                                  tf_model_name: EffectiveElectableSpecs
+                                  api_name: effectiveElectableSpecs
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - int64: {}
+                                              description: |-
+                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "Azure"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize" : "M40"` or greater not including `Mxx_NVME` tiers.
+
+                                                The maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.
+                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                Changing this value impacts cluster cost.
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_iops
+                                              tf_model_name: DiskIOPS
+                                              api_name: diskIOPS
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - float64: {}
+                                              description: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_size_gb
+                                              tf_model_name: DiskSizeGB
+                                              api_name: diskSizeGB
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string:
+                                                default: STANDARD
+                                              description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
+                                              computed_optional_required: computed
+                                              tf_schema_name: ebs_volume_type
+                                              tf_model_name: EbsVolumeType
+                                              api_name: ebsVolumeType
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
+                                              computed_optional_required: computed
+                                              tf_schema_name: instance_size
+                                              tf_model_name: InstanceSize
+                                              api_name: instanceSize
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - int64: {}
+                                              description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
+                                              computed_optional_required: computed
+                                              tf_schema_name: node_count
+                                              tf_model_name: NodeCount
+                                              api_name: nodeCount
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                  description: The current hardware specifications for read only nodes in the region.
+                                  custom_type:
+                                    package: customtypes
+                                    name: EffectiveReplicationSpecsRegionConfigsEffectiveReadOnlySpecs
+                                    model: customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsEffectiveReadOnlySpecsModel]
+                                    schema: customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsEffectiveReadOnlySpecsModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: effective_read_only_specs
+                                  tf_model_name: EffectiveReadOnlySpecs
+                                  api_name: effectiveReadOnlySpecs
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - int64: {}
+                                              description: |-
+                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "Azure"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize" : "M40"` or greater not including `Mxx_NVME` tiers.
+
+                                                The maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.
+                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                Changing this value impacts cluster cost.
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_iops
+                                              tf_model_name: DiskIOPS
+                                              api_name: diskIOPS
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - float64: {}
+                                              description: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_size_gb
+                                              tf_model_name: DiskSizeGB
+                                              api_name: diskSizeGB
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string:
+                                                default: STANDARD
+                                              description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
+                                              computed_optional_required: computed
+                                              tf_schema_name: ebs_volume_type
+                                              tf_model_name: EbsVolumeType
+                                              api_name: ebsVolumeType
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: The true tenant instance size. This is present to support backwards compatibility for deprecated provider types and/or instance sizes.
+                                              computed_optional_required: computed
+                                              tf_schema_name: effective_instance_size
+                                              tf_model_name: EffectiveInstanceSize
+                                              api_name: effectiveInstanceSize
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Hardware specification for the instances in this M0/M2/M5 tier cluster.
+                                              computed_optional_required: computed
+                                              tf_schema_name: instance_size
+                                              tf_model_name: InstanceSize
+                                              api_name: instanceSize
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - int64: {}
+                                              description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
+                                              computed_optional_required: computed
+                                              tf_schema_name: node_count
+                                              tf_model_name: NodeCount
+                                              api_name: nodeCount
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                  description: Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region.
+                                  custom_type:
+                                    package: customtypes
+                                    name: EffectiveReplicationSpecsRegionConfigsElectableSpecs
+                                    model: customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsElectableSpecsModel]
+                                    schema: customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsElectableSpecsModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: electable_specs
+                                  tf_model_name: ElectableSpecs
+                                  api_name: electableSpecs
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - int64: {}
+                                  description: |-
+                                    Precedence is given to this region when a primary election occurs. If your **regionConfigs** has only **readOnlySpecs**, **analyticsSpecs**, or both, set this value to `0`. If you have multiple **regionConfigs** objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is `7`.
+
+                                    **Example:** If you have three regions, their priorities would be `7`, `6`, and `5` respectively. If you added two more regions for supporting electable nodes, the priorities of those regions would be `4` and `3` respectively.
+                                  computed_optional_required: computed
+                                  tf_schema_name: priority
+                                  tf_model_name: Priority
+                                  api_name: priority
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Cloud service provider on which MongoDB Cloud provisions the hosts. Set dedicated clusters to `AWS`, `GCP`, `AZURE` or `TENANT`.
+                                  computed_optional_required: computed
+                                  tf_schema_name: provider_name
+                                  tf_model_name: ProviderName
+                                  api_name: providerName
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - int64: {}
+                                              description: |-
+                                                Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:
+
+                                                - set `"replicationSpecs[n].regionConfigs[m].providerName" : "Azure"`.
+                                                - set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize" : "M40"` or greater not including `Mxx_NVME` tiers.
+
+                                                The maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.
+                                                This parameter defaults to the cluster tier's standard IOPS value.
+                                                Changing this value impacts cluster cost.
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_iops
+                                              tf_model_name: DiskIOPS
+                                              api_name: diskIOPS
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - float64: {}
+                                              description: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_size_gb
+                                              tf_model_name: DiskSizeGB
+                                              api_name: diskSizeGB
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string:
+                                                default: STANDARD
+                                              description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
+                                              computed_optional_required: computed
+                                              tf_schema_name: ebs_volume_type
+                                              tf_model_name: EbsVolumeType
+                                              api_name: ebsVolumeType
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
+                                              computed_optional_required: computed
+                                              tf_schema_name: instance_size
+                                              tf_model_name: InstanceSize
+                                              api_name: instanceSize
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - int64: {}
+                                              description: Number of nodes of the given type for MongoDB Cloud to deploy to the region.
+                                              computed_optional_required: computed
+                                              tf_schema_name: node_count
+                                              tf_model_name: NodeCount
+                                              api_name: nodeCount
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                  description: The current hardware specifications for read only nodes in the region.
+                                  custom_type:
+                                    package: customtypes
+                                    name: EffectiveReplicationSpecsRegionConfigsReadOnlySpecs
+                                    model: customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsReadOnlySpecsModel]
+                                    schema: customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsReadOnlySpecsModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: read_only_specs
+                                  tf_model_name: ReadOnlySpecs
+                                  api_name: readOnlySpecs
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Physical location of your MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases. The region name is only returned in the response for single-region clusters. When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Cloud creates them as part of the deployment. It assigns the VPC a Classless Inter-Domain Routing (CIDR) block. To limit a new VPC peering connection to one Classless Inter-Domain Routing (CIDR) block and region, create the connection first. Deploy the cluster after the connection starts. GCP Clusters and Multi-region clusters require one VPC peering connection for each region. MongoDB nodes can use only the peering connection that resides in the same region as the nodes to communicate with the peered VPC.
+                                  computed_optional_required: computed
+                                  tf_schema_name: region_name
+                                  tf_model_name: RegionName
+                                  api_name: regionName
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: |-
+                        Hardware specifications for nodes set for a given region. Each **regionConfigs** object must be unique by region and cloud provider within the **replicationSpec**. Each **regionConfigs** object describes the region's priority in elections and the number and type of MongoDB nodes that MongoDB Cloud deploys to the region. Each **regionConfigs** object must have either an **analyticsSpecs** object, **electableSpecs** object, or **readOnlySpecs** object. Tenant clusters only require **electableSpecs. Dedicated** clusters can specify any of these specifications, but must have at least one **electableSpecs** object within a **replicationSpec**.
+
+                        **Example:**
+
+                        If you set `"replicationSpecs[n].regionConfigs[m].analyticsSpecs.instanceSize" : "M30"`, set `"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize" : `"M30"` if you have electable nodes and `"replicationSpecs[n].regionConfigs[m].readOnlySpecs.instanceSize" : `"M30"` if you have read-only nodes.
+                      custom_type:
+                        package: customtypes
+                        name: EffectiveReplicationSpecsRegionConfigs
+                        model: customtypes.NestedListValue[TFEffectiveReplicationSpecsRegionConfigsModel]
+                        schema: customtypes.NewNestedListType[TFEffectiveReplicationSpecsRegionConfigsModel](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: region_configs
+                      tf_model_name: RegionConfigs
+                      api_name: regionConfigs
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unique 24-hexadecimal digit string that identifies the zone in a Global Cluster. This value can be used to configure Global Cluster backup policies.
+                      computed_optional_required: computed
+                      tf_schema_name: zone_id
+                      tf_model_name: ZoneId
+                      api_name: zoneId
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: 'Human-readable label that describes the zone this shard belongs to in a Global Cluster. Provide this value only if "clusterType" : "GEOSHARDED" but not "selfManagedSharding" : true.'
+                      computed_optional_required: computed
+                      tf_schema_name: zone_name
+                      tf_model_name: ZoneName
+                      api_name: zoneName
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: List of settings that represent the actual cluster state. This is read-only and always returned in the response. It reflects the current cluster configuration, which may differ from `replicationSpecs` due to system-managed changes.
+          custom_type:
+            package: customtypes
+            name: EffectiveReplicationSpecs
+            model: customtypes.NestedListValue[TFEffectiveReplicationSpecsModel]
+            schema: customtypes.NewNestedListType[TFEffectiveReplicationSpecsModel](ctx)
+          computed_optional_required: computed
+          tf_schema_name: effective_replication_specs
+          tf_model_name: EffectiveReplicationSpecs
+          api_name: effectiveReplicationSpecs
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: 'Cloud service provider that manages your customer keys to provide an additional layer of encryption at rest for the cluster. To enable customer key management for encryption at rest, the cluster **replicationSpecs[n].regionConfigs[m].{type}Specs.instanceSize** setting must be `M10` or higher and `"backupEnabled" : false` or omitted entirely.'
           computed_optional_required: computed_optional
