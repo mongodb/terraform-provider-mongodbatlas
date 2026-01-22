@@ -61,36 +61,13 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-        - list_nested:
-            nested_object:
-                attributes:
-                    - string: {}
-                      description: Key applied to tag and categorize this component.
-                      computed_optional_required: optional
-                      tf_schema_name: key
-                      tf_model_name: Key
-                      api_name: key
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-                    - string: {}
-                      description: Value set to the Key applied to tag and categorize this component.
-                      computed_optional_required: optional
-                      tf_schema_name: value
-                      tf_model_name: Value
-                      api_name: value
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
+        - map:
+            element_type: 4
           description: List that contains the key-value pairs for tagging and categorizing the MongoDB database user. The labels that you define do not appear in the console.
           custom_type:
             package: customtypes
-            model: customtypes.NestedListValue[TFLabelsModel]
-            schema: customtypes.NewNestedListType[TFLabelsModel](ctx)
+            model: customtypes.MapValue[types.String]
+            schema: customtypes.NewMapType[types.String](ctx)
           computed_optional_required: optional
           tf_schema_name: labels
           tf_model_name: Labels
@@ -100,6 +77,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          list_type_as_map: true
         - string:
             default: NONE
           description: Part of the Lightweight Directory Access Protocol (LDAP) record that the database uses to authenticate this database user on the LDAP host.
@@ -174,6 +152,7 @@ schema:
           description: List that provides the pairings of one role with one applicable database.
           custom_type:
             package: customtypes
+            name: Roles
             model: customtypes.NestedListValue[TFRolesModel]
             schema: customtypes.NewNestedListType[TFRolesModel](ctx)
           computed_optional_required: optional
@@ -213,6 +192,7 @@ schema:
           description: List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces in the project.
           custom_type:
             package: customtypes
+            name: Scopes
             model: customtypes.NestedListValue[TFScopesModel]
             schema: customtypes.NewNestedListType[TFScopesModel](ctx)
           computed_optional_required: optional

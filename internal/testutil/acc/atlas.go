@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312011/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 )
 
 func createProject(tb testing.TB, name string) string {
@@ -105,4 +106,8 @@ func createStreamInstance(tb testing.TB, projectID, name string) {
 
 func projectIDLocal() string {
 	return os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+}
+
+func projectIDLocalN(n int) string {
+	return os.Getenv("MONGODB_ATLAS_PROJECT_ID_" + strconv.Itoa(n))
 }

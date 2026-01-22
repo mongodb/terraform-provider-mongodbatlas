@@ -98,6 +98,14 @@ func typedModelProperty(attr *codespec.Attribute, isDataSource bool, dsPrefix st
 		autogenTags = append(autogenTags, "sensitive")
 	}
 
+	if attr.ListTypeAsMap {
+		autogenTags = append(autogenTags, "listasmap")
+	}
+
+	if attr.SkipStateListMerge {
+		autogenTags = append(autogenTags, "skipstatelistmerge")
+	}
+
 	switch attr.ReqBodyUsage {
 	case codespec.AllRequestBodies:
 	case codespec.OmitAlways:

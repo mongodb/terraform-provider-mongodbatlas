@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312011/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -102,6 +102,7 @@ func flattenSearchIndexes(searchIndexes []admin.SearchIndexResponse, projectID, 
 			"status":          searchIndexes[i].Status,
 			"synonyms":        flattenSearchIndexSynonyms(searchIndexes[i].LatestDefinition.GetSynonyms()),
 			"type":            searchIndexes[i].Type,
+			"num_partitions":  searchIndexes[i].LatestDefinition.NumPartitions,
 		}
 
 		if searchIndexes[i].LatestDefinition.Mappings != nil {

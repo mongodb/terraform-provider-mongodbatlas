@@ -144,6 +144,7 @@ Each object in the inheritedRoles array represents a key-value pair indicating t
 
 * `role_name`	(Required) Name of the inherited role. This can either be another custom role or a built-in role.
 
+	-> **NOTE** Built-in roles are present in clusters by default and do not need to be redefined for their properties to be inherited by a custom role.
 
 ## Attributes Reference
 In addition to all arguments above, the following attributes are exported:

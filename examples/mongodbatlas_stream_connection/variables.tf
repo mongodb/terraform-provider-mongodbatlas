@@ -48,3 +48,16 @@ variable "other_cluster" {
   description = "Name of an existing cluster in another project within an organization that will be used to create a stream connection"
   type        = string
 }
+
+variable "schema_registry_username" {
+  description = "Username for connecting to your Schema Registry"
+  type        = string
+  default     = ""
+}
+
+variable "schema_registry_password" {
+  description = "Password for connecting to your Schema Registry"
+  type        = string
+  sensitive   = true
+  default     = ""
+}

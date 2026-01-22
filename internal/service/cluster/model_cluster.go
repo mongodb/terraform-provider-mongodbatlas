@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312011/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -29,7 +29,7 @@ type ProcessArgs struct {
 func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) ([]map[string]any, error) {
 	backupPolicy, res, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
 	if err != nil {
-		if res.StatusCode == http.StatusNotFound ||
+		if (res != nil && res.StatusCode == http.StatusNotFound) ||
 			strings.Contains(err.Error(), "BACKUP_CONFIG_NOT_FOUND") ||
 			strings.Contains(err.Error(), "Not Found") ||
 			strings.Contains(err.Error(), "404") {

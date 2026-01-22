@@ -1,0 +1,11 @@
+```release-note:new-resource
+resource/project_service_account_access_list_entry
+```
+
+```release-note:new-datasource
+data-source/project_service_account_access_list_entry
+```
+
+```release-note:new-datasource
+data-source/project_service_account_access_list_entries
+```

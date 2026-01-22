@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312011/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 )
 
 const (
@@ -45,12 +46,13 @@ var (
 )
 
 type sdkToTFModelTestCase struct {
-	SDKResp              *admin.StreamsConnection
-	providedProjID       string
-	providedInstanceName string
-	providedAuthConfig   *types.Object
-	expectedTFModel      *streamconnection.TFStreamConnectionModel
-	name                 string
+	SDKResp                          *admin.StreamsConnection
+	providedProjID                   string
+	providedInstanceName             string
+	providedAuthConfig               *types.Object
+	providedSchemaRegistryAuthConfig *types.Object
+	expectedTFModel                  *streamconnection.TFStreamConnectionModel
+	name                             string
 }
 
 func TestStreamConnectionSDKToTFModel(t *testing.T) {
@@ -73,18 +75,20 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedInstanceName: instanceName,
 			providedAuthConfig:   nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
-				ProjectID:       types.StringValue(dummyProjectID),
-				WorkspaceName:   types.StringValue(instanceName),
-				ConnectionName:  types.StringValue(connectionName),
-				Type:            types.StringValue("Cluster"),
-				ClusterName:     types.StringValue(clusterName),
-				Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
-				Config:          types.MapNull(types.StringType),
-				Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
-				DBRoleToExecute: tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
-				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
-				AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
-				Headers:         types.MapNull(types.StringType),
+				ProjectID:                    types.StringValue(dummyProjectID),
+				WorkspaceName:                types.StringValue(instanceName),
+				ConnectionName:               types.StringValue(connectionName),
+				Type:                         types.StringValue("Cluster"),
+				ClusterName:                  types.StringValue(clusterName),
+				Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:                       types.MapNull(types.StringType),
+				Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute:              tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
+				Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:                      types.MapNull(types.StringType),
+				SchemaRegistryURLs:           types.ListNull(types.StringType),
+				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 			},
 		},
 		{
@@ -103,19 +107,21 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedInstanceName: instanceName,
 			providedAuthConfig:   nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
-				ProjectID:        types.StringValue(dummyProjectID),
-				WorkspaceName:    types.StringValue(instanceName),
-				ConnectionName:   types.StringValue(connectionName),
-				Type:             types.StringValue("Cluster"),
-				ClusterName:      types.StringValue(clusterName),
-				ClusterProjectID: types.StringValue("foo"),
-				Authentication:   types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
-				Config:           types.MapNull(types.StringType),
-				Security:         types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
-				DBRoleToExecute:  tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
-				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
-				AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
-				Headers:          types.MapNull(types.StringType),
+				ProjectID:                    types.StringValue(dummyProjectID),
+				WorkspaceName:                types.StringValue(instanceName),
+				ConnectionName:               types.StringValue(connectionName),
+				Type:                         types.StringValue("Cluster"),
+				ClusterName:                  types.StringValue(clusterName),
+				ClusterProjectID:             types.StringValue("foo"),
+				Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:                       types.MapNull(types.StringType),
+				Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute:              tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
+				Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:                      types.MapNull(types.StringType),
+				SchemaRegistryURLs:           types.ListNull(types.StringType),
+				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 			},
 		},
 		{
@@ -138,18 +144,20 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedInstanceName: instanceName,
 			providedAuthConfig:   &authConfigWithPasswordDefined,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
-				ProjectID:        types.StringValue(dummyProjectID),
-				WorkspaceName:    types.StringValue(instanceName),
-				ConnectionName:   types.StringValue(connectionName),
-				Type:             types.StringValue("Kafka"),
-				Authentication:   tfAuthenticationObject(t, authMechanism, authUsername, "raw password"), // password value is obtained from config, not api resp.
-				BootstrapServers: types.StringValue(bootstrapServers),
-				Config:           tfConfigMap(t, configMap),
-				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
-				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
-				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
-				AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
-				Headers:          types.MapNull(types.StringType),
+				ProjectID:                    types.StringValue(dummyProjectID),
+				WorkspaceName:                types.StringValue(instanceName),
+				ConnectionName:               types.StringValue(connectionName),
+				Type:                         types.StringValue("Kafka"),
+				Authentication:               tfAuthenticationObject(t, authMechanism, authUsername, "raw password"), // password value is obtained from config, not api resp.
+				BootstrapServers:             types.StringValue(bootstrapServers),
+				Config:                       tfConfigMap(t, configMap),
+				Security:                     tfSecurityObject(t, DummyCACert, securityProtocol),
+				DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:                      types.MapNull(types.StringType),
+				SchemaRegistryURLs:           types.ListNull(types.StringType),
+				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 			},
 		},
 		{
@@ -176,18 +184,20 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedInstanceName: instanceName,
 			providedAuthConfig:   &authConfigWithOAuth,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
-				ProjectID:        types.StringValue(dummyProjectID),
-				WorkspaceName:    types.StringValue(instanceName),
-				ConnectionName:   types.StringValue(connectionName),
-				Type:             types.StringValue("Kafka"),
-				Authentication:   tfAuthenticationObjectForOAuth(t, authMechanism, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions, method), // password value is obtained from config, not api resp.
-				BootstrapServers: types.StringValue(bootstrapServers),
-				Config:           tfConfigMap(t, configMap),
-				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
-				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
-				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
-				AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
-				Headers:          types.MapNull(types.StringType),
+				ProjectID:                    types.StringValue(dummyProjectID),
+				WorkspaceName:                types.StringValue(instanceName),
+				ConnectionName:               types.StringValue(connectionName),
+				Type:                         types.StringValue("Kafka"),
+				Authentication:               tfAuthenticationObjectForOAuth(t, authMechanism, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions, method), // password value is obtained from config, not api resp.
+				BootstrapServers:             types.StringValue(bootstrapServers),
+				Config:                       tfConfigMap(t, configMap),
+				Security:                     tfSecurityObject(t, DummyCACert, securityProtocol),
+				DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:                      types.MapNull(types.StringType),
+				SchemaRegistryURLs:           types.ListNull(types.StringType),
+				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 			},
 		},
 		{
@@ -200,17 +210,19 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedInstanceName: instanceName,
 			providedAuthConfig:   nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
-				ProjectID:       types.StringValue(dummyProjectID),
-				WorkspaceName:   types.StringValue(instanceName),
-				ConnectionName:  types.StringValue(connectionName),
-				Type:            types.StringValue("Kafka"),
-				Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
-				Config:          types.MapNull(types.StringType),
-				Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
-				DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
-				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
-				AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
-				Headers:         types.MapNull(types.StringType),
+				ProjectID:                    types.StringValue(dummyProjectID),
+				WorkspaceName:                types.StringValue(instanceName),
+				ConnectionName:               types.StringValue(connectionName),
+				Type:                         types.StringValue("Kafka"),
+				Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:                       types.MapNull(types.StringType),
+				Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:                      types.MapNull(types.StringType),
+				SchemaRegistryURLs:           types.ListNull(types.StringType),
+				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 			},
 		},
 		{
@@ -233,18 +245,20 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedInstanceName: instanceName,
 			providedAuthConfig:   nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
-				ProjectID:        types.StringValue(dummyProjectID),
-				WorkspaceName:    types.StringValue(instanceName),
-				ConnectionName:   types.StringValue(connectionName),
-				Type:             types.StringValue("Kafka"),
-				Authentication:   tfAuthenticationObjectWithNoPassword(t, authMechanism, authUsername),
-				BootstrapServers: types.StringValue(bootstrapServers),
-				Config:           tfConfigMap(t, configMap),
-				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
-				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
-				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
-				AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
-				Headers:          types.MapNull(types.StringType),
+				ProjectID:                    types.StringValue(dummyProjectID),
+				WorkspaceName:                types.StringValue(instanceName),
+				ConnectionName:               types.StringValue(connectionName),
+				Type:                         types.StringValue("Kafka"),
+				Authentication:               tfAuthenticationObjectWithNoPassword(t, authMechanism, authUsername),
+				BootstrapServers:             types.StringValue(bootstrapServers),
+				Config:                       tfConfigMap(t, configMap),
+				Security:                     tfSecurityObject(t, DummyCACert, securityProtocol),
+				DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:                      types.MapNull(types.StringType),
+				SchemaRegistryURLs:           types.ListNull(types.StringType),
+				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 			},
 		},
 		{
@@ -256,17 +270,19 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedProjID:       dummyProjectID,
 			providedInstanceName: instanceName,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
-				ProjectID:       types.StringValue(dummyProjectID),
-				WorkspaceName:   types.StringValue(instanceName),
-				ConnectionName:  types.StringValue(sampleConnectionName),
-				Type:            types.StringValue("Sample"),
-				Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
-				Config:          types.MapNull(types.StringType),
-				Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
-				DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
-				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
-				AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
-				Headers:         types.MapNull(types.StringType),
+				ProjectID:                    types.StringValue(dummyProjectID),
+				WorkspaceName:                types.StringValue(instanceName),
+				ConnectionName:               types.StringValue(sampleConnectionName),
+				Type:                         types.StringValue("Sample"),
+				Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:                       types.MapNull(types.StringType),
+				Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:                      types.MapNull(types.StringType),
+				SchemaRegistryURLs:           types.ListNull(types.StringType),
+				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 			},
 		},
 		{
@@ -279,24 +295,64 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedProjID:       dummyProjectID,
 			providedInstanceName: instanceName,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
-				ProjectID:       types.StringValue(dummyProjectID),
-				WorkspaceName:   types.StringValue(instanceName),
-				ConnectionName:  types.StringValue(awslambdaConnectionName),
-				Type:            types.StringValue("AWSLambda"),
-				Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
-				Config:          types.MapNull(types.StringType),
-				Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
-				DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
-				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
-				AWS:             tfAWSLambdaConfigObject(t, sampleRoleArn),
-				Headers:         types.MapNull(types.StringType),
+				ProjectID:                    types.StringValue(dummyProjectID),
+				WorkspaceName:                types.StringValue(instanceName),
+				ConnectionName:               types.StringValue(awslambdaConnectionName),
+				Type:                         types.StringValue("AWSLambda"),
+				Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:                       types.MapNull(types.StringType),
+				Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:                          tfAWSLambdaConfigObject(t, sampleRoleArn),
+				Headers:                      types.MapNull(types.StringType),
+				SchemaRegistryURLs:           types.ListNull(types.StringType),
+				SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+			},
+		},
+		{
+			name: "SchemaRegistry connection type",
+			SDKResp: &admin.StreamsConnection{
+				Name:     admin.PtrString(connectionName),
+				Type:     admin.PtrString("SchemaRegistry"),
+				Provider: admin.PtrString("CONFLUENT"),
+				SchemaRegistryUrls: &[]string{
+					"https://schemaregistry1.com",
+					"https://schemaregistry2.com",
+				},
+				SchemaRegistryAuthentication: &admin.SchemaRegistryAuthentication{
+					Type:     "USER_INFO",
+					Username: admin.PtrString("schemaUser"),
+					Password: admin.PtrString("schemaPass"),
+				},
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:              types.StringValue(dummyProjectID),
+				WorkspaceName:          types.StringValue(instanceName),
+				ConnectionName:         types.StringValue(connectionName),
+				Type:                   types.StringValue("SchemaRegistry"),
+				Authentication:         types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:                 types.MapNull(types.StringType),
+				Security:               types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute:        types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:             types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:                    types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:                types.MapNull(types.StringType),
+				SchemaRegistryProvider: types.StringValue("CONFLUENT"),
+				SchemaRegistryURLs: types.ListValueMust(types.StringType, []attr.Value{
+					types.StringValue("https://schemaregistry1.com"),
+					types.StringValue("https://schemaregistry2.com"),
+				}),
+				SchemaRegistryAuthentication: tfSchemaRegistryAuthObjectNoPassword(t, "USER_INFO", "schemaUser"),
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := streamconnection.NewTFStreamConnection(t.Context(), tc.providedProjID, "", tc.providedInstanceName, tc.providedAuthConfig, tc.SDKResp)
+			resultModel, diags := streamconnection.NewTFStreamConnection(t.Context(), tc.providedProjID, "", tc.providedInstanceName, tc.providedAuthConfig, tc.providedSchemaRegistryAuthConfig, tc.SDKResp)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -366,8 +422,22 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						Url:     admin.PtrString(httpsURL),
 						Headers: &headersMap,
 					},
+					{
+						Name:     admin.PtrString(connectionName),
+						Type:     admin.PtrString("SchemaRegistry"),
+						Provider: admin.PtrString("CONFLUENT"),
+						SchemaRegistryUrls: &[]string{
+							"https://schemaregistry1.com",
+							"https://schemaregistry2.com",
+						},
+						SchemaRegistryAuthentication: &admin.SchemaRegistryAuthentication{
+							Type:     "USER_INFO",
+							Username: admin.PtrString("schemaUser"),
+							Password: admin.PtrString("schemaPass"),
+						},
+					},
 				},
-				TotalCount: admin.PtrInt(5),
+				TotalCount: admin.PtrInt(6),
 			},
 			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
 				ProjectID:    types.StringValue(dummyProjectID),
@@ -380,83 +450,114 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 				InstanceName: types.StringValue(instanceName),
 				PageNum:      types.Int64Value(1),
 				ItemsPerPage: types.Int64Value(3),
-				TotalCount:   types.Int64Value(5),
+				TotalCount:   types.Int64Value(6),
 				Results: []streamconnection.TFStreamConnectionModel{
 					{
-						ID:               types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
-						ProjectID:        types.StringValue(dummyProjectID),
-						InstanceName:     types.StringValue(instanceName),
-						ConnectionName:   types.StringValue(connectionName),
-						Type:             types.StringValue("Kafka"),
-						Authentication:   tfAuthenticationObjectWithNoPassword(t, authMechanism, authUsername),
-						BootstrapServers: types.StringValue(bootstrapServers),
-						Config:           tfConfigMap(t, configMap),
-						Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
-						DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
-						Networking:       tfNetworkingObject(t, networkingType, nil),
-						AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
-						Headers:          types.MapNull(types.StringType),
+						ID:                           types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
+						ProjectID:                    types.StringValue(dummyProjectID),
+						InstanceName:                 types.StringValue(instanceName),
+						ConnectionName:               types.StringValue(connectionName),
+						Type:                         types.StringValue("Kafka"),
+						Authentication:               tfAuthenticationObjectWithNoPassword(t, authMechanism, authUsername),
+						BootstrapServers:             types.StringValue(bootstrapServers),
+						Config:                       tfConfigMap(t, configMap),
+						Security:                     tfSecurityObject(t, DummyCACert, securityProtocol),
+						DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+						Networking:                   tfNetworkingObject(t, networkingType, nil),
+						AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+						Headers:                      types.MapNull(types.StringType),
+						SchemaRegistryURLs:           types.ListNull(types.StringType),
+						SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 					},
 					{
-						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
-						ProjectID:       types.StringValue(dummyProjectID),
-						InstanceName:    types.StringValue(instanceName),
-						ConnectionName:  types.StringValue(connectionName),
-						Type:            types.StringValue("Cluster"),
-						ClusterName:     types.StringValue(clusterName),
-						Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
-						Config:          types.MapNull(types.StringType),
-						Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
-						DBRoleToExecute: tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
-						Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
-						AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
-						Headers:         types.MapNull(types.StringType),
+						ID:                           types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
+						ProjectID:                    types.StringValue(dummyProjectID),
+						InstanceName:                 types.StringValue(instanceName),
+						ConnectionName:               types.StringValue(connectionName),
+						Type:                         types.StringValue("Cluster"),
+						ClusterName:                  types.StringValue(clusterName),
+						Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+						Config:                       types.MapNull(types.StringType),
+						Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+						DBRoleToExecute:              tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
+						Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+						AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+						Headers:                      types.MapNull(types.StringType),
+						SchemaRegistryURLs:           types.ListNull(types.StringType),
+						SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 					},
 					{
-						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, sampleConnectionName)),
-						ProjectID:       types.StringValue(dummyProjectID),
-						InstanceName:    types.StringValue(instanceName),
-						ConnectionName:  types.StringValue(sampleConnectionName),
-						Type:            types.StringValue("Sample"),
-						ClusterName:     types.StringNull(),
-						Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
-						Config:          types.MapNull(types.StringType),
-						Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
-						DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
-						Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
-						AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
-						Headers:         types.MapNull(types.StringType),
+						ID:                           types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, sampleConnectionName)),
+						ProjectID:                    types.StringValue(dummyProjectID),
+						InstanceName:                 types.StringValue(instanceName),
+						ConnectionName:               types.StringValue(sampleConnectionName),
+						Type:                         types.StringValue("Sample"),
+						ClusterName:                  types.StringNull(),
+						Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+						Config:                       types.MapNull(types.StringType),
+						Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+						DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+						Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+						AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+						Headers:                      types.MapNull(types.StringType),
+						SchemaRegistryURLs:           types.ListNull(types.StringType),
+						SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 					},
 					{
-						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, awslambdaConnectionName)),
-						ProjectID:       types.StringValue(dummyProjectID),
-						InstanceName:    types.StringValue(instanceName),
-						ConnectionName:  types.StringValue(awslambdaConnectionName),
-						Type:            types.StringValue("AWSLambda"),
-						ClusterName:     types.StringNull(),
-						Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
-						Config:          types.MapNull(types.StringType),
-						Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
-						DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
-						Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
-						AWS:             tfAWSLambdaConfigObject(t, sampleRoleArn),
-						Headers:         types.MapNull(types.StringType),
+						ID:                           types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, awslambdaConnectionName)),
+						ProjectID:                    types.StringValue(dummyProjectID),
+						InstanceName:                 types.StringValue(instanceName),
+						ConnectionName:               types.StringValue(awslambdaConnectionName),
+						Type:                         types.StringValue("AWSLambda"),
+						ClusterName:                  types.StringNull(),
+						Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+						Config:                       types.MapNull(types.StringType),
+						Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+						DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+						Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+						AWS:                          tfAWSLambdaConfigObject(t, sampleRoleArn),
+						Headers:                      types.MapNull(types.StringType),
+						SchemaRegistryURLs:           types.ListNull(types.StringType),
+						SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 					},
 					{
-						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
-						ProjectID:       types.StringValue(dummyProjectID),
-						InstanceName:    types.StringValue(instanceName),
-						ConnectionName:  types.StringValue(connectionName),
-						Type:            types.StringValue("Https"),
-						ClusterName:     types.StringNull(),
-						Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
-						Config:          types.MapNull(types.StringType),
-						Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
-						DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
-						Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
-						AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
-						Headers:         tfConfigMap(t, headersMap),
-						URL:             types.StringValue(httpsURL),
+						ID:                           types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
+						ProjectID:                    types.StringValue(dummyProjectID),
+						InstanceName:                 types.StringValue(instanceName),
+						ConnectionName:               types.StringValue(connectionName),
+						Type:                         types.StringValue("Https"),
+						ClusterName:                  types.StringNull(),
+						Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+						Config:                       types.MapNull(types.StringType),
+						Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+						DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+						Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+						AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+						Headers:                      tfConfigMap(t, headersMap),
+						URL:                          types.StringValue(httpsURL),
+						SchemaRegistryURLs:           types.ListNull(types.StringType),
+						SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+					},
+					{
+						ID:                     types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
+						ProjectID:              types.StringValue(dummyProjectID),
+						InstanceName:           types.StringValue(instanceName),
+						ConnectionName:         types.StringValue(connectionName),
+						Type:                   types.StringValue("SchemaRegistry"),
+						ClusterName:            types.StringNull(),
+						Authentication:         types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+						Config:                 types.MapNull(types.StringType),
+						Security:               types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+						DBRoleToExecute:        types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+						Networking:             types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+						AWS:                    types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+						Headers:                types.MapNull(types.StringType),
+						SchemaRegistryProvider: types.StringValue("CONFLUENT"),
+						SchemaRegistryURLs: types.ListValueMust(types.StringType, []attr.Value{
+							types.StringValue("https://schemaregistry1.com"),
+							types.StringValue("https://schemaregistry2.com"),
+						}),
+						SchemaRegistryAuthentication: tfSchemaRegistryAuthObjectNoPassword(t, "USER_INFO", "schemaUser"),
 					},
 				},
 			},
@@ -631,6 +732,62 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				Headers: &headersMap,
 			},
 		},
+		{
+			name: "SchemaRegistry type USER_INFO TF state",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:              types.StringValue(dummyProjectID),
+				InstanceName:           types.StringValue(instanceName),
+				ConnectionName:         types.StringValue(connectionName),
+				Type:                   types.StringValue("SchemaRegistry"),
+				SchemaRegistryProvider: types.StringValue("CONFLUENT"),
+				SchemaRegistryURLs: types.ListValueMust(types.StringType, []attr.Value{
+					types.StringValue("https://schemaregistry1.com"),
+					types.StringValue("https://schemaregistry2.com"),
+				}),
+				SchemaRegistryAuthentication: tfSchemaRegistryAuthObject(t, "USER_INFO", "schemaUser", "schemaPass"),
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name:     admin.PtrString(connectionName),
+				Type:     admin.PtrString("SchemaRegistry"),
+				Provider: admin.PtrString("CONFLUENT"),
+				SchemaRegistryUrls: &[]string{
+					"https://schemaregistry1.com",
+					"https://schemaregistry2.com",
+				},
+				SchemaRegistryAuthentication: &admin.SchemaRegistryAuthentication{
+					Type:     "USER_INFO",
+					Username: admin.PtrString("schemaUser"),
+					Password: admin.PtrString("schemaPass"),
+				},
+			},
+		},
+		{
+			name: "SchemaRegistry type SASL_INHERIT TF state",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:              types.StringValue(dummyProjectID),
+				InstanceName:           types.StringValue(instanceName),
+				ConnectionName:         types.StringValue(connectionName),
+				Type:                   types.StringValue("SchemaRegistry"),
+				SchemaRegistryProvider: types.StringValue("CONFLUENT"),
+				SchemaRegistryURLs: types.ListValueMust(types.StringType, []attr.Value{
+					types.StringValue("https://schemaregistry1.com"),
+					types.StringValue("https://schemaregistry2.com"),
+				}),
+				SchemaRegistryAuthentication: tfSchemaRegistryAuthObject(t, "SASL_INHERIT", "", ""),
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name:     admin.PtrString(connectionName),
+				Type:     admin.PtrString("SchemaRegistry"),
+				Provider: admin.PtrString("CONFLUENT"),
+				SchemaRegistryUrls: &[]string{
+					"https://schemaregistry1.com",
+					"https://schemaregistry2.com",
+				},
+				SchemaRegistryAuthentication: &admin.SchemaRegistryAuthentication{
+					Type: "SASL_INHERIT",
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -748,4 +905,34 @@ func tfAWSLambdaConfigObject(t *testing.T, roleArn string) types.Object {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
 	}
 	return aws
+}
+
+func tfSchemaRegistryAuthObject(t *testing.T, authType, username, password string) types.Object {
+	t.Helper()
+	tfAuth := streamconnection.TFSchemaRegistryAuthenticationModel{Type: types.StringValue(authType)}
+	if authType == "USER_INFO" {
+		tfAuth.Username = types.StringValue(username)
+		tfAuth.Password = types.StringValue(password)
+	}
+
+	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes, tfAuth)
+	if diags.HasError() {
+		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
+	}
+	return auth
+}
+
+func tfSchemaRegistryAuthObjectNoPassword(t *testing.T, authType, username string) types.Object {
+	t.Helper()
+	tfAuth := streamconnection.TFSchemaRegistryAuthenticationModel{Type: types.StringValue(authType)}
+	if authType == "USER_INFO" {
+		tfAuth.Username = types.StringValue(username)
+		tfAuth.Password = types.StringNull()
+	}
+
+	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes, tfAuth)
+	if diags.HasError() {
+		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
+	}
+	return auth
 }

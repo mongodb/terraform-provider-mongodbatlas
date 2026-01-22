@@ -1,8 +1,53 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_project_service_account` ([#4038](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4038))
+* **New Data Source:** `data-source/mongodbatlas_project_service_account_secret` ([#4041](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4041))
+* **New Data Source:** `data-source/mongodbatlas_project_service_accounts` ([#4038](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4038))
+* **New Data Source:** `data-source/mongodbatlas_service_account` ([#4018](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4018))
+* **New Data Source:** `data-source/mongodbatlas_service_account_project_assignment` ([#4030](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4030))
+* **New Data Source:** `data-source/mongodbatlas_service_account_project_assignments` ([#4030](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4030))
+* **New Data Source:** `data-source/mongodbatlas_service_account_secret` ([#4027](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4027))
+* **New Data Source:** `data-source/mongodbatlas_service_accounts` ([#4018](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4018))
+* **New Data Source:** `data-source/project_service_account_access_list_entries` ([#4060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4060))
+* **New Data Source:** `data-source/project_service_account_access_list_entry` ([#4060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4060))
+* **New Data Source:** `data-source/service_account_access_list_entries` ([#4037](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4037))
+* **New Data Source:** `data-source/service_account_access_list_entry` ([#4037](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4037))
+* **New Resource:** `resource/mongodbatlas_project_service_account` ([#4038](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4038))
+* **New Resource:** `resource/mongodbatlas_project_service_account_secret` ([#4041](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4041))
+* **New Resource:** `resource/mongodbatlas_service_account` ([#4018](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4018))
+* **New Resource:** `resource/mongodbatlas_service_account_project_assignment` ([#4030](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4030))
+* **New Resource:** `resource/mongodbatlas_service_account_secret` ([#4027](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4027))
+* **New Resource:** `resource/project_service_account_access_list_entry` ([#4060](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4060))
+* **New Resource:** `resource/service_account_access_list_entry` ([#4037](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4037))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection: Adds `SchemaRegistry` connection ([#4072](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4072))
+* data-source/mongodbatlas_stream_connections: Adds `SchemaRegistry` connection ([#4072](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4072))
+* resource/mongodbatlas_encryption_at_rest: Increases create timeout from 1 to 3 minutes to support slower eventual consistency of credentials ([#4064](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4064))
+* resource/mongodbatlas_stream_connection: Adds `SchemaRegistry` connection ([#4072](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4072))
+
+BUG FIXES:
+
+* resource/mongodbatlas_encryption_at_rest: Fixes retry process that handles eventual consistency of credentials ([#4064](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4064))
+
+## 2.4.0 (January 08, 2026)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_search_index: Adds `num_partitions` attribute ([#3982](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3982))
+* data-source/mongodbatlas_search_indexes: Adds `num_partitions` attribute ([#3982](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3982))
+* data-source/mongodbatlas_stream_processor: Adds the `tier` attribute ([#3969](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3969))
+* data-source/mongodbatlas_stream_processors: Adds the `tier` attribute ([#3969](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3969))
+* resource/mongodbatlas_search_index: Adds `num_partitions` attribute ([#3982](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3982))
+* resource/mongodbatlas_stream_processor: Adds the `tier` attribute ([#3969](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3969))
+
 BUG FIXES:
 
 * data-source/mongodbatlas_advanced_clusters: Fixes datasource to handle CLUSTER_NOT_FOUND errors from List operation gracefully instead of failing ([#3995](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3995))
+* resource/mongodbatlas_project_ip_access_list:: Enables in-place updates for `comment` attribute instead of requiring a replace ([#4003](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4003))
 
 ## 2.3.0 (December 09, 2025)
 

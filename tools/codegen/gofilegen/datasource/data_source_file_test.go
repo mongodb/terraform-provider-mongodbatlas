@@ -204,8 +204,8 @@ func TestPluralDataSourceGenerationFromCodeSpec(t *testing.T) {
 		},
 		"List operation with multiple query param types": {
 			inputModel: codespec.Resource{
-				Name:        "org_service_account_api",
-				PackageName: "orgserviceaccountapi",
+				Name:        "service_account",
+				PackageName: "serviceaccount",
 				DataSources: &codespec.DataSources{
 					Schema: &codespec.DataSourceSchema{
 						PluralDSAttributes: &codespec.Attributes{

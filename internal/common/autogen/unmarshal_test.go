@@ -314,9 +314,11 @@ func TestUnmarshalCustomList(t *testing.T) {
 		AttrCustomNestedList               customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list"`
 		AttrCustomNestedListNullNotSent    customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_null_not_sent"`
 		AttrCustomNestedListNullSent       customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_null_sent"`
+		AttrCustomNestedListEmptySent      customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_empty_sent"`
 		AttrCustomNestedListUnknownNotSent customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_unknown_not_sent"`
 		AttrCustomNestedListUnknownSent    customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_unknown_sent"`
 		AttrCustomNestedListZeroInit       customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_zero"`
+		AttrCustomNestedListOverwrite      customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_overwrite" autogen:"skipstatelistmerge"`
 	}
 
 	model := modelst{
@@ -341,8 +343,19 @@ func TestUnmarshalCustomList(t *testing.T) {
 		}),
 		AttrCustomNestedListNullNotSent:    customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
 		AttrCustomNestedListNullSent:       customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedListEmptySent:      customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
 		AttrCustomNestedListUnknownNotSent: customtypes.NewNestedListValueUnknown[unmarshalModelCustomType](ctx),
 		AttrCustomNestedListUnknownSent:    customtypes.NewNestedListValueUnknown[unmarshalModelCustomType](ctx),
+		AttrCustomNestedListOverwrite: customtypes.NewNestedListValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{
+			{
+				AttrString:    types.StringValue("existing overwritten"),
+				AttrInt:       types.Int64Unknown(),
+				AttrFloat:     types.Float64Unknown(),
+				AttrBool:      types.BoolUnknown(),
+				AttrNested:    customtypes.NewObjectValueUnknown[unmarshalModelEmpty](ctx),
+				AttrMANYUpper: types.Int64Value(999),
+			},
+		}),
 	}
 
 	const (
@@ -369,6 +382,7 @@ func TestUnmarshalCustomList(t *testing.T) {
 					}
 				],
 				"attrCustomNestedListNullSent": null,
+				"attrCustomNestedListEmptySent": [],
 				"attrCustomNestedListUnknownSent": [
 					{
 						"attrString": "unknownSent"
@@ -378,6 +392,14 @@ func TestUnmarshalCustomList(t *testing.T) {
 					{
 						"attrString": "zero init string",
 						"attrNested": {}
+					}
+				],
+				"attrCustomNestedListOverwrite": [
+					{
+						"attrFloat": 2.2,
+						"attrBool": false,
+						"attrNested": {},
+						"attrMANYUpper": 456
 					}
 				]
 			}
@@ -409,6 +431,7 @@ func TestUnmarshalCustomList(t *testing.T) {
 		}),
 		AttrCustomNestedListNullNotSent:    customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
 		AttrCustomNestedListNullSent:       customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedListEmptySent:      customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
 		AttrCustomNestedListUnknownNotSent: customtypes.NewNestedListValueUnknown[unmarshalModelCustomType](ctx),
 		AttrCustomNestedListUnknownSent: customtypes.NewNestedListValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{
 			{
@@ -430,6 +453,16 @@ func TestUnmarshalCustomList(t *testing.T) {
 				AttrMANYUpper: types.Int64Null(),
 			},
 		}),
+		AttrCustomNestedListOverwrite: customtypes.NewNestedListValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{
+			{
+				AttrString:    types.StringNull(),
+				AttrInt:       types.Int64Null(),
+				AttrFloat:     types.Float64Value(2.2),
+				AttrBool:      types.BoolValue(false),
+				AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
+				AttrMANYUpper: types.Int64Value(456),
+			},
+		}),
 	}
 
 	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
@@ -444,6 +477,7 @@ func TestUnmarshalCustomSet(t *testing.T) {
 		AttrCustomNestedSet               customtypes.NestedSetValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_set"`
 		AttrCustomNestedSetNullNotSent    customtypes.NestedSetValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_set_null_not_sent"`
 		AttrCustomNestedSetNullSent       customtypes.NestedSetValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_set_null_sent"`
+		AttrCustomNestedSetEmptySent      customtypes.NestedSetValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_set_empty_sent"`
 		AttrCustomNestedSetUnknownNotSent customtypes.NestedSetValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_set_unknown_not_sent"`
 		AttrCustomNestedSetUnknownSent    customtypes.NestedSetValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_set_unknown_sent"`
 		AttrCustomNestedSetZeroInit       customtypes.NestedSetValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_set_zero"`
@@ -461,6 +495,7 @@ func TestUnmarshalCustomSet(t *testing.T) {
 		}}),
 		AttrCustomNestedSetNullNotSent:    customtypes.NewNestedSetValueNull[unmarshalModelCustomType](ctx),
 		AttrCustomNestedSetNullSent:       customtypes.NewNestedSetValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedSetEmptySent:      customtypes.NewNestedSetValueNull[unmarshalModelCustomType](ctx),
 		AttrCustomNestedSetUnknownNotSent: customtypes.NewNestedSetValueUnknown[unmarshalModelCustomType](ctx),
 		AttrCustomNestedSetUnknownSent:    customtypes.NewNestedSetValueUnknown[unmarshalModelCustomType](ctx),
 	}
@@ -491,6 +526,7 @@ func TestUnmarshalCustomSet(t *testing.T) {
 					}
 				],
 				"attrCustomNestedSetNullSent": null,
+				"attrCustomNestedSetEmptySent": [],
 				"attrCustomNestedSetUnknownSent": [
 					{
 						"attrString": "unknownSetSent"
@@ -531,6 +567,7 @@ func TestUnmarshalCustomSet(t *testing.T) {
 		}),
 		AttrCustomNestedSetNullNotSent:    customtypes.NewNestedSetValueNull[unmarshalModelCustomType](ctx),
 		AttrCustomNestedSetNullSent:       customtypes.NewNestedSetValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedSetEmptySent:      customtypes.NewNestedSetValueNull[unmarshalModelCustomType](ctx),
 		AttrCustomNestedSetUnknownNotSent: customtypes.NewNestedSetValueUnknown[unmarshalModelCustomType](ctx),
 		AttrCustomNestedSetUnknownSent: customtypes.NewNestedSetValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{
 			{
@@ -563,16 +600,19 @@ func TestUnmarshalCustomMap(t *testing.T) {
 
 	type modelst struct {
 		AttrCustomMapString               customtypes.MapValue[types.String]                   `tfsdk:"attr_custom_map_string"`
+		AttrCustomMapEmptySent            customtypes.MapValue[types.String]                   `tfsdk:"attr_custom_map_empty_sent"`
 		AttrCustomNestedMap               customtypes.NestedMapValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_map"`
 		AttrCustomNestedMapNullNotSent    customtypes.NestedMapValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_map_null_not_sent"`
 		AttrCustomNestedMapNullSent       customtypes.NestedMapValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_map_null_sent"`
+		AttrCustomNestedMapEmptySent      customtypes.NestedMapValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_map_empty_sent"`
 		AttrCustomNestedMapUnknownNotSent customtypes.NestedMapValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_map_unknown_not_sent"`
 		AttrCustomNestedMapUnknownSent    customtypes.NestedMapValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_map_unknown_sent"`
 		AttrCustomNestedMapZeroInit       customtypes.NestedMapValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_map_zero"`
 	}
 
 	model := modelst{
-		AttrCustomMapString: customtypes.NewMapValueUnknown[types.String](ctx),
+		AttrCustomMapString:    customtypes.NewMapValueUnknown[types.String](ctx),
+		AttrCustomMapEmptySent: customtypes.NewMapValueNull[types.String](ctx),
 		AttrCustomNestedMap: customtypes.NewNestedMapValue[unmarshalModelCustomType](ctx, map[string]unmarshalModelCustomType{
 			"keyOne": {
 				AttrString:    types.StringValue("different_string"),
@@ -593,6 +633,7 @@ func TestUnmarshalCustomMap(t *testing.T) {
 		}),
 		AttrCustomNestedMapNullNotSent:    customtypes.NewNestedMapValueNull[unmarshalModelCustomType](ctx),
 		AttrCustomNestedMapNullSent:       customtypes.NewNestedMapValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedMapEmptySent:      customtypes.NewNestedMapValueNull[unmarshalModelCustomType](ctx),
 		AttrCustomNestedMapUnknownNotSent: customtypes.NewNestedMapValueUnknown[unmarshalModelCustomType](ctx),
 		AttrCustomNestedMapUnknownSent:    customtypes.NewNestedMapValueUnknown[unmarshalModelCustomType](ctx),
 	}
@@ -604,6 +645,7 @@ func TestUnmarshalCustomMap(t *testing.T) {
 					"keyOne": "map1",
 					"KeyTwo": "map2"
 				},
+				"attrCustomMapEmptySent": {},
 				"attrCustomNestedMap": {
 					"keyOne": {
 						"attrString": "nestedMap1",
@@ -621,6 +663,7 @@ func TestUnmarshalCustomMap(t *testing.T) {
 					}
 				},
 				"attrCustomNestedMapNullSent": null,
+				"attrCustomNestedMapEmptySent": {},
 				"attrCustomNestedMapUnknownSent": {
 					"keyOne": {
 						"attrString": "unknownMapSent"
@@ -641,6 +684,7 @@ func TestUnmarshalCustomMap(t *testing.T) {
 			"keyOne": types.StringValue("map1"),
 			"KeyTwo": types.StringValue("map2"),
 		}),
+		AttrCustomMapEmptySent: customtypes.NewMapValueNull[types.String](ctx),
 		AttrCustomNestedMap: customtypes.NewNestedMapValue[unmarshalModelCustomType](ctx, map[string]unmarshalModelCustomType{
 			"keyOne": {
 				AttrString:    types.StringValue("nestedMap1"),
@@ -661,6 +705,7 @@ func TestUnmarshalCustomMap(t *testing.T) {
 		}),
 		AttrCustomNestedMapNullNotSent:    customtypes.NewNestedMapValueNull[unmarshalModelCustomType](ctx),
 		AttrCustomNestedMapNullSent:       customtypes.NewNestedMapValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedMapEmptySent:      customtypes.NewNestedMapValueNull[unmarshalModelCustomType](ctx),
 		AttrCustomNestedMapUnknownNotSent: customtypes.NewNestedMapValueUnknown[unmarshalModelCustomType](ctx),
 		AttrCustomNestedMapUnknownSent: customtypes.NewNestedMapValue[unmarshalModelCustomType](ctx, map[string]unmarshalModelCustomType{
 			"keyOne": {
@@ -682,6 +727,48 @@ func TestUnmarshalCustomMap(t *testing.T) {
 				AttrMANYUpper: types.Int64Null(),
 			},
 		}),
+	}
+
+	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
+	assert.Equal(t, modelExpected, model)
+}
+
+func TestUnmarshalListAsMap(t *testing.T) {
+	ctx := context.Background()
+
+	type modelst struct {
+		ListWithValues customtypes.MapValue[types.String] `tfsdk:"list_with_values" autogen:"listasmap"`
+		EmptyList      customtypes.MapValue[types.String] `tfsdk:"empty_list" autogen:"listasmap"`
+		NotSent        customtypes.MapValue[types.String] `tfsdk:"not_sent" autogen:"listasmap"`
+	}
+
+	model := modelst{
+		ListWithValues: customtypes.NewMapValueUnknown[types.String](ctx),
+		EmptyList:      customtypes.NewMapValueNull[types.String](ctx),
+		NotSent:        customtypes.NewMapValueNull[types.String](ctx),
+	}
+	const jsonResp = `
+		{
+			"listWithValues": [
+				{
+					"key": "key1",
+					"value": "value1"
+				},
+				{
+					"key": "key2",
+					"value": "value2"
+				}
+			],
+			"emptyList": []
+		}
+	`
+	modelExpected := modelst{
+		ListWithValues: customtypes.NewMapValue[types.String](ctx, map[string]attr.Value{
+			"key1": types.StringValue("value1"),
+			"key2": types.StringValue("value2"),
+		}),
+		EmptyList: customtypes.NewMapValueNull[types.String](ctx),
+		NotSent:   customtypes.NewMapValueNull[types.String](ctx),
 	}
 
 	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))

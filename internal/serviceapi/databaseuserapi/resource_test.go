@@ -66,10 +66,9 @@ func configBasic(groupID, username, roleName, keyLabel, valueLabel, description 
 				database_name = "admin"
 			}]
 
-			labels = [{
-				key   = %[4]q
-				value = %[5]q
-			}]
+			labels = {
+				%[4]q = %[5]q
+			}
 
 			%[6]s
 		}
@@ -82,9 +81,7 @@ func checkBasic(groupID, username, roleName, keyLabel, valueLabel, description s
 		"db_user":           username,
 		"password":          "test-acc-password",
 		"database_name":     "admin",
-		"labels.#":          "1",
-		"labels.0.key":      keyLabel,
-		"labels.0.value":    valueLabel,
+		"labels.%":          "1",
 		"roles.#":           "1",
 		"roles.0.role_name": roleName,
 	}

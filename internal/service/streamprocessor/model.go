@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"go.mongodb.org/atlas-sdk/v20250312011/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 )
 
 // GetWorkspaceOrInstanceName returns the workspace name from workspace_name or instance_name field. Assumes exactly one of the two is set.
@@ -114,6 +114,7 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, w
 		ProjectID:     types.StringPointerValue(&projectID),
 		State:         types.StringPointerValue(&apiResp.State),
 		Stats:         statsTF,
+		Tier:          types.StringPointerValue(apiResp.Tier),
 	}
 
 	if workspaceName != "" {
@@ -158,6 +159,7 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName, w
 		ProjectID:     types.StringPointerValue(&projectID),
 		State:         types.StringPointerValue(&apiResp.State),
 		Stats:         statsTF,
+		Tier:          types.StringPointerValue(apiResp.Tier),
 	}
 
 	if workspaceName != "" {

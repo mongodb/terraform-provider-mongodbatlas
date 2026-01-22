@@ -101,8 +101,6 @@ type Schema struct {
 
 type Attributes []Attribute
 
-// Add this field to the Attribute struct
-// Usage AttributeUsage
 type Attribute struct {
 	Set                         *SetAttribute            `yaml:"set,omitempty"`
 	String                      *StringAttribute         `yaml:"string,omitempty"`
@@ -129,6 +127,8 @@ type Attribute struct {
 	CreateOnly                  bool                     `yaml:"create_only"` // leveraged for defining plan modifier which avoids updates on this attribute
 	PresentInAnyResponse        bool                     `yaml:"present_in_any_response"`
 	RequestOnlyRequiredOnCreate bool                     `yaml:"request_only_required_on_create"` // Flags API property only present in create request body as required. These properties are intentionally modified to optional attributes to preserve creation validation, but allows omitting value on imports.
+	ListTypeAsMap               bool                     `yaml:"list_type_as_map,omitempty"`      // Flags API property to be defined as a Map type while API defines as list of key-value pairs (used for tags and labels).
+	SkipStateListMerge          bool                     `yaml:"skip_state_list_merge,omitempty"` // When true, nested list elements are not merged with state during unmarshal.
 }
 
 type ComputedOptionalRequired string
@@ -223,6 +223,7 @@ const (
 
 type CustomType struct {
 	Package CustomTypePackage `yaml:"package"`
+	Name    string            `yaml:"name,omitempty"` // Nested object name without the "TF" & "Model" prefix and suffix. Used for type overrides.
 	Model   string            `yaml:"model"`
 	Schema  string            `yaml:"schema"`
 }
@@ -236,6 +237,7 @@ var CustomTypeJSONVar = CustomType{
 func NewCustomObjectType(name string) *CustomType {
 	return &CustomType{
 		Package: CustomTypesPkg,
+		Name:    name,
 		Model:   fmt.Sprintf("customtypes.ObjectValue[TF%sModel]", name),
 		Schema:  fmt.Sprintf("customtypes.NewObjectType[TF%sModel](ctx)", name),
 	}
@@ -253,6 +255,7 @@ func NewCustomListType(elemType ElemType) *CustomType {
 func NewCustomNestedListType(name string) *CustomType {
 	return &CustomType{
 		Package: CustomTypesPkg,
+		Name:    name,
 		Model:   fmt.Sprintf("customtypes.NestedListValue[TF%sModel]", name),
 		Schema:  fmt.Sprintf("customtypes.NewNestedListType[TF%sModel](ctx)", name),
 	}
@@ -270,6 +273,7 @@ func NewCustomSetType(elemType ElemType) *CustomType {
 func NewCustomNestedSetType(name string) *CustomType {
 	return &CustomType{
 		Package: CustomTypesPkg,
+		Name:    name,
 		Model:   fmt.Sprintf("customtypes.NestedSetValue[TF%sModel]", name),
 		Schema:  fmt.Sprintf("customtypes.NewNestedSetType[TF%sModel](ctx)", name),
 	}

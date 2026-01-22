@@ -77,36 +77,13 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-        - list_nested:
-            nested_object:
-                attributes:
-                    - string: {}
-                      description: 'Constant that defines the set of the tag. For example, `environment` in the `environment : production` tag.'
-                      computed_optional_required: required
-                      tf_schema_name: key
-                      tf_model_name: Key
-                      api_name: key
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-                    - string: {}
-                      description: 'Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.'
-                      computed_optional_required: required
-                      tf_schema_name: value
-                      tf_model_name: Value
-                      api_name: value
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
+        - map:
+            element_type: 4
           description: List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project.
           custom_type:
             package: customtypes
-            model: customtypes.NestedListValue[TFTagsModel]
-            schema: customtypes.NewNestedListType[TFTagsModel](ctx)
+            model: customtypes.MapValue[types.String]
+            schema: customtypes.NewMapType[types.String](ctx)
           computed_optional_required: optional
           tf_schema_name: tags
           tf_model_name: Tags
@@ -116,6 +93,7 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          list_type_as_map: true
         - bool:
             default: true
           description: Flag that indicates whether to create the project with default alert settings. This setting cannot be updated after project creation.

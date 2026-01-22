@@ -66,7 +66,7 @@ resource "mongodbatlas_project_ip_access_list" "test" {
 
 
 ### Further Examples
-- [Project IP Access List](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.3.0/examples/mongodbatlas_project_ip_access_list)
+- [Project IP Access List](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.4.0/examples/mongodbatlas_project_ip_access_list)
 
 
 ## Argument Reference
@@ -93,6 +93,7 @@ Optional:
 
 - `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), and "h" (hours). Default: `45m`.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), and "h" (hours). Default: `2m`.
+- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), and "h" (hours). Default: `45m`.
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), and "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs. Default: `45m`.
 
 

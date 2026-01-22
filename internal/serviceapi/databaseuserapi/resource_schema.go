@@ -35,22 +35,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 			},
-			"labels": schema.ListNestedAttribute{
+			"labels": schema.MapAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that contains the key-value pairs for tagging and categorizing the MongoDB database user. The labels that you define do not appear in the console.",
-				CustomType:          customtypes.NewNestedListType[TFLabelsModel](ctx),
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"key": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "Key applied to tag and categorize this component.",
-						},
-						"value": schema.StringAttribute{
-							Optional:            true,
-							MarkdownDescription: "Value set to the Key applied to tag and categorize this component.",
-						},
-					},
-				},
+				CustomType:          customtypes.NewMapType[types.String](ctx),
+				ElementType:         types.StringType,
 			},
 			"ldap_auth_type": schema.StringAttribute{
 				Computed:            true,
@@ -124,7 +113,7 @@ type TFModel struct {
 	DeleteAfterDate types.String                               `tfsdk:"delete_after_date"`
 	Description     types.String                               `tfsdk:"description" autogen:"includenullonupdate"`
 	GroupId         types.String                               `tfsdk:"group_id"`
-	Labels          customtypes.NestedListValue[TFLabelsModel] `tfsdk:"labels"`
+	Labels          customtypes.MapValue[types.String]         `tfsdk:"labels" autogen:"listasmap"`
 	LdapAuthType    types.String                               `tfsdk:"ldap_auth_type"`
 	OidcAuthType    types.String                               `tfsdk:"oidc_auth_type"`
 	Password        types.String                               `tfsdk:"password" autogen:"sensitive"`
@@ -132,10 +121,6 @@ type TFModel struct {
 	Scopes          customtypes.NestedListValue[TFScopesModel] `tfsdk:"scopes"`
 	DbUser          types.String                               `tfsdk:"db_user" apiname:"username"`
 	X509Type        types.String                               `tfsdk:"x509_type"`
-}
-type TFLabelsModel struct {
-	Key   types.String `tfsdk:"key"`
-	Value types.String `tfsdk:"value"`
 }
 type TFRolesModel struct {
 	CollectionName types.String `tfsdk:"collection_name"`

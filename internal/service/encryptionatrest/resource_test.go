@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312011/admin"
-	"go.mongodb.org/atlas-sdk/v20250312011/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -462,6 +462,30 @@ func TestResourceMongoDBAtlasEncryptionAtRestCreateRefreshFunc(t *testing.T) {
 			expectedResponse:      nil,
 			expectedRetrystrategy: retrystrategy.RetryStrategyErrorState,
 			expectedError:         true,
+		},
+		{
+			name:                  "Retryable error: CANNOT_ASSUME_ROLE",
+			mockResponse:          nil,
+			mockError:             errors.New("CANNOT_ASSUME_ROLE"),
+			expectedResponse:      nil,
+			expectedRetrystrategy: retrystrategy.RetryStrategyPendingState,
+			expectedError:         false,
+		},
+		{
+			name:                  "Retryable error: INVALID_AWS_CREDENTIALS",
+			mockResponse:          nil,
+			mockError:             errors.New("INVALID_AWS_CREDENTIALS"),
+			expectedResponse:      nil,
+			expectedRetrystrategy: retrystrategy.RetryStrategyPendingState,
+			expectedError:         false,
+		},
+		{
+			name:                  "Retryable error: CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED",
+			mockResponse:          nil,
+			mockError:             errors.New("CLOUD_PROVIDER_ACCESS_ROLE_NOT_AUTHORIZED"),
+			expectedResponse:      nil,
+			expectedRetrystrategy: retrystrategy.RetryStrategyPendingState,
+			expectedError:         false,
 		},
 	}
 	for _, tc := range testCases {
