@@ -834,6 +834,10 @@ resources:
         # The API description mentions using the /org endpoint to fetch user's organizations, removing that part.
         org_id:
           description: *org_id_description
+        client_id:
+          immutable_computed: true
+        created_at:
+          immutable_computed: true
         secret_expires_after_hours:
           # Adding clarification that the attribute is required for creation and can't be updated later.
           description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later."
@@ -880,6 +884,10 @@ resources:
       overrides:
         project_id:
           description: *project_id_description
+        client_id:
+          immutable_computed: true
+        created_at:
+          immutable_computed: true
         secret_expires_after_hours:
           # Adding clarification that the attribute is required for creation and can't be updated later.
           description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later."
