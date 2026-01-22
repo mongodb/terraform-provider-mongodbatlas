@@ -80,7 +80,7 @@ data "mongodbatlas_advanced_cluster" "cluster" {
 }
 
 locals {
-  endpoint_service_id = google_compute_network.default.name
+  endpoint_service_id = google_compute_forwarding_rule.default.name
   private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings : cs.private_endpoint]), [])
   connection_strings = [
     for pe in local.private_endpoints : pe.srv_connection_string
