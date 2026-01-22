@@ -1,0 +1,23 @@
+---
+subcategory: "AI Models"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides an AI Model Rate Limit resource. The resource lets you configure AI Model Rate Limits for the specified Project. Each model group has one rate limit configuration that controls the number of requests and tokens per minute allowed for AI embedding and reranking services.
+
+~> **NOTE:** Project-level rate limits cannot exceed the organization-level limits. Organization-level limits are determined by your organization's tier and represent the maximum allowed values for any project within that organization.
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+Import the AI Model Rate Limit resource by using the Project ID and Model Group Name in the format `PROJECT_ID/MODEL_GROUP_NAME`, e.g.
+```
+$ terraform import mongodbatlas_ai_model_rate_limit.example 1112222b3bf99403840e8934/embed_large
+```
+
+For more information, see [Manage AI Model Rate Limits](https://www.mongodb.com/docs/voyageai/management/rate-limits/).

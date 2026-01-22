@@ -1,0 +1,22 @@
+---
+subcategory: "AI Models"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes the organization-level AI Model Rate Limit for a specific model group.
+
+~> **NOTE:** Organization-level rate limits represent the maximum allowed limits for all projects within the organization. These limits are determined by your organization's tier and cannot be modified. Project-level rate limits can be configured using the `mongodbatlas_ai_model_rate_limit` resource but must not exceed the organization-level limits returned by this data source.
+
+## Example Usages
+
+```terraform
+data "mongodbatlas_ai_model_org_rate_limit" "this" {
+  org_id           = var.org_id
+  model_group_name = "embed_large"
+}
+```
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information, see [Manage AI Model Rate Limits](https://www.mongodb.com/docs/voyageai/management/rate-limits/).
