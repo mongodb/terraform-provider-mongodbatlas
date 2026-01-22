@@ -377,6 +377,33 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "skip-state-list-merge-tag",
 		},
+		"Plan modifiers using immutable computed": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: []codespec.Attribute{
+						{
+							TFSchemaName:             "secret",
+							TFModelName:              "Secret",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("The secret for the service account"),
+							ComputedOptionalRequired: codespec.Computed,
+							Sensitive:                true,
+							ImmutableComputed:        true,
+						},
+						{
+							TFSchemaName:             "name",
+							TFModelName:              "Name",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("Name of the service account"),
+							ComputedOptionalRequired: codespec.Optional,
+						},
+					},
+				},
+			},
+			goldenFileName: "plan-modifiers-immutable-computed",
+		},
 		"Plan modifiers using create only": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",

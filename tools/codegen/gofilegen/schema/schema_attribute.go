@@ -8,34 +8,37 @@ import (
 )
 
 // GenerateSchemaAttributes generates schema attributes for resource schemas.
-func GenerateSchemaAttributes(attrs codespec.Attributes) CodeStatement {
+func GenerateSchemaAttributes(attrs codespec.Attributes) (CodeStatement, error) {
 	return generateSchemaAttributesWithGenerator(attrs, generator)
 }
 
 // GenerateDataSourceSchemaAttributes generates schema attributes for data source schemas.
 // Data source attributes use dsschema types instead of resource schema types.
-func GenerateDataSourceSchemaAttributes(attrs codespec.Attributes) CodeStatement {
+func GenerateDataSourceSchemaAttributes(attrs codespec.Attributes) (CodeStatement, error) {
 	return generateSchemaAttributesForDataSource(attrs, "DS")
 }
 
 // GeneratePluralDataSourceSchemaAttributes generates schema attributes for plural data source schemas.
 // Plural data source attributes use dsschema types and PluralDS prefix for nested models.
-func GeneratePluralDataSourceSchemaAttributes(attrs codespec.Attributes) CodeStatement {
+func GeneratePluralDataSourceSchemaAttributes(attrs codespec.Attributes) (CodeStatement, error) {
 	return generateSchemaAttributesForDataSource(attrs, "PluralDS")
 }
 
-func generateSchemaAttributesForDataSource(attrs codespec.Attributes, dsPrefix string) CodeStatement {
+func generateSchemaAttributesForDataSource(attrs codespec.Attributes, dsPrefix string) (CodeStatement, error) {
 	return generateSchemaAttributesWithGenerator(attrs, func(attr *codespec.Attribute) attributeGenerator {
 		return dataSourceAttrGeneratorWithPrefix(attr, dsPrefix)
 	})
 }
 
 // generateSchemaAttributesWithGenerator is the shared implementation for schema attribute generation.
-func generateSchemaAttributesWithGenerator(attrs codespec.Attributes, genFunc func(*codespec.Attribute) attributeGenerator) CodeStatement {
+func generateSchemaAttributesWithGenerator(attrs codespec.Attributes, genFunc func(*codespec.Attribute) attributeGenerator) (CodeStatement, error) {
 	attrsCode := []string{}
 	imports := []string{}
 	for i := range attrs {
-		result := genFunc(&attrs[i]).AttributeCode()
+		result, err := genFunc(&attrs[i]).AttributeCode()
+		if err != nil {
+			return CodeStatement{}, fmt.Errorf("failed to generate attribute '%s': %w", attrs[i].TFSchemaName, err)
+		}
 		attrsCode = append(attrsCode, result.Code)
 		imports = append(imports, result.Imports...)
 	}
@@ -43,7 +46,7 @@ func generateSchemaAttributesWithGenerator(attrs codespec.Attributes, genFunc fu
 	return CodeStatement{
 		Code:    finalAttrs,
 		Imports: imports,
-	}
+	}, nil
 }
 
 // dataSourceAttrGeneratorWithPrefix wraps resource generators to produce data source schema code with a specific prefix.
@@ -59,8 +62,11 @@ type dsAttrGeneratorWrapper struct {
 	dsPrefix string // "DS" for singular, "PluralDS" for plural data sources
 }
 
-func (g *dsAttrGeneratorWrapper) AttributeCode() CodeStatement {
-	result := g.inner.AttributeCode()
+func (g *dsAttrGeneratorWrapper) AttributeCode() (CodeStatement, error) {
+	result, err := g.inner.AttributeCode()
+	if err != nil {
+		return CodeStatement{}, err
+	}
 	// Replace schema. with dsschema. for data source schemas
 	result.Code = strings.ReplaceAll(result.Code, "schema.", "dsschema.")
 	// Add DS prefix to nested model references in CustomType (e.g., TFNestedObjectAttrModel -> TFDSNestedObjectAttrModel or TFPluralDSNestedObjectAttrModel)
@@ -78,11 +84,11 @@ func (g *dsAttrGeneratorWrapper) AttributeCode() CodeStatement {
 		filteredImports = append(filteredImports, imp)
 	}
 	result.Imports = filteredImports
-	return result
+	return result, nil
 }
 
 type attributeGenerator interface {
-	AttributeCode() CodeStatement
+	AttributeCode() (CodeStatement, error)
 }
 
 func generator(attr *codespec.Attribute) attributeGenerator {
@@ -164,8 +170,11 @@ func generator(attr *codespec.Attribute) attributeGenerator {
 }
 
 // generation of conventional attribute types which have common properties like MarkdownDescription, Computed/Optional/Required, Sensitive
-func commonAttrStructure(attr *codespec.Attribute, attrDefType, planModifierType string, specificProperties []CodeStatement) CodeStatement {
-	properties := commonProperties(attr, planModifierType)
+func commonAttrStructure(attr *codespec.Attribute, attrDefType, planModifierType string, specificProperties []CodeStatement) (CodeStatement, error) {
+	properties, err := commonProperties(attr, planModifierType)
+	if err != nil {
+		return CodeStatement{}, err
+	}
 	properties = append(properties, specificProperties...)
 
 	name := attr.TFSchemaName
@@ -178,9 +187,15 @@ func commonAttrStructure(attr *codespec.Attribute, attrDefType, planModifierType
 	return CodeStatement{
 		Code:    code,
 		Imports: propsStmts.Imports,
-	}
+	}, nil
 }
-func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeStatement {
+
+func commonProperties(attr *codespec.Attribute, planModifierType string) ([]CodeStatement, error) {
+	const (
+		importCustomPlanModifier = "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
+		importPlanModifier       = "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+		importStringPlanModifier = "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	)
 	var result []CodeStatement
 	if attr.ComputedOptionalRequired == codespec.Required {
 		result = append(result, CodeStatement{Code: "Required: true"})
@@ -213,6 +228,8 @@ func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeS
 	}
 
 	var customPlanModifiers []string
+	planModifierImports := make(map[string]struct{})
+
 	if attr.CreateOnly {
 		if attr.Bool != nil && attr.Bool.Default != nil {
 			// For bool attributes with create-only and default value, use CreateOnlyBoolWithDefault
@@ -220,19 +237,30 @@ func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeS
 		} else {
 			customPlanModifiers = append(customPlanModifiers, "customplanmodifier.CreateOnly()")
 		}
+		planModifierImports[importCustomPlanModifier] = struct{}{}
 	}
 	if attr.RequestOnlyRequiredOnCreate {
 		customPlanModifiers = append(customPlanModifiers, "customplanmodifier.RequestOnlyRequiredOnCreate()")
+		planModifierImports[importCustomPlanModifier] = struct{}{}
+	}
+	if attr.ImmutableComputed {
+		if attr.String == nil {
+			return nil, fmt.Errorf("immutableComputed is only supported for string attributes, found non-string type for attribute '%s'", attr.TFSchemaName)
+		}
+		customPlanModifiers = append(customPlanModifiers, "stringplanmodifier.UseStateForUnknown()")
+		planModifierImports[importStringPlanModifier] = struct{}{}
 	}
 
 	if len(customPlanModifiers) > 0 {
+		planModifierImports[importPlanModifier] = struct{}{}
+		var imports []string
+		for imp := range planModifierImports {
+			imports = append(imports, imp)
+		}
 		result = append(result, CodeStatement{
-			Code: fmt.Sprintf("PlanModifiers: []%s{%s}", planModifierType, strings.Join(customPlanModifiers, ", ")),
-			Imports: []string{
-				"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier",
-				"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier",
-			},
+			Code:    fmt.Sprintf("PlanModifiers: []%s{%s}", planModifierType, strings.Join(customPlanModifiers, ", ")),
+			Imports: imports,
 		})
 	}
-	return result
+	return result, nil
 }
