@@ -63,18 +63,20 @@ func GenerateCodeForResource(resourceModel *codespec.Resource, packageDir string
 	}
 
 	// Generate data source files if data sources are defined
-	if resourceModel.DataSources != nil {
+	if resourceModel.DataSources != nil && resourceModel.DataSources.Schema != nil {
 		log.Printf("[INFO] Generating data source code: %s", resourceModel.Name)
+		dataSourceSchema := resourceModel.DataSources.Schema
 
-		files, err := generateComponentFiles(resourceModel, packageDir, dataSourceComponent, writeFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate data source: %w", err)
+		if dataSourceSchema.SingularDSAttributes != nil && len(*dataSourceSchema.SingularDSAttributes) > 0 {
+			files, err := generateComponentFiles(resourceModel, packageDir, dataSourceComponent, writeFile)
+			if err != nil {
+				return nil, fmt.Errorf("failed to generate data source: %w", err)
+			}
+			generatedFiles = append(generatedFiles, files...)
 		}
-		generatedFiles = append(generatedFiles, files...)
 
-		// Generate plural data source files if plural data source is defined
-		if isPluralDataSourceDefined(*resourceModel.DataSources) {
-			files, err = generateComponentFiles(resourceModel, packageDir, pluralDataSourceComponent, writeFile)
+		if dataSourceSchema.PluralDSAttributes != nil && len(*dataSourceSchema.PluralDSAttributes) > 0 {
+			files, err := generateComponentFiles(resourceModel, packageDir, pluralDataSourceComponent, writeFile)
 			if err != nil {
 				return nil, fmt.Errorf("failed to generate plural data source: %w", err)
 			}
@@ -86,10 +88,6 @@ func GenerateCodeForResource(resourceModel *codespec.Resource, packageDir string
 	FormatGeneratedFiles(generatedFiles, packageDir)
 
 	return generatedFiles, nil
-}
-
-func isPluralDataSourceDefined(dataSources codespec.DataSources) bool {
-	return dataSources.Schema != nil && dataSources.Schema.PluralDSAttributes != nil && len(*dataSources.Schema.PluralDSAttributes) > 0
 }
 
 // generateComponentFiles generates schema and implementation files for a resource or data source
