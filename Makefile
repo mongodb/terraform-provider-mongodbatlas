@@ -154,19 +154,22 @@ autogen-api-spec-generation: ## Generate flattened API spec used by codegen
 	@scripts/generate-autogen-api-spec.sh
 
 # Generate resource models using API spec present in tools/codegen/atlasapispec/multi-version-api-spec.flattened.yml
-# resource_name is optional, if not provided all configured resources code will be generated
+# resource_name is optional, if not provided all configured resource models will be generated
+# resource_tier is optional; valid values: prod, internal (default: all)
 .PHONY: autogen-model-generation
 autogen-model-generation: ## Generate resource models from API spec (resource_name optional)
-	@go run ./tools/codegen/cmd/codespec/main.go $(resource_name)
+	@go run ./tools/codegen/cmd/codespec/main.go $(if $(resource_name),--resource-name $(resource_name),) $(if $(resource_tier),--resource-tier $(resource_tier),)
 
-# Generate resource code using serialized resource models in tools/codegen/models/
-# resource_name is optional, if not provided all configured resources code will be generated
+# Generate resource code using serialized resource models in tools/codegen/models
+# resource_name is optional, if not provided all configured resource code will be generated
 .PHONY: autogen-code-generation
 autogen-code-generation: ## Generate resource code from serialized models (resource_name optional)
-	@go run ./tools/codegen/cmd/gofilegen/main.go $(resource_name)
+	@go run ./tools/codegen/cmd/gofilegen/main.go $(if $(resource_name),--resource-name $(resource_name),)
 
-## Download latest API Spec, apply API Spec transformations, and then generate resource code
+## Download latest API Spec, update resource models, and then generate resource code
 # resource_name is optional, if not provided all configured resources code will be generated
+# resource_tier is optional; valid values: prod, internal (default: all)
+# e.g. make autogen-pipeline resource_tier=prod
 .PHONY: autogen-pipeline
 autogen-pipeline: autogen-api-spec-generation autogen-model-generation autogen-code-generation
 

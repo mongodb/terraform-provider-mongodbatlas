@@ -1,9 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
-	"os"
 
 	"go.yaml.in/yaml/v4"
 
@@ -19,17 +19,35 @@ const (
 )
 
 func main() {
-	resourceName := getResourceNameArg()
+	resourceName, resourceTier := getArgs()
+	if err := validateResourceTier(resourceTier); err != nil {
+		log.Fatalf("[ERROR] Invalid resource tier: %v", err)
+	}
+	if resourceTier != nil {
+		log.Printf("Using resource tier filter: %s", *resourceTier)
+	}
 	if err := writeResourceModels(resourceName); err != nil {
 		log.Fatalf("[ERROR] An error occurred while generating resource models: %v", err)
 	}
 }
 
-func getResourceNameArg() *string {
-	if len(os.Args) < 2 {
+func getArgs() (resourceName, resourceTier *string) {
+	flag.StringVar(resourceName, "resource-name", "", "Generate models only for the specified resource name")
+	flag.StringVar(resourceTier, "resource-tier", "", "Generate models only for resources in the specified tier (prod|internal)")
+	flag.Parse()
+	return
+}
+
+func validateResourceTier(resourceTier *string) error {
+	if resourceTier == nil {
 		return nil
 	}
-	return &os.Args[1]
+	switch *resourceTier {
+	case "prod", "internal":
+		return nil
+	default:
+		return fmt.Errorf("expected prod or internal, got %q", *resourceTier)
+	}
 }
 
 func writeResourceModels(resourceName *string) error {

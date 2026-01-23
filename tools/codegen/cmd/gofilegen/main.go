@@ -1,10 +1,12 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/fileutil"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen"
@@ -17,7 +19,7 @@ const (
 )
 
 func main() {
-	resourceName := getResourceNameArg()
+	resourceName := getArgs()
 	resourceModelFilePaths, err := gatherResourceModelFilePaths(resourceName)
 	if err != nil {
 		log.Fatalf("[ERROR] An error occurred while gathering resource model files: %v", err)
@@ -27,11 +29,11 @@ func main() {
 	}
 }
 
-func getResourceNameArg() *string {
-	if len(os.Args) < 2 {
-		return nil
-	}
-	return &os.Args[1]
+func getArgs() *string {
+	var resourceNameFlag string
+	flag.StringVar(&resourceNameFlag, "resource-name", "", "Generate code only for the specified resource name")
+	flag.Parse()
+	return conversion.StringPtr(resourceNameFlag)
 }
 
 func gatherResourceModelFilePaths(resourceName *string) ([]string, error) {
