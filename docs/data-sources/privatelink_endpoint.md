@@ -55,9 +55,9 @@ In addition to all arguments above, the following attributes are exported:
 * `private_endpoints` - All private endpoints that you have added to this Azure Private Link Service.
 * `private_link_service_name` - Name of the Azure Private Link Service that Atlas manages.
 * `private_link_service_resource_id` - Resource ID of the Azure Private Link Service that Atlas manages.
-* `endpoint_group_names` - For GCP legacy architecture (when `port_mapping_enabled` is not set or `false` on the endpoint resource): A list of the endpoint group names associated with the private endpoint service. For GCP port-based architecture (when `port_mapping_enabled = true` on the endpoint resource): A list of private endpoint names associated with the private endpoint service.
-* `region_name` - GCP region for the Private Service Connect endpoint service.
-* `service_attachment_names` - For GCP legacy architecture (when `port_mapping_enabled` is not set or `false` on the endpoint resource): A list of service attachments connected to the private endpoint service (one per Atlas node). For GCP port-based architecture (when `port_mapping_enabled = true` on the endpoint resource): A list of one service attachment connected to the private endpoint service.
+* `endpoint_group_names` - For legacy architecture, this is a list of the endpoint group names associated with the private endpoint service. For port-based architecture, this is a list of private endpoint names associated with the private endpoint service.
+* `region_name` - Region for the Private Service Connect endpoint service.
+* `service_attachment_names` - For legacy architecture, this is a list of service attachments connected to the private endpoint service (one per Atlas node). For port-based architecture, this is a list containing one service attachment connected to the private endpoint service.
 * `port_mapping_enabled` - Flag that indicates whether this endpoint service uses GCP port-mapping. When `true`, the endpoint service uses the new port-based architecture (requires 1 endpoint). When `false`, it uses the legacy architecture. Only applicable for GCP provider.
 
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/private-endpoints-service-get-one/) Documentation for more information.
