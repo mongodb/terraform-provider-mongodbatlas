@@ -13,7 +13,7 @@ This example demonstrates how to configure a log integration to export MongoDB A
 This example creates the following resources:
 
 ### MongoDB Atlas
-- Project
+- Project.
 - Cloud Provider Access Setup and Authorization.
 - Log Integration configuration.
 
