@@ -90,7 +90,7 @@ resource "google_compute_forwarding_rule" "new" {
   load_balancing_scheme = ""
 }
 
-# Legacy endpoint service (from v1, required for legacy architecture)
+# Legacy: Endpoint Service (from v1, required for legacy architecture)
 resource "mongodbatlas_privatelink_endpoint_service" "test_legacy" {
   project_id               = mongodbatlas_privatelink_endpoint.test_legacy.project_id
   private_link_id          = mongodbatlas_privatelink_endpoint.test_legacy.private_link_id

@@ -93,6 +93,7 @@ For working examples of each architecture, see the [legacy architecture example]
 Original configuration with legacy architecture (50 endpoints):
 
 ```terraform
+# Create Endpoint with legacy architecture
 resource "mongodbatlas_privatelink_endpoint" "test_legacy" {
   project_id               = var.project_id
   provider_name            = "GCP"
@@ -145,6 +146,7 @@ resource "google_compute_forwarding_rule" "legacy" {
   load_balancing_scheme = ""
 }
 
+# Create Endpoint Service with legacy architecture
 resource "mongodbatlas_privatelink_endpoint_service" "test_legacy" {
   project_id               = mongodbatlas_privatelink_endpoint.test_legacy.project_id
   private_link_id          = mongodbatlas_privatelink_endpoint.test_legacy.private_link_id

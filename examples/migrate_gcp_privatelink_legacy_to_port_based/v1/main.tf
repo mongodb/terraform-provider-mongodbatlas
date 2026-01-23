@@ -1,6 +1,7 @@
 # v1: Initial State - Legacy Architecture Only
 # This configuration uses the legacy GCP architecture with dedicated resources per Atlas node
 
+# Create Endpoint with legacy architecture
 resource "mongodbatlas_privatelink_endpoint" "test_legacy" {
   project_id               = var.project_id
   provider_name            = "GCP"
@@ -52,7 +53,7 @@ resource "google_compute_forwarding_rule" "legacy" {
   load_balancing_scheme = ""
 }
 
-# Endpoint Service (required for legacy architecture)
+# Create Endpoint Service with legacy architecture
 resource "mongodbatlas_privatelink_endpoint_service" "test_legacy" {
   project_id               = mongodbatlas_privatelink_endpoint.test_legacy.project_id
   private_link_id          = mongodbatlas_privatelink_endpoint.test_legacy.private_link_id
