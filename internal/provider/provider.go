@@ -48,7 +48,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
-	projectipaccesslists "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectipaccesslist"
+	autogenprojectipaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccount"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccountsecret"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccount"
@@ -271,7 +271,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		alertconfiguration.DataSource,
 		alertconfiguration.PluralDataSource,
 		projectipaccesslist.DataSource,
-		projectipaccesslists.PluralDataSource,
+		autogenprojectipaccesslist.PluralDataSource,
 		atlasuser.DataSource,
 		atlasuser.PluralDataSource,
 		searchdeployment.DataSource,

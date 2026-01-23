@@ -389,7 +389,6 @@ jobs:
             - 'internal/service/projectinvitation/*.go'  
             - 'internal/service/projectipaccesslist/*.go'
             - 'internal/service/projectipaddresses/*.go'
-            - 'internal/serviceapi/projectipaccesslist/*.go'
           push_based_log_export:
             - 'internal/service/pushbasedlogexport/*.go'
           resource_policy:
