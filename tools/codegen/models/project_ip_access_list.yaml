@@ -53,17 +53,6 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Unique 24-hexadecimal digit string that identifies your project.
-                          computed_optional_required: computed
-                          tf_schema_name: project_id
-                          tf_model_name: ProjectId
-                          api_name: groupId
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - string: {}
                           description: Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`.
                           computed_optional_required: computed
                           tf_schema_name: ip_address

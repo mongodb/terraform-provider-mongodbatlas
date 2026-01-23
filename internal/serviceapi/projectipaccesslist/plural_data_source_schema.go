@@ -36,10 +36,6 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Remark that explains the purpose or scope of this IP access list entry.",
 						},
-						"project_id": dsschema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
-						},
 						"ip_address": dsschema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`.",
@@ -59,6 +55,5 @@ type TFPluralDSResultsModel struct {
 	AwsSecurityGroup types.String `tfsdk:"aws_security_group" autogen:"omitjson"`
 	CidrBlock        types.String `tfsdk:"cidr_block" autogen:"omitjson"`
 	Comment          types.String `tfsdk:"comment" autogen:"omitjson"`
-	ProjectId        types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	IpAddress        types.String `tfsdk:"ip_address" autogen:"omitjson"`
 }

@@ -48,6 +48,5 @@ Read-Only:
 - `cidr_block` (String) Range of IP addresses in CIDR notation to be added to the access list. Mutually exclusive with `aws_security_group` and `ip_address`.
 - `comment` (String) Remark that explains the purpose or scope of this IP access list entry.
 - `ip_address` (String) Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
 
 For more information, see [MongoDB Atlas API Reference](https://docs.atlas.mongodb.com/reference/api/access-lists/).
