@@ -3,10 +3,10 @@ package privatelinkendpointservice
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
@@ -132,19 +132,8 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "aws_connection_status", endpointServiceID, err))
 	}
 
-	if err := d.Set("interface_endpoint_id", serviceEndpoint.GetInterfaceEndpointId()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "interface_endpoint_id", endpointServiceID, err))
-	}
-
-	if err := d.Set("private_endpoint_connection_name", serviceEndpoint.GetPrivateEndpointConnectionName()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_connection_name", endpointServiceID, err))
-	}
-
-	if err := d.Set("private_endpoint_resource_id", serviceEndpoint.GetPrivateEndpointResourceId()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_resource_id", endpointServiceID, err))
-	}
-
-	if strings.EqualFold(providerName, "azure") {
+	switch providerName {
+	case constant.AZURE:
 		if err := d.Set("azure_status", serviceEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
 		}
@@ -152,13 +141,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err := d.Set("private_endpoint_ip_address", serviceEndpoint.GetPrivateEndpointIPAddress()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
 		}
-	}
-
-	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoint_service_id", endpointServiceID, err))
-	}
-
-	if strings.EqualFold(providerName, "gcp") {
+	case constant.GCP:
 		if err := d.Set("port_mapping_enabled", serviceEndpoint.GetPortMappingEnabled()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "port_mapping_enabled", privateLinkID, err))
 		}
@@ -167,8 +150,8 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
 		}
 
-		if serviceEndpoint.GetPortMappingEnabled() && serviceEndpoint.Endpoints != nil && len(*serviceEndpoint.Endpoints) == 1 {
-			firstEndpoint := (*serviceEndpoint.Endpoints)[0]
+		if serviceEndpoint.GetPortMappingEnabled() && len(serviceEndpoint.GetEndpoints()) == 1 {
+			firstEndpoint := serviceEndpoint.GetEndpoints()[0]
 
 			if err := d.Set("gcp_endpoint_status", firstEndpoint.GetStatus()); err != nil {
 				return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_endpoint_status", endpointServiceID, err))

@@ -146,18 +146,6 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 				),
 			},
 			{
-				Config: configWithPortMapping(orgID, projectName, providerName, region, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "region"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "region", region),
-					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "false"),
-				),
-			},
-			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -191,18 +179,6 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "false"),
-				),
-			},
-			{
-				Config: configWithPortMapping(orgID, projectName, providerName, region, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "region"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "region", region),
-					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "true"),
 				),
 			},
 			{

@@ -33,6 +33,7 @@ func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateWithoutTimeout: resourceCreate,
 		ReadWithoutTimeout:   resourceRead,
+		UpdateWithoutTimeout: resourceUpdate,
 		DeleteWithoutTimeout: resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
@@ -113,7 +114,6 @@ func Resource() *schema.Resource {
 			"port_mapping_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true,
 			},
 			"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
 				Type:        schema.TypeBool,
@@ -171,6 +171,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		"region":          region,
 	}))
 
+	return resourceRead(ctx, d, meta)
+}
+
+func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	if d.HasChange("port_mapping_enabled") {
+		return diag.FromErr(errors.New("`port_mapping_enabled` cannot be changed after resource creation"))
+	}
 	return resourceRead(ctx, d, meta)
 }
 

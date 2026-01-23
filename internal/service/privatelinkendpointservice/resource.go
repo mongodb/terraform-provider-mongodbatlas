@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -95,6 +96,10 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"endpoint_group_name": { // This attribute is not used anywhere is the code. Refraining from removal because of potential breaking change.
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"gcp_project_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -149,12 +154,8 @@ func Resource() *schema.Resource {
 	}
 }
 
-func isGCPPortBasedArchitectureInput(providerName string, hasGCPProjectID, hasPrivateEndpointIP, hasEndpoints bool) bool {
-	return providerName == "GCP" && hasGCPProjectID && hasPrivateEndpointIP && !hasEndpoints
-}
-
-func isGCPLegacyArchitectureInput(providerName string, hasGCPProjectID, hasPrivateEndpointIP, hasEndpoints bool) bool {
-	return providerName == "GCP" && hasGCPProjectID && !hasPrivateEndpointIP && hasEndpoints
+func isGCPPortBasedArchitectureInput(hasPrivateEndpointIP, hasEndpoints bool) bool {
+	return hasPrivateEndpointIP && !hasEndpoints
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -171,22 +172,22 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	createEndpointRequest := &admin.CreateEndpointRequest{}
 
 	switch providerName {
-	case "AWS":
+	case constant.AWS:
 		createEndpointRequest.Id = &endpointServiceID
-	case "AZURE":
+	case constant.AZURE:
 		if !hasPrivateEndpointIP {
 			return diag.FromErr(errors.New("`private_endpoint_ip_address` must be set when `provider_name` is `AZURE`"))
 		}
 		createEndpointRequest.Id = &endpointServiceID
 		createEndpointRequest.PrivateEndpointIPAddress = conversion.Pointer(privateEndpointIP.(string))
-	case "GCP":
+	case constant.GCP:
 		if !hasGCPProjectID {
 			return diag.FromErr(errors.New("`gcp_project_id` must be set for GCP"))
 		}
-		if (hasPrivateEndpointIP && hasEndpoints) || (!hasPrivateEndpointIP && !hasEndpoints) {
+		if hasPrivateEndpointIP == hasEndpoints {
 			return diag.FromErr(errors.New("for GCP, you must provide exactly one of: `private_endpoint_ip_address` (new architecture) or `endpoints` (legacy architecture)"))
 		}
-		if isGCPPortBasedArchitectureInput(providerName, hasGCPProjectID, hasPrivateEndpointIP, hasEndpoints) {
+		if isGCPPortBasedArchitectureInput(hasPrivateEndpointIP, hasEndpoints) {
 			createEndpointRequest.EndpointGroupName = &endpointServiceID
 			createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
 			singleEndpoint := admin.CreateGCPForwardingRuleRequest{
@@ -195,8 +196,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			}
 			endpointsList := []admin.CreateGCPForwardingRuleRequest{singleEndpoint}
 			createEndpointRequest.Endpoints = &endpointsList
-		}
-		if isGCPLegacyArchitectureInput(providerName, hasGCPProjectID, hasPrivateEndpointIP, hasEndpoints) {
+		} else {
 			createEndpointRequest.EndpointGroupName = &endpointServiceID
 			createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
 			createEndpointRequest.Endpoints = expandGCPEndpoints(endpoints.([]any))
@@ -298,7 +298,12 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_resource_id", endpointServiceID, err))
 	}
 
-	if strings.EqualFold(providerName, "azure") {
+	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoint_service_id", endpointServiceID, err))
+	}
+
+	switch providerName {
+	case constant.AZURE:
 		if err := d.Set("azure_status", privateEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
 		}
@@ -306,13 +311,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		if err := d.Set("private_endpoint_ip_address", privateEndpoint.GetPrivateEndpointIPAddress()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
 		}
-	}
-
-	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoint_service_id", endpointServiceID, err))
-	}
-
-	if strings.EqualFold(providerName, "gcp") {
+	case constant.GCP:
 		if err := d.Set("port_mapping_enabled", privateEndpoint.GetPortMappingEnabled()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "port_mapping_enabled", privateLinkID, err))
 		}
@@ -321,8 +320,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
 		}
 
-		if privateEndpoint.GetPortMappingEnabled() && privateEndpoint.Endpoints != nil && len(*privateEndpoint.Endpoints) == 1 {
-			firstEndpoint := (*privateEndpoint.Endpoints)[0]
+		if privateEndpoint.GetPortMappingEnabled() && len(privateEndpoint.GetEndpoints()) == 1 {
+			firstEndpoint := privateEndpoint.GetEndpoints()[0]
 
 			if err := d.Set("gcp_endpoint_status", firstEndpoint.GetStatus()); err != nil {
 				return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_endpoint_status", endpointServiceID, err))
@@ -450,7 +449,8 @@ func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID
 			return nil, "", err
 		}
 
-		if strings.EqualFold(providerName, "azure") || strings.EqualFold(providerName, "gcp") {
+		switch providerName {
+		case constant.AZURE, constant.GCP:
 			if i.GetStatus() != "AVAILABLE" {
 				return "", i.GetStatus(), nil
 			}
