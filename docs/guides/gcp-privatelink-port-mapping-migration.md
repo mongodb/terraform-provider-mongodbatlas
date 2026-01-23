@@ -10,7 +10,7 @@ This guide explains how to migrate from the legacy GCP Private Service Connect a
 
 The steps in this guide are for migrating Terraform-managed GCP private link endpoint resources (e.g., `mongodbatlas_privatelink_endpoint`, `mongodbatlas_privatelink_endpoint_service`). The legacy architecture requires dedicated resources (customer forwarding rule, service attachment, internal forwarding rule, and instance group) for each Atlas node. The new port-based architecture uses a single set of resources to support up to 1000 nodes through port mapping, enabling direct targeting of specific nodes using only one customer IP address.
 
-**Note:** Migration to the port-based architecture is recommended but **not required**. If you are currently using the legacy architecture, you may continue to do so. This guide is for users who wish to adopt the new architecture for simplified management and reduced resource overhead, but existing legacy configurations will continue to work and be supported.
+**Note:** Migration to the port-based architecture is recommended but **not required**. If you are currently using the legacy architecture, you may continue to do so. This guide is for users who wish to adopt the new architecture for simplified management and reduced resource overhead.
 
 ## Before You Begin
 
