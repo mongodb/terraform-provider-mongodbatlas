@@ -11,7 +11,7 @@ The Terraform MongoDB Atlas Provider offers a two-resource path to perform an au
 - The second resource, [`mongodbatlas_cloud_provider_access_authorization`](cloud_provider_access_authorization), helps to perform the authorization using the `role_id` of the first resource.
 
 This path is helpful in a multi-provider Terraform file, and allows for a single and decoupled apply.
-See example of this two-resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_cloud_provider_access/aws), AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_cloud_provider_access/azure) and GCP Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_cloud_provider_access/gcp).
+See example of this two-resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_cloud_provider_access/aws), AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_cloud_provider_access/azure) and GCP Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_cloud_provider_access/gcp).
 
 
 ## mongodbatlas_cloud_provider_access_setup
@@ -61,9 +61,9 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 ```
 
 ### Further Examples
-- [AWS Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_cloud_provider_access/aws)
-- [Azure Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_cloud_provider_access/azure)
-- [GCP Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_cloud_provider_access/gcp)
+- [AWS Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_cloud_provider_access/aws)
+- [Azure Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_cloud_provider_access/azure)
+- [GCP Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_cloud_provider_access/gcp)
 
 
 ## Argument Reference
@@ -74,7 +74,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
    * `atlas_azure_app_id` - Azure Active Directory Application ID of Atlas. This property is required when `provider_name = "AZURE".`
    * `service_principal_id`- UUID string that identifies the Azure Service Principal. This property is required when `provider_name = "AZURE".`
    * `tenant_id`          - UUID String that identifies the Azure Active Directory Tenant ID. This property is required when `provider_name = "AZURE".`
-* `timeouts`- (Optional) The duration of time to wait for the resource to be created. The default timeout is `1h`. The timeout value is defined by a signed sequence of decimal numbers with a time unit suffix such as: `1h45m`, `300s`, `10m`, etc. The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
+* `timeouts` - (Optional) The duration to wait for the Cloud Provider Access Setup to be created. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `20m`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 * `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 
 ## Attributes Reference
@@ -90,7 +90,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 * `last_updated_date`                - Date and time when this Azure Service Principal was last updated. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 * `role_id`                        - Unique ID of this role.
 
--> **NOTE:** For more details on how attributes are used to enable access to cloud provider accounts see [AWS example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_cloud_provider_access/aws) and [Azure example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_cloud_provider_access/azure). 
+-> **NOTE:** For more details on how attributes are used to enable access to cloud provider accounts see [AWS example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_cloud_provider_access/aws) and [Azure example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_cloud_provider_access/azure). 
 
 ## Import
 It can be imported using project ID, provider name and role_id in the format `project_id`-`provider_name`-`role_id`, e.g.

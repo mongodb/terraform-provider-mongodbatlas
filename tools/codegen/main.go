@@ -1,17 +1,15 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/schema"
 	"gopkg.in/yaml.v3"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen"
 )
 
 const (
@@ -24,24 +22,22 @@ const (
 func main() {
 	resourceName := getOsArg()
 
-	{
-		// Generate resource models
-		model, err := codespec.ToCodeSpecModel(specFilePath, configPath, resourceName)
-		if err != nil {
-			log.Fatalf("[ERROR] An error occurred while generating codespec.Model: %v", err)
-		}
+	// Generate resource and data source models from API spec
+	model, err := codespec.ToCodeSpecModel(specFilePath, configPath, resourceName)
+	if err != nil {
+		log.Fatalf("[ERROR] An error occurred while generating codespec.Model: %v", err)
+	}
 
-		// Write resource models to files
-		for i := range model.Resources {
-			resourceModel := model.Resources[i]
-			resourceModelFilePath := fmt.Sprintf(resourceModelFilePathFormat, resourceModel.Name)
-			resourceModelYaml, err := yaml.Marshal(resourceModel)
-			if err != nil {
-				log.Fatalf("[ERROR] An error occurred while serializing the resource model: %v", err)
-			}
-			if err := writeToFile(resourceModelFilePath, resourceModelYaml); err != nil {
-				log.Fatalf("[ERROR] An error occurred while writing resource model to file: %v", err)
-			}
+	// Write resource models to files
+	for i := range model.Resources {
+		resourceModel := model.Resources[i]
+		resourceModelFilePath := fmt.Sprintf(resourceModelFilePathFormat, resourceModel.Name)
+		resourceModelYaml, err := yaml.Marshal(resourceModel)
+		if err != nil {
+			log.Fatalf("[ERROR] An error occurred while serializing the resource model: %v", err)
+		}
+		if err := writeToFile(resourceModelFilePath, resourceModelYaml); err != nil {
+			log.Fatalf("[ERROR] An error occurred while writing resource model to file: %v", err)
 		}
 	}
 
@@ -69,25 +65,11 @@ func main() {
 			log.Fatalf("[ERROR] An error occurred while reading the resource model file: %v", err)
 		}
 
-		log.Printf("[INFO] Generating resource code: %s", resourceModel.Name)
+		packageDir := fmt.Sprintf("internal/serviceapi/%s", resourceModel.PackageName)
 
-		schemaCode, err := schema.GenerateGoCode(resourceModel)
-		if err != nil {
-			log.Fatalf("[ERROR] %v", err)
-		}
-		schemaFilePath := fmt.Sprintf("internal/serviceapi/%s/resource_schema.go", resourceModel.PackageName)
-		if err := writeToFile(schemaFilePath, schemaCode); err != nil {
-			log.Fatalf("[ERROR] An error occurred when writing content to file: %v", err)
-		}
-		formatGoFile(schemaFilePath)
-
-		resourceCode, err := resource.GenerateGoCode(resourceModel)
-		if err != nil {
-			log.Fatalf("[ERROR] %v", err)
-		}
-		resourceFilePath := fmt.Sprintf("internal/serviceapi/%s/resource.go", resourceModel.PackageName)
-		if err := writeToFile(resourceFilePath, resourceCode); err != nil {
-			log.Fatalf("[ERROR] An error occurred when writing content to file: %v", err)
+		// Generate all files for the resource and its data sources
+		if _, err := gofilegen.GenerateCodeForResource(resourceModel, packageDir, writeToFile); err != nil {
+			log.Fatalf("[ERROR] Failed to generate code for %s: %v", resourceModel.Name, err)
 		}
 	}
 }
@@ -128,17 +110,4 @@ func readResourceModelFromFile(filePath string) (*codespec.Resource, error) {
 		return nil, fmt.Errorf("failed to deserialize resource: %w", err)
 	}
 	return &resourceModel, nil
-}
-
-// formatGoFile runs goimports and fieldalignment on the specified Go file
-func formatGoFile(filePath string) {
-	goimportsCmd := exec.CommandContext(context.Background(), "goimports", "-w", filePath)
-	if output, err := goimportsCmd.CombinedOutput(); err != nil {
-		log.Printf("[WARN] Goimports failed for %s: %v\nOutput: %s", filePath, err, output)
-	}
-
-	fieldalignmentCmd := exec.CommandContext(context.Background(), "fieldalignment", "-fix", filePath)
-	if output, err := fieldalignmentCmd.CombinedOutput(); err != nil {
-		log.Printf("[WARN] Fieldalignment failed for %s: %v\nOutput: %s", filePath, err, output)
-	}
 }

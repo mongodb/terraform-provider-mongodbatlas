@@ -9,8 +9,8 @@ import (
 )
 
 type resourceGenerationTestCase struct {
-	inputModel     codespec.Resource
 	goldenFileName string
+	inputModel     codespec.Resource
 }
 
 func TestResourceGenerationFromCodeSpec(t *testing.T) {
@@ -19,8 +19,20 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+						{
+							TFSchemaName: "role_name",
+							TFModelName:  "RoleName",
+						},
+					},
+				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -28,7 +40,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}/{roleName}",
 					},
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}/{roleName}",
 					},
@@ -45,8 +57,16 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+					},
+				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -54,7 +74,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "PUT",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -71,8 +91,16 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+					},
+				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 						Wait: &codespec.Wait{
@@ -96,7 +124,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 							DelaySeconds:      10,
 						},
 					},
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -121,8 +149,16 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+					},
+				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -130,7 +166,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -148,8 +184,16 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+					},
+				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -157,7 +201,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -171,13 +215,21 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+					},
+				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
 					Update: nil,
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -196,8 +248,16 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 				Name:        "test_name",
 				PackageName: "testname",
 				MoveState:   &codespec.MoveState{SourceResources: []string{"test_name_old"}},
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+					},
+				},
 				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
+					Create: &codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -205,7 +265,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Read: codespec.APIOperation{
+					Read: &codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -217,6 +277,87 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 				},
 			},
 			goldenFileName: "move-state",
+		},
+		"Path params with aliased schema names": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "project_id",
+							TFModelName:              "ProjectId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+						{
+							TFSchemaName:             "integration_id",
+							TFModelName:              "IntegrationId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{
+						HTTPMethod: "POST",
+						Path:       "/api/v1/groups/{projectId}/integrations",
+					},
+					Update: &codespec.APIOperation{
+						HTTPMethod: "PATCH",
+						Path:       "/api/v1/groups/{projectId}/integrations/{integrationId}",
+					},
+					Read: &codespec.APIOperation{
+						HTTPMethod: "GET",
+						Path:       "/api/v1/groups/{projectId}/integrations/{integrationId}",
+					},
+					Delete: &codespec.APIOperation{
+						HTTPMethod: "DELETE",
+						Path:       "/api/v1/groups/{projectId}/integrations/{integrationId}",
+					},
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			},
+			goldenFileName: "path-params-with-aliases",
+		},
+		"Defining id attributes": {
+			inputModel: codespec.Resource{
+				Name:         "test_name",
+				PackageName:  "testname",
+				IDAttributes: []string{"client_id", "id"}, // without this config only client_id is used as ID attribute due to path param
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "client_id",
+							TFModelName:  "ClientId",
+							String:       &codespec.StringAttribute{},
+						},
+						{
+							TFSchemaName: "id",
+							TFModelName:  "Id",
+							String:       &codespec.StringAttribute{},
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{
+						HTTPMethod: "POST",
+						Path:       "/api/v1/{clientId}/secrets",
+					},
+					Read: &codespec.APIOperation{
+						HTTPMethod: "GET",
+						Path:       "/api/v1/{clientId}",
+					},
+					Delete: &codespec.APIOperation{
+						HTTPMethod: "DELETE",
+						Path:       "/api/v1/{clientId}/secrets/{id}",
+					},
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			},
+			goldenFileName: "id-attributes",
 		},
 	}
 

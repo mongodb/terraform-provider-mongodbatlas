@@ -135,7 +135,7 @@ func configMoveFirstUnsupported(projectID, clusterName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_database_user_api" "old" {
 			group_id      = %[1]q
-			username      = %[2]q
+			db_user       = %[2]q
 			password      = "test-acc-password"
 			database_name = "admin"
 
@@ -200,7 +200,7 @@ func checkDestroyDatabaseUser(s *terraform.State) error {
 		}
 		groupID := rs.Primary.Attributes["group_id"]
 		databaseName := rs.Primary.Attributes["database_name"]
-		username := rs.Primary.Attributes["username"]
+		username := rs.Primary.Attributes["db_user"]
 		if groupID == "" || databaseName == "" || username == "" {
 			return fmt.Errorf("groupID, databaseName or username is empty: %s, %s, %s", groupID, databaseName, username)
 		}

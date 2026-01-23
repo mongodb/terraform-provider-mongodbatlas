@@ -9,9 +9,12 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: action
                       tf_model_name: Action
+                      api_name: action
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - list_nested:
                         nested_object:
                             attributes:
@@ -20,47 +23,64 @@ schema:
                                   computed_optional_required: required
                                   tf_schema_name: cluster
                                   tf_model_name: Cluster
+                                  api_name: cluster
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
                                 - string: {}
                                   description: 'Human-readable label that identifies the collection on which you grant the action to one MongoDB user. If you don''t set this parameter, you grant the action to all collections in the database specified in the **actions.resources.db** parameter. If you set `"actions.resources.cluster" : true`, MongoDB Cloud ignores this parameter.'
                                   computed_optional_required: required
                                   tf_schema_name: collection
                                   tf_model_name: Collection
+                                  api_name: collection
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
                                 - string: {}
                                   description: 'Human-readable label that identifies the database on which you grant the action to one MongoDB user. If you set `"actions.resources.cluster" : true`, MongoDB Cloud ignores this parameter.'
                                   computed_optional_required: required
                                   tf_schema_name: db
                                   tf_model_name: Db
+                                  api_name: db
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
                       description: List of resources on which you grant the action.
                       custom_type:
                         package: customtypes
+                        name: ActionsResources
                         model: customtypes.NestedListValue[TFActionsResourcesModel]
                         schema: customtypes.NewNestedListType[TFActionsResourcesModel](ctx)
                       computed_optional_required: optional
                       tf_schema_name: resources
                       tf_model_name: Resources
+                      api_name: resources
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
           description: List of the individual privilege actions that the role grants.
           custom_type:
             package: customtypes
+            name: Actions
             model: customtypes.NestedListValue[TFActionsModel]
             schema: customtypes.NewNestedListType[TFActionsModel](ctx)
           computed_optional_required: optional
           tf_schema_name: actions
           tf_model_name: Actions
+          api_name: actions
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: |-
             Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -69,9 +89,12 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
+          api_name: groupId
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
         - set_nested:
             nested_object:
                 attributes:
@@ -80,36 +103,49 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: db
                       tf_model_name: Db
+                      api_name: db
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - string: {}
                       description: Human-readable label that identifies the role inherited. Set this value to `admin` for every role except `read` or `readWrite`.
                       computed_optional_required: required
                       tf_schema_name: role
                       tf_model_name: Role
+                      api_name: role
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
           description: List of the built-in roles that this custom role inherits.
           custom_type:
             package: customtypes
+            name: InheritedRoles
             model: customtypes.NestedSetValue[TFInheritedRolesModel]
             schema: customtypes.NewNestedSetType[TFInheritedRolesModel](ctx)
           computed_optional_required: optional
           tf_schema_name: inherited_roles
           tf_model_name: InheritedRoles
+          api_name: inheritedRoles
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Human-readable label that identifies the role for the request. This name must be unique for this custom role in this project.
           computed_optional_required: required
           tf_schema_name: role_name
           tf_model_name: RoleName
+          api_name: roleName
           req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
 operations:
     delete:
         http_method: DELETE

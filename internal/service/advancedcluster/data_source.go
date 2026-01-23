@@ -3,10 +3,12 @@ package advancedcluster
 import (
 	"context"
 
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -45,31 +47,50 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *TFModelDS) *TFModelDS {
 	clusterName := modelDS.Name.ValueString()
 	projectID := modelDS.ProjectID.ValueString()
-	clusterResp, flexClusterResp := GetClusterDetails(ctx, diags, projectID, clusterName, d.Client, false)
+	clusterResp, flexClusterResp := GetClusterDetails(ctx, diags, projectID, clusterName, d.Client, false, modelDS.UseEffectiveFields.ValueBool())
 	if diags.HasError() {
 		return nil
 	}
 	if flexClusterResp == nil && clusterResp == nil {
 		return nil
 	}
+	var result *TFModelDS
 	if flexClusterResp != nil {
-		modelOut := NewTFModelFlex(ctx, diags, flexClusterResp, nil)
-		if diags.HasError() {
-			return nil
-		}
-		return conversion.CopyModel[TFModelDS](modelOut)
+		result = convertFlexClusterToDS(ctx, diags, flexClusterResp)
+	} else {
+		result = convertBasicClusterToDS(ctx, diags, d.Client, clusterResp)
 	}
-	modelOut := getBasicClusterModel(ctx, diags, d.Client, clusterResp)
+	if result != nil {
+		result.UseEffectiveFields = modelDS.UseEffectiveFields
+	}
+	return result
+}
+
+func convertFlexClusterToDS(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113) *TFModelDS {
+	clusterDesc := flexDescriptionToClusterDescription(flexCluster, nil)
+	modelOutDS := newTFModelDS(ctx, clusterDesc, diags, nil)
 	if diags.HasError() {
 		return nil
 	}
-	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, &ProcessArgs{
+	modelOutDS.AdvancedConfiguration = types.ObjectNull(advancedConfigurationObjType.AttrTypes)
+	return modelOutDS
+}
+
+func convertBasicClusterToDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805) *TFModelDS {
+	containerIDs := resolveContainerIDsOrError(ctx, diags, clusterResp, client.AtlasV2.NetworkPeeringApi)
+	if diags.HasError() {
+		return nil
+	}
+	modelOutDS := newTFModelDS(ctx, clusterResp, diags, containerIDs)
+	if diags.HasError() {
+		return nil
+	}
+	updateModelAdvancedConfigDS(ctx, diags, client, modelOutDS, &ProcessArgs{
 		ArgsDefault:           nil,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	})
 	if diags.HasError() {
 		return nil
 	}
-	modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
 	return modelOutDS
 }

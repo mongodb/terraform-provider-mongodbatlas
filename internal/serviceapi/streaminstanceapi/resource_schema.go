@@ -99,7 +99,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"cluster_group_id": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The id of the group that the cluster belongs to.",
+							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.",
 						},
 						"cluster_name": schema.StringAttribute{
 							Computed:            true,
@@ -166,6 +166,35 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 						},
+						"provider": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The Schema Registry provider.",
+						},
+						"schema_registry_authentication": schema.SingleNestedAttribute{
+							Computed:            true,
+							MarkdownDescription: "Authentication configuration for Schema Registry.",
+							CustomType:          customtypes.NewObjectType[TFConnectionsSchemaRegistryAuthenticationModel](ctx),
+							Attributes: map[string]schema.Attribute{
+								"password": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Password or Private Key for authentication.",
+								},
+								"type": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry.",
+								},
+								"username": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "Username or Public Key for authentication.",
+								},
+							},
+						},
+						"schema_registry_urls": schema.SetAttribute{
+							Computed:            true,
+							MarkdownDescription: "List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.",
+							CustomType:          customtypes.NewSetType[types.String](ctx),
+							ElementType:         types.StringType,
+						},
 						"security": schema.SingleNestedAttribute{
 							Computed:            true,
 							MarkdownDescription: "Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.",
@@ -200,7 +229,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"cloud_provider": schema.StringAttribute{
 						Required:            true,
-						MarkdownDescription: "Label that identifies the cloud service provider where MongoDB Cloud performs stream processing. Currently, this parameter only supports AWS and AZURE.",
+						MarkdownDescription: "Human-readable label that identifies the cloud provider.",
 					},
 					"region": schema.StringAttribute{
 						Required:            true,
@@ -267,19 +296,22 @@ type TFModel struct {
 	StreamConfig      customtypes.ObjectValue[TFStreamConfigModel]      `tfsdk:"stream_config" autogen:"omitjsonupdate"`
 }
 type TFConnectionsModel struct {
-	Authentication   customtypes.ObjectValue[TFConnectionsAuthenticationModel]  `tfsdk:"authentication" autogen:"omitjson"`
-	Aws              customtypes.ObjectValue[TFConnectionsAwsModel]             `tfsdk:"aws" autogen:"omitjson"`
-	BootstrapServers types.String                                               `tfsdk:"bootstrap_servers" autogen:"omitjson"`
-	ClusterGroupId   types.String                                               `tfsdk:"cluster_group_id" autogen:"omitjson"`
-	ClusterName      types.String                                               `tfsdk:"cluster_name" autogen:"omitjson"`
-	Config           customtypes.MapValue[types.String]                         `tfsdk:"config" autogen:"omitjson"`
-	DbRoleToExecute  customtypes.ObjectValue[TFConnectionsDbRoleToExecuteModel] `tfsdk:"db_role_to_execute" autogen:"omitjson"`
-	Headers          customtypes.MapValue[types.String]                         `tfsdk:"headers" autogen:"omitjson"`
-	Name             types.String                                               `tfsdk:"name" autogen:"omitjson"`
-	Networking       customtypes.ObjectValue[TFConnectionsNetworkingModel]      `tfsdk:"networking" autogen:"omitjson"`
-	Security         customtypes.ObjectValue[TFConnectionsSecurityModel]        `tfsdk:"security" autogen:"omitjson"`
-	Type             types.String                                               `tfsdk:"type" autogen:"omitjson"`
-	Url              types.String                                               `tfsdk:"url" autogen:"omitjson"`
+	Authentication               customtypes.ObjectValue[TFConnectionsAuthenticationModel]               `tfsdk:"authentication" autogen:"omitjson"`
+	Aws                          customtypes.ObjectValue[TFConnectionsAwsModel]                          `tfsdk:"aws" autogen:"omitjson"`
+	BootstrapServers             types.String                                                            `tfsdk:"bootstrap_servers" autogen:"omitjson"`
+	ClusterGroupId               types.String                                                            `tfsdk:"cluster_group_id" autogen:"omitjson"`
+	ClusterName                  types.String                                                            `tfsdk:"cluster_name" autogen:"omitjson"`
+	Config                       customtypes.MapValue[types.String]                                      `tfsdk:"config" autogen:"omitjson"`
+	DbRoleToExecute              customtypes.ObjectValue[TFConnectionsDbRoleToExecuteModel]              `tfsdk:"db_role_to_execute" autogen:"omitjson"`
+	Headers                      customtypes.MapValue[types.String]                                      `tfsdk:"headers" autogen:"omitjson"`
+	Name                         types.String                                                            `tfsdk:"name" autogen:"omitjson"`
+	Networking                   customtypes.ObjectValue[TFConnectionsNetworkingModel]                   `tfsdk:"networking" autogen:"omitjson"`
+	Provider                     types.String                                                            `tfsdk:"provider" autogen:"omitjson"`
+	SchemaRegistryAuthentication customtypes.ObjectValue[TFConnectionsSchemaRegistryAuthenticationModel] `tfsdk:"schema_registry_authentication" autogen:"omitjson"`
+	SchemaRegistryUrls           customtypes.SetValue[types.String]                                      `tfsdk:"schema_registry_urls" autogen:"omitjson"`
+	Security                     customtypes.ObjectValue[TFConnectionsSecurityModel]                     `tfsdk:"security" autogen:"omitjson"`
+	Type                         types.String                                                            `tfsdk:"type" autogen:"omitjson"`
+	Url                          types.String                                                            `tfsdk:"url" autogen:"omitjson"`
 }
 type TFConnectionsAuthenticationModel struct {
 	ClientId                  types.String `tfsdk:"client_id" autogen:"omitjson"`
@@ -311,6 +343,11 @@ type TFConnectionsNetworkingAccessModel struct {
 	Name         types.String `tfsdk:"name" autogen:"omitjson"`
 	TgwRouteId   types.String `tfsdk:"tgw_route_id" autogen:"omitjson"`
 	Type         types.String `tfsdk:"type" autogen:"omitjson"`
+}
+type TFConnectionsSchemaRegistryAuthenticationModel struct {
+	Password types.String `tfsdk:"password" autogen:"omitjson"`
+	Type     types.String `tfsdk:"type" autogen:"omitjson"`
+	Username types.String `tfsdk:"username" autogen:"omitjson"`
 }
 type TFConnectionsSecurityModel struct {
 	BrokerPublicCertificate types.String `tfsdk:"broker_public_certificate" autogen:"omitjson"`

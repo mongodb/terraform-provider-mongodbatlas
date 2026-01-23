@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
@@ -37,9 +36,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaddresses"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectserviceaccountaccesslistentry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountaccesslistentry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamaccountdetails"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
@@ -47,6 +48,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccount"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccountsecret"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccount"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccountprojectassignment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccountsecret"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -59,7 +65,7 @@ const (
 	ProviderMetaModuleVersionDesc  = "The version of the module using the provider"
 )
 
-type MongodbtlasProvider struct {
+type MongodbatlasProvider struct {
 }
 
 type tfModel struct {
@@ -84,12 +90,12 @@ type tfAssumeRoleModel struct {
 	RoleARN types.String `tfsdk:"role_arn"`
 }
 
-func (p *MongodbtlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+func (p *MongodbatlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "mongodbatlas"
 	resp.Version = version.ProviderVersion
 }
 
-func (p *MongodbtlasProvider) MetaSchema(ctx context.Context, req provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
+func (p *MongodbatlasProvider) MetaSchema(ctx context.Context, req provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
 	resp.Schema = metaschema.Schema{
 		Attributes: map[string]metaschema.Attribute{
 			ProviderMetaModuleName: metaschema.StringAttribute{
@@ -109,7 +115,7 @@ func (p *MongodbtlasProvider) MetaSchema(ctx context.Context, req provider.MetaS
 	}
 }
 
-func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *MongodbatlasProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Blocks: map[string]schema.Block{
 			"assume_role": fwAssumeRoleSchema,
@@ -188,7 +194,7 @@ var fwAssumeRoleSchema = schema.ListNestedBlock{
 	},
 }
 
-func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *MongodbatlasProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	providerVars := getProviderVars(ctx, req, resp)
 	if resp.Diagnostics.HasError() {
 		return
@@ -255,7 +261,7 @@ func applyGovBaseURLIfNeeded(providerBaseURL string, providerIsMongodbGovCloud b
 	return providerBaseURL
 }
 
-func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {
+func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.DataSource {
 	dataSources := []func() datasource.DataSource{
 		project.DataSource,
 		project.PluralDataSource,
@@ -301,6 +307,18 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		apikeyprojectassignment.PluralDataSource,
 		advancedcluster.DataSource,
 		advancedcluster.PluralDataSource,
+		serviceaccount.DataSource,
+		serviceaccount.PluralDataSource,
+		serviceaccountsecret.DataSource,
+		serviceaccountprojectassignment.DataSource,
+		serviceaccountprojectassignment.PluralDataSource,
+		serviceaccountaccesslistentry.DataSource,
+		serviceaccountaccesslistentry.PluralDataSource,
+		projectserviceaccount.DataSource,
+		projectserviceaccount.PluralDataSource,
+		projectserviceaccountsecret.DataSource,
+		projectserviceaccountaccesslistentry.DataSource,
+		projectserviceaccountaccesslistentry.PluralDataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
@@ -309,7 +327,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 	return analyticsDataSources
 }
 
-func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
+func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Resource {
 	resources := []func() resource.Resource{
 		project.Resource,
 		encryptionatrest.Resource,
@@ -333,6 +351,13 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		teamprojectassignment.Resource,
 		clouduserteamassignment.Resource,
 		advancedcluster.Resource,
+		serviceaccount.Resource,
+		serviceaccountsecret.Resource,
+		serviceaccountprojectassignment.Resource,
+		serviceaccountaccesslistentry.Resource,
+		projectserviceaccount.Resource,
+		projectserviceaccountsecret.Resource,
+		projectserviceaccountaccesslistentry.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {
@@ -342,7 +367,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 }
 
 func NewFrameworkProvider() provider.Provider {
-	return &MongodbtlasProvider{}
+	return &MongodbatlasProvider{}
 }
 
 func MuxProviderFactory() func() tfprotov6.ProviderServer {

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -1142,11 +1142,11 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 func waitOnClusterDeleteDone(t *testing.T, projectID, clusterName string) {
 	t.Helper()
 	diags := &diag.Diagnostics{}
-	clusterResp, _ := advancedcluster.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false)
+	clusterResp, _ := advancedcluster.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false, false)
 	if clusterResp == nil {
 		t.Fatalf("cluster %s not found in %s", clusterName, projectID)
 	}
-	advancedcluster.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedcluster.ClusterWaitParams{
+	_ = advancedcluster.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedcluster.ClusterWaitParams{
 		ProjectID:   projectID,
 		ClusterName: clusterName,
 		Timeout:     60 * time.Second,

@@ -9,52 +9,71 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: id
                       tf_model_name: Id
+                      api_name: id
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - string: {}
                       description: Human-readable label that describes a user.
                       computed_optional_required: computed
                       tf_schema_name: name
                       tf_model_name: Name
+                      api_name: name
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
           description: The user that last updated the atlas resource policy.
           custom_type:
             package: customtypes
+            name: CreatedByUser
             model: customtypes.ObjectValue[TFCreatedByUserModel]
             schema: customtypes.NewObjectType[TFCreatedByUserModel](ctx)
           computed_optional_required: computed
           tf_schema_name: created_by_user
           tf_model_name: CreatedByUser
+          api_name: createdByUser
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Date and time in UTC when the atlas resource policy was created.
           computed_optional_required: computed
           tf_schema_name: created_date
           tf_model_name: CreatedDate
+          api_name: createdDate
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Description of the atlas resource policy.
           computed_optional_required: optional
           tf_schema_name: description
           tf_model_name: Description
+          api_name: description
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Unique 24-hexadecimal character string that identifies the atlas resource policy.
           computed_optional_required: computed
           tf_schema_name: id
           tf_model_name: Id
+          api_name: id
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - single_nested:
             nested_object:
                 attributes:
@@ -63,52 +82,71 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: id
                       tf_model_name: Id
+                      api_name: id
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - string: {}
                       description: Human-readable label that describes a user.
                       computed_optional_required: computed
                       tf_schema_name: name
                       tf_model_name: Name
+                      api_name: name
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
           description: The user that last updated the atlas resource policy.
           custom_type:
             package: customtypes
+            name: LastUpdatedByUser
             model: customtypes.ObjectValue[TFLastUpdatedByUserModel]
             schema: customtypes.NewObjectType[TFLastUpdatedByUserModel](ctx)
           computed_optional_required: computed
           tf_schema_name: last_updated_by_user
           tf_model_name: LastUpdatedByUser
+          api_name: lastUpdatedByUser
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Date and time in UTC when the atlas resource policy was last updated.
           computed_optional_required: computed
           tf_schema_name: last_updated_date
           tf_model_name: LastUpdatedDate
+          api_name: lastUpdatedDate
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Human-readable label that describes the atlas resource policy.
           computed_optional_required: required
           tf_schema_name: name
           tf_model_name: Name
+          api_name: name
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
           computed_optional_required: required
           tf_schema_name: org_id
           tf_model_name: OrgId
+          api_name: orgId
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+          present_in_any_response: true
+          request_only_required_on_create: false
         - list_nested:
             nested_object:
                 attributes:
@@ -117,36 +155,49 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: body
                       tf_model_name: Body
+                      api_name: body
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - string: {}
                       description: Unique 24-hexadecimal character string that identifies the policy.
                       computed_optional_required: computed
                       tf_schema_name: id
                       tf_model_name: Id
+                      api_name: id
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
           description: List of policies that make up the atlas resource policy.
           custom_type:
             package: customtypes
+            name: Policies
             model: customtypes.NestedListValue[TFPoliciesModel]
             schema: customtypes.NewNestedListType[TFPoliciesModel](ctx)
           computed_optional_required: required
           tf_schema_name: policies
           tf_model_name: Policies
+          api_name: policies
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: A string that identifies the version of the atlas resource policy.
           computed_optional_required: computed
           tf_schema_name: version
           tf_model_name: Version
+          api_name: version
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
 operations:
     delete:
         http_method: DELETE

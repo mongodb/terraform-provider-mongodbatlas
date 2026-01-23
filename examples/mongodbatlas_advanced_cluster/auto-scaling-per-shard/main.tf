@@ -3,10 +3,18 @@ provider "mongodbatlas" {
   client_secret = var.atlas_client_secret
 }
 
+resource "mongodbatlas_project" "project" {
+  name   = "AutoScalingPerShardCluster"
+  org_id = var.atlas_org_id
+}
+
+# Recommended approach: Using use_effective_fields to simplify auto-scaling management
 resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = mongodbatlas_project.project.id
-  name         = "AutoScalingCluster"
-  cluster_type = "SHARDED"
+  project_id           = mongodbatlas_project.project.id
+  name                 = "AutoScalingCluster"
+  cluster_type         = "SHARDED"
+  use_effective_fields = true
+
   replication_specs = [
     { # first shard
       region_configs = [
@@ -20,11 +28,11 @@ resource "mongodbatlas_advanced_cluster" "test" {
             compute_max_instance_size = "M60"
           }
           electable_specs = {
-            instance_size = "M40"
+            instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
             node_count    = 3
           }
           analytics_specs = {
-            instance_size = "M40"
+            instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
             node_count    = 1
           }
           provider_name = "AWS"
@@ -46,11 +54,11 @@ resource "mongodbatlas_advanced_cluster" "test" {
             compute_max_instance_size = "M60"
           }
           electable_specs = {
-            instance_size = "M40"
+            instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
             node_count    = 3
           }
           analytics_specs = {
-            instance_size = "M40"
+            instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
             node_count    = 1
           }
           provider_name = "AWS"
@@ -61,18 +69,26 @@ resource "mongodbatlas_advanced_cluster" "test" {
       zone_name = "Zone 1"
     }
   ]
-
-  lifecycle { # avoids non-empty plans as instance size start to scale from initial values
-    ignore_changes = [
-      replication_specs[0].region_configs[0].electable_specs.instance_size,
-      replication_specs[0].region_configs[0].analytics_specs.instance_size,
-      replication_specs[1].region_configs[0].electable_specs.instance_size,
-      replication_specs[1].region_configs[0].analytics_specs.instance_size
-    ]
-  }
 }
 
-resource "mongodbatlas_project" "project" {
-  name   = "AutoScalingPerShardCluster"
-  org_id = var.atlas_org_id
+# Read effective values to see what Atlas has scaled to
+data "mongodbatlas_advanced_cluster" "test" {
+  project_id           = mongodbatlas_advanced_cluster.test.project_id
+  name                 = mongodbatlas_advanced_cluster.test.name
+  use_effective_fields = true
+  depends_on           = [mongodbatlas_advanced_cluster.test]
+}
+
+# Output to show both configured and actual (effective) sizes
+output "shard_sizes" {
+  description = "Configured vs actual instance sizes for each shard"
+  value = [
+    for idx, spec in data.mongodbatlas_advanced_cluster.test.replication_specs : {
+      shard_index           = idx
+      zone_name             = spec.zone_name
+      configured_size       = spec.region_configs[0].electable_specs.instance_size
+      actual_electable_size = spec.region_configs[0].effective_electable_specs.instance_size
+      actual_analytics_size = spec.region_configs[0].effective_analytics_specs.instance_size
+    }
+  ]
 }

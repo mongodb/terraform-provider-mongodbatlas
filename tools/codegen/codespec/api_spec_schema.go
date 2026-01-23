@@ -19,7 +19,6 @@ type APISpecResource struct {
 	ReadOp             *high.Operation
 	UpdateOp           *high.Operation
 	DeleteOp           *high.Operation
-	CommonParameters   []*high.Parameter
 }
 
 func (s *APISpecSchema) GetComputability(name string) ComputedOptionalRequired {

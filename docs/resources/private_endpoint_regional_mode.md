@@ -125,7 +125,7 @@ resource "aws_vpc_endpoint" "test_east" {
 ```
 
 ### Further Examples
-- [AWS PrivateLink Geosharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
+- [AWS PrivateLink Geosharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
 
 ## Argument Reference
 * `project_id` - (Required) Unique identifier for the project.
@@ -134,12 +134,13 @@ resource "aws_vpc_endpoint" "test_east" {
    * More than one private endpoint in one region and one private endpoint in one or more regions.
 You can create only sharded clusters when you enable the regionalized private endpoint setting. You can't create replica sets.
 
-* `timeouts`- (Optional) The duration of time to wait for Cluster to be created, updated, or deleted. The timeout value is defined by a signed sequence of decimal numbers with a time unit suffix such as: `1h45m`, `300s`, `10m`, etc. The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Private Endpoint Regional Mode operations is `3h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
+* `timeouts` - (Optional) The duration to wait for the Private Endpoint Regional Mode to be created, updated, or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `3h`), `update` (default: `3h`), `delete` (default: `3h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).  
+
 
 ## Additional Reference
 
 In addition to the example shown above, keep in mind:
-* `mongodbatlas_advanced_cluster.cluster_atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded). 
+* `mongodbatlas_advanced_cluster.cluster_atlas.depends_on` - Make your cluster dependent on the project's `mongodbatlas_private_endpoint_regional_mode` as well as any relevant `mongodbatlas_privatelink_endpoint_service` resources.  See an [example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded). 
 * `mongodbatlas_advanced_cluster.cluster_atlas.connection_strings` will differ based on the value of `mongodbatlas_private_endpoint_regional_mode.test.enabled`.
 * For more information on usage with GCP, see [our Privatelink Endpoint Service documentation: Example with GCP](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-gcp)
 * For more information on usage with Azure, see [our Privatelink Endpoint Service documentation: Examples with Azure](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/privatelink_endpoint_service#example-with-azure)

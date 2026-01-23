@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -42,8 +43,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "State of the Encryption At Rest private endpoint.",
 			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Create: true,
-				Delete: true,
+				Create:            true,
+				Delete:            true,
+				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate(constant.DefaultTimeoutDocumentation),
+				DeleteDescription: constant.TimeoutDescriptionDelete(constant.DefaultTimeoutDocumentation),
 			}),
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed: true,

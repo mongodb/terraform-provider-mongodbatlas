@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 )
 
 func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceModel) (*admin.StreamsTenant, diag.Diagnostics) {
@@ -36,14 +36,14 @@ func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceModel
 	return streamTenant, nil
 }
 
-func NewStreamInstanceUpdateReq(ctx context.Context, plan *TFStreamInstanceModel) (*admin.StreamsDataProcessRegion, diag.Diagnostics) {
+func NewStreamInstanceUpdateReq(ctx context.Context, plan *TFStreamInstanceModel) (*admin.StreamsTenantUpdateRequest, diag.Diagnostics) {
 	dataProcessRegion := &TFInstanceProcessRegionSpecModel{}
 	if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil, diags
 	}
-	return &admin.StreamsDataProcessRegion{
-		CloudProvider: dataProcessRegion.CloudProvider.ValueString(),
-		Region:        dataProcessRegion.Region.ValueString(),
+	return &admin.StreamsTenantUpdateRequest{
+		CloudProvider: dataProcessRegion.CloudProvider.ValueStringPointer(),
+		Region:        dataProcessRegion.Region.ValueStringPointer(),
 	}, nil
 }
 

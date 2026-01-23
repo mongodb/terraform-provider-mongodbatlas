@@ -5,22 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"slices"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
-)
-
-const (
-	tagKey                    = "autogen"
-	tagSensitive              = "sensitive"
-	tagValOmitJSON            = "omitjson"
-	tagValOmitJSONUpdate      = "omitjsonupdate"
-	tagValIncludeNullOnUpdate = "includenullonupdate"
 )
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
@@ -53,25 +43,32 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 	objJSON := make(map[string]any)
 	for i := range valModel.NumField() {
 		attrTypeModel := valModel.Type().Field(i)
-		tags := strings.Split(attrTypeModel.Tag.Get(tagKey), ",")
-		if slices.Contains(tags, tagValOmitJSON) {
+		tags := GetPropertyTags(&attrTypeModel)
+		if tags.OmitJSON {
 			continue // skip fields with tag `omitjson`
 		}
-		if isUpdate && slices.Contains(tags, tagValOmitJSONUpdate) {
+		if isUpdate && tags.OmitJSONUpdate {
 			continue // skip fields with tag `omitjsonupdate` if in update mode
 		}
-		attrNameModel := attrTypeModel.Name
+		apiName := getAPINameFromTag(attrTypeModel.Name, tags)
 		attrValModel := valModel.Field(i)
-		includeNullOnUpdate := slices.Contains(tags, tagValIncludeNullOnUpdate)
-		if err := marshalAttr(attrNameModel, attrValModel, objJSON, isUpdate, includeNullOnUpdate); err != nil {
+		if err := marshalAttr(apiName, attrValModel, objJSON, isUpdate, tags); err != nil {
 			return nil, err
 		}
 	}
 	return objJSON, nil
 }
 
-func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any, isUpdate, includeNullOnUpdate bool) error {
-	attrNameJSON := stringcase.Uncapitalize(attrNameModel)
+// getAPINameFromTag extracts the API name from the apiname tag if present (e.g., apiname:"groupId"),
+// otherwise returns the model name uncapitalized as the default JSON name.
+func getAPINameFromTag(modelName string, propertyTags PropertyTags) string {
+	if propertyTags.APIName != nil {
+		return *propertyTags.APIName
+	}
+	return stringcase.Uncapitalize(modelName)
+}
+
+func marshalAttr(attrNameJSON string, attrValModel reflect.Value, objJSON map[string]any, isUpdate bool, tags PropertyTags) error {
 	obj, ok := attrValModel.Interface().(attr.Value)
 	if !ok {
 		panic("marshal expects only Terraform types in the model")
@@ -82,15 +79,20 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 	}
 
 	// Emit empty array for null list/set attributes unless explicit configuration with includeNullOnUpdate
-	if val == nil && isUpdate && !includeNullOnUpdate {
+	if val == nil && isUpdate && !tags.IncludeNullOnUpdate {
 		switch obj.(type) {
 		case customtypes.ListValueInterface, customtypes.NestedListValueInterface, customtypes.SetValueInterface, customtypes.NestedSetValueInterface:
 			val = []any{}
+		case customtypes.MapValueInterface, customtypes.NestedMapValueInterface:
+			val = map[string]any{}
 		}
 	}
 
 	// Emit value if non-nil, or emit null on update when configured by includeNullOnUpdate
-	if val != nil || (isUpdate && includeNullOnUpdate) {
+	if val != nil || (isUpdate && tags.IncludeNullOnUpdate) {
+		if tags.ListAsMap {
+			val = ModifyJSONFromMapToList(val)
+		}
 		objJSON[attrNameJSON] = val
 	}
 	return nil

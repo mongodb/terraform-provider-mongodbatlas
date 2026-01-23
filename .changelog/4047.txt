@@ -1,0 +1,3 @@
+```release-note:new-guide
+Migration Guide: Programmatic API Keys (PAKs) to Service Accounts (SAs)
+```

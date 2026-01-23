@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 )
 
 func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
@@ -20,6 +20,7 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		ClusterGroupId:   plan.ClusterProjectID.ValueStringPointer(),
 		BootstrapServers: plan.BootstrapServers.ValueStringPointer(),
 		Url:              plan.URL.ValueStringPointer(),
+		Provider:         plan.SchemaRegistryProvider.ValueStringPointer(),
 	}
 	if !plan.Authentication.IsNull() {
 		authenticationModel := &TFConnectionAuthenticationModel{}
@@ -103,6 +104,28 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		streamConnection.Headers = &headersMap
 	}
 
+	// SchemaRegistry
+	if !plan.SchemaRegistryURLs.IsNull() {
+		var schemaRegistryURLs []string
+		diags := plan.SchemaRegistryURLs.ElementsAs(ctx, &schemaRegistryURLs, false)
+		if diags.HasError() {
+			return nil, diags
+		}
+		streamConnection.SchemaRegistryUrls = &schemaRegistryURLs
+	}
+
+	if !plan.SchemaRegistryAuthentication.IsNull() {
+		schemaRegistryAuthenticationModel := &TFSchemaRegistryAuthenticationModel{}
+		if diags := plan.SchemaRegistryAuthentication.As(ctx, schemaRegistryAuthenticationModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamConnection.SchemaRegistryAuthentication = &admin.SchemaRegistryAuthentication{
+			Type:     schemaRegistryAuthenticationModel.Type.ValueString(),
+			Username: schemaRegistryAuthenticationModel.Username.ValueStringPointer(),
+			Password: schemaRegistryAuthenticationModel.Password.ValueStringPointer(),
+		}
+	}
+
 	return &streamConnection, nil
 }
 
@@ -124,7 +147,7 @@ func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionM
 }
 
 // NewTFStreamConnection determines if the original model was created with instance_name or workspace_name and sets the appropriate field.
-func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
+func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig, currSchemaRegistryAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
 	streamWorkspaceName := workspaceName
 	if instanceName != "" {
 		streamWorkspaceName = instanceName
@@ -133,14 +156,16 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 	rID := fmt.Sprintf("%s-%s-%s", streamWorkspaceName, projID, conversion.SafeString(apiResp.Name))
 
 	connectionModel := TFStreamConnectionModel{
-		ID:               types.StringValue(rID),
-		ProjectID:        types.StringValue(projID),
-		ConnectionName:   types.StringPointerValue(apiResp.Name),
-		Type:             types.StringPointerValue(apiResp.Type),
-		ClusterName:      types.StringPointerValue(apiResp.ClusterName),
-		ClusterProjectID: types.StringPointerValue(apiResp.ClusterGroupId),
-		BootstrapServers: types.StringPointerValue(apiResp.BootstrapServers),
-		URL:              types.StringPointerValue(apiResp.Url),
+		ID:                     types.StringValue(rID),
+		ProjectID:              types.StringValue(projID),
+		ConnectionName:         types.StringPointerValue(apiResp.Name),
+		Type:                   types.StringPointerValue(apiResp.Type),
+		ClusterName:            types.StringPointerValue(apiResp.ClusterName),
+		ClusterProjectID:       types.StringPointerValue(apiResp.ClusterGroupId),
+		BootstrapServers:       types.StringPointerValue(apiResp.BootstrapServers),
+		URL:                    types.StringPointerValue(apiResp.Url),
+		SchemaRegistryURLs:     types.ListNull(types.StringType),
+		SchemaRegistryProvider: types.StringPointerValue(apiResp.Provider),
 	}
 
 	// Set the appropriate field based on the original model
@@ -167,6 +192,20 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 		}
 		connectionModel.Config = mapValue
 	}
+
+	if apiResp.SchemaRegistryUrls != nil {
+		schemaRegistryURLs, diags := types.ListValueFrom(ctx, types.StringType, apiResp.SchemaRegistryUrls)
+		if diags.HasError() {
+			return nil, diags
+		}
+		connectionModel.SchemaRegistryURLs = schemaRegistryURLs
+	}
+
+	schemaRegistryAuthModel, diags := newTFSchemaRegistryAuthentication(ctx, currSchemaRegistryAuthConfig, apiResp.SchemaRegistryAuthentication)
+	if diags.HasError() {
+		return nil, diags
+	}
+	connectionModel.SchemaRegistryAuthentication = *schemaRegistryAuthModel
 
 	connectionModel.Security = types.ObjectNull(ConnectionSecurityObjectType.AttrTypes)
 	if apiResp.Security != nil {
@@ -265,6 +304,31 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 	return &nullValue, nil
 }
 
+func newTFSchemaRegistryAuthentication(ctx context.Context, currAuthConfig *types.Object, authResp *admin.SchemaRegistryAuthentication) (*types.Object, diag.Diagnostics) {
+	if authResp != nil {
+		resultAuthModel := TFSchemaRegistryAuthenticationModel{
+			Type:     types.StringValue(authResp.Type),
+			Username: types.StringPointerValue(authResp.Username),
+		}
+
+		if currAuthConfig != nil && !currAuthConfig.IsNull() { // if config is available (create & update of resource) password value is set in new state
+			configAuthModel := &TFSchemaRegistryAuthenticationModel{}
+			if diags := currAuthConfig.As(ctx, configAuthModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+				return nil, diags
+			}
+			resultAuthModel.Password = configAuthModel.Password
+		}
+
+		resultObject, diags := types.ObjectValueFrom(ctx, SchemaRegistryAuthenticationObjectType.AttrTypes, resultAuthModel)
+		if diags.HasError() {
+			return nil, diags
+		}
+		return &resultObject, nil
+	}
+	nullValue := types.ObjectNull(SchemaRegistryAuthenticationObjectType.AttrTypes)
+	return &nullValue, nil
+}
+
 func NewTFStreamConnections(ctx context.Context,
 	streamConnectionsConfig *TFStreamConnectionsDSModel,
 	paginatedResult *admin.PaginatedApiStreamsConnection) (*TFStreamConnectionsDSModel, diag.Diagnostics) {
@@ -276,7 +340,7 @@ func NewTFStreamConnections(ctx context.Context,
 
 	for i := range input {
 		projectID := streamConnectionsConfig.ProjectID.ValueString()
-		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, nil, &input[i])
+		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, nil, nil, &input[i])
 		if diags.HasError() {
 			return nil, diags
 		}

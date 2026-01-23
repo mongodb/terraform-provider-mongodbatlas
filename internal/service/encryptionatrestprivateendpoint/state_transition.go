@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
@@ -14,7 +14,6 @@ import (
 )
 
 const (
-	defaultTimeout    = 20 * time.Minute // The amount of time to wait before timeout
 	defaultMinTimeout = 30 * time.Second // Smallest time to wait before refreshes
 )
 

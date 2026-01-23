@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -87,14 +87,14 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	if diags.HasError() {
 		return
 	}
-	model := NewTFModel(ctx, &admin.ClusterDescription20240805{
+	model := newTFModel(ctx, &admin.ClusterDescription20240805{
 		GroupId: projectID,
 		Name:    name,
 	}, diags, nil)
 	if diags.HasError() {
 		return
 	}
-	AddAdvancedConfig(ctx, model, &ProcessArgs{
+	model.AdvancedConfiguration = buildAdvancedConfigObjType(ctx, &ProcessArgs{
 		ArgsDefault:           nil,
 		ClusterAdvancedConfig: nil,
 	}, diags)
@@ -175,7 +175,7 @@ func setReplicationSpecNumShardsAttr(ctx context.Context, stateObj map[string]tf
 		}
 	}
 	if len(specModels) > 0 {
-		model.ReplicationSpecs, _ = types.ListValueFrom(ctx, ReplicationSpecsObjType, specModels)
+		model.ReplicationSpecs, _ = types.ListValueFrom(ctx, replicationSpecsObjType, specModels)
 	}
 }
 
@@ -185,7 +185,7 @@ func replicationSpecModelWithNumShards(numShardsVal tftypes.Value) *TFReplicatio
 		return nil
 	}
 	return &TFReplicationSpecsModel{
-		RegionConfigs: types.ListNull(RegionConfigsObjType),
+		RegionConfigs: types.ListNull(regionConfigsObjType),
 		ContainerId:   types.MapNull(types.StringType),
 		ExternalId:    types.StringNull(),
 		ZoneId:        types.StringNull(),

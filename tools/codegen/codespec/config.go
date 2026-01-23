@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 )
+
+var commonIgnoredAttributes = []string{"total_count", "envelope", "items_per_page", "page_num", "links", "pretty", "include_count"}
 
 const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. " +
 	"When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for " +
@@ -14,60 +17,146 @@ const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resour
 	"transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`."
 
 func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resource *Resource) error {
-	if err := applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, ""); err != nil {
+	if resource == nil || resource.Schema == nil {
+		return nil
+	}
+	// Start with empty paths for both schemaPath (snake_case) and apiPath (camelCase)
+	if err := applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
-	applyAliasToPathParams(resource, resourceConfig.SchemaOptions.Aliases)
+	applyAliasToPathParams(&resource.Operations, resourceConfig.SchemaOptions.Aliases)
 	ApplyDeleteOnCreateTimeoutTransformation(resource)
 	ApplyTimeoutTransformation(resource)
 	return nil
 }
 
+// ApplyTransformationsToDataSources applies schema transformations and path param aliasing to data sources.
+// This mirrors applyTransformationsWithConfigOpts for resources, without timeout-related and create-only transformations.
+// Exported for testing purposes.
+func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSources) error {
+	if ds == nil || ds.Schema == nil {
+		return nil
+	}
+
+	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.SingularDSAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
+		return fmt.Errorf("failed to apply attribute transformations for singular data source: %w", err)
+	}
+	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.PluralDSAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
+		return fmt.Errorf("failed to apply attribute transformations for plural data source: %w", err)
+	}
+
+	applyAliasToPathParams(&ds.Operations, dsConfig.SchemaOptions.Aliases)
+	return nil
+}
+
+// applyAliasToPathParams replaces path parameter placeholders with their aliased names in all operation paths.
+// Works for both resources (Create, Read, Update, Delete) and data sources (Read, List).
+func applyAliasToPathParams(operations *APIOperations, aliases map[string]string) {
+	if operations == nil {
+		return
+	}
+
+	for original, alias := range aliases {
+		placeholder := fmt.Sprintf("{%s}", original)
+		aliasedPlaceholder := fmt.Sprintf("{%s}", alias)
+
+		if operations.Create != nil {
+			operations.Create.Path = strings.ReplaceAll(operations.Create.Path, placeholder, aliasedPlaceholder)
+		}
+		if operations.Read != nil {
+			operations.Read.Path = strings.ReplaceAll(operations.Read.Path, placeholder, aliasedPlaceholder)
+		}
+		if operations.Update != nil {
+			operations.Update.Path = strings.ReplaceAll(operations.Update.Path, placeholder, aliasedPlaceholder)
+		}
+		if operations.Delete != nil {
+			operations.Delete.Path = strings.ReplaceAll(operations.Delete.Path, placeholder, aliasedPlaceholder)
+		}
+		if operations.List != nil {
+			operations.List.Path = strings.ReplaceAll(operations.List.Path, placeholder, aliasedPlaceholder)
+		}
+	}
+}
+
+// attrPaths holds both the snake_case path (for overrides) and the camelCase path (for aliases).
+// This avoids the lossy conversion from snake to camel case which can cause mismatches with API properties
+// that have multiple consecutive uppercase letters (e.g., MongoDBMajorVersion).
+type attrPaths struct {
+	schemaPath string // snake_case path for overrides (e.g., "replication_specs.region_configs")
+	apiPath    string // camelCase path for aliases (e.g., "replicationSpecs.regionConfigs")
+}
+
 // AttributeTransformation represents a operation applied to an attribute during traversal.
 // Implementations may mutate the attribute in-place.
-type AttributeTransformation func(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) error
+type AttributeTransformation func(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error
 
 var transformations = []AttributeTransformation{
 	aliasTransformation,
-	overridesTransformation,
+	commonRSAndDSOverridesTransformation,
+	immutableComputedOverrideTransformation,
+	tagsAndLabelsAsMapTypeTransformation,
 	createOnlyTransformation,
+	requestOnlyRequiredOnCreateTransformation,
 }
 
-func applyAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentName string) error {
+var dataSourceTransformations = []AttributeTransformation{
+	aliasTransformation,
+	commonRSAndDSOverridesTransformation,
+	tagsAndLabelsAsMapTypeTransformation,
+	// Note: resource-specific transformations (createOnly, requestOnlyRequiredOnCreate, immutableComputed) are excluded for data sources
+}
+
+func applyAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths) error {
+	return applyAttributeTransformationsList(schemaOptions, attributes, parentPaths, transformations)
+}
+
+func applyDataSourceAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths) error {
+	return applyAttributeTransformationsList(schemaOptions, attributes, parentPaths, dataSourceTransformations)
+}
+
+func applyAttributeTransformationsList(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths, transformationList []AttributeTransformation) error {
+	if attributes == nil {
+		return nil
+	}
+
+	schemaOptions.Ignores = append(schemaOptions.Ignores, commonIgnoredAttributes...)
 	ignoredAttrs := getIgnoredAttributesMap(schemaOptions.Ignores)
 
 	var finalAttributes Attributes
 
 	for i := range *attributes {
 		attr := &(*attributes)[i]
-		attrPathName := getAttributePathName(attr.TFSchemaName, parentName)
+		paths := attrPaths{
+			schemaPath: buildPath(parentPaths.schemaPath, attr.TFSchemaName),
+			apiPath:    buildPath(parentPaths.apiPath, attr.APIName),
+		}
 
-		if shouldIgnoreAttribute(attrPathName, ignoredAttrs) {
+		if shouldIgnoreAttribute(paths.schemaPath, ignoredAttrs) {
 			continue
 		}
 
-		for _, t := range transformations {
-			if err := t(attr, &attrPathName, schemaOptions); err != nil {
+		for _, t := range transformationList {
+			if err := t(attr, &paths, schemaOptions); err != nil {
 				return err
 			}
 		}
 
-		// apply transformations to nested attributes
+		// apply transformations to nested attributes recursively with the same transformation list
 		switch {
 		case attr.ListNested != nil:
-			if err := applyAttributeTransformations(schemaOptions, &attr.ListNested.NestedObject.Attributes, attrPathName); err != nil {
+			if err := applyAttributeTransformationsList(schemaOptions, &attr.ListNested.NestedObject.Attributes, &paths, transformationList); err != nil {
 				return err
 			}
 		case attr.SingleNested != nil:
-			if err := applyAttributeTransformations(schemaOptions, &attr.SingleNested.NestedObject.Attributes, attrPathName); err != nil {
+			if err := applyAttributeTransformationsList(schemaOptions, &attr.SingleNested.NestedObject.Attributes, &paths, transformationList); err != nil {
 				return err
 			}
 		case attr.SetNested != nil:
-			if err := applyAttributeTransformations(schemaOptions, &attr.SetNested.NestedObject.Attributes, attrPathName); err != nil {
+			if err := applyAttributeTransformationsList(schemaOptions, &attr.SetNested.NestedObject.Attributes, &paths, transformationList); err != nil {
 				return err
 			}
 		case attr.MapNested != nil:
-			if err := applyAttributeTransformations(schemaOptions, &attr.MapNested.NestedObject.Attributes, attrPathName); err != nil {
+			if err := applyAttributeTransformationsList(schemaOptions, &attr.MapNested.NestedObject.Attributes, &paths, transformationList); err != nil {
 				return err
 			}
 		}
@@ -79,11 +168,11 @@ func applyAttributeTransformations(schemaOptions config.SchemaOptions, attribute
 	return nil
 }
 
-func getAttributePathName(attrName, parentName string) string {
-	if parentName == "" {
+func buildPath(parentPath, attrName string) string {
+	if parentPath == "" {
 		return attrName
 	}
-	return parentName + "." + attrName
+	return parentPath + "." + attrName
 }
 
 func getIgnoredAttributesMap(ignores []string) map[string]bool {
@@ -94,76 +183,99 @@ func getIgnoredAttributesMap(ignores []string) map[string]bool {
 	return ignoredAttrs
 }
 
-func shouldIgnoreAttribute(attrName string, ignoredAttrs map[string]bool) bool {
-	return ignoredAttrs[attrName]
+func shouldIgnoreAttribute(attrPathName string, ignoredAttrs map[string]bool) bool {
+	return ignoredAttrs[attrPathForTransformations(attrPathName)]
 }
 
-func applyAliasToAttribute(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) {
-	parts := strings.Split(*attrPathName, ".")
+func applyAliasToAttribute(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) {
+	// Config uses full camelCase for aliases (e.g., groupId: projectId, nestedObject.innerAttr: renamedAttr)
+	// The apiPath is built from APIName values which preserve the original casing (e.g., "MongoDBMajorVersion")
+	// This avoids the lossy conversion from snake to camel case.
 
-	for i := range parts {
-		currentPath := strings.Join(parts[:i+1], ".")
+	var aliasCamel string
+	var found bool
 
-		if newName, ok := schemaOptions.Aliases[currentPath]; ok {
-			parts[i] = newName
-
-			if i == len(parts)-1 {
-				attr.TFSchemaName = newName
-			}
-		}
+	// First try path-based lookup for targeted aliasing of nested attributes
+	// apiPath already contains the correct camelCase path built from APIName values
+	if aliasCamel, found = schemaOptions.Aliases[paths.apiPath]; !found {
+		// Fall back to attribute-name only lookup (for path params like groupId: projectId)
+		aliasCamel, found = schemaOptions.Aliases[attr.APIName]
 	}
 
-	*attrPathName = strings.Join(parts, ".")
-}
-
-func applyAliasToPathParams(resource *Resource, aliases map[string]string) {
-	for original, alias := range aliases {
-		resource.Operations.Create.Path = strings.ReplaceAll(resource.Operations.Create.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-		resource.Operations.Read.Path = strings.ReplaceAll(resource.Operations.Read.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-		if resource.Operations.Update != nil {
-			resource.Operations.Update.Path = strings.ReplaceAll(resource.Operations.Update.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
+	if found {
+		// Change both TFSchemaName and TFModelName to the aliased name.
+		// The APIName field preserves the original API property name, and the apiname tag
+		// will be generated when TFModelName doesn't derive to the correct API name.
+		attr.TFSchemaName = stringcase.ToSnakeCase(aliasCamel)
+		attr.TFModelName = stringcase.Capitalize(aliasCamel)
+		// Update the schema path to reflect the new schema name
+		parts := strings.Split(paths.schemaPath, ".")
+		if len(parts) > 0 {
+			parts[len(parts)-1] = attr.TFSchemaName
+			paths.schemaPath = strings.Join(parts, ".")
 		}
-		if resource.Operations.Delete != nil {
-			resource.Operations.Delete.Path = strings.ReplaceAll(resource.Operations.Delete.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-		}
+		// Note: apiPath is not updated because it's only used for alias lookup,
+		// and aliases are defined using original API names
 	}
 }
 
 // Transformations
-func aliasTransformation(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) error {
-	// the config is expected to use alias name for defining any subsequent overrides (description, etc)
-	applyAliasToAttribute(attr, attrPathName, schemaOptions)
+func aliasTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
+	// Alias transformation runs first, updating TFSchemaName and paths.schemaPath.
+	// Subsequent overrides should use the aliased snake_case path (e.g., nested_list_array_attr.inner_num_attr_alias)
+	applyAliasToAttribute(attr, paths, schemaOptions)
 	return nil
 }
 
-func overridesTransformation(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) error {
-	return applyOverrides(attr, *attrPathName, schemaOptions)
+func commonRSAndDSOverridesTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
+	// Overrides use the snake_case schemaPath
+	override, ok := schemaOptions.Overrides[attrPathForTransformations(paths.schemaPath)]
+	if !ok {
+		return nil
+	}
+	if override.Description != "" {
+		attr.Description = &override.Description
+	}
+	if override.Computability != nil {
+		attr.ComputedOptionalRequired = getComputabilityFromConfig(*override.Computability)
+	}
+	if override.Sensitive != nil {
+		attr.Sensitive = *override.Sensitive
+	}
+	if override.IncludeNullOnUpdate != nil && *override.IncludeNullOnUpdate {
+		attr.ReqBodyUsage = IncludeNullOnUpdate
+	}
+	if override.Type != nil {
+		if err := applyTypeOverride(&override, attr); err != nil {
+			return err
+		}
+	}
+	if override.SkipStateListMerge != nil {
+		attr.SkipStateListMerge = *override.SkipStateListMerge
+	}
+	return nil
 }
 
-func createOnlyTransformation(attr *Attribute, _ *string, _ config.SchemaOptions) error {
+func immutableComputedOverrideTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
+	override, ok := schemaOptions.Overrides[attrPathForTransformations(paths.schemaPath)]
+	if !ok {
+		return nil
+	}
+	if override.ImmutableComputed != nil {
+		attr.ImmutableComputed = *override.ImmutableComputed
+	}
+	return nil
+}
+
+func createOnlyTransformation(attr *Attribute, _ *attrPaths, _ config.SchemaOptions) error {
 	setCreateOnlyValue(attr)
 	return nil
 }
 
-func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.SchemaOptions) error {
-	if override, ok := schemaOptions.Overrides[attrPathName]; ok {
-		if override.Description != "" {
-			attr.Description = &override.Description
-		}
-		if override.Computability != nil {
-			attr.ComputedOptionalRequired = getComputabilityFromConfig(*override.Computability)
-		}
-		if override.Sensitive != nil {
-			attr.Sensitive = *override.Sensitive
-		}
-		if override.IncludeNullOnUpdate != nil && *override.IncludeNullOnUpdate {
-			attr.ReqBodyUsage = IncludeNullOnUpdate
-		}
-		if override.Type != nil {
-			if err := applyTypeOverride(&override, attr); err != nil {
-				return err
-			}
-		}
+func requestOnlyRequiredOnCreateTransformation(attr *Attribute, _ *attrPaths, _ config.SchemaOptions) error {
+	if attr.ComputedOptionalRequired == Required && attr.ReqBodyUsage == OmitInUpdateBody && !attr.PresentInAnyResponse {
+		attr.RequestOnlyRequiredOnCreate = true
+		attr.ComputedOptionalRequired = Optional
 	}
 	return nil
 }
@@ -179,6 +291,14 @@ func applyTypeOverride(override *config.Override, attr *Attribute) error {
 			attr.List = nil
 			return nil
 		}
+		if attr.ListNested != nil {
+			if attr.CustomType != nil {
+				attr.CustomType = NewCustomNestedSetType(attr.CustomType.Name)
+			}
+			attr.SetNested = &SetNestedAttribute{NestedObject: attr.ListNested.NestedObject}
+			attr.ListNested = nil
+			return nil
+		}
 	case config.List:
 		if attr.Set != nil {
 			if attr.CustomType != nil {
@@ -186,6 +306,14 @@ func applyTypeOverride(override *config.Override, attr *Attribute) error {
 			}
 			attr.List = &ListAttribute{ElementType: attr.Set.ElementType}
 			attr.Set = nil
+			return nil
+		}
+		if attr.SetNested != nil {
+			if attr.CustomType != nil {
+				attr.CustomType = NewCustomNestedListType(attr.CustomType.Name)
+			}
+			attr.ListNested = &ListNestedAttribute{NestedObject: attr.SetNested.NestedObject}
+			attr.SetNested = nil
 			return nil
 		}
 	default:
@@ -264,4 +392,43 @@ func setCreateOnlyValue(attr *Attribute) {
 	if attr.ReqBodyUsage == OmitAlways || attr.ReqBodyUsage == OmitInUpdateBody {
 		attr.CreateOnly = true
 	}
+}
+
+func attrPathForTransformations(attrPathName string) string {
+	return strings.TrimPrefix(attrPathName, "results.")
+}
+
+// tagsAndLabelsAsMapTypeTransformation transforms attributes that represent collections of key/value pairs (tags and labels) from a nested list of objects into a Map type.
+// This makes the Terraform schema expose a Map type while the underlying Atlas API still uses the array of {key, value} objects.
+func tagsAndLabelsAsMapTypeTransformation(attr *Attribute, _ *attrPaths, _ config.SchemaOptions) error {
+	if attr.TFSchemaName != "tags" && attr.TFSchemaName != "labels" {
+		return nil
+	}
+
+	// We only transform attributes that are currently modeled as list_nested with a nested object that has exactly "key" and "value" string attributes.
+	if attr.ListNested == nil || attr.Map != nil || attr.MapNested != nil {
+		return nil
+	}
+	nestedAttrs := attr.ListNested.NestedObject.Attributes
+	if len(nestedAttrs) != 2 {
+		return nil
+	}
+	for i := range nestedAttrs {
+		nested := nestedAttrs[i]
+		if nested.TFSchemaName != "key" && nested.TFSchemaName != "value" {
+			return nil
+		}
+		if nested.String == nil {
+			return nil
+		}
+	}
+
+	// Rewrite the attribute as a Map of strings with the standard custom map type.
+	attr.ListNested = nil
+	attr.CustomType = NewCustomMapType(String)
+	attr.Map = &MapAttribute{
+		ElementType: String,
+	}
+	attr.ListTypeAsMap = true
+	return nil
 }

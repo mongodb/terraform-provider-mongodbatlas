@@ -37,23 +37,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies this alert configuration.",
 			},
-			"links": schema.ListNestedAttribute{
-				Computed:            true,
-				MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-				CustomType:          customtypes.NewNestedListType[TFLinksModel](ctx),
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"href": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-						"rel": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-					},
-				},
-			},
 			"matchers": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List of rules that determine whether MongoDB Cloud checks an object for the alert configuration.",
@@ -66,7 +49,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"operator": schema.StringAttribute{
 							Required:            true,
-							MarkdownDescription: "Comparison operator to apply when checking the current metric value against **matcher[n].value**.",
+							MarkdownDescription: "Comparison operator to apply when checking the current metric value against **matcher[n].value**. The `REGEX` operator only supports inclusive matches. Use the `NOT_CONTAINS` operator to exclude values.",
 						},
 						"value": schema.StringAttribute{
 							Required:            true,
@@ -230,12 +213,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"webhook_secret": schema.StringAttribute{
 							Optional:            true,
-							MarkdownDescription: "Authentication secret for a webhook-based alert.\n\nAtlas returns this value if you set `\"notifications.[n].typeName\" :\"WEBHOOK\"` and either:\n* You set `notification.[n].webhookSecret` to a non-empty string\n* You set a default webhookSecret either on the Integrations page, or with the [Integrations API](#tag/Third-Party-Service-Integrations/operation/createIntegration)\n\n**NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.",
+							MarkdownDescription: "Authentication secret for a webhook-based alert.\n\nAtlas returns this value if you set `\"notifications.[n].typeName\" :\"WEBHOOK\"` and either:\n* You set `notification.[n].webhookSecret` to a non-empty string\n* You set a default webhookSecret either on the Integrations page, or with the Integrations API\n\n**NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.",
 							Sensitive:           true,
 						},
 						"webhook_url": schema.StringAttribute{
 							Optional:            true,
-							MarkdownDescription: "Target URL for a webhook-based alert.\n\nAtlas returns this value if you set `\"notifications.[n].typeName\" :\"WEBHOOK\"` and either:\n* You set `notification.[n].webhookURL` to a non-empty string\n* You set a default webhookUrl either on the [Integrations](https://www.mongodb.com/docs/atlas/tutorial/third-party-service-integrations/#std-label-third-party-integrations) page, or with the [Integrations API](#tag/Third-Party-Service-Integrations/operation/createIntegration)\n\n**NOTE**: When you view or edit the alert for a Webhook URL notification, the URL appears partially redacted.",
+							MarkdownDescription: "Target URL for a webhook-based alert.\n\nAtlas returns this value if you set `\"notifications.[n].typeName\" :\"WEBHOOK\"` and either:\n* You set `notification.[n].webhookURL` to a non-empty string\n* You set a default webhookUrl either on the Integrations page, or with the Integrations API\n\n**NOTE**: When you view or edit the alert for a Webhook URL notification, the URL appears partially redacted.",
 							Sensitive:           true,
 						},
 					},
@@ -282,7 +265,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Links            customtypes.NestedListValue[TFLinksModel]         `tfsdk:"links" autogen:"omitjson"`
 	Matchers         customtypes.NestedListValue[TFMatchersModel]      `tfsdk:"matchers"`
 	Notifications    customtypes.NestedListValue[TFNotificationsModel] `tfsdk:"notifications"`
 	Created          types.String                                      `tfsdk:"created" autogen:"omitjson"`
@@ -294,10 +276,6 @@ type TFModel struct {
 	Threshold        customtypes.ObjectValue[TFThresholdModel]         `tfsdk:"threshold"`
 	Updated          types.String                                      `tfsdk:"updated" autogen:"omitjson"`
 	Enabled          types.Bool                                        `tfsdk:"enabled"`
-}
-type TFLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
 }
 type TFMatchersModel struct {
 	FieldName types.String `tfsdk:"field_name"`

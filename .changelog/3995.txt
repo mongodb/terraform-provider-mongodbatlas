@@ -1,0 +1,3 @@
+```release-note:bug
+data-source/mongodbatlas_advanced_clusters: Fixes datasource to handle CLUSTER_NOT_FOUND errors from List operation gracefully instead of failing
+```

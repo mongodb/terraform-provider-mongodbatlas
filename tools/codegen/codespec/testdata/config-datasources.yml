@@ -1,0 +1,45 @@
+resources:
+  test_resource_with_datasource:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResource
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResource
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResource
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResource
+      method: DELETE
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/testResource
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/testResources
+        method: GET
+      schema:
+        # Test aliasing groupId -> projectId to verify duplicate detection during merge
+        # (path param groupId should alias to projectId, and if response has projectId it should be deduplicated)
+        aliases:
+          groupId: projectId
+  test_resource_with_datasource_only:
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/testResource
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/testResources
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+  test_resource_with_datasource_list_only:
+    datasources:
+      list:
+        path: /api/atlas/v2/groups/{groupId}/testResources
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId

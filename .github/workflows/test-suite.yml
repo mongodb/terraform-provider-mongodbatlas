@@ -103,7 +103,8 @@ jobs:
   
   slack-notification:
     needs: [tests, variables, clean-after]
-    if: ${{ !cancelled() && needs.tests.result == 'failure' && needs.variables.outputs.send_notification == 'true' }}
+    # tests.result can have execution result of 'failure' or 'cancelled', independently of the test suite not being cancelled. For any form of error we want a notification.
+    if: ${{ !cancelled() && (needs.tests.result == 'failure' || needs.tests.result == 'cancelled') && needs.variables.outputs.send_notification == 'true' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:

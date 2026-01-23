@@ -9,17 +9,23 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
+          api_name: groupId
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
         - string: {}
           description: Human-readable name of the stream processor.
           computed_optional_required: optional
           tf_schema_name: name
           tf_model_name: Name
+          api_name: name
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - single_nested:
             nested_object:
                 attributes:
@@ -31,55 +37,75 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: coll
                                   tf_model_name: Coll
+                                  api_name: coll
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
                                 - string: {}
                                   description: Name of the connection to write DLQ messages to. Must be an Atlas connection.
                                   computed_optional_required: optional
                                   tf_schema_name: connection_name
                                   tf_model_name: ConnectionName
+                                  api_name: connectionName
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
                                 - string: {}
                                   description: Name of the database to use for the DLQ.
                                   computed_optional_required: optional
                                   tf_schema_name: db
                                   tf_model_name: Db
+                                  api_name: db
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
                       description: Dead letter queue for the stream processor.
                       custom_type:
                         package: customtypes
+                        name: OptionsDlq
                         model: customtypes.ObjectValue[TFOptionsDlqModel]
                         schema: customtypes.NewObjectType[TFOptionsDlqModel](ctx)
                       computed_optional_required: optional
                       tf_schema_name: dlq
                       tf_model_name: Dlq
+                      api_name: dlq
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - bool: {}
                       description: When true, the modified stream processor resumes from its last checkpoint.
                       computed_optional_required: optional
                       tf_schema_name: resume_from_checkpoint
                       tf_model_name: ResumeFromCheckpoint
+                      api_name: resumeFromCheckpoint
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                      present_in_any_response: false
+                      request_only_required_on_create: false
           description: Optional configuration for the stream processor.
           custom_type:
             package: customtypes
+            name: Options
             model: customtypes.ObjectValue[TFOptionsModel]
             schema: customtypes.NewObjectType[TFOptionsModel](ctx)
           computed_optional_required: computed_optional
           tf_schema_name: options
           tf_model_name: Options
+          api_name: options
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - list:
             element_type: 5
           description: Stream aggregation pipeline you want to apply to your streaming data.
@@ -90,17 +116,23 @@ schema:
           computed_optional_required: optional
           tf_schema_name: pipeline
           tf_model_name: Pipeline
+          api_name: pipeline
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'.
           computed_optional_required: computed
           tf_schema_name: state
           tf_model_name: State
+          api_name: state
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - map:
             element_type: 5
           description: The stats associated with the stream processor.
@@ -111,25 +143,34 @@ schema:
           computed_optional_required: computed
           tf_schema_name: stats
           tf_model_name: Stats
+          api_name: stats
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Label that identifies the stream workspace.
           computed_optional_required: required
           tf_schema_name: tenant_name
           tf_model_name: TenantName
+          api_name: tenantName
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
         - string: {}
           description: Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.
           computed_optional_required: computed
           tf_schema_name: tier
           tf_model_name: Tier
+          api_name: tier
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - bool:
             default: true
           description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
@@ -139,6 +180,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
         - timeouts:
             configurable_timeouts:
                 - create
@@ -150,6 +193,8 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
 operations:
     delete:
         wait:

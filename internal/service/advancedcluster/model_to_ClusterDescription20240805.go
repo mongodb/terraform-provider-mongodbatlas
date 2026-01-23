@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,7 +41,7 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		PitEnabled:                       conversion.NilForUnknown(input.PitEnabled, input.PitEnabled.ValueBoolPointer()),
 		RedactClientLogData:              conversion.NilForUnknown(input.RedactClientLogData, input.RedactClientLogData.ValueBoolPointer()),
 		ReplicaSetScalingStrategy:        conversion.NilForUnknown(input.ReplicaSetScalingStrategy, input.ReplicaSetScalingStrategy.ValueStringPointer()),
-		ReplicationSpecs:                 newReplicationSpec20240805(ctx, input.ReplicationSpecs, diags),
+		ReplicationSpecs:                 newReplicationSpec(ctx, input.ReplicationSpecs, diags),
 		RootCertType:                     conversion.NilForUnknown(input.RootCertType, input.RootCertType.ValueStringPointer()),
 		Tags:                             newResourceTag(ctx, diags, input.Tags),
 		TerminationProtectionEnabled:     conversion.NilForUnknown(input.TerminationProtectionEnabled, input.TerminationProtectionEnabled.ValueBoolPointer()),
@@ -106,7 +106,7 @@ func newComponentLabel(ctx context.Context, diags *diag.Diagnostics, input types
 	return &ret
 }
 
-func newReplicationSpec20240805(ctx context.Context, input types.List, diags *diag.Diagnostics) *[]admin.ReplicationSpec20240805 {
+func newReplicationSpec(ctx context.Context, input types.List, diags *diag.Diagnostics) *[]admin.ReplicationSpec20240805 {
 	if input.IsUnknown() || input.IsNull() {
 		return nil
 	}
@@ -121,7 +121,7 @@ func newReplicationSpec20240805(ctx context.Context, input types.List, diags *di
 		resp[i] = admin.ReplicationSpec20240805{
 			Id:            conversion.NilForUnknownOrEmptyString(item.ExternalId),
 			ZoneId:        conversion.NilForUnknownOrEmptyString(item.ZoneId),
-			RegionConfigs: newCloudRegionConfig20240805(ctx, item.RegionConfigs, diags),
+			RegionConfigs: newRegionConfig(ctx, item.RegionConfigs, diags),
 			ZoneName:      conversion.StringPtr(resolveZoneNameOrUseDefault(item)),
 		}
 	}
@@ -153,7 +153,7 @@ func newResourceTag(ctx context.Context, diags *diag.Diagnostics, input types.Ma
 	return &ret
 }
 
-func newCloudRegionConfig20240805(ctx context.Context, input types.List, diags *diag.Diagnostics) *[]admin.CloudRegionConfig20240805 {
+func newRegionConfig(ctx context.Context, input types.List, diags *diag.Diagnostics) *[]admin.CloudRegionConfig20240805 {
 	if input.IsUnknown() || input.IsNull() {
 		return nil
 	}
@@ -167,13 +167,13 @@ func newCloudRegionConfig20240805(ctx context.Context, input types.List, diags *
 		item := &elements[i]
 		resp[i] = admin.CloudRegionConfig20240805{
 			AnalyticsAutoScaling: newAdvancedAutoScalingSettings(ctx, item.AnalyticsAutoScaling, diags),
-			AnalyticsSpecs:       newDedicatedHardwareSpec20240805(ctx, item.AnalyticsSpecs, diags),
+			AnalyticsSpecs:       newDedicatedHardwareSpec(ctx, item.AnalyticsSpecs, diags),
 			AutoScaling:          newAdvancedAutoScalingSettings(ctx, item.AutoScaling, diags),
 			BackingProviderName:  conversion.NilForUnknown(item.BackingProviderName, item.BackingProviderName.ValueStringPointer()),
-			ElectableSpecs:       newHardwareSpec20240805(ctx, item.ElectableSpecs, diags),
+			ElectableSpecs:       newHardwareSpec(ctx, item.ElectableSpecs, diags),
 			Priority:             conversion.Int64PtrToIntPtr(item.Priority.ValueInt64Pointer()),
 			ProviderName:         item.ProviderName.ValueStringPointer(),
-			ReadOnlySpecs:        newDedicatedHardwareSpec20240805(ctx, item.ReadOnlySpecs, diags),
+			ReadOnlySpecs:        newDedicatedHardwareSpec(ctx, item.ReadOnlySpecs, diags),
 			RegionName:           item.RegionName.ValueStringPointer(),
 		}
 	}
@@ -195,7 +195,7 @@ func newAdvancedAutoScalingSettings(ctx context.Context, input types.Object, dia
 		DiskGB:  newDiskGBAutoScaling(ctx, input, diags),
 	}
 }
-func newHardwareSpec20240805(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.HardwareSpec20240805 {
+func newHardwareSpec(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.HardwareSpec20240805 {
 	var resp *admin.HardwareSpec20240805
 	if input.IsUnknown() || input.IsNull() {
 		return resp
@@ -213,7 +213,7 @@ func newHardwareSpec20240805(ctx context.Context, input types.Object, diags *dia
 		NodeCount:     conversion.NilForUnknown(item.NodeCount, conversion.Int64PtrToIntPtr(item.NodeCount.ValueInt64Pointer())),
 	}
 }
-func newDedicatedHardwareSpec20240805(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.DedicatedHardwareSpec20240805 {
+func newDedicatedHardwareSpec(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.DedicatedHardwareSpec20240805 {
 	var resp *admin.DedicatedHardwareSpec20240805
 	if input.IsUnknown() || input.IsNull() {
 		return resp

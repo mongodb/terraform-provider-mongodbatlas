@@ -9,6 +9,25 @@ tags:
   - description: Test Resource root description.
     name: Test Resource
 paths:
+  "/api/atlas/v2/groups/{groupId}/testResources":
+    get:
+      description: LIST API description
+      operationId: listTestResourceConfigurations
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/PaginatedTestResourceResponse"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: List all Test Resource configurations for a project
+      tags:
+        - Test Resource
   "/api/atlas/v2/groups/{groupId}/testResource":
     delete:
       description: DELETE API description
@@ -105,7 +124,7 @@ paths:
               x-xgen-version: 2023-01-01
           description: OK
       security:
-        - DigestAuth: [ ]
+        - DigestAuth: []
       summary: Disable the Test Resource feature for a project.
       tags:
         - Test Resource
@@ -123,7 +142,7 @@ paths:
               x-xgen-version: 2023-01-01
           description: OK
       security:
-        - DigestAuth: [ ]
+        - DigestAuth: []
       summary: Get the Test Resource configuration for a project
       tags:
         - Test Resource
@@ -147,7 +166,7 @@ paths:
               x-xgen-version: 2023-01-01
           description: OK
       security:
-        - DigestAuth: [ ]
+        - DigestAuth: []
       summary: Enable the Test Resource feature for a project
       tags:
         - Test Resource
@@ -397,7 +416,7 @@ paths:
               x-xgen-version: 2023-01-01
           description: OK
       security:
-        - DigestAuth: [ ]
+        - DigestAuth: []
       summary: Get the Test Singleton Resource configuration for a project
       tags:
         - Test Resource
@@ -421,7 +440,7 @@ paths:
               x-xgen-version: 2023-01-01
           description: OK
       security:
-        - DigestAuth: [ ]
+        - DigestAuth: []
       summary: Update the Test Singleton Resource feature for a project
       tags:
         - Test Singleton Resource
@@ -548,6 +567,38 @@ paths:
             application/vnd.atlas.2024-05-30+json:
               schema:
                 $ref: "#/components/schemas/DynamicJsonProps"
+  "/api/atlas/v2/tagsAndLabels":
+    post:
+      requestBody:
+        content:
+          application/vnd.atlas.2024-05-30+json:
+            schema:
+              $ref: "#/components/schemas/TagsAndLabels"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/TagsAndLabels"
+    get:
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/TagsAndLabels"
+    patch:
+      requestBody:
+        content:
+          application/vnd.atlas.2024-05-30+json:
+            schema:
+              $ref: "#/components/schemas/TagsAndLabels"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/TagsAndLabels"
   "/api/atlas/v2/groups/{groupId}/simpleTestResource":
     delete:
       description: DELETE API description
@@ -631,6 +682,180 @@ paths:
       summary: Enable the Simple Test Resource feature for a project
       tags:
         - Test Resource
+  "/api/atlas/v2/groups/{groupId}/testResourceWithMultipleCaps":
+    delete:
+      description: DELETE API description
+      operationId: deleteTestResourceWithMultipleCapsConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Delete the Test Resource With Multiple Caps feature for a project
+      tags:
+        - Test Resource
+    get:
+      description: GET API description
+      operationId: getTestResourceWithMultipleCapsConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/TestResourceWithMultipleCaps"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Get the Test Resource With Multiple Caps configuration for a project
+      tags:
+        - Test Resource
+    patch:
+      description: PATCH API description
+      operationId: updateTestResourceWithMultipleCapsConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResourceWithMultipleCaps"
+            x-xgen-version: 2023-01-01
+        description: Patch request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Update the Test Resource With Multiple Caps feature for a project
+      tags:
+        - Test Resource
+    post:
+      description: POST API description
+      operationId: createTestResourceWithMultipleCapsConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResourceWithMultipleCaps"
+            x-xgen-version: 2023-01-01
+        description: Create request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Enable the Test Resource With Multiple Caps feature for a project
+      tags:
+        - Test Resource
+  "/api/atlas/v2/groups/{groupId}/users":
+    post:
+      description: POST API description
+      operationId: createUserConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/UserResourceRequest"
+            x-xgen-version: 2023-01-01
+        description: Create request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/UserResource"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Create a user
+      tags:
+        - Test Resource
+  "/api/atlas/v2/groups/{groupId}/users/{username}":
+    delete:
+      description: DELETE API description
+      operationId: deleteUserConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/username"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Delete a user
+      tags:
+        - Test Resource
+    get:
+      description: GET API description
+      operationId: getUserConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/username"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/UserResource"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Get a user
+      tags:
+        - Test Resource
+    patch:
+      description: PATCH API description
+      operationId: updateUserConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/username"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/UserResourceRequest"
+            x-xgen-version: 2023-01-01
+        description: Patch request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/UserResource"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Update a user
+      tags:
+        - Test Resource
 components:
   parameters:
     groupId:
@@ -653,10 +878,40 @@ components:
       schema:
         type: string
         description: Path param test description
+    username:
+      description: Path param test description
+      in: path
+      name: username
+      required: true
+      schema:
+        type: string
+        description: Path param test description
   responses:
     accepted:
       description: Accepted.
   schemas:
+    TagsAndLabels:
+      type: object
+      properties:
+        tags:
+          $ref: "#/components/schemas/Tags"
+        labels:
+          $ref: "#/components/schemas/Tags"
+    Tags:
+      type: array
+      items:
+        type: object 
+        properties:
+          key:
+            description: "Constant that defines the set of the tag. For example, `environment` in the `environment : production` tag."
+            type: string
+          value:
+            description: "Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag."
+            type: string
+        required:
+          - key
+          - value
+    
     DynamicJsonProps:
       type: object
       properties:
@@ -733,6 +988,16 @@ components:
           type: number
           format: double
           default: 2.0
+    PaginatedTestResourceResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/TestResource"
+        totalCount:
+          type: integer
+          format: int32
     TestResourceNoUpdate:
       type: object
       properties:
@@ -928,3 +1193,47 @@ components:
           description: Test field description
       required:
         - stringAttr
+    TestResourceWithMultipleCaps:
+      type: object
+      properties:
+        MongoDBMajorVersion:
+          type: string
+          description: MongoDB major version with multiple consecutive capital letters
+        nestedObject:
+          type: object
+          properties:
+            innerAttr:
+              type: string
+              description: Inner attribute
+          required:
+            - innerAttr
+        nestedObjectDB:
+          type: object
+          properties:
+            apiKey:
+              type: string
+              description: API key for the nested object DB
+          required:
+            - apiKey
+      required:
+        - MongoDBMajorVersion
+    UserResourceRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Test field description
+        email:
+          type: string
+          description: Test field description
+      required:
+        - username
+    UserResource:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Test field description
+        email:
+          type: string
+          description: Test field description

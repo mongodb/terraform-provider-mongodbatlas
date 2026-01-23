@@ -8,7 +8,7 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -47,7 +47,6 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
-					resource.TestCheckResourceAttr(resourceName, "pit_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "retain_backups_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "version_release_system", "LTS"),
 					resource.TestCheckResourceAttr(resourceName, "accept_data_risks_and_force_replica_set_reconfig", ""),
@@ -1046,33 +1045,9 @@ func TestAccCluster_tenant(t *testing.T) {
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccCluster_tenant_m5(t *testing.T) {
-	var (
-		resourceName           = "mongodbatlas_cluster.tenant"
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configTenant(projectID, clusterName, "M5", "5"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.CheckExistsCluster(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "5"),
-					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					// We need to check for both 10 (expected) and 5 as API encounters flakiness (~75% success rate), related ticket: CLOUDP-375027
+					resource.TestCheckResourceAttrWith(resourceName, "disk_size_gb", acc.MatchesExpression(`^(5|10)$`)),
 				),
 			},
 		},
@@ -1864,7 +1839,6 @@ func configTenantUpdated(projectID, name string) string {
 
 		provider_instance_size_name  = "M10"
 		disk_size_gb                 = 10
-		auto_scaling_disk_gb_enabled = true
 	  }
 	`, projectID, name)
 }

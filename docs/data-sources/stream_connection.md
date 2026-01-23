@@ -37,7 +37,7 @@ data "mongodbatlas_stream_connection" "example" {
 
 ## Attributes Reference
 
-* `type` - Type of connection. Can be `AWSLambda`, `Cluster`, `Https`, `Kafka` or `Sample`.
+* `type` - Type of connection. Can be `AWSLambda`, `Cluster`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -57,6 +57,11 @@ If `type` is of value `AWSLambda` the following additional attributes are define
 If `type` is of value `Https` the following additional attributes are defined:
 * `url` - URL of the HTTPs endpoint that will be used for creating a connection.
 * `headers` - A map of key-value pairs for optional headers.
+
+If `type` is of value `SchemaRegistry` the following additional attributes are defined:
+* `schema_registry_provider` - The Schema Registry provider. Must be set to `CONFLUENT`.
+* `schema_registry_urls` - List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
+* `schema_registry_authentication` - Authentication configuration for Schema Registry. See [Schema Registry Authentication](#schema-registry-authentication).
 
 ### Authentication
 
@@ -89,6 +94,13 @@ If `type` is of value `Https` the following additional attributes are defined:
 
 ### AWS
 * `role_arn` - Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account. 
+
+### Schema Registry Authentication
+* `type` - Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry. Valid values are `USER_INFO` or `SASL_INHERIT`.
+  * `USER_INFO` - Uses username and password authentication for Confluent Schema Registry.
+  * `SASL_INHERIT` - Inherits the authentication configuration from Kafka for the Confluent Schema Registry.
+* `username` - Username for the Schema Registry. Required when `type` is `USER_INFO`.
+* `password` - Password for the Schema Registry. Required when `type` is `USER_INFO`.
 
 To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/getStreamConnection) Documentation.
 The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_instance/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.
