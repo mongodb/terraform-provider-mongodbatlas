@@ -245,7 +245,7 @@ func TestAccProjectAPIKey_invalidRole(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configBasic(description, projectID, "INVALID_ROLE"),
-				ExpectError: regexp.MustCompile("INVALID_ENUM_VALUE"),
+				ExpectError: regexp.MustCompile("Invalid role"),
 			},
 		},
 	})

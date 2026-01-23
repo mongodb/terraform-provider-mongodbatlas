@@ -7,7 +7,7 @@ type Int64AttrGenerator struct {
 	attr     codespec.Attribute
 }
 
-func (i *Int64AttrGenerator) AttributeCode() CodeStatement {
+func (i *Int64AttrGenerator) AttributeCode() (CodeStatement, error) {
 	return commonAttrStructure(&i.attr, "schema.Int64Attribute", "planmodifier.Int64", []CodeStatement{})
 }
 
@@ -16,7 +16,7 @@ type Float64AttrGenerator struct {
 	attr       codespec.Attribute
 }
 
-func (f *Float64AttrGenerator) AttributeCode() CodeStatement {
+func (f *Float64AttrGenerator) AttributeCode() (CodeStatement, error) {
 	return commonAttrStructure(&f.attr, "schema.Float64Attribute", "planmodifier.Float64", []CodeStatement{})
 }
 
@@ -25,7 +25,7 @@ type StringAttrGenerator struct {
 	attr        codespec.Attribute
 }
 
-func (s *StringAttrGenerator) AttributeCode() CodeStatement {
+func (s *StringAttrGenerator) AttributeCode() (CodeStatement, error) {
 	return commonAttrStructure(&s.attr, "schema.StringAttribute", "planmodifier.String", []CodeStatement{})
 }
 
@@ -34,7 +34,7 @@ type BoolAttrGenerator struct {
 	attr      codespec.Attribute
 }
 
-func (s *BoolAttrGenerator) AttributeCode() CodeStatement {
+func (s *BoolAttrGenerator) AttributeCode() (CodeStatement, error) {
 	return commonAttrStructure(&s.attr, "schema.BoolAttribute", "planmodifier.Bool", []CodeStatement{})
 }
 
@@ -43,7 +43,7 @@ type NumberAttrGenerator struct {
 	attr        codespec.Attribute
 }
 
-func (s *NumberAttrGenerator) AttributeCode() CodeStatement {
+func (s *NumberAttrGenerator) AttributeCode() (CodeStatement, error) {
 	return commonAttrStructure(&s.attr, "schema.NumberAttribute", "planmodifier.Number", []CodeStatement{})
 }
 
@@ -52,7 +52,7 @@ type ListAttrGenerator struct {
 	attr      codespec.Attribute
 }
 
-func (l *ListAttrGenerator) AttributeCode() CodeStatement {
+func (l *ListAttrGenerator) AttributeCode() (CodeStatement, error) {
 	return commonAttrStructure(&l.attr, "schema.ListAttribute", "planmodifier.List", []CodeStatement{ElementTypeProperty(l.listModel.ElementType)})
 }
 
@@ -61,7 +61,7 @@ type MapAttrGenerator struct {
 	attr     codespec.Attribute
 }
 
-func (m *MapAttrGenerator) AttributeCode() CodeStatement {
+func (m *MapAttrGenerator) AttributeCode() (CodeStatement, error) {
 	return commonAttrStructure(&m.attr, "schema.MapAttribute", "planmodifier.Map", []CodeStatement{ElementTypeProperty(m.mapModel.ElementType)})
 }
 
@@ -70,6 +70,6 @@ type SetAttrGenerator struct {
 	attr     codespec.Attribute
 }
 
-func (s *SetAttrGenerator) AttributeCode() CodeStatement {
+func (s *SetAttrGenerator) AttributeCode() (CodeStatement, error) {
 	return commonAttrStructure(&s.attr, "schema.SetAttribute", "planmodifier.Set", []CodeStatement{ElementTypeProperty(s.setModel.ElementType)})
 }

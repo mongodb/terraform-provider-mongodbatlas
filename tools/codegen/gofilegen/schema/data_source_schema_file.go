@@ -16,7 +16,10 @@ func GenerateDataSourceSchemaGoCode(input *codespec.Resource) ([]byte, error) {
 	}
 
 	dsSchema := input.DataSources.Schema
-	schemaAttrs := GenerateDataSourceSchemaAttributes(*dsSchema.SingularDSAttributes)
+	schemaAttrs, err := GenerateDataSourceSchemaAttributes(*dsSchema.SingularDSAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate data source schema attributes: %w", err)
+	}
 	dsModel := GenerateDataSourceTypedModels(*dsSchema.SingularDSAttributes, false)
 
 	// Collect imports (dsschema is hardcoded in the template)
@@ -52,7 +55,10 @@ func GeneratePluralDataSourceSchemaGoCode(input *codespec.Resource) ([]byte, err
 		return nil, fmt.Errorf("plural data source attributes are required for %s", input.Name)
 	}
 
-	schemaAttrs := GeneratePluralDataSourceSchemaAttributes(*dsSchema.PluralDSAttributes)
+	schemaAttrs, err := GeneratePluralDataSourceSchemaAttributes(*dsSchema.PluralDSAttributes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate plural data source schema attributes: %w", err)
+	}
 
 	// Generate TFPluralDSModel and nested TFResultsModel using the reusable function
 	pluralDSModel := GenerateDataSourceTypedModels(*dsSchema.PluralDSAttributes, true)

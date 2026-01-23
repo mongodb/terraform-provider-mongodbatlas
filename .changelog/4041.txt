@@ -1,0 +1,7 @@
+```release-note:new-resource
+resource/mongodbatlas_project_service_account_secret
+```
+
+```release-note:new-datasource
+data-source/mongodbatlas_project_service_account_secret
+```

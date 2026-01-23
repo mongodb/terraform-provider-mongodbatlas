@@ -235,6 +235,21 @@ schema:
                       present_in_any_response: false
                       request_only_required_on_create: false
                     - string: {}
+                      description: 'Sort definition for the index. When defined, the index will be pre-sorted on thespecified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options.The ''order'' field is required (1=ascending, -1=descending).The ''noData'' field is optional and controls how missing values are sorted(default: "lowest").'
+                      custom_type:
+                        package: jsontypes
+                        model: jsontypes.Normalized
+                        schema: jsontypes.NormalizedType{}
+                      computed_optional_required: optional
+                      tf_schema_name: sort
+                      tf_model_name: Sort
+                      api_name: sort
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: false
+                      request_only_required_on_create: false
+                    - string: {}
                       description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. Note that storing all fields (true) is not allowed for vector search indexes. To learn more, see Stored Source Fields.
                       custom_type:
                         package: jsontypes
@@ -598,6 +613,21 @@ schema:
                       tf_schema_name: search_analyzer
                       tf_model_name: SearchAnalyzer
                       api_name: searchAnalyzer
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: 'Sort definition for the index. When defined, the index will be pre-sorted on thespecified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options.The ''order'' field is required (1=ascending, -1=descending).The ''noData'' field is optional and controls how missing values are sorted(default: "lowest").'
+                      custom_type:
+                        package: jsontypes
+                        model: jsontypes.Normalized
+                        schema: jsontypes.NormalizedType{}
+                      computed_optional_required: computed
+                      tf_schema_name: sort
+                      tf_model_name: Sort
+                      api_name: sort
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
