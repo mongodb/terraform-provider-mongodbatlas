@@ -149,6 +149,14 @@ func Resource() *schema.Resource {
 	}
 }
 
+func isGCPPortBasedArchitectureInput(providerName string, hasGCPProjectID, hasPrivateEndpointIP, hasEndpoints bool) bool {
+	return providerName == "GCP" && hasGCPProjectID && hasPrivateEndpointIP && !hasEndpoints
+}
+
+func isGCPLegacyArchitectureInput(providerName string, hasGCPProjectID, hasPrivateEndpointIP, hasEndpoints bool) bool {
+	return providerName == "GCP" && hasGCPProjectID && !hasPrivateEndpointIP && hasEndpoints
+}
+
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
 	connV2 := meta.(*config.MongoDBClient).AtlasPreview
@@ -162,39 +170,37 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	createEndpointRequest := &admin.CreateEndpointRequest{}
 
-	switch {
-	case providerName == "AWS":
+	switch providerName {
+	case "AWS":
 		createEndpointRequest.Id = &endpointServiceID
-	case providerName == "AZURE":
+	case "AZURE":
 		if !hasPrivateEndpointIP {
 			return diag.FromErr(errors.New("`private_endpoint_ip_address` must be set when `provider_name` is `AZURE`"))
 		}
 		createEndpointRequest.Id = &endpointServiceID
 		createEndpointRequest.PrivateEndpointIPAddress = conversion.Pointer(privateEndpointIP.(string))
-	case providerName == "GCP" && hasGCPProjectID && hasPrivateEndpointIP && !hasEndpoints:
-		createEndpointRequest.EndpointGroupName = &endpointServiceID
-		createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
-		singleEndpoint := admin.CreateGCPForwardingRuleRequest{
-			IpAddress:    conversion.Pointer(privateEndpointIP.(string)),
-			EndpointName: &endpointServiceID,
+	case "GCP":
+		if !hasGCPProjectID {
+			return diag.FromErr(errors.New("`gcp_project_id` must be set for GCP"))
 		}
-		endpointsList := []admin.CreateGCPForwardingRuleRequest{singleEndpoint}
-		createEndpointRequest.Endpoints = &endpointsList
-	case providerName == "GCP" && hasGCPProjectID && !hasPrivateEndpointIP && hasEndpoints:
-		createEndpointRequest.EndpointGroupName = &endpointServiceID
-		createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
-		createEndpointRequest.Endpoints = expandGCPEndpoints(endpoints.([]any))
-	default:
-		if providerName == "GCP" {
-			if !hasGCPProjectID {
-				return diag.FromErr(errors.New("`gcp_project_id` must be set for GCP"))
-			}
-			if hasPrivateEndpointIP && hasEndpoints {
-				return diag.FromErr(errors.New("for GCP, provide either `private_endpoint_ip_address` (new architecture) or `endpoints` (legacy architecture), but not both"))
-			}
-			return diag.FromErr(errors.New("for GCP, provide either `private_endpoint_ip_address` (new architecture) or `endpoints` (legacy architecture)"))
+		if (hasPrivateEndpointIP && hasEndpoints) || (!hasPrivateEndpointIP && !hasEndpoints) {
+			return diag.FromErr(errors.New("for GCP, you must provide exactly one of: `private_endpoint_ip_address` (new architecture) or `endpoints` (legacy architecture)"))
 		}
-		return diag.FromErr(fmt.Errorf("unsupported provider: %s", providerName))
+		if isGCPPortBasedArchitectureInput(providerName, hasGCPProjectID, hasPrivateEndpointIP, hasEndpoints) {
+			createEndpointRequest.EndpointGroupName = &endpointServiceID
+			createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
+			singleEndpoint := admin.CreateGCPForwardingRuleRequest{
+				IpAddress:    conversion.Pointer(privateEndpointIP.(string)),
+				EndpointName: &endpointServiceID,
+			}
+			endpointsList := []admin.CreateGCPForwardingRuleRequest{singleEndpoint}
+			createEndpointRequest.Endpoints = &endpointsList
+		}
+		if isGCPLegacyArchitectureInput(providerName, hasGCPProjectID, hasPrivateEndpointIP, hasEndpoints) {
+			createEndpointRequest.EndpointGroupName = &endpointServiceID
+			createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
+			createEndpointRequest.Endpoints = expandGCPEndpoints(endpoints.([]any))
+		}
 	}
 
 	_, _, err := connV2.PrivateEndpointServicesApi.CreatePrivateEndpoint(ctx, projectID, providerName, privateLinkID, createEndpointRequest).Execute()
