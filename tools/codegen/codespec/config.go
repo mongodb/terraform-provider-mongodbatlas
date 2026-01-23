@@ -184,7 +184,7 @@ func getIgnoredAttributesMap(ignores []string) map[string]bool {
 }
 
 func shouldIgnoreAttribute(attrPathName string, ignoredAttrs map[string]bool) bool {
-	return ignoredAttrs[attrPathForTransformations(attrPathName)]
+	return ignoredAttrs[attrPathName]
 }
 
 func applyAliasToAttribute(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) {
@@ -229,7 +229,7 @@ func aliasTransformation(attr *Attribute, paths *attrPaths, schemaOptions config
 
 func commonRSAndDSOverridesTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
 	// Overrides use the snake_case schemaPath
-	override, ok := schemaOptions.Overrides[attrPathForTransformations(paths.schemaPath)]
+	override, ok := schemaOptions.Overrides[attrPathForOverrides(paths.schemaPath)]
 	if !ok {
 		return nil
 	}
@@ -257,7 +257,7 @@ func commonRSAndDSOverridesTransformation(attr *Attribute, paths *attrPaths, sch
 }
 
 func immutableComputedOverrideTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
-	override, ok := schemaOptions.Overrides[attrPathForTransformations(paths.schemaPath)]
+	override, ok := schemaOptions.Overrides[attrPathForOverrides(paths.schemaPath)]
 	if !ok {
 		return nil
 	}
@@ -394,7 +394,7 @@ func setCreateOnlyValue(attr *Attribute) {
 	}
 }
 
-func attrPathForTransformations(attrPathName string) string {
+func attrPathForOverrides(attrPathName string) string {
 	return strings.TrimPrefix(attrPathName, "results.")
 }
 

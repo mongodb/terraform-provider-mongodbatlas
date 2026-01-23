@@ -1,0 +1,87 @@
+operations:
+    version_header: ""
+data_sources:
+    schema:
+        singular_ds_attributes: []
+        plural_ds_description: Returns all access list entries from the specified project's IP access list. Each entry in the project's IP access list contains either one IP address or one CIDR-notated block of IP addresses. MongoDB Cloud only allows client connections to the cluster from entries in the project's IP access list. To use this resource, the requesting Service Account or API Key must have the Project Read Only or Project Charts Admin roles. This resource replaces the whitelist resource. MongoDB Cloud removed whitelists in July 2021. Update your applications to use this new resource. The `/groups/{GROUP-ID}/accessList` endpoint manages the database IP access list. This endpoint is distinct from the `orgs/{ORG-ID}/apiKeys/{API-KEY-ID}/accesslist` endpoint, which manages the access list for MongoDB Cloud organizations.
+        plural_ds_attributes:
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`.
+                          computed_optional_required: computed
+                          tf_schema_name: aws_security_group
+                          tf_model_name: AwsSecurityGroup
+                          api_name: awsSecurityGroup
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Range of IP addresses in CIDR notation to be added to the access list. Mutually exclusive with `aws_security_group` and `ip_address`.
+                          computed_optional_required: computed
+                          tf_schema_name: cidr_block
+                          tf_model_name: CidrBlock
+                          api_name: cidrBlock
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Remark that explains the purpose or scope of this IP access list entry.
+                          computed_optional_required: computed
+                          tf_schema_name: comment
+                          tf_model_name: Comment
+                          api_name: comment
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`.
+                          computed_optional_required: computed
+                          tf_schema_name: ip_address
+                          tf_model_name: IpAddress
+                          api_name: ipAddress
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of returned documents that MongoDB Cloud provides when completing this request.
+              custom_type:
+                package: customtypes
+                name: Results
+                model: customtypes.NestedListValue[TFResultsModel]
+                schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: results
+              tf_model_name: Results
+              api_name: results
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        list:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/accessList
+        version_header: application/vnd.atlas.2023-01-01+json
+name: project_ip_access_list
+packageName: projectipaccesslist

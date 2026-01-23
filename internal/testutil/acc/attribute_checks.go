@@ -79,6 +79,19 @@ func IntGreatThan(value int) resource.CheckResourceAttrWithFunc {
 	}
 }
 
+func IntGreatEqThan(value int) resource.CheckResourceAttrWithFunc {
+	return func(input string) error {
+		inputInt, err := strconv.Atoi(input)
+		if err != nil {
+			return err
+		}
+		if inputInt < value {
+			return fmt.Errorf("%d is not greater equals than %d", inputInt, value)
+		}
+		return nil
+	}
+}
+
 func JSONEquals(expected string) resource.CheckResourceAttrWithFunc {
 	return func(input string) error {
 		var expectedAny, inputAny any
