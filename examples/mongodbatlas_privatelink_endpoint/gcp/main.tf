@@ -78,10 +78,12 @@ data "mongodbatlas_advanced_cluster" "cluster" {
   # Use endpoint service as source of project_id to gather cluster data after endpoint changes are applied
   project_id = mongodbatlas_privatelink_endpoint_service.test.project_id
   name       = var.cluster_name
+
+  depends_on = [mongodbatlas_privatelink_endpoint_service.test]
 }
 
 locals {
-  endpoint_service_id = "the-endpoint-group-name"
+  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
   private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings : cs.private_endpoint]), [])
   connection_strings = [
     for pe in local.private_endpoints : pe.srv_connection_string
