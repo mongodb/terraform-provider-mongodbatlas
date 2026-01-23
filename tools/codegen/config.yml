@@ -771,6 +771,7 @@ resources:
         path: /api/atlas/v2/groups/{groupId}/alertConfigs
         method: GET
       schema:
+        ignores: ["links", "results.links"]
         aliases:
           alertConfigId: id
     schema:
@@ -854,7 +855,7 @@ resources:
         path: /api/atlas/v2/orgs/{orgId}/serviceAccounts
         method: GET
       schema:
-        ignores: ["secrets.secret", "links"] # `secret` is never populated in read response, no value in adding for data source
+        ignores: ["secrets.secret", "results.secrets.secret", "links", "results.links"] # `secret` is never populated in read response, no value in adding for data source
         aliases:
           secrets.id: secretId
           results.secrets.id: secretId
@@ -904,7 +905,7 @@ resources:
         path: /api/atlas/v2/groups/{groupId}/serviceAccounts
         method: GET
       schema:
-        ignores: [ "secrets.secret", "links" ] # `secret` is never populated in read response, no value in adding for data source
+        ignores: ["secrets.secret", "results.secrets.secret", "links", "results.links"] # `secret` is never populated in read response, no value in adding for data source
         aliases:
           groupId: projectId
           secrets.id: secretId
@@ -1025,7 +1026,13 @@ resources:
         path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/groups
         method: GET
       schema:
-        ignores: ["links", "secrets", "name", "description", "created_at"] # These belong to the service_account, removing from the assignment schema.
+        ignores: [
+          "links", "results.links",
+          "secrets", "results.secrets",
+          "name", "results.name",
+          "description", "results.description",
+          "created_at", "results.created_at"
+        ] # These belong to the service_account, removing from the assignment schema.
         aliases:
           groupId: projectId
           results.groupId: projectId
@@ -1034,3 +1041,27 @@ resources:
             description: *org_id_description
           project_id:
             description: *project_id_description
+
+  project_ip_access_list:
+    datasources:
+      list:
+        path: /api/atlas/v2/groups/{groupId}/accessList
+        method: GET
+      schema:
+        ignores: [
+          "links", "results.links",
+          "results.delete_after_date", # delete_after_date not exposed in handwritten resource.
+          "results.group_id" # group_id/project_id in results is the same as the root one.
+        ]
+        aliases:
+          groupId: projectId
+          results.groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description
+          cidr_block:
+            description: "Range of IP addresses in CIDR notation to be added to the access list. Mutually exclusive with `aws_security_group` and `ip_address`."
+          ip_address:
+            description: "Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`."
+          aws_security_group:
+            description: "Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`."
