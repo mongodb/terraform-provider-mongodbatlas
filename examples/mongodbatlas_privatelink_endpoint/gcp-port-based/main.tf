@@ -1,6 +1,8 @@
 # Example with GCP (Port-Based Architecture)
-# This example demonstrates the new GCP port-based architecture.
+# This example demonstrates the new port-based architecture.
 # For the legacy architecture, see the gcp directory.
+
+# Create endpoint with port-based architecture
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id               = var.project_id
   provider_name            = "GCP"
@@ -52,7 +54,7 @@ resource "google_compute_forwarding_rule" "default" {
   load_balancing_scheme = ""
 }
 
-# Create MongoDB Atlas Private Endpoint Service
+# Create Endpoint Service with port-based architecture
 # For the new port-based architecture, endpoint_service_id must match the forwarding rule name 
 # and private_endpoint_ip_address the IP address. The endpoints list is no longer used for the new architecture.
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
@@ -67,8 +69,6 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
     create = "10m"
     delete = "10m"
   }
-
-  depends_on = [google_compute_forwarding_rule.default]
 }
 
 data "mongodbatlas_advanced_cluster" "cluster" {
