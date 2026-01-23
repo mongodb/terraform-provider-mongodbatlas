@@ -1,15 +1,23 @@
 name: 'Generate auto-generated resources'
 
-# DISABLED
-# This workflow has been disabled to prevent automatic updates to production autogen resources. See: CLOUDP-365514
-# Auto-generates resources and creates a pull request if there are any changes. Runs once per week and can be triggered manually.
+# Auto-generates resources and creates pull requests if there are any changes.
+# Runs once per week and can be triggered manually with a specific resource tier.
 on:
-  # schedule:
-  #   - cron: "30 8 * * WED" # Every Wednesday at 8:30 AM
+  schedule:
+    - cron: "30 8 * * WED" # Every Wednesday at 8:30 AM
   workflow_dispatch:
+    inputs:
+      resource_tier:
+        description: "Resource tier to generate (prod or internal)"
+        required: true
+        type: choice
+        options:
+          - prod
+          - internal
 
 jobs:
-  generate-autogen-resources:
+  generate-autogen-resources-prod:
+    if: ${{ github.event_name == 'schedule' || inputs.resource_tier == 'prod' }}
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -19,7 +27,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
       - name: Generate resources
-        run: make tools autogen-pipeline
+        run: make tools autogen-pipeline resource_tier=prod
       # Avoids creating a PR if only the API spec has changed
       - name: Check for changes in ./internal (resource implementations)
         id: check_internal_changes
@@ -34,8 +42,44 @@ jobs:
         uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725
         with:
           token: ${{ secrets.APIX_BOT_PAT }}
-          title: "chore: Updates auto-generated resources"
-          commit-message: "chore: Updates auto-generated resources"
+          title: "chore: Updates auto-generated production resources (DO NOT MERGE)"
+          commit-message: "chore: Updates auto-generated production resources"
           delete-branch: true
-          branch: auto-generated-resources-update
-          body: Automatic update of auto-generated resources.
+          branch: auto-generated-resources-update-prod
+          draft: true
+          body: |
+            Automatic update of auto-generated resources for production. This PR is for visibility only.
+
+  generate-autogen-resources-internal:
+    if: ${{ github.event_name == 'schedule' || inputs.resource_tier == 'internal' }}
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+        with:
+          go-version-file: 'go.mod'
+      - name: Generate resources
+        run: make tools autogen-pipeline resource_tier=internal
+      # Avoids creating a PR if only the API spec has changed
+      - name: Check for changes in ./internal (resource implementations)
+        id: check_internal_changes
+        run: |
+          if git ls-files -m -o --exclude-standard -- internal | grep -q .; then
+            echo "internal_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "internal_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create PR
+        if: steps.check_internal_changes.outputs.internal_changed == 'true'
+        uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725
+        with:
+          token: ${{ secrets.APIX_BOT_PAT }}
+          title: "chore: Updates auto-generated internal resources"
+          commit-message: "chore: Updates auto-generated internal resources"
+          delete-branch: true
+          branch: auto-generated-resources-update-internal
+          body: |
+            Automatic update of auto-generated resources which are not registered in our provider.
+            Safe to merge after checks pass.
