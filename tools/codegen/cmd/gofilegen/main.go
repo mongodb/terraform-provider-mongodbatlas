@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
@@ -19,11 +20,14 @@ const (
 )
 
 func main() {
-	resourceName := getArgs()
+	resourceName, resourceTier, err := getArgs()
+	if err != nil {
+		log.Fatalf("[ERROR] Invalid arguments: %v", err)
+	}
 	if resourceName != nil {
 		log.Printf("Generating code for resource: %s", *resourceName)
 	}
-	resourceModelFilePaths, err := gatherResourceModelFilePaths(resourceName)
+	resourceModelFilePaths, err := gatherResourceModelFilePaths(resourceName, resourceTier)
 	if err != nil {
 		log.Fatalf("[ERROR] An error occurred while gathering resource model files: %v", err)
 	}
@@ -32,14 +36,20 @@ func main() {
 	}
 }
 
-func getArgs() *string {
+func getArgs() (resourceName *string, resourceTier *codespec.ResourceTier, err error) {
 	var resourceNameFlag string
-	flag.StringVar(&resourceNameFlag, "resource-name", "", "Generate code only for the specified resource name")
+	var resourceTierFlag string
+	flag.StringVar(&resourceNameFlag, "resource-name", "", "Generate models only for the specified resource name")
+	flag.StringVar(&resourceTierFlag, "resource-tier", "", "Generate models only for resources in the specified tier (prod|internal)")
 	flag.Parse()
-	return conversion.StringPtr(resourceNameFlag)
+	resourceTier, err = codespec.ParseResourceTier(resourceTierFlag)
+	if err != nil {
+		return nil, nil, err
+	}
+	return conversion.StringPtr(resourceNameFlag), resourceTier, nil
 }
 
-func gatherResourceModelFilePaths(resourceName *string) ([]string, error) {
+func gatherResourceModelFilePaths(resourceName *string, resourceTier *codespec.ResourceTier) ([]string, error) {
 	var resourceModelFilePaths []string
 	if resourceName == nil {
 		files, err := os.ReadDir(ResourceModelDir)
@@ -52,10 +62,27 @@ func gatherResourceModelFilePaths(resourceName *string) ([]string, error) {
 			}
 			resourceModelFilePaths = append(resourceModelFilePaths, ResourceModelDir+file.Name())
 		}
-		return resourceModelFilePaths, nil
+	} else {
+		resourceModelFilePaths = append(resourceModelFilePaths, fmt.Sprintf(ResourceModelFilePathFormat, *resourceName))
 	}
 
-	resourceModelFilePaths = append(resourceModelFilePaths, fmt.Sprintf(ResourceModelFilePathFormat, *resourceName))
+	if resourceTier != nil {
+		var filtered []string
+		for _, filePath := range resourceModelFilePaths {
+			isInternal := strings.HasSuffix(filePath, codespec.InternalResourceSuffix+".yaml")
+			switch *resourceTier {
+			case codespec.ResourceTierInternal:
+				if isInternal {
+					filtered = append(filtered, filePath)
+				}
+			case codespec.ResourceTierProd:
+				if !isInternal {
+					filtered = append(filtered, filePath)
+				}
+			}
+		}
+		resourceModelFilePaths = filtered
+	}
 	return resourceModelFilePaths, nil
 }
 

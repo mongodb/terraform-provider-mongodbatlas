@@ -15,6 +15,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 )
 
+const InternalResourceSuffix = "_api"
+
 func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName *string, resourceTier *ResourceTier) (*Model, error) {
 	apiSpec, err := openapi.ParseAtlasAdminAPI(atlasAdminAPISpecFilePath)
 	if err != nil {
@@ -81,7 +83,7 @@ func filterResourceConfigsByTier(resourceConfigs map[string]config.Resource, res
 	filteredResourceConfigs := map[string]config.Resource{}
 	for name := range resourceConfigs {
 		resourceConfig := resourceConfigs[name]
-		isInternal := strings.HasSuffix(name, "_api")
+		isInternal := strings.HasSuffix(name, InternalResourceSuffix)
 		switch *resourceTier {
 		case ResourceTierInternal:
 			if isInternal {
