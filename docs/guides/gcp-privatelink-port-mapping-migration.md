@@ -71,9 +71,9 @@ Original configuration with legacy architecture (50 endpoints):
 
 ```terraform
 resource "mongodbatlas_privatelink_endpoint" "test" {
-  project_id    = var.project_id
-  provider_name = "GCP"
-  region        = var.gcp_region
+  project_id               = var.project_id
+  provider_name            = "GCP"
+  region                   = var.gcp_region
   # port_mapping_enabled is not set (defaults to false for legacy architecture)
   delete_on_create_timeout = true
   timeouts {
@@ -123,13 +123,13 @@ resource "google_compute_forwarding_rule" "default" {
 }
 
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id          = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
-  provider_name       = "GCP"
+  project_id               = mongodbatlas_privatelink_endpoint.test.project_id
+  private_link_id          = mongodbatlas_privatelink_endpoint.test.private_link_id
+  provider_name            = "GCP"
   # Note: endpoint_service_id can be any identifier string for legacy architecture.
   # It's used only as an identifier and doesn't need to match any GCP resource name.
-  endpoint_service_id = "legacy-endpoint-group"
-  gcp_project_id      = var.gcp_project_id
+  endpoint_service_id      = "legacy-endpoint-group"
+  gcp_project_id           = var.gcp_project_id
   delete_on_create_timeout = true
   timeouts {
     create = "10m"
@@ -158,10 +158,10 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 ```terraform
 # New endpoint with port-based architecture
 resource "mongodbatlas_privatelink_endpoint" "test_new" {
-  project_id           = var.project_id
-  provider_name        = "GCP"
-  region               = var.gcp_region
-  port_mapping_enabled = true # Enable new GCP port-based architecture
+  project_id               = var.project_id
+  provider_name            = "GCP"
+  region                   = var.gcp_region
+  port_mapping_enabled     = true # Enable new GCP port-based architecture
   delete_on_create_timeout = true
   timeouts {
     create = "10m"
@@ -248,10 +248,10 @@ Once you have verified that the new port-based endpoint works correctly and your
 ```terraform
 # New endpoint with port-based architecture
 resource "mongodbatlas_privatelink_endpoint" "test_new" {
-  project_id           = var.project_id
-  provider_name        = "GCP"
-  region               = var.gcp_region
-  port_mapping_enabled = true # Enable new GCP port-based architecture
+  project_id               = var.project_id
+  provider_name            = "GCP"
+  region                   = var.gcp_region
+  port_mapping_enabled     = true # Enable new GCP port-based architecture
   delete_on_create_timeout = true
   timeouts {
     create = "10m"

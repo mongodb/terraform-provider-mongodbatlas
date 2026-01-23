@@ -76,7 +76,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test_legacy" {
 }
 
 data "mongodbatlas_advanced_cluster" "cluster" {
-  count = var.cluster_name == "" ? 0 : 1
+  count      = var.cluster_name == "" ? 0 : 1
   project_id = mongodbatlas_privatelink_endpoint_service.test_legacy.project_id
   name       = var.cluster_name
 }

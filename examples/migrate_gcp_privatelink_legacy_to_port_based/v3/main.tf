@@ -52,13 +52,13 @@ resource "google_compute_forwarding_rule" "new" {
 }
 
 resource "mongodbatlas_privatelink_endpoint_service" "test_new" {
-  project_id                = mongodbatlas_privatelink_endpoint.test_new.project_id
-  private_link_id           = mongodbatlas_privatelink_endpoint.test_new.private_link_id
-  provider_name             = "GCP"
-  endpoint_service_id       = google_compute_forwarding_rule.new.name
+  project_id                  = mongodbatlas_privatelink_endpoint.test_new.project_id
+  private_link_id             = mongodbatlas_privatelink_endpoint.test_new.private_link_id
+  provider_name               = "GCP"
+  endpoint_service_id         = google_compute_forwarding_rule.new.name
   private_endpoint_ip_address = google_compute_address.new.address
-  gcp_project_id           = var.gcp_project_id
-  delete_on_create_timeout = true
+  gcp_project_id              = var.gcp_project_id
+  delete_on_create_timeout    = true
   timeouts {
     create = "10m"
     delete = "10m"
@@ -68,7 +68,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test_new" {
 }
 
 data "mongodbatlas_advanced_cluster" "cluster" {
-  count = var.cluster_name == "" ? 0 : 1
+  count      = var.cluster_name == "" ? 0 : 1
   project_id = mongodbatlas_privatelink_endpoint_service.test_new.project_id
   name       = var.cluster_name
 }
