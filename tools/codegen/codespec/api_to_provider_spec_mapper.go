@@ -15,7 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 )
 
-func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName *string) (*Model, error) {
+func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName *string, resourceTier *ResourceTier) (*Model, error) {
 	apiSpec, err := openapi.ParseAtlasAdminAPI(atlasAdminAPISpecFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse Atlas Admin API: %v", err)
@@ -37,6 +37,7 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 			*resourceName: resource,
 		}
 	}
+	resourceConfigsToIterate = filterResourceConfigsByTier(resourceConfigsToIterate, resourceTier)
 
 	if err := validateRequiredOperations(resourceConfigsToIterate); err != nil {
 		return nil, err
@@ -71,6 +72,28 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 	}
 
 	return &Model{Resources: resources}, nil
+}
+
+func filterResourceConfigsByTier(resourceConfigs map[string]config.Resource, resourceTier *ResourceTier) map[string]config.Resource {
+	if resourceTier == nil {
+		return resourceConfigs // no tier filter, return all resource configs
+	}
+	filteredResourceConfigs := map[string]config.Resource{}
+	for name := range resourceConfigs {
+		resourceConfig := resourceConfigs[name]
+		isInternal := strings.HasSuffix(name, "_api")
+		switch *resourceTier {
+		case ResourceTierInternal:
+			if isInternal {
+				filteredResourceConfigs[name] = resourceConfig
+			}
+		case ResourceTierProd:
+			if !isInternal {
+				filteredResourceConfigs[name] = resourceConfig
+			}
+		}
+	}
+	return filteredResourceConfigs
 }
 
 func validateRequiredOperations(resourceConfigs map[string]config.Resource) error {

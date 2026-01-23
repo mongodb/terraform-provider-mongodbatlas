@@ -20,8 +20,8 @@ const (
 )
 
 func main() {
-	resourceName, resourceTier := getArgs()
-	if err := validateResourceTier(resourceTier); err != nil {
+	resourceName, resourceTier, err := getArgs()
+	if err != nil {
 		log.Fatalf("[ERROR] Invalid resource tier: %v", err)
 	}
 	if resourceName != nil {
@@ -30,35 +30,27 @@ func main() {
 	if resourceTier != nil {
 		log.Printf("Using resource tier filter: %s", *resourceTier)
 	}
-	if err := writeResourceModels(resourceName); err != nil {
+	if err := writeResourceModels(resourceName, resourceTier); err != nil {
 		log.Fatalf("[ERROR] An error occurred while generating resource models: %v", err)
 	}
 }
 
-func getArgs() (resourceName, resourceTier *string) {
+func getArgs() (resourceName *string, resourceTier *codespec.ResourceTier, err error) {
 	var resourceNameFlag string
 	var resourceTierFlag string
 	flag.StringVar(&resourceNameFlag, "resource-name", "", "Generate models only for the specified resource name")
 	flag.StringVar(&resourceTierFlag, "resource-tier", "", "Generate models only for resources in the specified tier (prod|internal)")
 	flag.Parse()
-	return conversion.StringPtr(resourceNameFlag), conversion.StringPtr(resourceTierFlag)
+	resourceTier, err = codespec.ParseResourceTier(resourceTierFlag)
+	if err != nil {
+		return nil, nil, err
+	}
+	return conversion.StringPtr(resourceNameFlag), resourceTier, nil
 }
 
-func validateResourceTier(resourceTier *string) error {
-	if resourceTier == nil {
-		return nil
-	}
-	switch *resourceTier {
-	case "prod", "internal":
-		return nil
-	default:
-		return fmt.Errorf("expected prod or internal, got %q", *resourceTier)
-	}
-}
-
-func writeResourceModels(resourceName *string) error {
+func writeResourceModels(resourceName *string, resourceTier *codespec.ResourceTier) error {
 	// Generate resource and data source models from API spec
-	model, err := codespec.ToCodeSpecModel(SpecFilePath, ConfigPath, resourceName)
+	model, err := codespec.ToCodeSpecModel(SpecFilePath, ConfigPath, resourceName, resourceTier)
 	if err != nil {
 		return fmt.Errorf("failed to generate codespec.Model: %w", err)
 	}
