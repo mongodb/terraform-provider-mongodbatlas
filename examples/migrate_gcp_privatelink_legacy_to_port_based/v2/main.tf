@@ -1,7 +1,7 @@
 # v2: Migration Phase - Both Legacy and Port-Based Architectures
 # This configuration creates both architectures in parallel for testing
 
-# Legacy endpoint (from v1, required for legacy architecture)
+# Legacy: Endpoint (from v1, required for legacy architecture)
 resource "mongodbatlas_privatelink_endpoint" "test_legacy" {
   project_id               = var.project_id
   provider_name            = "GCP"
