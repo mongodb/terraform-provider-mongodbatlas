@@ -15,7 +15,7 @@ func TestMigProjectIPAccessList_settingIPAddress(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 		ipAddress = acc.RandomIP(180, 154, 226)
 		comment   = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
-		config    = configWithIPAddress(projectID, ipAddress, comment)
+		config    = configWithIPAddress(projectID, ipAddress, comment, false)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -25,7 +25,7 @@ func TestMigProjectIPAccessList_settingIPAddress(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             resource.ComposeAggregateTestCheckFunc(commonChecks(ipAddress, "", "", comment)...),
+				Check:             resource.ComposeAggregateTestCheckFunc(commonChecks(ipAddress, "", "", comment, false)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
@@ -37,7 +37,7 @@ func TestMigProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 		cidrBlock = acc.RandomIP(180, 154, 226) + "/32"
 		comment   = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
-		config    = configWithCIDRBlock(projectID, cidrBlock, comment)
+		config    = configWithCIDRBlock(projectID, cidrBlock, comment, false)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -47,7 +47,7 @@ func TestMigProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             resource.ComposeAggregateTestCheckFunc(commonChecks("", cidrBlock, "", comment)...),
+				Check:             resource.ComposeAggregateTestCheckFunc(commonChecks("", cidrBlock, "", comment, false)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
@@ -64,7 +64,7 @@ func TestMigProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 		awsRegion    = os.Getenv("AWS_REGION")
 		providerName = "AWS"
 		comment      = fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
-		config       = configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
+		config       = configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment, false)
 	)
 
 	// Serial so it doesn't conflict with TestAccProjectIPAccessList_settingAWSSecurityGroup
@@ -75,7 +75,7 @@ func TestMigProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check:             resource.ComposeAggregateTestCheckFunc(commonChecks("", "", awsSGroup, comment)...),
+				Check:             resource.ComposeAggregateTestCheckFunc(commonChecks("", "", awsSGroup, comment, false)...),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},

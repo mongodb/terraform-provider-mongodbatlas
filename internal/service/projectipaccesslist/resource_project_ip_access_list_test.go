@@ -15,11 +15,12 @@ import (
 )
 
 const (
-	resourceName   = "mongodbatlas_project_ip_access_list.test"
-	dataSourceName = "data.mongodbatlas_project_ip_access_list.test"
+	resourceName         = "mongodbatlas_project_ip_access_list.test"
+	dataSourceName       = "data.mongodbatlas_project_ip_access_list.test"
+	pluralDataSourceName = "data.mongodbatlas_project_ip_access_lists.test"
 )
 
-func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
+func TestAccProjectIPAccessList_settingIPAddress(t *testing.T) {
 	var (
 		projectID        = acc.ProjectIDExecution(t)
 		ipAddress        = acc.RandomIP(179, 154, 226)
@@ -34,16 +35,16 @@ func TestAccProjectIPAccesslist_settingIPAddress(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithIPAddress(projectID, ipAddress, comment),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(ipAddress, "", "", comment)...),
+				Config: configWithIPAddress(projectID, ipAddress, comment, true),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(ipAddress, "", "", comment, true)...),
 			},
 			{
-				Config: configWithIPAddress(projectID, ipAddress, updatedComment),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(ipAddress, "", "", updatedComment)...),
+				Config: configWithIPAddress(projectID, ipAddress, updatedComment, true),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(ipAddress, "", "", updatedComment, true)...),
 			},
 			{
-				Config: configWithIPAddress(projectID, updatedIPAddress, updatedComment),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(updatedIPAddress, "", "", updatedComment)...),
+				Config: configWithIPAddress(projectID, updatedIPAddress, updatedComment, true),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(updatedIPAddress, "", "", updatedComment, true)...),
 			},
 			{
 				ResourceName:      resourceName,
@@ -70,16 +71,16 @@ func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithCIDRBlock(projectID, cidrBlock, comment),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", cidrBlock, "", comment)...),
+				Config: configWithCIDRBlock(projectID, cidrBlock, comment, true),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", cidrBlock, "", comment, true)...),
 			},
 			{
-				Config: configWithCIDRBlock(projectID, cidrBlock, updatedComment),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", cidrBlock, "", updatedComment)...),
+				Config: configWithCIDRBlock(projectID, cidrBlock, updatedComment, true),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", cidrBlock, "", updatedComment, true)...),
 			},
 			{
-				Config: configWithCIDRBlock(projectID, updatedCIDRBlock, updatedComment),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", updatedCIDRBlock, "", updatedComment)...),
+				Config: configWithCIDRBlock(projectID, updatedCIDRBlock, updatedComment, true),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", updatedCIDRBlock, "", updatedComment, true)...),
 			},
 		},
 	})
@@ -105,16 +106,16 @@ func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", awsSGroup, comment)...),
+				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment, true),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", awsSGroup, comment, true)...),
 			},
 			{
-				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, updatedComment),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", awsSGroup, updatedComment)...),
+				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, updatedComment, true),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", awsSGroup, updatedComment, true)...),
 			},
 			{
-				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", updatedAWSSgroup, updatedComment)...),
+				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment, true),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", updatedAWSSgroup, updatedComment, true)...),
 			},
 		},
 	})
@@ -126,7 +127,9 @@ func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 		resourceFmt      = "mongodbatlas_project_ip_access_list.test_%d"
 		ipWhiteListCount = 20
 		accessList       = []map[string]string{}
-		checks           = []resource.TestCheckFunc{}
+		checks           = []resource.TestCheckFunc{
+			resource.TestCheckResourceAttrWith(pluralDataSourceName, "results.#", acc.IntGreatEqThan(ipWhiteListCount)),
+		}
 	)
 
 	for i := range ipWhiteListCount {
@@ -179,7 +182,7 @@ func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithIPAddress(projectID, ipAddress, comment),
+				Config: configWithIPAddress(projectID, ipAddress, comment, false),
 			},
 			{
 				ResourceName:  resourceName,
@@ -234,65 +237,95 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func commonChecks(ipAddress, cidrBlock, awsSGroup, comment string) []resource.TestCheckFunc {
+func commonChecks(ipAddress, cidrBlock, awsSGroup, comment string, withDS bool) []resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
-		checkExists(dataSourceName),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
 		resource.TestCheckResourceAttr(resourceName, "comment", comment),
-		resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
 	}
 	if ipAddress != "" {
-		checks = append(checks,
-			resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
-			resource.TestCheckResourceAttr(dataSourceName, "ip_address", ipAddress))
+		checks = append(checks, resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress))
 	}
 	if cidrBlock != "" {
-		checks = append(checks,
-			resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock),
-			resource.TestCheckResourceAttr(dataSourceName, "cidr_block", cidrBlock))
+		checks = append(checks, resource.TestCheckResourceAttr(resourceName, "cidr_block", cidrBlock))
 	}
 	if awsSGroup != "" {
+		checks = append(checks, resource.TestCheckResourceAttr(resourceName, "aws_security_group", awsSGroup))
+	}
+	if withDS {
 		checks = append(checks,
-			resource.TestCheckResourceAttr(resourceName, "aws_security_group", awsSGroup),
-			resource.TestCheckResourceAttr(dataSourceName, "aws_security_group", awsSGroup))
+			checkExists(dataSourceName),
+			resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+			resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
+			resource.TestCheckResourceAttrWith(pluralDataSourceName, "results.#", acc.IntGreatThan(0)),
+		)
+		if ipAddress != "" {
+			checks = append(checks, resource.TestCheckResourceAttr(dataSourceName, "ip_address", ipAddress))
+		}
+		if cidrBlock != "" {
+			checks = append(checks, resource.TestCheckResourceAttr(dataSourceName, "cidr_block", cidrBlock))
+		}
+		if awsSGroup != "" {
+			checks = append(checks, resource.TestCheckResourceAttr(dataSourceName, "aws_security_group", awsSGroup))
+		}
 	}
 	return checks
 }
 
-func configWithIPAddress(projectID, ipAddress, comment string) string {
-	return fmt.Sprintf(`
+func configWithIPAddress(projectID, ipAddress, comment string, withDS bool) string {
+	config := fmt.Sprintf(`
 		resource "mongodbatlas_project_ip_access_list" "test" {
 			project_id = %[1]q
 			ip_address = %[2]q
 			comment    = %[3]q
 		}
-
-		data "mongodbatlas_project_ip_access_list" "test" {
-			project_id = mongodbatlas_project_ip_access_list.test.project_id
-			ip_address = mongodbatlas_project_ip_access_list.test.ip_address
-		}
 	`, projectID, ipAddress, comment)
+
+	if withDS {
+		config += `
+			data "mongodbatlas_project_ip_access_list" "test" {
+				project_id = mongodbatlas_project_ip_access_list.test.project_id
+				ip_address = mongodbatlas_project_ip_access_list.test.ip_address
+			}
+
+			data "mongodbatlas_project_ip_access_lists" "test" {
+				project_id = mongodbatlas_project_ip_access_list.test.project_id
+				depends_on = [mongodbatlas_project_ip_access_list.test]
+			}
+		`
+	}
+
+	return config
 }
 
-func configWithCIDRBlock(projectID, cidrBlock, comment string) string {
-	return fmt.Sprintf(`
+func configWithCIDRBlock(projectID, cidrBlock, comment string, withDS bool) string {
+	config := fmt.Sprintf(`
 		resource "mongodbatlas_project_ip_access_list" "test" {
 			project_id = %[1]q
 			cidr_block = %[2]q
 			comment    = %[3]q
 		}
-
-		data "mongodbatlas_project_ip_access_list" "test" {
-			project_id = mongodbatlas_project_ip_access_list.test.project_id
-			cidr_block = mongodbatlas_project_ip_access_list.test.cidr_block
-		}
 	`, projectID, cidrBlock, comment)
+
+	if withDS {
+		config += `
+			data "mongodbatlas_project_ip_access_list" "test" {
+				project_id = mongodbatlas_project_ip_access_list.test.project_id
+				cidr_block = mongodbatlas_project_ip_access_list.test.cidr_block
+			}
+
+			data "mongodbatlas_project_ip_access_lists" "test" {
+				project_id = mongodbatlas_project_ip_access_list.test.project_id
+				depends_on = [mongodbatlas_project_ip_access_list.test]
+			}
+		`
+	}
+
+	return config
 }
 
-func configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment string) string {
-	return fmt.Sprintf(`
+func configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment string, withDS bool) string {
+	config := fmt.Sprintf(`
 		resource "mongodbatlas_network_container" "test" {
 			project_id   		  = %[1]q
 			atlas_cidr_block  = "192.168.208.0/21"
@@ -317,16 +350,28 @@ func configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vp
 
 			depends_on = ["mongodbatlas_network_peering.test"]
 		}
-
-		data "mongodbatlas_project_ip_access_list" "test" {
-			project_id = %[1]q
-			aws_security_group = mongodbatlas_project_ip_access_list.test.aws_security_group
-		}
 	`, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment)
+
+	if withDS {
+		config += fmt.Sprintf(`
+			data "mongodbatlas_project_ip_access_list" "test" {
+				project_id = %[1]q
+				aws_security_group = mongodbatlas_project_ip_access_list.test.aws_security_group
+			}
+
+			data "mongodbatlas_project_ip_access_lists" "test" {
+				project_id = mongodbatlas_project_ip_access_list.test.project_id
+				depends_on = [mongodbatlas_project_ip_access_list.test]
+			}
+		`, projectID)
+	}
+
+	return config
 }
 
 func configWithMultiple(projectID string, accessList []map[string]string, isUpdate bool) string {
 	var config strings.Builder
+	resourceNames := []string{}
 	for i, entry := range accessList {
 		comment := entry["comment"]
 		if isUpdate {
@@ -350,6 +395,15 @@ func configWithMultiple(projectID string, accessList []map[string]string, isUpda
 				}
 			`, i, projectID, entry["ip_address"], comment))
 		}
+		resourceNames = append(resourceNames, fmt.Sprintf("%s_%d", resourceName, i))
 	}
+
+	config.WriteString(fmt.Sprintf(`
+		data "mongodbatlas_project_ip_access_lists" "test" {
+			project_id   = %[1]q
+			depends_on = %[2]s
+		}
+	`, projectID, "["+strings.Join(resourceNames, ", ")+"]"))
+
 	return config.String()
 }

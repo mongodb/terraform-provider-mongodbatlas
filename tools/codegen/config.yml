@@ -1034,3 +1034,23 @@ resources:
             description: *org_id_description
           project_id:
             description: *project_id_description
+
+  project_ip_access_list:
+    datasources:
+      list:
+        path: /api/atlas/v2/groups/{groupId}/accessList
+        method: GET
+      schema:
+        ignores: ["links", "delete_after_date"] # delete_after_date not exposed in handwritten resource.
+        aliases:
+          groupId: projectId
+          results.groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description
+          cidr_block:
+            description: "Range of IP addresses in CIDR notation to be added to the access list. Mutually exclusive with `aws_security_group` and `ip_address`."
+          ip_address:
+            description: "Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`."
+          aws_security_group:
+            description: "Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`."
