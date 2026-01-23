@@ -27,6 +27,7 @@ func TestAccProjectIPAccessList_settingIPAddress(t *testing.T) {
 		comment          = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 		updatedIPAddress = acc.RandomIP(179, 154, 228)
 		updatedComment   = fmt.Sprintf("TestAcc for ipAddress updated (%s)", updatedIPAddress)
+		withDS           = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -35,16 +36,16 @@ func TestAccProjectIPAccessList_settingIPAddress(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithIPAddress(projectID, ipAddress, comment, true),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(ipAddress, "", "", comment, true)...),
+				Config: configWithIPAddress(projectID, ipAddress, comment, withDS),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(ipAddress, "", "", comment, withDS)...),
 			},
 			{
-				Config: configWithIPAddress(projectID, ipAddress, updatedComment, true),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(ipAddress, "", "", updatedComment, true)...),
+				Config: configWithIPAddress(projectID, ipAddress, updatedComment, withDS),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(ipAddress, "", "", updatedComment, withDS)...),
 			},
 			{
-				Config: configWithIPAddress(projectID, updatedIPAddress, updatedComment, true),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(updatedIPAddress, "", "", updatedComment, true)...),
+				Config: configWithIPAddress(projectID, updatedIPAddress, updatedComment, withDS),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(updatedIPAddress, "", "", updatedComment, withDS)...),
 			},
 			{
 				ResourceName:      resourceName,
@@ -63,6 +64,7 @@ func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 		comment          = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 		updatedCIDRBlock = acc.RandomIP(179, 154, 228) + "/32"
 		updatedComment   = fmt.Sprintf("TestAcc for cidrBlock updated (%s)", updatedCIDRBlock)
+		withDS           = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -71,16 +73,16 @@ func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithCIDRBlock(projectID, cidrBlock, comment, true),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", cidrBlock, "", comment, true)...),
+				Config: configWithCIDRBlock(projectID, cidrBlock, comment, withDS),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", cidrBlock, "", comment, withDS)...),
 			},
 			{
-				Config: configWithCIDRBlock(projectID, cidrBlock, updatedComment, true),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", cidrBlock, "", updatedComment, true)...),
+				Config: configWithCIDRBlock(projectID, cidrBlock, updatedComment, withDS),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", cidrBlock, "", updatedComment, withDS)...),
 			},
 			{
-				Config: configWithCIDRBlock(projectID, updatedCIDRBlock, updatedComment, true),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", updatedCIDRBlock, "", updatedComment, true)...),
+				Config: configWithCIDRBlock(projectID, updatedCIDRBlock, updatedComment, withDS),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", updatedCIDRBlock, "", updatedComment, withDS)...),
 			},
 		},
 	})
@@ -98,6 +100,7 @@ func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 		providerName     = "AWS"
 		comment          = fmt.Sprintf("TestAcc for awsSecurityGroup (%s)", awsSGroup)
 		updatedComment   = fmt.Sprintf("TestAcc for awsSecurityGroup updated (%s)", updatedAWSSgroup)
+		withDS           = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -106,16 +109,16 @@ func TestAccProjectIPAccessList_settingAWSSecurityGroup(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment, true),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", awsSGroup, comment, true)...),
+				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, comment, withDS),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", awsSGroup, comment, withDS)...),
 			},
 			{
-				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, updatedComment, true),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", awsSGroup, updatedComment, true)...),
+				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, awsSGroup, updatedComment, withDS),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", awsSGroup, updatedComment, withDS)...),
 			},
 			{
-				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment, true),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", updatedAWSSgroup, updatedComment, true)...),
+				Config: configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegion, updatedAWSSgroup, updatedComment, withDS),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", "", updatedAWSSgroup, updatedComment, withDS)...),
 			},
 		},
 	})
@@ -174,6 +177,7 @@ func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 		ipAddress = acc.RandomIP(179, 154, 226)
 		comment   = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
+		withDS    = false
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -182,7 +186,7 @@ func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithIPAddress(projectID, ipAddress, comment, false),
+				Config: configWithIPAddress(projectID, ipAddress, comment, withDS),
 			},
 			{
 				ResourceName:  resourceName,
