@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/fileutil"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen"
-	"github.com/stretchr/testify/assert/yaml"
+	"gopkg.in/yaml.v3"
 )
 
 const (
