@@ -72,7 +72,7 @@ schema:
           request_only_required_on_create: false
         - set:
             element_type: 4
-          description: 'Array of log types to export to Datadog (1-10 items). Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT, ATLAS_SEARCH. Note: ATLAS_SEARCH is currently in private preview and may not be supported for all customers.'
+          description: Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.
           custom_type:
             package: customtypes
             model: customtypes.SetValue[types.String]
@@ -247,7 +247,7 @@ data_sources:
         plural_ds_description: Returns all log integration configurations for the project. Optionally filter by integration type. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
         plural_ds_attributes:
             - string: {}
-              description: Optional filter by integration type (e.g., 'S3_LOG_EXPORT').
+              description: Optional filter by integration type (e.g., `S3_LOG_EXPORT`).
               computed_optional_required: optional
               tf_schema_name: integration_type
               tf_model_name: IntegrationType
