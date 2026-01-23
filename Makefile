@@ -156,6 +156,7 @@ autogen-api-spec-generation: ## Generate flattened API spec used by codegen
 # Generate resource models using API spec present in tools/codegen/atlasapispec/multi-version-api-spec.flattened.yml
 # resource_name is optional, if not provided all configured resource models will be generated
 # resource_tier is optional; valid values: prod, internal (default: all)
+# e.g. make autogen-model-generation resource_name=search_deployment_api
 .PHONY: autogen-model-generation
 autogen-model-generation: ## Generate resource models from API spec (resource_name optional)
 	@go run ./tools/codegen/cmd/codespec/main.go $(if $(resource_name),--resource-name $(resource_name),) $(if $(resource_tier),--resource-tier $(resource_tier),)

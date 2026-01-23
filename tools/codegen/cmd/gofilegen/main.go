@@ -20,6 +20,9 @@ const (
 
 func main() {
 	resourceName := getArgs()
+	if resourceName != nil {
+		log.Printf("Generating code for resource: %s", *resourceName)
+	}
 	resourceModelFilePaths, err := gatherResourceModelFilePaths(resourceName)
 	if err != nil {
 		log.Fatalf("[ERROR] An error occurred while gathering resource model files: %v", err)

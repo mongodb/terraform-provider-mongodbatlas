@@ -7,6 +7,7 @@ import (
 
 	"go.yaml.in/yaml/v4"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/fileutil"
 )
@@ -23,6 +24,9 @@ func main() {
 	if err := validateResourceTier(resourceTier); err != nil {
 		log.Fatalf("[ERROR] Invalid resource tier: %v", err)
 	}
+	if resourceName != nil {
+		log.Printf("Generating resource models for resource: %s", *resourceName)
+	}
 	if resourceTier != nil {
 		log.Printf("Using resource tier filter: %s", *resourceTier)
 	}
@@ -32,10 +36,12 @@ func main() {
 }
 
 func getArgs() (resourceName, resourceTier *string) {
-	flag.StringVar(resourceName, "resource-name", "", "Generate models only for the specified resource name")
-	flag.StringVar(resourceTier, "resource-tier", "", "Generate models only for resources in the specified tier (prod|internal)")
+	var resourceNameFlag string
+	var resourceTierFlag string
+	flag.StringVar(&resourceNameFlag, "resource-name", "", "Generate models only for the specified resource name")
+	flag.StringVar(&resourceTierFlag, "resource-tier", "", "Generate models only for resources in the specified tier (prod|internal)")
 	flag.Parse()
-	return
+	return conversion.StringPtr(resourceNameFlag), conversion.StringPtr(resourceTierFlag)
 }
 
 func validateResourceTier(resourceTier *string) error {
