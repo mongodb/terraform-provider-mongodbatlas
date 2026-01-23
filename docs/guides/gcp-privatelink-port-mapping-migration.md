@@ -73,7 +73,7 @@ The following table shows the key differences between the legacy and port-based 
 | `mongodbatlas_privatelink_endpoint.port_mapping_enabled` | Not set (defaults to `false`) | Must be set to `true` |
 | `google_compute_address` count | One per Atlas node | 1 address (total, supports up to 1000 nodes) |
 | `google_compute_forwarding_rule` count | One per Atlas node | 1 forwarding rule (total, supports up to 1000 nodes) |
-| `mongodbatlas_privatelink_endpoint_service.endpoint_service_id` | Required (can be any identifier string) | Required (should be the forwarding rule name) |
+| `mongodbatlas_privatelink_endpoint_service.endpoint_service_id` | Required (can be any identifier string) | Required (is the forwarding rule name) |
 | `mongodbatlas_privatelink_endpoint_service.private_endpoint_ip_address` | Not used | Required (the IP address of the forwarding rule) |
 | `mongodbatlas_privatelink_endpoint_service.endpoints` | Required (one endpoint per Atlas node) | Not used |
 | `mongodbatlas_privatelink_endpoint_service.gcp_project_id` | Required | Required |
