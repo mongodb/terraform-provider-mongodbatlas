@@ -36,9 +36,12 @@ func main() {
 		path := filepath.Join(serviceapi, pkg)
 
 		importLine := fmt.Sprintf("\"github.com/mongodb/terraform-provider-mongodbatlas/%s/%s\"", serviceapi, pkg)
-		if !strings.Contains(s, importLine) {
-			s = strings.Replace(s, "import (", "import (\n\t"+importLine, 1)
+		if strings.Contains(s, importLine) {
+			// Import already present. Either the command was re-run or this is a prod resource. Skipping.
+			//  - Note that this also prevents re-importing resources that use import aliases, which would break the build.
+			continue
 		}
+		s = strings.Replace(s, "import (", "import (\n\t"+importLine, 1)
 
 		if fileExists(path, "resource.go") {
 			s = inject(s, "project.Resource,", pkg+".Resource,")

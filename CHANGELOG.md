@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `data-source/project_ip_access_lists` ([#4104](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4104))
+
 ## 2.5.0 (January 22, 2026)
 
 FEATURES:
