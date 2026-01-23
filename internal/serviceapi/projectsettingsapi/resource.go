@@ -40,15 +40,16 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	pathParams := map[string]string{
-		"groupId": plan.GroupId.ValueString(),
+		"projectId": plan.ProjectId.ValueString(),
 	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/settings",
+		RelativePath:  "/api/atlas/v2/groups/{projectId}/settings",
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
 	reqHandle := autogen.HandleCreateReq{
+		Hooks:      r,
 		Resp:       resp,
 		Client:     r.Client,
 		Plan:       &plan,
@@ -64,7 +65,9 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	reqHandle := autogen.HandleReadReq{
-		Resp:       resp,
+		Hooks:      r,
+		RespDiags:  &resp.Diagnostics,
+		RespState:  &resp.State,
 		Client:     r.Client,
 		State:      &state,
 		CallParams: readAPICallParams(&state),
@@ -82,15 +85,16 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	// Path params are grabbed from state as they may be computed-only and not present in the plan
 	pathParams := map[string]string{
-		"groupId": state.GroupId.ValueString(),
+		"projectId": state.ProjectId.ValueString(),
 	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/settings",
+		RelativePath:  "/api/atlas/v2/groups/{projectId}/settings",
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
 	reqHandle := autogen.HandleUpdateReq{
+		Hooks:      r,
 		Resp:       resp,
 		Client:     r.Client,
 		Plan:       &plan,
@@ -103,18 +107,18 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	idAttributes := []string{"group_id"}
+	idAttributes := []string{"project_id"}
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
 func readAPICallParams(model any) *config.APICallParams {
 	m := model.(*TFModel)
 	pathParams := map[string]string{
-		"groupId": m.GroupId.ValueString(),
+		"projectId": m.ProjectId.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/settings",
+		RelativePath:  "/api/atlas/v2/groups/{projectId}/settings",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}

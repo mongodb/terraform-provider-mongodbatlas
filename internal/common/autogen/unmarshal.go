@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"slices"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
@@ -39,38 +38,58 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 	if valModel.Kind() != reflect.Struct {
 		panic("model must be pointer to struct")
 	}
-	for attrNameJSON, attrObjJSON := range objJSON {
-		if err := unmarshalAttr(attrNameJSON, attrObjJSON, valModel); err != nil {
+
+	// Iterate over model fields and look up corresponding JSON properties
+	structType := valModel.Type()
+	for i := range structType.NumField() {
+		field := structType.Field(i)
+		fieldModel := valModel.Field(i)
+
+		if !fieldModel.CanSet() {
+			continue // skip fields that cannot be set
+		}
+
+		tags := GetPropertyTags(&field)
+		apiName := getAPINameFromTag(field.Name, tags)
+
+		// Look up the JSON property
+		attrObjJSON, ok := objJSON[apiName]
+		if !ok {
+			continue // skip fields not found in JSON (attributes in JSON but not in model are ignored)
+		}
+
+		if attrObjJSON == nil {
+			continue // skip nil values, no need to set anything
+		}
+
+		if err := unmarshalAttr(attrObjJSON, fieldModel, &field); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value) error {
-	if attrObjJSON == nil {
-		return nil // skip nil values, no need to set anything
-	}
+func unmarshalAttr(attrObjJSON any, fieldModel reflect.Value, structField *reflect.StructField) error {
+	attrNameModel := structField.Name
+	tags := GetPropertyTags(structField)
 
-	attrNameModel := stringcase.Capitalize(attrNameJSON)
-	fieldModel := valModel.FieldByName(attrNameModel)
-	if !fieldModel.CanSet() {
-		return nil // skip fields that cannot be set, are invalid or not found
-	}
 	oldVal, ok := fieldModel.Interface().(attr.Value)
 	if !ok {
 		return fmt.Errorf("unmarshal trying to set non-Terraform attribute %s", attrNameModel)
 	}
 
 	if !oldVal.IsNull() && !oldVal.IsUnknown() { // Check if oldVal is a known value
-		structField, _ := valModel.Type().FieldByName(attrNameModel)                        // Always valid, checked above
-		if slices.Contains(strings.Split(structField.Tag.Get(tagKey), ","), tagSensitive) { // Field contains the "sensitive" tag
+		if tags.Sensitive {
 			return nil // skip sensitive fields that are already set in the plan/state to avoid overwriting with redacted values
 		}
 	}
 
+	if tags.ListAsMap {
+		attrObjJSON = ModifyJSONFromListToMap(attrObjJSON)
+	}
+
 	valueType := oldVal.Type(context.Background())
-	newValue, err := getTfAttr(attrObjJSON, valueType, oldVal, attrNameModel)
+	newValue, err := getTfAttr(attrObjJSON, valueType, oldVal, attrNameModel, tags.SkipStateListMerge)
 	if err != nil {
 		return err
 	}
@@ -86,7 +105,7 @@ func setAttrTfModel(name string, field reflect.Value, val attr.Value) error {
 	return nil
 }
 
-func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (attr.Value, error) {
+func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string, skipListMerge bool) (attr.Value, error) {
 	nameErr := stringcase.ToSnakeCase(name)
 	if _, ok := valueType.(jsontypes.NormalizedType); ok {
 		return getNormalizedJSONAttrValue(value, nameErr)
@@ -125,7 +144,7 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 		case customtypes.ListValueInterface:
 			return getListValueTFAttr(context.Background(), v, oldVal, nameErr)
 		case customtypes.NestedListValueInterface:
-			return getNestedListValueTFAttr(context.Background(), v, oldVal)
+			return getNestedListValueTFAttr(context.Background(), v, oldVal, skipListMerge)
 		case customtypes.SetValueInterface:
 			return getSetValueTFAttr(context.Background(), v, oldVal, nameErr)
 		case customtypes.NestedSetValueInterface:
@@ -169,11 +188,17 @@ func getObjectValueTFAttr(ctx context.Context, objJSON map[string]any, obj custo
 }
 
 func getMapValueTFAttr(ctx context.Context, mapJSON map[string]any, m customtypes.MapValueInterface) (attr.Value, error) {
+	if len(mapJSON) == 0 && len(m.Elements()) == 0 {
+		// Keep current map if both model and JSON maps are zero-len (empty or null) so config is preserved.
+		// It avoids inconsistent result after apply when user explicitly sets an empty map in config.
+		return m, nil
+	}
+
 	mapAttrs := make(map[string]attr.Value, len(mapJSON))
 	elemType := m.ElementType(ctx)
 
 	for key, item := range mapJSON {
-		value, err := getTfAttr(item, elemType, nil, key)
+		value, err := getTfAttr(item, elemType, nil, key, false)
 		if err != nil {
 			return nil, err
 		}
@@ -192,6 +217,13 @@ func getNestedMapValueTFAttr(ctx context.Context, mapJSON map[string]any, m cust
 	}
 
 	oldMapVal := reflect.ValueOf(oldMapPtr).Elem()
+	oldMapLen := oldMapVal.Len()
+
+	if len(mapJSON) == 0 && oldMapLen == 0 {
+		// Keep current map if both model and JSON map are zero-len (empty or null) so config is preserved.
+		// It avoids inconsistent result after apply when user explicitly sets an empty map in config.
+		return m, nil
+	}
 
 	mapPtr := m.NewEmptyMapPtr()
 	mapVal := reflect.ValueOf(mapPtr).Elem()
@@ -258,7 +290,7 @@ func getArrayTFAttr(arrayJSON []any, elemType attr.Type, nameErr string) ([]attr
 	slice := make([]attr.Value, len(arrayJSON))
 
 	for i, item := range arrayJSON {
-		value, err := getTfAttr(item, elemType, nil, nameErr)
+		value, err := getTfAttr(item, elemType, nil, nameErr, false)
 		if err != nil {
 			return nil, err
 		}
@@ -268,7 +300,7 @@ func getArrayTFAttr(arrayJSON []any, elemType attr.Type, nameErr string) ([]attr
 	return slice, nil
 }
 
-func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.NestedListValueInterface) (attr.Value, error) {
+func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.NestedListValueInterface, skipListMerge bool) (attr.Value, error) {
 	oldSlicePtr, diags := list.SlicePtrAsAny(ctx)
 	if diags.HasError() {
 		return nil, fmt.Errorf("unmarshal failed to convert list: %v", diags)
@@ -288,7 +320,7 @@ func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customt
 
 	for i, item := range arrayJSON {
 		elementVal := sliceVal.Index(i)
-		if i < oldSliceLen {
+		if !skipListMerge && i < oldSliceLen {
 			elementVal.Set(oldSliceVal.Index(i))
 		}
 		elementPtr := elementVal.Addr().Interface()

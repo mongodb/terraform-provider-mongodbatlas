@@ -13,13 +13,13 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - name: Update files
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run:  make update-tf-compatibility-matrix
       - name: Create PR
-        uses: peter-evans/create-pull-request@84ae59a2cdc2258d6fa0732dd66352dddae2a412
+        uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725
         with:
           token: ${{ secrets.APIX_BOT_PAT }}
           title: "doc: Updates Terraform Compatibility Matrix documentation"
@@ -34,13 +34,13 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - name: Update files
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run:  make update-tf-version-in-repository
       - name: Create PR
-        uses: peter-evans/create-pull-request@84ae59a2cdc2258d6fa0732dd66352dddae2a412
+        uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725
         with:
           token: ${{ secrets.APIX_BOT_PAT }}
           title: "chore: Updates repository to use supported Terraform versions"

@@ -95,8 +95,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.",
 			},
+			"tier": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Selected tier to start a stream processor on rather than defaulting to the workspace setting. Configures Memory / VCPU allowances. Valid options are SP2, SP5, SP10, SP30, and SP50.",
+			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Create: true,
+				Create:            true,
+				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate(constant.DefaultTimeoutDocumentation),
 			}),
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed: true,
@@ -120,6 +126,7 @@ type TFStreamProcessorRSModel struct {
 	ProjectID             types.String         `tfsdk:"project_id"`
 	State                 types.String         `tfsdk:"state"`
 	Stats                 types.String         `tfsdk:"stats"`
+	Tier                  types.String         `tfsdk:"tier"`
 	Timeouts              timeouts.Value       `tfsdk:"timeouts"`
 	DeleteOnCreateTimeout types.Bool           `tfsdk:"delete_on_create_timeout"`
 }
@@ -155,6 +162,7 @@ type TFStreamProcessorDSModel struct {
 	ProjectID     types.String `tfsdk:"project_id"`
 	State         types.String `tfsdk:"state"`
 	Stats         types.String `tfsdk:"stats"`
+	Tier          types.String `tfsdk:"tier"`
 }
 
 type TFStreamProcessorsDSModel struct {

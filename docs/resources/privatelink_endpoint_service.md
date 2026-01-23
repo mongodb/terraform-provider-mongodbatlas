@@ -212,10 +212,10 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 ```
 
 ### Further Examples
-- [AWS PrivateLink Endpoint and Service](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
-- [Azure Private Link Endpoint and Service](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/azure)
-- [GCP Private Service Connect Endpoint and Service (Legacy Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/gcp)
-- [GCP Private Service Connect Endpoint and Service (Port-Based Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-based)
+- [AWS PrivateLink Endpoint and Service](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+- [Azure Private Link Endpoint and Service](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/azure)
+- [GCP Private Service Connect Endpoint and Service (Legacy Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/gcp)
+- [GCP Private Service Connect Endpoint and Service (Port-Based Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-based)
 
 ## Argument Reference
 
@@ -226,7 +226,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 * `private_endpoint_ip_address` - (Optional) Private IP address of the private endpoint network interface. **Required for `AZURE`.** For GCP port-based architecture (when `port_mapping_enabled = true` on the endpoint resource), this is required and is the IP address of the forwarding rule. For GCP legacy architecture, this is not used.
 * `gcp_project_id` - (Optional) Unique identifier of the GCP project in which you created your endpoints. **Required for `GCP`** (both legacy and port-based architectures). Only for `GCP`.
 * `endpoints` - (Optional) Collection of individual private endpoints that comprise your endpoint group. Only for `GCP` legacy architecture (when `port_mapping_enabled = false` on the endpoint resource). **Note:** For the new port-based architecture, this field is no longer used - use `endpoint_service_id` and `private_endpoint_ip_address` instead.
-* `timeouts`- (Optional) The duration of time to wait for Private Endpoint Service to be created or deleted. The timeout value is defined by a signed sequence of decimal numbers with a time unit suffix such as: `1h45m`, `300s`, `10m`, etc. The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Private Endpoint create & delete is `2h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
+* `timeouts` - (Optional) The duration to wait for the Private Endpoint Service to be created or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `2h`), `delete` (default: `2h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 * `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 
 ### `endpoints`

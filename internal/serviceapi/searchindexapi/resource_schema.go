@@ -107,9 +107,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Optional:            true,
 						MarkdownDescription: "Method applied to identify words when searching this index.",
 					},
+					"sort": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "Sort definition for the index. When defined, the index will be pre-sorted on thespecified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options.The 'order' field is required (1=ascending, -1=descending).The 'noData' field is optional and controls how missing values are sorted(default: \"lowest\").",
+						CustomType:          jsontypes.NormalizedType{},
+					},
 					"stored_source": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. To learn more, see Stored Source Fields.",
+						MarkdownDescription: "Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. Note that storing all fields (true) is not allowed for vector search indexes. To learn more, see Stored Source Fields.",
 						CustomType:          jsontypes.NormalizedType{},
 					},
 					"synonyms": schema.ListNestedAttribute{
@@ -241,9 +246,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Computed:            true,
 						MarkdownDescription: "Method applied to identify words when searching this index.",
 					},
+					"sort": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "Sort definition for the index. When defined, the index will be pre-sorted on thespecified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options.The 'order' field is required (1=ascending, -1=descending).The 'noData' field is optional and controls how missing values are sorted(default: \"lowest\").",
+						CustomType:          jsontypes.NormalizedType{},
+					},
 					"stored_source": schema.StringAttribute{
 						Computed:            true,
-						MarkdownDescription: "Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. To learn more, see Stored Source Fields.",
+						MarkdownDescription: "Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. Note that storing all fields (true) is not allowed for vector search indexes. To learn more, see Stored Source Fields.",
 						CustomType:          jsontypes.NormalizedType{},
 					},
 					"synonyms": schema.ListNestedAttribute{
@@ -353,6 +363,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											Computed:            true,
 											MarkdownDescription: "Number of index partitions. Allowed values are [1, 2, 4].",
 										},
+										"stored_source": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. Note that storing all fields (true) is not allowed for vector search indexes. To learn more, see Stored Source Fields.",
+											CustomType:          jsontypes.NormalizedType{},
+										},
 									},
 								},
 								"definition_version": schema.SingleNestedAttribute{
@@ -407,6 +422,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										"num_partitions": schema.Int64Attribute{
 											Computed:            true,
 											MarkdownDescription: "Number of index partitions. Allowed values are [1, 2, 4].",
+										},
+										"stored_source": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. Note that storing all fields (true) is not allowed for vector search indexes. To learn more, see Stored Source Fields.",
+											CustomType:          jsontypes.NormalizedType{},
 										},
 									},
 								},
@@ -502,6 +522,7 @@ type TFDefinitionModel struct {
 	Analyzer       types.String                                            `tfsdk:"analyzer"`
 	Mappings       customtypes.ObjectValue[TFDefinitionMappingsModel]      `tfsdk:"mappings"`
 	SearchAnalyzer types.String                                            `tfsdk:"search_analyzer"`
+	Sort           jsontypes.Normalized                                    `tfsdk:"sort"`
 	StoredSource   jsontypes.Normalized                                    `tfsdk:"stored_source"`
 	NumPartitions  types.Int64                                             `tfsdk:"num_partitions"`
 }
@@ -535,6 +556,7 @@ type TFLatestDefinitionModel struct {
 	Analyzer       types.String                                                  `tfsdk:"analyzer" autogen:"omitjson"`
 	Mappings       customtypes.ObjectValue[TFLatestDefinitionMappingsModel]      `tfsdk:"mappings" autogen:"omitjson"`
 	SearchAnalyzer types.String                                                  `tfsdk:"search_analyzer" autogen:"omitjson"`
+	Sort           jsontypes.Normalized                                          `tfsdk:"sort" autogen:"omitjson"`
 	StoredSource   jsontypes.Normalized                                          `tfsdk:"stored_source" autogen:"omitjson"`
 	NumPartitions  types.Int64                                                   `tfsdk:"num_partitions" autogen:"omitjson"`
 }
@@ -580,6 +602,7 @@ type TFStatusDetailMainIndexModel struct {
 }
 type TFStatusDetailMainIndexDefinitionModel struct {
 	Fields        customtypes.ListValue[jsontypes.Normalized] `tfsdk:"fields" autogen:"omitjson"`
+	StoredSource  jsontypes.Normalized                        `tfsdk:"stored_source" autogen:"omitjson"`
 	NumPartitions types.Int64                                 `tfsdk:"num_partitions" autogen:"omitjson"`
 }
 type TFStatusDetailMainIndexDefinitionVersionModel struct {
@@ -595,6 +618,7 @@ type TFStatusDetailStagedIndexModel struct {
 }
 type TFStatusDetailStagedIndexDefinitionModel struct {
 	Fields        customtypes.ListValue[jsontypes.Normalized] `tfsdk:"fields" autogen:"omitjson"`
+	StoredSource  jsontypes.Normalized                        `tfsdk:"stored_source" autogen:"omitjson"`
 	NumPartitions types.Int64                                 `tfsdk:"num_partitions" autogen:"omitjson"`
 }
 type TFStatusDetailStagedIndexDefinitionVersionModel struct {

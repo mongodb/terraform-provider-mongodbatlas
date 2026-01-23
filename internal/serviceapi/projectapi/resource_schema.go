@@ -41,22 +41,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Applies to Atlas for Government only.\n\nIn Commercial Atlas, this field will be rejected in requests and missing in responses.\n\nThis field sets restrictions on available regions in the project.\n\n`COMMERCIAL_FEDRAMP_REGIONS_ONLY`: Only allows deployments in FedRAMP Moderate regions.\n\n`GOV_REGIONS_ONLY`: Only allows deployments in GovCloud regions.",
 			},
-			"tags": schema.ListNestedAttribute{
+			"tags": schema.MapAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project.",
-				CustomType:          customtypes.NewNestedListType[TFTagsModel](ctx),
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"key": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "Constant that defines the set of the tag. For example, `environment` in the `environment : production` tag.",
-						},
-						"value": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.",
-						},
-					},
-				},
+				CustomType:          customtypes.NewMapType[types.String](ctx),
+				ElementType:         types.StringType,
 			},
 			"with_default_alerts_settings": schema.BoolAttribute{
 				Computed:            true,
@@ -68,16 +57,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Tags                      customtypes.NestedListValue[TFTagsModel] `tfsdk:"tags"`
-	Created                   types.String                             `tfsdk:"created" autogen:"omitjson"`
-	Id                        types.String                             `tfsdk:"id" autogen:"omitjson"`
-	Name                      types.String                             `tfsdk:"name"`
-	OrgId                     types.String                             `tfsdk:"org_id" autogen:"omitjsonupdate"`
-	RegionUsageRestrictions   types.String                             `tfsdk:"region_usage_restrictions" autogen:"omitjsonupdate"`
-	ClusterCount              types.Int64                              `tfsdk:"cluster_count" autogen:"omitjson"`
-	WithDefaultAlertsSettings types.Bool                               `tfsdk:"with_default_alerts_settings" autogen:"omitjsonupdate"`
-}
-type TFTagsModel struct {
-	Key   types.String `tfsdk:"key"`
-	Value types.String `tfsdk:"value"`
+	Tags                      customtypes.MapValue[types.String] `tfsdk:"tags" autogen:"listasmap"`
+	Created                   types.String                       `tfsdk:"created" autogen:"omitjson"`
+	Id                        types.String                       `tfsdk:"id" autogen:"omitjson"`
+	Name                      types.String                       `tfsdk:"name"`
+	OrgId                     types.String                       `tfsdk:"org_id" autogen:"omitjsonupdate"`
+	RegionUsageRestrictions   types.String                       `tfsdk:"region_usage_restrictions" autogen:"omitjsonupdate"`
+	ClusterCount              types.Int64                        `tfsdk:"cluster_count" autogen:"omitjson"`
+	WithDefaultAlertsSettings types.Bool                         `tfsdk:"with_default_alerts_settings" autogen:"omitjsonupdate"`
 }

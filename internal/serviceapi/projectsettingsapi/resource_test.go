@@ -43,7 +43,7 @@ func TestAccProjectSettingsAPI_basic(t *testing.T) {
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: "group_id",
+				ImportStateVerifyIdentifierAttribute: "project_id",
 			},
 		},
 	})
@@ -52,7 +52,7 @@ func TestAccProjectSettingsAPI_basic(t *testing.T) {
 func config(projectID string, enabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_settings_api" "test" {
-			group_id = %[1]q
+			project_id = %[1]q
 			is_collect_database_specifics_statistics_enabled = %[2]t
 			is_data_explorer_enabled = %[2]t
 			is_data_explorer_gen_ai_features_enabled = %[2]t
@@ -68,7 +68,7 @@ func config(projectID string, enabled bool) string {
 func emptyConfig(projectID string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_settings_api" "test" {
-			group_id = %[1]q
+			project_id = %[1]q
 		}
 	`, projectID)
 }
@@ -76,7 +76,7 @@ func emptyConfig(projectID string) string {
 func check(projectID string, enabled bool) resource.TestCheckFunc {
 	expected := strconv.FormatBool(enabled)
 	attrChecks := map[string]string{
-		"group_id": projectID,
+		"project_id": projectID,
 		"is_collect_database_specifics_statistics_enabled":        expected,
 		"is_data_explorer_enabled":                                expected,
 		"is_data_explorer_gen_ai_features_enabled":                expected,
@@ -97,9 +97,9 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-		groupID := rs.Primary.Attributes["group_id"]
+		groupID := rs.Primary.Attributes["project_id"]
 		if groupID == "" {
-			return fmt.Errorf("no group_id is set")
+			return fmt.Errorf("no project_id is set")
 		}
 		if _, _, err := acc.ConnV2().ProjectsApi.GetGroupSettings(context.Background(), groupID).Execute(); err == nil {
 			return nil
@@ -114,7 +114,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		groupID := rs.Primary.Attributes["group_id"]
+		groupID := rs.Primary.Attributes["project_id"]
 		return groupID, nil
 	}
 }

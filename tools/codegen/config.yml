@@ -1,3 +1,8 @@
+variables:
+  # API descriptions mention using the /orgs and /groups endpoints to fetch user's orgs/projects, removing that part.
+  org_id_description: &org_id_description "Unique 24-hexadecimal digit string that identifies the organization that contains your projects."
+  project_id_description: &project_id_description "Unique 24-hexadecimal digit string that identifies your project."
+
 resources:
   # Singleton resource in project.
   # Create, Delete and Update uses PATCH.
@@ -243,7 +248,7 @@ resources:
             "PENDING",
             "DELETING",
           ]
-        target_states: [ "IDLE" ]
+        target_states: ["IDLE"]
         timeout_seconds: 10800 # 3 hours
         min_timeout_seconds: 60
         delay_seconds: 30
@@ -266,12 +271,12 @@ resources:
             "PENDING",
             "DELETING",
           ]
-        target_states: [ "DELETED" ] # DELETED is a special state value when API returns 404 or empty object
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
     move_state:
       source_resources: ["mongodbatlas_cluster_old_api"]
     version_header: application/vnd.atlas.2024-08-05+json
     schema:
-      ignores: [ "links", "mongo_db_employee_access_grant.links" ]
+      ignores: ["links", "mongo_db_employee_access_grant.links"]
       aliases:
         clusterName: name # path param name does not match the API request property
       # These attributes are optional but when not configured, Atlas returns a default value.
@@ -461,6 +466,8 @@ resources:
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
       ignores: ["links"]
+      aliases:
+        username: dbUser # alias is only added to illustrate full aliasing support (username is both a path param and present in request body)
       overrides:
         password:
           sensitive: true
@@ -510,6 +517,8 @@ resources:
       method: PATCH
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
+      aliases:
+        groupId: projectId
       overrides:
         # These attributes are optional but when not configured, Atlas returns a default value.
         is_collect_database_specifics_statistics_enabled:
@@ -663,7 +672,7 @@ resources:
         indexId: indexID # path param name does not match the API response property
       overrides:
         definition.type_sets:
-          include_null_on_update: true # on update if an empty array is sent the index definition is rejected with error Invalid definition: "typeSets" cannot be empty. 
+          include_null_on_update: true # on update if an empty array is sent the index definition is rejected with error Invalid definition: "typeSets" cannot be empty.
 
   # Update doesn't work because API defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
   # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
@@ -741,26 +750,6 @@ resources:
             optional: true
             computed: true
 
-  org_service_account_api:
-    read:
-      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
-      method: GET
-    create:
-      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts
-      method: POST
-    update:
-      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
-      method: DELETE
-    schema:
-      overrides:
-        secrets.secret:
-          sensitive: true
-        roles:
-          type: set
-
   alert_configuration_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
@@ -774,6 +763,16 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
       method: DELETE
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/alertConfigs
+        method: GET
+      schema:
+        aliases:
+          alertConfigId: id
     schema:
       aliases:
         alertConfigId: id # path param name does not match the API response property
@@ -806,3 +805,232 @@ resources:
           sensitive: true
         notifications.ops_genie_api_key:
           sensitive: true
+
+  control_plane_ip_addresses_api:
+    datasources:
+      read:
+        path: /api/atlas/v2/unauth/controlPlaneIPAddresses
+        method: GET
+      schema:
+        ignores: ["links"]
+
+  service_account:
+    read: &service-account-read-op
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: DELETE
+    schema:
+      aliases:
+        secrets.id: secretId
+      overrides:
+        # The API description mentions using the /org endpoint to fetch user's organizations, removing that part.
+        org_id:
+          description: *org_id_description
+        client_id:
+          immutable_computed: true
+        created_at:
+          immutable_computed: true
+        secret_expires_after_hours:
+          # Adding clarification that the attribute is required for creation and can't be updated later.
+          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later."
+        secrets:
+          type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
+          skip_state_list_merge: true # Prevent keeping old secret values in the state.
+        secrets.secret:
+          sensitive: true
+        roles:
+          type: set
+    datasources:
+      read: *service-account-read-op
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/serviceAccounts
+        method: GET
+      schema:
+        ignores: ["secrets.secret", "links"] # `secret` is never populated in read response, no value in adding for data source
+        aliases:
+          secrets.id: secretId
+          results.secrets.id: secretId
+        overrides:
+          org_id:
+            description: *org_id_description
+          secrets:
+            type: list
+
+  project_service_account:
+    read: &project-service-account-read-op
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+      method: DELETE
+    schema:
+      aliases:
+        groupId: projectId
+        secrets.id: secretId
+      overrides:
+        project_id:
+          description: *project_id_description
+        client_id:
+          immutable_computed: true
+        created_at:
+          immutable_computed: true
+        secret_expires_after_hours:
+          # Adding clarification that the attribute is required for creation and can't be updated later.
+          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account and you cannot update it later."
+        secrets:
+          type: list # Using a list to allow access by index without conversion. Secrets are ordered by creation date, oldest first.
+          skip_state_list_merge: true # Prevent keeping old secret values in the state.
+        secrets.secret:
+          sensitive: true
+        roles:
+          type: set
+    datasources:
+      read: *project-service-account-read-op
+      list:
+        path: /api/atlas/v2/groups/{groupId}/serviceAccounts
+        method: GET
+      schema:
+        ignores: [ "secrets.secret", "links" ] # `secret` is never populated in read response, no value in adding for data source
+        aliases:
+          groupId: projectId
+          secrets.id: secretId
+          results.secrets.id: secretId
+        overrides:
+          project_id:
+            description: *project_id_description
+          secrets:
+            type: list
+
+  service_account_secret:
+    read:
+      # get operation for a single secret is not available, individual secret is found in service account read looking in `secrets` property with custom code hooks
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: GET
+      schema_ignore: true
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
+      method: POST
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets/{secretId}
+      method: DELETE
+    version_header: application/vnd.atlas.2024-08-05+json
+    id_attributes: ["org_id", "client_id", "secret_id"]
+    schema:
+      aliases:
+        id: secretId
+      overrides:
+        org_id:
+          description: *org_id_description
+        secret:
+          sensitive: true
+        secret_expires_after_hours:
+          # Adding clarification that the attribute is required for creation and can't be updated later.
+          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account Secret and you cannot update it later."
+    datasources:
+      read:
+        # configures POST operation to have an accurate response schema, read operation is adjusted with custom code hooks
+        path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
+        method: POST
+      schema:
+        ignores: ["secret"] # `secret` is never populated in read response, no value in adding for data source
+        aliases:
+          id: secretId
+        overrides:
+          org_id:
+            description: *org_id_description
+          secret_id:
+            computability:
+              required: true
+
+  project_service_account_secret:
+    read:
+      # get operation for a single secret is not available, individual secret is found in service account read looking in `secrets` property with custom code hooks
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+      method: GET
+      schema_ignore: true
+    create:
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}/secrets
+      method: POST
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}/secrets/{secretId}
+      method: DELETE
+    version_header: application/vnd.atlas.2024-08-05+json
+    id_attributes: [ "project_id", "client_id", "secret_id" ]
+    schema:
+      aliases:
+        id: secretId
+        groupId: projectId
+      overrides:
+        secret:
+          sensitive: true
+        project_id:
+          description: *project_id_description
+        secret_expires_after_hours:
+          # Adding clarification that the attribute is required for creation and can't be updated later.
+          description: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings. This attribute is required when creating the Service Account Secret and you cannot update it later."
+    datasources:
+      read:
+        # configures POST operation to have an accurate response schema, read operation is adjusted with custom code hooks
+        path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}/secrets
+        method: POST
+      schema:
+        ignores: [ "secret" ] # `secret` is never populated in read response, no value in adding for data source
+        aliases:
+          id: secretId
+          groupId: projectId
+        overrides:
+          project_id:
+            description: *project_id_description
+          secret_id:
+            computability:
+              required: true
+
+  service_account_project_assignment:
+    read: &service-account-project-assignment-read-op
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}:invite
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+      method: DELETE
+    schema:
+      ignores: ["secrets", "name", "description", "created_at"] # These belong to the service_account, removing from the assignment schema.
+      aliases:
+        groupId: projectId
+      overrides:
+        project_id:
+          description: *project_id_description
+    datasources:
+      read: *service-account-project-assignment-read-op
+      list:
+        path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/groups
+        method: GET
+      schema:
+        ignores: ["links", "secrets", "name", "description", "created_at"] # These belong to the service_account, removing from the assignment schema.
+        aliases:
+          groupId: projectId
+          results.groupId: projectId
+        overrides:
+          org_id:
+            description: *org_id_description
+          project_id:
+            description: *project_id_description

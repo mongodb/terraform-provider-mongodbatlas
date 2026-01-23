@@ -12,18 +12,17 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
+	"golang.org/x/oauth2"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
 	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
-
-	"golang.org/x/oauth2"
 )
 
 const (
@@ -257,10 +256,11 @@ type APICallParams struct {
 	VersionHeader string
 	RelativePath  string
 	PathParams    map[string]string
+	QueryParams   map[string]string // Original types (string, int64, bool, list) are formatted to string before being added.
 	Method        string
 }
 
-func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParams, bodyReq []byte) (*http.Response, error) {
+func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params APICallParams, bodyReq []byte) (*http.Response, error) {
 	localBasePath, _ := c.AtlasV2.GetConfig().ServerURLWithContext(ctx, "")
 	localVarPath := localBasePath + params.RelativePath
 
@@ -272,12 +272,17 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 	headerParams["Content-Type"] = params.VersionHeader
 	headerParams["Accept"] = params.VersionHeader
 
+	queryParams := url.Values{}
+	for key, value := range params.QueryParams {
+		queryParams.Add(key, value)
+	}
+
 	var bodyPost any
 	if bodyReq != nil { // if nil slice is sent with application/json content type SDK method returns an error
 		bodyPost = bodyReq
 	}
 	untypedClient := c.AtlasV2.UntypedClient
-	apiReq, err := untypedClient.PrepareRequest(ctx, localVarPath, params.Method, bodyPost, headerParams, nil, nil, nil)
+	apiReq, err := untypedClient.PrepareRequest(ctx, localVarPath, params.Method, bodyPost, headerParams, queryParams, nil, nil)
 	if err != nil {
 		return nil, err
 	}

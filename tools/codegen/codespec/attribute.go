@@ -65,6 +65,7 @@ func (s *APISpecSchema) buildStringAttr(name string, computability ComputedOptio
 	result := &Attribute{
 		TFSchemaName:             stringcase.ToSnakeCase(name),
 		TFModelName:              stringcase.Capitalize(name),
+		APIName:                  name,
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -88,6 +89,7 @@ func (s *APISpecSchema) buildIntegerAttr(name string, computability ComputedOpti
 	result := &Attribute{
 		TFSchemaName:             stringcase.ToSnakeCase(name),
 		TFModelName:              stringcase.Capitalize(name),
+		APIName:                  name,
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -111,6 +113,7 @@ func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptio
 		result := &Attribute{
 			TFSchemaName:             stringcase.ToSnakeCase(name),
 			TFModelName:              stringcase.Capitalize(name),
+			APIName:                  name,
 			ComputedOptionalRequired: computability,
 			DeprecationMessage:       s.GetDeprecationMessage(),
 			Description:              s.GetDescription(),
@@ -132,6 +135,7 @@ func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptio
 	return &Attribute{
 		TFSchemaName:             stringcase.ToSnakeCase(name),
 		TFModelName:              stringcase.Capitalize(name),
+		APIName:                  name,
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -143,6 +147,7 @@ func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptiona
 	result := &Attribute{
 		TFSchemaName:             stringcase.ToSnakeCase(name),
 		TFModelName:              stringcase.Capitalize(name),
+		APIName:                  name,
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -165,6 +170,7 @@ func (s *APISpecSchema) buildRegularCollectionAttribute(name, tfModelName string
 	attr := &Attribute{
 		TFSchemaName:             stringcase.ToSnakeCase(name),
 		TFModelName:              tfModelName,
+		APIName:                  name,
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -186,6 +192,7 @@ func (s *APISpecSchema) buildNestedCollectionAttribute(name, tfModelName, nested
 	attr := &Attribute{
 		TFSchemaName:             stringcase.ToSnakeCase(name),
 		TFModelName:              tfModelName,
+		APIName:                  name,
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -260,6 +267,7 @@ func (s *APISpecSchema) buildMapAttr(name, ancestorsName string, computability C
 	result := &Attribute{
 		TFSchemaName:             stringcase.ToSnakeCase(name),
 		TFModelName:              stringcase.Capitalize(name),
+		APIName:                  name,
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -305,6 +313,7 @@ func (s *APISpecSchema) buildSingleNestedAttr(name, ancestorsName string, comput
 	attr := &Attribute{
 		TFSchemaName:             stringcase.ToSnakeCase(name),
 		TFModelName:              stringcase.Capitalize(name),
+		APIName:                  name,
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),

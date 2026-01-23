@@ -2,13 +2,6 @@
 
 ## Steps
 
-### Remove deprecated attributes
-
-**Note**: Only applies if the right most version digit is 0 (considered a major or minor version in [semantic versioning](https://semver.org/)).
-
-- If some deprecated attributes need to be removed in the following release, create a Jira ticket and merge the corresponding PR before starting the release workflow.
-You can search in the code for the constansts in [deprecation.go](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/common/constant/deprecation.go) to find them.
-
 ### Revise jira release
 
 Before triggering a release, view the corresponding [unreleased jira page](https://jira.mongodb.org/projects/CLOUDP?selectedItem=com.atlassian.jira.jira-projects-plugin:release-page&status=unreleased&contains=terraform) to ensure there are no pending tickets. In case there are pending tickets, verify with the team if the expectation is to have them included within the current release. After release workflow is successful the version will be marked as released automatically.
@@ -22,8 +15,6 @@ While QA acceptance tests are run in the release process automatically, we check
 - A document (./docs/guides/X.0.0-upgrade-guide.md) must be provided for each major version, summarizing the most significant features, breaking changes, and other helpful information. For minor version releases, this can be created if there are notable changes that warrant it.
 
 - The expectation is that this file is created during relevant pull requests (breaking changes, significant features), and not before the release process.
-
-- We keep [Guides](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/docs/guides) only for 12 months. Add header `subcategory: "Older Guides - Version X"` to previous versions.
 
 ### Trigger release workflow
 

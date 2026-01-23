@@ -7,34 +7,46 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: audit_authorization_success
           tf_model_name: AuditAuthorizationSuccess
+          api_name: auditAuthorizationSuccess
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: JSON document that specifies which events to record. Escape any characters that may prevent parsing, such as single or double quotes, using a backslash (`\`).
           computed_optional_required: optional
           tf_schema_name: audit_filter
           tf_model_name: AuditFilter
+          api_name: auditFilter
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Human-readable label that displays how to configure the audit filter.
           computed_optional_required: computed
           tf_schema_name: configuration_type
           tf_model_name: ConfigurationType
+          api_name: configurationType
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - bool:
             default: false
           description: Flag that indicates whether someone enabled database auditing for the specified project.
           computed_optional_required: computed_optional
           tf_schema_name: enabled
           tf_model_name: Enabled
+          api_name: enabled
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: |-
             Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -43,9 +55,12 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
+          api_name: groupId
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
 operations:
     delete:
         http_method: PATCH

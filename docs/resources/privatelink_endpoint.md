@@ -37,10 +37,10 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 ```
 
 ### Further Examples
-- [AWS PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/aws)
-- [Azure PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/azure)
-- [GCP Private Service Connect Endpoint (Legacy Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/gcp)
-- [GCP Private Service Connect Endpoint (Port-Based Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-based)
+- [AWS PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/aws)
+- [Azure PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/azure)
+- [GCP Private Service Connect Endpoint (Legacy Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/gcp)
+- [GCP Private Service Connect Endpoint (Port-Based Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-based)
 
 ## Argument Reference
 
@@ -48,7 +48,7 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 * `provider_name` - (Required) Name of the cloud provider for which you want to create the private endpoint service. Atlas accepts `AWS`, `AZURE` or `GCP`.
 * `region` - (Required) Cloud provider region in which you want to create the private endpoint connection.
 Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws), [AZURE regions](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure) and [GCP regions](https://docs.atlas.mongodb.com/reference/google-gcp/#std-label-google-gcp)
-* `timeouts`- (Optional) The duration of time to wait for Private Endpoint to be created or deleted. The timeout value is defined by a signed sequence of decimal numbers with a time unit suffix such as: `1h45m`, `300s`, `10m`, etc. The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Private Endpoint create & delete is `1h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
+* `timeouts` - (Optional) The duration to wait for Private Endpoint to be created or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `1h`), `delete` (default: `1h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 * `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 * `port_mapping_enabled` - (Optional) Flag that indicates whether this endpoint service uses GCP port-mapping. When set to `true`, enables the new port-based architecture, which requires only 1 endpoint. Defaults to `false`. Only applicable for GCP provider.
 

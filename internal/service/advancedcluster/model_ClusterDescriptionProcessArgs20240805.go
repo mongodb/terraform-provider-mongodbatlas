@@ -3,7 +3,7 @@ package advancedcluster
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *ProcessArgs, diags *diag.Diagnostics) {
+func buildAdvancedConfigObjType(ctx context.Context, input *ProcessArgs, diags *diag.Diagnostics) types.Object {
 	var advancedConfig TFAdvancedConfigurationModel
 	var customCipherConfigTLS12 *[]string
 	var customCipherConfigTLS13 *[]string
@@ -46,9 +46,9 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *ProcessArgs
 
 	overrideTLSIfClusterAdvancedConfigPresent(ctx, diags, &advancedConfig, input.ClusterAdvancedConfig)
 
-	objType, diagsLocal := types.ObjectValueFrom(ctx, AdvancedConfigurationObjType.AttrTypes, advancedConfig)
+	objType, diagsLocal := types.ObjectValueFrom(ctx, advancedConfigurationObjType.AttrTypes, advancedConfig)
 	diags.Append(diagsLocal...)
-	tfModel.AdvancedConfiguration = objType
+	return objType
 }
 
 func overrideTLSIfClusterAdvancedConfigPresent(ctx context.Context, diags *diag.Diagnostics, tfAdvConfig *TFAdvancedConfigurationModel, conf *admin.ApiAtlasClusterAdvancedConfiguration) {

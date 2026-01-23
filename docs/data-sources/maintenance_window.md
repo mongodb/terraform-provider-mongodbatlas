@@ -49,7 +49,7 @@ In addition to all arguments above, the following attributes are exported:
 * `hour_of_day` - Hour of the day when you would like the maintenance window to start. This parameter uses the 24-hour clock, where midnight is 0, noon is 12. Uses the project's configured timezone.
 * `start_asap` - Flag indicating whether project maintenance has been directed to start immediately. If requested, this field returns true from the time the request was made until the time the maintenance event completes.
 * `number_of_deferrals` - Number of times the current maintenance event for this project has been deferred, there can be a maximum of 2 deferrals.
-* `auto_defer_once_enabled` - Flag that indicates whether you want to defer all maintenance windows one week they would be triggered.
+* `auto_defer_once_enabled` - When `true`, enables automatic deferral of all scheduled maintenance for the given project by one week.
 * `protected_hours` - (Optional) Defines the time period during which there will be no standard updates to the clusters. See [Protected Hours](#protected-hours).
 * `time_zone_id` - Identifier for the current time zone of the maintenance window. This can only be updated via the Project Settings UI.
 

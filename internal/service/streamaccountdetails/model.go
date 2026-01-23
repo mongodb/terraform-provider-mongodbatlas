@@ -3,7 +3,7 @@ package streamaccountdetails
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"

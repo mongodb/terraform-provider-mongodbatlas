@@ -16,7 +16,7 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v2.4.0 # Also update golangci-lint GH action in code-health.yml when updating this version
+GOLANGCI_VERSION=v2.7.2 # Also update golangci-lint GH action in code-health.yml when updating this version
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -113,8 +113,6 @@ tools:  ## Install the dev tools (dependencies)
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
 	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.38.0 # Pinning version since v0.39.0 fails to fix files with large structs. See versions at https://pkg.go.dev/golang.org/x/tools/go/analysis/passes/fieldalignment?tab=versions
 	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
-	go install github.com/hashicorp/terraform-plugin-codegen-openapi/cmd/tfplugingen-openapi@latest
-	go install github.com/hashicorp/terraform-plugin-codegen-framework/cmd/tfplugingen-framework@latest
 	go install github.com/hashicorp/go-changelog/cmd/changelog-build@latest
 	go install github.com/hashicorp/go-changelog/cmd/changelog-entry@latest
 	go install golang.org/x/tools/cmd/goimports@latest
@@ -150,12 +148,6 @@ update-atlas-sdk: ## Update the Atlas SDK dependency
 scaffold: ## Create scaffolding for a new resource
 	@go run ./tools/scaffold/*.go $(resource_name) $(type)
 	@echo "Reminder: configure the new $(type) in provider.go"
-
-# e.g. run: make scaffold-schemas resource_name=streamInstance
-# details on usage can be found in contributing/development-best-practices.md under "Generating Schema and Model Definitions - Using schema generation HashiCorp tooling"
-.PHONY: scaffold-schemas
-scaffold-schemas: ## Create the schema scaffolding for a new resource
-	@scripts/schema-scaffold.sh $(resource_name)
 
 .PHONY: generate-autogen-api-spec
 generate-autogen-api-spec: ## Generate flattened API spec used by codegen
@@ -219,11 +211,8 @@ access-token-revoke: ## Revoke an OAuth2 access token. Usage: make access-token-
 	@go run ./tools/access-token/*.go revoke $(token)
 
 .PHONY: enable-autogen
-enable-autogen: ## Enable use of autogen resources in the provider
-	$(eval filename := ./internal/provider/provider.go)
-	$(eval resources := $(shell ls -d internal/serviceapi/*/ | xargs -n1 basename))
-	$(foreach resource,$(resources),make add-lines filename=${filename} find="project.Resource," add="$(resource).Resource,\n";)
-	goimports -w ${filename}
+enable-autogen: ## Enable use of autogen resources and datasources in the provider
+	@go run tools/enable-autogen/main.go
 
 .PHONY: delete-lines ${filename} ${delete}
 delete-lines:
