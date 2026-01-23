@@ -1,6 +1,6 @@
 # Migration Example: GCP Private Link Legacy Architecture to Port-Based Architecture
 
-This example demonstrates how to migrate from the legacy GCP Private Service Connect architecture to the new GCP port-based architecture.
+This example demonstrates how to migrate from the legacy GCP Private Service Connect architecture to the new port-based architecture.
 
 ## Migration Phases
 
