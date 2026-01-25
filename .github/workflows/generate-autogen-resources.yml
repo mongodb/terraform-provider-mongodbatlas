@@ -31,7 +31,7 @@ jobs:
           fi
       - name: Create PR
         if: steps.check_internal_changes.outputs.internal_changed == 'true'
-        uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725
+        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0
         with:
           token: ${{ secrets.APIX_BOT_PAT }}
           title: "chore: Updates auto-generated resources"
