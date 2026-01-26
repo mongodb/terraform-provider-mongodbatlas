@@ -96,7 +96,7 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"endpoint_group_name": { // This attribute is not used anywhere is the code. Refraining from removal because of potential breaking change.
+			"endpoint_group_name": { // This attribute is not used anywhere in the code. Refraining from removal because of potential breaking change. This will be removed in CLOUDP-374187.
 				Type:     schema.TypeString,
 				Computed: true,
 			},
