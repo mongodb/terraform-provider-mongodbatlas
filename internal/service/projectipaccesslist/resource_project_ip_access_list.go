@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/concurrency"
 	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -29,6 +30,8 @@ const (
 	delayCreateUpdate      = 10 * time.Second
 	minTimeoutCreateUpdate = 10 * time.Second
 )
+
+var createAccessListEntryMutex = concurrency.NewMutexKV()
 
 type projectIPAccessListRS struct {
 	config.RSCommon
@@ -271,8 +274,13 @@ func createOrUpdate(ctx context.Context, connV2 *admin.APIClient, projectIPAcces
 		Pending: []string{"pending"},
 		Target:  []string{"created", "failed"},
 		Refresh: func() (any, string, error) {
+			// Each access list entry is its own resource, which leads to concurrent calls within a single apply unless explicitly handled by the user.
+			// From API docs: "This endpoint doesn't support concurrent POST requests. You must submit multiple POST requests synchronously."
+			// Locking on a project level to avoid race conditions within a single apply. Still, we verify that the entry was added to the access list and retry otherwise in case of an external update.
+			createAccessListEntryMutex.Lock(projectID)
 			_, httpResponse, err := connV2.ProjectIPAccessListApi.CreateAccessListEntry(ctx, projectID, NewMongoDBProjectIPAccessList(projectIPAccessListModel)).Execute()
-			// Atlas Create is called inside refresh because this limitation: This endpoint doesn't support concurrent POST requests. You must submit multiple POST requests synchronously.
+			// Unlock immediately after create to allow parallel reads (intentionally not deferring).
+			createAccessListEntryMutex.Unlock(projectID)
 			if err != nil {
 				if validate.StatusInternalServerError(httpResponse) {
 					return nil, "pending", nil
