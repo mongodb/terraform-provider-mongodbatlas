@@ -1,8 +1,8 @@
 ---
-page_title: "Migration Guide: GCP Private Link Legacy Architecture to Port-Based Architecture"
+page_title: "Migration Guide: GCP Private Link Legacy to Port-Based Architecture"
 ---
 
-# Migration Guide: GCP Private Link Legacy Architecture to Port-Based Architecture
+# Migration Guide: GCP Private Link Legacy to Port-Based Architecture
 
 ## Overview
 
