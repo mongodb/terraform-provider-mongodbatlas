@@ -1,26 +1,21 @@
 # v3: Final State - Port-Based Architecture Only
-# This configuration uses only the new port-based architecture
+# This configuration uses only the port-based architecture
 
-# Endpoint (from v2, port-based architecture)
+# from v2, port-based architecture
 resource "mongodbatlas_privatelink_endpoint" "test_new" {
   project_id               = var.project_id
   provider_name            = "GCP"
   region                   = var.gcp_region
   port_mapping_enabled     = true
-  delete_on_create_timeout = true
-  timeouts {
-    create = "10m"
-    delete = "10m"
-  }
 }
 
-# Keep existing Google Network (from v1, also used for the new architectures)
+# from v1, also used for the port-based architecture
 resource "google_compute_network" "default" {
   project = var.gcp_project_id
   name    = "my-network"
 }
 
-# Keep existing Google Sub Network (from v1, also used for the new architectures)
+# from v1, also used for the port-based architecture
 resource "google_compute_subnetwork" "default" {
   project       = google_compute_network.default.project
   name          = "my-subnet"
@@ -29,7 +24,7 @@ resource "google_compute_subnetwork" "default" {
   network       = google_compute_network.default.id
 }
 
-# Google Address (from v2, 1 address for new port-based architecture)
+# from v2, port-based architecture
 resource "google_compute_address" "new" {
   project      = google_compute_subnetwork.default.project
   name         = "tf-test-port-based-endpoint"
@@ -41,7 +36,7 @@ resource "google_compute_address" "new" {
   depends_on = [mongodbatlas_privatelink_endpoint.test_new]
 }
 
-# Forwarding Rule (from v2, 1 rule for new port-based architecture)
+# from v2, port-based architecture
 resource "google_compute_forwarding_rule" "new" {
   target                = mongodbatlas_privatelink_endpoint.test_new.service_attachment_names[0]
   project               = google_compute_address.new.project
@@ -52,7 +47,7 @@ resource "google_compute_forwarding_rule" "new" {
   load_balancing_scheme = ""
 }
 
-# Endpoint Service (from v2, port-based architecture)
+# from v2, port-based architecture
 resource "mongodbatlas_privatelink_endpoint_service" "test_new" {
   project_id                  = mongodbatlas_privatelink_endpoint.test_new.project_id
   private_link_id             = mongodbatlas_privatelink_endpoint.test_new.private_link_id
@@ -60,11 +55,6 @@ resource "mongodbatlas_privatelink_endpoint_service" "test_new" {
   endpoint_service_id         = google_compute_forwarding_rule.new.name
   private_endpoint_ip_address = google_compute_address.new.address
   gcp_project_id              = var.gcp_project_id
-  delete_on_create_timeout    = true
-  timeouts {
-    create = "10m"
-    delete = "10m"
-  }
 }
 
 data "mongodbatlas_advanced_cluster" "cluster" {

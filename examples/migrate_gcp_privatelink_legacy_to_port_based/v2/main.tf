@@ -1,38 +1,28 @@
 # v2: Migration Phase - Both Legacy and Port-Based Architectures
 # This configuration creates both architectures in parallel for testing
 
-# Legacy: Endpoint (from v1, required for legacy architecture)
+# from v1, legacy architecture
 resource "mongodbatlas_privatelink_endpoint" "test_legacy" {
   project_id               = var.project_id
   provider_name            = "GCP"
   region                   = var.gcp_region
-  delete_on_create_timeout = true
-  timeouts {
-    create = "10m"
-    delete = "10m"
-  }
 }
 
-# New: Create endpoint with port-based architecture
+# New: Create mongodbatlas_privatelink_endpoint with port-based architecture
 resource "mongodbatlas_privatelink_endpoint" "test_new" {
   project_id               = var.project_id
   provider_name            = "GCP"
   region                   = var.gcp_region
   port_mapping_enabled     = true
-  delete_on_create_timeout = true
-  timeouts {
-    create = "10m"
-    delete = "10m"
-  }
 }
 
-# Keep existing Google Network (from v1, used for both legacy and new architectures)
+# from v1, also used for the port-based architecture
 resource "google_compute_network" "default" {
   project = var.gcp_project_id
   name    = "my-network"
 }
 
-# Keep existing Google Sub Network (from v1, used for both legacy and new architectures)
+# from v1, also used for the port-based architecture
 resource "google_compute_subnetwork" "default" {
   project       = google_compute_network.default.project
   name          = "my-subnet"
@@ -41,7 +31,7 @@ resource "google_compute_subnetwork" "default" {
   network       = google_compute_network.default.id
 }
 
-# Legacy: Google 50 Addresses (from v1, required for legacy architecture)
+# from v1, legacy architecture
 resource "google_compute_address" "legacy" {
   count        = 50
   project      = google_compute_subnetwork.default.project
@@ -54,7 +44,7 @@ resource "google_compute_address" "legacy" {
   depends_on = [mongodbatlas_privatelink_endpoint.test_legacy]
 }
 
-# New: Create Google Address (1 address for new port-based architecture)
+# New: Create Google Address (1 address for port-based architecture)
 # Note: Uses existing network and subnet from v1
 resource "google_compute_address" "new" {
   project      = google_compute_subnetwork.default.project
@@ -67,7 +57,7 @@ resource "google_compute_address" "new" {
   depends_on = [mongodbatlas_privatelink_endpoint.test_new]
 }
 
-# Legacy: 50 Forwarding rules (from v1, required for legacy architecture)
+# from v1, legacy architecture
 resource "google_compute_forwarding_rule" "legacy" {
   count                 = 50
   target                = mongodbatlas_privatelink_endpoint.test_legacy.service_attachment_names[count.index]
@@ -79,7 +69,7 @@ resource "google_compute_forwarding_rule" "legacy" {
   load_balancing_scheme = ""
 }
 
-# New: Create Forwarding Rule (1 rule for new port-based architecture)
+# New: Create Forwarding Rule (1 rule for port-based architecture)
 resource "google_compute_forwarding_rule" "new" {
   target                = mongodbatlas_privatelink_endpoint.test_new.service_attachment_names[0]
   project               = google_compute_address.new.project
@@ -90,18 +80,13 @@ resource "google_compute_forwarding_rule" "new" {
   load_balancing_scheme = ""
 }
 
-# Legacy: Endpoint Service (from v1, required for legacy architecture)
+# from v1, legacy architecture
 resource "mongodbatlas_privatelink_endpoint_service" "test_legacy" {
   project_id               = mongodbatlas_privatelink_endpoint.test_legacy.project_id
   private_link_id          = mongodbatlas_privatelink_endpoint.test_legacy.private_link_id
   provider_name            = "GCP"
   endpoint_service_id      = "legacy-endpoint-group"
   gcp_project_id           = var.gcp_project_id
-  delete_on_create_timeout = true
-  timeouts {
-    create = "10m"
-    delete = "10m"
-  }
   dynamic "endpoints" {
     for_each = google_compute_address.legacy
 
@@ -114,7 +99,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test_legacy" {
   depends_on = [google_compute_forwarding_rule.legacy]
 }
 
-# New: Create Endpoint Service with port-based architecture
+# New: Create mongodbatlas_privatelink_endpoint_service with port-based architecture
 resource "mongodbatlas_privatelink_endpoint_service" "test_new" {
   project_id                  = mongodbatlas_privatelink_endpoint.test_new.project_id
   private_link_id             = mongodbatlas_privatelink_endpoint.test_new.private_link_id
@@ -122,11 +107,6 @@ resource "mongodbatlas_privatelink_endpoint_service" "test_new" {
   endpoint_service_id         = google_compute_forwarding_rule.new.name
   private_endpoint_ip_address = google_compute_address.new.address
   gcp_project_id              = var.gcp_project_id
-  delete_on_create_timeout    = true
-  timeouts {
-    create = "10m"
-    delete = "10m"
-  }
 }
 
 data "mongodbatlas_advanced_cluster" "cluster" {
@@ -150,6 +130,6 @@ output "connection_string_legacy" {
 }
 
 output "connection_string_new" {
-  description = "Connection string for new port-based endpoint"
+  description = "Connection string for port-based endpoint"
   value       = length(local.connection_strings) > 0 ? local.connection_strings[0] : ""
 }
