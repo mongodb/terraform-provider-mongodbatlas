@@ -1,15 +1,12 @@
 # Example with GCP (Legacy Architecture)
 # This example demonstrates the legacy GCP architecture.
-# For the new port-based architecture, see the gcp-port-based directory.
+# For the port-based architecture, see the gcp-port-based directory.
+
+# Create mongodbatlas_privatelink_endpoint with legacy architecture
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id               = var.project_id
   provider_name            = "GCP"
   region                   = var.gcp_region
-  delete_on_create_timeout = true
-  timeouts {
-    create = "10m"
-    delete = "10m"
-  }
 }
 
 # Create a Google Network
@@ -52,17 +49,13 @@ resource "google_compute_forwarding_rule" "default" {
   load_balancing_scheme = ""
 }
 
+# Create mongodbatlas_privatelink_endpoint_service with legacy architecture
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
   project_id               = mongodbatlas_privatelink_endpoint.test.project_id
   private_link_id          = mongodbatlas_privatelink_endpoint.test.private_link_id
   provider_name            = "GCP"
   endpoint_service_id      = "the-endpoint-group-name"
   gcp_project_id           = var.gcp_project_id
-  delete_on_create_timeout = true
-  timeouts {
-    create = "10m"
-    delete = "10m"
-  }
   dynamic "endpoints" {
     for_each = google_compute_address.default
 

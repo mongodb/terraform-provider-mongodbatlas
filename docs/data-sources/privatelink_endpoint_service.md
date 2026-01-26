@@ -92,9 +92,9 @@ data "mongodbatlas_privatelink_endpoint_service" "test" {
 
 ## Example with GCP (Port-Based Architecture)
 
-The new port-based architecture uses port mapping to reduce resource provisioning. Unlike the legacy architecture that requires dedicated resources for each Atlas node, the new design uses a single set of resources to support up to 1000 nodes through a port mapping network endpoint group (NEG), enabling direct targeting of specific nodes using only one customer IP address. Enable it by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource.
+The port-based architecture uses port mapping to reduce resource provisioning. Unlike the legacy architecture that requires dedicated resources for each Atlas node, the port-based design uses a single set of resources to support up to 150 nodes, enabling direct targeting of specific nodes using only one customer IP address. Enable it by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource.
 
-**Important:** For the new port-based architecture, use `endpoint_service_id` (the forwarding rule name) and `private_endpoint_ip_address` (the IP address). The `endpoints` list is no longer used for the new architecture.
+**Important:** For the port-based architecture, use `endpoint_service_id` (the forwarding rule name) and `private_endpoint_ip_address` (the IP address). The `endpoints` list is no longer used for the port-based architecture.
 
 ```terraform
 data "mongodbatlas_privatelink_endpoint_service" "test" {
@@ -151,6 +151,6 @@ In addition to all arguments above, the following attributes are exported:
   * `endpoint_name` - Forwarding rule that corresponds to the endpoint you created.
   * `ip_address` - Private IP address of the network endpoint group you created.
   * `status` - Status of the endpoint. Atlas returns one of the [values shown above](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/#std-label-ref-status-field).
-* `port_mapping_enabled` - Flag that indicates whether this endpoint service uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the new port-based architecture (requires 1 endpoint). When `false`, it uses the legacy architecture. Only applicable for GCP provider.
+* `port_mapping_enabled` - Flag that indicates whether this endpoint service uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-based architecture (requires 1 endpoint). When `false`, it uses the legacy architecture. Only applicable for GCP provider.
 
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-get-one/) Documentation for more information.

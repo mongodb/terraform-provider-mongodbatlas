@@ -1,12 +1,12 @@
 # Example with GCP with Port-Based architecture and MongoDB Atlas Private Endpoint
 
-This project demonstrates the **new GCP port-based architecture** for setting up GCP Private Service Connect with MongoDB Atlas. Unlike the legacy architecture that requires dedicated resources for each Atlas node, the new design uses a single set of resources to support up to 1000 nodes through port mapping, enabling direct targeting of specific nodes using only one customer IP address.
+This project demonstrates the **port-based architecture** for setting up GCP Private Service Connect with MongoDB Atlas. Unlike the legacy architecture that requires dedicated resources for each Atlas node, the port-based design uses a single set of resources to support up to 150 nodes, enabling direct targeting of specific nodes using only one customer IP address.
 
 ## Architecture Comparison
 
-| Feature | Legacy Architecture | New Port-Based Architecture (this example) |
+| Feature | Legacy Architecture | Port-Based Architecture (this example) |
 |---------|-------------------|---------------------------|
-| Resources per Atlas node | Dedicated forwarding rule, service attachment, and instance group | Single set of resources for up to 1000 nodes |
+| Resources per Atlas node | Dedicated forwarding rule, service attachment, and instance group | Single set of resources for up to 150 nodes |
 | `port_mapping_enabled` | `false` (or omitted) | `true` |
 | Customer IP addresses | One per Atlas node | One total |
 
@@ -26,7 +26,7 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 - **1 Google Compute Address** (instead of one per Atlas node)
 - **1 Google Compute Forwarding Rule** (instead of one per Atlas node)
 - Use `endpoint_service_id` (forwarding rule name) and `private_endpoint_ip_address` (IP address) in `mongodbatlas_privatelink_endpoint_service`
-- The `endpoints` list is not used for the new architecture
+- The `endpoints` list is not used for the port-based architecture
 
 For the legacy architecture example, see the [`gcp/`](../gcp/) directory example.
 
@@ -82,7 +82,7 @@ This project deploys:
 
 - MongoDB Atlas GCP Private Endpoint
 - Google Compute Network, SubNetwork, Address and Forwarding Rule
-- Google Private Service Connect (PSC)-MongoDB Private Link
+- Google Private Service Connect-MongoDB Private Link
 
 **4\. Execute the Terraform apply.**
 

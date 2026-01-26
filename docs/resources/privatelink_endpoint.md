@@ -19,7 +19,7 @@ ensure that you review the [Multi-Region Private Endpoints](https://www.mongodb.
 
 -> **NOTE:** A network container is created for a private endpoint to reside in if one does not yet exist in the project.  
 
-~> **IMPORTANT:** For GCP Private Service Connect, MongoDB encourages customers to use the port-based architecture by setting `port_mapping_enabled = true`. The port-based architecture simplifies setup by requiring only 1 endpoint instead of multiple endpoints required by the legacy architecture, and uses a single set of resources to support up to 1000 nodes. For migration guidance, see the [GCP Private Link Port Mapping Migration Guide](../guides/gcp-privatelink-port-mapping-migration.md).
+~> **IMPORTANT:** For GCP Private Service Connect, MongoDB encourages customers to use the port-based architecture by setting `port_mapping_enabled = true`. The port-based architecture simplifies setup by requiring only 1 endpoint instead of multiple endpoints required by the legacy architecture, and uses a single set of resources to support up to 150 nodes. For migration guidance, see the [GCP Private Link Port Mapping Migration Guide](../guides/gcp-privatelink-port-mapping-migration.md).
 
 ## Example Usage
 
@@ -50,7 +50,7 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws), [AZURE regions](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure) and [GCP regions](https://docs.atlas.mongodb.com/reference/google-gcp/#std-label-google-gcp)
 * `timeouts` - (Optional) The duration to wait for Private Endpoint to be created or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `1h`), `delete` (default: `1h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 * `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
-* `port_mapping_enabled` - (Optional) Flag that indicates whether this endpoint service uses GCP port-mapping. When set to `true`, enables the new port-based architecture, which requires only 1 endpoint. Defaults to `false`. Only applicable for GCP provider.
+* `port_mapping_enabled` - (Optional) Flag that indicates whether this endpoint service uses GCP port-mapping. When set to `true`, enables the port-based architecture, which requires only 1 endpoint. Defaults to `false`. Only applicable for GCP provider.
 
 ## Attributes Reference
 
