@@ -13,12 +13,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/concurrency"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20250312012/admin"
 )
+
+// The Custom DB Role APIs do not support concurrent requests to create, update and delete custom db roles.
+// Operations lock on a project level to avoid race conditions within a single apply.
+// Still, for create/delete we verify that the entry was added/removed to/from the access list and retry otherwise in case of an external change.
+var customDBRoleMutex = concurrency.NewMutexKV()
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -116,8 +122,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending: []string{"pending"},
 		Target:  []string{"created", "failed"},
 		Refresh: func() (any, string, error) {
-			// Atlas Create is called inside refresh because the endpoint doesn't support concurrent POST requests so it's retried if it fails because of that.
+			customDBRoleMutex.Lock(projectID)
 			customDBRoleRes, _, err := connV2.CustomDatabaseRolesApi.CreateCustomDbRole(ctx, projectID, customDBRoleReq).Execute()
+			customDBRoleMutex.Unlock(projectID)
 			if err != nil {
 				if strings.Contains(err.Error(), "Unexpected error") ||
 					strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
@@ -192,7 +199,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			Actions:        expandActions(d),
 			InheritedRoles: expandInheritedRoles(d),
 		}
+		customDBRoleMutex.Lock(projectID)
 		_, _, err := connV2.CustomDatabaseRolesApi.UpdateCustomDbRole(ctx, projectID, roleName, updateParams).Execute()
+		customDBRoleMutex.Unlock(projectID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error updating custom db role (%s): %s", roleName, err))
 		}
@@ -219,7 +228,9 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				return nil, "failed", err
 			}
 
+			customDBRoleMutex.Lock(projectID)
 			_, err = connV2.CustomDatabaseRolesApi.DeleteCustomDbRole(ctx, projectID, roleName).Execute()
+			customDBRoleMutex.Unlock(projectID)
 			if err != nil {
 				return nil, "failed", fmt.Errorf("error deleting custom db role (%s): %s", roleName, err)
 			}
