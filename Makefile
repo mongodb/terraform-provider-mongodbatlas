@@ -149,31 +149,25 @@ scaffold: ## Create scaffolding for a new resource
 	@go run ./tools/scaffold/*.go $(resource_name) $(type)
 	@echo "Reminder: configure the new $(type) in provider.go"
 
-.PHONY: autogen-api-spec-generation
-autogen-api-spec-generation: ## Generate flattened API spec used by codegen
+.PHONY: autogen-update-api-spec
+autogen-update-api-spec: ## Generate flattened API spec used by codegen
 	@scripts/generate-autogen-api-spec.sh
 
-# Generate resource models using API spec present in tools/codegen/atlasapispec/multi-version-api-spec.flattened.yml
+# Generate resources using API spec present in tools/codegen/atlasapispec/multi-version-api-spec.flattened.yml
 # resource_name is optional, if not provided all configured resource models will be generated
 # resource_tier is optional; valid values: prod, internal (default: all)
-# e.g. make autogen-model-generation resource_name=search_deployment_api
-.PHONY: autogen-model-generation
-autogen-model-generation: ## Generate resource models from API spec (resource_name optional)
-	@go run ./tools/codegen/cmd/codespec/main.go $(if $(resource_name),--resource-name $(resource_name),) $(if $(resource_tier),--resource-tier $(resource_tier),)
-
-# Generate resource code using serialized resource models in tools/codegen/models
-# resource_name is optional, if not provided all configured resource code will be generated
-# resource_tier is optional; valid values: prod, internal (default: all)
-.PHONY: autogen-code-generation
-autogen-code-generation: ## Generate resource code from serialized models (resource_name optional)
-	@go run ./tools/codegen/cmd/gofilegen/main.go $(if $(resource_name),--resource-name $(resource_name),) $(if $(resource_tier),--resource-tier $(resource_tier),)
+# step is optional; valid values: model-gen, code-gen (default: both)
+# e.g. make autogen-generate-resources resource_name=search_deployment_api
+.PHONY: autogen-generate-resources
+autogen-generate-resources:
+	@go run ./tools/codegen/main.go $(if $(resource_name),--resource-name $(resource_name),) $(if $(resource_tier),--resource-tier $(resource_tier),) $(if $(step),--step $(step),)
 
 ## Complete generation pipeline: Fetch latest API Spec -> update resource models -> generate resource code
 # resource_name is optional, if not provided all configured resources code will be generated
 # resource_tier is optional; valid values: prod, internal (default: all)
 # e.g. make autogen-pipeline resource_tier=prod
 .PHONY: autogen-pipeline
-autogen-pipeline: autogen-api-spec-generation autogen-model-generation autogen-code-generation
+autogen-pipeline: autogen-update-api-spec autogen-generate-resources
 
 .PHONY: generate-doc
 # e.g. run: make generate-doc resource_name=search_deployment

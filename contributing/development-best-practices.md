@@ -33,12 +33,7 @@ make autogen-pipeline resource_name=search_deployment_api
 
 If you wish to generate resource/data source models without fetching latest changes from the API Spec, use the following command:
 ```bash
-make autogen-model-generation
-```
-
-If you wish to generate resource/data source code from already serialized models, use the following command:
-```bash
-make autogen-code-generation
+make autogen-generate-resources
 ```
 
 As a result, content of schemas and models will be written into the corresponding resource packages:
