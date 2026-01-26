@@ -52,4 +52,3 @@ resource "aws_iam_role_policy" "atlas_s3_policy" {
     ]
   })
 }
-
