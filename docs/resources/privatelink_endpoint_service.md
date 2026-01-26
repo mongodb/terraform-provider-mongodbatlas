@@ -16,7 +16,7 @@ The [private link Terraform module](https://registry.terraform.io/modules/terraf
 
 -> **NOTE:** Create and delete wait for all clusters on the project to IDLE in order for their operations to complete. This ensures the latest connection strings can be retrieved following creation or deletion of this resource. Default timeout is 2hrs.
 
-~> **IMPORTANT:** For GCP Private Service Connect, MongoDB encourages customers to use the port-based architecture by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource. The port-based architecture simplifies setup by requiring only 1 endpoint instead of multiple endpoints required by the legacy architecture, and uses a single set of resources to support up to 150 nodes. For migration guidance, see the [GCP Private Link Port Mapping Migration Guide](../guides/gcp-privatelink-port-mapping-migration.md).
+~> **IMPORTANT:** For GCP Private Service Connect, MongoDB encourages customers to use the port-based architecture by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource. The legacy architecture requires dedicated resources for each Atlas node. The port-based architecture uses a single set of resources to support up to 150 nodes through port mapping, enabling direct targeting of specific nodes using only one customer IP address. For migration guidance, see the [GCP Private Link Port Mapping Migration Guide](../guides/gcp-privatelink-port-mapping-migration.md).
 
 ## Example with AWS
 
