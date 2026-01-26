@@ -309,7 +309,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
@@ -610,7 +610,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
@@ -764,7 +764,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
@@ -876,7 +876,7 @@ func TestConvertToProviderSpec_pathBasedAlias(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
@@ -951,7 +951,7 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
@@ -1010,7 +1010,7 @@ func TestConvertToProviderSpec_singletonResourceNoDeleteOperation(t *testing.T) 
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
@@ -1070,7 +1070,7 @@ func TestConvertToProviderSpec_NoUpdateOperation(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
@@ -1154,7 +1154,7 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
@@ -1234,7 +1234,7 @@ func TestConvertToProviderSpec_dynamicJSONProperties(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
@@ -1259,7 +1259,7 @@ func TestConvertToProviderSpec_moveState(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
@@ -1284,7 +1284,7 @@ func TestConvertToProviderSpec_deprecatedResource(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
@@ -1403,7 +1403,7 @@ func TestConvertToProviderSpec_multipleConsecutiveCaps(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 
@@ -1506,7 +1506,7 @@ func TestConvertToProviderSpec_pathParamWithAlias(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 
@@ -1564,7 +1564,7 @@ func TestConvertToProviderSpec_ignoreSchemaAndIdAttributes(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
@@ -1806,7 +1806,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 
@@ -1895,7 +1895,7 @@ func TestConvertToProviderSpec_withPluralDataSource(t *testing.T) {
 		},
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 
 	// We only verify the plural data source parts
@@ -1955,7 +1955,7 @@ func TestConvertToProviderSpec_withDataSourceOnly(t *testing.T) {
 		inputResourceName:    "test_resource_with_datasource_only",
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.Len(t, result.Resources, 1)
@@ -2027,7 +2027,7 @@ func TestConvertToProviderSpec_withDataSourceOnly_listOnly(t *testing.T) {
 		inputResourceName:    "test_resource_with_datasource_list_only",
 	}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.Len(t, result.Resources, 1)
@@ -2074,7 +2074,7 @@ func TestConvertToProviderSpec_withTagsAndLabelsAsMapType(t *testing.T) {
 		inputConfigPath:      testDataConfigPath,
 		inputResourceName:    "test_resource_with_tags_and_labels_as_map_type",
 	}
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
 	require.NoError(t, err)
 
 	resourceAttrs := []codespec.Attribute(result.Resources[0].Schema.Attributes)
