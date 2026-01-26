@@ -4,9 +4,9 @@
 
 # Create mongodbatlas_privatelink_endpoint with legacy architecture
 resource "mongodbatlas_privatelink_endpoint" "test" {
-  project_id               = var.project_id
-  provider_name            = "GCP"
-  region                   = var.gcp_region
+  project_id    = var.project_id
+  provider_name = "GCP"
+  region        = var.gcp_region
 }
 
 # Create a Google Network
@@ -51,11 +51,11 @@ resource "google_compute_forwarding_rule" "default" {
 
 # Create mongodbatlas_privatelink_endpoint_service with legacy architecture
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id               = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id          = mongodbatlas_privatelink_endpoint.test.private_link_id
-  provider_name            = "GCP"
-  endpoint_service_id      = "the-endpoint-group-name"
-  gcp_project_id           = var.gcp_project_id
+  project_id          = mongodbatlas_privatelink_endpoint.test.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
+  provider_name       = "GCP"
+  endpoint_service_id = "the-endpoint-group-name"
+  gcp_project_id      = var.gcp_project_id
   dynamic "endpoints" {
     for_each = google_compute_address.default
 

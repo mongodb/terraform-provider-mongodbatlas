@@ -4,10 +4,10 @@
 
 # Create mongodbatlas_privatelink_endpoint with port-based architecture
 resource "mongodbatlas_privatelink_endpoint" "test" {
-  project_id               = var.project_id
-  provider_name            = "GCP"
-  region                   = var.gcp_region
-  port_mapping_enabled     = true # Enable port-based architecture
+  project_id           = var.project_id
+  provider_name        = "GCP"
+  region               = var.gcp_region
+  port_mapping_enabled = true # Enable port-based architecture
 }
 
 # Create a Google Network
