@@ -3,9 +3,9 @@
 
 # Create mongodbatlas_privatelink_endpoint with legacy architecture
 resource "mongodbatlas_privatelink_endpoint" "test_legacy" {
-  project_id               = var.project_id
-  provider_name            = "GCP"
-  region                   = var.gcp_region
+  project_id    = var.project_id
+  provider_name = "GCP"
+  region        = var.gcp_region
   # port_mapping_enabled is not set (defaults to false for legacy architecture)
 }
 
@@ -51,13 +51,13 @@ resource "google_compute_forwarding_rule" "legacy" {
 
 # Create mongodbatlas_privatelink_endpoint_service with legacy architecture
 resource "mongodbatlas_privatelink_endpoint_service" "test_legacy" {
-  project_id               = mongodbatlas_privatelink_endpoint.test_legacy.project_id
-  private_link_id          = mongodbatlas_privatelink_endpoint.test_legacy.private_link_id
-  provider_name            = "GCP"
+  project_id      = mongodbatlas_privatelink_endpoint.test_legacy.project_id
+  private_link_id = mongodbatlas_privatelink_endpoint.test_legacy.private_link_id
+  provider_name   = "GCP"
   # Note: endpoint_service_id can be any identifier string for legacy architecture.
   # It's used only as an identifier and doesn't need to match any GCP resource name.
-  endpoint_service_id      = "legacy-endpoint-group"
-  gcp_project_id           = var.gcp_project_id
+  endpoint_service_id = "legacy-endpoint-group"
+  gcp_project_id      = var.gcp_project_id
   # Legacy architecture requires the endpoints list with all 50 endpoints
   dynamic "endpoints" {
     for_each = google_compute_address.legacy
@@ -76,14 +76,15 @@ data "mongodbatlas_advanced_cluster" "cluster" {
 }
 
 locals {
-  endpoint_service_id = "legacy-endpoint-group"
-  private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
-  connection_strings = [
+  endpoint_service_id_legacy = mongodbatlas_privatelink_endpoint_service.test_legacy.endpoint_service_id
+  private_endpoints          = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
+  connection_strings_legacy = [
     for pe in local.private_endpoints : pe.srv_connection_string
-    if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id)
+    if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id_legacy)
   ]
 }
 
-output "connection_string" {
-  value = length(local.connection_strings) > 0 ? local.connection_strings[0] : ""
+output "connection_string_legacy" {
+  description = "Connection string for legacy endpoint"
+  value       = length(local.connection_strings_legacy) > 0 ? local.connection_strings_legacy[0] : ""
 }

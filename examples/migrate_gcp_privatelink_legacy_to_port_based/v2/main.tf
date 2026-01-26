@@ -3,17 +3,17 @@
 
 # from v1, legacy architecture
 resource "mongodbatlas_privatelink_endpoint" "test_legacy" {
-  project_id               = var.project_id
-  provider_name            = "GCP"
-  region                   = var.gcp_region
+  project_id    = var.project_id
+  provider_name = "GCP"
+  region        = var.gcp_region
 }
 
 # New: Create mongodbatlas_privatelink_endpoint with port-based architecture
 resource "mongodbatlas_privatelink_endpoint" "test_new" {
-  project_id               = var.project_id
-  provider_name            = "GCP"
-  region                   = var.gcp_region
-  port_mapping_enabled     = true
+  project_id           = var.project_id
+  provider_name        = "GCP"
+  region               = var.gcp_region
+  port_mapping_enabled = true
 }
 
 # from v1, also used for the port-based architecture
@@ -82,11 +82,11 @@ resource "google_compute_forwarding_rule" "new" {
 
 # from v1, legacy architecture
 resource "mongodbatlas_privatelink_endpoint_service" "test_legacy" {
-  project_id               = mongodbatlas_privatelink_endpoint.test_legacy.project_id
-  private_link_id          = mongodbatlas_privatelink_endpoint.test_legacy.private_link_id
-  provider_name            = "GCP"
-  endpoint_service_id      = "legacy-endpoint-group"
-  gcp_project_id           = var.gcp_project_id
+  project_id          = mongodbatlas_privatelink_endpoint.test_legacy.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint.test_legacy.private_link_id
+  provider_name       = "GCP"
+  endpoint_service_id = "legacy-endpoint-group"
+  gcp_project_id      = var.gcp_project_id
   dynamic "endpoints" {
     for_each = google_compute_address.legacy
 
@@ -114,10 +114,10 @@ data "mongodbatlas_advanced_cluster" "cluster" {
 }
 
 locals {
-  endpoint_service_id_new   = google_compute_forwarding_rule.new.name
+  endpoint_service_id_new    = mongodbatlas_privatelink_endpoint_service.test_new.endpoint_service_id
   endpoint_service_id_legacy = mongodbatlas_privatelink_endpoint_service.test_legacy.endpoint_service_id
-  private_endpoints        = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
-  
+  private_endpoints          = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
+
   connection_strings_new = [
     for pe in local.private_endpoints : pe.srv_connection_string
     if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id_new)
