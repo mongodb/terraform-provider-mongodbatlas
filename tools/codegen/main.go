@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/fileutil"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen"
 )
 
@@ -107,7 +107,7 @@ func writeResourceModels(resourceName *string, resourceTier *codespec.ResourceTi
 		if err != nil {
 			return fmt.Errorf("failed to serialize resource model: %w", err)
 		}
-		if err := fileutil.WriteFile(resourceModelFilePath, resourceModelYaml); err != nil {
+		if err := writeFile(resourceModelFilePath, resourceModelYaml); err != nil {
 			return fmt.Errorf("failed to write resource model to file: %w", err)
 		}
 	}
@@ -172,7 +172,7 @@ func generateCodeFromResourceModels(resourceModelFilePaths []string) error {
 
 		packageDir := fmt.Sprintf("internal/serviceapi/%s", resourceModel.PackageName)
 
-		if _, err := gofilegen.GenerateCodeForResource(resourceModel, packageDir, fileutil.WriteFile); err != nil {
+		if _, err := gofilegen.GenerateCodeForResource(resourceModel, packageDir, writeFile); err != nil {
 			return fmt.Errorf("failed to generate code for %s: %w", resourceModel.Name, err)
 		}
 	}
@@ -191,4 +191,22 @@ func readResourceModelFromFile(filePath string) (*codespec.Resource, error) {
 		return nil, fmt.Errorf("failed to deserialize resource: %w", err)
 	}
 	return &resourceModel, nil
+}
+
+func writeFile(filePath string, content []byte) error {
+	// read/write/execute for owner, and read/execute for group and others
+	const filePermission = 0o755
+
+	// Create directories if they don't exist
+	dir := filepath.Dir(filePath)
+	dirPermission := os.FileMode(filePermission)
+	if err := os.MkdirAll(dir, dirPermission); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", dir, err)
+	}
+
+	// Write content to file (will override content if file exists)
+	if err := os.WriteFile(filePath, content, filePermission); err != nil {
+		return fmt.Errorf("failed to write to file %s: %w", filePath, err)
+	}
+	return nil
 }
