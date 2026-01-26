@@ -98,8 +98,9 @@ func DataSource() *schema.Resource {
 				Description: "Status of the GCP endpoint. Only populated for port-based architecture.",
 			},
 			"port_mapping_enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Flag that indicates whether the underlying `privatelink_endpoint` resource uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-based architecture. When `false`, it uses the legacy architecture. Only applicable for GCP provider.",
 			},
 		},
 	}

@@ -268,7 +268,7 @@ In addition to all arguments above, the following attributes are exported:
 * `gcp_endpoint_status` - Status of the individual endpoint. Only populated for port-based architecture. Returns one of the following values: `INITIATING`, `AVAILABLE`, `FAILED`, `DELETING`.
 * `endpoints` - Collection of individual private endpoints that comprise your network endpoint group. Only populated for legacy architecture.
   * `status` - Status of the endpoint. Atlas returns one of the [values shown above](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/#std-label-ref-status-field).
-* `port_mapping_enabled` - Flag that indicates whether this endpoint service uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-based architecture (requires 1 endpoint). When `false`, it uses the legacy architecture. Only applicable for GCP provider.
+* `port_mapping_enabled` - Flag that indicates whether the underlying `privatelink_endpoint` resource uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-based architecture. When `false`, it uses the legacy architecture. Only applicable for GCP provider.
 
 ## Import
 Private Endpoint Link Connection can be imported using project ID and username, in the format `{project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}`, e.g.

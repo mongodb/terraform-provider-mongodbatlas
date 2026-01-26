@@ -30,12 +30,7 @@ func TestAccNetworkRSPrivateLinkEndpointAWS_basic(t *testing.T) {
 			{
 				Config: configBasic(orgID, projectName, providerName, region),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "region"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "region", region),
+					checkBasicAttributes(resourceName, providerName, region)...,
 				),
 			},
 			{
@@ -65,12 +60,7 @@ func TestAccNetworkRSPrivateLinkEndpointAzure_basic(t *testing.T) {
 			{
 				Config: configBasic(orgID, projectName, providerName, region),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "region"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "region", region),
+					checkBasicAttributes(resourceName, providerName, region)...,
 				),
 			},
 			{
@@ -100,13 +90,9 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 			{
 				Config: configBasic(orgID, projectName, providerName, region),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "region"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "region", region),
-					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "false"),
+					append(checkBasicAttributes(resourceName, providerName, region),
+						checkPortMappingEnabled(resourceName, false),
+					)...,
 				),
 			},
 			{
@@ -136,13 +122,9 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 			{
 				Config: configWithPortMapping(orgID, projectName, providerName, region, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "region"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "region", region),
-					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "true"),
+					append(checkBasicAttributes(resourceName, providerName, region),
+						checkPortMappingEnabled(resourceName, true),
+					)...,
 				),
 			},
 			{
@@ -172,13 +154,9 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 			{
 				Config: configWithPortMapping(orgID, projectName, providerName, region, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "region"),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
-					resource.TestCheckResourceAttr(resourceName, "region", region),
-					resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", "false"),
+					append(checkBasicAttributes(resourceName, providerName, region),
+						checkPortMappingEnabled(resourceName, false),
+					)...,
 				),
 			},
 			{
@@ -268,6 +246,25 @@ func checkDestroy(s *terraform.State) error {
 		}
 	}
 	return nil
+}
+
+func checkBasicAttributes(resourceName, providerName, region string) []resource.TestCheckFunc {
+	return []resource.TestCheckFunc{
+		checkExists(resourceName),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
+		resource.TestCheckResourceAttrSet(resourceName, "region"),
+		resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+		resource.TestCheckResourceAttr(resourceName, "region", region),
+	}
+}
+
+func checkPortMappingEnabled(resourceName string, enabled bool) resource.TestCheckFunc {
+	value := "false"
+	if enabled {
+		value = "true"
+	}
+	return resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", value)
 }
 
 func configBasic(orgID, projectName, providerName, region string) string {

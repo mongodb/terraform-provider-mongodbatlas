@@ -112,8 +112,9 @@ func Resource() *schema.Resource {
 				},
 			},
 			"port_mapping_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-based architecture. When `false` or unset, it uses the legacy architecture. Only applicable for GCP provider.",
 			},
 			"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
 				Type:        schema.TypeBool,
