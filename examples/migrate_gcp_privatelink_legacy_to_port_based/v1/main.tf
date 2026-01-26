@@ -77,7 +77,7 @@ data "mongodbatlas_advanced_cluster" "cluster" {
 
 locals {
   endpoint_service_id = "legacy-endpoint-group"
-  private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings : cs.private_endpoint]), [])
+  private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
   connection_strings = [
     for pe in local.private_endpoints : pe.srv_connection_string
     if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id)

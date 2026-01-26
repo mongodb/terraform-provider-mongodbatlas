@@ -37,6 +37,7 @@ The following table shows the key differences between the legacy and port-based 
 | `mongodbatlas_privatelink_endpoint_service.gcp_project_id` | Required | Required |
 | `mongodbatlas_privatelink_endpoint_service.endpoint_group_names` | A list of endpoint group names associated with the private endpoint service | A list of private endpoint names associated with the private endpoint service |
 | `mongodbatlas_privatelink_endpoint_service.service_attachment_names` | A list of service attachments connected to the private endpoint service (one per Atlas node) | A list of one service attachment connected to the private endpoint service |
+| Connection String Format | Uses `pl-0` identifier (e.g., `cluster0-pl-0.a0b1c2.domain.com`) | Uses `psc-0` identifier (e.g., `cluster0-psc-0.a0b1c2.domain.com`) |
 
 ## Before You Begin
 
@@ -209,6 +210,8 @@ resource "mongodbatlas_privatelink_endpoint_service" "test_new" {
 2. Run `terraform apply` to create the port-based endpoint resources.
 
 3. **Update your application connection strings** to use the port-based endpoint. You can retrieve the connection string from your cluster's private endpoint configuration. **This is when downtime occurs** - update connection strings and restart your applications.
+
+   **Note:** The port-based connection strings will have a different format than legacy connection strings. Legacy connection strings use the `pl-0` identifier (e.g., `cluster0-pl-0.a0b1c2.domain.com`), while port-based connection strings use the `psc-0` identifier (e.g., `cluster0-psc-0.a0b1c2.domain.com`). Make sure to update all application connection strings to use the new `psc-0` format.
 
 4. Test your application connectivity with the port-based endpoint to ensure everything works correctly.
 
