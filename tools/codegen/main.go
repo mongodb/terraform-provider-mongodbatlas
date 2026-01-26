@@ -78,20 +78,15 @@ func parseStep(step string) (*string, error) {
 }
 
 func runSteps(step, resourceName *string, resourceTier *codespec.ResourceTier) error {
-	if step == nil { // runs all steps
+	if step == nil || *step == StepModelGen {
 		if err := writeResourceModels(resourceName, resourceTier); err != nil {
 			return err
 		}
+	}
+	if step == nil || *step == StepCodeGen {
 		return generateFromResourceModels(resourceName, resourceTier)
 	}
-	switch *step {
-	case StepModelGen:
-		return writeResourceModels(resourceName, resourceTier)
-	case StepCodeGen:
-		return generateFromResourceModels(resourceName, resourceTier)
-	default:
-		return fmt.Errorf("unsupported step %q", *step)
-	}
+	return nil
 }
 
 func writeResourceModels(resourceName *string, resourceTier *codespec.ResourceTier) error {
