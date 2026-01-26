@@ -95,8 +95,6 @@ resource "mongodbatlas_privatelink_endpoint_service" "test_legacy" {
       endpoint_name = google_compute_forwarding_rule.legacy[endpoints.key].name
     }
   }
-
-  depends_on = [google_compute_forwarding_rule.legacy]
 }
 
 # New: Create mongodbatlas_privatelink_endpoint_service with port-based architecture
@@ -116,20 +114,26 @@ data "mongodbatlas_advanced_cluster" "cluster" {
 }
 
 locals {
-  endpoint_service_id = google_compute_forwarding_rule.new.name
-  private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings : cs.private_endpoint]), [])
-  connection_strings = [
+  endpoint_service_id_new   = google_compute_forwarding_rule.new.name
+  endpoint_service_id_legacy = mongodbatlas_privatelink_endpoint_service.test_legacy.endpoint_service_id
+  private_endpoints        = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
+  
+  connection_strings_new = [
     for pe in local.private_endpoints : pe.srv_connection_string
-    if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id)
+    if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id_new)
+  ]
+  connection_strings_legacy = [
+    for pe in local.private_endpoints : pe.srv_connection_string
+    if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id_legacy)
   ]
 }
 
 output "connection_string_legacy" {
   description = "Connection string for legacy endpoint"
-  value       = mongodbatlas_privatelink_endpoint_service.test_legacy.id
+  value       = length(local.connection_strings_legacy) > 0 ? local.connection_strings_legacy[0] : ""
 }
 
 output "connection_string_new" {
   description = "Connection string for port-based endpoint"
-  value       = length(local.connection_strings) > 0 ? local.connection_strings[0] : ""
+  value       = length(local.connection_strings_new) > 0 ? local.connection_strings_new[0] : ""
 }

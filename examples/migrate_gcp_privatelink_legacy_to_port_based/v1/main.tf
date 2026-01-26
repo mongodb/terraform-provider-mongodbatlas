@@ -67,8 +67,6 @@ resource "mongodbatlas_privatelink_endpoint_service" "test_legacy" {
       endpoint_name = google_compute_forwarding_rule.legacy[endpoints.key].name
     }
   }
-
-  depends_on = [google_compute_forwarding_rule.legacy]
 }
 
 data "mongodbatlas_advanced_cluster" "cluster" {
