@@ -1,6 +1,6 @@
 # Example with GCP (Legacy Architecture)
 # This example demonstrates the legacy GCP architecture.
-# For the port-based architecture, see the gcp-port-based directory.
+# For the port-mapped architecture, see the gcp-port-mapped directory.
 
 # Create mongodbatlas_privatelink_endpoint with legacy architecture
 resource "mongodbatlas_privatelink_endpoint" "test" {
@@ -71,18 +71,17 @@ data "mongodbatlas_advanced_cluster" "cluster" {
   # Use endpoint service as source of project_id to gather cluster data after endpoint changes are applied
   project_id = mongodbatlas_privatelink_endpoint_service.test.project_id
   name       = var.cluster_name
-
-  depends_on = [mongodbatlas_privatelink_endpoint_service.test]
 }
 
 locals {
   endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
-  private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings : cs.private_endpoint]), [])
+  private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
   connection_strings = [
     for pe in local.private_endpoints : pe.srv_connection_string
     if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id)
   ]
 }
+
 output "connection_string" {
   value = length(local.connection_strings) > 0 ? local.connection_strings[0] : ""
 }

@@ -55,9 +55,9 @@ In addition to all arguments above, the following attributes are exported:
 * `private_endpoints` - All private endpoints that you have added to this Azure Private Link Service.
 * `private_link_service_name` - Name of the Azure Private Link Service that Atlas manages.
 * `private_link_service_resource_id` - Resource ID of the Azure Private Link Service that Atlas manages.
-* `endpoint_group_names` - For legacy architecture, this is a list of the endpoint group names associated with the private endpoint service. For port-based architecture, this is a list of private endpoint names associated with the private endpoint service.
+* `endpoint_group_names` - For port-mapped architecture, this is a list of private endpoint names associated with the private endpoint service. For legacy architecture, this is a list of the endpoint group names associated with the private endpoint service.
 * `region_name` - Region for the Private Service Connect endpoint service.
-* `service_attachment_names` - For legacy architecture, this is a list of service attachments connected to the private endpoint service (one per Atlas node). For port-based architecture, this is a list containing one service attachment connected to the private endpoint service.
-* `port_mapping_enabled` - Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-based architecture. When `false` or unset, it uses the legacy architecture. Only applicable for GCP provider.
+* `service_attachment_names` - For port-mapped architecture, this is a list containing one service attachment connected to the private endpoint service. For legacy architecture, this is a list of service attachments connected to the private endpoint service (one per Atlas node).
+* `port_mapping_enabled` - Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-mapped architecture. When `false` or unset, it uses the legacy architecture. Only applicable for GCP provider.
 
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/private-endpoints-service-get-one/) Documentation for more information.

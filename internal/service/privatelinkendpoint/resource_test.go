@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -19,7 +20,7 @@ func TestAccNetworkRSPrivateLinkEndpointAWS_basic(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
 		region       = "us-east-1"
-		providerName = "AWS"
+		providerName = constant.AWS
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -30,7 +31,7 @@ func TestAccNetworkRSPrivateLinkEndpointAWS_basic(t *testing.T) {
 			{
 				Config: configBasic(orgID, projectName, providerName, region),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkBasicAttributes(resourceName, providerName, region)...,
+					checkBasic(resourceName, providerName, region)...,
 				),
 			},
 			{
@@ -49,7 +50,7 @@ func TestAccNetworkRSPrivateLinkEndpointAzure_basic(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
 		region       = "US_EAST_2"
-		providerName = "AZURE"
+		providerName = constant.AZURE
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -60,7 +61,7 @@ func TestAccNetworkRSPrivateLinkEndpointAzure_basic(t *testing.T) {
 			{
 				Config: configBasic(orgID, projectName, providerName, region),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkBasicAttributes(resourceName, providerName, region)...,
+					checkBasic(resourceName, providerName, region)...,
 				),
 			},
 			{
@@ -79,7 +80,7 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
 		region       = "us-central1"
-		providerName = "GCP"
+		providerName = constant.GCP
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -90,7 +91,7 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 			{
 				Config: configBasic(orgID, projectName, providerName, region),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					append(checkBasicAttributes(resourceName, providerName, region),
+					append(checkBasic(resourceName, providerName, region),
 						checkPortMappingEnabled(resourceName, false),
 					)...,
 				),
@@ -109,9 +110,9 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = "test-acc-tf-p-gcp-port-based-routing-feature-flag-enabled"
+		projectName  = "test-acc-tf-p-gcp-port-mapped-routing-feature-flag-enabled"
 		region       = "us-west3"
-		providerName = "GCP"
+		providerName = constant.GCP
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -122,7 +123,7 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 			{
 				Config: configWithPortMapping(orgID, projectName, providerName, region, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					append(checkBasicAttributes(resourceName, providerName, region),
+					append(checkBasic(resourceName, providerName, region),
 						checkPortMappingEnabled(resourceName, true),
 					)...,
 				),
@@ -141,9 +142,9 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = "test-acc-tf-p-gcp-port-based-routing-feature-flag-enabled"
+		projectName  = "test-acc-tf-p-gcp-port-mapped-routing-feature-flag-enabled"
 		region       = "us-west4"
-		providerName = "GCP"
+		providerName = constant.GCP
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -154,7 +155,7 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 			{
 				Config: configWithPortMapping(orgID, projectName, providerName, region, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					append(checkBasicAttributes(resourceName, providerName, region),
+					append(checkBasic(resourceName, providerName, region),
 						checkPortMappingEnabled(resourceName, false),
 					)...,
 				),
@@ -173,7 +174,7 @@ func TestAccPrivateLinkEndpoint_deleteOnCreateTimeout(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
 		region       = "us-east-1"
-		providerName = "AWS"
+		providerName = constant.AWS
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -248,7 +249,7 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func checkBasicAttributes(resourceName, providerName, region string) []resource.TestCheckFunc {
+func checkBasic(resourceName, providerName, region string) []resource.TestCheckFunc {
 	return []resource.TestCheckFunc{
 		checkExists(resourceName),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),

@@ -1,13 +1,13 @@
-# Example with GCP (Port-Based Architecture)
-# This example demonstrates the port-based architecture.
+# Example with GCP (Port-Mapped Architecture)
+# This example demonstrates the port-mapped architecture.
 # For the legacy architecture, see the gcp directory.
 
-# Create mongodbatlas_privatelink_endpoint with port-based architecture
+# Create mongodbatlas_privatelink_endpoint with port-mapped architecture
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id           = var.project_id
   provider_name        = "GCP"
   region               = var.gcp_region
-  port_mapping_enabled = true # Enable port-based architecture
+  port_mapping_enabled = true # Enable port-mapped architecture
 }
 
 # Create a Google Network
@@ -25,7 +25,7 @@ resource "google_compute_subnetwork" "default" {
   network       = google_compute_network.default.id
 }
 
-# Create Google Address (1 address for port-based architecture)
+# Create Google Address (1 address for port-mapped architecture)
 resource "google_compute_address" "default" {
   project      = google_compute_subnetwork.default.project
   name         = "tf-test-psc-endpoint"
@@ -37,8 +37,8 @@ resource "google_compute_address" "default" {
   depends_on = [mongodbatlas_privatelink_endpoint.test]
 }
 
-# Create Forwarding Rule (1 rule for port-based architecture)
-# The service_attachment_names list will contain exactly one service attachment when using the port-based architecture.
+# Create Forwarding Rule (1 rule for port-mapped architecture)
+# The service_attachment_names list will contain exactly one service attachment when using the port-mapped architecture.
 resource "google_compute_forwarding_rule" "default" {
   target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[0]
   project               = google_compute_address.default.project
@@ -49,9 +49,9 @@ resource "google_compute_forwarding_rule" "default" {
   load_balancing_scheme = ""
 }
 
-# Create mongodbatlas_privatelink_endpoint_service with port-based architecture
-# For the port-based architecture, endpoint_service_id must match the forwarding rule name 
-# and private_endpoint_ip_address the IP address. The endpoints list is no longer used for the port-based architecture.
+# Create mongodbatlas_privatelink_endpoint_service with port-mapped architecture
+# For the port-mapped architecture, endpoint_service_id must match the forwarding rule name 
+# and private_endpoint_ip_address the IP address. The endpoints list is no longer used for the port-mapped architecture.
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
   project_id                  = mongodbatlas_privatelink_endpoint.test.project_id
   private_link_id             = mongodbatlas_privatelink_endpoint.test.private_link_id
@@ -66,18 +66,17 @@ data "mongodbatlas_advanced_cluster" "cluster" {
   # Use endpoint service as source of project_id to gather cluster data after endpoint changes are applied
   project_id = mongodbatlas_privatelink_endpoint_service.test.project_id
   name       = var.cluster_name
-
-  depends_on = [mongodbatlas_privatelink_endpoint_service.test]
 }
 
 locals {
   endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
-  private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings : cs.private_endpoint]), [])
+  private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
   connection_strings = [
     for pe in local.private_endpoints : pe.srv_connection_string
     if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id)
   ]
 }
+
 output "connection_string" {
   value = length(local.connection_strings) > 0 ? local.connection_strings[0] : ""
 }

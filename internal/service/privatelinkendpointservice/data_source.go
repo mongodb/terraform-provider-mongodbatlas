@@ -95,12 +95,12 @@ func DataSource() *schema.Resource {
 			"gcp_endpoint_status": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "Status of the GCP endpoint. Only populated for port-based architecture.",
+				Description: "Status of the GCP endpoint. Only populated for port-mapped architecture.",
 			},
 			"port_mapping_enabled": {
 				Type:        schema.TypeBool,
 				Computed:    true,
-				Description: "Flag that indicates whether the underlying `privatelink_endpoint` resource uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-based architecture. When `false`, it uses the legacy architecture. Only applicable for GCP provider.",
+				Description: "Flag that indicates whether the underlying `privatelink_endpoint` resource uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-mapped architecture. When `false`, it uses the legacy architecture. Only applicable for GCP provider.",
 			},
 		},
 	}
@@ -151,7 +151,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
 		}
 
-		if serviceEndpoint.GetPortMappingEnabled() && len(serviceEndpoint.GetEndpoints()) == 1 {
+		if serviceEndpoint.GetPortMappingEnabled() {
+			if len(serviceEndpoint.GetEndpoints()) != 1 {
+				return diag.FromErr(fmt.Errorf("port-mapped architecture requires exactly one endpoint, but found %d endpoints", len(serviceEndpoint.GetEndpoints())))
+			}
 			firstEndpoint := serviceEndpoint.GetEndpoints()[0]
 
 			if err := d.Set("gcp_endpoint_status", firstEndpoint.GetStatus()); err != nil {

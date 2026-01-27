@@ -140,12 +140,12 @@ func Resource() *schema.Resource {
 			"gcp_endpoint_status": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "Status of the GCP endpoint. Only populated for port-based architecture.",
+				Description: "Status of the GCP endpoint. Only populated for port-mapped architecture.",
 			},
 			"port_mapping_enabled": {
 				Type:        schema.TypeBool,
 				Computed:    true,
-				Description: "Flag that indicates whether the underlying `privatelink_endpoint` resource uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-based architecture. When `false`, it uses the legacy architecture. Only applicable for GCP provider.",
+				Description: "Flag that indicates whether the underlying `privatelink_endpoint` resource uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-mapped architecture. When `false`, it uses the legacy architecture. Only applicable for GCP provider.",
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
@@ -153,10 +153,6 @@ func Resource() *schema.Resource {
 			Delete: schema.DefaultTimeout(2 * time.Hour),
 		},
 	}
-}
-
-func isGCPPortBasedArchitectureInput(hasPrivateEndpointIP, hasEndpoints bool) bool {
-	return hasPrivateEndpointIP && !hasEndpoints
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -186,9 +182,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(errors.New("`gcp_project_id` must be set for GCP"))
 		}
 		if hasPrivateEndpointIP == hasEndpoints {
-			return diag.FromErr(errors.New("for GCP, you must provide exactly one of: `private_endpoint_ip_address` (new architecture) or `endpoints` (legacy architecture)"))
+			return diag.FromErr(errors.New("for GCP, you must provide exactly one of: `private_endpoint_ip_address` (port-mapped architecture) or `endpoints` (legacy architecture)"))
 		}
-		if isGCPPortBasedArchitectureInput(hasPrivateEndpointIP, hasEndpoints) {
+		if hasPrivateEndpointIP && !hasEndpoints {
 			createEndpointRequest.EndpointGroupName = &endpointServiceID
 			createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
 			singleEndpoint := admin.CreateGCPForwardingRuleRequest{
@@ -321,7 +317,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
 		}
 
-		if privateEndpoint.GetPortMappingEnabled() && len(privateEndpoint.GetEndpoints()) == 1 {
+		if privateEndpoint.GetPortMappingEnabled() {
+			if len(privateEndpoint.GetEndpoints()) != 1 {
+				return diag.FromErr(fmt.Errorf("port-mapped architecture requires exactly one endpoint, but found %d endpoints", len(privateEndpoint.GetEndpoints())))
+			}
 			firstEndpoint := privateEndpoint.GetEndpoints()[0]
 
 			if err := d.Set("gcp_endpoint_status", firstEndpoint.GetStatus()); err != nil {
