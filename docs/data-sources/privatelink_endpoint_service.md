@@ -112,7 +112,7 @@ data "mongodbatlas_privatelink_endpoint_service" "test" {
 
 * `project_id` - (Required) Unique identifier for the project.
 * `private_link_id` - (Required) Unique identifier of the private endpoint service for which you want to retrieve a private endpoint.
-* `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC with the `AWS`, `AZURE`, or `GCP` resource. For port-mapped architecture, this is the forwarding rule name. For legacy architecture, this can be any identifier string.
+* `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC with the `AWS`, `AZURE` or `GCP` resource. For port-mapped architecture, this is the forwarding rule name. For legacy architecture, this can be any identifier string.
 * `provider_name` - (Required) Cloud provider for which you want to retrieve a private endpoint. Atlas accepts `AWS`, `AZURE` or `GCP`.
 
 ## Attributes Reference
