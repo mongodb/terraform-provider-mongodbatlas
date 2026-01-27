@@ -2,7 +2,7 @@ name: 'New Release'
 run-name: 'Release ${{ inputs.version_number }}${{ inputs.base_branch != '''' && format('' from {0}'', inputs.base_branch) || '''' }} (skip tests: ${{ inputs.skip_tests }}, use existing tag: ${{ inputs.use_existing_tag}})'
 
 # Used for creating a new release. This workflow will run qa acceptance tests, create a new tag, and generate the release with GoReleaser.
-# Optional: Set base_branch (e.g., master-v1) for backport releases. When base_branch is set to a non-master branch, Jira release step is skipped.
+# Optional: Set base_branch (e.g., v1-lts) for backport releases. When base_branch is set to a non-master branch, Jira release step is skipped.
 # Note: After a backport release, CHANGELOG.md changes from the base branch should be manually merged to master branch.
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ on:
         description: 'Version number (e.g., v1.0.0, v1.0.0-pre, v1.0.0-pre1)'
         required: true
       base_branch:
-        description: 'Base branch for the release (leave empty for master, use master-v1 for v1.x backports)'
+        description: 'Base branch for the release (leave empty for master, use v1-lts for v1.x backports)'
         required: false
         default: ''
       skip_tests:
@@ -63,7 +63,7 @@ jobs:
           VERSION_NUMBER: ${{ inputs.version_number }}
           TARGET_BRANCH: ${{ needs.release-config.outputs.target_branch }}
         run: |
-          if [ "$TARGET_BRANCH" = "master-v1" ]; then
+          if [ "$TARGET_BRANCH" = "v1-lts" ]; then
             # v1 backport: only allow v1.x.x versions
             echo "$VERSION_NUMBER" | grep -P '^v1\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'
           else
