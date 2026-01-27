@@ -1,7 +1,7 @@
-# v3: Final State - Port-Based Architecture Only
-# This configuration uses only the port-based architecture
+# v3: Final State - Port-Mapped Architecture Only
+# This configuration uses only the port-mapped architecture
 
-# from v2, port-based architecture
+# from v2, port-mapped architecture
 resource "mongodbatlas_privatelink_endpoint" "test_new" {
   project_id           = var.project_id
   provider_name        = "GCP"
@@ -9,13 +9,13 @@ resource "mongodbatlas_privatelink_endpoint" "test_new" {
   port_mapping_enabled = true
 }
 
-# from v1, also used for the port-based architecture
+# from v1, also used for the port-mapped architecture
 resource "google_compute_network" "default" {
   project = var.gcp_project_id
   name    = "my-network"
 }
 
-# from v1, also used for the port-based architecture
+# from v1, also used for the port-mapped architecture
 resource "google_compute_subnetwork" "default" {
   project       = google_compute_network.default.project
   name          = "my-subnet"
@@ -24,10 +24,10 @@ resource "google_compute_subnetwork" "default" {
   network       = google_compute_network.default.id
 }
 
-# from v2, port-based architecture
+# from v2, port-mapped architecture
 resource "google_compute_address" "new" {
   project      = google_compute_subnetwork.default.project
-  name         = "tf-test-port-based-endpoint"
+  name         = "tf-test-port-mapped-endpoint"
   subnetwork   = google_compute_subnetwork.default.id
   address_type = "INTERNAL"
   address      = "10.0.42.100"
@@ -36,7 +36,7 @@ resource "google_compute_address" "new" {
   depends_on = [mongodbatlas_privatelink_endpoint.test_new]
 }
 
-# from v2, port-based architecture
+# from v2, port-mapped architecture
 resource "google_compute_forwarding_rule" "new" {
   target                = mongodbatlas_privatelink_endpoint.test_new.service_attachment_names[0]
   project               = google_compute_address.new.project
@@ -47,7 +47,7 @@ resource "google_compute_forwarding_rule" "new" {
   load_balancing_scheme = ""
 }
 
-# from v2, port-based architecture
+# from v2, port-mapped architecture
 resource "mongodbatlas_privatelink_endpoint_service" "test_new" {
   project_id                  = mongodbatlas_privatelink_endpoint.test_new.project_id
   private_link_id             = mongodbatlas_privatelink_endpoint.test_new.private_link_id
@@ -74,6 +74,6 @@ locals {
 }
 
 output "connection_string_new" {
-  description = "Connection string for port-based endpoint"
+  description = "Connection string for port-mapped endpoint"
   value       = length(local.connection_strings_new) > 0 ? local.connection_strings_new[0] : ""
 }

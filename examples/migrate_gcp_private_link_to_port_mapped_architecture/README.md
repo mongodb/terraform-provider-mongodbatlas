@@ -1,6 +1,6 @@
-# Migration Example: GCP Private Link Legacy Architecture to Port-Based Architecture
+# Migration Example: GCP Private Link Legacy to Port-Mapped Architecture
 
-This example demonstrates how to migrate from the legacy GCP Private Service Connect architecture to the port-based architecture.
+This example demonstrates how to migrate from the legacy GCP Private Service Connect architecture to the port-mapped architecture.
 
 ## Migration Phases
 
@@ -17,9 +17,9 @@ Demonstrates the migration approach:
 - Creates a new `mongodbatlas_privatelink_endpoint` with `port_mapping_enabled = true`.
 - Adds new GCP resources (1 address, 1 forwarding rule) alongside legacy resources.
 - Creates a new `mongodbatlas_privatelink_endpoint_service` using `endpoint_service_id` and `private_endpoint_ip_address`.
-- Allows testing the port-based architecture before removing legacy resources.
+- Allows testing the port-mapped architecture before removing legacy resources.
 
-### v3: Final State (Port-Based Architecture Only)
+### v3: Final State (Port-Mapped Architecture Only)
 Clean final configuration using only:
 - `mongodbatlas_privatelink_endpoint` with `port_mapping_enabled = true`.
 - 1 Google Compute Address.
@@ -29,14 +29,14 @@ Clean final configuration using only:
 ## Usage
 
 1. Start with v1 to understand the original setup.
-2. Apply v2 configuration to add the port-based architecture resources.
-3. Update your application connection strings to use the port-based endpoint.
-4. Verify that the port-based architecture works correctly.
+2. Apply v2 configuration to add the port-mapped architecture resources.
+3. Update your application connection strings to use the port-mapped endpoint.
+4. Verify that the port-mapped architecture works correctly.
 5. Apply v3 configuration for the final clean state (removes legacy resources).
 
 ## Prerequisites
 
-- MongoDB Atlas Terraform Provider with port-based architecture support.
+- MongoDB Atlas Terraform Provider with port-mapped architecture support.
 - Valid MongoDB Atlas project ID.
 - Google Cloud account with appropriate permissions.
 - GCP project with network and subnet configured.
@@ -56,8 +56,8 @@ cluster_name        = "<CLUSTER_NAME>"        # Optional: cluster whose connecti
 - Network name: `"my-network"`.
 - Subnet name: `"my-subnet"`.
 - IP CIDR range: `"10.0.0.0/16"`.
-- Address name (port-based): `"tf-test-port-based-endpoint"`.
-- Address IP (port-based): `"10.0.42.100"`.
+- Address name (port-mapped): `"tf-test-port-mapped-endpoint"`.
+- Address IP (port-mapped): `"10.0.42.100"`.
 
 Alternatively, set environment variables for authentication:
 ```bash
@@ -69,4 +69,4 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 
 - **Downtime**: Plan for brief downtime during the migration process while changing the connection strings in your application.
 - **State Management**: Backup your Terraform state before starting the migration.
-- **Testing**: Test the port-based architecture in v2 before proceeding to v3.
+- **Testing**: Test the port-mapped architecture in v2 before proceeding to v3.

@@ -1,4 +1,4 @@
-# v2: Migration Phase - Both Legacy and Port-Based Architectures
+# v2: Migration Phase - Both Legacy and Port-Mapped Architectures
 # This configuration creates both architectures in parallel for testing
 
 # from v1, legacy architecture
@@ -8,7 +8,7 @@ resource "mongodbatlas_privatelink_endpoint" "test_legacy" {
   region        = var.gcp_region
 }
 
-# New: Create mongodbatlas_privatelink_endpoint with port-based architecture
+# New: Create mongodbatlas_privatelink_endpoint with port-mapped architecture
 resource "mongodbatlas_privatelink_endpoint" "test_new" {
   project_id           = var.project_id
   provider_name        = "GCP"
@@ -16,13 +16,13 @@ resource "mongodbatlas_privatelink_endpoint" "test_new" {
   port_mapping_enabled = true
 }
 
-# from v1, also used for the port-based architecture
+# from v1, also used for the port-mapped architecture
 resource "google_compute_network" "default" {
   project = var.gcp_project_id
   name    = "my-network"
 }
 
-# from v1, also used for the port-based architecture
+# from v1, also used for the port-mapped architecture
 resource "google_compute_subnetwork" "default" {
   project       = google_compute_network.default.project
   name          = "my-subnet"
@@ -44,11 +44,11 @@ resource "google_compute_address" "legacy" {
   depends_on = [mongodbatlas_privatelink_endpoint.test_legacy]
 }
 
-# New: Create Google Address (1 address for port-based architecture)
+# New: Create Google Address (1 address for port-mapped architecture)
 # Note: Uses existing network and subnet from v1
 resource "google_compute_address" "new" {
   project      = google_compute_subnetwork.default.project
-  name         = "tf-test-port-based-endpoint"
+  name         = "tf-test-port-mapped-endpoint"
   subnetwork   = google_compute_subnetwork.default.id
   address_type = "INTERNAL"
   address      = "10.0.42.100"
@@ -69,7 +69,7 @@ resource "google_compute_forwarding_rule" "legacy" {
   load_balancing_scheme = ""
 }
 
-# New: Create Forwarding Rule (1 rule for port-based architecture)
+# New: Create Forwarding Rule (1 rule for port-mapped architecture)
 resource "google_compute_forwarding_rule" "new" {
   target                = mongodbatlas_privatelink_endpoint.test_new.service_attachment_names[0]
   project               = google_compute_address.new.project
@@ -97,7 +97,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test_legacy" {
   }
 }
 
-# New: Create mongodbatlas_privatelink_endpoint_service with port-based architecture
+# New: Create mongodbatlas_privatelink_endpoint_service with port-mapped architecture
 resource "mongodbatlas_privatelink_endpoint_service" "test_new" {
   project_id                  = mongodbatlas_privatelink_endpoint.test_new.project_id
   private_link_id             = mongodbatlas_privatelink_endpoint.test_new.private_link_id
@@ -134,6 +134,6 @@ output "connection_string_legacy" {
 }
 
 output "connection_string_new" {
-  description = "Connection string for port-based endpoint"
+  description = "Connection string for port-mapped endpoint"
   value       = length(local.connection_strings_new) > 0 ? local.connection_strings_new[0] : ""
 }
