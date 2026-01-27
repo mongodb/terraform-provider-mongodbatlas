@@ -3,7 +3,7 @@ package projectserviceaccountaccesslistentry
 import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312013/admin"
 )
 
 func NewMongoDBProjectServiceAccountAccessListEntry(model *TFProjectServiceAccountAccessListEntryModel) *[]admin.ServiceAccountIPAccessListEntry {
