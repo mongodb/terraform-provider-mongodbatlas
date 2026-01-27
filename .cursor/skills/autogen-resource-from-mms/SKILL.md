@@ -35,6 +35,8 @@ Ask the user for:
 
 ## Instructions
 
+**Important**: All commands must be run from the terraform-provider-mongodbatlas repository root directory.
+
 ### Step 1: Verify Resource Configuration
 
 Check if the resource is configured in `tools/codegen/config.yml`. If not, ask the user to add the configuration first.
@@ -49,28 +51,45 @@ gh pr view <PR_NUMBER> --repo 10gen/mms --json headRefName -q '.headRefName'
 
 ### Step 3: Fetch the OpenAPI Spec
 
-Run the fetch script to download the spec from the MMS branch:
+Run the fetch script to download the spec from the MMS branch. From the repository root:
 
 ```bash
-scripts/fetch-mms-spec.sh <BRANCH_NAME>
+.cursor/skills/autogen-resource-from-mms/scripts/fetch-mms-spec.sh <BRANCH_NAME>
 ```
 
 This downloads the spec to `tools/codegen/atlasapispec/raw-multi-version-api-spec.json`.
 
 ### Step 4: Flatten the OpenAPI Spec
 
-Run the flatten script:
+Run the flatten script from the repository root:
 
 ```bash
-scripts/flatten-spec.sh
+.cursor/skills/autogen-resource-from-mms/scripts/flatten-spec.sh
 ```
 
 ### Step 5: Generate the Resource
 
-Run the code generator:
+Run the code generator from the repository root:
 
 ```bash
 go run ./tools/codegen/main.go <resource_name>
+```
+
+### Alternative: Run All Steps at Once
+
+Use the all-in-one script from the repository root:
+
+```bash
+.cursor/skills/autogen-resource-from-mms/scripts/autogen-from-mms.sh <BRANCH_OR_PR> <resource_name>
+```
+
+Examples:
+```bash
+# Using branch name
+.cursor/skills/autogen-resource-from-mms/scripts/autogen-from-mms.sh CLOUDP-375419 log_integration
+
+# Using PR number
+.cursor/skills/autogen-resource-from-mms/scripts/autogen-from-mms.sh 153849 log_integration
 ```
 
 ### Step 6: Verify Generated Code
