@@ -87,9 +87,9 @@ jobs:
       id: project-check
       run: |
         if make tools build lint test; then
-          echo "slack-text=:white_check_mark: ${{ github.event.repository.name }}: Dev branch \`${{ matrix.branch }}\` merged and pushed with latest changes from master. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
+          echo "slack-text=✅ ${{ github.event.repository.name }}: Dev branch \`${{ matrix.branch }}\` merged and pushed with latest changes from master. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
         else
-          echo "slack-text=:warning: ${{ github.event.repository.name }}: Dev branch \`${{ matrix.branch }}\` merged and pushed. This is prefered even if checks failed as there were no merge conflicts. Project checks must be fixed. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
+          echo "slack-text=⚠️ ${{ github.event.repository.name }}: Dev branch \`${{ matrix.branch }}\` merged and pushed. This is prefered even if checks failed as there were no merge conflicts. Project checks must be fixed. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
         fi
 
     - name: Send Slack notification
@@ -131,7 +131,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":x: *${{ github.event.repository.name }}: Update dev branches failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
+                    "text": "❌ *${{ github.event.repository.name }}: Update dev branches failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
                   }
                 }
               ]

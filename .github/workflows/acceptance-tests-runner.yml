@@ -1417,7 +1417,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":x: *${{ github.event.repository.name }}: Stream Tests Failed* ${{ secrets.slack_oncall_tag }} ${{ secrets.slack_oncall_tag_stream }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View>"
+                    "text": "❌ *${{ github.event.repository.name }}: Stream Tests Failed* ${{ secrets.slack_oncall_tag }} ${{ secrets.slack_oncall_tag_stream }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View>"
                   }
                 }
               ]

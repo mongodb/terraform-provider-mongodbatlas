@@ -60,7 +60,7 @@ jobs:
       - name: Send Slack message
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
           webhook-type: incoming-webhook
           payload: |
             {
@@ -70,7 +70,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ needs.run-test-supported-versions.result == 'success' && ':white_check_mark:' || ':red_circle:' }} *${{ github.event.repository.name }}: HashiCorp Terraform Compatibility Matrix ${{ needs.run-test-supported-versions.result }}* ${{ needs.run-test-supported-versions.result != 'success' && secrets.SLACK_ONCALL_TAG || '' }}"
+                    "text": "${{ needs.run-test-supported-versions.result == 'success' && '✅' || '🔴' }} *${{ github.event.repository.name }}: HashiCorp Terraform Compatibility Matrix ${{ needs.run-test-supported-versions.result }}* ${{ needs.run-test-supported-versions.result != 'success' && secrets.SLACK_ONCALL_TAG || '' }}"
                   }
                 },
                 {
