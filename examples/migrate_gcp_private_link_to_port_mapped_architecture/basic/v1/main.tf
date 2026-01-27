@@ -2,7 +2,7 @@
 # This configuration uses the legacy GCP architecture with dedicated resources per Atlas node
 
 # Create mongodbatlas_privatelink_endpoint with legacy architecture
-resource "mongodbatlas_privatelink_endpoint" "test_legacy" {
+resource "mongodbatlas_privatelink_endpoint" "legacy" {
   project_id    = var.project_id
   provider_name = "GCP"
   region        = var.gcp_region
@@ -24,9 +24,9 @@ resource "google_compute_subnetwork" "default" {
   network       = google_compute_network.default.id
 }
 
-# Create Google 50 Addresses (required for legacy architecture)
+# Create Google Addresses (required for legacy architecture)
 resource "google_compute_address" "legacy" {
-  count        = 50
+  count        = var.endpoint_count
   project      = google_compute_subnetwork.default.project
   name         = "tf-test-legacy${count.index}"
   subnetwork   = google_compute_subnetwork.default.id
@@ -34,13 +34,13 @@ resource "google_compute_address" "legacy" {
   address      = "10.0.42.${count.index}"
   region       = google_compute_subnetwork.default.region
 
-  depends_on = [mongodbatlas_privatelink_endpoint.test_legacy]
+  depends_on = [mongodbatlas_privatelink_endpoint.legacy]
 }
 
-# Create 50 Forwarding rules (required for legacy architecture)
+# Create Forwarding rules (required for legacy architecture)
 resource "google_compute_forwarding_rule" "legacy" {
-  count                 = 50
-  target                = mongodbatlas_privatelink_endpoint.test_legacy.service_attachment_names[count.index]
+  count                 = var.endpoint_count
+  target                = mongodbatlas_privatelink_endpoint.legacy.service_attachment_names[count.index]
   project               = google_compute_address.legacy[count.index].project
   region                = google_compute_address.legacy[count.index].region
   name                  = google_compute_address.legacy[count.index].name
@@ -50,15 +50,15 @@ resource "google_compute_forwarding_rule" "legacy" {
 }
 
 # Create mongodbatlas_privatelink_endpoint_service with legacy architecture
-resource "mongodbatlas_privatelink_endpoint_service" "test_legacy" {
-  project_id      = mongodbatlas_privatelink_endpoint.test_legacy.project_id
-  private_link_id = mongodbatlas_privatelink_endpoint.test_legacy.private_link_id
+resource "mongodbatlas_privatelink_endpoint_service" "legacy" {
+  project_id      = mongodbatlas_privatelink_endpoint.legacy.project_id
+  private_link_id = mongodbatlas_privatelink_endpoint.legacy.private_link_id
   provider_name   = "GCP"
   # Note: endpoint_service_id can be any identifier string for legacy architecture.
   # It's used only as an identifier and doesn't need to match any GCP resource name.
-  endpoint_service_id = "legacy-endpoint-group"
+  endpoint_service_id = var.legacy_endpoint_service_id
   gcp_project_id      = var.gcp_project_id
-  # Legacy architecture requires the endpoints list with all 50 endpoints
+  # Legacy architecture requires the endpoints list with all endpoints
   dynamic "endpoints" {
     for_each = google_compute_address.legacy
 
@@ -71,12 +71,14 @@ resource "mongodbatlas_privatelink_endpoint_service" "test_legacy" {
 
 data "mongodbatlas_advanced_cluster" "cluster" {
   count      = var.cluster_name == "" ? 0 : 1
-  project_id = mongodbatlas_privatelink_endpoint_service.test_legacy.project_id
+  project_id = mongodbatlas_privatelink_endpoint_service.legacy.project_id
   name       = var.cluster_name
+
+  depends_on = [mongodbatlas_privatelink_endpoint_service.legacy]
 }
 
 locals {
-  endpoint_service_id_legacy = mongodbatlas_privatelink_endpoint_service.test_legacy.endpoint_service_id
+  endpoint_service_id_legacy = mongodbatlas_privatelink_endpoint_service.legacy.endpoint_service_id
   private_endpoints          = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
   connection_strings_legacy = [
     for pe in local.private_endpoints : pe.srv_connection_string

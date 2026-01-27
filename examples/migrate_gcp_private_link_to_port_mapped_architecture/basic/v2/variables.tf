@@ -32,3 +32,21 @@ variable "cluster_name" {
   type        = string
   default     = ""
 }
+
+variable "endpoint_count" {
+  description = "Number of endpoints for legacy architecture (defaults to 50, matches Atlas project's privateServiceConnectionsPerRegionGroup setting)"
+  type        = number
+  default     = 50
+}
+
+variable "legacy_endpoint_service_id" {
+  description = "Endpoint service ID for legacy architecture (can be any identifier string)"
+  type        = string
+  default     = "legacy-endpoint-group"
+}
+
+variable "new_endpoint_service_id" {
+  description = "Endpoint service ID for port-mapped architecture (used as forwarding rule name and address name)"
+  type        = string
+  default     = "tf-test-port-mapped-endpoint"
+}

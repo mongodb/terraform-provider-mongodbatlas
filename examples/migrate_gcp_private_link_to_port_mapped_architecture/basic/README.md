@@ -50,13 +50,15 @@ gcp_region          = "us-central1"
 atlas_client_id     = "<ATLAS_CLIENT_ID>"     # Optional, can use env vars
 atlas_client_secret = "<ATLAS_CLIENT_SECRET>" # Optional, can use env vars
 cluster_name        = "<CLUSTER_NAME>"        # Optional: cluster whose connection string to output
+endpoint_count      = 50                      # Optional: Number of endpoints for legacy architecture (defaults to 50, matches Atlas project's privateServiceConnectionsPerRegionGroup setting)
+legacy_endpoint_service_id  = "legacy-endpoint-group" # Optional for v1 and v2: Endpoint service ID for legacy architecture (defaults to "legacy-endpoint-group")
+new_endpoint_service_id     = "tf-test-port-mapped-endpoint" # Optional for v2 and v3: Endpoint service ID for port-mapped architecture (used as forwarding rule name and address name, defaults to "tf-test-port-mapped-endpoint")
 ```
 
 **Note**: Network names, subnet names, IP addresses, and other resource names are hardcoded in the example configurations. You can modify these directly in the example files:
 - Network name: `"my-network"`.
 - Subnet name: `"my-subnet"`.
 - IP CIDR range: `"10.0.0.0/16"`.
-- Address name (port-mapped): `"tf-test-port-mapped-endpoint"`.
 - Address IP (port-mapped): `"10.0.42.100"`.
 
 Alternatively, set environment variables for authentication:
