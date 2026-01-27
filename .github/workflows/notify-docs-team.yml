@@ -40,7 +40,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "hey ${{ secrets.SLACK_DOCS_TAG }}, this is APIx bot, can you please review <${{ github.event.pull_request.html_url }}|PR ${{ github.event.pull_request.number }}>? thanks a lot!"
+                    "text": "hey ${{ secrets.SLACK_DOCS_TAG }}, this is APIx bot, can you please review <${{ github.event.pull_request.html_url }}|${{ github.event.repository.name }} PR ${{ github.event.pull_request.number }}>? thanks a lot!"
                   }
                 }
               ]

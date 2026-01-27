@@ -28,18 +28,19 @@ if [ "$1" != "success" ] && [ "$1" != "failure" ]; then
 fi
 
 oncall_tag=""
-if [ "$1" == "success" ]; then
-    text_value=":white_check_mark: HashiCorp Terraform Compatibility Matrix succeeded"
-	action_text="Successful action"
-else
-    text_value=":red_circle: HashiCorp Terraform Compatibility Matrix failed"
-	action_text="Failed action"
-	oncall_tag="$2"
-fi
-
 server_url=$3
 repository=$4
 run_id=$5
+repo_name=$(basename "$repository")
+
+if [ "$1" == "success" ]; then
+    text_value=":white_check_mark: ${repo_name}: HashiCorp Terraform Compatibility Matrix succeeded"
+	action_text="Successful action"
+else
+    text_value=":red_circle: ${repo_name}: HashiCorp Terraform Compatibility Matrix failed"
+	action_text="Failed action"
+	oncall_tag="$2"
+fi
 
 json="{
         \"text\": \"$text_value\",
