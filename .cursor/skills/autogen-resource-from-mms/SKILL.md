@@ -1,23 +1,32 @@
 ---
 name: autogen-resource-from-mms
-description: Autogenerate a Terraform resource from an OpenAPI spec in an MMS repository branch or PR. Use when the user wants to generate Terraform provider code from a pre-release API spec, mentions MMS branches, or references CLOUDP tickets.
+description: Autogenerate a Terraform resource from an OpenAPI spec. Supports production, development, and MMS branch/PR environments. Use when generating Terraform provider code from any API spec source.
 ---
 
-# Autogenerate Terraform Resource from MMS OpenAPI Spec
+# Autogenerate Terraform Resource from OpenAPI Spec
 
-This skill automates the process of generating a Terraform resource from an OpenAPI spec in the private `10gen/mms` repository.
+This skill automates the process of generating a Terraform resource from an OpenAPI spec from different environments.
 
 ## When to Use
 
-- User wants to generate a Terraform resource from a feature branch OpenAPI spec
+- User wants to generate a Terraform resource from the production or dev OpenAPI spec
 - User mentions an MMS PR number or branch name (e.g., "PR 153849", "CLOUDP-375419")
 - User wants to test code generation with a pre-release API
-- User asks to autogenerate a resource from a non-production OpenAPI spec
+- User asks to autogenerate a resource
+
+## Supported Environments
+
+| Environment | Source | Description |
+|-------------|--------|-------------|
+| `prod` | mongodb/openapi (main) | Production OpenAPI spec |
+| `dev` | mongodb/openapi (dev) | Development OpenAPI spec |
+| `mms:<branch>` | 10gen/mms branch | Pre-release from MMS branch |
+| `mms-pr:<number>` | 10gen/mms PR | Pre-release from MMS PR |
 
 ## Prerequisites
 
-- Access to the private `10gen/mms` GitHub repository
-- GitHub CLI (`gh`) authenticated with access to `10gen/mms`
+- GitHub CLI (`gh`) installed and authenticated
+- For MMS environments: access to the private `10gen/mms` repository
 - Node.js installed (for the OpenAPI transformer)
 - Go installed (for the code generator)
 - Resource configuration added to `tools/codegen/config.yml`
@@ -26,9 +35,11 @@ This skill automates the process of generating a Terraform resource from an Open
 
 Ask the user for:
 
-1. **MMS Branch or PR**: Either:
-   - Branch name in `10gen/mms` (e.g., `CLOUDP-375419`, `master`)
-   - PR number from `10gen/mms` (e.g., `153849`)
+1. **Environment**: One of:
+   - `prod` or `production` - Production spec
+   - `dev` or `development` - Development spec
+   - `mms:<branch>` - MMS branch (e.g., `mms:CLOUDP-375419`)
+   - `mms-pr:<number>` - MMS PR (e.g., `mms-pr:153849`)
 
 2. **Resource Name**: The resource name as defined in `config.yml`
    - Examples: `log_integration`, `service_account`, `alert_configuration_api`
@@ -37,62 +48,62 @@ Ask the user for:
 
 **Important**: All commands must be run from the terraform-provider-mongodbatlas repository root directory.
 
-### Step 1: Verify Resource Configuration
+### Quick Start: Run All Steps at Once
+
+Use the all-in-one script:
+
+```bash
+.cursor/skills/autogen-resource-from-mms/scripts/autogen-resource.sh <environment> <resource_name>
+```
+
+Examples:
+```bash
+# From production spec
+.cursor/skills/autogen-resource-from-mms/scripts/autogen-resource.sh prod log_integration
+
+# From development spec
+.cursor/skills/autogen-resource-from-mms/scripts/autogen-resource.sh dev log_integration
+
+# From MMS branch
+.cursor/skills/autogen-resource-from-mms/scripts/autogen-resource.sh mms:CLOUDP-375419 log_integration
+
+# From MMS PR
+.cursor/skills/autogen-resource-from-mms/scripts/autogen-resource.sh mms-pr:153849 log_integration
+```
+
+### Step-by-Step Instructions
+
+#### Step 1: Verify Resource Configuration
 
 Check if the resource is configured in `tools/codegen/config.yml`. If not, ask the user to add the configuration first.
 
-### Step 2: Resolve PR to Branch (if needed)
-
-If the user provides a PR number, resolve it to a branch name:
+#### Step 2: Fetch the OpenAPI Spec
 
 ```bash
-gh pr view <PR_NUMBER> --repo 10gen/mms --json headRefName -q '.headRefName'
+.cursor/skills/autogen-resource-from-mms/scripts/fetch-spec.sh <environment>
 ```
 
-### Step 3: Fetch the OpenAPI Spec
-
-Run the fetch script to download the spec from the MMS branch. From the repository root:
-
+Examples:
 ```bash
-.cursor/skills/autogen-resource-from-mms/scripts/fetch-mms-spec.sh <BRANCH_NAME>
+.cursor/skills/autogen-resource-from-mms/scripts/fetch-spec.sh prod
+.cursor/skills/autogen-resource-from-mms/scripts/fetch-spec.sh dev
+.cursor/skills/autogen-resource-from-mms/scripts/fetch-spec.sh mms:CLOUDP-375419
+.cursor/skills/autogen-resource-from-mms/scripts/fetch-spec.sh mms-pr:153849
 ```
 
-This downloads the spec to `tools/codegen/atlasapispec/raw-multi-version-api-spec.json`.
-
-### Step 4: Flatten the OpenAPI Spec
-
-Run the flatten script from the repository root:
+#### Step 3: Flatten the OpenAPI Spec
 
 ```bash
 .cursor/skills/autogen-resource-from-mms/scripts/flatten-spec.sh
 ```
 
-### Step 5: Generate the Resource
-
-Run the code generator from the repository root:
+#### Step 4: Generate the Resource
 
 ```bash
 go run ./tools/codegen/main.go <resource_name>
 ```
 
-### Alternative: Run All Steps at Once
-
-Use the all-in-one script from the repository root:
-
-```bash
-.cursor/skills/autogen-resource-from-mms/scripts/autogen-from-mms.sh <BRANCH_OR_PR> <resource_name>
-```
-
-Examples:
-```bash
-# Using branch name
-.cursor/skills/autogen-resource-from-mms/scripts/autogen-from-mms.sh CLOUDP-375419 log_integration
-
-# Using PR number
-.cursor/skills/autogen-resource-from-mms/scripts/autogen-from-mms.sh 153849 log_integration
-```
-
-### Step 6: Verify Generated Code
+#### Step 5: Verify Generated Code
 
 After generation:
 1. Check for build errors: `go build ./...`
@@ -129,10 +140,10 @@ make generate-autogen-api-spec
 
 ### Authentication Failed (401/403)
 - Check GitHub CLI auth: `gh auth status`
-- Verify access to `10gen/mms` repo
+- For MMS: verify access to `10gen/mms` repo
 
 ### Flattening Fails
-- Validate JSON: `jq . tools/codegen/atlasapispec/raw-multi-version-api-spec.json > /dev/null`
+- Validate JSON/YAML spec syntax
 - Check network connectivity for npx
 
 ### Code Generation Fails
