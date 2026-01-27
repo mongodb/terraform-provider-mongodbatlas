@@ -37,13 +37,13 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "Automatic Changelog update failed",
+              "text": "${{ github.event.repository.name }}: Automatic Changelog update failed",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "❌ *Automatic Changelog update failed* ${{ secrets.SLACK_ONCALL_TAG }} . <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|Failed action >"
+                    "text": "❌ *${{ github.event.repository.name }}: Automatic Changelog update failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
                   }
                 }
               ]
