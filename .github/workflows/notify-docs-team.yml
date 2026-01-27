@@ -24,14 +24,13 @@ jobs:
         
   slack-notification:
     needs: check
-    if: ${{ needs.check.outputs.files == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # Needed by sticky-pull-request-comment
     steps:
       - uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_DOCS }}
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
           webhook-type: incoming-webhook
           payload: |
             {
