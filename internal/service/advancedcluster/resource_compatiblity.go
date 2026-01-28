@@ -106,7 +106,6 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	modelOut.Timeouts = modelIn.Timeouts
 	modelOut.DeleteOnCreateTimeout = modelIn.DeleteOnCreateTimeout
 	modelOut.RetainBackupsEnabled = modelIn.RetainBackupsEnabled
-	modelOut.UseEffectiveFields = modelIn.UseEffectiveFields
 }
 
 func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {

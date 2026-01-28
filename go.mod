@@ -44,7 +44,7 @@ require (
 	github.com/hashicorp/terraform-json v0.27.2
 	github.com/hashicorp/terraform-plugin-framework-jsontypes v0.2.0
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
-	go.mongodb.org/atlas-sdk/v20250312013 v20250312013.0.0
+	go.mongodb.org/atlas-sdk/v20250312013 v20250312013.0.1-0.20260128080707-769151eefe03
 	golang.org/x/oauth2 v0.34.0
 )
 
