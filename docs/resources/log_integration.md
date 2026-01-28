@@ -68,9 +68,7 @@ output "log_integrations_results" {
 - `iam_role_id` (String) Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
 - `log_types` (Set of String) Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.
 - `prefix_path` (String) S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
-**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
 - `type` (String) Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
 
 ### Optional

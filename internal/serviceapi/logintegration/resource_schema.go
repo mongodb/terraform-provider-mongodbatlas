@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
@@ -21,7 +22,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"iam_role_id": schema.StringAttribute{
@@ -31,6 +32,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"integration_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique 24-character hexadecimal digit string that identifies the log integration configuration.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"kms_key": schema.StringAttribute{
 				Optional:            true,

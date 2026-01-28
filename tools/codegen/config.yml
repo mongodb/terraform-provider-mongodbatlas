@@ -1084,6 +1084,11 @@ resources:
         groupId: projectId
         alertConfigId: integrationId
         id: integrationId
+      overrides:
+          project_id:
+            description: *project_id_description
+          integration_id:
+            immutable_computed: true
     datasources:
       read:
         path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
@@ -1096,3 +1101,6 @@ resources:
           groupId: projectId
           alertConfigId: integrationId
           id: integrationId
+        overrides:
+          project_id:
+            description: *project_id_description
