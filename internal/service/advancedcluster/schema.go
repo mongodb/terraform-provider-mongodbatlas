@@ -277,7 +277,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: descZoneID,
 						},
 						"zone_name": schema.StringAttribute{
-							Computed:            true,
 							Optional:            true,
 							MarkdownDescription: descZoneName,
 						},
@@ -481,32 +480,26 @@ func effectiveReplicationSpecsSchemaDS() dsschema.ListNestedAttribute {
 
 func autoScalingSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
-		Computed:            true,
 		Optional:            true,
 		MarkdownDescription: descAutoScaling,
 		Attributes: map[string]schema.Attribute{
 			"compute_enabled": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descComputeEnabled,
 			},
 			"compute_max_instance_size": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descComputeMinMaxInstanceSize,
 			},
 			"compute_min_instance_size": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descComputeMinMaxInstanceSize,
 			},
 			"compute_scale_down_enabled": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descComputeScaleDownEnabled,
 			},
 			"disk_gb_enabled": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descDiskGBEnabled,
 			},
@@ -545,27 +538,22 @@ func autoScalingSchemaDS() dsschema.SingleNestedAttribute {
 
 func specsSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
-		Computed:            true,
 		Optional:            true,
 		MarkdownDescription: descSpecs,
 		Attributes: map[string]schema.Attribute{
 			"disk_iops": schema.Int64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descDiskIops,
 			},
 			"disk_size_gb": schema.Float64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descDiskSizeGb,
 			},
 			"ebs_volume_type": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descEbsVolumeType,
 			},
 			"instance_size": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					customplanmodifier.InstanceSizeStringAttributePlanModifier(),
@@ -573,7 +561,6 @@ func specsSchema() schema.SingleNestedAttribute {
 				MarkdownDescription: descInstanceSize,
 			},
 			"node_count": schema.Int64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descNodeCount,
 			},
