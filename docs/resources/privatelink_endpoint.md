@@ -19,7 +19,7 @@ ensure that you review the [Multi-Region Private Endpoints](https://www.mongodb.
 
 -> **NOTE:** A network container is created for a private endpoint to reside in if one does not yet exist in the project.  
 
-~> **IMPORTANT:** For GCP Private Service Connect, MongoDB encourages customers to use the port-mapped architecture by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource. The port-mapped architecture uses a single set of resources to support up to 150 nodes through port mapping, enabling direct targeting of specific nodes using only one customer IP address. In contrast, the legacy architecture requires dedicated resources for each Atlas node, which can lead to IP address exhaustion and requires full redeployment when changing the number of private service connections per region group. For migration guidance, see the [GCP Private Link Port Mapping Migration Guide](../guides/gcp-privatelink-port-mapping-migration.md).
+~> **IMPORTANT:** For GCP Private Service Connect, MongoDB encourages customers to use the port-mapped architecture by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource. The port-mapped architecture uses a single set of resources to support up to 150 nodes through port mapping, enabling direct targeting of specific nodes using only one customer IP address. In contrast, the legacy architecture requires dedicated resources for each Atlas node, which can lead to IP address exhaustion and requires full redeployment when changing the number of private service connections per region group. For migration guidance, see the [GCP Private Service Connect to Port-Mapped Architecture](../guides/gcp-privatelink-port-mapping-migration.md).
 
 ## Example Usage
 
