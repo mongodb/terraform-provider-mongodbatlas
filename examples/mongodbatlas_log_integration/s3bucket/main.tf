@@ -44,4 +44,3 @@ output "log_integration_bucket_name" {
 output "log_integrations_results" {
   value = data.mongodbatlas_log_integrations.example.results
 }
-

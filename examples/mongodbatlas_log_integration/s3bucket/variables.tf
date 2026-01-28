@@ -50,4 +50,3 @@ variable "aws_iam_role_name" {
   default     = "atlas-log-integration-role"
   type        = string
 }
-
