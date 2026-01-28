@@ -25,3 +25,9 @@ variable "cluster_name" {
   description = "(Optional) Cluster whose connection string to output"
   type        = string
 }
+
+variable "endpoint_service_id" {
+  description = "Name for the endpoint group name"
+  type        = string
+  default     = "the-endpoint-group-name"
+}
