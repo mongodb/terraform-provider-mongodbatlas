@@ -11,9 +11,13 @@ on:
         description: 'Version number (e.g., v1.0.0, v1.0.0-pre, v1.0.0-pre1)'
         required: true
       base_branch:
-        description: 'Base branch for the release (leave empty for master, use v1-lts for v1.x backports)'
+        description: 'Base branch for the release (leave empty for master)'
         required: false
+        type: choice
         default: ''
+        options:
+          - ''
+          - 'v1-lts'
       skip_tests:
         description: 'Set value to `true` to skip QA acceptance tests, default is `false`'
         default: 'false'
@@ -58,16 +62,26 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
+      - name: Validate branch exists
+        if: inputs.base_branch != ''
+        env:
+          BASE_BRANCH: ${{ inputs.base_branch }}
+        run: |
+          git ls-remote --exit-code --heads "https://github.com/${{ github.repository }}" "$BASE_BRANCH" || {
+            echo "Error: Branch '$BASE_BRANCH' does not exist on remote"
+            exit 1
+          }
       - name: Validation of version format
         env:
           VERSION_NUMBER: ${{ inputs.version_number }}
           TARGET_BRANCH: ${{ needs.release-config.outputs.target_branch }}
         run: |
-          if [ "$TARGET_BRANCH" = "v1-lts" ]; then
-            # v1 backport: only allow v1.x.x versions
-            echo "$VERSION_NUMBER" | grep -P '^v1\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'
+          if [[ "$TARGET_BRANCH" =~ ^v([0-9]+)-lts$ ]]; then
+            # LTS branch: only allow matching major version (e.g., v1-lts allows v1.x.x)
+            MAJOR="${BASH_REMATCH[1]}"
+            echo "$VERSION_NUMBER" | grep -P "^v${MAJOR}\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$"
           else
-            # Standard release: allow any version
+            # Standard release from master: allow any version
             echo "$VERSION_NUMBER" | grep -P '^v\d+\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'
           fi
       - name: Checkout
