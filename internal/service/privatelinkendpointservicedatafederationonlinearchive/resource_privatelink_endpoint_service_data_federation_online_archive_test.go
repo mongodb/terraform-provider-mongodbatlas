@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -138,9 +137,9 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-
-		return fmt.Sprintf("%s--%s", ids["project_id"], ids["endpoint_id"]), nil
+		projectID := rs.Primary.Attributes["project_id"]
+		endpointID := rs.Primary.Attributes["endpoint_id"]
+		return fmt.Sprintf("%s/%s", projectID, endpointID), nil
 	}
 }
 
@@ -149,8 +148,9 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" {
 			continue
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().DataFederationApi.GetPrivateEndpointId(context.Background(), ids["project_id"], ids["endpoint_id"]).Execute()
+		projectID := rs.Primary.Attributes["project_id"]
+		endpointID := rs.Primary.Attributes["endpoint_id"]
+		_, _, err := acc.ConnV2().DataFederationApi.GetPrivateEndpointId(context.Background(), projectID, endpointID).Execute()
 		if err == nil {
 			return fmt.Errorf("Private endpoint service data federation online archive still exists")
 		}
@@ -164,11 +164,9 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if !ok {
 			return fmt.Errorf("Private endpoint service data federation online archive not found: %s", resourceName)
 		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("Private endpoint service data federation online archive ID not set")
-		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().DataFederationApi.GetPrivateEndpointId(context.Background(), ids["project_id"], ids["endpoint_id"]).Execute()
+		projectID := rs.Primary.Attributes["project_id"]
+		endpointID := rs.Primary.Attributes["endpoint_id"]
+		_, _, err := acc.ConnV2().DataFederationApi.GetPrivateEndpointId(context.Background(), projectID, endpointID).Execute()
 		if err != nil {
 			return err
 		}
