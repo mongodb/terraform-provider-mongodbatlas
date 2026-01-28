@@ -5,9 +5,13 @@ import (
 	"errors"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
+var _ autogen.PreCreateAPICallHook = (*rs)(nil)
 var _ autogen.PostCreateAPICallHook = (*rs)(nil)
+var _ autogen.PreUpdateAPICallHook = (*rs)(nil)
+var _ autogen.PostUpdateAPICallHook = (*rs)(nil)
 
 type createAPIResponse struct {
 	Results []map[string]any `json:"results"`
@@ -38,4 +42,65 @@ func (r *rs) PostCreateAPICall(req autogen.HandleCreateReq, result autogen.APICa
 	}
 
 	return autogen.APICallResult{Body: nil, Err: errors.New("endpointId not found in create private endpoint ids response")}
+}
+
+// PostUpdateAPICall selects the updated endpoint from the paginated response
+// by matching the endpointId and returns a new APICallResult with that element.
+//
+// The update API returns PaginatedPrivateNetworkEndpointIdEntryView, but the autogen
+// CRUD expects the response body to match the resource schema (PrivateNetworkEndpointIdEntry).
+func (r *rs) PostUpdateAPICall(req autogen.HandleUpdateReq, result autogen.APICallResult) autogen.APICallResult {
+	if result.Err != nil {
+		return result
+	}
+
+	endpointID := req.Plan.(*TFModel).EndpointId.ValueString()
+
+	var responseJSON createAPIResponse
+	if err := json.Unmarshal(result.Body, &responseJSON); err != nil {
+		return autogen.APICallResult{Body: nil, Err: err}
+	}
+
+	for _, entry := range responseJSON.Results {
+		if entry["endpointId"] == endpointID {
+			marshaledEntry, err := json.Marshal(entry)
+			return autogen.APICallResult{Body: marshaledEntry, Err: err}
+		}
+	}
+
+	return autogen.APICallResult{Body: nil, Err: errors.New("endpointId not found in update private endpoint ids response")}
+}
+
+// PreCreateAPICall hardcodes the type property to "DATA_LAKE" in the request body.
+func (r *rs) PreCreateAPICall(callParams config.APICallParams, bodyReq []byte) (config.APICallParams, []byte) {
+	var requestBody map[string]any
+	if err := json.Unmarshal(bodyReq, &requestBody); err != nil {
+		return callParams, bodyReq
+	}
+
+	requestBody["type"] = "DATA_LAKE"
+
+	modifiedBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return callParams, bodyReq
+	}
+
+	return callParams, modifiedBody
+}
+
+// PreUpdateAPICall hardcodes the type property to "DATA_LAKE" in the request body.
+func (r *rs) PreUpdateAPICall(callParams config.APICallParams, bodyReq []byte) (config.APICallParams, []byte) {
+	var requestBody map[string]any
+	if err := json.Unmarshal(bodyReq, &requestBody); err != nil {
+		return callParams, bodyReq
+	}
+
+	requestBody["type"] = "DATA_LAKE"
+
+	modifiedBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return callParams, bodyReq
+	}
+
+	return callParams, modifiedBody
 }

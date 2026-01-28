@@ -35,7 +35,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 22-character alphanumeric string that identifies the private endpoint.",
 			},
 			"error_message": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Error message describing a failure approving the private endpoint request.",
 			},
 			"project_id": schema.StringAttribute{
@@ -52,7 +52,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable label to identify the region of customer's VPC endpoint. If defined, you must also specify a value for **customerEndpointDNSName**.",
 			},
 			"status": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Status of the private endpoint connection request.",
 			},
 			"type": schema.StringAttribute{

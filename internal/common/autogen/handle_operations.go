@@ -241,7 +241,7 @@ func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 		addError(d, opUpdate, errBuildingAPIRequest, err)
 		return
 	}
-	callResult := callUpdateWithHooks(ctx, req.Client, *req.CallParams, bodyReq, req.Hooks)
+	callResult := callUpdateWithHooks(ctx, req.Client, *req.CallParams, bodyReq, req)
 	if callResult.Err != nil {
 		addError(d, opUpdate, errCallingAPI, callResult.Err)
 		return
@@ -459,15 +459,15 @@ func callDeleteWithHooks(ctx context.Context, client *config.MongoDBClient, call
 	return callResult
 }
 
-func callUpdateWithHooks(ctx context.Context, client *config.MongoDBClient, callParams config.APICallParams, bodyReq []byte, hooks any) APICallResult {
+func callUpdateWithHooks(ctx context.Context, client *config.MongoDBClient, callParams config.APICallParams, bodyReq []byte, req HandleUpdateReq) APICallResult {
 	var modifiedParams = callParams
 	var modifiedBody = bodyReq
-	if preUpdateHook, ok := hooks.(PreUpdateAPICallHook); ok {
+	if preUpdateHook, ok := req.Hooks.(PreUpdateAPICallHook); ok {
 		modifiedParams, modifiedBody = preUpdateHook.PreUpdateAPICall(callParams, bodyReq)
 	}
 	callResult := callAPI(ctx, client, modifiedParams, modifiedBody)
-	if postUpdateHook, ok := hooks.(PostUpdateAPICallHook); ok {
-		return postUpdateHook.PostUpdateAPICall(callResult)
+	if postUpdateHook, ok := req.Hooks.(PostUpdateAPICallHook); ok {
+		return postUpdateHook.PostUpdateAPICall(req, callResult)
 	}
 	return callResult
 }

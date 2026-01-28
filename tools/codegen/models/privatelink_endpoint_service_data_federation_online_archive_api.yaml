@@ -77,7 +77,7 @@ schema:
           request_only_required_on_create: false
         - string: {}
           description: Error message describing a failure approving the private endpoint request.
-          computed_optional_required: optional
+          computed_optional_required: computed
           tf_schema_name: error_message
           tf_model_name: ErrorMessage
           api_name: errorMessage
@@ -125,7 +125,7 @@ schema:
           request_only_required_on_create: false
         - string: {}
           description: Status of the private endpoint connection request.
-          computed_optional_required: optional
+          computed_optional_required: computed
           tf_schema_name: status
           tf_model_name: Status
           api_name: status

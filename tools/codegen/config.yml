@@ -1090,4 +1090,10 @@ resources:
           provider_name:
             computability:
               required: true
+          status:
+            computability:
+              computed: true
+          error_message:
+            computability:
+              computed: true
             

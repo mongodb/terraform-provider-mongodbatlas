@@ -35,5 +35,5 @@ type PreUpdateAPICallHook interface {
 }
 
 type PostUpdateAPICallHook interface {
-	PostUpdateAPICall(APICallResult) APICallResult
+	PostUpdateAPICall(HandleUpdateReq, APICallResult) APICallResult
 }
