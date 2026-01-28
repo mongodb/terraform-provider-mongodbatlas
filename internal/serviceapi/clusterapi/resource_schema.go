@@ -579,6 +579,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+			"retain_backups": schema.BoolAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether the cluster retains backups.",
+			},
 			"root_cert_type": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
@@ -628,7 +633,7 @@ type TFModel struct {
 	ReplicationSpecs                              customtypes.NestedListValue[TFReplicationSpecsModel]       `tfsdk:"replication_specs"`
 	Labels                                        customtypes.MapValue[types.String]                         `tfsdk:"labels" autogen:"listasmap"`
 	Tags                                          customtypes.MapValue[types.String]                         `tfsdk:"tags" autogen:"listasmap"`
-	InternalClusterRole                           types.String                                               `tfsdk:"internal_cluster_role" autogen:"omitjson"`
+	MongoDBEmployeeAccessGrant                    customtypes.ObjectValue[TFMongoDBEmployeeAccessGrantModel] `tfsdk:"mongo_db_employee_access_grant"`
 	MongoDBVersion                                types.String                                               `tfsdk:"mongo_db_version" autogen:"omitjson"`
 	ConfigServerManagementMode                    types.String                                               `tfsdk:"config_server_management_mode"`
 	ConfigServerType                              types.String                                               `tfsdk:"config_server_type" autogen:"omitjson"`
@@ -636,22 +641,23 @@ type TFModel struct {
 	CreateDate                                    types.String                                               `tfsdk:"create_date" autogen:"omitjson"`
 	DiskWarmingMode                               types.String                                               `tfsdk:"disk_warming_mode"`
 	EncryptionAtRestProvider                      types.String                                               `tfsdk:"encryption_at_rest_provider"`
-	MongoDBMajorVersion                           types.String                                               `tfsdk:"mongo_db_major_version"`
+	FeatureCompatibilityVersion                   types.String                                               `tfsdk:"feature_compatibility_version" autogen:"omitjson"`
 	FeatureCompatibilityVersionExpirationDate     types.String                                               `tfsdk:"feature_compatibility_version_expiration_date" autogen:"omitjson"`
 	Timeouts                                      timeouts.Value                                             `tfsdk:"timeouts" autogen:"omitjson"`
 	GroupId                                       types.String                                               `tfsdk:"group_id" autogen:"omitjson"`
 	Id                                            types.String                                               `tfsdk:"id" autogen:"omitjson"`
+	InternalClusterRole                           types.String                                               `tfsdk:"internal_cluster_role" autogen:"omitjson"`
+	BiConnector                                   customtypes.ObjectValue[TFBiConnectorModel]                `tfsdk:"bi_connector"`
 	AcceptDataRisksAndForceReplicaSetReconfig     types.String                                               `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
 	ClusterType                                   types.String                                               `tfsdk:"cluster_type"`
-	BiConnector                                   customtypes.ObjectValue[TFBiConnectorModel]                `tfsdk:"bi_connector"`
-	FeatureCompatibilityVersion                   types.String                                               `tfsdk:"feature_compatibility_version" autogen:"omitjson"`
-	MongoDBEmployeeAccessGrant                    customtypes.ObjectValue[TFMongoDBEmployeeAccessGrantModel] `tfsdk:"mongo_db_employee_access_grant"`
 	Name                                          types.String                                               `tfsdk:"name"`
+	MongoDBMajorVersion                           types.String                                               `tfsdk:"mongo_db_major_version"`
 	VersionReleaseSystem                          types.String                                               `tfsdk:"version_release_system"`
 	AdvancedConfiguration                         customtypes.ObjectValue[TFAdvancedConfigurationModel]      `tfsdk:"advanced_configuration"`
 	StateName                                     types.String                                               `tfsdk:"state_name" autogen:"omitjson"`
 	ReplicaSetScalingStrategy                     types.String                                               `tfsdk:"replica_set_scaling_strategy"`
 	RootCertType                                  types.String                                               `tfsdk:"root_cert_type"`
+	RetainBackups                                 types.Bool                                                 `tfsdk:"retain_backups"`
 	BackupEnabled                                 types.Bool                                                 `tfsdk:"backup_enabled"`
 	RedactClientLogData                           types.Bool                                                 `tfsdk:"redact_client_log_data"`
 	PitEnabled                                    types.Bool                                                 `tfsdk:"pit_enabled"`
