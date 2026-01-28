@@ -47,7 +47,7 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *TFModelDS) *TFModelDS {
 	clusterName := modelDS.Name.ValueString()
 	projectID := modelDS.ProjectID.ValueString()
-	clusterResp, flexClusterResp := GetClusterDetails(ctx, diags, projectID, clusterName, d.Client, false, modelDS.UseEffectiveFields.ValueBool())
+	clusterResp, flexClusterResp := GetClusterDetails(ctx, diags, projectID, clusterName, d.Client, false)
 	if diags.HasError() {
 		return nil
 	}
@@ -59,9 +59,6 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		result = convertFlexClusterToDS(ctx, diags, flexClusterResp)
 	} else {
 		result = convertBasicClusterToDS(ctx, diags, d.Client, clusterResp)
-	}
-	if result != nil {
-		result.UseEffectiveFields = modelDS.UseEffectiveFields
 	}
 	return result
 }

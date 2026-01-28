@@ -261,9 +261,6 @@ func newRegionConfigsDSObjType(ctx context.Context, input *[]admin.CloudRegionCo
 		item := &(*input)[i]
 		baseModel := newRegionConfigModel(ctx, item, diags)
 		dsModel := *conversion.CopyModel[TFRegionConfigsDSModel](&baseModel)
-		dsModel.EffectiveAnalyticsSpecs = newSpecsObjType(ctx, item.EffectiveAnalyticsSpecs, diags)
-		dsModel.EffectiveElectableSpecs = newSpecsObjType(ctx, item.EffectiveElectableSpecs, diags)
-		dsModel.EffectiveReadOnlySpecs = newSpecsObjType(ctx, item.EffectiveReadOnlySpecs, diags)
 		tfModels[i] = dsModel
 	}
 	listType, diagsLocal := types.ListValueFrom(ctx, regionConfigsDSObjType, tfModels)
