@@ -35,6 +35,7 @@ func Resource() *schema.Resource {
 		ReadWithoutTimeout:   resourceRead,
 		UpdateWithoutTimeout: resourceUpdate,
 		DeleteWithoutTimeout: resourceDelete,
+		CustomizeDiff:        resourceCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
@@ -176,10 +177,15 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	if d.HasChange("port_mapping_enabled") {
-		return diag.FromErr(errors.New("`port_mapping_enabled` cannot be changed after resource creation"))
-	}
+	// CustomizeDiff prevents port_mapping_enabled from being changed, so this should never be called with actual changes.
 	return resourceRead(ctx, d, meta)
+}
+
+func resourceCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta any) error {
+	if d.HasChange("port_mapping_enabled") {
+		return errors.New("`port_mapping_enabled` cannot be changed after resource creation")
+	}
+	return nil
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {

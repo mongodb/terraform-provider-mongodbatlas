@@ -1,7 +1,6 @@
 package privatelinkendpoint_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,11 +12,10 @@ import (
 func TestMigNetworkPrivateLinkEndpoint_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName  = acc.RandomProjectName()
+		projectID    = acc.ProjectIDExecution(t)
 		region       = "us-east-1"
 		providerName = constant.AWS
-		config       = configBasic(orgID, projectName, providerName, region)
+		config       = configBasic(projectID, providerName, region)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
