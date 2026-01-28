@@ -19,7 +19,7 @@ type PreCreateAPICallHook interface {
 }
 
 type PostCreateAPICallHook interface {
-	PostCreateAPICall(APICallResult) APICallResult
+	PostCreateAPICall(HandleCreateReq, APICallResult) APICallResult
 }
 
 type PreDeleteAPICallHook interface {

@@ -61,7 +61,7 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 		return
 	}
 
-	callResult := callCreateWithHooks(ctx, req.Client, *req.CallParams, bodyReq, req.Hooks)
+	callResult := callCreateWithHooks(ctx, req.Client, *req.CallParams, bodyReq, req)
 	if callResult.Err != nil {
 		addError(d, opCreate, errCallingAPI, callResult.Err)
 		return
@@ -417,15 +417,15 @@ func isEmptyJSON(raw []byte) bool {
 
 var emptyJSON = []byte("{}")
 
-func callCreateWithHooks(ctx context.Context, client *config.MongoDBClient, callParams config.APICallParams, bodyReq []byte, hooks any) APICallResult {
+func callCreateWithHooks(ctx context.Context, client *config.MongoDBClient, callParams config.APICallParams, bodyReq []byte, req HandleCreateReq) APICallResult {
 	var modifiedParams = callParams
 	var modifiedBody = bodyReq
-	if preCreateHook, ok := hooks.(PreCreateAPICallHook); ok {
+	if preCreateHook, ok := req.Hooks.(PreCreateAPICallHook); ok {
 		modifiedParams, modifiedBody = preCreateHook.PreCreateAPICall(callParams, bodyReq)
 	}
 	callResult := callAPI(ctx, client, modifiedParams, modifiedBody)
-	if postCreateHook, ok := hooks.(PostCreateAPICallHook); ok {
-		return postCreateHook.PostCreateAPICall(callResult)
+	if postCreateHook, ok := req.Hooks.(PostCreateAPICallHook); ok {
+		return postCreateHook.PostCreateAPICall(req, callResult)
 	}
 	return callResult
 }
