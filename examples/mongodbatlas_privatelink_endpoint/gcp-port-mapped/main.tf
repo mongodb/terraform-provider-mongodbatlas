@@ -1,12 +1,13 @@
-# Example with GCP (Legacy Architecture)
-# This example demonstrates the legacy GCP architecture.
-# For the port-mapped architecture, see the gcp-port-mapped directory.
+# Example with GCP (Port-Mapped Architecture)
+# This example demonstrates the port-mapped architecture.
+# For the legacy architecture, see the gcp directory.
 
-# Create mongodbatlas_privatelink_endpoint with legacy architecture
+# Create mongodbatlas_privatelink_endpoint with port-mapped architecture
 resource "mongodbatlas_privatelink_endpoint" "test" {
-  project_id    = var.project_id
-  provider_name = "GCP"
-  region        = var.gcp_region
+  project_id           = var.project_id
+  provider_name        = "GCP"
+  region               = var.gcp_region
+  port_mapping_enabled = true # Enable port-mapped architecture
 }
 
 # Create a Google Network
@@ -24,46 +25,40 @@ resource "google_compute_subnetwork" "default" {
   network       = google_compute_network.default.id
 }
 
-# Create Google 50 Addresses
+# Create Google Address (1 address for port-mapped architecture)
 resource "google_compute_address" "default" {
-  count        = 50
   project      = google_compute_subnetwork.default.project
-  name         = "tf-test${count.index}"
+  name         = var.endpoint_service_id
   subnetwork   = google_compute_subnetwork.default.id
   address_type = "INTERNAL"
-  address      = "10.0.42.${count.index}"
+  address      = "10.0.42.1"
   region       = google_compute_subnetwork.default.region
 
   depends_on = [mongodbatlas_privatelink_endpoint.test]
 }
 
-# Create 50 Forwarding rules
+# Create Forwarding Rule (1 rule for port-mapped architecture)
+# The service_attachment_names list will contain exactly one service attachment when using the port-mapped architecture.
 resource "google_compute_forwarding_rule" "default" {
-  count                 = 50
-  target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[count.index]
-  project               = google_compute_address.default[count.index].project
-  region                = google_compute_address.default[count.index].region
-  name                  = google_compute_address.default[count.index].name
-  ip_address            = google_compute_address.default[count.index].id
+  target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[0]
+  project               = google_compute_address.default.project
+  region                = google_compute_address.default.region
+  name                  = google_compute_address.default.name
+  ip_address            = google_compute_address.default.id
   network               = google_compute_network.default.id
   load_balancing_scheme = ""
 }
 
-# Create mongodbatlas_privatelink_endpoint_service with legacy architecture
+# Create mongodbatlas_privatelink_endpoint_service with port-mapped architecture
+# For the port-mapped architecture, endpoint_service_id must match the forwarding rule name 
+# and private_endpoint_ip_address the IP address. The endpoints list is no longer used for the port-mapped architecture.
 resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id          = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
-  provider_name       = "GCP"
-  endpoint_service_id = var.endpoint_service_id
-  gcp_project_id      = var.gcp_project_id
-  dynamic "endpoints" {
-    for_each = google_compute_address.default
-
-    content {
-      ip_address    = endpoints.value["address"]
-      endpoint_name = google_compute_forwarding_rule.default[endpoints.key].name
-    }
-  }
+  project_id                  = mongodbatlas_privatelink_endpoint.test.project_id
+  private_link_id             = mongodbatlas_privatelink_endpoint.test.private_link_id
+  provider_name               = "GCP"
+  endpoint_service_id         = google_compute_forwarding_rule.default.name
+  private_endpoint_ip_address = google_compute_address.default.address
+  gcp_project_id              = var.gcp_project_id
 }
 
 data "mongodbatlas_advanced_cluster" "cluster" {

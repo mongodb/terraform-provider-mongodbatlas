@@ -1,16 +1,35 @@
-# Example with GCP with legacy architecture and MongoDB Atlas Private Endpoint
+# Example with GCP with Port-Mapped Architecture and MongoDB Atlas Private Endpoint
 
-This project demonstrates the **legacy GCP architecture** for setting up GCP Private Service Connect with MongoDB Atlas. The legacy architecture requires dedicated resources for each Atlas node. Unlike the port-mapped architecture that uses a single set of resources to support up to 150 nodes, the legacy design requires one customer IP address per Atlas node.
+This project demonstrates the **port-mapped architecture** for setting up GCP Private Service Connect with MongoDB Atlas. Unlike the legacy architecture that requires dedicated resources for each Atlas node, the port-mapped architecture design uses a single set of resources to support up to 150 nodes, enabling direct targeting of specific nodes using only one customer IP address.
 
 ## Architecture Comparison
 
-| Feature | Legacy Architecture (this example) | Port-Mapped Architecture |
-|---------|-----------------------------------|---------------------------|
+| Feature | Legacy Architecture | Port-Mapped Architecture (this example) |
+|---------|-------------------|---------------------------|
 | Resources per Atlas node | Dedicated forwarding rule, service attachment, and instance group | Single set of resources for up to 150 nodes |
 | `port_mapping_enabled` | `false` (or omitted) | `true` |
 | Customer IP addresses | One per Atlas node | One total |
 
-For the **port-mapped architecture** (enabled with `port_mapping_enabled = true`), see the [`gcp-port-mapped`](../gcp-port-mapped/) example.
+## Terraform Configuration Differences
+
+The main difference is the `port_mapping_enabled = true` setting:
+
+```hcl
+resource "mongodbatlas_privatelink_endpoint" "test" {
+  project_id           = var.project_id
+  provider_name        = "GCP"
+  region               = var.gcp_region
+  port_mapping_enabled = true  # Enables port-mapped architecture
+  # ...
+}
+```
+- **1 Google Compute Address** (instead of one per Atlas node)
+- **1 Google Compute Forwarding Rule** (instead of one per Atlas node)
+- Use `endpoint_service_id` (forwarding rule name) and `private_endpoint_ip_address` (IP address) in `mongodbatlas_privatelink_endpoint_service`
+- The `endpoints` list is not used for the port-mapped architecture
+
+For the legacy architecture example, see the [`gcp/`](../gcp/) directory example.
+
 
 ## Dependencies
 
@@ -61,7 +80,7 @@ $ terraform plan
 ```
 This project deploys:
 
-- MongoDB Atlas GCP Private Endpoint (legacy architecture)
+- MongoDB Atlas GCP Private Endpoint
 - Google Compute Network, SubNetwork, Address and Forwarding Rule
 - Google Private Service Connect-MongoDB Private Link
 
