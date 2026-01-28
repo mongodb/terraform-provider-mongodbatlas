@@ -153,7 +153,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 		if serviceEndpoint.GetPortMappingEnabled() {
 			if len(serviceEndpoint.GetEndpoints()) != 1 {
-				return diag.FromErr(fmt.Errorf("port-mapped architecture requires exactly one endpoint, but found %d endpoints", len(serviceEndpoint.GetEndpoints())))
+				return diag.FromErr(fmt.Errorf("unexpected API response: port-mapped architecture requires exactly one endpoint, but found %d endpoints. This is an API inconsistency. Please contact MongoDB support", len(serviceEndpoint.GetEndpoints())))
 			}
 			firstEndpoint := serviceEndpoint.GetEndpoints()[0]
 
