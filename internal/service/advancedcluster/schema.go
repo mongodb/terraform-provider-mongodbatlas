@@ -391,10 +391,7 @@ func replicationSpecsSchemaDS() dsschema.ListNestedAttribute {
 								Computed:            true,
 								MarkdownDescription: descBackingProviderNameTenant,
 							},
-							"effective_analytics_specs": specsSchemaDS(),
-							"effective_electable_specs": specsSchemaDS(),
-							"effective_read_only_specs": specsSchemaDS(),
-							"electable_specs":           specsSchemaDS(),
+							"electable_specs": specsSchemaDS(),
 							"priority": dsschema.Int64Attribute{
 								Computed:            true,
 								MarkdownDescription: descPriority,
@@ -822,33 +819,27 @@ var regionConfigsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type TFRegionConfigsDSModel struct {
-	AnalyticsAutoScaling    types.Object `tfsdk:"analytics_auto_scaling"`
-	AnalyticsSpecs          types.Object `tfsdk:"analytics_specs"`
-	AutoScaling             types.Object `tfsdk:"auto_scaling"`
-	BackingProviderName     types.String `tfsdk:"backing_provider_name"`
-	EffectiveAnalyticsSpecs types.Object `tfsdk:"effective_analytics_specs"`
-	EffectiveElectableSpecs types.Object `tfsdk:"effective_electable_specs"`
-	EffectiveReadOnlySpecs  types.Object `tfsdk:"effective_read_only_specs"`
-	ElectableSpecs          types.Object `tfsdk:"electable_specs"`
-	ProviderName            types.String `tfsdk:"provider_name"`
-	ReadOnlySpecs           types.Object `tfsdk:"read_only_specs"`
-	RegionName              types.String `tfsdk:"region_name"`
-	Priority                types.Int64  `tfsdk:"priority"`
+	AnalyticsAutoScaling types.Object `tfsdk:"analytics_auto_scaling"`
+	AnalyticsSpecs       types.Object `tfsdk:"analytics_specs"`
+	AutoScaling          types.Object `tfsdk:"auto_scaling"`
+	BackingProviderName  types.String `tfsdk:"backing_provider_name"`
+	ElectableSpecs       types.Object `tfsdk:"electable_specs"`
+	ProviderName         types.String `tfsdk:"provider_name"`
+	ReadOnlySpecs        types.Object `tfsdk:"read_only_specs"`
+	RegionName           types.String `tfsdk:"region_name"`
+	Priority             types.Int64  `tfsdk:"priority"`
 }
 
 var regionConfigsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"analytics_auto_scaling":    autoScalingObjType,
-	"analytics_specs":           specsObjType,
-	"auto_scaling":              autoScalingObjType,
-	"backing_provider_name":     types.StringType,
-	"effective_analytics_specs": specsObjType,
-	"effective_electable_specs": specsObjType,
-	"effective_read_only_specs": specsObjType,
-	"electable_specs":           specsObjType,
-	"priority":                  types.Int64Type,
-	"provider_name":             types.StringType,
-	"read_only_specs":           specsObjType,
-	"region_name":               types.StringType,
+	"analytics_auto_scaling": autoScalingObjType,
+	"analytics_specs":        specsObjType,
+	"auto_scaling":           autoScalingObjType,
+	"backing_provider_name":  types.StringType,
+	"electable_specs":        specsObjType,
+	"priority":               types.Int64Type,
+	"provider_name":          types.StringType,
+	"read_only_specs":        specsObjType,
+	"region_name":            types.StringType,
 }}
 
 type TFAutoScalingModel struct {
