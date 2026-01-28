@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312013/admin"
 )
 
 const (
@@ -245,7 +245,7 @@ func TestAccProjectAPIKey_invalidRole(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configBasic(description, projectID, "INVALID_ROLE"),
-				ExpectError: regexp.MustCompile("INVALID_ENUM_VALUE"),
+				ExpectError: regexp.MustCompile("Invalid role"),
 			},
 		},
 	})

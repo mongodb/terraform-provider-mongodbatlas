@@ -1,0 +1,3 @@
+```release-note:new-guide
+Guide: Service Account Secret Rotation
+```

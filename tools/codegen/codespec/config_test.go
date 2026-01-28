@@ -668,7 +668,7 @@ func TestApplyTransformationsToDataSources_IgnorePluralDataSource(t *testing.T) 
 
 	inputConfig := &config.DataSources{
 		SchemaOptions: config.SchemaOptions{
-			Ignores: []string{"ignore_attr"},
+			Ignores: []string{"results.ignore_attr"},
 		},
 	}
 

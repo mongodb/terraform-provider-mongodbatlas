@@ -92,7 +92,8 @@ type AttributeTransformation func(attr *Attribute, paths *attrPaths, schemaOptio
 
 var transformations = []AttributeTransformation{
 	aliasTransformation,
-	overridesTransformation,
+	commonRSAndDSOverridesTransformation,
+	immutableComputedOverrideTransformation,
 	tagsAndLabelsAsMapTypeTransformation,
 	createOnlyTransformation,
 	requestOnlyRequiredOnCreateTransformation,
@@ -100,9 +101,9 @@ var transformations = []AttributeTransformation{
 
 var dataSourceTransformations = []AttributeTransformation{
 	aliasTransformation,
-	overridesTransformation,
+	commonRSAndDSOverridesTransformation,
 	tagsAndLabelsAsMapTypeTransformation,
-	// Note: createOnlyTransformation is excluded for data sources (read-only, no create operation)
+	// Note: resource-specific transformations (createOnly, requestOnlyRequiredOnCreate, immutableComputed) are excluded for data sources
 }
 
 func applyAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths) error {
@@ -183,7 +184,7 @@ func getIgnoredAttributesMap(ignores []string) map[string]bool {
 }
 
 func shouldIgnoreAttribute(attrPathName string, ignoredAttrs map[string]bool) bool {
-	return ignoredAttrs[attrPathForTransformations(attrPathName)]
+	return ignoredAttrs[attrPathName]
 }
 
 func applyAliasToAttribute(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) {
@@ -226,9 +227,44 @@ func aliasTransformation(attr *Attribute, paths *attrPaths, schemaOptions config
 	return nil
 }
 
-func overridesTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
+func commonRSAndDSOverridesTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
 	// Overrides use the snake_case schemaPath
-	return applyOverrides(attr, paths.schemaPath, schemaOptions)
+	override, ok := schemaOptions.Overrides[attrPathForOverrides(paths.schemaPath)]
+	if !ok {
+		return nil
+	}
+	if override.Description != "" {
+		attr.Description = &override.Description
+	}
+	if override.Computability != nil {
+		attr.ComputedOptionalRequired = getComputabilityFromConfig(*override.Computability)
+	}
+	if override.Sensitive != nil {
+		attr.Sensitive = *override.Sensitive
+	}
+	if override.IncludeNullOnUpdate != nil && *override.IncludeNullOnUpdate {
+		attr.ReqBodyUsage = IncludeNullOnUpdate
+	}
+	if override.Type != nil {
+		if err := applyTypeOverride(&override, attr); err != nil {
+			return err
+		}
+	}
+	if override.SkipStateListMerge != nil {
+		attr.SkipStateListMerge = *override.SkipStateListMerge
+	}
+	return nil
+}
+
+func immutableComputedOverrideTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
+	override, ok := schemaOptions.Overrides[attrPathForOverrides(paths.schemaPath)]
+	if !ok {
+		return nil
+	}
+	if override.ImmutableComputed != nil {
+		attr.ImmutableComputed = *override.ImmutableComputed
+	}
+	return nil
 }
 
 func createOnlyTransformation(attr *Attribute, _ *attrPaths, _ config.SchemaOptions) error {
@@ -240,32 +276,6 @@ func requestOnlyRequiredOnCreateTransformation(attr *Attribute, _ *attrPaths, _ 
 	if attr.ComputedOptionalRequired == Required && attr.ReqBodyUsage == OmitInUpdateBody && !attr.PresentInAnyResponse {
 		attr.RequestOnlyRequiredOnCreate = true
 		attr.ComputedOptionalRequired = Optional
-	}
-	return nil
-}
-
-func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.SchemaOptions) error {
-	if override, ok := schemaOptions.Overrides[attrPathForTransformations(attrPathName)]; ok {
-		if override.Description != "" {
-			attr.Description = &override.Description
-		}
-		if override.Computability != nil {
-			attr.ComputedOptionalRequired = getComputabilityFromConfig(*override.Computability)
-		}
-		if override.Sensitive != nil {
-			attr.Sensitive = *override.Sensitive
-		}
-		if override.IncludeNullOnUpdate != nil && *override.IncludeNullOnUpdate {
-			attr.ReqBodyUsage = IncludeNullOnUpdate
-		}
-		if override.Type != nil {
-			if err := applyTypeOverride(&override, attr); err != nil {
-				return err
-			}
-		}
-		if override.SkipStateListMerge != nil {
-			attr.SkipStateListMerge = *override.SkipStateListMerge
-		}
 	}
 	return nil
 }
@@ -384,7 +394,7 @@ func setCreateOnlyValue(attr *Attribute) {
 	}
 }
 
-func attrPathForTransformations(attrPathName string) string {
+func attrPathForOverrides(attrPathName string) string {
 	return strings.TrimPrefix(attrPathName, "results.")
 }
 

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312013/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -1045,8 +1045,9 @@ func TestAccCluster_tenant(t *testing.T) {
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
+					// We need to check for both 10 (expected) and 5 as API encounters flakiness (~75% success rate), related ticket: CLOUDP-375027
+					resource.TestCheckResourceAttrWith(resourceName, "disk_size_gb", acc.MatchesExpression(`^(5|10)$`)),
 				),
 			},
 		},

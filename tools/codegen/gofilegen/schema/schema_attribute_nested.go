@@ -11,8 +11,12 @@ type ListNestedAttrGenerator struct {
 	attr            codespec.Attribute
 }
 
-func (l *ListNestedAttrGenerator) AttributeCode() CodeStatement {
-	return commonAttrStructure(&l.attr, "schema.ListNestedAttribute", "planmodifier.List", []CodeStatement{nestedObjectProperty(l.listNestedModel.NestedObject)})
+func (l *ListNestedAttrGenerator) AttributeCode() (CodeStatement, error) {
+	nestedObj, err := nestedObjectProperty(l.listNestedModel.NestedObject)
+	if err != nil {
+		return CodeStatement{}, err
+	}
+	return commonAttrStructure(&l.attr, "schema.ListNestedAttribute", "planmodifier.List", []CodeStatement{nestedObj})
 }
 
 type SetNestedGenerator struct {
@@ -20,8 +24,12 @@ type SetNestedGenerator struct {
 	attr           codespec.Attribute
 }
 
-func (l *SetNestedGenerator) AttributeCode() CodeStatement {
-	return commonAttrStructure(&l.attr, "schema.SetNestedAttribute", "planmodifier.Set", []CodeStatement{nestedObjectProperty(l.setNestedModel.NestedObject)})
+func (l *SetNestedGenerator) AttributeCode() (CodeStatement, error) {
+	nestedObj, err := nestedObjectProperty(l.setNestedModel.NestedObject)
+	if err != nil {
+		return CodeStatement{}, err
+	}
+	return commonAttrStructure(&l.attr, "schema.SetNestedAttribute", "planmodifier.Set", []CodeStatement{nestedObj})
 }
 
 type MapNestedAttrGenerator struct {
@@ -29,8 +37,12 @@ type MapNestedAttrGenerator struct {
 	attr           codespec.Attribute
 }
 
-func (m *MapNestedAttrGenerator) AttributeCode() CodeStatement {
-	return commonAttrStructure(&m.attr, "schema.MapNestedAttribute", "planmodifier.Map", []CodeStatement{nestedObjectProperty(m.mapNestedModel.NestedObject)})
+func (m *MapNestedAttrGenerator) AttributeCode() (CodeStatement, error) {
+	nestedObj, err := nestedObjectProperty(m.mapNestedModel.NestedObject)
+	if err != nil {
+		return CodeStatement{}, err
+	}
+	return commonAttrStructure(&m.attr, "schema.MapNestedAttribute", "planmodifier.Map", []CodeStatement{nestedObj})
 }
 
 type SingleNestedAttrGenerator struct {
@@ -38,28 +50,38 @@ type SingleNestedAttrGenerator struct {
 	attr              codespec.Attribute
 }
 
-func (l *SingleNestedAttrGenerator) AttributeCode() CodeStatement {
-	return commonAttrStructure(&l.attr, "schema.SingleNestedAttribute", "planmodifier.Object", []CodeStatement{attributesProperty(l.singleNestedModel.NestedObject)})
+func (l *SingleNestedAttrGenerator) AttributeCode() (CodeStatement, error) {
+	attrProp, err := attributesProperty(l.singleNestedModel.NestedObject)
+	if err != nil {
+		return CodeStatement{}, err
+	}
+	return commonAttrStructure(&l.attr, "schema.SingleNestedAttribute", "planmodifier.Object", []CodeStatement{attrProp})
 }
 
-func attributesProperty(nested codespec.NestedAttributeObject) CodeStatement {
-	attrs := GenerateSchemaAttributes(nested.Attributes)
+func attributesProperty(nested codespec.NestedAttributeObject) (CodeStatement, error) {
+	attrs, err := GenerateSchemaAttributes(nested.Attributes)
+	if err != nil {
+		return CodeStatement{}, err
+	}
 	attributeProperty := fmt.Sprintf(`Attributes: map[string]schema.Attribute{
 		%s
 	}`, attrs.Code)
 	return CodeStatement{
 		Code:    attributeProperty,
 		Imports: attrs.Imports,
-	}
+	}, nil
 }
 
-func nestedObjectProperty(nested codespec.NestedAttributeObject) CodeStatement {
-	result := attributesProperty(nested)
+func nestedObjectProperty(nested codespec.NestedAttributeObject) (CodeStatement, error) {
+	result, err := attributesProperty(nested)
+	if err != nil {
+		return CodeStatement{}, err
+	}
 	nestedObj := fmt.Sprintf(`NestedObject: schema.NestedAttributeObject{
 		%s,
 	}`, result.Code)
 	return CodeStatement{
 		Code:    nestedObj,
 		Imports: result.Imports,
-	}
+	}, nil
 }

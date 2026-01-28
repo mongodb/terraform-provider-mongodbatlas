@@ -21,8 +21,8 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.14.0
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20260113070508-523c6da841fe
-	github.com/pb33f/libopenapi v0.31.2
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20260126084419-b537509c4229
+	github.com/pb33f/libopenapi v0.33.0
 	github.com/sebdah/goldie/v2 v2.8.0
 	github.com/spf13/cast v1.10.0
 	github.com/stretchr/testify v1.11.1
@@ -44,7 +44,7 @@ require (
 	github.com/hashicorp/terraform-json v0.27.2
 	github.com/hashicorp/terraform-plugin-framework-jsontypes v0.2.0
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
-	go.mongodb.org/atlas-sdk/v20250312012 v20250312012.1.0
+	go.mongodb.org/atlas-sdk/v20250312013 v20250312013.0.0
 	golang.org/x/oauth2 v0.34.0
 )
 
@@ -103,7 +103,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/run v1.1.0 // indirect
-	github.com/pb33f/jsonpath v0.7.0 // indirect
+	github.com/pb33f/jsonpath v0.7.1 // indirect
 	github.com/pb33f/ordered-map/v2 v2.3.0 // indirect
 	github.com/pjbgf/sha1cd v0.3.2 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
@@ -119,7 +119,7 @@ require (
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	go.yaml.in/yaml/v4 v4.0.0-rc.3 // indirect
+	go.yaml.in/yaml/v4 v4.0.0-rc.4 // indirect
 	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/mod v0.29.0 // indirect
 	golang.org/x/net v0.47.0 // indirect

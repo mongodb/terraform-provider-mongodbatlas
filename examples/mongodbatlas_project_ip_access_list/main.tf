@@ -1,5 +1,4 @@
 locals {
-
   ip_address_list = [
     {
       ip_address = "47.225.213.178"
@@ -24,7 +23,6 @@ locals {
   ]
 }
 
-
 resource "mongodbatlas_project_ip_access_list" "ip" {
   for_each = {
     for index, ip in local.ip_address_list :
@@ -35,9 +33,7 @@ resource "mongodbatlas_project_ip_access_list" "ip" {
   comment    = each.value.comment
 }
 
-
 resource "mongodbatlas_project_ip_access_list" "cidr" {
-
   for_each = {
     for index, cidr in local.cidr_block_list :
     cidr.comment => cidr
@@ -45,4 +41,13 @@ resource "mongodbatlas_project_ip_access_list" "cidr" {
   project_id = var.project_id
   cidr_block = each.value.cidr_block
   comment    = each.value.comment
+}
+
+data "mongodbatlas_project_ip_access_lists" "this" {
+  project_id = var.project_id
+  depends_on = [mongodbatlas_project_ip_access_list.ip, mongodbatlas_project_ip_access_list.cidr]
+}
+
+output "project_ip_access_list_entries" {
+  value = data.mongodbatlas_project_ip_access_lists.this.results
 }
