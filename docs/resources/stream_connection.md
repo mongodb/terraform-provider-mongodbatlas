@@ -183,6 +183,56 @@ resource "mongodbatlas_stream_connection" "example-schema-registry-sasl" {
 }
 ```
 
+### Example Usage with Stream Processor
+
+When using a stream connection with a stream processor, the connection must be fully provisioned before the processor can be created. The provider automatically waits for connections to be ready after creation or updates. The example below shows a typical pattern:
+
+```terraform
+resource "mongodbatlas_stream_instance" "example" {
+  project_id    = var.project_id
+  instance_name = "ExampleInstance"
+  data_process_region = {
+    region         = "VIRGINIA_USA"
+    cloud_provider = "AWS"
+  }
+}
+
+# Source connection (Sample data)
+resource "mongodbatlas_stream_connection" "source" {
+  project_id      = var.project_id
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "sample_stream_solar"
+  type            = "Sample"
+}
+
+# Sink connection (Atlas Cluster)
+resource "mongodbatlas_stream_connection" "sink" {
+  project_id      = var.project_id
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "ClusterConnection"
+  type            = "Cluster"
+  cluster_name    = mongodbatlas_cluster.example.name
+  db_role_to_execute = {
+    role = "atlasAdmin"
+    type = "BUILT_IN"
+  }
+}
+
+# Stream processor that depends on both connections
+resource "mongodbatlas_stream_processor" "example" {
+  project_id     = var.project_id
+  instance_name  = mongodbatlas_stream_instance.example.instance_name
+  processor_name = "ExampleProcessor"
+  pipeline = jsonencode([
+    { "$source" = { "connectionName" = mongodbatlas_stream_connection.source.connection_name } },
+    { "$emit" = { "connectionName" = mongodbatlas_stream_connection.sink.connection_name } }
+  ])
+  state = "STARTED"
+}
+```
+
+~> **NOTE:** The stream processor resource automatically depends on the stream connections through the `connection_name` references in the pipeline. This ensures proper creation order. The provider waits for each connection to be fully provisioned before returning from create or update operations.
+
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
