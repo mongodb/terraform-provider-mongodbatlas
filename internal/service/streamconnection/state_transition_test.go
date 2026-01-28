@@ -98,7 +98,7 @@ func TestWaitStateTransitionPendingToReady(t *testing.T) {
 	assert.Equal(t, "READY", *result.State)
 }
 
-func TestWaitStateTransition404(t *testing.T) {
+func TestWaitStateTransition404ThenReady(t *testing.T) {
 	var (
 		m              = mockadmin.NewStreamsApi(t)
 		projectID      = "projectID"
@@ -107,12 +107,39 @@ func TestWaitStateTransition404(t *testing.T) {
 		genericErr     = admin.GenericOpenAPIError{}
 	)
 	genericErr.SetError("not found")
-	m.EXPECT().GetStreamConnection(mock.Anything, projectID, workspaceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Once()
+	readyConnection := &admin.StreamsConnection{
+		Name:  admin.PtrString(connectionName),
+		Type:  admin.PtrString("Kafka"),
+		State: admin.PtrString("READY"),
+	}
+	// First call returns 404 (eventual consistency), second call returns READY
+	m.EXPECT().GetStreamConnection(mock.Anything, projectID, workspaceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Times(2)
 	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(nil, &http.Response{StatusCode: http.StatusNotFound}, &genericErr)
+	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(readyConnection, nil, nil)
 
-	// When connection is not found, WaitStateTransition should return an error immediately
-	result, err := streamconnection.WaitStateTransitionWithTimeout(t.Context(), projectID, workspaceName, connectionName, m, 1*time.Second)
+	// 404 should be treated as PENDING state to handle eventual consistency after creation
+	result, err := streamconnection.WaitStateTransitionWithTimeout(t.Context(), projectID, workspaceName, connectionName, m, 30*time.Second)
+	require.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, "READY", *result.State)
+}
+
+func TestWaitStateTransitionNotFoundExceedsLimit(t *testing.T) {
+	var (
+		m              = mockadmin.NewStreamsApi(t)
+		projectID      = "projectID"
+		workspaceName  = "workspaceName"
+		connectionName = "connectionName"
+		genericErr     = admin.GenericOpenAPIError{}
+	)
+	genericErr.SetError("not found")
+	// Return 404 more times than NotFoundChecks allows (3 checks + 1 to trigger error = 4 calls)
+	m.EXPECT().GetStreamConnection(mock.Anything, projectID, workspaceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Times(4)
+	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Return(nil, &http.Response{StatusCode: http.StatusNotFound}, &genericErr).Times(4)
+
+	// After exceeding NotFoundChecks, should return an error
+	result, err := streamconnection.WaitStateTransitionWithTimeout(t.Context(), projectID, workspaceName, connectionName, m, 30*time.Second)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "was not found")
+	assert.Contains(t, err.Error(), "couldn't find resource")
 	assert.Nil(t, result)
 }

@@ -3,7 +3,6 @@ package streamconnection
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -13,6 +12,7 @@ import (
 
 const (
 	defaultCreateUpdateTimeout = 20 * time.Minute // The amount of time to wait before timeout for create/update
+	notFoundChecks             = 3                // Number of consecutive 404s allowed before failing (~1.4s with exponential backoff)
 )
 
 // Connection state constants
@@ -49,11 +49,12 @@ func WaitStateTransition(ctx context.Context, projectID, workspaceName, connecti
 // WaitStateTransitionWithTimeout waits for a stream connection to reach a READY or FAILED state with a custom timeout.
 func WaitStateTransitionWithTimeout(ctx context.Context, projectID, workspaceName, connectionName string, client admin.StreamsApi, timeout time.Duration) (*admin.StreamsConnection, error) {
 	stateConf := &retry.StateChangeConf{
-		Pending: []string{StatePending},
-		Target:  []string{StateReady, StateFailed},
-		Refresh: streamConnectionRefreshFunc(ctx, projectID, workspaceName, connectionName, client),
-		Timeout: timeout,
-		Delay:   0,
+		Pending:        []string{StatePending},
+		Target:         []string{StateReady, StateFailed},
+		Refresh:        streamConnectionRefreshFunc(ctx, projectID, workspaceName, connectionName, client),
+		Timeout:        timeout,
+		Delay:          0,
+		NotFoundChecks: notFoundChecks,
 	}
 
 	result, err := stateConf.WaitForStateContext(ctx)
@@ -75,7 +76,9 @@ func streamConnectionRefreshFunc(ctx context.Context, projectID, workspaceName, 
 		}
 		if err != nil {
 			if validate.StatusNotFound(resp) {
-				return nil, "", fmt.Errorf("stream connection %s was not found", connectionName)
+				// Return nil to trigger NotFoundChecks for eventual consistency after creation
+				// After notFoundChecks consecutive 404s (~1.4s), it will fail fast
+				return nil, StatePending, nil
 			}
 			return nil, "", err
 		}
