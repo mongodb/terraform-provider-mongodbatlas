@@ -21,7 +21,6 @@ import (
 )
 
 const (
-	descUseEffectiveFields        = "Controls how hardware specification fields are returned in the response. When set to true, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to false (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications."
 	descSpecs                     = "Hardware specifications for nodes deployed in the region."
 	descDiskIops                  = "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"Azure\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : \"M40\"` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost."
 	descDiskSizeGb                = "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
@@ -47,7 +46,7 @@ const (
 
 func resourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
-		Version: 2,
+		Version: 3,
 		Attributes: map[string]schema.Attribute{
 			"accept_data_risks_and_force_replica_set_reconfig": schema.StringAttribute{
 				Optional:            true,
@@ -338,13 +337,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Update: true,
 				Delete: true,
 			}),
-			"use_effective_fields": schema.BoolAttribute{
-				Optional: true,
-				Validators: []validator.Bool{
-					UseEffectiveFieldsValidator{},
-				},
-				MarkdownDescription: descUseEffectiveFields,
-			},
 		},
 	}
 }
@@ -360,12 +352,6 @@ func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 	return conversion.PluralDataSourceSchemaFromResource(resourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
 		RequiredFields:  []string{"project_id"},
 		OverridenFields: dataSourceOverridenFields(),
-		OverridenRootFields: map[string]dsschema.Attribute{
-			"use_effective_fields": dsschema.BoolAttribute{
-				Optional:            true,
-				MarkdownDescription: descUseEffectiveFields,
-			},
-		},
 	})
 }
 
@@ -374,11 +360,7 @@ func dataSourceOverridenFields() map[string]dsschema.Attribute {
 		"accept_data_risks_and_force_replica_set_reconfig": nil,
 		"delete_on_create_timeout":                         nil,
 		"retain_backups_enabled":                           nil,
-		"use_effective_fields": dsschema.BoolAttribute{
-			Optional:            true,
-			MarkdownDescription: descUseEffectiveFields,
-		},
-		"replication_specs": replicationSpecsSchemaDS(),
+		"replication_specs":                                replicationSpecsSchemaDS(),
 	}
 }
 
@@ -699,7 +681,6 @@ type TFModel struct {
 	RedactClientLogData                       types.Bool     `tfsdk:"redact_client_log_data"`
 	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
 	DeleteOnCreateTimeout                     types.Bool     `tfsdk:"delete_on_create_timeout"`
-	UseEffectiveFields                        types.Bool     `tfsdk:"use_effective_fields"`
 }
 
 // TFModelDS differs from TFModel: removes resource-only fields like timeouts, accept_data_risks_and_force_replica_set_reconfig, retain_backups_enabled
@@ -731,13 +712,11 @@ type TFModelDS struct {
 	Paused                           types.Bool   `tfsdk:"paused"`
 	TerminationProtectionEnabled     types.Bool   `tfsdk:"termination_protection_enabled"`
 	PitEnabled                       types.Bool   `tfsdk:"pit_enabled"`
-	UseEffectiveFields               types.Bool   `tfsdk:"use_effective_fields"`
 }
 
 type TFModelPluralDS struct {
-	ProjectID          types.String `tfsdk:"project_id"`
-	Results            []*TFModelDS `tfsdk:"results"`
-	UseEffectiveFields types.Bool   `tfsdk:"use_effective_fields"`
+	ProjectID types.String `tfsdk:"project_id"`
+	Results   []*TFModelDS `tfsdk:"results"`
 }
 
 type TFBiConnectorModel struct {
