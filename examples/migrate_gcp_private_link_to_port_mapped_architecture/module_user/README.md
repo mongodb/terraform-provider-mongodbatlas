@@ -1,4 +1,4 @@
-# Module User - GCP Private Link Legacy to Port-Mapped Architecture
+# Module User: GCP Private Service Connect to Port-Mapped Architecture
 
 The purpose of this example is to demonstrate the experience of adopting a new version of a terraform module definition which internally migrated from the legacy GCP Private Service Connect architecture to the port-mapped architecture.
 Each module call represents a step on the migration path.

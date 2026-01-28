@@ -1,8 +1,8 @@
 ---
-page_title: "Migration Guide: GCP Private Link Legacy to Port-Mapped Architecture"
+page_title: "Migration Guide: GCP Private Service Connect to Port-Mapped Architecture"
 ---
 
-# Migration Guide: GCP Private Link Legacy to Port-Mapped Architecture
+# Migration Guide: GCP Private Service Connect to Port-Mapped Architecture
 
 ## Overview
 

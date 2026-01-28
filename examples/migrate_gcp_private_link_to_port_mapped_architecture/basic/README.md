@@ -1,4 +1,4 @@
-# Migration Example: GCP Private Link Legacy to Port-Mapped Architecture
+# Migration Example: GCP Private Service Connect to Port-Mapped Architecture
 
 This example demonstrates how to migrate from the legacy GCP Private Service Connect architecture to the port-mapped architecture.
 

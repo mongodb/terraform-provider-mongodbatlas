@@ -1,4 +1,4 @@
-# Module Maintainer - GCP Private Link Legacy to Port-Mapped Architecture
+# Module Maintainer: GCP Private Service Connect to Port-Mapped Architecture
 
 If you own and maintain modules to manage your Terraform resources, the purpose of this example is to demonstrate how a Terraform module definition can migrate from the legacy GCP Private Service Connect architecture to the port-mapped architecture while minimizing impact to its clients. The [module user example](../module_user/README.md) explains the same process from the module user point of view.
 
