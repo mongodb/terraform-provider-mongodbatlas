@@ -449,8 +449,7 @@ func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID
 			return nil, "", err
 		}
 
-		switch providerName {
-		case constant.AZURE, constant.GCP:
+		if strings.EqualFold(providerName, constant.AZURE) || strings.EqualFold(providerName, constant.GCP) {
 			if i.GetStatus() != "AVAILABLE" {
 				return "", i.GetStatus(), nil
 			}
