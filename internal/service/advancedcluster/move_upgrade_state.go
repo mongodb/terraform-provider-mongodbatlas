@@ -26,10 +26,11 @@ func (r *rs) MoveState(context.Context) []resource.StateMover {
 	return []resource.StateMover{{StateMover: stateMover}}
 }
 
-// UpgradeState is used to upgrade from adv_cluster schema v1 (SDKv2) to v2 (TPF)
+// UpgradeState is used to upgrade from adv_cluster schema v1 (SDKv2) to v2 (TPF) and v2 to v3
 func (r *rs) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
 	return map[int64]resource.StateUpgrader{
 		1: {StateUpgrader: stateUpgraderFromV1},
+		2: {StateUpgrader: stateUpgraderFromV2},
 	}
 }
 
@@ -43,6 +44,12 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 
 func stateUpgraderFromV1(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
 	// Use same sharding config as in SDKv2 when upgrading to TPF
+	setStateResponse(ctx, &resp.Diagnostics, req.RawState, &resp.State, true)
+}
+
+func stateUpgraderFromV2(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
+	// V2 to V3 upgrade is straightforward - just copy state
+	// The main change is removing use_effective_fields which will be handled by schema
 	setStateResponse(ctx, &resp.Diagnostics, req.RawState, &resp.State, true)
 }
 

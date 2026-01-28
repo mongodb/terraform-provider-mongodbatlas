@@ -22,7 +22,6 @@ var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 var _ resource.ResourceWithMoveState = &rs{}
 var _ resource.ResourceWithUpgradeState = &rs{}
-var _ resource.ResourceWithModifyPlan = &rs{}
 
 const (
 	resourceName             = "advanced_cluster"
@@ -73,35 +72,6 @@ func Resource() resource.Resource {
 
 type rs struct {
 	config.RSCommon
-}
-
-// ModifyPlan is called before plan is shown to the user and right before the plan is applied.
-// Why do we need this? Why can't we use planmodifier.UseStateForUnknown in different fields?
-// 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
-// 2. Adding the different UseStateForUnknown is very verbose.
-func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update
-		return
-	}
-	var plan, state TFModel
-	diags := &resp.Diagnostics
-	diags.Append(req.Plan.Get(ctx, &plan)...)
-	diags.Append(req.State.Get(ctx, &state)...)
-	if diags.HasError() {
-		return
-	}
-	// The replication specs can be unknown if the cluster depends on another resource.
-	// handleModifyPlan will try to convert the field to `Target Type: []advancedcluster.TFReplicationSpecsModel`.
-	// But since the field is unknown the user gets an error: `Error: Value Conversion Error`.
-	if plan.ReplicationSpecs.IsUnknown() {
-		return
-	}
-
-	handleModifyPlan(ctx, diags, &state, &plan)
-	if diags.HasError() {
-		return
-	}
-	diags.Append(resp.Plan.Set(ctx, plan)...)
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -195,7 +165,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 	clusterName := state.Name.ValueString()
 	projectID := state.ProjectID.ValueString()
-	cluster, flexCluster := GetClusterDetails(ctx, diags, projectID, clusterName, r.Client, !state.PinnedFCV.IsNull(), state.UseEffectiveFields.ValueBool())
+	cluster, flexCluster := GetClusterDetails(ctx, diags, projectID, clusterName, r.Client, !state.PinnedFCV.IsNull())
 	if diags.HasError() {
 		return
 	}
@@ -274,7 +244,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	// clusterResp can be nil if there are no changes to the cluster, for example when `delete_on_create_timeout` is changed or only advanced configuration is changed
 	if clusterResp == nil {
 		var flexResp *admin.FlexClusterDescription20241113
-		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false, waitParams.UseEffectiveFields)
+		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false)
 		if diags.HasError() {
 			return
 		}
@@ -441,7 +411,7 @@ func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	if pauseAfter {
 		req.Paused = nil
 	}
-	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
+	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).UseEffectiveFieldsReplicationSpecs(true).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationCreate, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
@@ -457,7 +427,7 @@ func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 }
 
 func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, operationName string) *admin.ClusterDescription20240805 {
-	_, _, err := client.AtlasV2.ClustersApi.UpdateCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, req).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
+	_, _, err := client.AtlasV2.ClustersApi.UpdateCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, req).UseEffectiveFieldsReplicationSpecs(true).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationName, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
@@ -473,11 +443,10 @@ func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.D
 		return nil
 	}
 	return &ClusterWaitParams{
-		ProjectID:          projectID,
-		ClusterName:        clusterName,
-		Timeout:            operationTimeout,
-		IsDelete:           operation == operationDelete,
-		UseEffectiveFields: model.UseEffectiveFields.ValueBool(),
+		ProjectID:   projectID,
+		ClusterName: clusterName,
+		Timeout:     operationTimeout,
+		IsDelete:    operation == operationDelete,
 	}
 }
 
@@ -487,10 +456,6 @@ type clusterDiff struct {
 	upgradeFlexToDedicatedReq *admin.AtlasTenantClusterUpgradeRequest20240805
 	isUpgradeTenantToFlex     bool
 	isUpdateOfFlex            bool
-}
-
-func (c *clusterDiff) isAnyUpgrade() bool {
-	return c.isUpgradeTenantToFlex || c.upgradeTenantReq != nil || c.upgradeFlexToDedicatedReq != nil
 }
 
 // findClusterDiff should be called only in Update, e.g. it will fail for a flex cluster with no changes.

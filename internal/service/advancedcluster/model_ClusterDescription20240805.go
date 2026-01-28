@@ -63,6 +63,7 @@ func newTFModelDS(ctx context.Context, input *admin.ClusterDescription20240805, 
 	}
 	dsModel := conversion.CopyModel[TFModelDS](resourceModel)
 	dsModel.ReplicationSpecs = newReplicationSpecsDSObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
+	dsModel.EffectiveReplicationSpecs = newEffectiveReplicationSpecsObjType(ctx, input.EffectiveReplicationSpecs, diags, containerIDs)
 	return dsModel
 }
 
@@ -128,6 +129,20 @@ func newReplicationSpecsDSObjType(ctx context.Context, input *[]admin.Replicatio
 	if input == nil {
 		return types.ListNull(replicationSpecsDSObjType)
 	}
+	tfModels := convertReplicationSpecs(ctx, input, diags, containerIDs, newRegionConfigsDSObjType)
+	if diags.HasError() {
+		return types.ListNull(replicationSpecsDSObjType)
+	}
+	listType, diagsLocal := types.ListValueFrom(ctx, replicationSpecsDSObjType, *tfModels)
+	diags.Append(diagsLocal...)
+	return listType
+}
+
+func newEffectiveReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) types.List {
+	if input == nil {
+		return types.ListNull(replicationSpecsDSObjType)
+	}
+	// Reuse the same conversion logic as replication_specs since structure is identical
 	tfModels := convertReplicationSpecs(ctx, input, diags, containerIDs, newRegionConfigsDSObjType)
 	if diags.HasError() {
 		return types.ListNull(replicationSpecsDSObjType)
@@ -261,9 +276,6 @@ func newRegionConfigsDSObjType(ctx context.Context, input *[]admin.CloudRegionCo
 		item := &(*input)[i]
 		baseModel := newRegionConfigModel(ctx, item, diags)
 		dsModel := *conversion.CopyModel[TFRegionConfigsDSModel](&baseModel)
-		dsModel.EffectiveAnalyticsSpecs = newSpecsObjType(ctx, item.EffectiveAnalyticsSpecs, diags)
-		dsModel.EffectiveElectableSpecs = newSpecsObjType(ctx, item.EffectiveElectableSpecs, diags)
-		dsModel.EffectiveReadOnlySpecs = newSpecsObjType(ctx, item.EffectiveReadOnlySpecs, diags)
 		tfModels[i] = dsModel
 	}
 	listType, diagsLocal := types.ListValueFrom(ctx, regionConfigsDSObjType, tfModels)
