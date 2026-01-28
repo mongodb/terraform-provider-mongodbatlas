@@ -361,6 +361,7 @@ func dataSourceOverridenFields() map[string]dsschema.Attribute {
 		"delete_on_create_timeout":                         nil,
 		"retain_backups_enabled":                           nil,
 		"replication_specs":                                replicationSpecsSchemaDS(),
+		"effective_replication_specs":                      effectiveReplicationSpecsSchemaDS(),
 	}
 }
 
@@ -368,6 +369,63 @@ func replicationSpecsSchemaDS() dsschema.ListNestedAttribute {
 	return dsschema.ListNestedAttribute{
 		Computed:            true,
 		MarkdownDescription: descReplicationSpecs,
+		NestedObject: dsschema.NestedAttributeObject{
+			Attributes: map[string]dsschema.Attribute{
+				"container_id": dsschema.MapAttribute{
+					ElementType:         types.StringType,
+					Computed:            true,
+					MarkdownDescription: descContainerID,
+				},
+				"external_id": dsschema.StringAttribute{
+					Computed:            true,
+					MarkdownDescription: descExternalID,
+				},
+				"region_configs": dsschema.ListNestedAttribute{
+					Computed:            true,
+					MarkdownDescription: descRegionConfigs,
+					NestedObject: dsschema.NestedAttributeObject{
+						Attributes: map[string]dsschema.Attribute{
+							"analytics_auto_scaling": autoScalingSchemaDS(),
+							"analytics_specs":        specsSchemaDS(),
+							"auto_scaling":           autoScalingSchemaDS(),
+							"backing_provider_name": dsschema.StringAttribute{
+								Computed:            true,
+								MarkdownDescription: descBackingProviderNameTenant,
+							},
+							"electable_specs": specsSchemaDS(),
+							"priority": dsschema.Int64Attribute{
+								Computed:            true,
+								MarkdownDescription: descPriority,
+							},
+							"provider_name": dsschema.StringAttribute{
+								Computed:            true,
+								MarkdownDescription: descProviderName,
+							},
+							"read_only_specs": specsSchemaDS(),
+							"region_name": dsschema.StringAttribute{
+								Computed:            true,
+								MarkdownDescription: descRegionName,
+							},
+						},
+					},
+				},
+				"zone_id": dsschema.StringAttribute{
+					Computed:            true,
+					MarkdownDescription: descZoneID,
+				},
+				"zone_name": dsschema.StringAttribute{
+					Computed:            true,
+					MarkdownDescription: descZoneName,
+				},
+			},
+		},
+	}
+}
+
+func effectiveReplicationSpecsSchemaDS() dsschema.ListNestedAttribute {
+	return dsschema.ListNestedAttribute{
+		Computed:            true,
+		MarkdownDescription: "Effective replication specifications representing the actual running configuration as computed by Atlas. This may differ from replication_specs when auto-scaling adjusts instance sizes or other values.",
 		NestedObject: dsschema.NestedAttributeObject{
 			Attributes: map[string]dsschema.Attribute{
 				"container_id": dsschema.MapAttribute{
@@ -684,6 +742,7 @@ type TFModel struct {
 type TFModelDS struct {
 	Labels                           types.Map    `tfsdk:"labels"`
 	ReplicationSpecs                 types.List   `tfsdk:"replication_specs"`
+	EffectiveReplicationSpecs        types.List   `tfsdk:"effective_replication_specs"`
 	Tags                             types.Map    `tfsdk:"tags"`
 	ReplicaSetScalingStrategy        types.String `tfsdk:"replica_set_scaling_strategy"`
 	Name                             types.String `tfsdk:"name"`
