@@ -12,7 +12,7 @@ subcategory: "Clusters"
 
 ~> **IMPORTANT:** When modifying cluster configurations, you may see `(known after apply)` markers for many attributes, even those you haven't changed. This is expected behavior. See the ["known after apply" verbosity](#known-after-apply-verbosity) section below for details.
 
-~> **IMPORTANT:** When configuring auto-scaling, you can now use `use_effective_fields` to simplify your Terraform workflow. See the [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) section below for details.
+~> **IMPORTANT:** If upgrading from provider version 2.x to 3.0.0, please refer to the [3.0.0 Upgrade Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/3.0.0-upgrade-guide) for breaking changes affecting `mongodbatlas_advanced_cluster`.
 
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
@@ -57,21 +57,20 @@ resource "mongodbatlas_advanced_cluster" "this" {
 }
 ```
 
-### Example using effective fields with auto-scaling
+### Example with auto-scaling
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
-  project_id            = var.project_id
-  name                  = "auto-scale-cluster"
-  cluster_type          = "REPLICASET"
-  use_effective_fields  = true
+  project_id   = var.project_id
+  name         = "auto-scale-cluster"
+  cluster_type = "REPLICASET"
 
   replication_specs = [
     {
       region_configs = [
         {
           electable_specs = {
-            instance_size = "M10" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
+            instance_size = "M10" # User-configured value that stays constant in state
             node_count    = 3
           }
           auto_scaling = {
@@ -89,24 +88,25 @@ resource "mongodbatlas_advanced_cluster" "this" {
   ]
 }
 
-# Read the effective (actual) values after Atlas scales
+# Use the data source to read both configured and effective values
 data "mongodbatlas_advanced_cluster" "this" {
-  project_id           = mongodbatlas_advanced_cluster.this.project_id
-  name                 = mongodbatlas_advanced_cluster.this.name
-  use_effective_fields = true
-  depends_on           = [mongodbatlas_advanced_cluster.this]
+  project_id = mongodbatlas_advanced_cluster.this.project_id
+  name       = mongodbatlas_advanced_cluster.this.name
+  depends_on = [mongodbatlas_advanced_cluster.this]
 }
 
+# User-configured instance size
 output "configured_instance_size" {
   value = data.mongodbatlas_advanced_cluster.this.replication_specs[0].region_configs[0].electable_specs.instance_size
 }
 
+# Actual running instance size (may differ due to auto-scaling)
 output "actual_instance_size" {
-  value = data.mongodbatlas_advanced_cluster.this.replication_specs[0].region_configs[0].effective_electable_specs.instance_size
+  value = data.mongodbatlas_advanced_cluster.this.effective_replication_specs[0].region_configs[0].electable_specs.instance_size
 }
 ```
 
-**For module authors:** See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete examples of using `use_effective_fields` and effective specs in reusable Terraform modules.
+-> **NOTE:** In v3.0.0, `replication_specs` children are Optional-only (not Computed), so your configured values stay constant in state. Use `effective_replication_specs` in the data source to see actual running values.
 
 ### Example Tenant Cluster
 
@@ -575,8 +575,6 @@ Refer to the following for full privatelink endpoint connection string examples:
 * `redact_client_log_data` - (Optional) Flag that enables or disables log redaction, see the [manual](https://www.mongodb.com/docs/manual/administration/monitoring/#log-redaction) for more information. Use this in conjunction with Encryption at Rest and TLS/SSL (Transport Encryption) to assist compliance with regulatory requirements. **Note**: Changing this setting on a cluster will trigger a rolling restart as soon as the cluster is updated.
 * `config_server_management_mode` - (Optional) Config Server Management Mode for creating or updating a sharded cluster. Valid values are `ATLAS_MANAGED` (default) and `FIXED_TO_DEDICATED`. When configured as `ATLAS_MANAGED`, Atlas may automatically switch the cluster's config server type for optimal performance and savings. When configured as `FIXED_TO_DEDICATED`, the cluster will always use a dedicated config server. To learn more, see the [Sharded Cluster Config Servers documentation](https://dochub.mongodb.org/docs/manual/core/sharded-cluster-config-servers/).
 - `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
-* `use_effective_fields` - (Optional) Controls how hardware specification fields are returned in the response. When set to true, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to false (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications. This opt-in feature enhances auto-scaling workflows by eliminating the need for `lifecycle.ignore_changes` blocks and preventing plan drift from Atlas-managed changes. This attribute applies to dedicated clusters, not to tenant or flex clusters. This attribute will be deprecated in provider version 2.x and removed in 3.x when the new behavior becomes default. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for more details.
-**Important:** Toggle this flag and remove any existing `lifecycle.ignore_changes` blocks for spec fields in the same apply, without combining other changes. Toggling will result in increased plan verbosity with `(known after apply)` markers, which can be safely ignored. If you previously removed `read_only_specs` or `analytics_specs` attributes from your configuration, you'll get a validation error for safety reasons to prevent accidental node loss. To resolve: add the blocks back (to keep nodes) or with `node_count = 0` (to delete nodes), apply without toggling the flag, then toggle in a separate apply.
 
 ### bi_connector_config
 
@@ -723,9 +721,6 @@ replication_specs = [
 * `analytics_auto_scaling` - (Optional) Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. The values for the `analytics_auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#analytics_auto_scaling).
 * `backing_provider_name` - (Optional) Cloud service provider on which you provision the host for a multi-tenant cluster. Use this only when the `provider_name` is `TENANT` and `instance_size` is `M0`, or when the `provider_name` is `FLEX`.
 * `electable_specs` - (Optional) Hardware specifications for electable nodes in the region. All `electable_specs` in the `region_configs` of a `replication_specs` must have the same `instance_size`. Electable nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you do not specify this option, no electable nodes are deployed to the region. See [below](#specs).
-* `effective_electable_specs` - (Computed) Effective hardware specifications for electable nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. Available in the `mongodbatlas_advanced_cluster` data source. See [below](#specs).
-* `effective_analytics_specs` - (Computed) Effective hardware specifications for analytics nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. Available in the `mongodbatlas_advanced_cluster` data source. See [below](#specs).
-* `effective_read_only_specs` - (Computed) Effective hardware specifications for read-only nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. Available in the `mongodbatlas_advanced_cluster` data source. See [below](#specs).
 * `priority` - (Optional)  Election priority of the region. For regions with only read-only nodes, set this value to 0.
   * If you have multiple `region_configs` objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is 7.
   * If your region has set `region_configs[#].electable_specs.node_count` to 1 or higher, it must have a priority of exactly one (1) less than another region in the `replication_specs[#].region_configs[#]` array. The highest-priority region must have a priority of 7. The lowest possible priority is 1.
@@ -780,15 +775,15 @@ replication_specs = [
 
 -> **NOTE:** MongoDB recommends enabling both [cluster tier (compute) and storage auto-scaling](https://www.mongodb.com/docs/atlas/cluster-autoscaling/#cluster-tier-and-cluster-storage-might-scale-in-parallel) together for optimal performance and cost efficiency. When only one type of auto-scaling is enabled, Atlas may still adjust both compute and storage resources to maintain optimal cluster performance. See the [Atlas Auto-Scaling documentation](https://www.mongodb.com/docs/atlas/cluster-autoscaling/) and [Scalability Best Practices](https://www.mongodb.com/docs/atlas/architecture/current/scalability/#all-deployment-paradigm-recommendations) for more information.
 
-When auto-scaling is enabled, there are two approaches to manage your cluster configuration with Terraform:
+When auto-scaling is enabled, Atlas automatically adjusts instance sizes and disk capacity based on workload. In v3.0.0, `replication_specs` children are Optional-only (not Computed), so your configured values stay constant in Terraform state even when Atlas auto-scales. Use the `effective_replication_specs` attribute in the data source to read actual running values.
 
-**Option 1 (Recommended):** Use `use_effective_fields = true` to enable the new effective fields behavior. With this option, Atlas-managed auto-scaling changes won't cause plan drift, eliminating the need for `lifecycle` ignore customizations. When either compute or disk auto-scaling is enabled (or both), all three fields (`instance_size`, `disk_size_gb`, and `disk_iops`) are ignored in the Terraform configuration, as Atlas may adjust any of these resources to maintain optimal cluster performance. You can read the actual scaled values using the `effective_electable_specs` and `effective_read_only_specs` attributes in the `mongodbatlas_advanced_cluster` data source. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for details.
+To manually update `instance_size`, `disk_size_gb`, or `disk_iops` when auto-scaling is enabled:
 
-**Important:** If you're enabling this flag on an existing cluster that has `lifecycle.ignore_changes` blocks for spec fields, enable the flag and remove the blocks in the same apply. The blocks are no longer needed and may interfere with the new behavior. If you previously removed `read_only_specs` or `analytics_specs` attributes, you may encounter a validation error. This is a safety check to prevent accidental node loss. To resolve: add the blocks back (to keep nodes) or with `node_count = 0` (to delete nodes), apply without toggling the flag, then toggle in a separate apply.
+1. Set `compute_enabled = false` and/or `disk_gb_enabled = false` in the [`auto_scaling`](#auto_scaling) block and apply.
+2. Update `instance_size`, `disk_size_gb`, or `disk_iops` to your desired values and apply.
+3. Re-enable auto-scaling by setting `compute_enabled` and/or `disk_gb_enabled` back to `true` and apply.
 
-To manually update `instance_size`, `disk_size_gb`, or `disk_iops` with Option 1, you must temporarily disable auto-scaling. See [Manually Updating Specs with use_effective_fields](#manually-updating-specs-with-use_effective_fields) for the detailed workflow.
-
-**Option 2:** If not using `use_effective_fields`, use a lifecycle ignore customization to prevent unintended changes. When auto-scaling is enabled, you must ignore all three fields (`instance_size`, `disk_size_gb`, and `disk_iops`) as Atlas may adjust any of these resources regardless of which auto-scaling type is enabled.
+**Legacy Option (v2.x and earlier):** Use a lifecycle ignore customization to prevent unintended changes. When auto-scaling is enabled, you must ignore all three fields (`instance_size`, `disk_size_gb`, and `disk_iops`) as Atlas may adjust any of these resources regardless of which auto-scaling type is enabled.
 
 ```terraform
 # Example: ignore instance_size, disk_size_gb, and disk_iops when auto-scaling is enabled
@@ -811,7 +806,7 @@ lifecycle {
 * `compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale (such as M10). Atlas requires this parameter if `replication_specs[#].region_configs[#].analytics_auto_scaling.compute_scale_down_enabled` is true.
 * `compute_max_instance_size` - (Optional) Maximum instance size to which your cluster can automatically scale (such as M40). Atlas requires this parameter if `replication_specs[#].region_configs[#].analytics_auto_scaling.compute_enabled` is true.
 
-**Note:** The configuration options and considerations for analytics auto-scaling are similar to those described in [auto_scaling](#auto_scaling). When using `use_effective_fields = true`, you can read scaled values using `effective_analytics_specs` in the data source. When not using `use_effective_fields`, you may need lifecycle ignore customizations for `analytics_specs` fields similar to the example shown in the [auto_scaling](#auto_scaling) section.
+**Note:** The configuration options and considerations for analytics auto-scaling are similar to those described in [auto_scaling](#auto_scaling). Use `effective_replication_specs` in the data source to read actual scaled analytics values.
 
 ### pinned_fcv
 
@@ -889,74 +884,6 @@ moved {
 ```
 
 More information about moving resources can be found in our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide) and in the Terraform documentation [here](https://developer.hashicorp.com/terraform/language/moved) and [here](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring).
-
-## Auto-Scaling with Effective Fields
-
-The `use_effective_fields` attribute enhances auto-scaling workflows by eliminating the need for `lifecycle.ignore_changes` blocks and providing visibility into Atlas-managed changes. This feature only applies to dedicated clusters (M10+) and is not supported for flex and tenant clusters.
-
-### Why use_effective_fields?
-
-When auto-scaling is enabled on a cluster, Atlas automatically adjusts instance sizes and disk capacity based on workload. Without `use_effective_fields`, `lifecycle.ignore_changes` blocks are required to prevent Terraform from reverting these Atlas-managed changes. This approach has limitations:
-
-- **Configuration drift**: The actual cluster configuration diverges from your Terraform configuration
-- **Maintenance overhead**: Careful management of `ignore_changes` blocks is required, including commenting and uncommenting when making intentional changes
-- **Limited visibility**: Actual scaled values cannot be easily inspected within Terraform state
-
-### How use_effective_fields works
-
-The `use_effective_fields` attribute changes how the provider handles specification attributes:
-
-**When `use_effective_fields = false` (default - current behavior):**
-- Spec attributes (`electable_specs`, `analytics_specs`, `read_only_specs`) behavior:
-  - If values are specified in your Terraform configuration (e.g., `instance_size = "M10"`), those values remain in your configuration
-  - If values are not specified, Atlas provides default values automatically
-- With auto-scaling enabled, Atlas scales your cluster but your configured values do not update to match
-- This creates plan drift: Terraform shows differences between your configured values and what Atlas has actually deployed
-- `lifecycle.ignore_changes` must be used to prevent Terraform from reverting Atlas auto-scaling changes back to your original configuration
-
-**When `use_effective_fields = true` (new behavior):**
-- **Clear separation of concerns**:
-  - Spec attributes remain exactly as defined in your Terraform configuration
-  - Atlas-computed values (defaults and auto-scaled values) are available separately in effective specs
-- No plan drift occurs when Atlas auto-scales your cluster
-- Use data sources to read `effective_electable_specs`, `effective_analytics_specs`, and `effective_read_only_specs` for actual values
-
-**Key difference:** With `use_effective_fields = true`, your configuration stays clean and represents your intent, while effective specs show the reality of what Atlas has provisioned.
-
-See the [Example using effective fields with auto-scaling](#example-using-effective-fields-with-auto-scaling) in the Example Usage section.
-
-### Manually Updating Specs with use_effective_fields
-
-When `use_effective_fields = true` and auto-scaling is enabled, you can update `instance_size`, `disk_size_gb`, or `disk_iops` in your configuration at any time without validation errors. However, Atlas echoes these values back in state while continuing to use auto-scaled values for actual cluster operations. To have your configured values take effect, temporarily disable auto-scaling:
-
-1. Set `compute_enabled = false` and `disk_gb_enabled = false` in the [`auto_scaling`](#auto_scaling) block and apply.
-2. Update `instance_size`, `disk_size_gb`, or `disk_iops` to your desired values and apply.
-3. Re-enable auto-scaling by setting `compute_enabled` and/or `disk_gb_enabled` back to `true` and apply.
-
-This workflow allows you to set specific baseline values from which auto-scaling will resume dynamic adjustments based on workload.
-
-### Terraform Modules
-
-`use_effective_fields` is particularly valuable for reusable Terraform modules. Without it, separate module implementations are required (one with lifecycle blocks for auto-scaling, one without). With `use_effective_fields`, a single module handles both scenarios without lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
-
-### Migration path and version 3.x
-
-**Current behavior (provider v2.x):**
-- `use_effective_fields` defaults to `false` for full backward compatibility
-- Set to `true` to opt into the effective fields behavior
-- The attribute will be deprecated later in v2.x releases in preparation for v3.x
-
-**Future behavior (provider v3.x):**
-- The effective fields behavior will be enabled by default
-- The `use_effective_fields` attribute will be removed, as the new behavior becomes standard
-- This change will reduce plan verbosity by making specification fields Optional-only (removing Computed), eliminating unnecessary `(known after apply)` markers for user-configured values
-
-**Potential enhancements (v3.x or later):**
-- If customer demand warrants, effective spec fields (`effective_electable_specs`, `effective_analytics_specs`, `effective_read_only_specs`) may be exposed directly in the resource (currently available only via data source)
-- This would improve observability by providing direct access to actual operational values from the resource without requiring a separate data source
-- Note: Effective fields would still show `(known after apply)` markers, but user-configured spec fields would not, resulting in clearer plan output overall
-
-**Migration recommendation:** Adopt `use_effective_fields = true` in v2.x to prepare for the v3.x transition and benefit from improved auto-scaling workflows immediately. The recommendation is to toggle the flag and remove any existing `lifecycle.ignore_changes` blocks in the same apply, without combining other changes.
 
 ## Considerations and Best Practices
 
