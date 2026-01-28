@@ -28,7 +28,7 @@ resource "google_compute_subnetwork" "default" {
 # Create Google Address (1 address for port-mapped architecture)
 resource "google_compute_address" "default" {
   project      = google_compute_subnetwork.default.project
-  name         = "tf-test-psc-endpoint"
+  name         = var.endpoint_service_id
   subnetwork   = google_compute_subnetwork.default.id
   address_type = "INTERNAL"
   address      = "10.0.42.1"
@@ -66,11 +66,14 @@ data "mongodbatlas_advanced_cluster" "cluster" {
   # Use endpoint service as source of project_id to gather cluster data after endpoint changes are applied
   project_id = mongodbatlas_privatelink_endpoint_service.test.project_id
   name       = var.cluster_name
+
+  depends_on = [mongodbatlas_privatelink_endpoint_service.test]
 }
 
 locals {
   endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
   private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
+
   connection_strings = [
     for pe in local.private_endpoints : pe.srv_connection_string
     if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id)

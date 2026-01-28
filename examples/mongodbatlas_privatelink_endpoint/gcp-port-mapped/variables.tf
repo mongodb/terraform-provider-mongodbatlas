@@ -25,3 +25,8 @@ variable "cluster_name" {
   description = "(Optional) Cluster whose connection string to output"
   type        = string
 }
+variable "endpoint_service_id" {
+  description = "Endpoint service ID for port-mapped architecture (used as forwarding rule name and address name)"
+  type        = string
+  default     = "tf-test-port-mapped-endpoint"
+}
