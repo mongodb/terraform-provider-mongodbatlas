@@ -22,7 +22,6 @@ var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 var _ resource.ResourceWithMoveState = &rs{}
 var _ resource.ResourceWithUpgradeState = &rs{}
-var _ resource.ResourceWithModifyPlan = &rs{}
 
 const (
 	resourceName             = "advanced_cluster"
@@ -73,35 +72,6 @@ func Resource() resource.Resource {
 
 type rs struct {
 	config.RSCommon
-}
-
-// ModifyPlan is called before plan is shown to the user and right before the plan is applied.
-// Why do we need this? Why can't we use planmodifier.UseStateForUnknown in different fields?
-// 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
-// 2. Adding the different UseStateForUnknown is very verbose.
-func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update
-		return
-	}
-	var plan, state TFModel
-	diags := &resp.Diagnostics
-	diags.Append(req.Plan.Get(ctx, &plan)...)
-	diags.Append(req.State.Get(ctx, &state)...)
-	if diags.HasError() {
-		return
-	}
-	// The replication specs can be unknown if the cluster depends on another resource.
-	// handleModifyPlan will try to convert the field to `Target Type: []advancedcluster.TFReplicationSpecsModel`.
-	// But since the field is unknown the user gets an error: `Error: Value Conversion Error`.
-	if plan.ReplicationSpecs.IsUnknown() {
-		return
-	}
-
-	handleModifyPlan(ctx, diags, &state, &plan)
-	if diags.HasError() {
-		return
-	}
-	diags.Append(resp.Plan.Set(ctx, plan)...)
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
