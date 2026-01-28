@@ -20,7 +20,7 @@ const apiVersionHeader = "application/vnd.atlas.2023-01-01+json"
 func Resource() resource.Resource {
 	return &rs{
 		RSCommon: config.RSCommon{
-			ResourceName: "privatelink_endpoint_service_data_federation_online_archive_api",
+			ResourceName: "privatelink_endpoint_service_data_federation_online_archive",
 		},
 	}
 }

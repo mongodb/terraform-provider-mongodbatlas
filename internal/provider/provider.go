@@ -48,6 +48,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchiveapi"
 	autogenprojectipaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccount"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccountsecret"
@@ -360,6 +361,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		projectserviceaccount.Resource,
 		projectserviceaccountsecret.Resource,
 		projectserviceaccountaccesslistentry.Resource,
+		privatelinkendpointservicedatafederationonlinearchiveapi.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {
