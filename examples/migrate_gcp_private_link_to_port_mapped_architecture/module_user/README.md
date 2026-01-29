@@ -78,7 +78,7 @@ In the plan output, you should see:
 - New `mongodbatlas_privatelink_endpoint_service.port_mapped` for port-mapped architecture being created.
 - Your existing legacy resources remain unchanged (no destruction).
 
-**Note:** After applying, update your application connection strings to use the port-mapped endpoint (connection strings will use `psc-0` identifier instead of `pl-0`). See the [migration guide](../../../../docs/guides/gcp-privatelink-port-mapping-migration.md) for details.
+**Note:** After applying, update your application connection strings to use the port-mapped endpoint (connection strings will use `psc-0` identifier instead of `pl-0`). See the [migration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/gcp-privatelink-port-mapping-migration) for details.
 
 ## Step 3: Migrate to port-mapped-only architecture using `v3` of the module
 

@@ -2,6 +2,8 @@
 
 This example demonstrates how to migrate from the legacy GCP Private Service Connect architecture to the port-mapped architecture.
 
+For detailed information on why and how to migrate, see the [Migration Guide: GCP Private Service Connect to Port-Mapped Architecture](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/gcp-privatelink-port-mapping-migration).
+
 ## Migration Phases
 
 ### v1: Initial State (Legacy Architecture)
