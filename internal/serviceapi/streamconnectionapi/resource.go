@@ -20,7 +20,7 @@ const apiVersionHeader = "application/vnd.atlas.2023-02-01+json"
 func Resource() resource.Resource {
 	return &rs{
 		RSCommon: config.RSCommon{
-			ResourceName: "stream_connection_api",
+			ResourceName: "stream_connection",
 		},
 	}
 }
