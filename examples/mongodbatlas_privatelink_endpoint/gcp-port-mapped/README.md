@@ -10,9 +10,16 @@ This project demonstrates the **port-mapped architecture** for setting up GCP Pr
 | `port_mapping_enabled` | `false` (or omitted) | `true` |
 | Customer IP addresses | One per Atlas node | One total |
 
-## Terraform Configuration Differences
+## Architecture Overview
 
-The main difference is the `port_mapping_enabled = true` setting:
+The port-mapped architecture uses:
+- **1 Google Compute Address** (supports up to 150 nodes)
+- **1 Google Compute Forwarding Rule** (supports up to 150 nodes)
+- `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource
+
+## Terraform Configuration
+
+The key configuration is the `port_mapping_enabled = true` setting:
 
 ```hcl
 resource "mongodbatlas_privatelink_endpoint" "test" {
@@ -23,12 +30,8 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
   # ...
 }
 ```
-- **1 Google Compute Address** (instead of one per Atlas node)
-- **1 Google Compute Forwarding Rule** (instead of one per Atlas node)
 - Use `endpoint_service_id` (forwarding rule name) and `private_endpoint_ip_address` (IP address) in `mongodbatlas_privatelink_endpoint_service`
 - The `endpoints` list is not used for the port-mapped architecture
-
-For the legacy architecture example, see the [`gcp/`](../gcp/) directory example.
 
 
 ## Dependencies

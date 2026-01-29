@@ -182,7 +182,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta any) error {
-	if d.HasChange("port_mapping_enabled") {
+	if d.Id() != "" && d.HasChange("port_mapping_enabled") {
 		return errors.New("`port_mapping_enabled` cannot be changed after resource creation")
 	}
 	return nil

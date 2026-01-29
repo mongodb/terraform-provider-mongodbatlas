@@ -1,6 +1,5 @@
 # Example with GCP (Port-Mapped Architecture)
 # This example demonstrates the port-mapped architecture.
-# For the legacy architecture, see the gcp directory.
 
 # Create mongodbatlas_privatelink_endpoint with port-mapped architecture
 resource "mongodbatlas_privatelink_endpoint" "test" {
@@ -13,14 +12,14 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 # Create a Google Network
 resource "google_compute_network" "default" {
   project = var.gcp_project_id
-  name    = "my-network"
+  name    = var.network_name
 }
 
 # Create a Google Sub Network
 resource "google_compute_subnetwork" "default" {
   project       = google_compute_network.default.project
-  name          = "my-subnet"
-  ip_cidr_range = "10.0.0.0/16"
+  name          = var.subnet_name
+  ip_cidr_range = var.subnet_ip_cidr_range
   region        = var.gcp_region
   network       = google_compute_network.default.id
 }
@@ -31,7 +30,7 @@ resource "google_compute_address" "default" {
   name         = var.endpoint_service_id
   subnetwork   = google_compute_subnetwork.default.id
   address_type = "INTERNAL"
-  address      = "10.0.42.1"
+  address      = var.address_ip
   region       = google_compute_subnetwork.default.region
 
   depends_on = [mongodbatlas_privatelink_endpoint.test]
