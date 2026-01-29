@@ -994,7 +994,26 @@ func checkStreamConnectionImportStateIDFunc(resourceName string) resource.Import
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return rs.Primary.ID, nil
+
+		projectID := rs.Primary.Attributes["project_id"]
+		workspaceName := rs.Primary.Attributes["workspace_name"]
+		if workspaceName == "" {
+			workspaceName = rs.Primary.Attributes["instance_name"]
+		}
+		connectionName := rs.Primary.Attributes["connection_name"]
+
+		if projectID == "" || workspaceName == "" || connectionName == "" {
+			return "", fmt.Errorf(
+				"missing attributes for import ID (project_id=%q workspace_name=%q instance_name=%q connection_name=%q)",
+				projectID,
+				rs.Primary.Attributes["workspace_name"],
+				rs.Primary.Attributes["instance_name"],
+				connectionName,
+			)
+		}
+
+		// Import format expected by splitStreamConnectionImportID: {workspace_name}-{project_id}-{connection_name}
+		return fmt.Sprintf("%s-%s-%s", workspaceName, projectID, connectionName), nil
 	}
 }
 
