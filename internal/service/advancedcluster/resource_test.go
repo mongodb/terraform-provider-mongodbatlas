@@ -21,20 +21,21 @@ import (
 )
 
 const (
-	resourceName         = "mongodbatlas_advanced_cluster.test"
-	dataSourceName       = "data.mongodbatlas_advanced_cluster.test"
-	dataSourcePluralName = "data.mongodbatlas_advanced_clusters.test"
-	dataSourcesConfig    = `
+	resourceName             = "mongodbatlas_advanced_cluster.test"
+	dataSourceName           = "data.mongodbatlas_advanced_cluster.test"
+	dataSourcePluralName     = "data.mongodbatlas_advanced_clusters.test"
+	dataSourceConfigSingular = `
 	data "mongodbatlas_advanced_cluster" "test" {
 		project_id = mongodbatlas_advanced_cluster.test.project_id
 		name 	     = mongodbatlas_advanced_cluster.test.name
 		depends_on = [mongodbatlas_advanced_cluster.test]
-	}
-			
+	}`
+	dataSourceConfigPlural = `
 	data "mongodbatlas_advanced_clusters" "test" {
 		project_id = mongodbatlas_advanced_cluster.test.project_id
 		depends_on = [mongodbatlas_advanced_cluster.test]
 	}`
+	dataSourcesConfig           = dataSourceConfigSingular + dataSourceConfigPlural
 	freeInstanceSize            = "M0"
 	sharedInstanceSize          = "M2"
 	errDefaultMaxTimeMinVersion = "`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"
@@ -45,6 +46,46 @@ var (
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
 	mockConfig                                 = unit.MockConfigAdvancedCluster
 )
+
+func testAccAdvancedClusterFlexUpgrade(t *testing.T, projectID, clusterName, instanceSize string, includeDedicated bool) resource.TestCase {
+	t.Helper()
+	defaultZoneName := "Zone 1" // Uses backend default as in existing tests
+
+	// avoid checking plural data source to reduce risk of being impacted from failure in other test using same project, allows running in parallel
+	steps := []resource.TestStep{
+		{
+			Config: configTenant(t, projectID, clusterName, defaultZoneName, instanceSize, false),
+			Check:  checkTenant(projectID, clusterName, false),
+		},
+		{
+			Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", defaultZoneName, "", false, nil, false),
+			Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false, false),
+		},
+	}
+	if includeDedicated {
+		steps = append(steps, resource.TestStep{
+			Config: acc.ConfigDedicatedNVMeBackupEnabled(projectID, clusterName, defaultZoneName),
+			Check:  checksDedicatedNVMeBackupEnabled(projectID, clusterName, false),
+		})
+	}
+
+	return resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps:                    steps,
+	}
+}
+
+func TestAccAdvancedCluster_basicTenant_flexUpgrade_dedicatedUpgrade(t *testing.T) {
+	projectID, clusterName := acc.ProjectIDExecutionWithFreeCluster(t, 3, 1)
+	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, projectID, clusterName, freeInstanceSize, true))
+}
+
+func TestAccAdvancedCluster_sharedTier_flexUpgrade(t *testing.T) {
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 1)
+	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, projectID, clusterName, sharedInstanceSize, false))
+}
 
 func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 	var (
@@ -57,7 +98,7 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configTenant(t, projectID, clusterName, defaultZoneName, freeInstanceSize),
+				Config: configTenant(t, projectID, clusterName, defaultZoneName, freeInstanceSize, true),
 				Check:  checkTenant(projectID, clusterName, true),
 			},
 			{
@@ -1331,11 +1372,16 @@ func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.
 	return acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), nil, attrsSet, attrsMap, extraChecks...)
 }
 
-func configTenant(t *testing.T, projectID, name, zoneName, instanceSize string) string {
+func configTenant(t *testing.T, projectID, name, zoneName, instanceSize string, includePluralDS bool) string {
 	t.Helper()
 	zoneNameLine := ""
 	if zoneName != "" {
 		zoneNameLine = fmt.Sprintf("zone_name = %q", zoneName)
+	}
+
+	dsConfig := dataSourceConfigSingular
+	if includePluralDS {
+		dsConfig = dataSourcesConfig
 	}
 
 	return fmt.Sprintf(`
@@ -1343,7 +1389,7 @@ func configTenant(t *testing.T, projectID, name, zoneName, instanceSize string) 
 		project_id   = %[1]q
 		name         = %[2]q
 		cluster_type = "REPLICASET"
-		
+
 		replication_specs = [{
 			region_configs = [{
 			backing_provider_name = "AWS"
@@ -1357,7 +1403,7 @@ func configTenant(t *testing.T, projectID, name, zoneName, instanceSize string) 
 		 %[3]s
 		}]
 	}
-`, projectID, name, zoneNameLine, instanceSize) + dataSourcesConfig
+`, projectID, name, zoneNameLine, instanceSize) + dsConfig
 }
 
 func checkTenant(projectID, name string, checkPlural bool) resource.TestCheckFunc {
@@ -2836,7 +2882,7 @@ func configFCVPinning(t *testing.T, orgID, projectName, clusterName string, pinn
 	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr) + dataSourcesConfig
 }
 
-func configFlexCluster(t *testing.T, projectID, clusterName, providerName, region, zoneName, timeoutConfig string, withTags bool, deleteOnCreateTimeout *bool) string {
+func configFlexCluster(t *testing.T, projectID, clusterName, providerName, region, zoneName, timeoutConfig string, withTags bool, deleteOnCreateTimeout *bool, includePluralDS bool) string {
 	t.Helper()
 	zoneNameLine := ""
 	if zoneName != "" {
@@ -2854,6 +2900,10 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 		deleteOnCreateTimeoutConfig = fmt.Sprintf(`
 			delete_on_create_timeout = %[1]t
 		`, *deleteOnCreateTimeout)
+	}
+	dsConfig := dataSourceConfigSingular
+	if includePluralDS {
+		dsConfig = dataSourcesConfig
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
@@ -2874,7 +2924,7 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 			termination_protection_enabled = false
 			%[8]s
 		}
-	`, projectID, clusterName, providerName, region, zoneNameLine, tags, timeoutConfig, deleteOnCreateTimeoutConfig) + dataSourcesConfig +
+	`, projectID, clusterName, providerName, region, zoneNameLine, tags, timeoutConfig, deleteOnCreateTimeoutConfig) + dsConfig +
 		strings.ReplaceAll(acc.FlexDataSource, "mongodbatlas_flex_cluster.", "mongodbatlas_advanced_cluster.")
 }
 
@@ -2890,16 +2940,16 @@ func TestAccClusterFlexCluster_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyFlexCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", emptyTimeoutConfig, false, nil),
+				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", emptyTimeoutConfig, false, nil, true),
 				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false, true),
 			},
 			{
-				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", emptyTimeoutConfig, true, nil),
+				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", emptyTimeoutConfig, true, nil, true),
 				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", true, true),
 			},
 			acc.TestStepImportCluster(resourceName),
 			{
-				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_2", "", emptyTimeoutConfig, true, nil),
+				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_2", "", emptyTimeoutConfig, true, nil, true),
 				ExpectError: regexp.MustCompile("flex cluster update is not supported except for tags and termination_protection_enabled fields"),
 			},
 		},
@@ -2918,7 +2968,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(&createTimeout, nil, nil), false, &deleteOnCreateTimeout),
+				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(&createTimeout, nil, nil), false, &deleteOnCreateTimeout, true),
 				ExpectError: regexp.MustCompile("context deadline exceeded"), // with the current implementation, this is the error that is returned
 			},
 		},
@@ -2938,10 +2988,10 @@ func TestAccAdvancedCluster_updateDeleteTimeoutFlex(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyFlexCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout), false, nil),
+				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout), false, nil, true),
 			},
 			{
-				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout), true, nil),
+				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout), true, nil, true),
 				ExpectError: regexp.MustCompile("timeout while waiting for state to become 'IDLE'"),
 			},
 			{
