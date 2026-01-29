@@ -182,6 +182,16 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
+	connectionName := conversion.SafeString(apiResp.Name)
+
+	// Wait for the connection to reach a ready state before returning
+	// This ensures the connection is fully provisioned and available for use with stream processors
+	apiResp, err = WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi)
+	if err != nil {
+		resp.Diagnostics.AddError("error waiting for stream connection to be ready", err.Error())
+		return
+	}
+
 	instanceName := streamConnectionPlan.InstanceName.ValueString()
 	workspaceName := streamConnectionPlan.WorkspaceName.ValueString()
 
@@ -248,9 +258,17 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	apiResp, _, err := connV2.StreamsApi.UpdateStreamConnection(ctx, projectID, workspaceOrInstanceName, connectionName, streamConnectionReq).Execute()
+	_, _, err := connV2.StreamsApi.UpdateStreamConnection(ctx, projectID, workspaceOrInstanceName, connectionName, streamConnectionReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
+		return
+	}
+
+	// Wait for the connection to reach a ready state before returning
+	// This ensures the connection is fully provisioned and available for use with stream processors
+	apiResp, err := WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi)
+	if err != nil {
+		resp.Diagnostics.AddError("error waiting for stream connection to be ready", err.Error())
 		return
 	}
 
