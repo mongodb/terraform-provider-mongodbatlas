@@ -39,7 +39,6 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 ### Further Examples
 - [AWS PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/aws)
 - [Azure PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/azure)
-- [GCP Private Service Connect Endpoint (Legacy Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/gcp)
 - [GCP Private Service Connect Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
 
 ## Argument Reference
