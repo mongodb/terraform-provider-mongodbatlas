@@ -1,0 +1,17 @@
+---
+subcategory: "Log Integration"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` returns all log integrations in a project. Log integrations allow you to continually export `mongod`, `mongos`, and audit logs to an AWS S3 bucket with 1-minute log export intervals.
+
+To use this data source, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+
+## Example Usages
+{{ tffile (printf "examples/mongodbatlas_log_integration/s3bucket/main.tf" )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Log Integration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-push-based-log-export) Documentation.
+
