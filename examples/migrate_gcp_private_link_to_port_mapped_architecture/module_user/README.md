@@ -22,12 +22,12 @@ The rest of this example is a step by step guide on how to migrate from legacy t
 
 ## Dependencies
 
-- Terraform CLI >= 1.0
-- Terraform MongoDB Atlas Provider with port-mapped architecture support
-- Google Cloud Provider >= 4.0
-- A MongoDB Atlas account
-- A Google Cloud account with appropriate permissions
-- Configure the provider (can also be done by configuring `atlas_client_id` and `atlas_client_secret` in variables)
+- Terraform CLI >= 1.0.
+- Terraform MongoDB Atlas Provider with port-mapped architecture support.
+- Google Cloud Provider >= 4.0.
+- A MongoDB Atlas account.
+- A Google Cloud account with appropriate permissions.
+- Configure the provider (can also be done by configuring `atlas_client_id` and `atlas_client_secret` in variables).
 
 ```bash
 export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
@@ -73,10 +73,10 @@ terraform apply
 ```
 
 In the plan output, you should see:
-- New `mongodbatlas_privatelink_endpoint.new` with `port_mapping_enabled = true` being created
-- New GCP resources (1 address, 1 forwarding rule) for port-mapped architecture being created
-- New `mongodbatlas_privatelink_endpoint_service.new` for port-mapped architecture being created
-- Your existing legacy resources remain unchanged (no destruction)
+- New `mongodbatlas_privatelink_endpoint.port_mapped` with `port_mapping_enabled = true` being created.
+- New GCP resources (1 address, 1 forwarding rule) for port-mapped architecture being created.
+- New `mongodbatlas_privatelink_endpoint_service.port_mapped` for port-mapped architecture being created.
+- Your existing legacy resources remain unchanged (no destruction).
 
 **Note:** After applying, update your application connection strings to use the port-mapped endpoint (connection strings will use `psc-0` identifier instead of `pl-0`). See the [migration guide](../../../../docs/guides/gcp-privatelink-port-mapping-migration.md) for details.
 
@@ -98,9 +98,9 @@ terraform apply
 ```
 
 In the plan output, you should see:
-- Legacy endpoint resources planned for destruction
-- Legacy GCP resources (addresses and forwarding rules matching the `legacy_endpoint_count` variable) planned for destruction
-- Only port-mapped architecture resources remain
+- Legacy endpoint resources planned for destruction.
+- Legacy GCP resources (addresses and forwarding rules matching the `legacy_endpoint_count` variable) planned for destruction.
+- Only port-mapped architecture resources remain.
 
 ## Cleanup with `terraform destroy`
 

@@ -44,22 +44,31 @@ Clean final configuration using only:
 ## Variables
 
 ```terraform
-project_id          = "<ATLAS_PROJECT_ID>"
-gcp_project_id      = "<GCP_PROJECT_ID>"
-gcp_region          = "us-central1"
+# Provider variables
 atlas_client_id     = "<ATLAS_CLIENT_ID>"     # Optional, can use env vars
 atlas_client_secret = "<ATLAS_CLIENT_SECRET>" # Optional, can use env vars
-cluster_name        = "<CLUSTER_NAME>"        # Optional: cluster whose connection string to output
-endpoint_count      = 50                      # Optional: Number of endpoints for legacy architecture (defaults to 50, matches Atlas project's privateServiceConnectionsPerRegionGroup setting)
-legacy_endpoint_service_id  = "legacy-endpoint-group" # Optional for v1 and v2: Endpoint service ID for legacy architecture (defaults to "legacy-endpoint-group")
-new_endpoint_service_id     = "tf-test-port-mapped-endpoint" # Optional for v2 and v3: Endpoint service ID for port-mapped architecture (used as forwarding rule name and address name, defaults to "tf-test-port-mapped-endpoint")
+
+# Common variables between architectures
+project_id          = "<ATLAS_PROJECT_ID>"
+gcp_project_id      = "<GCP_PROJECT_ID>"
+gcp_region          = "<GCP_REGION>"
+cluster_name        = "<CLUSTER_NAME>"
+network_name        = "<NETWORK_NAME>"
+subnet_name         = "<SUBNET_NAME>"
+subnet_ip_cidr_range = "<SUBNET_IP_CIDR_RANGE>"
+
+# Legacy architecture variables
+legacy_endpoint_count      = <LEGACY_ENDPOINT_COUNT>
+legacy_endpoint_service_id  = "<LEGACY_ENDPOINT_SERVICE_ID>"
+legacy_address_name_prefix = "<LEGACY_ADDRESS_NAME_PREFIX>"
+legacy_address_base_ip     = "<LEGACY_ADDRESS_BASE_IP>"
+
+# Port-mapped architecture variables
+port_mapped_endpoint_service_id     = "<PORT_MAPPED_ENDPOINT_SERVICE_ID>"
+port_mapped_address_ip = "<PORT_MAPPED_ADDRESS_IP>"
 ```
 
-**Note**: Network names, subnet names, IP addresses, and other resource names are hardcoded in the example configurations. You can modify these directly in the example files:
-- Network name: `"my-network"`.
-- Subnet name: `"my-subnet"`.
-- IP CIDR range: `"10.0.0.0/16"`.
-- Address IP (port-mapped): `"10.0.42.100"`.
+**Note**: For this migration guide, some sample values have been set as defaults for network names, subnet names, IP addresses, and other resource names. You can override any of these in your `terraform.tfvars` file or via command line flags.
 
 Alternatively, set environment variables for authentication:
 ```bash

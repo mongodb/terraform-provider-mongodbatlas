@@ -32,22 +32,22 @@ This module creates GCP private link resources using the legacy architecture.
 ### [`variables.tf`](v1/variables.tf)
 
 An abstraction for the `mongodbatlas_privatelink_endpoint` and `mongodbatlas_privatelink_endpoint_service` resources:
-- Exposes variables for project ID, GCP project ID, region, and network configuration
-- Legacy architecture requires an `endpoints` list with multiple endpoints (configurable via `legacy_endpoint_count` variable)
+- Exposes variables for project ID, GCP project ID, region, and network configuration.
+- Legacy architecture requires an `endpoints` list with multiple endpoints (configurable via `legacy_endpoint_count` variable).
 
 ### [`main.tf`](v1/main.tf)
 
 It uses the legacy architecture:
-- Creates `mongodbatlas_privatelink_endpoint` without `port_mapping_enabled` (defaults to `false`)
-- Creates multiple Google Compute Addresses (number matches `legacy_endpoint_count` variable)
-- Creates multiple Google Compute Forwarding Rules (number matches `legacy_endpoint_count` variable)
-- Creates `mongodbatlas_privatelink_endpoint_service` with a `dynamic "endpoints"` block
+- Creates `mongodbatlas_privatelink_endpoint` without `port_mapping_enabled` (defaults to `false`).
+- Creates multiple Google Compute Addresses (number matches `legacy_endpoint_count` variable).
+- Creates multiple Google Compute Forwarding Rules (number matches `legacy_endpoint_count` variable).
+- Creates `mongodbatlas_privatelink_endpoint_service` with a `dynamic "endpoints"` block.
 
 ### [`outputs.tf`](v1/outputs.tf)
 
-- Exposes the endpoint service ID and connection string
-- Outputs `connection_string_legacy` - the connection string of the private endpoint with legacy architecture
-- Outputs the full `mongodbatlas_privatelink_endpoint_service` resource for reference
+- Exposes the endpoint service ID and connection string.
+- Outputs `legacy_connection_string` - the connection string of the private endpoint with legacy architecture.
+- Outputs the full `mongodbatlas_privatelink_endpoint_service` resource for reference.
 
 ## Step 2: Module `v2` Implementation Changes and Highlights
 
@@ -55,22 +55,22 @@ This is the new version of the module where support for port-mapped architecture
 
 ### [`variables.tf`](v2/variables.tf)
 
-- Adds port-mapped architecture variables (`new_endpoint_service_id`, `port_mapped_endpoint_ip`)
-- Keeps all existing variables for backward compatibility
-- No `port_mapping_enabled` variable - both architectures are always created
+- Adds port-mapped architecture variables (`port_mapped_endpoint_service_id`, `port_mapped_address_ip`).
+- Keeps all existing variables for backward compatibility.
+- No `port_mapping_enabled` variable - both architectures are always created.
 
 ### [`main.tf`](v2/main.tf)
 
 - Creates both legacy and port-mapped architectures simultaneously:
-  - Legacy architecture: Creates `mongodbatlas_privatelink_endpoint.legacy` (without `port_mapping_enabled`), multiple Google Compute Addresses (number matches `legacy_endpoint_count` variable), multiple Forwarding Rules (number matches `legacy_endpoint_count` variable), and `mongodbatlas_privatelink_endpoint_service.legacy` with `endpoints` list
-  - Port-mapped architecture: Creates `mongodbatlas_privatelink_endpoint.new` (with `port_mapping_enabled = true`), 1 Google Compute Address, 1 Forwarding Rule, and `mongodbatlas_privatelink_endpoint_service.new` with `endpoint_service_id` and `private_endpoint_ip_address`
-- Both architectures coexist in the same configuration, allowing parallel testing during migration
+  - Legacy architecture: Creates `mongodbatlas_privatelink_endpoint.legacy` (without `port_mapping_enabled`), multiple Google Compute Addresses (number matches `legacy_endpoint_count` variable), multiple Forwarding Rules (number matches `legacy_endpoint_count` variable), and `mongodbatlas_privatelink_endpoint_service.legacy` with `endpoints` list.
+  - Port-mapped architecture: Creates `mongodbatlas_privatelink_endpoint.port_mapped` (with `port_mapping_enabled = true`), 1 Google Compute Address, 1 Forwarding Rule, and `mongodbatlas_privatelink_endpoint_service.port_mapped` with `endpoint_service_id` and `private_endpoint_ip_address`.
+- Both architectures coexist in the same configuration, allowing parallel testing during migration.
 
 ### [`outputs.tf`](v2/outputs.tf)
 
-- Outputs connection strings for both legacy and port-mapped architectures
-- Outputs separate resources for legacy (`mongodbatlas_privatelink_endpoint_legacy`, `mongodbatlas_privatelink_endpoint_service_legacy`) and new (`mongodbatlas_privatelink_endpoint_new`, `mongodbatlas_privatelink_endpoint_service_new`)
-- Maintains backward compatibility with `v1` outputs
+- Outputs connection strings for both legacy and port-mapped architectures.
+- Outputs separate resources for legacy (`mongodbatlas_privatelink_endpoint_legacy`, `mongodbatlas_privatelink_endpoint_service_legacy`) and port-mapped (`mongodbatlas_privatelink_endpoint_port_mapped`, `mongodbatlas_privatelink_endpoint_service_port_mapped`).
+- Maintains backward compatibility with `v1` outputs.
 
 ## Step 3: Module `v3` Implementation Changes and Highlights
 
@@ -78,21 +78,21 @@ This module removes support for the legacy architecture and only supports the po
 
 ### [`variables.tf`](v3/variables.tf)
 
-- Removes variables related to legacy architecture (e.g., `legacy_endpoint_count`, `endpoint_base_name`, `legacy_endpoint_service_id`, `endpoint_base_ip`)
-- Keeps only port-mapped architecture variables (`new_endpoint_service_id`, `port_mapped_endpoint_ip`)
-- Keeps common variables (project_id, gcp_project_id, gcp_region, network_name, subnet_name, subnet_ip_cidr_range, cluster_name)
+- Removes variables related to legacy architecture (e.g., `legacy_endpoint_count`, `legacy_address_name_prefix`, `legacy_endpoint_service_id`, `legacy_address_base_ip`).
+- Keeps only port-mapped architecture variables (`port_mapped_endpoint_service_id`, `port_mapped_address_ip`).
+- Keeps common variables (project_id, gcp_project_id, gcp_region, network_name, subnet_name, subnet_ip_cidr_range, cluster_name).
 
 ### [`main.tf`](v3/main.tf)
 
 - Creates only port-mapped architecture resources:
-  - Creates `mongodbatlas_privatelink_endpoint.new` with `port_mapping_enabled = true`
-  - Creates only 1 Google Compute Address
-  - Creates only 1 Google Compute Forwarding Rule
-  - Creates `mongodbatlas_privatelink_endpoint_service.new` with `endpoint_service_id` and `private_endpoint_ip_address` (no `endpoints` list)
-- All legacy resources are removed
+  - Creates `mongodbatlas_privatelink_endpoint.port_mapped` with `port_mapping_enabled = true`.
+  - Creates only 1 Google Compute Address.
+  - Creates only 1 Google Compute Forwarding Rule.
+  - Creates `mongodbatlas_privatelink_endpoint_service.port_mapped` with `endpoint_service_id` and `private_endpoint_ip_address` (no `endpoints` list).
+- All legacy resources are removed.
 
 ### [`outputs.tf`](v3/outputs.tf)
 
-- Simplifies outputs to only expose port-mapped architecture connection strings
-- Removes legacy-specific outputs
-- Outputs `connection_string_new` - the connection string of the private endpoint with port-mapped architecture
+- Simplifies outputs to only expose port-mapped architecture connection strings.
+- Removes legacy-specific outputs.
+- Outputs `port_mapped_connection_string` - the connection string of the private endpoint with port-mapped architecture.

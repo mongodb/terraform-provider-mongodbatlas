@@ -28,7 +28,7 @@ output "mongodbatlas_privatelink_endpoint" {
   value       = mongodbatlas_privatelink_endpoint.legacy
 }
 
-output "connection_string_legacy" {
+output "legacy_connection_string" {
   description = "Connection string for legacy endpoint"
-  value       = length(local.connection_strings_legacy) > 0 ? local.connection_strings_legacy[0] : ""
+  value       = length(local.legacy_connection_strings) > 0 ? local.legacy_connection_strings[0] : ""
 }

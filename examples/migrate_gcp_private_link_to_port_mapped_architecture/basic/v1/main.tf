@@ -12,26 +12,26 @@ resource "mongodbatlas_privatelink_endpoint" "legacy" {
 # Create a Google Network
 resource "google_compute_network" "default" {
   project = var.gcp_project_id
-  name    = "my-network"
+  name    = var.network_name
 }
 
 # Create a Google Sub Network
 resource "google_compute_subnetwork" "default" {
   project       = google_compute_network.default.project
-  name          = "my-subnet"
-  ip_cidr_range = "10.0.0.0/16"
+  name          = var.subnet_name
+  ip_cidr_range = var.subnet_ip_cidr_range
   region        = var.gcp_region
   network       = google_compute_network.default.id
 }
 
 # Create Google Addresses (required for legacy architecture)
 resource "google_compute_address" "legacy" {
-  count        = var.endpoint_count
+  count        = var.legacy_endpoint_count
   project      = google_compute_subnetwork.default.project
-  name         = "tf-test-legacy${count.index}"
+  name         = "${var.legacy_address_name_prefix}${count.index}"
   subnetwork   = google_compute_subnetwork.default.id
   address_type = "INTERNAL"
-  address      = "10.0.42.${count.index}"
+  address      = "${var.legacy_address_base_ip}.${count.index}"
   region       = google_compute_subnetwork.default.region
 
   depends_on = [mongodbatlas_privatelink_endpoint.legacy]
@@ -39,7 +39,7 @@ resource "google_compute_address" "legacy" {
 
 # Create Forwarding rules (required for legacy architecture)
 resource "google_compute_forwarding_rule" "legacy" {
-  count                 = var.endpoint_count
+  count                 = var.legacy_endpoint_count
   target                = mongodbatlas_privatelink_endpoint.legacy.service_attachment_names[count.index]
   project               = google_compute_address.legacy[count.index].project
   region                = google_compute_address.legacy[count.index].region
@@ -78,15 +78,15 @@ data "mongodbatlas_advanced_cluster" "cluster" {
 }
 
 locals {
-  endpoint_service_id_legacy = mongodbatlas_privatelink_endpoint_service.legacy.endpoint_service_id
+  legacy_endpoint_service_id = mongodbatlas_privatelink_endpoint_service.legacy.endpoint_service_id
   private_endpoints          = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
-  connection_strings_legacy = [
+  legacy_connection_strings = [
     for pe in local.private_endpoints : pe.srv_connection_string
-    if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id_legacy)
+    if contains([for e in pe.endpoints : e.endpoint_id], local.legacy_endpoint_service_id)
   ]
 }
 
-output "connection_string_legacy" {
+output "legacy_connection_string" {
   description = "Connection string for legacy endpoint"
-  value       = length(local.connection_strings_legacy) > 0 ? local.connection_strings_legacy[0] : ""
+  value       = length(local.legacy_connection_strings) > 0 ? local.legacy_connection_strings[0] : ""
 }

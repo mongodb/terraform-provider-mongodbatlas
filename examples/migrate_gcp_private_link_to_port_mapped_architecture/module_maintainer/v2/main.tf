@@ -10,7 +10,7 @@ resource "mongodbatlas_privatelink_endpoint" "legacy" {
 }
 
 # New: Create mongodbatlas_privatelink_endpoint with port-mapped architecture
-resource "mongodbatlas_privatelink_endpoint" "new" {
+resource "mongodbatlas_privatelink_endpoint" "port_mapped" {
   project_id           = var.project_id
   provider_name        = "GCP"
   region               = var.gcp_region
@@ -36,10 +36,10 @@ resource "google_compute_subnetwork" "default" {
 resource "google_compute_address" "legacy" {
   count        = var.legacy_endpoint_count
   project      = google_compute_subnetwork.default.project
-  name         = "${var.endpoint_base_name}${count.index}"
+  name         = "${var.legacy_address_name_prefix}${count.index}"
   subnetwork   = google_compute_subnetwork.default.id
   address_type = "INTERNAL"
-  address      = "${var.endpoint_base_ip}.${count.index}"
+  address      = "${var.legacy_address_base_ip}.${count.index}"
   region       = google_compute_subnetwork.default.region
 
   depends_on = [mongodbatlas_privatelink_endpoint.legacy]
@@ -59,24 +59,24 @@ resource "google_compute_forwarding_rule" "legacy" {
 
 # New: Create Google Address (1 address for port-mapped architecture)
 # Note: Uses existing network and subnet from v1
-resource "google_compute_address" "new" {
+resource "google_compute_address" "port_mapped" {
   project      = google_compute_subnetwork.default.project
-  name         = var.new_endpoint_service_id
+  name         = var.port_mapped_endpoint_service_id
   subnetwork   = google_compute_subnetwork.default.id
   address_type = "INTERNAL"
-  address      = var.port_mapped_endpoint_ip
+  address      = var.port_mapped_address_ip
   region       = google_compute_subnetwork.default.region
 
-  depends_on = [mongodbatlas_privatelink_endpoint.new]
+  depends_on = [mongodbatlas_privatelink_endpoint.port_mapped]
 }
 
 # New: Create Forwarding Rule (1 rule for port-mapped architecture)
-resource "google_compute_forwarding_rule" "new" {
-  target                = mongodbatlas_privatelink_endpoint.new.service_attachment_names[0]
-  project               = google_compute_address.new.project
-  region                = google_compute_address.new.region
-  name                  = google_compute_address.new.name
-  ip_address            = google_compute_address.new.id
+resource "google_compute_forwarding_rule" "port_mapped" {
+  target                = mongodbatlas_privatelink_endpoint.port_mapped.service_attachment_names[0]
+  project               = google_compute_address.port_mapped.project
+  region                = google_compute_address.port_mapped.region
+  name                  = google_compute_address.port_mapped.name
+  ip_address            = google_compute_address.port_mapped.id
   network               = google_compute_network.default.id
   load_balancing_scheme = ""
 }
@@ -101,12 +101,12 @@ resource "mongodbatlas_privatelink_endpoint_service" "legacy" {
 }
 
 # New: Create mongodbatlas_privatelink_endpoint_service with port-mapped architecture
-resource "mongodbatlas_privatelink_endpoint_service" "new" {
-  project_id                  = mongodbatlas_privatelink_endpoint.new.project_id
-  private_link_id             = mongodbatlas_privatelink_endpoint.new.private_link_id
+resource "mongodbatlas_privatelink_endpoint_service" "port_mapped" {
+  project_id                  = mongodbatlas_privatelink_endpoint.port_mapped.project_id
+  private_link_id             = mongodbatlas_privatelink_endpoint.port_mapped.private_link_id
   provider_name               = "GCP"
-  endpoint_service_id         = google_compute_forwarding_rule.new.name
-  private_endpoint_ip_address = google_compute_address.new.address
+  endpoint_service_id         = google_compute_forwarding_rule.port_mapped.name
+  private_endpoint_ip_address = google_compute_address.port_mapped.address
   gcp_project_id              = var.gcp_project_id
 }
 
@@ -117,21 +117,21 @@ data "mongodbatlas_advanced_cluster" "cluster" {
 
   depends_on = [
     mongodbatlas_privatelink_endpoint_service.legacy,
-    mongodbatlas_privatelink_endpoint_service.new
+    mongodbatlas_privatelink_endpoint_service.port_mapped
   ]
 }
 
 locals {
-  endpoint_service_id_new    = mongodbatlas_privatelink_endpoint_service.new.endpoint_service_id
-  endpoint_service_id_legacy = mongodbatlas_privatelink_endpoint_service.legacy.endpoint_service_id
-  private_endpoints          = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
+  port_mapped_endpoint_service_id = mongodbatlas_privatelink_endpoint_service.port_mapped.endpoint_service_id
+  legacy_endpoint_service_id      = mongodbatlas_privatelink_endpoint_service.legacy.endpoint_service_id
+  private_endpoints               = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
 
-  connection_strings_new = [
+  port_mapped_connection_strings = [
     for pe in local.private_endpoints : pe.srv_connection_string
-    if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id_new)
+    if contains([for e in pe.endpoints : e.endpoint_id], local.port_mapped_endpoint_service_id)
   ]
-  connection_strings_legacy = [
+  legacy_connection_strings = [
     for pe in local.private_endpoints : pe.srv_connection_string
-    if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id_legacy)
+    if contains([for e in pe.endpoints : e.endpoint_id], local.legacy_endpoint_service_id)
   ]
 }

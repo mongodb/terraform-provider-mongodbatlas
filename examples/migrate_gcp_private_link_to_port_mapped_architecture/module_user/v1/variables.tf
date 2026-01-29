@@ -44,3 +44,33 @@ variable "legacy_endpoint_service_id" {
   type        = string
   default     = "legacy-endpoint-group"
 }
+
+variable "legacy_address_name_prefix" {
+  description = "Prefix for Google Compute Address names (legacy architecture)"
+  type        = string
+  default     = "tf-test-legacy"
+}
+
+variable "legacy_address_base_ip" {
+  description = "Base IP address for Google Compute Addresses (e.g., '10.0.42' will create addresses like 10.0.42.0, 10.0.42.1, etc.)"
+  type        = string
+  default     = "10.0.42"
+}
+
+variable "network_name" {
+  description = "Name for the Google Compute Network"
+  type        = string
+  default     = "my-network"
+}
+
+variable "subnet_name" {
+  description = "Name for the Google Compute Subnetwork"
+  type        = string
+  default     = "my-subnet"
+}
+
+variable "subnet_ip_cidr_range" {
+  description = "IP CIDR range for the Google Compute Subnetwork"
+  type        = string
+  default     = "10.0.0.0/16"
+}

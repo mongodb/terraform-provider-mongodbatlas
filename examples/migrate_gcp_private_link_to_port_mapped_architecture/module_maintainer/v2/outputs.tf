@@ -1,6 +1,6 @@
 output "endpoint_service_id" {
   description = "Endpoint service ID (returns port-mapped architecture value; legacy value available via legacy_endpoint_service_id output)"
-  value       = mongodbatlas_privatelink_endpoint_service.new.endpoint_service_id
+  value       = mongodbatlas_privatelink_endpoint_service.port_mapped.endpoint_service_id
 }
 
 output "legacy_endpoint_service_id" {
@@ -8,14 +8,14 @@ output "legacy_endpoint_service_id" {
   value       = mongodbatlas_privatelink_endpoint_service.legacy.endpoint_service_id
 }
 
-output "new_endpoint_service_id" {
+output "port_mapped_endpoint_service_id" {
   description = "Endpoint service ID for port-mapped architecture"
-  value       = mongodbatlas_privatelink_endpoint_service.new.endpoint_service_id
+  value       = mongodbatlas_privatelink_endpoint_service.port_mapped.endpoint_service_id
 }
 
 output "private_link_id" {
   description = "Private link ID (returns port-mapped architecture value; legacy value available via mongodbatlas_privatelink_endpoint_legacy output)"
-  value       = mongodbatlas_privatelink_endpoint.new.private_link_id
+  value       = mongodbatlas_privatelink_endpoint.port_mapped.private_link_id
 }
 
 output "project_id" {
@@ -28,9 +28,9 @@ output "mongodbatlas_privatelink_endpoint_service_legacy" {
   value       = mongodbatlas_privatelink_endpoint_service.legacy
 }
 
-output "mongodbatlas_privatelink_endpoint_service_new" {
+output "mongodbatlas_privatelink_endpoint_service_port_mapped" {
   description = "Full mongodbatlas_privatelink_endpoint_service resource for port-mapped architecture"
-  value       = mongodbatlas_privatelink_endpoint_service.new
+  value       = mongodbatlas_privatelink_endpoint_service.port_mapped
 }
 
 output "mongodbatlas_privatelink_endpoint_legacy" {
@@ -38,17 +38,17 @@ output "mongodbatlas_privatelink_endpoint_legacy" {
   value       = mongodbatlas_privatelink_endpoint.legacy
 }
 
-output "mongodbatlas_privatelink_endpoint_new" {
+output "mongodbatlas_privatelink_endpoint_port_mapped" {
   description = "Full mongodbatlas_privatelink_endpoint resource for port-mapped architecture"
-  value       = mongodbatlas_privatelink_endpoint.new
+  value       = mongodbatlas_privatelink_endpoint.port_mapped
 }
 
-output "connection_string_legacy" {
+output "legacy_connection_string" {
   description = "Connection string for legacy endpoint"
-  value       = length(local.connection_strings_legacy) > 0 ? local.connection_strings_legacy[0] : ""
+  value       = length(local.legacy_connection_strings) > 0 ? local.legacy_connection_strings[0] : ""
 }
 
-output "connection_string_new" {
+output "port_mapped_connection_string" {
   description = "Connection string for port-mapped endpoint"
-  value       = length(local.connection_strings_new) > 0 ? local.connection_strings_new[0] : ""
+  value       = length(local.port_mapped_connection_strings) > 0 ? local.port_mapped_connection_strings[0] : ""
 }

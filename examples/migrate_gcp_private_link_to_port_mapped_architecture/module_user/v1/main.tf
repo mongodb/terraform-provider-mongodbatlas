@@ -17,6 +17,11 @@ module "private_link" {
   cluster_name               = var.cluster_name
   legacy_endpoint_count      = var.legacy_endpoint_count
   legacy_endpoint_service_id = var.legacy_endpoint_service_id
+  legacy_address_name_prefix = var.legacy_address_name_prefix
+  legacy_address_base_ip     = var.legacy_address_base_ip
+  network_name               = var.network_name
+  subnet_name                = var.subnet_name
+  subnet_ip_cidr_range       = var.subnet_ip_cidr_range
 }
 
 output "legacy_endpoint_service_id" {
@@ -29,7 +34,7 @@ output "private_link_id" {
   value       = module.private_link.private_link_id
 }
 
-output "connection_string_legacy" {
+output "legacy_connection_string" {
   description = "Connection string for legacy endpoint"
-  value       = module.private_link.connection_string_legacy
+  value       = module.private_link.legacy_connection_string
 }

@@ -28,10 +28,10 @@ resource "google_compute_subnetwork" "default" {
 resource "google_compute_address" "legacy" {
   count        = var.legacy_endpoint_count
   project      = google_compute_subnetwork.default.project
-  name         = "${var.endpoint_base_name}${count.index}"
+  name         = "${var.legacy_address_name_prefix}${count.index}"
   subnetwork   = google_compute_subnetwork.default.id
   address_type = "INTERNAL"
-  address      = "${var.endpoint_base_ip}.${count.index}"
+  address      = "${var.legacy_address_base_ip}.${count.index}"
   region       = google_compute_subnetwork.default.region
 
   depends_on = [mongodbatlas_privatelink_endpoint.legacy]
@@ -77,11 +77,11 @@ data "mongodbatlas_advanced_cluster" "cluster" {
 }
 
 locals {
-  endpoint_service_id_legacy = mongodbatlas_privatelink_endpoint_service.legacy.endpoint_service_id
+  legacy_endpoint_service_id = mongodbatlas_privatelink_endpoint_service.legacy.endpoint_service_id
   private_endpoints          = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
 
-  connection_strings_legacy = [
+  legacy_connection_strings = [
     for pe in local.private_endpoints : pe.srv_connection_string
-    if contains([for e in pe.endpoints : e.endpoint_id], local.endpoint_service_id_legacy)
+    if contains([for e in pe.endpoints : e.endpoint_id], local.legacy_endpoint_service_id)
   ]
 }
