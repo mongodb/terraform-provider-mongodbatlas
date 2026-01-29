@@ -750,6 +750,89 @@ resources:
             optional: true
             computed: true
 
+  stream_connection_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+      method: DELETE
+    version_header: application/vnd.atlas.2023-02-01+json
+    # All defined configuration is for trying to reach backwards compatibility with curated resource
+    schema:
+      ignores:
+        [
+          # Hide noisy subresource link blocks (curated resource doesn't expose them)
+          "links",
+          "authentication.links",
+          "aws.links",
+          "db_role_to_execute.links",
+          "networking.links",
+          "networking.access.links",
+          "security.links",
+
+          # Hide fields not present in curated stream_connection schema
+          "state",
+          "aws.test_bucket",
+          "authentication.ssl_certificate",
+          "authentication.ssl_key",
+          "authentication.ssl_key_password",
+          "networking.access.connection_name",
+          "networking.access.tgw_route_id",
+        ]
+      aliases:
+        name: connectionName # path param name does not match the API request property.
+        groupId: projectId
+        tenantName: workspaceName
+        clusterGroupId: clusterProjectId
+        provider: schemaRegistryProvider
+      overrides:
+        # Align required fields with curated stream_connection schema
+        connection_name:
+          computability:
+            required: true
+        type:
+          computability:
+            required: true
+        db_role_to_execute.role:
+          computability:
+            required: true
+        db_role_to_execute.type:
+          computability:
+            required: true
+        networking.access:
+          computability:
+            required: true
+        networking.access.type:
+          computability:
+            required: true
+        aws.role_arn:
+          computability:
+            required: true
+        networking:
+          computability:
+            optional: true
+            computed: true
+
+        # Curated schema makes this optional; API spec currently marks it required
+        schema_registry_authentication.type:
+          computability:
+            optional: true
+
+        # Preserve secrets like the curated resource does
+        schema_registry_authentication.password:
+          sensitive: true
+
+        # Curated schema models URLs as list (autogen defaults to set)
+        schema_registry_urls:
+          type: list
+
   alert_configuration_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
