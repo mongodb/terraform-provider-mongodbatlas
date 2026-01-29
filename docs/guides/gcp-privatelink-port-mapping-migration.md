@@ -73,7 +73,7 @@ For complete migration examples showing the step-by-step transition from legacy 
 - **Module Maintainers**: If you own and maintain modules to manage your private link resources, see the [module maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_gcp_private_link_to_port_mapped_architecture/module_maintainer) to learn how to update your module to support port-mapped architecture while maintaining backward compatibility.
 - **Module Users**: If you are using a Terraform module to manage your private link resources, see the [module user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_gcp_private_link_to_port_mapped_architecture/module_user) to learn how to upgrade to a module version that supports port-mapped architecture.
 
-For working examples of each architecture, see the [legacy architecture example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/gcp) and the [port-mapped architecture example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped).
+For a working example of the port-mapped architecture, see the [port-mapped architecture example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped).
 
 ### Step 1: Initial Configuration - Legacy Architecture Only
 
@@ -306,5 +306,4 @@ resource "mongodbatlas_privatelink_endpoint_service" "port_mapped" {
 - [GCP Private Service Connect Documentation](https://www.mongodb.com/docs/atlas/security-private-endpoint/)
 - [Private Endpoint Resource Documentation](../resources/privatelink_endpoint.md)
 - [Private Endpoint Service Resource Documentation](../resources/privatelink_endpoint_service.md)
-- [Legacy Architecture Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/gcp)
 - [Port-Mapped Architecture Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
