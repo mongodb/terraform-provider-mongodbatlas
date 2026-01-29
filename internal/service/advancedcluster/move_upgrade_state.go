@@ -97,7 +97,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	model := newTFModel(ctx, &admin.ClusterDescription20240805{
 		GroupId: projectID,
 		Name:    name,
-	}, diags, nil)
+	}, diags)
 	if diags.HasError() {
 		return
 	}
@@ -193,9 +193,6 @@ func replicationSpecModelWithNumShards(numShardsVal tftypes.Value) *TFReplicatio
 	}
 	return &TFReplicationSpecsModel{
 		RegionConfigs: types.ListNull(regionConfigsObjType),
-		ContainerId:   types.MapNull(types.StringType),
-		ExternalId:    types.StringNull(),
-		ZoneId:        types.StringNull(),
 		ZoneName:      types.StringNull(),
 	}
 }

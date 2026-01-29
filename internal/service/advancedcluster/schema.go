@@ -231,15 +231,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: descReplicationSpecs,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"container_id": schema.MapAttribute{
-							ElementType:         types.StringType,
-							Computed:            true,
-							MarkdownDescription: descContainerID,
-						},
-						"external_id": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: descExternalID,
-						},
 						"region_configs": schema.ListNestedAttribute{
 							Required:            true,
 							MarkdownDescription: descRegionConfigs,
@@ -271,10 +262,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 									},
 								},
 							},
-						},
-						"zone_id": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: descZoneID,
 						},
 						"zone_name": schema.StringAttribute{
 							Optional:            true,
@@ -359,68 +346,13 @@ func dataSourceOverridenFields() map[string]dsschema.Attribute {
 		"accept_data_risks_and_force_replica_set_reconfig": nil,
 		"delete_on_create_timeout":                         nil,
 		"retain_backups_enabled":                           nil,
-		"replication_specs":                                replicationSpecsSchemaDS(),
 		"effective_replication_specs":                      effectiveReplicationSpecsSchemaDS(),
 	}
 }
 
-func replicationSpecsSchemaDS() dsschema.ListNestedAttribute {
-	return dsschema.ListNestedAttribute{
-		Computed:            true,
-		MarkdownDescription: descReplicationSpecs,
-		NestedObject: dsschema.NestedAttributeObject{
-			Attributes: map[string]dsschema.Attribute{
-				"container_id": dsschema.MapAttribute{
-					ElementType:         types.StringType,
-					Computed:            true,
-					MarkdownDescription: descContainerID,
-				},
-				"external_id": dsschema.StringAttribute{
-					Computed:            true,
-					MarkdownDescription: descExternalID,
-				},
-				"region_configs": dsschema.ListNestedAttribute{
-					Computed:            true,
-					MarkdownDescription: descRegionConfigs,
-					NestedObject: dsschema.NestedAttributeObject{
-						Attributes: map[string]dsschema.Attribute{
-							"analytics_auto_scaling": autoScalingSchemaDS(),
-							"analytics_specs":        specsSchemaDS(),
-							"auto_scaling":           autoScalingSchemaDS(),
-							"backing_provider_name": dsschema.StringAttribute{
-								Computed:            true,
-								MarkdownDescription: descBackingProviderNameTenant,
-							},
-							"electable_specs": specsSchemaDS(),
-							"priority": dsschema.Int64Attribute{
-								Computed:            true,
-								MarkdownDescription: descPriority,
-							},
-							"provider_name": dsschema.StringAttribute{
-								Computed:            true,
-								MarkdownDescription: descProviderName,
-							},
-							"read_only_specs": specsSchemaDS(),
-							"region_name": dsschema.StringAttribute{
-								Computed:            true,
-								MarkdownDescription: descRegionName,
-							},
-						},
-					},
-				},
-				"zone_id": dsschema.StringAttribute{
-					Computed:            true,
-					MarkdownDescription: descZoneID,
-				},
-				"zone_name": dsschema.StringAttribute{
-					Computed:            true,
-					MarkdownDescription: descZoneName,
-				},
-			},
-		},
-	}
-}
-
+// effectiveReplicationSpecsSchemaDS returns the schema for effective_replication_specs in data source.
+// This includes all attributes including Computed-only ones (container_id, external_id, zone_id)
+// as it represents the actual running configuration from Atlas.
 func effectiveReplicationSpecsSchemaDS() dsschema.ListNestedAttribute {
 	return dsschema.ListNestedAttribute{
 		Computed:            true,
@@ -818,21 +750,30 @@ var endpointsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 
 type TFReplicationSpecsModel struct {
 	RegionConfigs types.List   `tfsdk:"region_configs"`
+	ZoneName      types.String `tfsdk:"zone_name"`
+}
+
+var replicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"region_configs": types.ListType{ElemType: regionConfigsObjType},
+	"zone_name":      types.StringType,
+}}
+
+var replicationSpecsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"region_configs": types.ListType{ElemType: regionConfigsDSObjType},
+	"zone_name":      types.StringType,
+}}
+
+// TFEffectiveReplicationSpecsModel includes Computed-only fields (container_id, external_id, zone_id)
+// that are only available in effective_replication_specs representing actual running values from Atlas.
+type TFEffectiveReplicationSpecsModel struct {
+	RegionConfigs types.List   `tfsdk:"region_configs"`
 	ContainerId   types.Map    `tfsdk:"container_id"`
 	ExternalId    types.String `tfsdk:"external_id"`
 	ZoneId        types.String `tfsdk:"zone_id"`
 	ZoneName      types.String `tfsdk:"zone_name"`
 }
 
-var replicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"container_id":   types.MapType{ElemType: types.StringType},
-	"external_id":    types.StringType,
-	"region_configs": types.ListType{ElemType: regionConfigsObjType},
-	"zone_id":        types.StringType,
-	"zone_name":      types.StringType,
-}}
-
-var replicationSpecsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var effectiveReplicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"container_id":   types.MapType{ElemType: types.StringType},
 	"external_id":    types.StringType,
 	"region_configs": types.ListType{ElemType: regionConfigsDSObjType},

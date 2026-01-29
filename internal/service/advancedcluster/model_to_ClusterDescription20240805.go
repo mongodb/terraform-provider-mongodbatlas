@@ -119,8 +119,6 @@ func newReplicationSpec(ctx context.Context, input types.List, diags *diag.Diagn
 	for i := range elements {
 		item := &elements[i]
 		resp[i] = admin.ReplicationSpec20240805{
-			Id:            conversion.NilForUnknownOrEmptyString(item.ExternalId),
-			ZoneId:        conversion.NilForUnknownOrEmptyString(item.ZoneId),
 			RegionConfigs: newRegionConfig(ctx, item.RegionConfigs, diags),
 			ZoneName:      conversion.StringPtr(resolveZoneNameOrUseDefault(item)),
 		}

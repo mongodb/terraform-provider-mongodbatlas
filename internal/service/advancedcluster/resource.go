@@ -140,7 +140,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	modelOut := getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan)
+	modelOut := getBasicClusterModel(ctx, diags, clusterResp, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -181,7 +181,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
-	modelOut := getBasicClusterModel(ctx, diags, r.Client, cluster, &state)
+	modelOut := getBasicClusterModel(ctx, diags, cluster, &state)
 	if diags.HasError() {
 		return
 	}
@@ -257,7 +257,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			return
 		}
 	}
-	modelOut := getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan)
+	modelOut := getBasicClusterModel(ctx, diags, clusterResp, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -360,12 +360,8 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, p
 	return result
 }
 
-func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
-	containerIDs := resolveContainerIDsOrError(ctx, diags, clusterResp, client.AtlasV2.NetworkPeeringApi)
-	if diags.HasError() {
-		return nil
-	}
-	modelOut := newTFModel(ctx, clusterResp, diags, containerIDs)
+func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
+	modelOut := newTFModel(ctx, clusterResp, diags)
 	if diags.HasError() {
 		return nil
 	}

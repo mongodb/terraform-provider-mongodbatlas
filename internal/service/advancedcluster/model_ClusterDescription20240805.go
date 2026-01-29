@@ -15,11 +15,11 @@ const (
 	errorZoneNameNotSet = "zoneName is required for legacy schema"
 )
 
-func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, containerIDs map[string]string) *TFModel {
+func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics) *TFModel {
 	biConnector := newBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := newConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
 	labels := newLabelsObjType(ctx, diags, input.Labels)
-	replicationSpecs := newReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
+	replicationSpecs := newReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags)
 	tags := newTagsObjType(ctx, diags, input.Tags)
 	pinnedFCV := newPinnedFCVObjType(ctx, input, diags)
 	if diags.HasError() {
@@ -57,14 +57,45 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 }
 
 func newTFModelDS(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, containerIDs map[string]string) *TFModelDS {
-	resourceModel := newTFModel(ctx, input, diags, containerIDs)
+	biConnector := newBiConnectorConfigObjType(ctx, input.BiConnector, diags)
+	connectionStrings := newConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
+	labels := newLabelsObjType(ctx, diags, input.Labels)
+	replicationSpecs := newReplicationSpecsDSObjType(ctx, input.ReplicationSpecs, diags)
+	effectiveReplicationSpecs := newEffectiveReplicationSpecsObjType(ctx, input.EffectiveReplicationSpecs, diags, containerIDs)
+	tags := newTagsObjType(ctx, diags, input.Tags)
+	pinnedFCV := newPinnedFCVObjType(ctx, input, diags)
 	if diags.HasError() {
 		return nil
 	}
-	dsModel := conversion.CopyModel[TFModelDS](resourceModel)
-	dsModel.ReplicationSpecs = newReplicationSpecsDSObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
-	dsModel.EffectiveReplicationSpecs = newEffectiveReplicationSpecsObjType(ctx, input.EffectiveReplicationSpecs, diags, containerIDs)
-	return dsModel
+	return &TFModelDS{
+		BackupEnabled:                    types.BoolValue(conversion.SafeValue(input.BackupEnabled)),
+		BiConnectorConfig:                biConnector,
+		ClusterType:                      types.StringValue(conversion.SafeValue(input.ClusterType)),
+		ConfigServerManagementMode:       types.StringValue(conversion.SafeValue(input.ConfigServerManagementMode)),
+		ConfigServerType:                 types.StringValue(conversion.SafeValue(input.ConfigServerType)),
+		ConnectionStrings:                connectionStrings,
+		CreateDate:                       types.StringValue(conversion.SafeValue(conversion.TimePtrToStringPtr(input.CreateDate))),
+		EncryptionAtRestProvider:         types.StringValue(conversion.SafeValue(input.EncryptionAtRestProvider)),
+		GlobalClusterSelfManagedSharding: types.BoolValue(conversion.SafeValue(input.GlobalClusterSelfManagedSharding)),
+		ProjectID:                        types.StringValue(conversion.SafeValue(input.GroupId)),
+		ClusterID:                        types.StringValue(conversion.SafeValue(input.Id)),
+		Labels:                           labels,
+		MongoDBMajorVersion:              types.StringValue(conversion.SafeValue(input.MongoDBMajorVersion)),
+		MongoDBVersion:                   types.StringValue(conversion.SafeValue(input.MongoDBVersion)),
+		Name:                             types.StringValue(conversion.SafeValue(input.Name)),
+		Paused:                           types.BoolValue(conversion.SafeValue(input.Paused)),
+		PitEnabled:                       types.BoolValue(conversion.SafeValue(input.PitEnabled)),
+		RedactClientLogData:              types.BoolValue(conversion.SafeValue(input.RedactClientLogData)),
+		ReplicaSetScalingStrategy:        types.StringValue(conversion.SafeValue(input.ReplicaSetScalingStrategy)),
+		ReplicationSpecs:                 replicationSpecs,
+		EffectiveReplicationSpecs:        effectiveReplicationSpecs,
+		RootCertType:                     types.StringValue(conversion.SafeValue(input.RootCertType)),
+		StateName:                        types.StringValue(conversion.SafeValue(input.StateName)),
+		Tags:                             tags,
+		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
+		VersionReleaseSystem:             types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
+		PinnedFCV:                        pinnedFCV,
+	}
 }
 
 func newBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, diags *diag.Diagnostics) types.Object {
@@ -112,11 +143,11 @@ func newLabelsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]adm
 	return conversion.ToTFMapOfString(ctx, diags, elms)
 }
 
-func newReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) types.List {
+func newReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics) types.List {
 	if input == nil {
 		return types.ListNull(replicationSpecsObjType)
 	}
-	tfModels := convertReplicationSpecs(ctx, input, diags, containerIDs, newRegionConfigsObjType)
+	tfModels := convertReplicationSpecs(ctx, input, diags, newRegionConfigsObjType)
 	if diags.HasError() {
 		return types.ListNull(replicationSpecsObjType)
 	}
@@ -125,11 +156,11 @@ func newReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 	return listType
 }
 
-func newReplicationSpecsDSObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) types.List {
+func newReplicationSpecsDSObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics) types.List {
 	if input == nil {
 		return types.ListNull(replicationSpecsDSObjType)
 	}
-	tfModels := convertReplicationSpecs(ctx, input, diags, containerIDs, newRegionConfigsDSObjType)
+	tfModels := convertReplicationSpecs(ctx, input, diags, newRegionConfigsDSObjType)
 	if diags.HasError() {
 		return types.ListNull(replicationSpecsDSObjType)
 	}
@@ -140,14 +171,13 @@ func newReplicationSpecsDSObjType(ctx context.Context, input *[]admin.Replicatio
 
 func newEffectiveReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) types.List {
 	if input == nil {
-		return types.ListNull(replicationSpecsDSObjType)
+		return types.ListNull(effectiveReplicationSpecsObjType)
 	}
-	// Reuse the same conversion logic as replication_specs since structure is identical
-	tfModels := convertReplicationSpecs(ctx, input, diags, containerIDs, newRegionConfigsDSObjType)
+	tfModels := convertEffectiveReplicationSpecs(ctx, input, diags, containerIDs, newRegionConfigsDSObjType)
 	if diags.HasError() {
-		return types.ListNull(replicationSpecsDSObjType)
+		return types.ListNull(effectiveReplicationSpecsObjType)
 	}
-	listType, diagsLocal := types.ListValueFrom(ctx, replicationSpecsDSObjType, *tfModels)
+	listType, diagsLocal := types.ListValueFrom(ctx, effectiveReplicationSpecsObjType, *tfModels)
 	diags.Append(diagsLocal...)
 	return listType
 }
@@ -168,7 +198,7 @@ func newPinnedFCVObjType(ctx context.Context, cluster *admin.ClusterDescription2
 // regionConfigsConverter is a function type for converting region configs
 type regionConfigsConverter func(context.Context, *[]admin.CloudRegionConfig20240805, *diag.Diagnostics) types.List
 
-func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string, regionConfigsConv regionConfigsConverter) *[]TFReplicationSpecsModel {
+func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, regionConfigsConv regionConfigsConverter) *[]TFReplicationSpecsModel {
 	tfModels := make([]TFReplicationSpecsModel, len(*input))
 	for i, item := range *input {
 		regionConfigs := regionConfigsConv(ctx, item.RegionConfigs, diags)
@@ -177,10 +207,27 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 			diags.AddError(errorZoneNameNotSet, errorZoneNameNotSet)
 			return &tfModels
 		}
-		containerIDs := selectContainerIDs(&item, containerIDs)
 		tfModels[i] = TFReplicationSpecsModel{
+			RegionConfigs: regionConfigs,
+			ZoneName:      types.StringValue(conversion.SafeValue(item.ZoneName)),
+		}
+	}
+	return &tfModels
+}
+
+func convertEffectiveReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string, regionConfigsConv regionConfigsConverter) *[]TFEffectiveReplicationSpecsModel {
+	tfModels := make([]TFEffectiveReplicationSpecsModel, len(*input))
+	for i, item := range *input {
+		regionConfigs := regionConfigsConv(ctx, item.RegionConfigs, diags)
+		zoneName := item.GetZoneName()
+		if zoneName == "" {
+			diags.AddError(errorZoneNameNotSet, errorZoneNameNotSet)
+			return &tfModels
+		}
+		specContainerIDs := selectContainerIDs(&item, containerIDs)
+		tfModels[i] = TFEffectiveReplicationSpecsModel{
 			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
-			ContainerId:   conversion.ToTFMapOfString(ctx, diags, containerIDs),
+			ContainerId:   conversion.ToTFMapOfString(ctx, diags, specContainerIDs),
 			RegionConfigs: regionConfigs,
 			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
 			ZoneName:      types.StringValue(conversion.SafeValue(item.ZoneName)),
