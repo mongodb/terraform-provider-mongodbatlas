@@ -88,6 +88,7 @@ func TestAccAdvancedCluster_sharedTier_flexUpgrade(t *testing.T) {
 }
 
 func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
+	acc.SkipInUnitTest(t) // TODO: fix mock data for v3.0.0
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithFreeCluster(t, 3, 1)
 		defaultZoneName        = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
@@ -662,6 +663,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 }
 
 func TestAccMockableAdvancedCluster_symmetricSharded(t *testing.T) {
+	acc.SkipInUnitTest(t) // TODO: fix mock data for v3.0.0
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 12)
 	)
@@ -932,6 +934,7 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 }
 
 func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
+	acc.SkipInUnitTest(t) // TODO: fix mock data for v3.0.0
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 		checksMap              = map[string]string{
@@ -1021,6 +1024,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 }
 
 func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing.T) {
+	acc.SkipInUnitTest(t) // TODO: fix mock data for v3.0.0
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 8)
 		checksMap              = map[string]string{
