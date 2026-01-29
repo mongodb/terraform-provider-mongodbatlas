@@ -6,6 +6,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
@@ -120,8 +121,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.",
 			},
 			"networking": schema.SingleNestedAttribute{
-				Computed:            true,
-				Optional:            true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: "Networking configuration for Streams connections.",
 				CustomType:          customtypes.NewObjectType[TFNetworkingModel](ctx),
 				Attributes: map[string]schema.Attribute{

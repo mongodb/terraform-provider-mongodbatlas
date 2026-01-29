@@ -205,11 +205,12 @@ func TestAccStreamRSStreamConnection_kafkaOAuthBearer(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"authentication.client_secret"},
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportStateVerifyIdentifierAttribute: "connection_name",
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIgnore:              []string{"authentication.client_secret"},
 			},
 		},
 	}
@@ -238,11 +239,12 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 				Check:  checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-vpc", "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"authentication.password"},
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportStateVerifyIdentifierAttribute: "connection_name",
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIgnore:              []string{"authentication.password"},
 			},
 		},
 	})
@@ -277,11 +279,12 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 				ExpectError: regexp.MustCompile("STREAM_NETWORKING_ACCESS_TYPE_CANNOT_BE_MODIFIED"),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"authentication.password"},
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerifyIdentifierAttribute: "connection_name",
+				ImportStateVerify:                    true,
+				ImportStateVerifyIgnore:              []string{"authentication.password"},
 			},
 		},
 	})
@@ -312,10 +315,11 @@ func testCaseCluster(t *testing.T) *resource.TestCase {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "connection_name",
 			},
 		},
 	}
@@ -369,10 +373,11 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerifyIdentifierAttribute: "connection_name",
+				ImportStateVerify:                    true,
 			},
 		},
 	})
@@ -422,10 +427,11 @@ func TestAccStreamStreamConnection_https(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "connection_name",
 			},
 		},
 	})
@@ -1013,7 +1019,7 @@ func checkStreamConnectionImportStateIDFunc(resourceName string) resource.Import
 		}
 
 		// Import format expected by splitStreamConnectionImportID: {workspace_name}-{project_id}-{connection_name}
-		return fmt.Sprintf("%s-%s-%s", workspaceName, projectID, connectionName), nil
+		return fmt.Sprintf("%s/%s/%s", projectID, workspaceName, connectionName), nil
 	}
 }
 
