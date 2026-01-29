@@ -90,7 +90,7 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 	return containerIDs, nil
 }
 
-func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
+func overrideAttributesWithPrevStateValue(ctx context.Context, modelIn, modelOut *TFModel) {
 	if modelIn == nil || modelOut == nil {
 		return
 	}
@@ -111,7 +111,7 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	// Preserve null values for Optional-only attributes in replication_specs.
 	// In v3.0.0, these attributes are Optional-only (not Computed), so if the user
 	// didn't configure them, they should remain null in state even if the API returns values.
-	modelOut.ReplicationSpecs = overrideReplicationSpecsWithPrevStateValue(modelIn.ReplicationSpecs, modelOut.ReplicationSpecs)
+	modelOut.ReplicationSpecs = overrideReplicationSpecsWithPrevStateValue(ctx, modelIn.ReplicationSpecs, modelOut.ReplicationSpecs)
 }
 
 func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {
@@ -128,7 +128,7 @@ func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {
 // overrideReplicationSpecsWithPrevStateValue preserves null values for Optional-only attributes
 // in replication_specs. This ensures that if the user didn't configure an attribute, it remains
 // null in state even if the API returns a value for it.
-func overrideReplicationSpecsWithPrevStateValue(specsIn, specsOut types.List) types.List {
+func overrideReplicationSpecsWithPrevStateValue(ctx context.Context, specsIn, specsOut types.List) types.List {
 	if specsIn.IsNull() || specsIn.IsUnknown() || specsOut.IsNull() || specsOut.IsUnknown() {
 		return specsOut
 	}
@@ -139,7 +139,6 @@ func overrideReplicationSpecsWithPrevStateValue(specsIn, specsOut types.List) ty
 		return specsOut
 	}
 
-	ctx := context.Background()
 	newElems := make([]TFReplicationSpecsModel, len(elemsOut))
 
 	for i := range elemsOut {
@@ -157,7 +156,7 @@ func overrideReplicationSpecsWithPrevStateValue(specsIn, specsOut types.List) ty
 		}
 
 		// Override region_configs with preserved null values
-		specOut.RegionConfigs = overrideRegionConfigsWithPrevStateValue(specIn.RegionConfigs, specOut.RegionConfigs)
+		specOut.RegionConfigs = overrideRegionConfigsWithPrevStateValue(ctx, specIn.RegionConfigs, specOut.RegionConfigs)
 
 		newElems[i] = specOut
 	}
@@ -171,7 +170,7 @@ func overrideReplicationSpecsWithPrevStateValue(specsIn, specsOut types.List) ty
 
 // overrideRegionConfigsWithPrevStateValue preserves null values for Optional-only attributes
 // in region_configs (auto_scaling, analytics_auto_scaling, electable_specs, read_only_specs, analytics_specs).
-func overrideRegionConfigsWithPrevStateValue(configsIn, configsOut types.List) types.List {
+func overrideRegionConfigsWithPrevStateValue(ctx context.Context, configsIn, configsOut types.List) types.List {
 	if configsIn.IsNull() || configsIn.IsUnknown() || configsOut.IsNull() || configsOut.IsUnknown() {
 		return configsOut
 	}
@@ -182,7 +181,6 @@ func overrideRegionConfigsWithPrevStateValue(configsIn, configsOut types.List) t
 		return configsOut
 	}
 
-	ctx := context.Background()
 	newElems := make([]TFRegionConfigsModel, len(elemsOut))
 
 	for i := range elemsOut {
@@ -199,29 +197,29 @@ func overrideRegionConfigsWithPrevStateValue(configsIn, configsOut types.List) t
 			configOut.AutoScaling = types.ObjectNull(autoScalingObjType.AttrTypes)
 		} else {
 			// Preserve null values within auto_scaling for partially configured objects
-			configOut.AutoScaling = overrideAutoScalingWithPrevStateValue(configIn.AutoScaling, configOut.AutoScaling)
+			configOut.AutoScaling = overrideAutoScalingWithPrevStateValue(ctx, configIn.AutoScaling, configOut.AutoScaling)
 		}
 		if configIn.AnalyticsAutoScaling.IsNull() {
 			configOut.AnalyticsAutoScaling = types.ObjectNull(autoScalingObjType.AttrTypes)
 		} else {
 			// Preserve null values within analytics_auto_scaling for partially configured objects
-			configOut.AnalyticsAutoScaling = overrideAutoScalingWithPrevStateValue(configIn.AnalyticsAutoScaling, configOut.AnalyticsAutoScaling)
+			configOut.AnalyticsAutoScaling = overrideAutoScalingWithPrevStateValue(ctx, configIn.AnalyticsAutoScaling, configOut.AnalyticsAutoScaling)
 		}
 		if configIn.ElectableSpecs.IsNull() {
 			configOut.ElectableSpecs = types.ObjectNull(specsObjType.AttrTypes)
 		} else {
 			// Preserve null values within electable_specs for disk_size_gb, disk_iops, ebs_volume_type
-			configOut.ElectableSpecs = overrideSpecsWithPrevStateValue(configIn.ElectableSpecs, configOut.ElectableSpecs)
+			configOut.ElectableSpecs = overrideSpecsWithPrevStateValue(ctx, configIn.ElectableSpecs, configOut.ElectableSpecs)
 		}
 		if configIn.ReadOnlySpecs.IsNull() {
 			configOut.ReadOnlySpecs = types.ObjectNull(specsObjType.AttrTypes)
 		} else {
-			configOut.ReadOnlySpecs = overrideSpecsWithPrevStateValue(configIn.ReadOnlySpecs, configOut.ReadOnlySpecs)
+			configOut.ReadOnlySpecs = overrideSpecsWithPrevStateValue(ctx, configIn.ReadOnlySpecs, configOut.ReadOnlySpecs)
 		}
 		if configIn.AnalyticsSpecs.IsNull() {
 			configOut.AnalyticsSpecs = types.ObjectNull(specsObjType.AttrTypes)
 		} else {
-			configOut.AnalyticsSpecs = overrideSpecsWithPrevStateValue(configIn.AnalyticsSpecs, configOut.AnalyticsSpecs)
+			configOut.AnalyticsSpecs = overrideSpecsWithPrevStateValue(ctx, configIn.AnalyticsSpecs, configOut.AnalyticsSpecs)
 		}
 
 		newElems[i] = configOut
@@ -235,12 +233,11 @@ func overrideRegionConfigsWithPrevStateValue(configsIn, configsOut types.List) t
 }
 
 // overrideAutoScalingWithPrevStateValue preserves null values for Optional-only attributes within auto_scaling.
-func overrideAutoScalingWithPrevStateValue(asIn, asOut types.Object) types.Object {
+func overrideAutoScalingWithPrevStateValue(ctx context.Context, asIn, asOut types.Object) types.Object {
 	if asIn.IsNull() || asIn.IsUnknown() || asOut.IsNull() || asOut.IsUnknown() {
 		return asOut
 	}
 
-	ctx := context.Background()
 	var autoScaleIn, autoScaleOut TFAutoScalingModel
 	if diags := tfsdk.ValueAs(ctx, asIn, &autoScaleIn); diags.HasError() {
 		return asOut
@@ -275,12 +272,11 @@ func overrideAutoScalingWithPrevStateValue(asIn, asOut types.Object) types.Objec
 
 // overrideSpecsWithPrevStateValue preserves null values for Optional-only attributes within specs
 // (disk_size_gb, disk_iops, ebs_volume_type).
-func overrideSpecsWithPrevStateValue(specsIn, specsOut types.Object) types.Object {
+func overrideSpecsWithPrevStateValue(ctx context.Context, specsIn, specsOut types.Object) types.Object {
 	if specsIn.IsNull() || specsIn.IsUnknown() || specsOut.IsNull() || specsOut.IsUnknown() {
 		return specsOut
 	}
 
-	ctx := context.Background()
 	var specIn, specOut TFSpecsModel
 	if diags := tfsdk.ValueAs(ctx, specsIn, &specIn); diags.HasError() {
 		return specsOut
