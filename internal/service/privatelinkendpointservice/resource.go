@@ -194,8 +194,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		deleteOnCreateTimeout = v.(bool)
 	}
 	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
-		_, errCleanup := connV2.PrivateEndpointServicesApi.DeletePrivateEndpoint(ctxCleanup, projectID, providerName, endpointServiceID, privateLinkID).Execute()
-		return errCleanup
+		return deletePrivateEndpoint(ctx, d, connV2, projectID, providerName, endpointServiceID, privateLinkID)
 	})
 	if errWait != nil {
 		return diag.FromErr(fmt.Errorf(errorServiceEndpointAdd, endpointServiceID, privateLinkID, errWait))
@@ -307,24 +306,9 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	providerName := ids["provider_name"]
 
 	if endpointServiceID != "" {
-		_, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
+		err := deletePrivateEndpoint(ctx, d, connV2, projectID, providerName, endpointServiceID, privateLinkID)
 		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorEndpointDelete, endpointServiceID, err))
-		}
-
-		stateConf := &retry.StateChangeConf{
-			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "INITIATING"},
-			Target:     []string{"REJECTED", "DELETED", "FAILED"},
-			Refresh:    resourceRefreshFunc(ctx, connV2, projectID, providerName, privateLinkID, endpointServiceID),
-			Timeout:    d.Timeout(schema.TimeoutDelete),
-			MinTimeout: delayAndMinTimeout,
-			Delay:      delayAndMinTimeout,
-		}
-
-		// Wait, catching any errors
-		_, err = stateConf.WaitForStateContext(ctx)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorEndpointDelete, endpointServiceID, err))
+			return diag.FromErr(err)
 		}
 
 		clusterConf := &retry.StateChangeConf{
@@ -342,6 +326,29 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
+	return nil
+}
+
+func deletePrivateEndpoint(ctx context.Context, d *schema.ResourceData, connV2 *admin.APIClient, projectID, providerName, endpointServiceID, privateLinkID string) error {
+	_, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
+	if err != nil {
+		return fmt.Errorf(errorEndpointDelete, endpointServiceID, err)
+	}
+
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "INITIATING"},
+		Target:     []string{"REJECTED", "DELETED", "FAILED"},
+		Refresh:    resourceRefreshFunc(ctx, connV2, projectID, providerName, privateLinkID, endpointServiceID),
+		Timeout:    d.Timeout(schema.TimeoutDelete),
+		MinTimeout: delayAndMinTimeout,
+		Delay:      delayAndMinTimeout,
+	}
+
+	// Wait, catching any errors
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return fmt.Errorf(errorEndpointDelete, endpointServiceID, err)
+	}
 	return nil
 }
 
