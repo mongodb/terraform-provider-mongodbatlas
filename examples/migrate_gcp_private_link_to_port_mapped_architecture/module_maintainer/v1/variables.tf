@@ -44,7 +44,7 @@ variable "legacy_address_base_ip" {
 }
 
 variable "legacy_endpoint_service_id" {
-  description = "Endpoint service ID for legacy architecture (can be any identifier string)"
+  description = "Endpoint service ID for legacy architecture (is the endpoint group name)"
   type        = string
 }
 

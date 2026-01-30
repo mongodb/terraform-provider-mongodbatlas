@@ -8,7 +8,7 @@ page_title: "Migration Guide: GCP Private Service Connect to Port-Mapped Archite
 
 This guide explains how to migrate from the legacy GCP Private Service Connect architecture to the port-mapped architecture for MongoDB Atlas private link endpoints.
 
-The steps in this guide are for migrating Terraform-managed GCP private link endpoint resources, `mongodbatlas_privatelink_endpoint`, and `mongodbatlas_privatelink_endpoint_service`. The legacy architecture requires dedicated resources for each Atlas node. The port-mapped architecture uses a single set of resources to support up to 150 nodes through port mapping, enabling direct targeting of specific nodes using only one customer IP address.
+The steps in this guide are for migrating Terraform-managed GCP private link endpoint resources, `mongodbatlas_privatelink_endpoint`, and `mongodbatlas_privatelink_endpoint_service`. In the legacy architecture, service attachments were mapped 1:1 with Atlas nodes (one service attachment per node). In the port-mapped architecture, one service attachment can be mapped to up to 150 nodes via ports designated per node, enabling direct targeting of specific nodes using only one customer IP address.
 
 **Note:** Migration to the port-mapped architecture is recommended but **not required**. If you are currently using the legacy architecture, you may continue to do so. This guide is for users who wish to adopt the port-mapped architecture for simplified management and reduced resource overhead.
 
@@ -20,7 +20,7 @@ The legacy architecture has two main limitations:
 
 2. **Static Configuration**: Changing the number of private service connections per region group requires a full private service connect redeployment, causing friction when changing cluster configurations.
 
-The port-mapped architecture addresses these limitations by using a single set of resources to support up to 150 nodes, requiring only 1 Google Compute Address and 1 Google Compute Forwarding Rule.
+The port-mapped architecture addresses these limitations by using one service attachment that can be mapped to up to 150 nodes via ports designated per node, requiring only 1 Google Compute Address and 1 Google Compute Forwarding Rule.
 
 ## Architecture Comparison
 
@@ -31,7 +31,7 @@ The following table shows the key differences between the legacy and port-mapped
 | `mongodbatlas_privatelink_endpoint.port_mapping_enabled` | Not set (defaults to `false`) | Must be set to `true` |
 | `google_compute_address` count | One per Atlas node | 1 address (total, supports up to 150 nodes) |
 | `google_compute_forwarding_rule` count | One per Atlas node | 1 forwarding rule (total, supports up to 150 nodes) |
-| `mongodbatlas_privatelink_endpoint_service.endpoint_service_id` | Required (can be any identifier string) | Required (is the forwarding rule name) |
+| `mongodbatlas_privatelink_endpoint_service.endpoint_service_id` | Required (is the endpoint group name) | Required (is the forwarding rule name) |
 | `mongodbatlas_privatelink_endpoint_service.private_endpoint_ip_address` | Not used | Required (the IP address of the forwarding rule) |
 | `mongodbatlas_privatelink_endpoint_service.endpoints` | Required (one endpoint per Atlas node) | Not used |
 | `mongodbatlas_privatelink_endpoint_service.gcp_project_id` | Required | Required |
@@ -133,7 +133,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "legacy" {
   project_id               = mongodbatlas_privatelink_endpoint.legacy.project_id
   private_link_id          = mongodbatlas_privatelink_endpoint.legacy.private_link_id
   provider_name            = "GCP"
-  # Note: endpoint_service_id can be any identifier string for legacy architecture.
+  # Note: endpoint_service_id is the endpoint group name for legacy architecture.
   # It's used only as an identifier and doesn't need to match any GCP resource name.
   endpoint_service_id      = "legacy-endpoint-group"
   gcp_project_id           = var.gcp_project_id

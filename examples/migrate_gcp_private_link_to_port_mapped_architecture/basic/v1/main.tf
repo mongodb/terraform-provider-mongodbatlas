@@ -54,7 +54,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "legacy" {
   project_id      = mongodbatlas_privatelink_endpoint.legacy.project_id
   private_link_id = mongodbatlas_privatelink_endpoint.legacy.private_link_id
   provider_name   = "GCP"
-  # Note: endpoint_service_id can be any identifier string for legacy architecture.
+  # Note: endpoint_service_id is the endpoint group name for legacy architecture.
   # It's used only as an identifier and doesn't need to match any GCP resource name.
   endpoint_service_id = var.legacy_endpoint_service_id
   gcp_project_id      = var.gcp_project_id
