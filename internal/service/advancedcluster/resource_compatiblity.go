@@ -94,10 +94,6 @@ func overrideAttributesWithPrevStateValue(ctx context.Context, modelIn, modelOut
 	if modelIn == nil || modelOut == nil {
 		return
 	}
-	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())
-	if beforeVersion != nil && !modelIn.MongoDBMajorVersion.Equal(modelOut.MongoDBMajorVersion) {
-		modelOut.MongoDBMajorVersion = types.StringPointerValue(beforeVersion)
-	}
 	overrideMapStringWithPrevStateValue(&modelIn.Labels, &modelOut.Labels)
 	overrideMapStringWithPrevStateValue(&modelIn.Tags, &modelOut.Tags)
 
@@ -127,6 +123,42 @@ func overrideAttributesWithPrevStateValue(ctx context.Context, modelIn, modelOut
 	} else {
 		// Preserve null values for partially configured advanced_configuration
 		modelOut.AdvancedConfiguration = overrideAdvancedConfigurationWithPrevStateValue(ctx, modelIn.AdvancedConfiguration, modelOut.AdvancedConfiguration)
+	}
+
+	// Preserve null values for other Optional-only attributes.
+	// These were changed from Optional+Computed to Optional-only in v3.0.0.
+	if modelIn.BackupEnabled.IsNull() {
+		modelOut.BackupEnabled = types.BoolNull()
+	}
+	if modelIn.EncryptionAtRestProvider.IsNull() {
+		modelOut.EncryptionAtRestProvider = types.StringNull()
+	}
+	if modelIn.GlobalClusterSelfManagedSharding.IsNull() {
+		modelOut.GlobalClusterSelfManagedSharding = types.BoolNull()
+	}
+	if modelIn.MongoDBMajorVersion.IsNull() {
+		modelOut.MongoDBMajorVersion = types.StringNull()
+	}
+	if modelIn.Paused.IsNull() {
+		modelOut.Paused = types.BoolNull()
+	}
+	if modelIn.PitEnabled.IsNull() {
+		modelOut.PitEnabled = types.BoolNull()
+	}
+	if modelIn.RedactClientLogData.IsNull() {
+		modelOut.RedactClientLogData = types.BoolNull()
+	}
+	if modelIn.ReplicaSetScalingStrategy.IsNull() {
+		modelOut.ReplicaSetScalingStrategy = types.StringNull()
+	}
+	if modelIn.TerminationProtectionEnabled.IsNull() {
+		modelOut.TerminationProtectionEnabled = types.BoolNull()
+	}
+	if modelIn.VersionReleaseSystem.IsNull() {
+		modelOut.VersionReleaseSystem = types.StringNull()
+	}
+	if modelIn.ConfigServerManagementMode.IsNull() {
+		modelOut.ConfigServerManagementMode = types.StringNull()
 	}
 }
 

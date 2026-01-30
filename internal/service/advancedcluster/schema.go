@@ -54,9 +54,8 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. MongoDB Atlas docs contain more information. To proceed with an operation which carries that risk, set **acceptDataRisksAndForceReplicaSetReconfig** to the current date.",
 			},
 			"backup_enabled": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/) for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.",
+				MarkdownDescription: "Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/) for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"bi_connector_config": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -77,9 +76,8 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Configuration of nodes that comprise the cluster.",
 			},
 			"config_server_management_mode": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Config Server Management Mode for creating or updating a sharded cluster.\n\nWhen configured as ATLAS_MANAGED, atlas may automatically switch the cluster's config server type for optimal performance and savings.\n\nWhen configured as FIXED_TO_DEDICATED, the cluster will always use a dedicated config server.",
+				MarkdownDescription: "Config Server Management Mode for creating or updating a sharded cluster.\n\nWhen configured as ATLAS_MANAGED, atlas may automatically switch the cluster's config server type for optimal performance and savings.\n\nWhen configured as FIXED_TO_DEDICATED, the cluster will always use a dedicated config server. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"config_server_type": schema.StringAttribute{
 				Computed:            true,
@@ -154,6 +152,9 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			"create_date": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Date and time when MongoDB Cloud created this cluster. This parameter expresses its value in ISO 8601 format in UTC.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed: true,
@@ -164,14 +165,12 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
 			},
 			"encryption_at_rest_provider": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Cloud service provider that manages your customer keys to provide an additional layer of encryption at rest for the cluster. To enable customer key management for encryption at rest, the cluster **replicationSpecs[n].regionConfigs[m].{type}Specs.instanceSize** setting must be `M10` or higher and `\"backupEnabled\" : false` or omitted entirely.",
+				MarkdownDescription: "Cloud service provider that manages your customer keys to provide an additional layer of encryption at rest for the cluster. To enable customer key management for encryption at rest, the cluster **replicationSpecs[n].regionConfigs[m].{type}Specs.instanceSize** setting must be `M10` or higher and `\"backupEnabled\" : false` or omitted entirely. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"global_cluster_self_managed_sharding": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Set this field to configure the Sharding Management Mode when creating a new Global Cluster.\n\nWhen set to false, the management mode is set to Atlas-Managed Sharding. This mode fully manages the sharding of your Global Cluster and is built to provide a seamless deployment experience.\n\nWhen set to true, the management mode is set to Self-Managed Sharding. This mode leaves the management of shards in your hands and is built to provide an advanced and flexible deployment experience.\n\nThis setting cannot be changed once the cluster is deployed.",
+				MarkdownDescription: "Set this field to configure the Sharding Management Mode when creating a new Global Cluster.\n\nWhen set to false, the management mode is set to Atlas-Managed Sharding. This mode fully manages the sharding of your Global Cluster and is built to provide a seamless deployment experience.\n\nWhen set to true, the management mode is set to Self-Managed Sharding. This mode leaves the management of shards in your hands and is built to provide an advanced and flexible deployment experience.\n\nThis setting cannot be changed once the cluster is deployed. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
@@ -183,14 +182,16 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			"cluster_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the cluster.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"mongo_db_major_version": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(regexp.MustCompile(`^([0-9]+)\.?([0-9]+)?$`), "MongoDB major version must be in the format \"8\" or \"8.0\""),
 				},
-				MarkdownDescription: "MongoDB major version of the cluster.\n\nOn creation: Choose from the available versions of MongoDB, or leave unspecified for the current recommended default in the MongoDB Cloud platform. The recommended version is a recent Long Term Support version. The default is not guaranteed to be the most recently released version throughout the entire release cycle. For versions available in a specific project, see the linked documentation or use the API endpoint for [project LTS versions endpoint](#tag/Projects/operation/getProjectLTSVersions).\n\n On update: Increase version only by 1 major version at a time. If the cluster is pinned to a MongoDB feature compatibility version exactly one major version below the current MongoDB version, the MongoDB version can be downgraded to the previous major version.",
+				MarkdownDescription: "MongoDB major version of the cluster.\n\nOn creation: Choose from the available versions of MongoDB, or leave unspecified for the current recommended default in the MongoDB Cloud platform. The recommended version is a recent Long Term Support version. The default is not guaranteed to be the most recently released version throughout the entire release cycle. For versions available in a specific project, see the linked documentation or use the API endpoint for [project LTS versions endpoint](#tag/Projects/operation/getProjectLTSVersions).\n\n On update: Increase version only by 1 major version at a time. If the cluster is pinned to a MongoDB feature compatibility version exactly one major version below the current MongoDB version, the MongoDB version can be downgraded to the previous major version. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"mongo_db_version": schema.StringAttribute{
 				Computed:            true,
@@ -204,24 +205,20 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"paused": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether the cluster is paused.",
+				MarkdownDescription: "Flag that indicates whether the cluster is paused. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"pit_enabled": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether the cluster uses continuous cloud backups.",
+				MarkdownDescription: "Flag that indicates whether the cluster uses continuous cloud backups. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"redact_client_log_data": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Enable or disable log redaction.\n\nThis setting configures the ``mongod`` or ``mongos`` to redact any document field contents from a message accompanying a given log event before logging. This prevents the program from writing potentially sensitive data stored on the database to the diagnostic log. Metadata such as error or operation codes, line numbers, and source file names are still visible in the logs.\n\nUse ``redactClientLogData`` in conjunction with Encryption at Rest and TLS/SSL (Transport Encryption) to assist compliance with regulatory requirements.\n\n*Note*: changing this setting on a cluster will trigger a rolling restart as soon as the cluster is updated.",
+				MarkdownDescription: "Enable or disable log redaction.\n\nThis setting configures the ``mongod`` or ``mongos`` to redact any document field contents from a message accompanying a given log event before logging. This prevents the program from writing potentially sensitive data stored on the database to the diagnostic log. Metadata such as error or operation codes, line numbers, and source file names are still visible in the logs.\n\nUse ``redactClientLogData`` in conjunction with Encryption at Rest and TLS/SSL (Transport Encryption) to assist compliance with regulatory requirements.\n\n*Note*: changing this setting on a cluster will trigger a rolling restart as soon as the cluster is updated. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"replica_set_scaling_strategy": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Set this field to configure the replica set scaling mode for your cluster.\n\nBy default, Atlas scales under WORKLOAD_TYPE. This mode allows Atlas to scale your analytics nodes in parallel to your operational nodes.\n\nWhen configured as SEQUENTIAL, Atlas scales all nodes sequentially. This mode is intended for steady-state workloads and applications performing latency-sensitive secondary reads.\n\nWhen configured as NODE_TYPE, Atlas scales your electable nodes in parallel with your read-only and analytics nodes. This mode is intended for large, dynamic workloads requiring frequent and timely cluster tier scaling. This is the fastest scaling strategy, but it might impact latency of workloads when performing extensive secondary reads.",
+				MarkdownDescription: "Set this field to configure the replica set scaling mode for your cluster.\n\nBy default, Atlas scales under WORKLOAD_TYPE. This mode allows Atlas to scale your analytics nodes in parallel to your operational nodes.\n\nWhen configured as SEQUENTIAL, Atlas scales all nodes sequentially. This mode is intended for steady-state workloads and applications performing latency-sensitive secondary reads.\n\nWhen configured as NODE_TYPE, Atlas scales your electable nodes in parallel with your read-only and analytics nodes. This mode is intended for large, dynamic workloads requiring frequent and timely cluster tier scaling. This is the fastest scaling strategy, but it might impact latency of workloads when performing extensive secondary reads. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"replication_specs": schema.ListNestedAttribute{
 				Required:            true,
@@ -277,14 +274,12 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable label that indicates the current operating condition of this cluster.",
 			},
 			"termination_protection_enabled": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster.",
+				MarkdownDescription: "Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"version_release_system": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Method by which the cluster maintains the MongoDB versions. If value is `CONTINUOUS`, you must not specify **mongoDBMajorVersion**.",
+				MarkdownDescription: "Method by which the cluster maintains the MongoDB versions. If value is `CONTINUOUS`, you must not specify **mongoDBMajorVersion**. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"retain_backups_enabled": schema.BoolAttribute{
 				Optional:            true,
