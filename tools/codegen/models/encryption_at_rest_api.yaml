@@ -1,0 +1,377 @@
+schema:
+    description: |-
+        Updates the configuration for encryption at rest using the keys you manage through your cloud provider. MongoDB Cloud encrypts all storage even if you don't use your own key management. This resource requires the requesting Service Account or API Key to have the Project Owner role. This feature isn't available for `M0` free clusters, `M2`, `M5`, or serverless clusters.
+
+         After you configure at least one Encryption at Rest using a Customer Key Management provider for the MongoDB Cloud project, Project Owners can enable Encryption at Rest using Customer Key Management for each MongoDB Cloud cluster for which they require encryption. The Encryption at Rest using Customer Key Management provider doesn't have to match the cluster cloud service provider. MongoDB Cloud doesn't automatically rotate user-managed encryption keys. Defer to your preferred Encryption at Rest using Customer Key Management provider's documentation and guidance for best practices on key rotation. MongoDB Cloud automatically creates a 90-day key rotation alert when you configure Encryption at Rest using Customer Key Management using your Key Management in an MongoDB Cloud project. MongoDB Cloud encrypts all storage whether or not you use your own key management.
+    attributes:
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Unique alphanumeric string that identifies an Identity and Access Management (IAM) access key with permissions required to access your Amazon Web Services (AWS) Customer Master Key (CMK).
+                      computed_optional_required: optional
+                      tf_schema_name: access_key_id
+                      tf_model_name: AccessKeyID
+                      api_name: accessKeyID
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unique alphanumeric string that identifies the Amazon Web Services (AWS) Customer Master Key (CMK) you used to encrypt and decrypt the MongoDB master keys.
+                      computed_optional_required: optional
+                      tf_schema_name: customer_master_key_id
+                      tf_model_name: CustomerMasterKeyID
+                      api_name: customerMasterKeyID
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - bool: {}
+                      description: Flag that indicates whether someone enabled encryption at rest for the specified project through Amazon Web Services (AWS) Key Management Service (KMS). To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.
+                      computed_optional_required: optional
+                      tf_schema_name: enabled
+                      tf_model_name: Enabled
+                      api_name: enabled
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Physical location where MongoDB Cloud deploys your AWS-hosted MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases. When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Cloud creates them as part of the deployment. MongoDB Cloud assigns the VPC a CIDR block. To limit a new VPC peering connection to one CIDR block and region, create the connection first. Deploy the cluster after the connection starts.
+                      computed_optional_required: optional
+                      tf_schema_name: region
+                      tf_model_name: Region
+                      api_name: region
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - bool: {}
+                      description: Enable connection to your Amazon Web Services (AWS) Key Management Service (KMS) over private networking.
+                      computed_optional_required: optional
+                      tf_schema_name: require_private_networking
+                      tf_model_name: RequirePrivateNetworking
+                      api_name: requirePrivateNetworking
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unique 24-hexadecimal digit string that identifies an Amazon Web Services (AWS) Identity and Access Management (IAM) role. This IAM role has the permissions required to manage your AWS customer master key.
+                      computed_optional_required: optional
+                      tf_schema_name: role_id
+                      tf_model_name: RoleId
+                      api_name: roleId
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Human-readable label of the Identity and Access Management (IAM) secret access key with permissions required to access your Amazon Web Services (AWS) customer master key.
+                      computed_optional_required: optional
+                      tf_schema_name: secret_access_key
+                      tf_model_name: SecretAccessKey
+                      api_name: secretAccessKey
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - bool: {}
+                      description: Flag that indicates whether the Amazon Web Services (AWS) Key Management Service (KMS) encryption key can encrypt and decrypt data.
+                      computed_optional_required: computed
+                      tf_schema_name: valid
+                      tf_model_name: Valid
+                      api_name: valid
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Amazon Web Services (AWS) KMS configuration details and encryption at rest configuration set for the specified project.
+          custom_type:
+            package: customtypes
+            name: AwsKms
+            model: customtypes.ObjectValue[TFAwsKmsModel]
+            schema: customtypes.NewObjectType[TFAwsKmsModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: aws_kms
+          tf_model_name: AwsKms
+          api_name: awsKms
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Azure environment in which your account credentials reside.
+                      computed_optional_required: optional
+                      tf_schema_name: azure_environment
+                      tf_model_name: AzureEnvironment
+                      api_name: azureEnvironment
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unique 36-hexadecimal character string that identifies an Azure application associated with your Azure Active Directory tenant.
+                      computed_optional_required: optional
+                      tf_schema_name: client_id
+                      tf_model_name: ClientID
+                      api_name: clientID
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - bool: {}
+                      description: Flag that indicates whether someone enabled encryption at rest for the specified  project. To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.
+                      computed_optional_required: optional
+                      tf_schema_name: enabled
+                      tf_model_name: Enabled
+                      api_name: enabled
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Web address with a unique key that identifies for your Azure Key Vault.
+                      computed_optional_required: optional
+                      tf_schema_name: key_identifier
+                      tf_model_name: KeyIdentifier
+                      api_name: keyIdentifier
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unique string that identifies the Azure Key Vault that contains your key. This field cannot be modified when you enable and set up private endpoint connections to your Azure Key Vault.
+                      computed_optional_required: optional
+                      tf_schema_name: key_vault_name
+                      tf_model_name: KeyVaultName
+                      api_name: keyVaultName
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - bool: {}
+                      description: Enable connection to your Azure Key Vault over private networking.
+                      computed_optional_required: optional
+                      tf_schema_name: require_private_networking
+                      tf_model_name: RequirePrivateNetworking
+                      api_name: requirePrivateNetworking
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Name of the Azure resource group that contains your Azure Key Vault. This field cannot be modified when you enable and set up private endpoint connections to your Azure Key Vault.
+                      computed_optional_required: optional
+                      tf_schema_name: resource_group_name
+                      tf_model_name: ResourceGroupName
+                      api_name: resourceGroupName
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unique 24-hexadecimal digit string that identifies the Azure Service Principal that MongoDB Cloud uses to access the Azure Key Vault.
+                      computed_optional_required: optional
+                      tf_schema_name: role_id
+                      tf_model_name: RoleId
+                      api_name: roleId
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Private data that you need secured and that belongs to the specified Azure Key Vault (AKV) tenant (**azureKeyVault.tenantID**). This data can include any type of sensitive data such as passwords, database connection strings, API keys, and the like. AKV stores this information as encrypted binary data.
+                      computed_optional_required: optional
+                      tf_schema_name: secret
+                      tf_model_name: Secret
+                      api_name: secret
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unique 36-hexadecimal character string that identifies your Azure subscription. This field cannot be modified when you enable and set up private endpoint connections to your Azure Key Vault.
+                      computed_optional_required: optional
+                      tf_schema_name: subscription_id
+                      tf_model_name: SubscriptionID
+                      api_name: subscriptionID
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unique 36-hexadecimal character string that identifies the Azure Active Directory tenant within your Azure subscription.
+                      computed_optional_required: optional
+                      tf_schema_name: tenant_id
+                      tf_model_name: TenantID
+                      api_name: tenantID
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - bool: {}
+                      description: Flag that indicates whether the Azure encryption key can encrypt and decrypt data.
+                      computed_optional_required: computed
+                      tf_schema_name: valid
+                      tf_model_name: Valid
+                      api_name: valid
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Details that define the configuration of Encryption at Rest using Azure Key Vault (AKV).
+          custom_type:
+            package: customtypes
+            name: AzureKeyVault
+            model: customtypes.ObjectValue[TFAzureKeyVaultModel]
+            schema: customtypes.NewObjectType[TFAzureKeyVaultModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: azure_key_vault
+          tf_model_name: AzureKeyVault
+          api_name: azureKeyVault
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - bool: {}
+          description: Flag that indicates whether Encryption at Rest for Dedicated Search Nodes is enabled in the specified project.
+          computed_optional_required: optional
+          tf_schema_name: enabled_for_search_nodes
+          tf_model_name: EnabledForSearchNodes
+          api_name: enabledForSearchNodes
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - bool: {}
+                      description: Flag that indicates whether someone enabled encryption at rest for the specified  project. To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.
+                      computed_optional_required: optional
+                      tf_schema_name: enabled
+                      tf_model_name: Enabled
+                      api_name: enabled
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Resource path that displays the key version resource ID for your Google Cloud KMS.
+                      computed_optional_required: optional
+                      tf_schema_name: key_version_resource_id
+                      tf_model_name: KeyVersionResourceID
+                      api_name: keyVersionResourceID
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unique 24-hexadecimal digit string that identifies the Google Cloud Provider Access Role that MongoDB Cloud uses to access the Google Cloud KMS.
+                      computed_optional_required: optional
+                      tf_schema_name: role_id
+                      tf_model_name: RoleId
+                      api_name: roleId
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: JavaScript Object Notation (JSON) object that contains the Google Cloud Key Management Service (KMS). Format the JSON as a string and not as an object.
+                      computed_optional_required: optional
+                      tf_schema_name: service_account_key
+                      tf_model_name: ServiceAccountKey
+                      api_name: serviceAccountKey
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - bool: {}
+                      description: Flag that indicates whether the Google Cloud Key Management Service (KMS) encryption key can encrypt and decrypt data.
+                      computed_optional_required: computed
+                      tf_schema_name: valid
+                      tf_model_name: Valid
+                      api_name: valid
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Details that define the configuration of Encryption at Rest using Google Cloud Key Management Service (KMS).
+          custom_type:
+            package: customtypes
+            name: GoogleCloudKms
+            model: customtypes.ObjectValue[TFGoogleCloudKmsModel]
+            schema: customtypes.NewObjectType[TFGoogleCloudKmsModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: google_cloud_kms
+          tf_model_name: GoogleCloudKms
+          api_name: googleCloudKms
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+operations:
+    delete:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{projectId}/encryptionAtRest
+        static_request_body: '{"awsKms": {"enabled": false}, "azureKeyVault": {"enabled": false}, "googleCloudKms": {"enabled": false}}'
+    create:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{projectId}/encryptionAtRest
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{projectId}/encryptionAtRest
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{projectId}/encryptionAtRest
+    version_header: application/vnd.atlas.2023-01-01+json
+name: encryption_at_rest_api
+packageName: encryptionatrestapi

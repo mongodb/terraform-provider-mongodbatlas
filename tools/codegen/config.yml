@@ -1042,6 +1042,46 @@ resources:
           project_id:
             description: *project_id_description
 
+  encryption_at_rest_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest
+      method: PATCH
+    update:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/encryptionAtRest
+      method: PATCH
+      static_request_body: '{"awsKms": {"enabled": false}, "azureKeyVault": {"enabled": false}, "googleCloudKms": {"enabled": false}}'
+
+    schema:
+      aliases:
+        groupId: projectId
+      overrides:
+        aws_kms.access_key_id:
+          sensitive: true
+        aws_kms.secret_access_key:
+          sensitive: true
+        aws_kms.customer_master_key_id:
+          sensitive: true
+        azure_key_vault.client_id:
+          sensitive: true
+        azure_key_vault.subscription_id:
+          sensitive: true
+        azure_key_vault.key_identifier:
+          sensitive: true
+        azure_key_vault.secret:
+          sensitive: true
+        azure_key_vault.tenant_id:
+          sensitive: true
+        google_cloud_kms.service_account_key:
+          sensitive: true
+        google_cloud_kms.key_version_resource_id:
+          sensitive: true
+      
   project_ip_access_list:
     datasources:
       list:
