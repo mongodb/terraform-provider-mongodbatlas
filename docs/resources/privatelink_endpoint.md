@@ -68,7 +68,7 @@ GCP:
   * `endpoint_group_names` - For port-mapped architecture, this is a list of private endpoint names associated with the private endpoint service. For legacy architecture, this is a list of the endpoint group names associated with the private endpoint service.
   * `region_name` - Region for the Private Service Connect endpoint service.
   * `service_attachment_names` - For port-mapped architecture, this is a list containing one service attachment connected to the private endpoint service. For legacy architecture, this is a list of service attachments connected to the private endpoint service (one per Atlas node). Returns an empty list while Atlas creates the service attachments.
-* `status` - Status of the AWS PrivateLink connection or Status of the Azure/GCP Private Link Service. Atlas returns one of the following values:
+* `status` - Status of the AWS PrivateLink connection, Azure Private Link Service, or GCP Private Service Connect service. Atlas returns one of the following values:
   AWS:
     * `AVAILABLE` 	Atlas is creating the network load balancer and VPC endpoint service.
     * `WAITING_FOR_USER` The Atlas network load balancer and VPC endpoint service are created and ready to receive connection requests. When you receive this status, create an interface endpoint to continue configuring the AWS PrivateLink connection.

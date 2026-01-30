@@ -92,7 +92,7 @@ data "mongodbatlas_privatelink_endpoint_service" "test" {
 
 ## Example with GCP (Port-Mapped Architecture)
 
-The port-mapped architecture uses port mapping to reduce resource provisioning. Unlike the legacy architecture that requires dedicated resources for each Atlas node, the port-mapped architecture design uses a single set of resources to support up to 150 nodes, enabling direct targeting of specific nodes using only one customer IP address. Enable it by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource.
+The port-mapped architecture uses port mapping to reduce resource provisioning. In the legacy architecture, service attachments were mapped 1:1 with Atlas nodes (one service attachment per node). In the port-mapped architecture, one service attachment can be mapped to up to 150 nodes via ports designated per node, enabling direct targeting of specific nodes using only one customer IP address. Enable it by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource.
 
 **Important:** For the port-mapped architecture, use `endpoint_service_id` (the forwarding rule name) and `private_endpoint_ip_address` (the IP address). The `endpoints` list is no longer used for the port-mapped architecture.
 
@@ -112,7 +112,7 @@ data "mongodbatlas_privatelink_endpoint_service" "test" {
 
 * `project_id` - (Required) Unique identifier for the project.
 * `private_link_id` - (Required) Unique identifier of the private endpoint service for which you want to retrieve a private endpoint.
-* `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC with the `AWS`, `AZURE` or `GCP` resource. For port-mapped architecture, this is the forwarding rule name. For legacy architecture, this can be any identifier string.
+* `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC. For `AWS` and `AZURE`, this is the interface endpoint identifier. For `GCP` port-mapped architecture, this is the forwarding rule name. For `GCP` legacy architecture, this is the endpoint group name.
 * `provider_name` - (Required) Cloud provider for which you want to retrieve a private endpoint. Atlas accepts `AWS`, `AZURE` or `GCP`.
 
 ## Attributes Reference
