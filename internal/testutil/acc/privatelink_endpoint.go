@@ -29,15 +29,15 @@ func createPrivateLinkEndpoint(tb testing.TB, projectID, providerName, region st
 	return privateEndpoint.GetId()
 }
 
-func deletePrivateLinkEndpoint(projectID, providerName, privateLinkEndpointID string) {
+func deletePrivateLinkEndpoint(projectID, providerName, privateLinkEndpointID string) error {
 	_, err := ConnV2().PrivateEndpointServicesApi.DeletePrivateEndpointService(context.Background(), projectID, providerName, privateLinkEndpointID).Execute()
 	if err != nil {
-		fmt.Printf("Failed to delete private link endpoint %s: %s\n", privateLinkEndpointID, err)
-		return
+		return fmt.Errorf("failed to delete private link endpoint %s: %w", privateLinkEndpointID, err)
 	}
 	stateConf := privatelinkendpoint.DeleteStateChangeConfig(context.Background(), ConnV2(), projectID, providerName, privateLinkEndpointID, 1*time.Hour)
 	_, err = stateConf.WaitForStateContext(context.Background())
 	if err != nil {
-		fmt.Printf("Failed to delete private link endpoint %s: %s\n", privateLinkEndpointID, err)
+		return fmt.Errorf("failed to delete private link endpoint %s: %w", privateLinkEndpointID, err)
 	}
+	return nil
 }
