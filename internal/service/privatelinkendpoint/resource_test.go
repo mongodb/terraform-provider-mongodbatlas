@@ -102,6 +102,26 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 	})
 }
 
+func TestAccPrivateLinkEndpoint_deleteOnCreateTimeout(t *testing.T) {
+	var (
+		projectID    = acc.ProjectIDExecution(t)
+		region       = "us-west-1"
+		providerName = constant.AWS
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      configDeleteOnCreateTimeout(projectID, providerName, region, "1s", true),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+		},
+	})
+}
+
 // TODO: Uncomment these tests when the port-mapping API is GA.
 // These tests are currently commented out because the port-mapping feature is under a feature flag.
 // func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicitly_enabled(t *testing.T) {
@@ -165,26 +185,6 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 // 		},
 // 	})
 // }
-
-func TestAccPrivateLinkEndpoint_deleteOnCreateTimeout(t *testing.T) {
-	var (
-		projectID    = acc.ProjectIDExecution(t)
-		region       = "us-west-1"
-		providerName = constant.AWS
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      configDeleteOnCreateTimeout(projectID, providerName, region, "1s", true),
-				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
-			},
-		},
-	})
-}
 
 func configDeleteOnCreateTimeout(projectID, providerName, region, timeout string, deleteOnTimeout bool) string {
 	return fmt.Sprintf(`
