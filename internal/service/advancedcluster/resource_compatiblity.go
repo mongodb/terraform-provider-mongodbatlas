@@ -112,6 +112,22 @@ func overrideAttributesWithPrevStateValue(ctx context.Context, modelIn, modelOut
 	// In v3.0.0, these attributes are Optional-only (not Computed), so if the user
 	// didn't configure them, they should remain null in state even if the API returns values.
 	modelOut.ReplicationSpecs = overrideReplicationSpecsWithPrevStateValue(ctx, modelIn.ReplicationSpecs, modelOut.ReplicationSpecs)
+
+	// Preserve null values for Optional-only attributes bi_connector_config and advanced_configuration.
+	// In v3.0.0, these attributes are Optional-only (not Computed), so if the user
+	// didn't configure them, they should remain null in state even if the API returns values.
+	if modelIn.BiConnectorConfig.IsNull() {
+		modelOut.BiConnectorConfig = types.ObjectNull(biConnectorConfigObjType.AttrTypes)
+	} else {
+		// Preserve null values for partially configured bi_connector_config
+		modelOut.BiConnectorConfig = overrideBiConnectorConfigWithPrevStateValue(ctx, modelIn.BiConnectorConfig, modelOut.BiConnectorConfig)
+	}
+	if modelIn.AdvancedConfiguration.IsNull() {
+		modelOut.AdvancedConfiguration = types.ObjectNull(advancedConfigurationObjType.AttrTypes)
+	} else {
+		// Preserve null values for partially configured advanced_configuration
+		modelOut.AdvancedConfiguration = overrideAdvancedConfigurationWithPrevStateValue(ctx, modelIn.AdvancedConfiguration, modelOut.AdvancedConfiguration)
+	}
 }
 
 func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {
@@ -299,6 +315,102 @@ func overrideSpecsWithPrevStateValue(ctx context.Context, specsIn, specsOut type
 	newObj, diags := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, specOut)
 	if diags.HasError() {
 		return specsOut
+	}
+	return newObj
+}
+
+// overrideBiConnectorConfigWithPrevStateValue preserves null values for Optional-only attributes
+// within bi_connector_config when partially configured.
+func overrideBiConnectorConfigWithPrevStateValue(ctx context.Context, biIn, biOut types.Object) types.Object {
+	if biIn.IsNull() || biIn.IsUnknown() || biOut.IsNull() || biOut.IsUnknown() {
+		return biOut
+	}
+
+	var configIn, configOut TFBiConnectorModel
+	if diags := tfsdk.ValueAs(ctx, biIn, &configIn); diags.HasError() {
+		return biOut
+	}
+	if diags := tfsdk.ValueAs(ctx, biOut, &configOut); diags.HasError() {
+		return biOut
+	}
+
+	// Preserve null values for Optional-only attributes
+	if configIn.Enabled.IsNull() {
+		configOut.Enabled = types.BoolNull()
+	}
+	if configIn.ReadPreference.IsNull() {
+		configOut.ReadPreference = types.StringNull()
+	}
+
+	newObj, diags := types.ObjectValueFrom(ctx, biConnectorConfigObjType.AttrTypes, configOut)
+	if diags.HasError() {
+		return biOut
+	}
+	return newObj
+}
+
+// overrideAdvancedConfigurationWithPrevStateValue preserves null values for Optional-only attributes
+// within advanced_configuration when partially configured.
+func overrideAdvancedConfigurationWithPrevStateValue(ctx context.Context, acIn, acOut types.Object) types.Object {
+	if acIn.IsNull() || acIn.IsUnknown() || acOut.IsNull() || acOut.IsUnknown() {
+		return acOut
+	}
+
+	var configIn, configOut TFAdvancedConfigurationModel
+	if diags := tfsdk.ValueAs(ctx, acIn, &configIn); diags.HasError() {
+		return acOut
+	}
+	if diags := tfsdk.ValueAs(ctx, acOut, &configOut); diags.HasError() {
+		return acOut
+	}
+
+	// Preserve null values for Optional-only attributes
+	if configIn.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds.IsNull() {
+		configOut.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = types.Int64Null()
+	}
+	if configIn.DefaultWriteConcern.IsNull() {
+		configOut.DefaultWriteConcern = types.StringNull()
+	}
+	if configIn.JavascriptEnabled.IsNull() {
+		configOut.JavascriptEnabled = types.BoolNull()
+	}
+	if configIn.MinimumEnabledTlsProtocol.IsNull() {
+		configOut.MinimumEnabledTlsProtocol = types.StringNull()
+	}
+	if configIn.NoTableScan.IsNull() {
+		configOut.NoTableScan = types.BoolNull()
+	}
+	if configIn.OplogMinRetentionHours.IsNull() {
+		configOut.OplogMinRetentionHours = types.Float64Null()
+	}
+	if configIn.OplogSizeMb.IsNull() {
+		configOut.OplogSizeMb = types.Int64Null()
+	}
+	if configIn.SampleRefreshIntervalBiconnector.IsNull() {
+		configOut.SampleRefreshIntervalBiconnector = types.Int64Null()
+	}
+	if configIn.SampleSizeBiconnector.IsNull() {
+		configOut.SampleSizeBiconnector = types.Int64Null()
+	}
+	if configIn.TransactionLifetimeLimitSeconds.IsNull() {
+		configOut.TransactionLifetimeLimitSeconds = types.Int64Null()
+	}
+	if configIn.DefaultMaxTimeMS.IsNull() {
+		configOut.DefaultMaxTimeMS = types.Int64Null()
+	}
+	if configIn.CustomOpensslCipherConfigTls12.IsNull() {
+		configOut.CustomOpensslCipherConfigTls12 = types.SetNull(types.StringType)
+	}
+	if configIn.CustomOpensslCipherConfigTls13.IsNull() {
+		configOut.CustomOpensslCipherConfigTls13 = types.SetNull(types.StringType)
+	}
+	if configIn.TlsCipherConfigMode.IsNull() {
+		configOut.TlsCipherConfigMode = types.StringNull()
+	}
+
+	newObj, diags := types.ObjectValueFrom(ctx, advancedConfigurationObjType.AttrTypes, configOut)
+	if diags.HasError() {
+		return acOut
 	}
 	return newObj
 }

@@ -389,6 +389,11 @@ func readAdvancedConfigIfUnset(ctx context.Context, diags *diag.Diagnostics, cli
 }
 
 func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, p *ProcessArgs) {
+	// If AdvancedConfiguration is null (user didn't configure it), preserve null and skip API values.
+	// This happens when overrideAttributesWithPrevStateValue sets it to null in getBasicClusterModel.
+	if model.AdvancedConfiguration.IsNull() {
+		return
+	}
 	readAdvancedConfigIfUnset(ctx, diags, client, model.ProjectID.ValueString(), model.Name.ValueString(), p)
 	if !diags.HasError() {
 		model.AdvancedConfiguration = buildAdvancedConfigObjType(ctx, p, diags)

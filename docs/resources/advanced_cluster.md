@@ -578,6 +578,8 @@ Refer to the following for full privatelink endpoint connection string examples:
 
 ### bi_connector_config
 
+~> **NOTE:** This attribute is Optional only. If not specified in your configuration, it will not appear in state. To see the actual BI Connector settings on your cluster, use the `mongodbatlas_advanced_cluster` data source.
+
 Specifies BI Connector for Atlas configuration.
 
 ```terraform
@@ -602,9 +604,9 @@ bi_connector_config = {
 
 ### Advanced Configuration Options
 
--> **NOTE:** Prior to setting these options please ensure you read https://docs.atlas.mongodb.com/cluster-config/additional-options/.
+~> **NOTE:** This attribute is Optional only. If not specified in your configuration, it will not appear in state. Atlas applies default values server-side. To see the actual advanced configuration values, use the `mongodbatlas_advanced_cluster` data source.
 
--> **NOTE:** Once you set some `advanced_configuration` attributes, we recommended to explicitly set those attributes to their intended value instead of removing them from the configuration. For example, if you set `javascript_enabled` to `false`, and later you want to go back to the default value (true), you must set it back to `true` instead of removing it.
+-> **NOTE:** Prior to setting these options please ensure you read https://docs.atlas.mongodb.com/cluster-config/additional-options/.
 
 Include **desired options** within advanced_configuration:
 

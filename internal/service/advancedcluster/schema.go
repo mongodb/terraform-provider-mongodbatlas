@@ -59,17 +59,14 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/) for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.",
 			},
 			"bi_connector_config": schema.SingleNestedAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Settings needed to configure the MongoDB Connector for Business Intelligence for this cluster.",
+				MarkdownDescription: "Settings needed to configure the MongoDB Connector for Business Intelligence for this cluster. This attribute is Optional only - if not specified, it will not appear in state. Use the data source to query actual values from Atlas.",
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
-						Computed:            true,
 						Optional:            true,
 						MarkdownDescription: "Flag that indicates whether MongoDB Connector for Business Intelligence is enabled on the specified cluster.",
 					},
 					"read_preference": schema.StringAttribute{
-						Computed:            true,
 						Optional:            true,
 						MarkdownDescription: "Data source node designated for the MongoDB Connector for Business Intelligence on MongoDB Cloud. The MongoDB Connector for Business Intelligence on MongoDB Cloud reads data from the primary, secondary, or analytics node based on your read preferences. Defaults to `ANALYTICS` node, or `SECONDARY` if there are no `ANALYTICS` nodes.",
 					},
@@ -531,71 +528,56 @@ func specsSchemaDS() dsschema.SingleNestedAttribute {
 
 func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
-		Computed:            true,
 		Optional:            true,
-		MarkdownDescription: "Additional settings for an Atlas cluster.",
-		// Avoid adding optional-only attributes, if the block is removed and attributes are not null in the state we get unintentional plan changes after apply.
-		// Avoid computed-optional with Default, if the block is removed and the attribute Default != state value we get unintentional plan changes after apply.
+		MarkdownDescription: "Additional settings for an Atlas cluster. This attribute is Optional only - if not specified, it will not appear in state. Use the data source to query actual values from Atlas.",
 		Attributes: map[string]schema.Attribute{
 			"change_stream_options_pre_and_post_images_expire_after_seconds": schema.Int64Attribute{
-				Optional: true,
-				// Default set in NewAtlasReqAdvancedConfiguration
-				Computed:            true,
+				Optional:            true,
 				MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
 				PlanModifiers: []planmodifier.Int64{
 					PlanMustUseMongoDBVersion(7.0, EqualOrHigher),
 				},
 			},
 			"default_write_concern": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Default level of acknowledgment requested from MongoDB for write operations when none is specified by the driver.",
 			},
 			"javascript_enabled": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether the cluster allows execution of operations that perform server-side executions of JavaScript. When using 8.0+, we recommend disabling server-side JavaScript and using operators of aggregation pipeline as more performant alternative.",
 			},
 			"minimum_enabled_tls_protocol": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.",
 			},
 			"no_table_scan": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether the cluster disables executing any query that requires a collection scan to return results.",
 			},
 			"oplog_min_retention_hours": schema.Float64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Minimum retention window for cluster's oplog expressed in hours. A value of null indicates that the cluster uses the default minimum oplog window that MongoDB Cloud calculates.",
 			},
 			"oplog_size_mb": schema.Int64Attribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.AtLeast(0),
 				},
 				MarkdownDescription: "Storage limit of cluster's oplog expressed in megabytes. A value of null indicates that the cluster uses the default oplog size that MongoDB Cloud calculates.",
 			},
 			"sample_refresh_interval_bi_connector": schema.Int64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Interval in seconds at which the mongosqld process re-samples data to create its relational schema.",
 			},
 			"sample_size_bi_connector": schema.Int64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Number of documents per database to sample when gathering schema information.",
 			},
 			"transaction_lifetime_limit_seconds": schema.Int64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Lifetime, in seconds, of multi-document transactions. Atlas considers the transactions that exceed this limit as expired and so aborts them through a periodic cleanup process.",
 			},
 			"default_max_time_ms": schema.Int64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Default time limit in milliseconds for individual read operations to complete. This parameter is supported only for MongoDB version 8.0 and above.",
 				PlanModifiers: []planmodifier.Int64{
@@ -603,20 +585,17 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				},
 			},
 			"custom_openssl_cipher_config_tls12": schema.SetAttribute{
-				Computed:            true,
 				Optional:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.",
 			},
 			"custom_openssl_cipher_config_tls13": schema.SetAttribute{
-				Computed:            true,
 				Optional:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.",
 			},
 			"tls_cipher_config_mode": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "The TLS cipher suite configuration mode. Valid values include `CUSTOM` or `DEFAULT`. The `DEFAULT` mode uses the default cipher suites. The `CUSTOM` mode allows you to specify custom cipher suites for both TLS 1.2 and TLS 1.3. To unset, this should be set back to `DEFAULT`.",
 			},
 		},
