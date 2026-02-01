@@ -1,0 +1,634 @@
+schema:
+    description: Creates one connection for a stream workspace in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner or Project Stream Processing Owner role.
+    attributes:
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: OIDC client identifier for authentication to the Kafka cluster.
+                      computed_optional_required: optional
+                      tf_schema_name: client_id
+                      tf_model_name: ClientId
+                      api_name: clientId
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: OIDC client secret for authentication to the Kafka cluster.
+                      computed_optional_required: optional
+                      tf_schema_name: client_secret
+                      tf_model_name: ClientSecret
+                      api_name: clientSecret
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.
+                      computed_optional_required: optional
+                      tf_schema_name: mechanism
+                      tf_model_name: Mechanism
+                      api_name: mechanism
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: SASL OAUTHBEARER authentication method. Can only be OIDC currently.
+                      computed_optional_required: optional
+                      tf_schema_name: method
+                      tf_model_name: Method
+                      api_name: method
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Password of the account to connect to the Kafka cluster.
+                      computed_optional_required: optional
+                      tf_schema_name: password
+                      tf_model_name: Password
+                      api_name: password
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: SASL OAUTHBEARER extensions parameter for additional OAuth2 configuration.
+                      computed_optional_required: optional
+                      tf_schema_name: sasl_oauthbearer_extensions
+                      tf_model_name: SaslOauthbearerExtensions
+                      api_name: saslOauthbearerExtensions
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: OIDC scope parameter defining the access permissions requested.
+                      computed_optional_required: optional
+                      tf_schema_name: scope
+                      tf_model_name: Scope
+                      api_name: scope
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: SSL certificate for client authentication to Kafka.
+                      computed_optional_required: optional
+                      tf_schema_name: ssl_certificate
+                      tf_model_name: SslCertificate
+                      api_name: sslCertificate
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: SSL key for client authentication to Kafka.
+                      computed_optional_required: optional
+                      tf_schema_name: ssl_key
+                      tf_model_name: SslKey
+                      api_name: sslKey
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Password for the SSL key, if it is password protected.
+                      computed_optional_required: optional
+                      tf_schema_name: ssl_key_password
+                      tf_model_name: SslKeyPassword
+                      api_name: sslKeyPassword
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: OIDC token endpoint URL for obtaining access tokens.
+                      computed_optional_required: optional
+                      tf_schema_name: token_endpoint_url
+                      tf_model_name: TokenEndpointUrl
+                      api_name: tokenEndpointUrl
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Username of the account to connect to the Kafka cluster.
+                      computed_optional_required: optional
+                      tf_schema_name: username
+                      tf_model_name: Username
+                      api_name: username
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.
+          custom_type:
+            package: customtypes
+            name: Authentication
+            model: customtypes.ObjectValue[TFAuthenticationModel]
+            schema: customtypes.NewObjectType[TFAuthenticationModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: authentication
+          tf_model_name: Authentication
+          api_name: authentication
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+                      computed_optional_required: required
+                      tf_schema_name: role_arn
+                      tf_model_name: RoleArn
+                      api_name: roleArn
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
+                      computed_optional_required: optional
+                      tf_schema_name: test_bucket
+                      tf_model_name: TestBucket
+                      api_name: testBucket
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: AWS configurations for AWS-based connection types.
+          custom_type:
+            package: customtypes
+            name: Aws
+            model: customtypes.ObjectValue[TFAwsModel]
+            schema: customtypes.NewObjectType[TFAwsModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: aws
+          tf_model_name: Aws
+          api_name: aws
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Comma separated list of server addresses.
+          computed_optional_required: optional
+          tf_schema_name: bootstrap_servers
+          tf_model_name: BootstrapServers
+          api_name: bootstrapServers
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.
+          computed_optional_required: optional
+          tf_schema_name: cluster_project_id
+          tf_model_name: ClusterProjectId
+          api_name: clusterGroupId
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Name of the cluster configured for this connection.
+          computed_optional_required: optional
+          tf_schema_name: cluster_name
+          tf_model_name: ClusterName
+          api_name: clusterName
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - map:
+            element_type: 4
+          description: A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
+          custom_type:
+            package: customtypes
+            model: customtypes.MapValue[types.String]
+            schema: customtypes.NewMapType[types.String](ctx)
+          computed_optional_required: optional
+          tf_schema_name: config
+          tf_model_name: Config
+          api_name: config
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: The name of the role to use. Can be a built in role or a custom role.
+                      computed_optional_required: required
+                      tf_schema_name: role
+                      tf_model_name: Role
+                      api_name: role
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Type of the DB role. Can be either BuiltIn or Custom.
+                      computed_optional_required: required
+                      tf_schema_name: type
+                      tf_model_name: Type
+                      api_name: type
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: The name of a Built in or Custom DB Role to connect to an Atlas Cluster.
+          custom_type:
+            package: customtypes
+            name: DbRoleToExecute
+            model: customtypes.ObjectValue[TFDbRoleToExecuteModel]
+            schema: customtypes.NewObjectType[TFDbRoleToExecuteModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: db_role_to_execute
+          tf_model_name: DbRoleToExecute
+          api_name: dbRoleToExecute
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: project_id
+          tf_model_name: ProjectId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - map:
+            element_type: 4
+          description: A map of key-value pairs that will be passed as headers for the request.
+          custom_type:
+            package: customtypes
+            model: customtypes.MapValue[types.String]
+            schema: customtypes.NewMapType[types.String](ctx)
+          computed_optional_required: optional
+          tf_schema_name: headers
+          tf_model_name: Headers
+          api_name: headers
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
+          computed_optional_required: required
+          tf_schema_name: connection_name
+          tf_model_name: ConnectionName
+          api_name: name
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Reserved. Will be used by PRIVATE_LINK connection type.
+                                  computed_optional_required: optional
+                                  tf_schema_name: connection_id
+                                  tf_model_name: ConnectionId
+                                  api_name: connectionId
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Reserved. Will be used by PRIVATE_LINK connection type.
+                                  computed_optional_required: optional
+                                  tf_schema_name: connection_name
+                                  tf_model_name: ConnectionName
+                                  api_name: name
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Reserved. Will be used by TRANSIT_GATEWAY connection type.
+                                  computed_optional_required: optional
+                                  tf_schema_name: tgw_route_id
+                                  tf_model_name: TgwRouteId
+                                  api_name: tgwRouteId
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Selected networking type. Either PUBLIC, VPC, PRIVATE_LINK, or TRANSIT_GATEWAY. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. TRANSIT_GATEWAY support is coming soon.
+                                  computed_optional_required: required
+                                  tf_schema_name: type
+                                  tf_model_name: Type
+                                  api_name: type
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: Information about networking access.
+                      custom_type:
+                        package: customtypes
+                        name: NetworkingAccess
+                        model: customtypes.ObjectValue[TFNetworkingAccessModel]
+                        schema: customtypes.NewObjectType[TFNetworkingAccessModel](ctx)
+                      computed_optional_required: required
+                      tf_schema_name: access
+                      tf_model_name: Access
+                      api_name: access
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Networking configuration for Streams connections.
+          custom_type:
+            package: customtypes
+            name: Networking
+            model: customtypes.ObjectValue[TFNetworkingModel]
+            schema: customtypes.NewObjectType[TFNetworkingModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: networking
+          tf_model_name: Networking
+          api_name: networking
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: The Schema Registry provider.
+          computed_optional_required: optional
+          tf_schema_name: schema_registry_provider
+          tf_model_name: SchemaRegistryProvider
+          api_name: provider
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Password or Private Key for authentication.
+                      computed_optional_required: optional
+                      tf_schema_name: password
+                      tf_model_name: Password
+                      api_name: password
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry.
+                      computed_optional_required: required
+                      tf_schema_name: type
+                      tf_model_name: Type
+                      api_name: type
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Username or Public Key for authentication.
+                      computed_optional_required: optional
+                      tf_schema_name: username
+                      tf_model_name: Username
+                      api_name: username
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Authentication configuration for Schema Registry.
+          custom_type:
+            package: customtypes
+            name: SchemaRegistryAuthentication
+            model: customtypes.ObjectValue[TFSchemaRegistryAuthenticationModel]
+            schema: customtypes.NewObjectType[TFSchemaRegistryAuthenticationModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: schema_registry_authentication
+          tf_model_name: SchemaRegistryAuthentication
+          api_name: schemaRegistryAuthentication
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - list:
+            element_type: 4
+          description: List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
+          custom_type:
+            package: customtypes
+            model: customtypes.ListValue[types.String]
+            schema: customtypes.NewListType[types.String](ctx)
+          computed_optional_required: optional
+          tf_schema_name: schema_registry_urls
+          tf_model_name: SchemaRegistryUrls
+          api_name: schemaRegistryUrls
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: A trusted, public x509 certificate for connecting to Kafka over SSL.
+                      computed_optional_required: optional
+                      tf_schema_name: broker_public_certificate
+                      tf_model_name: BrokerPublicCertificate
+                      api_name: brokerPublicCertificate
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Describes the transport type. Can be either SASL_PLAINTEXT, SASL_SSL, or SSL.
+                      computed_optional_required: optional
+                      tf_schema_name: protocol
+                      tf_model_name: Protocol
+                      api_name: protocol
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.
+          custom_type:
+            package: customtypes
+            name: Security
+            model: customtypes.ObjectValue[TFSecurityModel]
+            schema: customtypes.NewObjectType[TFSecurityModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: security
+          tf_model_name: Security
+          api_name: security
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: The state of the connection.
+          computed_optional_required: computed
+          tf_schema_name: state
+          tf_model_name: State
+          api_name: state
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Label that identifies the stream workspace.
+          computed_optional_required: required
+          tf_schema_name: workspace_name
+          tf_model_name: WorkspaceName
+          api_name: tenantName
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - string: {}
+          description: Type of the connection.
+          computed_optional_required: required
+          tf_schema_name: type
+          tf_model_name: Type
+          api_name: type
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: The url to be used for the request.
+          computed_optional_required: optional
+          tf_schema_name: url
+          tf_model_name: Url
+          api_name: url
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - bool:
+            default: true
+          description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
+          computed_optional_required: computed_optional
+          tf_schema_name: delete_on_create_timeout
+          tf_model_name: DeleteOnCreateTimeout
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - timeouts:
+            configurable_timeouts:
+                - create
+                - update
+                - delete
+          computed_optional_required: ""
+          tf_schema_name: timeouts
+          tf_model_name: Timeouts
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
+operations:
+    delete:
+        wait:
+            state_property: state
+            pending_states:
+                - READY
+                - PENDING
+                - DELETING
+            target_states:
+                - DELETED
+            timeout_seconds: 300
+            min_timeout_seconds: 10
+            delay_seconds: 10
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{projectId}/streams/{workspaceName}/connections/{connectionName}
+    create:
+        wait:
+            state_property: state
+            pending_states:
+                - PENDING
+            target_states:
+                - READY
+            timeout_seconds: 300
+            min_timeout_seconds: 10
+            delay_seconds: 10
+        http_method: POST
+        path: /api/atlas/v2/groups/{projectId}/streams/{workspaceName}/connections
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{projectId}/streams/{workspaceName}/connections/{connectionName}
+    update:
+        wait:
+            state_property: state
+            pending_states:
+                - PENDING
+            target_states:
+                - READY
+            timeout_seconds: 300
+            min_timeout_seconds: 10
+            delay_seconds: 10
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{projectId}/streams/{workspaceName}/connections/{connectionName}
+    version_header: application/vnd.atlas.2023-02-01+json
+name: stream_connection_api
+packageName: streamconnectionapi
