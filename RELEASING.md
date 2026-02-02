@@ -128,14 +128,4 @@ Depending on the nature of the failure, you may want to introduce new changes in
 
 **What happens if all the release process works except the last step to release the version in Jira?**
 
-In this case there is no need to run the full release process again. Once the problem is found and fixed, the [Jira Release Version action](.github/workflows/jira-release-version.yml) can be run manually. Note: Jira release is automatically skipped for backport releases.
-
-**How do I create a backport release?**
-
-Use the same [Release GitHub Action](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/release.yml) as standard releases, but set the `Base branch` input to the appropriate LTS branch (e.g., `v1-lts` for v1.x releases). The workflow will automatically:
-- Validate that the version number matches the base branch major version.
-- Skip the Jira release version step.
-- Perform all automatic commits (CHANGELOG.md header, example links, SSDLC report) on the LTS branch.
-- Create the tag from the LTS branch.
-
-After a backport release completes, remember to manually merge the CHANGELOG.md changes from the LTS branch to `master` to keep the main changelog complete.
+In this case there is no need to run the full release process again. Once the problem is found and fixed, the [Jira Release Version action](.github/workflows/jira-release-version.yml) can be run manually. Note: Jira release is automatically skipped for backport releases and pre-releases.
