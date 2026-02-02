@@ -636,6 +636,7 @@ jobs:
             ./internal/serviceapi/maintenancewindowapi
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/projectsettingsapi
+            ./internal/serviceapi/streamconnectionapi
         run: make testacc
       - name: Acceptance Tests (Resource Policy API)
         env:
