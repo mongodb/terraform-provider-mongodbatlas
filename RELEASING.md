@@ -49,7 +49,7 @@ Pre-releases are not needed for a regular release process, but they can be gener
 - **CDKTF Update - Only for major release, i.e. the left most version digit increment (see this [comment](https://github.com/cdktf/cdktf-repository-manager/pull/202#issuecomment-1602562201))**: Once the provider has been released, we need to update the provider version in our CDKTF. Raise a PR against [cdktf/cdktf-repository-manager](https://github.com/cdktf/cdktf-repository-manager).
   - Example PR: [#183](https://github.com/cdktf/cdktf-repository-manager/pull/183)
 
-## Creating a New Major Version
+## Post-release considerations for a new major version
 
 When releasing a new major version (e.g., v3.0.0), you need to create an LTS branch for the previous major version to enable backport releases. Follow these steps:
 
