@@ -47,10 +47,12 @@ jobs:
         run: |
           TARGET_BRANCH="$BASE_BRANCH"
           IS_BACKPORT=$(if [ "$TARGET_BRANCH" != "master" ]; then echo 'true'; else echo 'false'; fi)
-          SKIP_JIRA=$(if [ "$TARGET_BRANCH" != "master" ]; then echo 'true'; else echo 'false'; fi)
+          IS_OFFICIAL=$(if echo "$VERSION_NUMBER" | grep -q 'pre'; then echo 'false'; else echo 'true'; fi)
+          # Skip Jira release for backport releases or pre-releases
+          SKIP_JIRA=$(if [ "$TARGET_BRANCH" != "master" ] || [ "$IS_OFFICIAL" = 'false' ]; then echo 'true'; else echo 'false'; fi)
           {
             echo "creates_new_tag=$(if [ "$USE_EXISTING_TAG" = 'true' ]; then echo 'false'; else echo 'true'; fi)"
-            echo "is_official_release=$(if echo "$VERSION_NUMBER" | grep -q 'pre'; then echo 'false'; else echo 'true'; fi)"
+            echo "is_official_release=$IS_OFFICIAL"
             echo "runs_tests=$(if [ "$SKIP_TESTS" = 'true' ]; then echo 'false'; else echo 'true'; fi)"
             echo "target_branch=$TARGET_BRANCH"
             echo "is_backport_release=$IS_BACKPORT"
@@ -269,12 +271,10 @@ jobs:
 
   jira-release-version:
     needs: [ release-config, release ]
-    # if release job is skipped, cancelled, or failed we do not run this job
-    # Jira release is also skipped for backport releases (when base_branch is set to a non-master branch)
+    # Jira release is skipped for backport releases and pre-releases
     if: >-
       !cancelled()
       && needs.release.result == 'success'
-      && needs.release-config.outputs.is_official_release == 'true'
       && needs.release-config.outputs.skip_jira != 'true'
     secrets: inherit
     uses: ./.github/workflows/jira-release-version.yml
