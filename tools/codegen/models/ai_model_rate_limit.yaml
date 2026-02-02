@@ -40,7 +40,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - int64: {}
-          description: The number of requests per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+          description: The number of requests per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.
           computed_optional_required: required
           tf_schema_name: requests_per_minute_limit
           tf_model_name: RequestsPerMinuteLimit
@@ -51,7 +51,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - int64: {}
-          description: The number of tokens per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+          description: The number of tokens per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.
           computed_optional_required: required
           tf_schema_name: tokens_per_minute_limit
           tf_model_name: TokensPerMinuteLimit
@@ -118,7 +118,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - int64: {}
-              description: The number of requests per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+              description: The number of requests per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.
               computed_optional_required: computed
               tf_schema_name: requests_per_minute_limit
               tf_model_name: RequestsPerMinuteLimit
@@ -129,7 +129,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - int64: {}
-              description: The number of tokens per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+              description: The number of tokens per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.
               computed_optional_required: computed
               tf_schema_name: tokens_per_minute_limit
               tf_model_name: TokensPerMinuteLimit
@@ -183,7 +183,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - int64: {}
-                          description: The number of requests per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+                          description: The number of requests per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.
                           computed_optional_required: computed
                           tf_schema_name: requests_per_minute_limit
                           tf_model_name: RequestsPerMinuteLimit
@@ -194,7 +194,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - int64: {}
-                          description: The number of tokens per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+                          description: The number of tokens per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.
                           computed_optional_required: computed
                           tf_schema_name: tokens_per_minute_limit
                           tf_model_name: TokensPerMinuteLimit

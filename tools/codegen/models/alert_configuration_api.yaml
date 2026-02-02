@@ -89,7 +89,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: Value to match or exceed using the specified **matchers.operator**.
+                      description: Value to match or exceed using the specified `matchers.operator`.
                       computed_optional_required: required
                       tf_schema_name: value
                       tf_model_name: Value
@@ -118,7 +118,7 @@ schema:
             nested_object:
                 attributes:
                     - string: {}
-                      description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
+                      description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured `metricThreshold.threshold`.
                       computed_optional_required: required
                       tf_schema_name: metric_name
                       tf_model_name: MetricName
@@ -358,7 +358,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: The notifierId is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.
+                      description: The `notifierId` is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.
                       computed_optional_required: computed_optional
                       tf_schema_name: notifier_id
                       tf_model_name: NotifierId
@@ -370,7 +370,7 @@ schema:
                       request_only_required_on_create: false
                     - string: {}
                       description: |-
-                        API Key that MongoDB Cloud needs to send this notification via Opsgenie. The resource requires this parameter when `"notifications.[n].typeName" : "OPS_GENIE"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.
+                        API Key that MongoDB Cloud needs to send this notification via OpsGenie. The resource requires this parameter when `"notifications.[n].typeName" : "OPS_GENIE"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.
 
                         **NOTE**: After you create a notification which requires an API or integration key, the key appears partially redacted when you:
 
@@ -388,7 +388,7 @@ schema:
                       request_only_required_on_create: false
                     - string:
                         default: US
-                      description: Opsgenie region that indicates which API Uniform Resource Locator (URL) to use.
+                      description: OpsGenie region that indicates which API Uniform Resource Locator (URL) to use.
                       computed_optional_required: computed_optional
                       tf_schema_name: ops_genie_region
                       tf_model_name: OpsGenieRegion
@@ -548,9 +548,9 @@ schema:
                       description: |-
                         Authentication secret for a webhook-based alert.
 
-                        Atlas returns this value if you set `"notifications.[n].typeName" :"WEBHOOK"` and either:
+                        Atlas returns this value if you set `notifications.[n].typeName` :`WEBHOOK` and either:
                         * You set `notification.[n].webhookSecret` to a non-empty string
-                        * You set a default webhookSecret either on the Integrations page, or with the Integrations API
+                        * You set a default webhook secret either on the Integrations page, or with the Integrations API
 
                         **NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.
                       computed_optional_required: optional
@@ -568,7 +568,7 @@ schema:
 
                         Atlas returns this value if you set `"notifications.[n].typeName" :"WEBHOOK"` and either:
                         * You set `notification.[n].webhookURL` to a non-empty string
-                        * You set a default webhookUrl either on the Integrations page, or with the Integrations API
+                        * You set a default webhook URL either on the Integrations page, or with the Integrations API
 
                         **NOTE**: When you view or edit the alert for a Webhook URL notification, the URL appears partially redacted.
                       computed_optional_required: optional
@@ -610,7 +610,7 @@ schema:
             nested_object:
                 attributes:
                     - string: {}
-                      description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
+                      description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured `metricThreshold.threshold`.
                       computed_optional_required: optional
                       tf_schema_name: metric_name
                       tf_model_name: MetricName
@@ -797,7 +797,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Value to match or exceed using the specified **matchers.operator**.
+                          description: Value to match or exceed using the specified `matchers.operator`.
                           computed_optional_required: computed
                           tf_schema_name: value
                           tf_model_name: Value
@@ -826,7 +826,7 @@ data_sources:
                 nested_object:
                     attributes:
                         - string: {}
-                          description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
+                          description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured `metricThreshold.threshold`.
                           computed_optional_required: computed
                           tf_schema_name: metric_name
                           tf_model_name: MetricName
@@ -1066,7 +1066,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: The notifierId is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.
+                          description: The `notifierId` is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.
                           computed_optional_required: computed
                           tf_schema_name: notifier_id
                           tf_model_name: NotifierId
@@ -1078,7 +1078,7 @@ data_sources:
                           request_only_required_on_create: false
                         - string: {}
                           description: |-
-                            API Key that MongoDB Cloud needs to send this notification via Opsgenie. The resource requires this parameter when `"notifications.[n].typeName" : "OPS_GENIE"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.
+                            API Key that MongoDB Cloud needs to send this notification via OpsGenie. The resource requires this parameter when `"notifications.[n].typeName" : "OPS_GENIE"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.
 
                             **NOTE**: After you create a notification which requires an API or integration key, the key appears partially redacted when you:
 
@@ -1096,7 +1096,7 @@ data_sources:
                           request_only_required_on_create: false
                         - string:
                             default: US
-                          description: Opsgenie region that indicates which API Uniform Resource Locator (URL) to use.
+                          description: OpsGenie region that indicates which API Uniform Resource Locator (URL) to use.
                           computed_optional_required: computed
                           tf_schema_name: ops_genie_region
                           tf_model_name: OpsGenieRegion
@@ -1256,9 +1256,9 @@ data_sources:
                           description: |-
                             Authentication secret for a webhook-based alert.
 
-                            Atlas returns this value if you set `"notifications.[n].typeName" :"WEBHOOK"` and either:
+                            Atlas returns this value if you set `notifications.[n].typeName` :`WEBHOOK` and either:
                             * You set `notification.[n].webhookSecret` to a non-empty string
-                            * You set a default webhookSecret either on the Integrations page, or with the Integrations API
+                            * You set a default webhook secret either on the Integrations page, or with the Integrations API
 
                             **NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.
                           computed_optional_required: computed
@@ -1276,7 +1276,7 @@ data_sources:
 
                             Atlas returns this value if you set `"notifications.[n].typeName" :"WEBHOOK"` and either:
                             * You set `notification.[n].webhookURL` to a non-empty string
-                            * You set a default webhookUrl either on the Integrations page, or with the Integrations API
+                            * You set a default webhook URL either on the Integrations page, or with the Integrations API
 
                             **NOTE**: When you view or edit the alert for a Webhook URL notification, the URL appears partially redacted.
                           computed_optional_required: computed
@@ -1318,7 +1318,7 @@ data_sources:
                 nested_object:
                     attributes:
                         - string: {}
-                          description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
+                          description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured `metricThreshold.threshold`.
                           computed_optional_required: computed
                           tf_schema_name: metric_name
                           tf_model_name: MetricName
@@ -1503,7 +1503,7 @@ data_sources:
                                       present_in_any_response: false
                                       request_only_required_on_create: false
                                     - string: {}
-                                      description: Value to match or exceed using the specified **matchers.operator**.
+                                      description: Value to match or exceed using the specified `matchers.operator`.
                                       computed_optional_required: computed
                                       tf_schema_name: value
                                       tf_model_name: Value
@@ -1532,7 +1532,7 @@ data_sources:
                             nested_object:
                                 attributes:
                                     - string: {}
-                                      description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
+                                      description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured `metricThreshold.threshold`.
                                       computed_optional_required: computed
                                       tf_schema_name: metric_name
                                       tf_model_name: MetricName
@@ -1772,7 +1772,7 @@ data_sources:
                                       present_in_any_response: false
                                       request_only_required_on_create: false
                                     - string: {}
-                                      description: The notifierId is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.
+                                      description: The `notifierId` is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.
                                       computed_optional_required: computed
                                       tf_schema_name: notifier_id
                                       tf_model_name: NotifierId
@@ -1784,7 +1784,7 @@ data_sources:
                                       request_only_required_on_create: false
                                     - string: {}
                                       description: |-
-                                        API Key that MongoDB Cloud needs to send this notification via Opsgenie. The resource requires this parameter when `"notifications.[n].typeName" : "OPS_GENIE"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.
+                                        API Key that MongoDB Cloud needs to send this notification via OpsGenie. The resource requires this parameter when `"notifications.[n].typeName" : "OPS_GENIE"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.
 
                                         **NOTE**: After you create a notification which requires an API or integration key, the key appears partially redacted when you:
 
@@ -1802,7 +1802,7 @@ data_sources:
                                       request_only_required_on_create: false
                                     - string:
                                         default: US
-                                      description: Opsgenie region that indicates which API Uniform Resource Locator (URL) to use.
+                                      description: OpsGenie region that indicates which API Uniform Resource Locator (URL) to use.
                                       computed_optional_required: computed
                                       tf_schema_name: ops_genie_region
                                       tf_model_name: OpsGenieRegion
@@ -1962,9 +1962,9 @@ data_sources:
                                       description: |-
                                         Authentication secret for a webhook-based alert.
 
-                                        Atlas returns this value if you set `"notifications.[n].typeName" :"WEBHOOK"` and either:
+                                        Atlas returns this value if you set `notifications.[n].typeName` :`WEBHOOK` and either:
                                         * You set `notification.[n].webhookSecret` to a non-empty string
-                                        * You set a default webhookSecret either on the Integrations page, or with the Integrations API
+                                        * You set a default webhook secret either on the Integrations page, or with the Integrations API
 
                                         **NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.
                                       computed_optional_required: computed
@@ -1982,7 +1982,7 @@ data_sources:
 
                                         Atlas returns this value if you set `"notifications.[n].typeName" :"WEBHOOK"` and either:
                                         * You set `notification.[n].webhookURL` to a non-empty string
-                                        * You set a default webhookUrl either on the Integrations page, or with the Integrations API
+                                        * You set a default webhook URL either on the Integrations page, or with the Integrations API
 
                                         **NOTE**: When you view or edit the alert for a Webhook URL notification, the URL appears partially redacted.
                                       computed_optional_required: computed
@@ -2024,7 +2024,7 @@ data_sources:
                             nested_object:
                                 attributes:
                                     - string: {}
-                                      description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
+                                      description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured `metricThreshold.threshold`.
                                       computed_optional_required: computed
                                       tf_schema_name: metric_name
                                       tf_model_name: MetricName

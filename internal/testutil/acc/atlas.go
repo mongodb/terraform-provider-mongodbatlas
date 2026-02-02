@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312013/admin"
 )
 
 func createProject(tb testing.TB, name string) string {
@@ -26,7 +26,7 @@ func createProject(tb testing.TB, name string) string {
 	return id
 }
 
-func deleteProject(id string) {
+func deleteProject(id string) error {
 	_, err := ConnV2().ProjectsApi.DeleteGroup(context.Background(), id).Execute()
 	if admin.IsErrorCode(err, "CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS") {
 		fmt.Printf("Project deletion failed will retry in 30s: %s, error: %s", id, err)
@@ -34,8 +34,9 @@ func deleteProject(id string) {
 		_, err = ConnV2().ProjectsApi.DeleteGroup(context.Background(), id).Execute()
 	}
 	if err != nil {
-		fmt.Printf("Project deletion failed: %s, error: %s", id, err)
+		return fmt.Errorf("project deletion failed: %s, error: %w", id, err)
 	}
+	return nil
 }
 
 func createCluster(tb testing.TB, projectID, name string) string {
@@ -50,16 +51,17 @@ func createCluster(tb testing.TB, projectID, name string) string {
 	return name
 }
 
-func deleteCluster(projectID, name string) {
+func deleteCluster(projectID, name string) error {
 	_, err := ConnV2().ClustersApi.DeleteCluster(context.Background(), projectID, name).Execute()
 	if err != nil {
-		fmt.Printf("Cluster deletion failed: %s %s, error: %s", projectID, name, err)
+		return fmt.Errorf("cluster deletion failed: %s %s, error: %w", projectID, name, err)
 	}
 	stateConf := cluster.DeleteStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
 	_, err = stateConf.WaitForStateContext(context.Background())
 	if err != nil {
-		fmt.Printf("Cluster deletion failed: %s %s, error: %s", projectID, name, err)
+		return fmt.Errorf("cluster deletion failed: %s %s, error: %w", projectID, name, err)
 	}
+	return nil
 }
 
 func clusterReq(name, projectID string) admin.ClusterDescription20240805 {

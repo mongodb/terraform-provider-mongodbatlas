@@ -13,7 +13,7 @@ jobs:
     permissions:
       pull-requests: read
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
         id: changes
         with:
@@ -40,7 +40,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "hey ${{ secrets.SLACK_DOCS_TAG }}, this is APIx bot, can you please review <${{ github.event.pull_request.html_url }}|PR ${{ github.event.pull_request.number }}>? thanks a lot!"
+                    "text": "${{ github.event.repository.name }}: hey ${{ secrets.SLACK_DOCS_TAG }}, this is APIx bot, can you please review <${{ github.event.pull_request.html_url }}|PR ${{ github.event.pull_request.number }}>? thanks a lot!"
                   }
                 }
               ]

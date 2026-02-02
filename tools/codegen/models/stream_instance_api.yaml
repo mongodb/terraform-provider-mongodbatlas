@@ -258,7 +258,7 @@ schema:
                                   present_in_any_response: true
                                   request_only_required_on_create: false
                                 - string: {}
-                                  description: Type of the DB role. Can be either BuiltIn or Custom.
+                                  description: Type of the DB role. Can be either Built In or Custom.
                                   computed_optional_required: computed
                                   tf_schema_name: type
                                   tf_model_name: Type
@@ -317,7 +317,7 @@ schema:
                                     nested_object:
                                         attributes:
                                             - string: {}
-                                              description: Reserved. Will be used by PRIVATE_LINK connection type.
+                                              description: Reserved. Will be used by `PRIVATE_LINK` connection type.
                                               computed_optional_required: computed
                                               tf_schema_name: connection_id
                                               tf_model_name: ConnectionId
@@ -328,7 +328,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - string: {}
-                                              description: Reserved. Will be used by PRIVATE_LINK connection type.
+                                              description: Reserved. Will be used by `PRIVATE_LINK` connection type.
                                               computed_optional_required: computed
                                               tf_schema_name: name
                                               tf_model_name: Name
@@ -339,7 +339,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - string: {}
-                                              description: Reserved. Will be used by TRANSIT_GATEWAY connection type.
+                                              description: Reserved. Will be used by `TRANSIT_GATEWAY` connection type.
                                               computed_optional_required: computed
                                               tf_schema_name: tgw_route_id
                                               tf_model_name: TgwRouteId
@@ -350,7 +350,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - string: {}
-                                              description: Selected networking type. Either PUBLIC, VPC, PRIVATE_LINK, or TRANSIT_GATEWAY. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. TRANSIT_GATEWAY support is coming soon.
+                                              description: Selected networking type. Either `PUBLIC`, `VPC`, `PRIVATE_LINK`, or `TRANSIT_GATEWAY`. Defaults to `PUBLIC`. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. `TRANSIT_GATEWAY` support is coming soon.
                                               computed_optional_required: computed
                                               tf_schema_name: type
                                               tf_model_name: Type
@@ -483,7 +483,7 @@ schema:
                                   present_in_any_response: true
                                   request_only_required_on_create: false
                                 - string: {}
-                                  description: Describes the transport type. Can be either SASL_PLAINTEXT, SASL_SSL, or SSL.
+                                  description: Describes the transport type. Can be either `SASL_PLAINTEXT`, `SASL_SSL`, or `SSL`.
                                   computed_optional_required: computed
                                   tf_schema_name: protocol
                                   tf_model_name: Protocol
@@ -531,7 +531,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: The url to be used for the request.
+                      description: The URL to be used for the request.
                       computed_optional_required: computed
                       tf_schema_name: url
                       tf_model_name: Url
@@ -642,7 +642,7 @@ schema:
                 attributes:
                     - bool:
                         default: false
-                      description: Flag that indicates whether to add a 'sample_stream_solar' connection.
+                      description: Flag that indicates whether to add a `sample_stream_solar` connection.
                       computed_optional_required: computed_optional
                       tf_schema_name: solar
                       tf_model_name: Solar

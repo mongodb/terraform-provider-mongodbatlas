@@ -122,7 +122,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								},
 								"type": schema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "Type of the DB role. Can be either BuiltIn or Custom.",
+									MarkdownDescription: "Type of the DB role. Can be either Built In or Custom.",
 								},
 							},
 						},
@@ -148,19 +148,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									Attributes: map[string]schema.Attribute{
 										"connection_id": schema.StringAttribute{
 											Computed:            true,
-											MarkdownDescription: "Reserved. Will be used by PRIVATE_LINK connection type.",
+											MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type.",
 										},
 										"name": schema.StringAttribute{
 											Computed:            true,
-											MarkdownDescription: "Reserved. Will be used by PRIVATE_LINK connection type.",
+											MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type.",
 										},
 										"tgw_route_id": schema.StringAttribute{
 											Computed:            true,
-											MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
+											MarkdownDescription: "Reserved. Will be used by `TRANSIT_GATEWAY` connection type.",
 										},
 										"type": schema.StringAttribute{
 											Computed:            true,
-											MarkdownDescription: "Selected networking type. Either PUBLIC, VPC, PRIVATE_LINK, or TRANSIT_GATEWAY. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. TRANSIT_GATEWAY support is coming soon.",
+											MarkdownDescription: "Selected networking type. Either `PUBLIC`, `VPC`, `PRIVATE_LINK`, or `TRANSIT_GATEWAY`. Defaults to `PUBLIC`. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. `TRANSIT_GATEWAY` support is coming soon.",
 										},
 									},
 								},
@@ -206,7 +206,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								},
 								"protocol": schema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "Describes the transport type. Can be either SASL_PLAINTEXT, SASL_SSL, or SSL.",
+									MarkdownDescription: "Describes the transport type. Can be either `SASL_PLAINTEXT`, `SASL_SSL`, or `SSL`.",
 								},
 							},
 						},
@@ -220,7 +220,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"url": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The url to be used for the request.",
+							MarkdownDescription: "The URL to be used for the request.",
 						},
 					},
 				},
@@ -266,7 +266,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"solar": schema.BoolAttribute{
 						Computed:            true,
 						Optional:            true,
-						MarkdownDescription: "Flag that indicates whether to add a 'sample_stream_solar' connection.",
+						MarkdownDescription: "Flag that indicates whether to add a `sample_stream_solar` connection.",
 					},
 				},
 			},

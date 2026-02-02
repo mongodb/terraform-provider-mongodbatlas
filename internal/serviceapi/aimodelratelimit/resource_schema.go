@@ -33,11 +33,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"requests_per_minute_limit": schema.Int64Attribute{
 				Required:            true,
-				MarkdownDescription: "The number of requests per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.",
+				MarkdownDescription: "The number of requests per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.",
 			},
 			"tokens_per_minute_limit": schema.Int64Attribute{
 				Required:            true,
-				MarkdownDescription: "The number of tokens per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.",
+				MarkdownDescription: "The number of tokens per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.",
 			},
 		},
 	}
