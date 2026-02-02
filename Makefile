@@ -232,6 +232,18 @@ add-lines:
 	sed 's/${find}/${add}${find}/' "${filename}" > "file.tmp"
 	mv file.tmp ${filename}
 
+.PHONY: add-lines-if-missing ${filename} ${resource}
+add-lines-if-missing:
+	@if ! grep -q "${resource}.Resource," "${filename}" 2>/dev/null; then \
+		make add-lines filename=${filename} find="project.Resource," add="${resource}.Resource,\n"; \
+	fi
+
+.PHONY: add-datasource-if-exists ${filename} ${resource}
+add-datasource-if-exists:
+	@if [ -f "internal/serviceapi/${resource}/data_source.go" ] && ! grep -q "${resource}.DataSource," "${filename}" 2>/dev/null; then \
+		make add-lines filename=${filename} find="project.DataSource," add="${resource}.DataSource,\n"; \
+	fi
+
 .PHONY: change-lines ${filename} ${find} ${new}
 change-lines:
 	rm -f file.tmp

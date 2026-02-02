@@ -1149,3 +1149,42 @@ resources:
             description: "Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`."
           aws_security_group:
             description: "Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`."
+
+  log_integration:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+      method: PUT
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+      method: DELETE
+    schema:
+      aliases:
+        groupId: projectId
+        alertConfigId: integrationId
+        id: integrationId
+      overrides:
+          project_id:
+            description: *project_id_description
+          integration_id:
+            immutable_computed: true
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/logIntegrations
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+          alertConfigId: integrationId
+          id: integrationId
+        overrides:
+          project_id:
+            description: *project_id_description
