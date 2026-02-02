@@ -1065,3 +1065,34 @@ resources:
             description: "Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`."
           aws_security_group:
             description: "Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`."
+
+  privatelink_endpoint_service_data_federation_online_archive_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
+      method: POST
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
+      method: DELETE
+    schema:
+      aliases:
+        groupId: projectId
+        provider: providerName
+      ignores: [
+        "results"
+      ]
+      overrides:
+          provider_name:
+            computability:
+              required: true
+          status:
+            computability:
+              computed: true
+          error_message:
+            computability:
+              computed: true
