@@ -28,8 +28,8 @@ func (m *TFModel) PathParams() map[string]string {
 // TFModelWithID embeds TFModel and adds the computed id attribute.
 // This is used for state operations to include the id field that isn't in the auto-generated model.
 type TFModelWithID struct {
-	TFModel
 	Id types.String `tfsdk:"id"`
+	TFModel
 }
 
 // Compile-time interface checks

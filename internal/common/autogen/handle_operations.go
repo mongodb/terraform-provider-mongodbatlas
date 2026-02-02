@@ -90,7 +90,7 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 		return
 	}
 	// Use StateModelHook to prepare extended model with computed fields before setting state
-	var stateModel any = req.Plan
+	var stateModel = req.Plan
 	if stateHook, ok := req.Hooks.(StateModelHook); ok {
 		stateModel = stateHook.PrepareForState(req.Plan)
 	}
@@ -161,7 +161,7 @@ func handleReadCore(
 		return
 	}
 	// Use StateModelHook to prepare extended model with computed fields before setting state
-	var stateModel any = req.State
+	var stateModel = req.State
 	if stateHook, ok := req.Hooks.(StateModelHook); ok {
 		stateModel = stateHook.PrepareForState(req.State)
 	}
@@ -283,7 +283,7 @@ func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 		return
 	}
 	// Use StateModelHook to prepare extended model with computed fields before setting state
-	var stateModel any = req.Plan
+	var stateModel = req.Plan
 	if stateHook, ok := req.Hooks.(StateModelHook); ok {
 		stateModel = stateHook.PrepareForState(req.Plan)
 	}
