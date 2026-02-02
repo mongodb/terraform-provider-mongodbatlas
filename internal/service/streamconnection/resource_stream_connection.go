@@ -61,6 +61,58 @@ type TFStreamConnectionModel struct {
 	SchemaRegistryAuthentication types.Object `tfsdk:"schema_registry_authentication"`
 }
 
+// TFStreamConnectionDSModel is the data source model without timeouts (data sources don't support timeouts)
+type TFStreamConnectionDSModel struct {
+	ID               types.String `tfsdk:"id"`
+	ProjectID        types.String `tfsdk:"project_id"`
+	WorkspaceName    types.String `tfsdk:"workspace_name"`
+	InstanceName     types.String `tfsdk:"instance_name"`
+	ConnectionName   types.String `tfsdk:"connection_name"`
+	Type             types.String `tfsdk:"type"`
+	ClusterName      types.String `tfsdk:"cluster_name"`
+	ClusterProjectID types.String `tfsdk:"cluster_project_id"`
+	Authentication   types.Object `tfsdk:"authentication"`
+	BootstrapServers types.String `tfsdk:"bootstrap_servers"`
+	Config           types.Map    `tfsdk:"config"`
+	Security         types.Object `tfsdk:"security"`
+	DBRoleToExecute  types.Object `tfsdk:"db_role_to_execute"`
+	Networking       types.Object `tfsdk:"networking"`
+	AWS              types.Object `tfsdk:"aws"`
+	// https connection
+	Headers types.Map    `tfsdk:"headers"`
+	URL     types.String `tfsdk:"url"`
+	// SchemaRegistry connection
+	SchemaRegistryProvider       types.String `tfsdk:"schema_registry_provider"`
+	SchemaRegistryURLs           types.List   `tfsdk:"schema_registry_urls"`
+	SchemaRegistryAuthentication types.Object `tfsdk:"schema_registry_authentication"`
+}
+
+// ToDS converts the resource model to a data source model (without timeouts)
+func (m *TFStreamConnectionModel) ToDS() *TFStreamConnectionDSModel {
+	return &TFStreamConnectionDSModel{
+		ID:                           m.ID,
+		ProjectID:                    m.ProjectID,
+		WorkspaceName:                m.WorkspaceName,
+		InstanceName:                 m.InstanceName,
+		ConnectionName:               m.ConnectionName,
+		Type:                         m.Type,
+		ClusterName:                  m.ClusterName,
+		ClusterProjectID:             m.ClusterProjectID,
+		Authentication:               m.Authentication,
+		BootstrapServers:             m.BootstrapServers,
+		Config:                       m.Config,
+		Security:                     m.Security,
+		DBRoleToExecute:              m.DBRoleToExecute,
+		Networking:                   m.Networking,
+		AWS:                          m.AWS,
+		Headers:                      m.Headers,
+		URL:                          m.URL,
+		SchemaRegistryProvider:       m.SchemaRegistryProvider,
+		SchemaRegistryURLs:           m.SchemaRegistryURLs,
+		SchemaRegistryAuthentication: m.SchemaRegistryAuthentication,
+	}
+}
+
 type TFConnectionAuthenticationModel struct {
 	Mechanism                 types.String `tfsdk:"mechanism"`
 	Method                    types.String `tfsdk:"method"`

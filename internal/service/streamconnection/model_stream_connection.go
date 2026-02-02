@@ -280,6 +280,15 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 	return &connectionModel, nil
 }
 
+// NewTFStreamConnectionDS creates a data source model by reusing NewTFStreamConnection and converting.
+func NewTFStreamConnectionDS(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig, currSchemaRegistryAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionDSModel, diag.Diagnostics) {
+	model, diags := NewTFStreamConnection(ctx, projID, instanceName, workspaceName, currAuthConfig, currSchemaRegistryAuthConfig, apiResp, nil)
+	if diags.HasError() {
+		return nil, diags
+	}
+	return model.ToDS(), nil
+}
+
 func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *types.Object, authResp *admin.StreamsKafkaAuthentication) (*types.Object, diag.Diagnostics) {
 	if authResp != nil {
 		resultAuthModel := TFConnectionAuthenticationModel{
