@@ -62,6 +62,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"ssl_key_password": schema.StringAttribute{
 						Optional:            true,
 						MarkdownDescription: "Password for the SSL key, if it is password protected.",
+						Sensitive:           true,
 					},
 					"token_endpoint_url": schema.StringAttribute{
 						Optional:            true,
@@ -123,7 +124,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"headers": schema.MapAttribute{
@@ -276,7 +277,7 @@ type TFAuthenticationModel struct {
 	Scope                     types.String `tfsdk:"scope"`
 	SslCertificate            types.String `tfsdk:"ssl_certificate"`
 	SslKey                    types.String `tfsdk:"ssl_key"`
-	SslKeyPassword            types.String `tfsdk:"ssl_key_password"`
+	SslKeyPassword            types.String `tfsdk:"ssl_key_password" autogen:"sensitive"`
 	TokenEndpointUrl          types.String `tfsdk:"token_endpoint_url"`
 	Username                  types.String `tfsdk:"username"`
 }

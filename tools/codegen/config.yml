@@ -797,6 +797,8 @@ resources:
         clusterGroupId: clusterProjectId
         provider: schemaRegistryProvider
       overrides:
+        project_id:
+          description: *project_id_description
         # Align required fields with curated schema
         connection_name:
           computability:
@@ -822,6 +824,10 @@ resources:
 
         # Preserve secrets like the curated resource does
         schema_registry_authentication.password:
+          sensitive: true
+
+        # Mark ssl_key_password as sensitive
+        authentication.ssl_key_password:
           sensitive: true
 
         # Curated schema models URLs as list (autogen defaults to set)
