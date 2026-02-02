@@ -143,3 +143,72 @@ func TestWaitStateTransitionNotFoundExceedsLimit(t *testing.T) {
 	assert.Contains(t, err.Error(), "couldn't find resource")
 	assert.Nil(t, result)
 }
+
+// TestWaitStateTransitionFailed verifies that when a connection reaches the FAILED state,
+// the function returns the connection (so Terraform can show the failure details).
+func TestWaitStateTransitionFailed(t *testing.T) {
+	var (
+		m              = mockadmin.NewStreamsApi(t)
+		projectID      = "projectID"
+		workspaceName  = "workspaceName"
+		connectionName = "connectionName"
+	)
+	failedConnection := &admin.StreamsConnection{
+		Name:  admin.PtrString(connectionName),
+		Type:  admin.PtrString("Kafka"),
+		State: admin.PtrString("FAILED"),
+	}
+	m.EXPECT().GetStreamConnection(mock.Anything, projectID, workspaceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Once()
+	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(failedConnection, nil, nil)
+
+	// FAILED is a target state, so it should return successfully with the failed connection
+	result, err := streamconnection.WaitStateTransitionWithTimeout(t.Context(), projectID, workspaceName, connectionName, m, 30*time.Second)
+	require.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, "FAILED", *result.State)
+}
+
+// TestWaitStateTransitionEmptyStateAssumesReady verifies backward compatibility:
+// when the API response doesn't include a state field, we assume the connection is READY.
+func TestWaitStateTransitionEmptyStateAssumesReady(t *testing.T) {
+	var (
+		m              = mockadmin.NewStreamsApi(t)
+		projectID      = "projectID"
+		workspaceName  = "workspaceName"
+		connectionName = "connectionName"
+	)
+	// Connection without State field (backward compatibility with older API versions)
+	connectionWithoutState := &admin.StreamsConnection{
+		Name: admin.PtrString(connectionName),
+		Type: admin.PtrString("Kafka"),
+		// State is not set
+	}
+	m.EXPECT().GetStreamConnection(mock.Anything, projectID, workspaceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Once()
+	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(connectionWithoutState, nil, nil)
+
+	// Empty state should be treated as READY
+	result, err := streamconnection.WaitStateTransitionWithTimeout(t.Context(), projectID, workspaceName, connectionName, m, 30*time.Second)
+	require.NoError(t, err)
+	assert.NotNil(t, result)
+	assert.Equal(t, connectionName, *result.Name)
+}
+
+// TestWaitStateTransitionAPIError verifies that non-404 API errors fail immediately
+// rather than retrying indefinitely.
+func TestWaitStateTransitionAPIError(t *testing.T) {
+	var (
+		m              = mockadmin.NewStreamsApi(t)
+		projectID      = "projectID"
+		workspaceName  = "workspaceName"
+		connectionName = "connectionName"
+		genericErr     = admin.GenericOpenAPIError{}
+	)
+	genericErr.SetError("internal server error")
+	m.EXPECT().GetStreamConnection(mock.Anything, projectID, workspaceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Once()
+	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(nil, &http.Response{StatusCode: http.StatusInternalServerError}, &genericErr)
+
+	// Non-404 errors should fail immediately
+	result, err := streamconnection.WaitStateTransitionWithTimeout(t.Context(), projectID, workspaceName, connectionName, m, 30*time.Second)
+	require.Error(t, err)
+	assert.Nil(t, result)
+}

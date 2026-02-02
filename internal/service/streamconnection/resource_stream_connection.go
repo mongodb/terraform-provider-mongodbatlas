@@ -6,11 +6,13 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -34,21 +36,22 @@ type streamConnectionRS struct {
 }
 
 type TFStreamConnectionModel struct {
-	ID               types.String `tfsdk:"id"`
-	ProjectID        types.String `tfsdk:"project_id"`
-	WorkspaceName    types.String `tfsdk:"workspace_name"`
-	InstanceName     types.String `tfsdk:"instance_name"`
-	ConnectionName   types.String `tfsdk:"connection_name"`
-	Type             types.String `tfsdk:"type"`
-	ClusterName      types.String `tfsdk:"cluster_name"`
-	ClusterProjectID types.String `tfsdk:"cluster_project_id"`
-	Authentication   types.Object `tfsdk:"authentication"`
-	BootstrapServers types.String `tfsdk:"bootstrap_servers"`
-	Config           types.Map    `tfsdk:"config"`
-	Security         types.Object `tfsdk:"security"`
-	DBRoleToExecute  types.Object `tfsdk:"db_role_to_execute"`
-	Networking       types.Object `tfsdk:"networking"`
-	AWS              types.Object `tfsdk:"aws"`
+	ID               types.String   `tfsdk:"id"`
+	ProjectID        types.String   `tfsdk:"project_id"`
+	WorkspaceName    types.String   `tfsdk:"workspace_name"`
+	InstanceName     types.String   `tfsdk:"instance_name"`
+	ConnectionName   types.String   `tfsdk:"connection_name"`
+	Type             types.String   `tfsdk:"type"`
+	ClusterName      types.String   `tfsdk:"cluster_name"`
+	ClusterProjectID types.String   `tfsdk:"cluster_project_id"`
+	Authentication   types.Object   `tfsdk:"authentication"`
+	BootstrapServers types.String   `tfsdk:"bootstrap_servers"`
+	Config           types.Map      `tfsdk:"config"`
+	Security         types.Object   `tfsdk:"security"`
+	DBRoleToExecute  types.Object   `tfsdk:"db_role_to_execute"`
+	Networking       types.Object   `tfsdk:"networking"`
+	AWS              types.Object   `tfsdk:"aws"`
+	Timeouts         timeouts.Value `tfsdk:"timeouts"`
 	// https connection
 	Headers types.Map    `tfsdk:"headers"`
 	URL     types.String `tfsdk:"url"`
@@ -186,7 +189,11 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 
 	// Wait for the connection to reach a ready state before returning
 	// This ensures the connection is fully provisioned and available for use with stream processors
-	apiResp, err = WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi)
+	createTimeout := cleanup.ResolveTimeout(ctx, &streamConnectionPlan.Timeouts, cleanup.OperationCreate, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	apiResp, err = WaitStateTransitionWithTimeout(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, createTimeout)
 	if err != nil {
 		resp.Diagnostics.AddError("error waiting for stream connection to be ready", err.Error())
 		return
@@ -195,7 +202,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 	instanceName := streamConnectionPlan.InstanceName.ValueString()
 	workspaceName := streamConnectionPlan.WorkspaceName.ValueString()
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, &streamConnectionPlan.SchemaRegistryAuthentication, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, &streamConnectionPlan.SchemaRegistryAuthentication, apiResp, &streamConnectionPlan.Timeouts)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -230,7 +237,7 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 
 	instanceName := streamConnectionState.InstanceName.ValueString()
 	workspaceName := streamConnectionState.WorkspaceName.ValueString()
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionState.Authentication, &streamConnectionState.SchemaRegistryAuthentication, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionState.Authentication, &streamConnectionState.SchemaRegistryAuthentication, apiResp, &streamConnectionState.Timeouts)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -266,7 +273,11 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 
 	// Wait for the connection to reach a ready state before returning
 	// This ensures the connection is fully provisioned and available for use with stream processors
-	apiResp, err := WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi)
+	updateTimeout := cleanup.ResolveTimeout(ctx, &streamConnectionPlan.Timeouts, cleanup.OperationUpdate, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	apiResp, err := WaitStateTransitionWithTimeout(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, updateTimeout)
 	if err != nil {
 		resp.Diagnostics.AddError("error waiting for stream connection to be ready", err.Error())
 		return
@@ -274,7 +285,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 
 	instanceName := streamConnectionPlan.InstanceName.ValueString()
 	workspaceName := streamConnectionPlan.WorkspaceName.ValueString()
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, &streamConnectionPlan.SchemaRegistryAuthentication, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, &streamConnectionPlan.SchemaRegistryAuthentication, apiResp, &streamConnectionPlan.Timeouts)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

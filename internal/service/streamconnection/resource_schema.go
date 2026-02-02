@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -14,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
+
+const defaultCreateUpdateTimeoutDoc = "20m"
 
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
@@ -200,6 +203,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+
+			// Timeouts for create and update operations
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create:            true,
+				Update:            true,
+				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate(defaultCreateUpdateTimeoutDoc),
+				UpdateDescription: constant.TimeoutDescriptionCreateReadUpdate(defaultCreateUpdateTimeoutDoc),
+			}),
 		},
 	}
 }

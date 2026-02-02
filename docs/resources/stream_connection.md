@@ -306,6 +306,22 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
 * `username` - Username for the Schema Registry. Required when `type` is `USER_INFO`.
 * `password` - Password for the Schema Registry. Required when `type` is `USER_INFO`.
 
+### Timeouts
+
+```terraform
+resource "mongodbatlas_stream_connection" "example" {
+  # ... other configuration ...
+
+  timeouts {
+    create = "30m"
+    update = "30m"
+  }
+}
+```
+
+* `create` - (Optional) The maximum time to wait for the stream connection to be fully provisioned after creation. Defaults to `20m` (20 minutes).
+* `update` - (Optional) The maximum time to wait for the stream connection to be fully provisioned after an update. Defaults to `20m` (20 minutes).
+
 ## Import
 
 You can import a stream connection resource using the workspace name, project ID, and connection name. The format must be `WORKSPACE_NAME-PROJECT_ID-CONNECTION_NAME`. For example:

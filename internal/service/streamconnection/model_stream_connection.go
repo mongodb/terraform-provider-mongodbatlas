@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -147,7 +148,8 @@ func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionM
 }
 
 // NewTFStreamConnection determines if the original model was created with instance_name or workspace_name and sets the appropriate field.
-func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig, currSchemaRegistryAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
+// The planTimeouts parameter is optional and used to preserve user-configured timeouts across create/update operations.
+func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig, currSchemaRegistryAuthConfig *types.Object, apiResp *admin.StreamsConnection, planTimeouts *timeouts.Value) (*TFStreamConnectionModel, diag.Diagnostics) {
 	streamWorkspaceName := workspaceName
 	if instanceName != "" {
 		streamWorkspaceName = instanceName
@@ -166,6 +168,11 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 		URL:                    types.StringPointerValue(apiResp.Url),
 		SchemaRegistryURLs:     types.ListNull(types.StringType),
 		SchemaRegistryProvider: types.StringPointerValue(apiResp.Provider),
+	}
+
+	// Preserve user-configured timeouts
+	if planTimeouts != nil {
+		connectionModel.Timeouts = *planTimeouts
 	}
 
 	// Set the appropriate field based on the original model
@@ -340,7 +347,7 @@ func NewTFStreamConnections(ctx context.Context,
 
 	for i := range input {
 		projectID := streamConnectionsConfig.ProjectID.ValueString()
-		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, nil, nil, &input[i])
+		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, nil, nil, &input[i], nil)
 		if diags.HasError() {
 			return nil, diags
 		}

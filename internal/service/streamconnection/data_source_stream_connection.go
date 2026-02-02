@@ -75,7 +75,7 @@ func (d *streamConnectionDS) Read(ctx context.Context, req datasource.ReadReques
 
 	instanceName := streamConnectionConfig.InstanceName.ValueString()
 	workspaceName := streamConnectionConfig.WorkspaceName.ValueString()
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, nil, nil, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, nil, nil, apiResp, nil)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

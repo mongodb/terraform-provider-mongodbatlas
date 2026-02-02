@@ -3,11 +3,14 @@ package streamconnection_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20250312013/admin"
 )
 
@@ -352,7 +355,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := streamconnection.NewTFStreamConnection(t.Context(), tc.providedProjID, "", tc.providedInstanceName, tc.providedAuthConfig, tc.providedSchemaRegistryAuthConfig, tc.SDKResp)
+			resultModel, diags := streamconnection.NewTFStreamConnection(t.Context(), tc.providedProjID, "", tc.providedInstanceName, tc.providedAuthConfig, tc.providedSchemaRegistryAuthConfig, tc.SDKResp, nil)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -362,6 +365,65 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestNewTFStreamConnectionCustomTimeoutsOverrideDefault verifies that when a user specifies
+// custom timeouts in their Terraform configuration, those values override the default timeout.
+// This ensures users can configure longer timeouts for slow-provisioning connections or
+// shorter timeouts to fail fast.
+func TestNewTFStreamConnectionCustomTimeoutsOverrideDefault(t *testing.T) {
+	defaultTimeout := 20 * time.Minute
+	customCreateTimeout := 30 * time.Minute
+	customUpdateTimeout := 45 * time.Minute
+
+	// User specifies custom timeouts in their Terraform config
+	userConfiguredTimeouts := timeouts.Value{
+		Object: types.ObjectValueMust(
+			map[string]attr.Type{
+				"create": types.StringType,
+				"read":   types.StringType,
+				"update": types.StringType,
+				"delete": types.StringType,
+			},
+			map[string]attr.Value{
+				"create": types.StringValue("30m"),
+				"read":   types.StringNull(),
+				"update": types.StringValue("45m"),
+				"delete": types.StringNull(),
+			},
+		),
+	}
+
+	apiResp := &admin.StreamsConnection{
+		Name: admin.PtrString("TestConnection"),
+		Type: admin.PtrString("Cluster"),
+	}
+
+	resultModel, diags := streamconnection.NewTFStreamConnection(
+		t.Context(),
+		dummyProjectID,
+		"",           // instanceName (deprecated)
+		instanceName, // workspaceName
+		nil,          // currAuthConfig
+		nil,          // currSchemaRegistryAuthConfig
+		apiResp,
+		&userConfiguredTimeouts, // planTimeouts - user configured custom timeouts
+	)
+
+	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
+	require.NotNil(t, resultModel)
+
+	// Verify user-configured timeouts are preserved in the model
+	assert.Equal(t, userConfiguredTimeouts, resultModel.Timeouts)
+
+	// Verify custom timeouts override the default (20m) when extracted
+	createTimeout, localDiags := resultModel.Timeouts.Create(t.Context(), defaultTimeout)
+	require.False(t, localDiags.HasError())
+	assert.Equal(t, customCreateTimeout, createTimeout, "user-configured create timeout (30m) should override default (20m)")
+
+	updateTimeout, localDiags := resultModel.Timeouts.Update(t.Context(), defaultTimeout)
+	require.False(t, localDiags.HasError())
+	assert.Equal(t, customUpdateTimeout, updateTimeout, "user-configured update timeout (45m) should override default (20m)")
 }
 
 type paginatedConnectionsSDKToTFModelTestCase struct {
