@@ -6,6 +6,15 @@ on:
     paths:
       - .changelog/**
   workflow_dispatch:
+    inputs:
+      base_branch:
+        description: "Branch to update changelog on"
+        required: false
+        type: choice
+        default: "master"
+        options:
+          - "master"
+          - "v1-lts"
 jobs:
   generate-and-update-changelog:
     if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
@@ -19,9 +28,10 @@ jobs:
           file_to_commit: 'CHANGELOG.md'
           commit_message: ${{ github.event_name == 'workflow_dispatch' && format('{0}{1}', 'chore:',' Updates CHANGELOG.md (Manual Trigger)') || format('{0}{1}{2}{3}', 'chore:', ' Updates CHANGELOG.md for ', '#', github.event.pull_request.number) }}
           apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
-          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
           gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}     
+          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+          branch: ${{ github.event_name == 'workflow_dispatch' && inputs.base_branch || github.event.pull_request.base.ref }}
 
   slack-notification:
     needs: [generate-and-update-changelog]
