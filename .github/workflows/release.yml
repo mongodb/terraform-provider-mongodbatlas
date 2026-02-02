@@ -63,7 +63,6 @@ jobs:
     permissions: {}
     steps:
       - name: Validate branch exists
-        if: inputs.base_branch != 'master'
         env:
           BASE_BRANCH: ${{ inputs.base_branch }}
         run: |
