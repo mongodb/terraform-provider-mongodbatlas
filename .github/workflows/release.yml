@@ -1,8 +1,8 @@
-name: 'New Release'
-run-name: 'Release ${{ inputs.version_number }}${{ inputs.base_branch != '''' && format('' from {0}'', inputs.base_branch) || '''' }} (skip tests: ${{ inputs.skip_tests }}, use existing tag: ${{ inputs.use_existing_tag}})'
+name: "New Release"
+run-name: "Release ${{ inputs.version_number }}${{ inputs.base_branch != 'master' && format(' from {0}', inputs.base_branch) || '' }} (skip tests: ${{ inputs.skip_tests }}, use existing tag: ${{ inputs.use_existing_tag}})"
 
 # Used for creating a new release. This workflow will run qa acceptance tests, create a new tag, and generate the release with GoReleaser.
-# Optional: Set base_branch (e.g., v1-lts) for backport releases. When base_branch is set to a non-master branch, Jira release step is skipped.
+# For backport releases, set base_branch to the appropriate LTS branch. When base_branch is not master, Jira release step is skipped.
 # Note: After a backport release, CHANGELOG.md changes from the base branch should be manually merged to master branch.
 on:
   workflow_dispatch:
@@ -110,7 +110,7 @@ jobs:
           file_to_commit: 'docs/* templates/*' # only docs files are updated
           commit_message: 'chore: Update example links in registry docs for ${{ github.event.inputs.version_number }} release'
           apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
-          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
           gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
           branch: ${{ needs.release-config.outputs.target_branch }}
@@ -134,7 +134,7 @@ jobs:
           file_to_commit: 'CHANGELOG.md'
           commit_message: 'chore: Updates CHANGELOG.md header for ${{ github.event.inputs.version_number }} release'
           apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
-          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
           gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
           branch: ${{ needs.release-config.outputs.target_branch }}
@@ -148,7 +148,7 @@ jobs:
       !cancelled()
       && !contains(needs.*.result, 'failure') 
       && needs.release-config.outputs.creates_new_tag == 'true'
-    steps: 
+    steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
@@ -178,7 +178,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    permissions: 
+    permissions:
       contents: write
     needs: [ validate-inputs, update-examples-reference-in-docs, update-changelog-header, create-tag, run-qa-acceptance-tests ]
     # Release is skipped if there are failures in previous steps
