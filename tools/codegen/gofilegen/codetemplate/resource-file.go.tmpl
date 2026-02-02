@@ -39,6 +39,9 @@ type rs struct {
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
+	if extHook, ok := any(r).(autogen.SchemaExtensionHook); ok {
+		resp.Schema = extHook.ExtendSchema(ctx, resp.Schema)
+	}
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -93,18 +96,28 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state TFModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
+	var baseState *TFModel
+	if stateHook, ok := any(r).(autogen.StateModelHook); ok {
+		stateModel := stateHook.NewStateModel()
+		resp.Diagnostics.Append(req.State.Get(ctx, stateModel)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		baseState = stateHook.GetBaseModel(stateModel).(*TFModel)
+	} else {
+		baseState = &TFModel{}
+		resp.Diagnostics.Append(req.State.Get(ctx, baseState)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 	reqHandle := autogen.HandleReadReq {
 		Hooks: r,
 		RespDiags:        &resp.Diagnostics,
 		RespState:        &resp.State,
 		Client: r.Client,
-		State: &state,
-		CallParams: readAPICallParams(&state),
+		State: baseState,
+		CallParams: readAPICallParams(baseState),
 	}
 	autogen.HandleRead(ctx, reqHandle)
 }
@@ -112,11 +125,25 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
     {{- if .APIOperations.Update}}
 	var plan TFModel
-	var state TFModel
+	var state *TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+	// Read state, using extended model if StateModelHook is implemented
+	if stateHook, ok := any(r).(autogen.StateModelHook); ok {
+		stateModel := stateHook.NewStateModel()
+		resp.Diagnostics.Append(req.State.Get(ctx, stateModel)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		state = stateHook.GetBaseModel(stateModel).(*TFModel)
+	} else {
+		state = &TFModel{}
+		resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 	// Path params are grabbed from state as they may be computed-only and not present in the plan
 	pathParams := map[string]string{ {{range .APIOperations.Update.PathParams }}
@@ -162,12 +189,23 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	{{- if .APIOperations.Delete}}
-	var state TFModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
+	var state *TFModel
+	// Read state, using extended model if StateModelHook is implemented
+	if stateHook, ok := any(r).(autogen.StateModelHook); ok {
+		stateModel := stateHook.NewStateModel()
+		resp.Diagnostics.Append(req.State.Get(ctx, stateModel)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		state = stateHook.GetBaseModel(stateModel).(*TFModel)
+	} else {
+		state = &TFModel{}
+		resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
-	reqHandle := deleteRequest(r, r.Client, &state, &resp.Diagnostics)
+	reqHandle := deleteRequest(r, r.Client, state, &resp.Diagnostics)
 	{{- with .APIOperations.Delete.Wait }}
 	timeout, diags := state.Timeouts.Delete(ctx, {{ .TimeoutSeconds }}*time.Second)
 	resp.Diagnostics.Append(diags...)

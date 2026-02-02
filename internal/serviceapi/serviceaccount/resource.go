@@ -31,6 +31,9 @@ type rs struct {
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
+	if extHook, ok := any(r).(autogen.SchemaExtensionHook); ok {
+		resp.Schema = extHook.ExtendSchema(ctx, resp.Schema)
+	}
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -60,8 +63,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state TFModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	var state any
+	if stateHook, ok := any(r).(autogen.StateModelHook); ok {
+		state = stateHook.NewStateModel()
+	} else {
+		state = &TFModel{}
+	}
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -70,29 +78,34 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		RespDiags:  &resp.Diagnostics,
 		RespState:  &resp.State,
 		Client:     r.Client,
-		State:      &state,
-		CallParams: readAPICallParams(&state),
+		State:      state,
+		CallParams: readAPICallParams(state.(PathParamsProvider)),
 	}
 	autogen.HandleRead(ctx, reqHandle)
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan TFModel
-	var state TFModel
+	var state any
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	// Read state, using extended model if StateModelHook is implemented
+	if stateHook, ok := any(r).(autogen.StateModelHook); ok {
+		state = stateHook.NewStateModel()
+	} else {
+		state = &TFModel{}
+	}
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	// Path params are grabbed from state as they may be computed-only and not present in the plan
-	pathParams := map[string]string{
-		"orgId":    state.OrgId.ValueString(),
-		"clientId": state.ClientId.ValueString(),
-	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}",
-		PathParams:    pathParams,
+		PathParams:    state.(PathParamsProvider).PathParams(),
 		Method:        "PATCH",
 	}
 	reqHandle := autogen.HandleUpdateReq{
@@ -106,12 +119,18 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state TFModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	var state any
+	// Read state, using extended model if StateModelHook is implemented
+	if stateHook, ok := any(r).(autogen.StateModelHook); ok {
+		state = stateHook.NewStateModel()
+	} else {
+		state = &TFModel{}
+	}
+	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := deleteRequest(r, r.Client, &state, &resp.Diagnostics)
+	reqHandle := deleteRequest(r, r.Client, state, &resp.Diagnostics)
 	autogen.HandleDelete(ctx, *reqHandle)
 }
 
@@ -120,25 +139,16 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
-func readAPICallParams(model any) *config.APICallParams {
-	m := model.(*TFModel)
-	pathParams := map[string]string{
-		"orgId":    m.OrgId.ValueString(),
-		"clientId": m.ClientId.ValueString(),
-	}
+func readAPICallParams(model PathParamsProvider) *config.APICallParams {
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}",
-		PathParams:    pathParams,
+		PathParams:    model.PathParams(),
 		Method:        "GET",
 	}
 }
 
-func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
-	pathParams := map[string]string{
-		"orgId":    model.OrgId.ValueString(),
-		"clientId": model.ClientId.ValueString(),
-	}
+func deleteRequest(r *rs, client *config.MongoDBClient, model any, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	return &autogen.HandleDeleteReq{
 		Hooks:  r,
 		Client: client,
@@ -147,7 +157,7 @@ func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *d
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
 			RelativePath:  "/api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}",
-			PathParams:    pathParams,
+			PathParams:    model.(PathParamsProvider).PathParams(),
 			Method:        "DELETE",
 		},
 	}

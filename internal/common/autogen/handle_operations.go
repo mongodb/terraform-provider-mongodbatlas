@@ -89,7 +89,18 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 		addError(d, opCreate, errWaitingForChanges, errWait)
 		return
 	}
-	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Plan)...)
+	// Use StateModelHook to prepare extended model with computed fields before setting state
+	var stateModel any = req.Plan
+	if stateHook, ok := req.Hooks.(StateModelHook); ok {
+		stateModel = stateHook.PrepareForState(req.Plan)
+	}
+	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, stateModel)...)
+	if req.Resp.Diagnostics.HasError() {
+		return
+	}
+	if postStateHook, ok := req.Hooks.(PostStateSetHook); ok {
+		req.Resp.Diagnostics.Append(postStateHook.PostStateSet(ctx, &req.Resp.State, stateModel)...)
+	}
 }
 
 type HandleReadReq struct {
@@ -149,7 +160,18 @@ func handleReadCore(
 		addError(req.RespDiags, opRead, errResolvingResponse, err)
 		return
 	}
-	req.RespDiags.Append(req.RespState.Set(ctx, req.State)...)
+	// Use StateModelHook to prepare extended model with computed fields before setting state
+	var stateModel any = req.State
+	if stateHook, ok := req.Hooks.(StateModelHook); ok {
+		stateModel = stateHook.PrepareForState(req.State)
+	}
+	req.RespDiags.Append(req.RespState.Set(ctx, stateModel)...)
+	if req.RespDiags.HasError() {
+		return
+	}
+	if postStateHook, ok := req.Hooks.(PostStateSetHook); ok {
+		req.RespDiags.Append(postStateHook.PostStateSet(ctx, req.RespState, stateModel)...)
+	}
 }
 
 // HandleDataSourceReadList handles the read operation for a plural data source (list) with automatic pagination.
@@ -260,7 +282,18 @@ func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 		addError(d, opUpdate, errWaitingForChanges, err)
 		return
 	}
-	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Plan)...)
+	// Use StateModelHook to prepare extended model with computed fields before setting state
+	var stateModel any = req.Plan
+	if stateHook, ok := req.Hooks.(StateModelHook); ok {
+		stateModel = stateHook.PrepareForState(req.Plan)
+	}
+	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, stateModel)...)
+	if req.Resp.Diagnostics.HasError() {
+		return
+	}
+	if postStateHook, ok := req.Hooks.(PostStateSetHook); ok {
+		req.Resp.Diagnostics.Append(postStateHook.PostStateSet(ctx, &req.Resp.State, stateModel)...)
+	}
 }
 
 type HandleDeleteReq struct {
