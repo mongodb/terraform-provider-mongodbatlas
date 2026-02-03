@@ -151,7 +151,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "port_mapped" {
 
 3. **Update your application connection strings.** This is when downtime occurs. Retrieve the new connection string from your cluster's private endpoint configuration.
 
-   -> **Note:** Connection string format changes from `pl-0` (e.g., `cluster0-pl-0.a0b1c2.domain.com`) to `psc-0` (e.g., `cluster0-psc-0.a0b1c2.domain.com`). Exception: Cross-cloud clusters spanning a region with port-mapped endpoints continue using `pl-0`.
+   -> **Note:** Connection string format changes from `pl-0` (e.g., `cluster0-pl-0.a0b1c2.domain.com`) to `psc-0` (e.g., `cluster0-psc-0.a0b1c2.domain.com`). For single-region and multi-region clusters, the connection string uses `psc-0`. **Exception:** Cross-cloud clusters spanning a region with a port-mapped endpoint continue using `pl-0`. Make sure to update all application connection strings accordingly.
 
 4. Test application connectivity with the port-mapped endpoint.
 
