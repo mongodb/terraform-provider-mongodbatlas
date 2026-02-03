@@ -19,7 +19,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	// TODO: update before merging to master:  "go.mongodb.org/atlas-sdk/v20250312010/admin"
+	// TODO: update before merging to master:  "go.mongodb.org/atlas-sdk/v20250312013/admin"
 	"github.com/mongodb/atlas-sdk-go/admin"
 )
 
