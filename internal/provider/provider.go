@@ -52,6 +52,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelorgratelimit"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/aimodelratelimit"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
 	autogenprojectipaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccount"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccountsecret"
@@ -325,6 +326,8 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		projectserviceaccountsecret.DataSource,
 		projectserviceaccountaccesslistentry.DataSource,
 		projectserviceaccountaccesslistentry.PluralDataSource,
+		logintegration.DataSource,
+		logintegration.PluralDataSource,
 
 		// TODO: Auto-generated datasources, delete this comment before merging to master in CLOUDP-372674
 		aimodelapikey.DataSource,
@@ -346,6 +349,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Resource {
 	resources := []func() resource.Resource{
 		project.Resource,
+		logintegration.Resource,
 		encryptionatrest.Resource,
 		databaseuser.Resource,
 		alertconfiguration.Resource,

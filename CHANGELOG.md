@@ -1,8 +1,17 @@
 ## (Unreleased)
 
+NOTES:
+
+* data-source/mongodbatlas_push_based_log_export: Deprecates this data source in favor of `data.mongodbatlas_log_integration` ([#4012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4012))
+* resource/mongodbatlas_push_based_log_export: Deprecates this resource in favor of `mongodbatlas_log_integration` ([#4012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4012))
+
 FEATURES:
 
 * **New Data Source:** `data-source/project_ip_access_lists` ([#4104](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4104))
+* **New Data Source:** `mongodbatlas_log_integration` ([#3978](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3978))
+* **New Data Source:** `mongodbatlas_log_integrations` ([#4008](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4008))
+* **New Guide:** Migration Guide: Push Based Log Export (PBLE) to Log Integration ([#4010](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4010))
+* **New Resource:** `resource/mongodbatlas_log_integration` ([#3931](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3931))
 
 ## 2.5.0 (January 22, 2026)
 

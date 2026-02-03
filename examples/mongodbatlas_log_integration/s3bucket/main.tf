@@ -1,0 +1,46 @@
+resource "mongodbatlas_project" "project" {
+  name   = var.atlas_project_name
+  org_id = var.atlas_org_id
+}
+
+# Set up cloud provider access in Atlas using the created IAM role
+resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+  project_id    = mongodbatlas_project.project.id
+  provider_name = "AWS"
+}
+
+resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+  project_id = mongodbatlas_project.project.id
+  role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+
+  aws {
+    iam_assumed_role_arn = aws_iam_role.atlas_role.arn
+  }
+}
+
+# Set up log integration with authorized IAM role
+resource "mongodbatlas_log_integration" "example" {
+  project_id  = mongodbatlas_project.project.id
+  bucket_name = aws_s3_bucket.log_bucket.bucket
+  iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+  prefix_path = "atlas-logs"
+  type        = "S3_LOG_EXPORT"
+  log_types   = ["MONGOD_AUDIT"]
+}
+
+data "mongodbatlas_log_integration" "example" {
+  project_id     = mongodbatlas_log_integration.example.project_id
+  integration_id = mongodbatlas_log_integration.example.integration_id
+}
+
+data "mongodbatlas_log_integrations" "example" {
+  project_id = mongodbatlas_log_integration.example.project_id
+}
+
+output "log_integration_bucket_name" {
+  value = data.mongodbatlas_log_integration.example.bucket_name
+}
+
+output "log_integrations_results" {
+  value = data.mongodbatlas_log_integrations.example.results
+}
