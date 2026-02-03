@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -15,7 +16,7 @@ func TestAccNetworkDSPrivateLinkEndpoint_basic(t *testing.T) {
 	resourceName := "data.mongodbatlas_privatelink_endpoint.test"
 	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 	region := os.Getenv("AWS_REGION")
-	providerName := "AWS"
+	providerName := constant.AWS
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheck(t) },

@@ -33,9 +33,10 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 }
 
 data "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id            = mongodbatlas_privatelink_endpoint_service.test.project_id
-  private_link_id       = mongodbatlas_privatelink_endpoint_service.test.private_link_id
-  interface_endpoint_id = mongodbatlas_privatelink_endpoint_service.test.interface_endpoint_id
+  project_id          = mongodbatlas_privatelink_endpoint_service.test.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint_service.test.private_link_id
+  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
+  provider_name       = "AWS"
 }
 ```
 
@@ -71,9 +72,36 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 }
 
 data "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id            = mongodbatlas_privatelink_endpoint_service.test.project_id
-  private_link_id       = mongodbatlas_privatelink_endpoint_service.test.private_link_id
-  interface_endpoint_id = mongodbatlas_privatelink_endpoint_service.test.interface_endpoint_id
+  project_id          = mongodbatlas_privatelink_endpoint_service.test.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint_service.test.private_link_id
+  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
+  provider_name       = "AZURE"
+}
+```
+
+## Example with GCP (Legacy Architecture)
+
+```terraform
+data "mongodbatlas_privatelink_endpoint_service" "test" {
+  project_id          = mongodbatlas_privatelink_endpoint_service.test.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint_service.test.private_link_id
+  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
+  provider_name       = "GCP"
+}
+```
+
+## Example with GCP (Port-Mapped Architecture)
+
+The port-mapped architecture uses port mapping to reduce resource provisioning. In the GCP legacy private endpoint architecture, service attachments were mapped 1:1 with Atlas nodes (one service attachment per node). In the port-mapped architecture, regardless of cloud provider, one service attachment can be mapped to up to 150 nodes via ports designated per node, enabling direct targeting of specific nodes using only one customer IP address. Enable it by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource.
+
+**Important:** For the port-mapped architecture, use `endpoint_service_id` (the forwarding rule name) and `private_endpoint_ip_address` (the IP address). The `endpoints` list is no longer used for the port-mapped architecture.
+
+```terraform
+data "mongodbatlas_privatelink_endpoint_service" "test" {
+  project_id          = mongodbatlas_privatelink_endpoint_service.test.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint_service.test.private_link_id
+  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
+  provider_name       = "GCP"
 }
 ```
 
@@ -84,8 +112,8 @@ data "mongodbatlas_privatelink_endpoint_service" "test" {
 
 * `project_id` - (Required) Unique identifier for the project.
 * `private_link_id` - (Required) Unique identifier of the private endpoint service for which you want to retrieve a private endpoint.
-* `endpoint_service_id` - (Required) Unique identifier of the `AWS` or `AZURE` or `GCP` resource.
-* `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS` or `AZURE` or `GCP`.
+* `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC. For `AWS` and `AZURE`, this is the interface endpoint identifier. For `GCP` port-mapped architecture, this is the forwarding rule name. For `GCP` legacy private endpoint architecture, this is the endpoint group name.
+* `provider_name` - (Required) Cloud provider for which you want to retrieve a private endpoint. Atlas accepts `AWS`, `AZURE` or `GCP`.
 
 ## Attributes Reference
 
@@ -94,7 +122,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The Terraform's unique identifier used internally for state management.
 * `interface_endpoint_id` - Unique identifier of the interface endpoint.
 * `private_endpoint_connection_name` - Name of the connection for this private endpoint that Atlas generates.
-* `private_endpoint_ip_address` - Private IP address of the private endpoint network interface.
+* `private_endpoint_ip_address` - Private IP address of the private endpoint network interface. For port-mapped architecture, this is required and is the IP address of the forwarding rule. For GCP legacy private endpoint architecture, this is not used.
 * `private_endpoint_resource_id` - Unique identifier of the private endpoint.
 * `delete_requested` - Indicates if Atlas received a request to remove the interface endpoint from the private endpoint connection.
 * `error_message` - Error message pertaining to the interface endpoint. Returns null if there are no errors.
@@ -112,15 +140,17 @@ In addition to all arguments above, the following attributes are exported:
   * `AVAILABLE` - Atlas approved the connection to your private endpoint.
   * `FAILED` - Atlas failed to accept the connection your private endpoint.
   * `DELETING` - Atlas is removing the connection to your private endpoint from the Private Link service.
-* `gcp_status` - Status of the interface endpoint for GCP.
+* `gcp_status` - Status of the interface endpoint.
   Returns one of the following values:
   * `INITIATING` - Atlas has not yet accepted the connection to your private endpoint.
   * `AVAILABLE` - Atlas approved the connection to your private endpoint.
   * `FAILED` - Atlas failed to accept the connection your private endpoint.
   * `DELETING` - Atlas is removing the connection to your private endpoint from the Private Link service.
-* `endpoints` - Collection of individual private endpoints that comprise your network endpoint group.
-  * `endpoint_name` - Forwarding rule that corresponds to the endpoint you created in GCP.
-  * `ip_address` - Private IP address of the network endpoint group you created in GCP.
+* `gcp_endpoint_status` - Status of the individual endpoint. Only populated for port-mapped architecture. Returns one of the following values: `INITIATING`, `AVAILABLE`, `FAILED`, `DELETING`.
+* `endpoints` - Collection of individual private endpoints that comprise your network endpoint group. Only populated for GCP legacy private endpoint architecture.
+  * `endpoint_name` - Forwarding rule that corresponds to the endpoint you created.
+  * `ip_address` - Private IP address of the network endpoint group you created.
   * `status` - Status of the endpoint. Atlas returns one of the [values shown above](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/#std-label-ref-status-field).
+* `port_mapping_enabled` - Flag that indicates whether the underlying `privatelink_endpoint` resource uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-mapped architecture. When `false`, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.
 
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-get-one/) Documentation for more information.

@@ -3,10 +3,10 @@ package privatelinkendpointservice
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
@@ -92,6 +92,16 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"gcp_endpoint_status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Status of the GCP endpoint. Only populated for port-mapped architecture.",
+			},
+			"port_mapping_enabled": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Flag that indicates whether the underlying `privatelink_endpoint` resource uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-mapped architecture. When `false`, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.",
+			},
 		},
 	}
 }
@@ -103,8 +113,8 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
-	endpointServiceID := conversion.GetEncodedID(d.Get("endpoint_service_id").(string), "endpoint_service_id")
 	providerName := d.Get("provider_name").(string)
+	endpointServiceID := conversion.GetEncodedID(d.Get("endpoint_service_id").(string), "endpoint_service_id")
 
 	serviceEndpoint, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 	if err != nil {
@@ -123,19 +133,41 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "aws_connection_status", endpointServiceID, err))
 	}
 
-	if strings.EqualFold(providerName, "azure") {
+	switch providerName {
+	case constant.AZURE:
 		if err := d.Set("azure_status", serviceEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
 		}
-	}
 
-	if err := d.Set("endpoints", flattenGCPEndpoints(serviceEndpoint.Endpoints)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoints", endpointServiceID, err))
-	}
+		if err := d.Set("private_endpoint_ip_address", serviceEndpoint.GetPrivateEndpointIPAddress()); err != nil {
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
+		}
+	case constant.GCP:
+		if err := d.Set("port_mapping_enabled", serviceEndpoint.GetPortMappingEnabled()); err != nil {
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "port_mapping_enabled", privateLinkID, err))
+		}
 
-	if strings.EqualFold(providerName, "gcp") {
 		if err := d.Set("gcp_status", serviceEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
+		}
+
+		if serviceEndpoint.GetPortMappingEnabled() {
+			if len(serviceEndpoint.GetEndpoints()) != 1 {
+				return diag.FromErr(fmt.Errorf("unexpected API response: port-mapped architecture requires exactly one endpoint, but found %d endpoints. This is an API inconsistency. Please contact MongoDB support", len(serviceEndpoint.GetEndpoints())))
+			}
+			firstEndpoint := serviceEndpoint.GetEndpoints()[0]
+
+			if err := d.Set("gcp_endpoint_status", firstEndpoint.GetStatus()); err != nil {
+				return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_endpoint_status", endpointServiceID, err))
+			}
+
+			if err := d.Set("private_endpoint_ip_address", firstEndpoint.GetIpAddress()); err != nil {
+				return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
+			}
+		} else {
+			if err := d.Set("endpoints", flattenGCPEndpoints(serviceEndpoint.Endpoints)); err != nil {
+				return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoints", endpointServiceID, err))
+			}
 		}
 	}
 
