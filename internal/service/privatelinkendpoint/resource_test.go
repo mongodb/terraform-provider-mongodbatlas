@@ -105,7 +105,7 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 func TestAccPrivateLinkEndpoint_deleteOnCreateTimeout(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
-		region       = "us-east-1"
+		region       = "eu-west-1"
 		providerName = constant.AWS
 	)
 

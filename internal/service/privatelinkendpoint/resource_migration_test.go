@@ -13,7 +13,7 @@ func TestMigNetworkPrivateLinkEndpoint_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		projectID    = acc.ProjectIDExecution(t)
-		region       = "us-east-1"
+		region       = "us-west-2"
 		providerName = constant.AWS
 		config       = configBasic(projectID, providerName, region)
 	)
