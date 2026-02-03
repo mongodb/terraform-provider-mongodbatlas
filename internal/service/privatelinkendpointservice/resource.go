@@ -184,18 +184,16 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if hasPrivateEndpointIP == hasEndpoints {
 			return diag.FromErr(errors.New("for GCP, you must provide exactly one of: `private_endpoint_ip_address` (port-mapped architecture) or `endpoints` (GCP legacy private endpoint architecture)"))
 		}
-		if hasPrivateEndpointIP && !hasEndpoints {
-			createEndpointRequest.EndpointGroupName = &endpointServiceID
-			createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
-			singleEndpoint := admin.CreateGCPForwardingRuleRequest{
-				IpAddress:    conversion.Pointer(privateEndpointIP.(string)),
-				EndpointName: &endpointServiceID,
+		createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
+		createEndpointRequest.EndpointGroupName = &endpointServiceID
+		if hasPrivateEndpointIP { // Port-mapped architecture.
+			createEndpointRequest.Endpoints = &[]admin.CreateGCPForwardingRuleRequest{
+				{
+					IpAddress:    conversion.Pointer(privateEndpointIP.(string)),
+					EndpointName: &endpointServiceID,
+				},
 			}
-			endpointsList := []admin.CreateGCPForwardingRuleRequest{singleEndpoint}
-			createEndpointRequest.Endpoints = &endpointsList
 		} else {
-			createEndpointRequest.EndpointGroupName = &endpointServiceID
-			createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
 			createEndpointRequest.Endpoints = expandGCPEndpoints(endpoints.([]any))
 		}
 	}
@@ -448,7 +446,7 @@ func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID
 			return nil, "", err
 		}
 
-		if strings.EqualFold(providerName, constant.AZURE) || strings.EqualFold(providerName, constant.GCP) {
+		if providerName == constant.AZURE || providerName == constant.GCP {
 			if i.GetStatus() != "AVAILABLE" {
 				return "", i.GetStatus(), nil
 			}
