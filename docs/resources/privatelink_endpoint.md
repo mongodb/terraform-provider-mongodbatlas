@@ -43,35 +43,42 @@ Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amaz
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The Terraform's unique identifier used internally for state management.
-* `private_link_id` - Unique identifier of the AWS PrivateLink connection.
-* `error_message` - Error message pertaining to the AWS PrivateLink connection. Returns null if there are no errors.
-AWS: 
-  * `endpoint_service_name` - Name of the PrivateLink endpoint service in AWS. Returns null while the endpoint service is being created.
-  * `interface_endpoints` - Unique identifiers of the interface endpoints in your VPC that you added to the AWS PrivateLink connection.
-AZURE:
-  * `private_endpoints` - All private endpoints that you have added to this Azure Private Link Service.
-  * `private_link_service_name` - Name of the Azure Private Link Service that Atlas manages.
-GCP: 
-  * `endpoint_group_names` - For port-mapped architectures, this is a list of private endpoint names associated with the private endpoint service. For GCP legacy private endpoint architectures, this is a list of the endpoint group names associated with the private endpoint service.
-  * `region_name` - Region for the Private Service Connect endpoint service.
-  * `service_attachment_names` - For port-mapped architecture, this is a list containing one service attachment connected to the private endpoint service. For GCP legacy private endpoint architecture, this is a list of service attachments connected to the private endpoint service (one per Atlas node). Returns an empty list while Atlas creates the service attachments.
-* `status` - Status of the AWS PrivateLink connection, Azure Private Link Service, or GCP Private Service Connect service. Atlas returns one of the following values:
-  AWS:
-    * `AVAILABLE` 	Atlas is creating the network load balancer and VPC endpoint service.
-    * `WAITING_FOR_USER` The Atlas network load balancer and VPC endpoint service are created and ready to receive connection requests. When you receive this status, create an interface endpoint to continue configuring the AWS PrivateLink connection.
-    * `FAILED` 	A system failure has occurred.
-    * `DELETING` 	The AWS PrivateLink connection is being deleted.
-  AZURE:
-    * `AVAILABLE` 	Atlas created the load balancer and the Private Link Service.
-    * `INITIATING` 	Atlas is creating the load balancer and the Private Link Service.
-    * `FAILED` 	Atlas failed to create the load balancer and the Private Link service.
-    * `DELETING` 	Atlas is deleting the Private Link service.
-  GCP:
-    * `AVAILABLE` 	Atlas created the load balancer and the GCP Private Service Connect service.
-    * `INITIATING` 	Atlas is creating the load balancer and the GCP Private Service Connect service.
-    * `FAILED`  	Atlas failed to create the load balancer and the GCP Private Service Connect service.
-    * `DELETING` 	Atlas is deleting the GCP Private Service Connect service.
+* `id` - Terraform's internal unique identifier. Use `private_link_id` instead to reference the private endpoint connection.
+* `private_link_id` - Unique identifier of the private endpoint connection.
+* `error_message` - Error message pertaining to the private endpoint connection. Returns null if there are no errors.
+* `status` - Status of the private endpoint connection. See the provider-specific status values below.
+
+### AWS
+
+* `endpoint_service_name` - Name of the PrivateLink endpoint service in AWS. Returns null while the endpoint service is being created.
+* `interface_endpoints` - Unique identifiers of the interface endpoints in your VPC that you added to the AWS PrivateLink connection.
+* `status` values:
+  * `AVAILABLE` - Atlas is creating the network load balancer and VPC endpoint service.
+  * `WAITING_FOR_USER` - The Atlas network load balancer and VPC endpoint service are created and ready to receive connection requests. When you receive this status, create an interface endpoint to continue configuring the AWS PrivateLink connection.
+  * `FAILED` - A system failure has occurred.
+  * `DELETING` - The AWS PrivateLink connection is being deleted.
+
+### AZURE
+
+* `private_endpoints` - All private endpoints that you have added to this Azure Private Link Service.
+* `private_link_service_name` - Name of the Azure Private Link Service that Atlas manages.
+* `private_link_service_resource_id` - Resource ID of the Azure Private Link Service.
+* `status` values:
+  * `AVAILABLE` - Atlas created the load balancer and the Private Link Service.
+  * `INITIATING` - Atlas is creating the load balancer and the Private Link Service.
+  * `FAILED` - Atlas failed to create the load balancer and the Private Link service.
+  * `DELETING` - Atlas is deleting the Private Link service.
+
+### GCP
+
+* `endpoint_group_names` - For port-mapped architectures, this is a list of private endpoint names associated with the private endpoint service. For GCP legacy private endpoint architectures, this is a list of the endpoint group names associated with the private endpoint service.
+* `region_name` - Region for the Private Service Connect endpoint service.
+* `service_attachment_names` - For port-mapped architecture, this is a list containing one service attachment connected to the private endpoint service. For GCP legacy private endpoint architecture, this is a list of service attachments connected to the private endpoint service (one per Atlas node). Returns an empty list while Atlas creates the service attachments.
+* `status` values:
+  * `AVAILABLE` - Atlas created the load balancer and the GCP Private Service Connect service.
+  * `INITIATING` - Atlas is creating the load balancer and the GCP Private Service Connect service.
+  * `FAILED` - Atlas failed to create the load balancer and the GCP Private Service Connect service.
+  * `DELETING` - Atlas is deleting the GCP Private Service Connect service.
 
 ## Import
 Private Endpoint Service can be imported using project ID, private link ID, provider name and region, in the format `{project_id}-{private_link_id}-{provider_name}-{region}`, e.g.
