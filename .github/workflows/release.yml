@@ -1,13 +1,23 @@
-name: 'New Release'
-run-name: 'Release ${{ inputs.version_number }} (skip tests: ${{ inputs.skip_tests }}, use existing tag: ${{ inputs.use_existing_tag}})'
+name: "New Release"
+run-name: "Release ${{ inputs.version_number }}${{ inputs.base_branch != 'master' && format(' from {0}', inputs.base_branch) || '' }} (skip tests: ${{ inputs.skip_tests }}, use existing tag: ${{ inputs.use_existing_tag}})"
 
 # Used for creating a new release. This workflow will run qa acceptance tests, create a new tag, and generate the release with GoReleaser.
+# For backport releases, set base_branch to the appropriate LTS branch. When base_branch is not master, Jira release step is skipped.
+# Note: After a backport release, CHANGELOG.md changes from the base branch should be manually merged to master branch.
 on:
   workflow_dispatch:
     inputs:
       version_number:
         description: 'Version number (e.g., v1.0.0, v1.0.0-pre, v1.0.0-pre1)'
         required: true
+      base_branch:
+        description: 'Base branch for the release'
+        required: true
+        type: choice
+        default: 'master'
+        options:
+          - 'master'
+          - 'v1-lts'
       skip_tests:
         description: 'Set value to `true` to skip QA acceptance tests, default is `false`'
         default: 'false'
@@ -24,26 +34,61 @@ jobs:
       creates_new_tag: ${{ steps.evaluate_inputs.outputs.creates_new_tag }}
       is_official_release: ${{ steps.evaluate_inputs.outputs.is_official_release }}
       runs_tests: ${{ steps.evaluate_inputs.outputs.runs_tests }}
+      target_branch: ${{ steps.evaluate_inputs.outputs.target_branch }}
+      is_backport_release: ${{ steps.evaluate_inputs.outputs.is_backport_release }}
+      skip_jira: ${{ steps.evaluate_inputs.outputs.skip_jira }}
     steps:
       - id: evaluate_inputs
+        env:
+          BASE_BRANCH: ${{ inputs.base_branch }}
+          VERSION_NUMBER: ${{ inputs.version_number }}
+          USE_EXISTING_TAG: ${{ inputs.use_existing_tag }}
+          SKIP_TESTS: ${{ inputs.skip_tests }}
         run: |
+          TARGET_BRANCH="$BASE_BRANCH"
+          IS_BACKPORT=$(if [ "$TARGET_BRANCH" != "master" ]; then echo 'true'; else echo 'false'; fi)
+          IS_OFFICIAL=$(if echo "$VERSION_NUMBER" | grep -q 'pre'; then echo 'false'; else echo 'true'; fi)
+          # Skip Jira release for backport releases or pre-releases
+          SKIP_JIRA=$(if [ "$TARGET_BRANCH" != "master" ] || [ "$IS_OFFICIAL" = 'false' ]; then echo 'true'; else echo 'false'; fi)
           {
-            echo "creates_new_tag=$(if [ '${{ inputs.use_existing_tag }}' = 'true' ]; then echo 'false'; else echo 'true'; fi)"
-            echo "is_official_release=$(if echo '${{ inputs.version_number }}' | grep -q 'pre'; then echo 'false'; else echo 'true'; fi)"
-            echo "runs_tests=$(if [ '${{ inputs.skip_tests }}' = 'true' ]; then echo 'false'; else echo 'true'; fi)"
+            echo "creates_new_tag=$(if [ "$USE_EXISTING_TAG" = 'true' ]; then echo 'false'; else echo 'true'; fi)"
+            echo "is_official_release=$IS_OFFICIAL"
+            echo "runs_tests=$(if [ "$SKIP_TESTS" = 'true' ]; then echo 'false'; else echo 'true'; fi)"
+            echo "target_branch=$TARGET_BRANCH"
+            echo "is_backport_release=$IS_BACKPORT"
+            echo "skip_jira=$SKIP_JIRA"
           } >> "$GITHUB_OUTPUT"
 
   validate-inputs:
+    needs: [release-config]
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - name: Validation of version format
+      - name: Validate branch exists
+        env:
+          BASE_BRANCH: ${{ inputs.base_branch }}
         run: |
-          echo "${{ inputs.version_number }}" | grep -P '^v\d+\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'
+          git ls-remote --exit-code --heads "https://github.com/${{ github.repository }}" "$BASE_BRANCH" || {
+            echo "Error: Branch '$BASE_BRANCH' does not exist on remote"
+            exit 1
+          }
+      - name: Validation of version format
+        env:
+          VERSION_NUMBER: ${{ inputs.version_number }}
+          TARGET_BRANCH: ${{ needs.release-config.outputs.target_branch }}
+        run: |
+          if [[ "$TARGET_BRANCH" =~ ^v([0-9]+)-lts$ ]]; then
+            # LTS branch: only allow matching major version (e.g., v1-lts allows v1.x.x)
+            MAJOR="${BASH_REMATCH[1]}"
+            echo "$VERSION_NUMBER" | grep -P "^v${MAJOR}\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$"
+          else
+            # Standard release from master: allow any version
+            echo "$VERSION_NUMBER" | grep -P '^v\d+\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'
+          fi
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
-          ref: ${{ inputs.use_existing_tag == 'true' && inputs.version_number || 'master' }}
+          ref: ${{ inputs.use_existing_tag == 'true' && inputs.version_number || needs.release-config.outputs.target_branch }}
       - name: Check for Upgrade Guide
         run: './scripts/check-upgrade-guide-exists.sh ${{inputs.version_number}}'
 
@@ -57,16 +102,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ needs.release-config.outputs.target_branch }}
       - uses: ./.github/templates/run-script-and-commit
         with:
           script_call: './scripts/update-examples-reference-in-docs.sh ${{inputs.version_number}}'
           file_to_commit: 'docs/* templates/*' # only docs files are updated
           commit_message: 'chore: Update example links in registry docs for ${{ github.event.inputs.version_number }} release'
           apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
-          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
           gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}      
+          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+          branch: ${{ needs.release-config.outputs.target_branch }}
 
   update-changelog-header:
     needs: [ release-config, validate-inputs, update-examples-reference-in-docs ]
@@ -78,16 +126,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ needs.release-config.outputs.target_branch }}
       - uses: ./.github/templates/run-script-and-commit
         with:
           script_call: './scripts/update-changelog-header-for-release.sh ${{inputs.version_number}}'
           file_to_commit: 'CHANGELOG.md'
           commit_message: 'chore: Updates CHANGELOG.md header for ${{ github.event.inputs.version_number }} release'
           apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
-          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
           gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}     
+          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+          branch: ${{ needs.release-config.outputs.target_branch }}
 
   create-tag:
     runs-on: ubuntu-latest
@@ -98,11 +149,11 @@ jobs:
       !cancelled()
       && !contains(needs.*.result, 'failure') 
       && needs.release-config.outputs.creates_new_tag == 'true'
-    steps: 
+    steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
-          ref: 'master'
+          ref: ${{ needs.release-config.outputs.target_branch }}
       - name: Get the latest commit SHA
         id: get-sha
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
@@ -128,7 +179,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    permissions: 
+    permissions:
       contents: write
     needs: [ validate-inputs, update-examples-reference-in-docs, update-changelog-header, create-tag, run-qa-acceptance-tests ]
     # Release is skipped if there are failures in previous steps
@@ -137,7 +188,7 @@ jobs:
       && !contains(needs.*.result, 'failure')
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.version_number }}
       - name: Set up Go
@@ -170,7 +221,7 @@ jobs:
       SILKBOMB_IMG: ${{ vars.SILKBOMB_IMG }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.version_number }}
       - name: Generate SBOM
@@ -199,7 +250,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ needs.release-config.outputs.target_branch }}
       - uses: ./.github/templates/run-script-and-commit
         with:
           script_call: |
@@ -214,14 +267,15 @@ jobs:
           remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
           gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+          branch: ${{ needs.release-config.outputs.target_branch }}
 
   jira-release-version:
     needs: [ release-config, release ]
-    # if release job is skipped, cancelled, or failed we do not run this job
+    # Jira release is skipped for backport releases and pre-releases
     if: >-
       !cancelled()
       && needs.release.result == 'success'
-      && needs.release-config.outputs.is_official_release == 'true'
+      && needs.release-config.outputs.skip_jira != 'true'
     secrets: inherit
     uses: ./.github/workflows/jira-release-version.yml
     with:

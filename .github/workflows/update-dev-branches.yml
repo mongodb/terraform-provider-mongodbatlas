@@ -5,7 +5,7 @@ on:
     inputs:
       branches:
         description: 'Dev branch names to update from master'
-        default: '["CLOUDP-371552-dev-voyage"]'
+        default: '["CLOUDP-371552-dev-voyage", "CLOUDP-346617-dev-gcp-port-based"]'
   schedule:
     - cron: "0 5 * * 1,4" # workflow runs every Monday and Thursday at 5 AM UTC
 concurrency:
@@ -18,7 +18,7 @@ jobs:
       max-parallel: 10
       fail-fast: false
       matrix:
-        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-371552-dev-voyage"]') }} # scheduled branches go here
+        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-371552-dev-voyage", "CLOUDP-346617-dev-gcp-port-based"]') }} # scheduled branches go here
     name: ${{ matrix.branch }}
     runs-on: ubuntu-latest
     permissions:
@@ -26,7 +26,7 @@ jobs:
       pull-requests: write
     steps:
     - name: Checkout repo
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       with:
         fetch-depth: 0
         token: ${{ secrets.APIX_BOT_PAT }}
@@ -87,9 +87,9 @@ jobs:
       id: project-check
       run: |
         if make tools build lint test; then
-          echo "slack-text=✅ Dev branch \`${{ matrix.branch }}\` merged and pushed with latest changes from master. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
+          echo "slack-text=✅ ${{ github.event.repository.name }}: Dev branch \`${{ matrix.branch }}\` merged and pushed with latest changes from master. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
         else
-          echo "slack-text=⚠️ Dev branch \`${{ matrix.branch }}\` merged and pushed. This is prefered even if checks failed as there were no merge conflicts. Project checks must be fixed. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
+          echo "slack-text=⚠️ ${{ github.event.repository.name }}: Dev branch \`${{ matrix.branch }}\` merged and pushed. This is prefered even if checks failed as there were no merge conflicts. Project checks must be fixed. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
         fi
 
     - name: Send Slack notification
@@ -100,7 +100,7 @@ jobs:
         webhook-type: incoming-webhook
         payload: |
           {
-            "text": "Dev branch updated",
+            "text": "${{ github.event.repository.name }}: Dev branch updated",
             "blocks": [
               {
                 "type": "section",
@@ -125,13 +125,13 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "Update dev branches failed",
+              "text": "${{ github.event.repository.name }}: Update dev branches failed",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "❌ *Update dev branches failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
+                    "text": "❌ *${{ github.event.repository.name }}: Update dev branches failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
                   }
                 }
               ]

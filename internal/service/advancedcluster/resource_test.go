@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312013/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -45,47 +45,6 @@ var (
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
 	mockConfig                                 = unit.MockConfigAdvancedCluster
 )
-
-func testAccAdvancedClusterFlexUpgrade(t *testing.T, projectID, clusterName, instanceSize string, includeDedicated bool) resource.TestCase {
-	t.Helper()
-	t.Skip("Skipping until CLOUDP-357683 is implemented")
-	defaultZoneName := "Zone 1" // Uses backend default as in existing tests
-
-	// avoid checking plural data source to reduce risk of being impacted from failure in other test using same project, allows running in parallel
-	steps := []resource.TestStep{
-		{
-			Config: configTenant(t, projectID, clusterName, defaultZoneName, instanceSize),
-			Check:  checkTenant(projectID, clusterName, false),
-		},
-		{
-			Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", defaultZoneName, "", false, nil),
-			Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false, false),
-		},
-	}
-	if includeDedicated {
-		steps = append(steps, resource.TestStep{
-			Config: acc.ConfigDedicatedNVMeBackupEnabled(projectID, clusterName, defaultZoneName),
-			Check:  checksDedicatedNVMeBackupEnabled(projectID, clusterName, false),
-		})
-	}
-
-	return resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps:                    steps,
-	}
-}
-
-func TestAccAdvancedCluster_basicTenant_flexUpgrade_dedicatedUpgrade(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithFreeCluster(t, 3, 1)
-	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, projectID, clusterName, freeInstanceSize, true))
-}
-
-func TestAccAdvancedCluster_sharedTier_flexUpgrade(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 1)
-	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, projectID, clusterName, sharedInstanceSize, false))
-}
 
 func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 	var (

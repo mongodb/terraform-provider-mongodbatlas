@@ -2,26 +2,36 @@ name: Generate Changelog
 on:
   pull_request:
     types: [closed]
-    branches: [master, master-v1]
+    branches: [master, v1-lts]
     paths:
       - .changelog/**
   workflow_dispatch:
+    inputs:
+      base_branch:
+        description: "Branch to update changelog on"
+        required: false
+        type: choice
+        default: "master"
+        options:
+          - "master"
+          - "v1-lts"
 jobs:
   generate-and-update-changelog:
     if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - uses: ./.github/templates/run-script-and-commit
         with:
           script_call: 'make tools update-changelog-unreleased-section'
           file_to_commit: 'CHANGELOG.md'
           commit_message: ${{ github.event_name == 'workflow_dispatch' && format('{0}{1}', 'chore:',' Updates CHANGELOG.md (Manual Trigger)') || format('{0}{1}{2}{3}', 'chore:', ' Updates CHANGELOG.md for ', '#', github.event.pull_request.number) }}
           apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
-          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
           gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}     
+          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+          branch: ${{ github.event_name == 'workflow_dispatch' && inputs.base_branch || github.event.pull_request.base.ref }}
 
   slack-notification:
     needs: [generate-and-update-changelog]
@@ -37,13 +47,13 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "Automatic Changelog update failed",
+              "text": "${{ github.event.repository.name }}: Automatic Changelog update failed",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "❌ *Automatic Changelog update failed* ${{ secrets.SLACK_ONCALL_TAG }} . <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|Failed action >"
+                    "text": "❌ *${{ github.event.repository.name }}: Automatic Changelog update failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
                   }
                 }
               ]

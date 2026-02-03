@@ -1152,6 +1152,25 @@ components:
                     type: boolean
             title: Acknowledge Alert
             type: object
+        ActivityFeedLinkResponse:
+            description: Response containing a shareable activity feed link.
+            properties:
+                link:
+                    description: Shareable link to the activity feed with pre-applied filters.
+                    example: https://cloud.mongodb.com/redirect/1234567890abcdef12345678
+                    type: string
+                links:
+                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                    externalDocs:
+                        description: Web Linking Specification (RFC 5988)
+                        url: https://datatracker.ietf.org/doc/html/rfc5988
+                    items:
+                        $ref: '#/components/schemas/Link'
+                    readOnly: true
+                    type: array
+            required:
+                - link
+            type: object
         AddOrRemoveGroupRole:
             properties:
                 groupRole:
@@ -1477,6 +1496,119 @@ components:
                     items:
                         $ref: '#/components/schemas/DiskBackupApiPolicyItem'
                     type: array
+            type: object
+        AiModelsApiKeyCreateRequest:
+            properties:
+                name:
+                    description: A name for the new API key that will be created.
+                    maxLength: 250
+                    minLength: 1
+                    type: string
+            required:
+                - name
+            type: object
+        AiModelsApiKeyResponse:
+            properties:
+                apiKeyId:
+                    description: Identifier used to reference this API key in admin API calls.
+                    example: a86r5kwrfsk5r5ku5tgvhmpj
+                    readOnly: true
+                    type: string
+                createdAt:
+                    description: UTC date when the API key was created. This parameter is formatted as an ISO 8601 timestamp.
+                    example: "2026-01-15T16:47:49.855000+00:00"
+                    readOnly: true
+                    type: string
+                createdBy:
+                    description: Name of the user that created this API key. If no user name is available, the user ID is returned.
+                    example: John Doe
+                    readOnly: true
+                    type: string
+                groupId:
+                    description: ID of the Atlas group this API key belongs to.
+                    example: 69681d39c9e8cfd375386316
+                    readOnly: true
+                    type: string
+                lastUsedAt:
+                    description: UTC date when the API key was last used. This parameter is formatted as an ISO 8601 timestamp.
+                    example: "2026-01-15T16:47:49.855000+00:00"
+                    readOnly: true
+                    type: string
+                maskedSecret:
+                    description: A partially obfuscated version of the API key secret returned when the API key was created.
+                    example: al-****odu2
+                    readOnly: true
+                    type: string
+                name:
+                    description: Arbitrary string identifier assigned to this API key for convenient identification.
+                    example: Production key
+                    maxLength: 250
+                    minLength: 1
+                    type: string
+                secret:
+                    description: 'The full API key secret used for interacting with the embedding / reranking service. Note: this will only be fully populated in the response to a create API key request. Responses to get, list, and update requests will not include the secret.'
+                    example: al-jZsluhPMzPM9CFXepRWwMwvpZDDra6tZMgoAZKdodu2
+                    format: password
+                    readOnly: true
+                    type: string
+                status:
+                    description: A string describing the current status of the API key.
+                    example: ACTIVE
+                    readOnly: true
+                    type: string
+            type: object
+        AiModelsApiKeyUpdateRequest:
+            properties:
+                name:
+                    description: A new name for the API key.
+                    maxLength: 250
+                    minLength: 1
+                    type: string
+            required:
+                - name
+            type: object
+        AiModelsRateLimitResponse:
+            properties:
+                modelGroupName:
+                    description: Identifier used to reference this model group.
+                    example: embed_large
+                    readOnly: true
+                    type: string
+                modelNames:
+                    description: List of embedding model names included in this model group.
+                    items:
+                        type: string
+                    maxItems: 100
+                    readOnly: true
+                    type: array
+                requestsPerMinuteLimit:
+                    description: The number of requests per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+                    example: 2000
+                    format: int32
+                    minimum: 0
+                    type: integer
+                tokensPerMinuteLimit:
+                    description: The number of tokens per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+                    example: 3e+06
+                    format: int32
+                    minimum: 0
+                    type: integer
+            type: object
+        AiModelsRateLimitUpdateRequest:
+            properties:
+                requestsPerMinuteLimit:
+                    description: The number of requests per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+                    format: int32
+                    minimum: 0
+                    type: integer
+                tokensPerMinuteLimit:
+                    description: The number of tokens per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+                    format: int32
+                    minimum: 0
+                    type: integer
+            required:
+                - requestsPerMinuteLimit
+                - tokensPerMinuteLimit
             type: object
         AlertAudit:
             description: Alert audit indicates acknowledgement status of an alert.
@@ -4352,6 +4484,10 @@ components:
                     items:
                         $ref: '#/components/schemas/ReplicationSpec20240805'
                     type: array
+                retainBackups:
+                    default: false
+                    description: Flag that indicates whether the cluster retains backups.
+                    type: boolean
                 rootCertType:
                     default: ISRGROOTX1
                     description: Root Certificate Authority that MongoDB Atlas cluster uses. MongoDB Cloud supports Internet Security Research Group.
@@ -6586,6 +6722,7 @@ components:
         BillingEventTypeViewForOrg:
             description: Unique identifier of event type.
             enum:
+                - AWS_PAYMENT_PAID
                 - CHARGE_SUCCEEDED
                 - CHARGE_FAILED
                 - CHARGE_PROCESSING
@@ -6595,7 +6732,6 @@ components:
                 - CHECK_PAYMENT_RECEIVED
                 - WIRE_TRANSFER_PAYMENT_RECEIVED
                 - DISCOUNT_APPLIED
-                - CREDIT_MOVED
                 - CREDIT_ISSUED
                 - CREDIT_PULLED_FWD
                 - CREDIT_END_DATE_MODIFIED
@@ -7984,7 +8120,7 @@ components:
                         readOnly: true
                         type: string
                     atlasAzureAppId:
-                        description: Azure Active Directory Application ID of Atlas.
+                        description: Azure Active Directory Application ID of Atlas. This field is optional and will be derived from the Azure subscription if not provided.
                         format: uuid
                         type: string
                     createdDate:
@@ -8026,7 +8162,7 @@ components:
                     readOnly: true
                     type: string
                 atlasAzureAppId:
-                    description: Azure Active Directory Application ID of Atlas.
+                    description: Azure Active Directory Application ID of Atlas. This field is optional and will be derived from the Azure subscription if not provided.
                     format: uuid
                     type: string
                 createdDate:
@@ -8074,7 +8210,7 @@ components:
                         readOnly: true
                         type: string
                     atlasAzureAppId:
-                        description: Azure Active Directory Application ID of Atlas.
+                        description: Azure Active Directory Application ID of Atlas. This field is optional and will be derived from the Azure subscription if not provided.
                         format: uuid
                         type: string
                     createdDate:
@@ -9391,6 +9527,10 @@ components:
                     items:
                         $ref: '#/components/schemas/ReplicationSpec20240805'
                     type: array
+                retainBackups:
+                    default: false
+                    description: Flag that indicates whether the cluster retains backups.
+                    type: boolean
                 rootCertType:
                     default: ISRGROOTX1
                     description: Root Certificate Authority that MongoDB Atlas cluster uses. MongoDB Cloud supports Internet Security Research Group.
@@ -10515,25 +10655,9 @@ components:
                     type: string
                 role:
                     description: Human-readable label that identifies the collection of privileges that MongoDB Cloud grants a specific API key, MongoDB Cloud user, or MongoDB Cloud team. These roles include organization- and project-level roles.
-                    enum:
-                        - ORG_OWNER
-                        - ORG_MEMBER
-                        - ORG_GROUP_CREATOR
-                        - ORG_BILLING_ADMIN
-                        - ORG_BILLING_READ_ONLY
-                        - ORG_STREAM_PROCESSING_ADMIN
-                        - ORG_READ_ONLY
-                        - GROUP_BACKUP_MANAGER
-                        - GROUP_CLUSTER_MANAGER
-                        - GROUP_DATA_ACCESS_ADMIN
-                        - GROUP_DATA_ACCESS_READ_ONLY
-                        - GROUP_DATA_ACCESS_READ_WRITE
-                        - GROUP_DATABASE_ACCESS_ADMIN
-                        - GROUP_OBSERVABILITY_VIEWER
-                        - GROUP_OWNER
-                        - GROUP_READ_ONLY
-                        - GROUP_SEARCH_INDEX_EDITOR
-                        - GROUP_STREAM_PROCESSING_OWNER
+                    externalDocs:
+                        description: MongoDB Atlas User Roles
+                        url: https://www.mongodb.com/docs/atlas/reference/user-roles/
                     type: string
             type: object
         ConnectionsMaxRawMetricThresholdView:
@@ -13456,6 +13580,7 @@ components:
                             - ENCRYPTION_AT_REST_CONFIG_NO_LONGER_VALID
                             - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRING
                             - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRED
+                            - ACTIVE_LEGACY_TLS_CONNECTIONS
                           title: Group Event Types
                           type: string
                         - enum:
@@ -13698,6 +13823,7 @@ components:
                             - ENCRYPTION_AT_REST_CONFIG_NO_LONGER_VALID
                             - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRING
                             - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRED
+                            - ACTIVE_LEGACY_TLS_CONNECTIONS
                           title: Group Event Types
                           type: string
                         - enum:
@@ -14063,6 +14189,8 @@ components:
                             - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRING
                             - GROUP_SERVICE_ACCOUNT_SECRETS_NO_LONGER_EXPIRED
                             - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRED
+                            - ACTIVE_LEGACY_TLS_CONNECTIONS
+                            - NO_ACTIVE_LEGACY_TLS_CONNECTIONS
                           title: Group Event Types
                           type: string
                         - enum:
@@ -14078,7 +14206,6 @@ components:
                           title: Index Build Audit Types
                           type: string
                         - enum:
-                            - DB_CHECK_SUBMITTED
                             - DB_CHECK_UPDATED
                             - CLUSTER_SAMPLED_FOR_DB_CHECK
                             - DB_CHECK_SCHEDULED_FOR_CLUSTER
@@ -14209,17 +14336,9 @@ components:
                           title: Tenant Backup Event Types
                           type: string
                         - enum:
-                            - CLUSTER_VERSION_FIXED
-                            - CLUSTER_VERSION_UNFIXED
                             - CLUSTER_FCV_FIXED
                             - CLUSTER_FCV_UNFIXED
                             - CLUSTER_FCV_EXPIRATION_DATE_UPDATED
-                            - ACME_PROVIDER_FIXED
-                            - ACME_PROVIDER_UNFIXED
-                            - AGENT_VERSION_FIXED
-                            - AGENT_VERSION_UNFIXED
-                            - FIXED_VERSION_UPDATED
-                            - FIXED_AGENT_VERSION_UPDATED
                             - CLUSTER_FCV_DOWNGRADED
                             - CLUSTER_BINARY_VERSION_DOWNGRADED
                             - CLUSTER_BINARY_VERSION_UPGRADED
@@ -14382,7 +14501,6 @@ components:
                           title: Mlab Migration Audit Types
                           type: string
                         - enum:
-                            - AWS_PAYMENT_PAID
                             - AWS_SELF_SERVE_ACCOUNT_LINKED
                             - AWS_SELF_SERVE_ACCOUNT_LINK_PENDING
                             - AWS_SELF_SERVE_ACCOUNT_CANCELLED
@@ -14405,8 +14523,6 @@ components:
                             - VERCEL_INVOICE_REFUNDED
                           title: Partner Event Types
                           type: string
-                          x-xgen-IPA-exception:
-                            xgen-IPA-123-allowable-enum-values-should-not-exceed-20: Schema predates IPA validation.
                         - enum:
                             - SUPPORT_EMAILS_SENT_SUCCESSFULLY
                             - SUPPORT_EMAILS_SENT_FAILURE
@@ -14703,7 +14819,7 @@ components:
                         - GCP
                     type: string
                 frequencies:
-                    description: List that describes which types of snapshots to copy.
+                    description: List that defines which snapshots to copy and their retention.
                     items:
                         enum:
                             - HOURLY
@@ -14713,6 +14829,7 @@ components:
                             - YEARLY
                             - ON_DEMAND
                         type: string
+                    maxItems: 6
                     type: array
                 regionName:
                     description: Target region to copy snapshots belonging to replicationSpecId to. Please supply the 'Atlas Region'.
@@ -14743,7 +14860,7 @@ components:
                         - GCP
                     type: string
                 frequencies:
-                    description: List that describes which types of snapshots to copy.
+                    description: List that defines which snapshots to copy and their retention.
                     items:
                         enum:
                             - HOURLY
@@ -14753,6 +14870,7 @@ components:
                             - YEARLY
                             - ON_DEMAND
                         type: string
+                    maxItems: 6
                     type: array
                 regionName:
                     description: Target region to copy snapshots belonging to zoneId. Please supply the 'Atlas Region'.
@@ -17024,6 +17142,8 @@ components:
                     - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRING
                     - GROUP_SERVICE_ACCOUNT_SECRETS_NO_LONGER_EXPIRED
                     - GROUP_SERVICE_ACCOUNT_SECRETS_EXPIRED
+                    - ACTIVE_LEGACY_TLS_CONNECTIONS
+                    - NO_ACTIVE_LEGACY_TLS_CONNECTIONS
                   title: Group Event Types
                   type: string
                 - enum:
@@ -17032,7 +17152,6 @@ components:
                   title: Group Integration Event Types
                   type: string
                 - enum:
-                    - AUTO_CREATED_INDEX_AUDIT
                     - ATTEMPT_KILLOP_AUDIT
                     - ATTEMPT_KILLSESSION_AUDIT
                     - HOST_UP
@@ -17094,7 +17213,6 @@ components:
                     - CLUSTER_RESURRECTED
                     - CLUSTER_READY
                     - CLUSTER_UPDATE_SUBMITTED
-                    - CLUSTER_UPDATE_SUBMITTED_INTERNAL
                     - CLUSTER_PROCESS_ARGS_UPDATE_SUBMITTED
                     - CLUSTER_MONGOT_PROCESS_ARGS_UPDATE_SUBMITTED
                     - CLUSTER_SERVER_PARAMETERS_UPDATE_SUBMITTED
@@ -17136,7 +17254,6 @@ components:
                     - RELOAD_SSL_ON_PROCESSES
                     - RELOAD_SSL_ON_PROCESSES_REQUESTED
                     - CLUSTER_INSTANCE_ADMIN_BACKUP_SNAPSHOT_REQUESTED
-                    - UPDATE_BUMPER_FILES
                     - DATA_LAKE_QUERY_LOGS_DOWNLOADED
                     - FEDERATED_DATABASE_QUERY_LOGS_DOWNLOADED
                     - ONLINE_ARCHIVE_QUERY_LOGS_DOWNLOADED
@@ -17161,10 +17278,8 @@ components:
                     - PLAN_COMPLETED
                     - PLAN_ABANDONED
                     - PLAN_DECLINED
-                    - PLAN_APPROVED
                     - PLAN_FAILURE_COUNT_RESET
                     - PLAN_ASAP_REQUESTED
-                    - INDEPENDENT_SHARD_SCALING_AVAILABLE
                     - INDEPENDENT_SHARD_AUTO_SCALING_AVAILABLE
                     - INDEPENDENT_SHARD_SCALING_CLUSTER_MIGRATED
                     - INDEPENDENT_SHARD_SCALING_CLUSTER_ROLLED_BACK
@@ -17187,7 +17302,6 @@ components:
                     - SCHEDULED_MAINTENANCE
                     - PROJECT_SCHEDULED_MAINTENANCE
                     - PROJECT_LIMIT_UPDATED
-                    - PROJECT_OPERATIONAL_LIMIT_UPDATED
                     - PROJECT_ENABLE_EXTENDED_STORAGE_SIZES_UPDATED
                     - OS_MAINTENANCE
                     - OS_MAINTENANCE_RESTART
@@ -17217,13 +17331,11 @@ components:
                     - FEDERATED_DATABASE_CREATED
                     - FEDERATED_DATABASE_UPDATED
                     - FEDERATED_DATABASE_REMOVED
-                    - TENANT_CLUSTER_UPGRADE_FROM_MTM
                     - TENANT_SNAPSHOT_FAILED
                     - TENANT_RESTORE_FAILED
                     - SAMPLE_DATASET_LOAD_REQUESTED
                     - CUSTOMER_X509_CRL_UPDATED
                     - CONTAINER_SUBNETS_UPDATE_REQUESTED
-                    - CLEAR_UNPROVISIONED_TARGET_GROUPS_REQUESTED
                     - ONLINE_ARCHIVE_CREATED
                     - ONLINE_ARCHIVE_DELETED
                     - ONLINE_ARCHIVE_UPDATED
@@ -17252,7 +17364,6 @@ components:
                     - AUTO_HEALING_REQUESTED_INSTANCE_REPLACEMENT
                     - AUTO_HEALING_REQUESTED_NODE_RESYNC
                     - EXTRA_MAINTENANCE_DEFERRAL_GRANTED
-                    - ADMIN_NOTE_UPDATED
                     - GROUP_AUTOMATION_CONFIG_PUBLISHED
                     - CLUSTER_AUTOMATION_CONFIG_PUBLISHED
                     - SET_ENSURE_CLUSTER_CONNECTIVITY_AFTER_FOR_CLUSTER
@@ -17263,13 +17374,11 @@ components:
                     - INGESTION_PIPELINE_CREATED
                     - INGESTION_PIPELINE_UPDATED
                     - OS_TUNE_FILE_OVERRIDES
-                    - CLUSTER_SYSTEMD_OVERRIDES_CHANGED
                     - MONITORING_AGENT_OVERRIDES
                     - MONITORING_AGENT_REBALANCE_FLAG
                     - MONITORING_AGENT_REBALANCE_TRIGGERED
                     - CLUSTER_PREFERRED_CPU_ARCHITECTURE_MODIFIED
                     - CLUSTER_FORCE_PLANNED
-                    - DATA_PROCESSING_REGION_UPDATED
                     - CLUSTER_REGIONAL_OUTAGE_SIMULATION_STARTED
                     - CLUSTER_REGIONAL_OUTAGE_SIMULATION_FAILED_TO_START
                     - CLUSTER_REGIONAL_OUTAGE_SIMULATION_END_REQUESTED
@@ -17350,7 +17459,6 @@ components:
                     - MONGOTUNE_WRITE_BLOCK_POLICY_INELIGIBLE
                     - PREDICTIVE_AUTOSCALING_ENABLED
                     - PREDICTIVE_AUTOSCALING_DISABLED
-                    - DEPUTY_SETTINGS_UPDATED
                     - SHADOW_CLUSTER_CREATE_EXPOSURE
                     - SHADOW_CLUSTER_DELETE_EXPOSURE
                     - SHADOW_CLUSTER_RECORDING_STATUS_UPDATE
@@ -17360,7 +17468,6 @@ components:
                   x-xgen-IPA-exception:
                     xgen-IPA-123-allowable-enum-values-should-not-exceed-20: Schema predates IPA validation.
                 - enum:
-                    - DB_CHECK_SUBMITTED
                     - DB_CHECK_UPDATED
                     - CLUSTER_SAMPLED_FOR_DB_CHECK
                     - DB_CHECK_SCHEDULED_FOR_CLUSTER
@@ -17419,7 +17526,6 @@ components:
                     - SERVERLESS_INSTANCE_UPDATE_COMPLETED
                     - SERVERLESS_INSTANCE_DELETE_SUBMITTED
                     - SERVERLESS_INSTANCE_DELETED
-                    - SERVERLESS_INSTANCE_BLOCKED
                     - SERVERLESS_INSTANCE_UNBLOCKED
                   title: NDS Serverless Instance Audit Types
                   type: string
@@ -17563,17 +17669,9 @@ components:
                   title: User Event Types
                   type: string
                 - enum:
-                    - CLUSTER_VERSION_FIXED
-                    - CLUSTER_VERSION_UNFIXED
                     - CLUSTER_FCV_FIXED
                     - CLUSTER_FCV_UNFIXED
                     - CLUSTER_FCV_EXPIRATION_DATE_UPDATED
-                    - ACME_PROVIDER_FIXED
-                    - ACME_PROVIDER_UNFIXED
-                    - AGENT_VERSION_FIXED
-                    - AGENT_VERSION_UNFIXED
-                    - FIXED_VERSION_UPDATED
-                    - FIXED_AGENT_VERSION_UPDATED
                     - CLUSTER_FCV_DOWNGRADED
                     - CLUSTER_BINARY_VERSION_DOWNGRADED
                     - CLUSTER_BINARY_VERSION_UPGRADED
@@ -17650,6 +17748,7 @@ components:
                   title: Service Account Event Types
                   type: string
                 - enum:
+                    - AWS_PAYMENT_PAID
                     - CHARGE_SUCCEEDED
                     - CHARGE_FAILED
                     - CHARGE_PROCESSING
@@ -17659,7 +17758,6 @@ components:
                     - CHECK_PAYMENT_RECEIVED
                     - WIRE_TRANSFER_PAYMENT_RECEIVED
                     - DISCOUNT_APPLIED
-                    - CREDIT_MOVED
                     - CREDIT_ISSUED
                     - CREDIT_PULLED_FWD
                     - CREDIT_END_DATE_MODIFIED
@@ -17829,7 +17927,6 @@ components:
                     - ORG_PUBLIC_API_ACCESS_LIST_NOT_REQUIRED
                     - ORG_EMPLOYEE_ACCESS_RESTRICTED
                     - ORG_EMPLOYEE_ACCESS_UNRESTRICTED
-                    - ORG_SFDC_ACCOUNT_ID_CHANGED
                     - ORG_CONNECTED_TO_MLAB
                     - ORG_DISCONNECTED_FROM_MLAB
                     - ORG_IDP_CERTIFICATE_CURRENT
@@ -17863,7 +17960,6 @@ components:
                   x-xgen-IPA-exception:
                     xgen-IPA-123-allowable-enum-values-should-not-exceed-20: Schema predates IPA validation.
                 - enum:
-                    - AWS_PAYMENT_PAID
                     - AWS_SELF_SERVE_ACCOUNT_LINKED
                     - AWS_SELF_SERVE_ACCOUNT_LINK_PENDING
                     - AWS_SELF_SERVE_ACCOUNT_CANCELLED
@@ -17886,8 +17982,6 @@ components:
                     - VERCEL_INVOICE_REFUNDED
                   title: Partner Event Types
                   type: string
-                  x-xgen-IPA-exception:
-                    xgen-IPA-123-allowable-enum-values-should-not-exceed-20: Schema predates IPA validation.
                 - enum:
                     - SUPPORT_EMAILS_SENT_SUCCESSFULLY
                     - SUPPORT_EMAILS_SENT_FAILURE
@@ -21052,6 +21146,7 @@ components:
                 - $ref: '#/components/schemas/EncryptionKeyAlertConfigViewForNdsGroup'
                 - $ref: '#/components/schemas/HostAlertConfigViewForNdsGroup'
                 - $ref: '#/components/schemas/HostMetricAlertConfigViewForNdsGroup'
+                - $ref: '#/components/schemas/MongotuneAlertConfigViewForNdsGroup'
                 - $ref: '#/components/schemas/NDSX509UserAuthenticationAlertConfigViewForNdsGroup'
                 - $ref: '#/components/schemas/ReplicaSetAlertConfigViewForNdsGroup'
                 - $ref: '#/components/schemas/ReplicaSetThresholdAlertConfigViewForNdsGroup'
@@ -21261,18 +21356,6 @@ components:
                         url: https://dochub.mongodb.org/core/atlas-proj-roles
                     items:
                         description: One or more project roles that receive the configured alert.
-                        enum:
-                            - GROUP_BACKUP_MANAGER
-                            - GROUP_CLUSTER_MANAGER
-                            - GROUP_DATA_ACCESS_ADMIN
-                            - GROUP_DATA_ACCESS_READ_ONLY
-                            - GROUP_DATA_ACCESS_READ_WRITE
-                            - GROUP_DATABASE_ACCESS_ADMIN
-                            - GROUP_OBSERVABILITY_VIEWER
-                            - GROUP_OWNER
-                            - GROUP_READ_ONLY
-                            - GROUP_SEARCH_INDEX_EDITOR
-                            - GROUP_STREAM_PROCESSING_OWNER
                         type: string
                     type: array
                 smsEnabled:
@@ -21416,20 +21499,10 @@ components:
                     type: string
                 roles:
                     description: A list of Project roles associated with the Service Account.
+                    externalDocs:
+                        description: Project-level Roles for Service Accounts
+                        url: https://www.mongodb.com/docs/atlas/reference/user-roles/
                     items:
-                        description: Project roles available for Service Accounts.
-                        enum:
-                            - GROUP_OWNER
-                            - GROUP_READ_ONLY
-                            - GROUP_DATA_ACCESS_ADMIN
-                            - GROUP_DATA_ACCESS_READ_ONLY
-                            - GROUP_DATA_ACCESS_READ_WRITE
-                            - GROUP_CLUSTER_MANAGER
-                            - GROUP_SEARCH_INDEX_EDITOR
-                            - GROUP_STREAM_PROCESSING_OWNER
-                            - GROUP_BACKUP_MANAGER
-                            - GROUP_OBSERVABILITY_VIEWER
-                            - GROUP_DATABASE_ACCESS_ADMIN
                         type: string
                     type: array
                     uniqueItems: true
@@ -21456,20 +21529,10 @@ components:
                     type: string
                 roles:
                     description: A list of project-level roles for the Service Account.
+                    externalDocs:
+                        description: Project-level Roles for Service Accounts
+                        url: https://www.mongodb.com/docs/atlas/reference/user-roles/
                     items:
-                        description: Project roles available for Service Accounts.
-                        enum:
-                            - GROUP_OWNER
-                            - GROUP_READ_ONLY
-                            - GROUP_DATA_ACCESS_ADMIN
-                            - GROUP_DATA_ACCESS_READ_ONLY
-                            - GROUP_DATA_ACCESS_READ_WRITE
-                            - GROUP_CLUSTER_MANAGER
-                            - GROUP_SEARCH_INDEX_EDITOR
-                            - GROUP_STREAM_PROCESSING_OWNER
-                            - GROUP_BACKUP_MANAGER
-                            - GROUP_OBSERVABILITY_VIEWER
-                            - GROUP_DATABASE_ACCESS_ADMIN
                         type: string
                     minItems: 1
                     type: array
@@ -21488,20 +21551,10 @@ components:
             properties:
                 roles:
                     description: The Project permissions for the Service Account in the specified Project.
+                    externalDocs:
+                        description: Project-level Roles for Service Accounts
+                        url: https://www.mongodb.com/docs/atlas/reference/user-roles/
                     items:
-                        description: Project roles available for Service Accounts.
-                        enum:
-                            - GROUP_OWNER
-                            - GROUP_READ_ONLY
-                            - GROUP_DATA_ACCESS_ADMIN
-                            - GROUP_DATA_ACCESS_READ_ONLY
-                            - GROUP_DATA_ACCESS_READ_WRITE
-                            - GROUP_CLUSTER_MANAGER
-                            - GROUP_SEARCH_INDEX_EDITOR
-                            - GROUP_STREAM_PROCESSING_OWNER
-                            - GROUP_BACKUP_MANAGER
-                            - GROUP_OBSERVABILITY_VIEWER
-                            - GROUP_DATABASE_ACCESS_ADMIN
                         type: string
                     minItems: 1
                     type: array
@@ -21525,20 +21578,10 @@ components:
                     type: string
                 roles:
                     description: A list of Project roles associated with the Service Account.
+                    externalDocs:
+                        description: Project-level Roles for Service Accounts
+                        url: https://www.mongodb.com/docs/atlas/reference/user-roles/
                     items:
-                        description: Project roles available for Service Accounts.
-                        enum:
-                            - GROUP_OWNER
-                            - GROUP_READ_ONLY
-                            - GROUP_DATA_ACCESS_ADMIN
-                            - GROUP_DATA_ACCESS_READ_ONLY
-                            - GROUP_DATA_ACCESS_READ_WRITE
-                            - GROUP_CLUSTER_MANAGER
-                            - GROUP_SEARCH_INDEX_EDITOR
-                            - GROUP_STREAM_PROCESSING_OWNER
-                            - GROUP_BACKUP_MANAGER
-                            - GROUP_OBSERVABILITY_VIEWER
-                            - GROUP_DATABASE_ACCESS_ADMIN
                         type: string
                     type: array
             type: object
@@ -21917,7 +21960,6 @@ components:
         HostEventTypeViewForNdsGroup:
             description: Unique identifier of event type.
             enum:
-                - AUTO_CREATED_INDEX_AUDIT
                 - ATTEMPT_KILLOP_AUDIT
                 - ATTEMPT_KILLSESSION_AUDIT
                 - HOST_UP
@@ -23656,518 +23698,9 @@ components:
                     type: number
                 sku:
                     description: Human-readable description of the service that this line item provided. This Stock Keeping Unit (SKU) could be the instance type, a support charge, advanced security, or another service.
-                    enum:
-                        - CLASSIC_BACKUP_OPLOG
-                        - CLASSIC_BACKUP_STORAGE
-                        - CLASSIC_BACKUP_SNAPSHOT_CREATE
-                        - CLASSIC_BACKUP_DAILY_MINIMUM
-                        - CLASSIC_BACKUP_FREE_TIER
-                        - CLASSIC_COUPON
-                        - BACKUP_STORAGE_FREE_TIER
-                        - BACKUP_STORAGE
-                        - FLEX_CONSULTING
-                        - CLOUD_MANAGER_CLASSIC
-                        - CLOUD_MANAGER_BASIC_FREE_TIER
-                        - CLOUD_MANAGER_BASIC
-                        - CLOUD_MANAGER_PREMIUM
-                        - CLOUD_MANAGER_FREE_TIER
-                        - CLOUD_MANAGER_STANDARD_FREE_TIER
-                        - CLOUD_MANAGER_STANDARD_ANNUAL
-                        - CLOUD_MANAGER_STANDARD
-                        - CLOUD_MANAGER_FREE_TRIAL
-                        - ATLAS_INSTANCE_M0
-                        - ATLAS_INSTANCE_M2
-                        - ATLAS_INSTANCE_M5
-                        - ATLAS_AWS_INSTANCE_M10
-                        - ATLAS_AWS_INSTANCE_M20
-                        - ATLAS_AWS_INSTANCE_M30
-                        - ATLAS_AWS_INSTANCE_M40
-                        - ATLAS_AWS_INSTANCE_M50
-                        - ATLAS_AWS_INSTANCE_M60
-                        - ATLAS_AWS_INSTANCE_M80
-                        - ATLAS_AWS_INSTANCE_M100
-                        - ATLAS_AWS_INSTANCE_M140
-                        - ATLAS_AWS_INSTANCE_M200
-                        - ATLAS_AWS_INSTANCE_M300
-                        - ATLAS_AWS_INSTANCE_M40_LOW_CPU
-                        - ATLAS_AWS_INSTANCE_M50_LOW_CPU
-                        - ATLAS_AWS_INSTANCE_M60_LOW_CPU
-                        - ATLAS_AWS_INSTANCE_M80_LOW_CPU
-                        - ATLAS_AWS_INSTANCE_M200_LOW_CPU
-                        - ATLAS_AWS_INSTANCE_M300_LOW_CPU
-                        - ATLAS_AWS_INSTANCE_M400_LOW_CPU
-                        - ATLAS_AWS_INSTANCE_M700_LOW_CPU
-                        - ATLAS_AWS_INSTANCE_M40_NVME
-                        - ATLAS_AWS_INSTANCE_M50_NVME
-                        - ATLAS_AWS_INSTANCE_M60_NVME
-                        - ATLAS_AWS_INSTANCE_M80_NVME
-                        - ATLAS_AWS_INSTANCE_M200_NVME
-                        - ATLAS_AWS_INSTANCE_M400_NVME
-                        - ATLAS_AWS_INSTANCE_M10_PAUSED
-                        - ATLAS_AWS_INSTANCE_M20_PAUSED
-                        - ATLAS_AWS_INSTANCE_M30_PAUSED
-                        - ATLAS_AWS_INSTANCE_M40_PAUSED
-                        - ATLAS_AWS_INSTANCE_M50_PAUSED
-                        - ATLAS_AWS_INSTANCE_M60_PAUSED
-                        - ATLAS_AWS_INSTANCE_M80_PAUSED
-                        - ATLAS_AWS_INSTANCE_M100_PAUSED
-                        - ATLAS_AWS_INSTANCE_M140_PAUSED
-                        - ATLAS_AWS_INSTANCE_M200_PAUSED
-                        - ATLAS_AWS_INSTANCE_M300_PAUSED
-                        - ATLAS_AWS_INSTANCE_M40_LOW_CPU_PAUSED
-                        - ATLAS_AWS_INSTANCE_M50_LOW_CPU_PAUSED
-                        - ATLAS_AWS_INSTANCE_M60_LOW_CPU_PAUSED
-                        - ATLAS_AWS_INSTANCE_M80_LOW_CPU_PAUSED
-                        - ATLAS_AWS_INSTANCE_M200_LOW_CPU_PAUSED
-                        - ATLAS_AWS_INSTANCE_M300_LOW_CPU_PAUSED
-                        - ATLAS_AWS_INSTANCE_M400_LOW_CPU_PAUSED
-                        - ATLAS_AWS_INSTANCE_M700_LOW_CPU_PAUSED
-                        - ATLAS_AWS_SEARCH_INSTANCE_S20_COMPUTE_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S30_COMPUTE_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S40_COMPUTE_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S50_COMPUTE_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S60_COMPUTE_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S70_COMPUTE_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S80_COMPUTE_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S30_MEMORY_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S40_MEMORY_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S50_MEMORY_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S60_MEMORY_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S80_MEMORY_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S90_MEMORY_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S100_MEMORY_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S110_MEMORY_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S40_STORAGE_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S50_STORAGE_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S60_STORAGE_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S80_STORAGE_NVME
-                        - ATLAS_AWS_SEARCH_INSTANCE_S90_STORAGE_NVME
-                        - ATLAS_AWS_STORAGE_PROVISIONED
-                        - ATLAS_AWS_STORAGE_STANDARD
-                        - ATLAS_AWS_STORAGE_STANDARD_GP3
-                        - ATLAS_AWS_STORAGE_IOPS
-                        - ATLAS_AWS_DATA_TRANSFER_SAME_REGION
-                        - ATLAS_AWS_DATA_TRANSFER_DIFFERENT_REGION
-                        - ATLAS_AWS_DATA_TRANSFER_INTERNET
-                        - ATLAS_AWS_TIME_BASED_SNAPSHOT_COPY_LEVEL_1
-                        - ATLAS_AWS_TIME_BASED_SNAPSHOT_COPY_LEVEL_2
-                        - ATLAS_AWS_TIME_BASED_SNAPSHOT_COPY_LEVEL_3
-                        - ATLAS_AWS_TIME_BASED_SNAPSHOT_COPY_LEVEL_4
-                        - ATLAS_AWS_TIME_BASED_SNAPSHOT_COPY_LEVEL_5
-                        - ATLAS_AWS_TIME_BASED_SNAPSHOT_COPY_LEVEL_6
-                        - ATLAS_AWS_TIME_BASED_SNAPSHOT_COPY_LEVEL_7
-                        - ATLAS_AWS_BACKUP_SNAPSHOT_STORAGE
-                        - ATLAS_AWS_BACKUP_DOWNLOAD_VM
-                        - ATLAS_AWS_BACKUP_DOWNLOAD_VM_STORAGE
-                        - ATLAS_AWS_BACKUP_DOWNLOAD_VM_STORAGE_IOPS
-                        - ATLAS_AWS_BACKUP_EXPORT_PRIVATE_ENDPOINT
-                        - ATLAS_AWS_PRIVATE_ENDPOINT
-                        - ATLAS_AWS_PRIVATE_ENDPOINT_CAPACITY_UNITS
-                        - ATLAS_GCP_SEARCH_INSTANCE_S20_COMPUTE_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S30_COMPUTE_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S40_COMPUTE_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S50_COMPUTE_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S60_COMPUTE_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S70_COMPUTE_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S80_COMPUTE_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S30_MEMORY_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S40_MEMORY_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S50_MEMORY_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S60_MEMORY_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S70_MEMORY_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S80_MEMORY_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S90_MEMORY_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S100_MEMORY_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S110_MEMORY_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S120_MEMORY_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S130_MEMORY_LOCALSSD
-                        - ATLAS_GCP_SEARCH_INSTANCE_S140_MEMORY_LOCALSSD
-                        - ATLAS_GCP_INSTANCE_M10
-                        - ATLAS_GCP_INSTANCE_M20
-                        - ATLAS_GCP_INSTANCE_M30
-                        - ATLAS_GCP_INSTANCE_M40
-                        - ATLAS_GCP_INSTANCE_M50
-                        - ATLAS_GCP_INSTANCE_M60
-                        - ATLAS_GCP_INSTANCE_M80
-                        - ATLAS_GCP_INSTANCE_M140
-                        - ATLAS_GCP_INSTANCE_M200
-                        - ATLAS_GCP_INSTANCE_M250
-                        - ATLAS_GCP_INSTANCE_M300
-                        - ATLAS_GCP_INSTANCE_M400
-                        - ATLAS_GCP_INSTANCE_M40_LOW_CPU
-                        - ATLAS_GCP_INSTANCE_M50_LOW_CPU
-                        - ATLAS_GCP_INSTANCE_M60_LOW_CPU
-                        - ATLAS_GCP_INSTANCE_M80_LOW_CPU
-                        - ATLAS_GCP_INSTANCE_M200_LOW_CPU
-                        - ATLAS_GCP_INSTANCE_M300_LOW_CPU
-                        - ATLAS_GCP_INSTANCE_M400_LOW_CPU
-                        - ATLAS_GCP_INSTANCE_M600_LOW_CPU
-                        - ATLAS_GCP_INSTANCE_M10_PAUSED
-                        - ATLAS_GCP_INSTANCE_M20_PAUSED
-                        - ATLAS_GCP_INSTANCE_M30_PAUSED
-                        - ATLAS_GCP_INSTANCE_M40_PAUSED
-                        - ATLAS_GCP_INSTANCE_M50_PAUSED
-                        - ATLAS_GCP_INSTANCE_M60_PAUSED
-                        - ATLAS_GCP_INSTANCE_M80_PAUSED
-                        - ATLAS_GCP_INSTANCE_M140_PAUSED
-                        - ATLAS_GCP_INSTANCE_M200_PAUSED
-                        - ATLAS_GCP_INSTANCE_M250_PAUSED
-                        - ATLAS_GCP_INSTANCE_M300_PAUSED
-                        - ATLAS_GCP_INSTANCE_M400_PAUSED
-                        - ATLAS_GCP_INSTANCE_M40_LOW_CPU_PAUSED
-                        - ATLAS_GCP_INSTANCE_M50_LOW_CPU_PAUSED
-                        - ATLAS_GCP_INSTANCE_M60_LOW_CPU_PAUSED
-                        - ATLAS_GCP_INSTANCE_M80_LOW_CPU_PAUSED
-                        - ATLAS_GCP_INSTANCE_M200_LOW_CPU_PAUSED
-                        - ATLAS_GCP_INSTANCE_M300_LOW_CPU_PAUSED
-                        - ATLAS_GCP_INSTANCE_M400_LOW_CPU_PAUSED
-                        - ATLAS_GCP_INSTANCE_M600_LOW_CPU_PAUSED
-                        - ATLAS_GCP_DATA_TRANSFER_INTERNET
-                        - ATLAS_GCP_STORAGE_SSD
-                        - ATLAS_GCP_DATA_TRANSFER_INTER_CONNECT
-                        - ATLAS_GCP_DATA_TRANSFER_INTER_ZONE
-                        - ATLAS_GCP_DATA_TRANSFER_INTER_REGION
-                        - ATLAS_GCP_DATA_TRANSFER_GOOGLE
-                        - ATLAS_GCP_BACKUP_SNAPSHOT_STORAGE
-                        - ATLAS_GCP_BACKUP_DOWNLOAD_VM
-                        - ATLAS_GCP_BACKUP_DOWNLOAD_VM_STORAGE
-                        - ATLAS_GCP_PRIVATE_ENDPOINT
-                        - ATLAS_GCP_PRIVATE_ENDPOINT_CAPACITY_UNITS
-                        - ATLAS_GCP_SNAPSHOT_COPY_DATA_TRANSFER
-                        - ATLAS_AZURE_INSTANCE_M10
-                        - ATLAS_AZURE_INSTANCE_M20
-                        - ATLAS_AZURE_INSTANCE_M30
-                        - ATLAS_AZURE_INSTANCE_M40
-                        - ATLAS_AZURE_INSTANCE_M50
-                        - ATLAS_AZURE_INSTANCE_M60
-                        - ATLAS_AZURE_INSTANCE_M80
-                        - ATLAS_AZURE_INSTANCE_M90
-                        - ATLAS_AZURE_INSTANCE_M200
-                        - ATLAS_AZURE_INSTANCE_R40
-                        - ATLAS_AZURE_INSTANCE_R50
-                        - ATLAS_AZURE_INSTANCE_R60
-                        - ATLAS_AZURE_INSTANCE_R80
-                        - ATLAS_AZURE_INSTANCE_R200
-                        - ATLAS_AZURE_INSTANCE_R300
-                        - ATLAS_AZURE_INSTANCE_R400
-                        - ATLAS_AZURE_INSTANCE_M60_NVME
-                        - ATLAS_AZURE_INSTANCE_M80_NVME
-                        - ATLAS_AZURE_INSTANCE_M200_NVME
-                        - ATLAS_AZURE_INSTANCE_M300_NVME
-                        - ATLAS_AZURE_INSTANCE_M400_NVME
-                        - ATLAS_AZURE_INSTANCE_M600_NVME
-                        - ATLAS_AZURE_INSTANCE_M10_PAUSED
-                        - ATLAS_AZURE_INSTANCE_M20_PAUSED
-                        - ATLAS_AZURE_INSTANCE_M30_PAUSED
-                        - ATLAS_AZURE_INSTANCE_M40_PAUSED
-                        - ATLAS_AZURE_INSTANCE_M50_PAUSED
-                        - ATLAS_AZURE_INSTANCE_M60_PAUSED
-                        - ATLAS_AZURE_INSTANCE_M80_PAUSED
-                        - ATLAS_AZURE_INSTANCE_M90_PAUSED
-                        - ATLAS_AZURE_INSTANCE_M200_PAUSED
-                        - ATLAS_AZURE_INSTANCE_R40_PAUSED
-                        - ATLAS_AZURE_INSTANCE_R50_PAUSED
-                        - ATLAS_AZURE_INSTANCE_R60_PAUSED
-                        - ATLAS_AZURE_INSTANCE_R80_PAUSED
-                        - ATLAS_AZURE_INSTANCE_R200_PAUSED
-                        - ATLAS_AZURE_INSTANCE_R300_PAUSED
-                        - ATLAS_AZURE_INSTANCE_R400_PAUSED
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S20_COMPUTE_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S30_COMPUTE_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S40_COMPUTE_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S50_COMPUTE_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S60_COMPUTE_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S70_COMPUTE_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S80_COMPUTE_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S40_MEMORY_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S50_MEMORY_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S60_MEMORY_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S80_MEMORY_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S90_MEMORY_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S100_MEMORY_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S110_MEMORY_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S130_MEMORY_LOCALSSD
-                        - ATLAS_AZURE_SEARCH_INSTANCE_S135_MEMORY_LOCALSSD
-                        - ATLAS_AZURE_STORAGE_P2
-                        - ATLAS_AZURE_STORAGE_P3
-                        - ATLAS_AZURE_STORAGE_P4
-                        - ATLAS_AZURE_STORAGE_P6
-                        - ATLAS_AZURE_STORAGE_P10
-                        - ATLAS_AZURE_STORAGE_P15
-                        - ATLAS_AZURE_STORAGE_P20
-                        - ATLAS_AZURE_STORAGE_P30
-                        - ATLAS_AZURE_STORAGE_P40
-                        - ATLAS_AZURE_STORAGE_P50
-                        - ATLAS_AZURE_DATA_TRANSFER
-                        - ATLAS_AZURE_DATA_TRANSFER_REGIONAL_VNET_IN
-                        - ATLAS_AZURE_DATA_TRANSFER_REGIONAL_VNET_OUT
-                        - ATLAS_AZURE_DATA_TRANSFER_GLOBAL_VNET_IN
-                        - ATLAS_AZURE_DATA_TRANSFER_GLOBAL_VNET_OUT
-                        - ATLAS_AZURE_DATA_TRANSFER_AVAILABILITY_ZONE_IN
-                        - ATLAS_AZURE_DATA_TRANSFER_AVAILABILITY_ZONE_OUT
-                        - ATLAS_AZURE_DATA_TRANSFER_INTER_REGION_INTRA_CONTINENT
-                        - ATLAS_AZURE_DATA_TRANSFER_INTER_REGION_INTER_CONTINENT
-                        - ATLAS_AZURE_BACKUP_SNAPSHOT_STORAGE
-                        - ATLAS_AZURE_BACKUP_DOWNLOAD_VM
-                        - ATLAS_AZURE_BACKUP_DOWNLOAD_VM_STORAGE_P2
-                        - ATLAS_AZURE_BACKUP_DOWNLOAD_VM_STORAGE_P3
-                        - ATLAS_AZURE_BACKUP_DOWNLOAD_VM_STORAGE_P4
-                        - ATLAS_AZURE_BACKUP_DOWNLOAD_VM_STORAGE_P6
-                        - ATLAS_AZURE_BACKUP_DOWNLOAD_VM_STORAGE_P10
-                        - ATLAS_AZURE_BACKUP_DOWNLOAD_VM_STORAGE_P15
-                        - ATLAS_AZURE_BACKUP_DOWNLOAD_VM_STORAGE_P20
-                        - ATLAS_AZURE_BACKUP_DOWNLOAD_VM_STORAGE_P30
-                        - ATLAS_AZURE_BACKUP_DOWNLOAD_VM_STORAGE_P40
-                        - ATLAS_AZURE_BACKUP_DOWNLOAD_VM_STORAGE_P50
-                        - ATLAS_AZURE_STANDARD_STORAGE
-                        - ATLAS_AZURE_EXTENDED_STANDARD_IOPS
-                        - ATLAS_AZURE_BACKUP_DOWNLOAD_VM_STORAGE
-                        - ATLAS_AZURE_BACKUP_DOWNLOAD_VM_STORAGE_EXTENDED_IOPS
-                        - ATLAS_AZURE_SNAPSHOT_EXPORT_VM_STORAGE
-                        - ATLAS_AZURE_SNAPSHOT_EXPORT_VM_STORAGE_EXTENDED_IOPS
-                        - ATLAS_BI_CONNECTOR
-                        - ATLAS_ADVANCED_SECURITY
-                        - ATLAS_ENTERPRISE_AUDITING
-                        - ATLAS_FREE_SUPPORT
-                        - ATLAS_SUPPORT
-                        - ATLAS_NDS_BACKFILL_SUPPORT
-                        - STITCH_DATA_DOWNLOADED_FREE_TIER
-                        - STITCH_DATA_DOWNLOADED
-                        - STITCH_COMPUTE_FREE_TIER
-                        - STITCH_COMPUTE
-                        - CREDIT
-                        - MINIMUM_CHARGE
-                        - CHARTS_DATA_DOWNLOADED_FREE_TIER
-                        - CHARTS_DATA_DOWNLOADED
-                        - ATLAS_DATA_LAKE_AWS_DATA_RETURNED_SAME_REGION
-                        - ATLAS_DATA_LAKE_AWS_DATA_RETURNED_DIFFERENT_REGION
-                        - ATLAS_DATA_LAKE_AWS_DATA_RETURNED_INTERNET
-                        - ATLAS_DATA_LAKE_AWS_DATA_SCANNED
-                        - ATLAS_DATA_LAKE_AWS_DATA_TRANSFERRED_FROM_DIFFERENT_REGION
-                        - ATLAS_NDS_AWS_DATA_LAKE_STORAGE_ACCESS
-                        - ATLAS_NDS_AWS_DATA_LAKE_STORAGE
-                        - ATLAS_DATA_FEDERATION_AZURE_DATA_RETURNED_SAME_REGION
-                        - ATLAS_DATA_FEDERATION_AZURE_DATA_RETURNED_SAME_CONTINENT
-                        - ATLAS_DATA_FEDERATION_AZURE_DATA_RETURNED_DIFFERENT_CONTINENT
-                        - ATLAS_DATA_FEDERATION_AZURE_DATA_RETURNED_INTERNET
-                        - ATLAS_DATA_FEDERATION_GCP_DATA_RETURNED_SAME_REGION
-                        - ATLAS_DATA_FEDERATION_GCP_DATA_RETURNED_DIFFERENT_REGION
-                        - ATLAS_DATA_FEDERATION_GCP_DATA_RETURNED_INTERNET
-                        - ATLAS_DATA_FEDERATION_AZURE_DATA_SCANNED
-                        - ATLAS_NDS_AZURE_DATA_LAKE_STORAGE_ACCESS
-                        - ATLAS_NDS_AZURE_DATA_LAKE_STORAGE
-                        - ATLAS_DATA_FEDERATION_GCP_DATA_SCANNED
-                        - ATLAS_NDS_GCP_DATA_LAKE_STORAGE_ACCESS
-                        - ATLAS_NDS_GCP_DATA_LAKE_STORAGE
-                        - ATLAS_NDS_AWS_OBJECT_STORAGE_ACCESS
-                        - ATLAS_NDS_AWS_COMPRESSED_OBJECT_STORAGE
-                        - ATLAS_NDS_AZURE_OBJECT_STORAGE_ACCESS
-                        - ATLAS_NDS_AZURE_OBJECT_STORAGE
-                        - ATLAS_NDS_AZURE_COMPRESSED_OBJECT_STORAGE
-                        - ATLAS_NDS_GCP_OBJECT_STORAGE_ACCESS
-                        - ATLAS_NDS_GCP_OBJECT_STORAGE
-                        - ATLAS_NDS_GCP_COMPRESSED_OBJECT_STORAGE
-                        - ATLAS_ARCHIVE_ACCESS_PARTITION_LOCATE
-                        - ATLAS_NDS_AWS_PIT_RESTORE_STORAGE_FREE_TIER
-                        - ATLAS_NDS_AWS_PIT_RESTORE_STORAGE
-                        - ATLAS_NDS_GCP_PIT_RESTORE_STORAGE_FREE_TIER
-                        - ATLAS_NDS_GCP_PIT_RESTORE_STORAGE
-                        - ATLAS_NDS_AZURE_PIT_RESTORE_STORAGE_FREE_TIER
-                        - ATLAS_NDS_AZURE_PIT_RESTORE_STORAGE
-                        - ATLAS_NDS_AZURE_PRIVATE_ENDPOINT_CAPACITY_UNITS
-                        - ATLAS_NDS_AZURE_CMK_PRIVATE_NETWORKING
-                        - ATLAS_NDS_AWS_CMK_PRIVATE_NETWORKING
-                        - ATLAS_NDS_AWS_OBJECT_STORAGE
-                        - ATLAS_NDS_AWS_SNAPSHOT_EXPORT_UPLOAD
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_UPLOAD
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_VM
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_VM_M40
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_VM_M50
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_VM_M60
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_VM_STORAGE_P2
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_VM_STORAGE_P3
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_VM_STORAGE_P4
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_VM_STORAGE_P6
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_VM_STORAGE_P10
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_VM_STORAGE_P15
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_VM_STORAGE_P20
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_VM_STORAGE_P30
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_VM_STORAGE_P40
-                        - ATLAS_NDS_AZURE_SNAPSHOT_EXPORT_VM_STORAGE_P50
-                        - ATLAS_NDS_AWS_SNAPSHOT_EXPORT_VM
-                        - ATLAS_NDS_AWS_SNAPSHOT_EXPORT_VM_M40
-                        - ATLAS_NDS_AWS_SNAPSHOT_EXPORT_VM_M50
-                        - ATLAS_NDS_AWS_SNAPSHOT_EXPORT_VM_M60
-                        - ATLAS_NDS_AWS_SNAPSHOT_EXPORT_VM_STORAGE
-                        - ATLAS_NDS_AWS_SNAPSHOT_EXPORT_VM_STORAGE_IOPS
-                        - ATLAS_NDS_GCP_SNAPSHOT_EXPORT_UPLOAD
-                        - ATLAS_NDS_GCP_SNAPSHOT_EXPORT_VM
-                        - ATLAS_NDS_GCP_SNAPSHOT_EXPORT_VM_M40
-                        - ATLAS_NDS_GCP_SNAPSHOT_EXPORT_VM_M50
-                        - ATLAS_NDS_GCP_SNAPSHOT_EXPORT_VM_M60
-                        - ATLAS_NDS_GCP_SNAPSHOT_EXPORT_VM_STORAGE
-                        - ATLAS_NDS_AWS_SERVERLESS_RPU
-                        - ATLAS_NDS_AWS_SERVERLESS_WPU
-                        - ATLAS_NDS_AWS_SERVERLESS_STORAGE
-                        - ATLAS_NDS_AWS_SERVERLESS_CONTINUOUS_BACKUP
-                        - ATLAS_NDS_AWS_SERVERLESS_BACKUP_RESTORE_VM
-                        - ATLAS_NDS_AWS_SERVERLESS_DATA_TRANSFER_PREVIEW
-                        - ATLAS_NDS_AWS_SERVERLESS_DATA_TRANSFER
-                        - ATLAS_NDS_AWS_SERVERLESS_DATA_TRANSFER_REGIONAL
-                        - ATLAS_NDS_AWS_SERVERLESS_DATA_TRANSFER_CROSS_REGION
-                        - ATLAS_NDS_AWS_SERVERLESS_DATA_TRANSFER_INTERNET
-                        - ATLAS_NDS_GCP_SERVERLESS_RPU
-                        - ATLAS_NDS_GCP_SERVERLESS_WPU
-                        - ATLAS_NDS_GCP_SERVERLESS_STORAGE
-                        - ATLAS_NDS_GCP_SERVERLESS_CONTINUOUS_BACKUP
-                        - ATLAS_NDS_GCP_SERVERLESS_BACKUP_RESTORE_VM
-                        - ATLAS_NDS_GCP_SERVERLESS_DATA_TRANSFER_PREVIEW
-                        - ATLAS_NDS_GCP_SERVERLESS_DATA_TRANSFER
-                        - ATLAS_NDS_GCP_SERVERLESS_DATA_TRANSFER_REGIONAL
-                        - ATLAS_NDS_GCP_SERVERLESS_DATA_TRANSFER_CROSS_REGION
-                        - ATLAS_NDS_GCP_SERVERLESS_DATA_TRANSFER_INTERNET
-                        - ATLAS_NDS_AZURE_SERVERLESS_RPU
-                        - ATLAS_NDS_AZURE_SERVERLESS_WPU
-                        - ATLAS_NDS_AZURE_SERVERLESS_STORAGE
-                        - ATLAS_NDS_AZURE_SERVERLESS_CONTINUOUS_BACKUP
-                        - ATLAS_NDS_AZURE_SERVERLESS_BACKUP_RESTORE_VM
-                        - ATLAS_NDS_AZURE_SERVERLESS_DATA_TRANSFER_PREVIEW
-                        - ATLAS_NDS_AZURE_SERVERLESS_DATA_TRANSFER
-                        - ATLAS_NDS_AZURE_SERVERLESS_DATA_TRANSFER_REGIONAL
-                        - ATLAS_NDS_AZURE_SERVERLESS_DATA_TRANSFER_CROSS_REGION
-                        - ATLAS_NDS_AZURE_SERVERLESS_DATA_TRANSFER_INTERNET
-                        - REALM_APP_REQUESTS_FREE_TIER
-                        - REALM_APP_REQUESTS
-                        - REALM_APP_COMPUTE_FREE_TIER
-                        - REALM_APP_COMPUTE
-                        - REALM_APP_SYNC_FREE_TIER
-                        - REALM_APP_SYNC
-                        - REALM_APP_DATA_TRANSFER_FREE_TIER
-                        - REALM_APP_DATA_TRANSFER
-                        - GCP_SNAPSHOT_COPY_DISK
-                        - ATLAS_AWS_STREAM_PROCESSING_INSTANCE_SP2
-                        - ATLAS_AWS_STREAM_PROCESSING_INSTANCE_SP5
-                        - ATLAS_AWS_STREAM_PROCESSING_INSTANCE_SP10
-                        - ATLAS_AWS_STREAM_PROCESSING_INSTANCE_SP30
-                        - ATLAS_AWS_STREAM_PROCESSING_INSTANCE_SP50
-                        - ATLAS_AZURE_STREAM_PROCESSING_INSTANCE_SP2
-                        - ATLAS_AZURE_STREAM_PROCESSING_INSTANCE_SP5
-                        - ATLAS_AZURE_STREAM_PROCESSING_INSTANCE_SP10
-                        - ATLAS_AZURE_STREAM_PROCESSING_INSTANCE_SP30
-                        - ATLAS_AZURE_STREAM_PROCESSING_INSTANCE_SP50
-                        - ATLAS_AWS_STREAM_PROCESSING_DATA_TRANSFER
-                        - ATLAS_AWS_STREAM_PROCESSING_DATA_TRANSFER_SAME_REGION
-                        - ATLAS_AWS_STREAM_PROCESSING_DATA_TRANSFER_DIFFERENT_REGION
-                        - ATLAS_AWS_STREAM_PROCESSING_DATA_TRANSFER_INTERNET
-                        - ATLAS_AZURE_STREAM_PROCESSING_DATA_TRANSFER
-                        - ATLAS_AZURE_STREAM_PROCESSING_DATA_TRANSFER_INTERNET
-                        - ATLAS_AZURE_STREAM_PROCESSING_DATA_TRANSFER_SAME_CONTINENT
-                        - ATLAS_AZURE_STREAM_PROCESSING_DATA_TRANSFER_DIFFERENT_CONTINENT
-                        - ATLAS_AWS_STREAM_PROCESSING_VPC_PEERING
-                        - ATLAS_AZURE_STREAM_PROCESSING_PRIVATELINK
-                        - ATLAS_AWS_STREAM_PROCESSING_PRIVATELINK
-                        - ATLAS_FLEX_AWS_100_USAGE_HOURS
-                        - ATLAS_FLEX_AWS_200_USAGE_HOURS
-                        - ATLAS_FLEX_AWS_300_USAGE_HOURS
-                        - ATLAS_FLEX_AWS_400_USAGE_HOURS
-                        - ATLAS_FLEX_AWS_500_USAGE_HOURS
-                        - ATLAS_FLEX_AZURE_100_USAGE_HOURS
-                        - ATLAS_FLEX_AZURE_200_USAGE_HOURS
-                        - ATLAS_FLEX_AZURE_300_USAGE_HOURS
-                        - ATLAS_FLEX_AZURE_400_USAGE_HOURS
-                        - ATLAS_FLEX_AZURE_500_USAGE_HOURS
-                        - ATLAS_FLEX_GCP_100_USAGE_HOURS
-                        - ATLAS_FLEX_GCP_200_USAGE_HOURS
-                        - ATLAS_FLEX_GCP_300_USAGE_HOURS
-                        - ATLAS_FLEX_GCP_400_USAGE_HOURS
-                        - ATLAS_FLEX_GCP_500_USAGE_HOURS
-                        - ATLAS_FLEX_AWS_LEGACY_100_USAGE_HOURS
-                        - ATLAS_FLEX_AWS_LEGACY_200_USAGE_HOURS
-                        - ATLAS_FLEX_AWS_LEGACY_300_USAGE_HOURS
-                        - ATLAS_FLEX_AWS_LEGACY_400_USAGE_HOURS
-                        - ATLAS_FLEX_AWS_LEGACY_500_USAGE_HOURS
-                        - ATLAS_FLEX_AZURE_LEGACY_100_USAGE_HOURS
-                        - ATLAS_FLEX_AZURE_LEGACY_200_USAGE_HOURS
-                        - ATLAS_FLEX_AZURE_LEGACY_300_USAGE_HOURS
-                        - ATLAS_FLEX_AZURE_LEGACY_400_USAGE_HOURS
-                        - ATLAS_FLEX_AZURE_LEGACY_500_USAGE_HOURS
-                        - ATLAS_FLEX_GCP_LEGACY_100_USAGE_HOURS
-                        - ATLAS_FLEX_GCP_LEGACY_200_USAGE_HOURS
-                        - ATLAS_FLEX_GCP_LEGACY_300_USAGE_HOURS
-                        - ATLAS_FLEX_GCP_LEGACY_400_USAGE_HOURS
-                        - ATLAS_FLEX_GCP_LEGACY_500_USAGE_HOURS
-                        - ATLAS_GCP_STREAM_PROCESSING_INSTANCE_SP2
-                        - ATLAS_GCP_STREAM_PROCESSING_INSTANCE_SP5
-                        - ATLAS_GCP_STREAM_PROCESSING_INSTANCE_SP10
-                        - ATLAS_GCP_STREAM_PROCESSING_INSTANCE_SP30
-                        - ATLAS_GCP_STREAM_PROCESSING_INSTANCE_SP50
-                        - ATLAS_GCP_STREAM_PROCESSING_DATA_TRANSFER
-                        - ATLAS_GCP_STREAM_PROCESSING_DATA_TRANSFER_SAME_REGION
-                        - ATLAS_GCP_STREAM_PROCESSING_DATA_TRANSFER_DIFFERENT_REGION
-                        - ATLAS_GCP_STREAM_PROCESSING_DATA_TRANSFER_INTERNET
-                        - ATLAS_GCP_STREAM_PROCESSING_PRIVATELINK
-                        - VOYAGE_EMBEDDING_3_TEXT_LARGE_API
-                        - VOYAGE_EMBEDDING_3_TEXT_LARGE_API_FREE
-                        - VOYAGE_EMBEDDING_3_TEXT_API
-                        - VOYAGE_EMBEDDING_3_TEXT_API_FREE
-                        - VOYAGE_EMBEDDING_3_TEXT_LITE_API
-                        - VOYAGE_EMBEDDING_3_TEXT_LITE_API_FREE
-                        - VOYAGE_EMBEDDING_3_5_TEXT_API
-                        - VOYAGE_EMBEDDING_3_5_TEXT_API_FREE
-                        - VOYAGE_EMBEDDING_3_5_TEXT_LITE_API
-                        - VOYAGE_EMBEDDING_3_5_TEXT_LITE_API_FREE
-                        - VOYAGE_EMBEDDING_3_TEXT_CONTEXT_API
-                        - VOYAGE_EMBEDDING_3_TEXT_CONTEXT_API_FREE
-                        - VOYAGE_EMBEDDING_3_CODE_API
-                        - VOYAGE_EMBEDDING_3_CODE_API_FREE
-                        - VOYAGE_EMBEDDING_2_FINANCE_API
-                        - VOYAGE_EMBEDDING_2_FINANCE_API_FREE
-                        - VOYAGE_EMBEDDING_2_LAW_API
-                        - VOYAGE_EMBEDDING_2_LAW_API_FREE
-                        - VOYAGE_EMBEDDING_2_CODE_API
-                        - VOYAGE_EMBEDDING_2_CODE_API_FREE
-                        - VOYAGE_EMBEDDING_3_5_MULTIMODAL_TOKENS_API
-                        - VOYAGE_EMBEDDING_3_5_MULTIMODAL_TOKENS_API_FREE
-                        - VOYAGE_EMBEDDING_3_5_MULTIMODAL_PIXELS_API
-                        - VOYAGE_EMBEDDING_3_5_MULTIMODAL_PIXELS_API_FREE
-                        - VOYAGE_EMBEDDING_3_MULTIMODAL_TOKENS_API
-                        - VOYAGE_EMBEDDING_3_MULTIMODAL_TOKENS_API_FREE
-                        - VOYAGE_EMBEDDING_3_MULTIMODAL_PIXELS_API
-                        - VOYAGE_EMBEDDING_3_MULTIMODAL_PIXELS_API_FREE
-                        - VOYAGE_RERANK_2_5_LITE_API
-                        - VOYAGE_RERANK_2_5_LITE_API_FREE
-                        - VOYAGE_RERANK_2_5_API
-                        - VOYAGE_RERANK_2_5_API_FREE
-                        - VOYAGE_RERANK_2_LITE_API
-                        - VOYAGE_RERANK_2_LITE_API_FREE
-                        - VOYAGE_RERANK_2_API
-                        - VOYAGE_RERANK_2_API_FREE
-                        - VOYAGE_EMBEDDING_4_TEXT_LARGE_API
-                        - VOYAGE_EMBEDDING_4_TEXT_LARGE_API_FREE
-                        - VOYAGE_EMBEDDING_4_TEXT_API
-                        - VOYAGE_EMBEDDING_4_TEXT_API_FREE
-                        - VOYAGE_EMBEDDING_4_TEXT_LITE_API
-                        - VOYAGE_EMBEDDING_4_TEXT_LITE_API_FREE
-                        - VOYAGE_EMBEDDING_4_TEXT_NANO_API
-                        - VOYAGE_EMBEDDING_4_TEXT_NANO_API_FREE
-                        - VOYAGE_EMBEDDING_3_TEXT_LARGE_AUTOEMBED
-                        - VOYAGE_EMBEDDING_3_TEXT_AUTOEMBED
-                        - VOYAGE_EMBEDDING_3_TEXT_LITE_AUTOEMBED
-                        - VOYAGE_EMBEDDING_3_5_TEXT_AUTOEMBED
-                        - VOYAGE_EMBEDDING_3_5_TEXT_LITE_AUTOEMBED
-                        - VOYAGE_EMBEDDING_3_TEXT_CONTEXT_AUTOEMBED
-                        - VOYAGE_EMBEDDING_3_CODE_AUTOEMBED
-                        - VOYAGE_EMBEDDING_2_FINANCE_AUTOEMBED
-                        - VOYAGE_EMBEDDING_2_LAW_AUTOEMBED
-                        - VOYAGE_EMBEDDING_2_CODE_AUTOEMBED
-                        - VOYAGE_EMBEDDING_3_5_MULTIMODAL_TOKENS_AUTOEMBED
-                        - VOYAGE_EMBEDDING_3_5_MULTIMODAL_PIXELS_AUTOEMBED
-                        - VOYAGE_EMBEDDING_3_MULTIMODAL_TOKENS_AUTOEMBED
-                        - VOYAGE_EMBEDDING_3_MULTIMODAL_PIXELS_AUTOEMBED
-                        - VOYAGE_EMBEDDING_4_TEXT_LARGE_AUTOEMBED
-                        - VOYAGE_EMBEDDING_4_TEXT_AUTOEMBED
-                        - VOYAGE_EMBEDDING_4_TEXT_LITE_AUTOEMBED
-                        - VOYAGE_EMBEDDING_4_TEXT_NANO_AUTOEMBED
+                    externalDocs:
+                        description: To see how to list all possible values, click here.
+                        url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Invoices/operation/listSkus
                     readOnly: true
                     type: string
                 startDate:
@@ -26840,6 +26373,79 @@ components:
                     readOnly: true
                     type: array
             type: object
+        MongotuneAlertConfigViewForNdsGroup:
+            description: Intelligent Workload Management alert configuration allows to select which Intelligent Workload Management events trigger alerts and how users are notified.
+            properties:
+                created:
+                    description: Date and time when MongoDB Cloud created the alert configuration. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                    externalDocs:
+                        description: ISO 8601
+                        url: https://en.wikipedia.org/wiki/ISO_8601
+                    format: date-time
+                    readOnly: true
+                    type: string
+                enabled:
+                    default: false
+                    description: Flag that indicates whether someone enabled this alert configuration for the specified project.
+                    type: boolean
+                eventTypeName:
+                    $ref: '#/components/schemas/MongotuneEventTypeViewAlertable'
+                groupId:
+                    description: Unique 24-hexadecimal digit string that identifies the project that owns this alert configuration.
+                    example: 32b6e34b3d91647abb20e7b8
+                    pattern: ^([a-f0-9]{24})$
+                    readOnly: true
+                    type: string
+                id:
+                    description: Unique 24-hexadecimal digit string that identifies this alert configuration.
+                    example: 32b6e34b3d91647abb20e7b8
+                    pattern: ^([a-f0-9]{24})$
+                    readOnly: true
+                    type: string
+                links:
+                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                    externalDocs:
+                        description: Web Linking Specification (RFC 5988)
+                        url: https://datatracker.ietf.org/doc/html/rfc5988
+                    items:
+                        $ref: '#/components/schemas/Link'
+                    readOnly: true
+                    type: array
+                matchers:
+                    description: Matching conditions for target resources.
+                    items:
+                        $ref: '#/components/schemas/AlertMatcher'
+                    type: array
+                notifications:
+                    description: List that contains the targets that MongoDB Cloud sends notifications.
+                    items:
+                        $ref: '#/components/schemas/AlertsNotificationRootForGroup'
+                    type: array
+                severityOverride:
+                    $ref: '#/components/schemas/EventSeverity'
+                updated:
+                    description: Date and time when someone last updated this alert configuration. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                    externalDocs:
+                        description: ISO 8601
+                        url: https://en.wikipedia.org/wiki/ISO_8601
+                    format: date-time
+                    readOnly: true
+                    type: string
+            required:
+                - eventTypeName
+                - notifications
+            title: Intelligent Workload Management Alert Configuration
+            type: object
+        MongotuneEventTypeViewAlertable:
+            description: Event type that triggers an alert.
+            enum:
+                - MONGOTUNE_ALERT
+            example: MONGOTUNE_ALERT
+            externalDocs:
+                description: Atlas Alert Event Types
+                url: https://www.mongodb.com/docs/atlas/reference/atlas-alert-event-types/
+            title: Mongotune Event Types
+            type: string
         MonthlyScheduleView:
             allOf:
                 - $ref: '#/components/schemas/OnlineArchiveSchedule'
@@ -27060,7 +26666,6 @@ components:
                 - CLUSTER_RESURRECTED
                 - CLUSTER_READY
                 - CLUSTER_UPDATE_SUBMITTED
-                - CLUSTER_UPDATE_SUBMITTED_INTERNAL
                 - CLUSTER_PROCESS_ARGS_UPDATE_SUBMITTED
                 - CLUSTER_MONGOT_PROCESS_ARGS_UPDATE_SUBMITTED
                 - CLUSTER_SERVER_PARAMETERS_UPDATE_SUBMITTED
@@ -27102,7 +26707,6 @@ components:
                 - RELOAD_SSL_ON_PROCESSES
                 - RELOAD_SSL_ON_PROCESSES_REQUESTED
                 - CLUSTER_INSTANCE_ADMIN_BACKUP_SNAPSHOT_REQUESTED
-                - UPDATE_BUMPER_FILES
                 - DATA_LAKE_QUERY_LOGS_DOWNLOADED
                 - FEDERATED_DATABASE_QUERY_LOGS_DOWNLOADED
                 - ONLINE_ARCHIVE_QUERY_LOGS_DOWNLOADED
@@ -27127,10 +26731,8 @@ components:
                 - PLAN_COMPLETED
                 - PLAN_ABANDONED
                 - PLAN_DECLINED
-                - PLAN_APPROVED
                 - PLAN_FAILURE_COUNT_RESET
                 - PLAN_ASAP_REQUESTED
-                - INDEPENDENT_SHARD_SCALING_AVAILABLE
                 - INDEPENDENT_SHARD_AUTO_SCALING_AVAILABLE
                 - INDEPENDENT_SHARD_SCALING_CLUSTER_MIGRATED
                 - INDEPENDENT_SHARD_SCALING_CLUSTER_ROLLED_BACK
@@ -27153,7 +26755,6 @@ components:
                 - SCHEDULED_MAINTENANCE
                 - PROJECT_SCHEDULED_MAINTENANCE
                 - PROJECT_LIMIT_UPDATED
-                - PROJECT_OPERATIONAL_LIMIT_UPDATED
                 - PROJECT_ENABLE_EXTENDED_STORAGE_SIZES_UPDATED
                 - OS_MAINTENANCE
                 - OS_MAINTENANCE_RESTART
@@ -27183,13 +26784,11 @@ components:
                 - FEDERATED_DATABASE_CREATED
                 - FEDERATED_DATABASE_UPDATED
                 - FEDERATED_DATABASE_REMOVED
-                - TENANT_CLUSTER_UPGRADE_FROM_MTM
                 - TENANT_SNAPSHOT_FAILED
                 - TENANT_RESTORE_FAILED
                 - SAMPLE_DATASET_LOAD_REQUESTED
                 - CUSTOMER_X509_CRL_UPDATED
                 - CONTAINER_SUBNETS_UPDATE_REQUESTED
-                - CLEAR_UNPROVISIONED_TARGET_GROUPS_REQUESTED
                 - ONLINE_ARCHIVE_CREATED
                 - ONLINE_ARCHIVE_DELETED
                 - ONLINE_ARCHIVE_UPDATED
@@ -27218,7 +26817,6 @@ components:
                 - AUTO_HEALING_REQUESTED_INSTANCE_REPLACEMENT
                 - AUTO_HEALING_REQUESTED_NODE_RESYNC
                 - EXTRA_MAINTENANCE_DEFERRAL_GRANTED
-                - ADMIN_NOTE_UPDATED
                 - GROUP_AUTOMATION_CONFIG_PUBLISHED
                 - CLUSTER_AUTOMATION_CONFIG_PUBLISHED
                 - SET_ENSURE_CLUSTER_CONNECTIVITY_AFTER_FOR_CLUSTER
@@ -27229,13 +26827,11 @@ components:
                 - INGESTION_PIPELINE_CREATED
                 - INGESTION_PIPELINE_UPDATED
                 - OS_TUNE_FILE_OVERRIDES
-                - CLUSTER_SYSTEMD_OVERRIDES_CHANGED
                 - MONITORING_AGENT_OVERRIDES
                 - MONITORING_AGENT_REBALANCE_FLAG
                 - MONITORING_AGENT_REBALANCE_TRIGGERED
                 - CLUSTER_PREFERRED_CPU_ARCHITECTURE_MODIFIED
                 - CLUSTER_FORCE_PLANNED
-                - DATA_PROCESSING_REGION_UPDATED
                 - CLUSTER_REGIONAL_OUTAGE_SIMULATION_STARTED
                 - CLUSTER_REGIONAL_OUTAGE_SIMULATION_FAILED_TO_START
                 - CLUSTER_REGIONAL_OUTAGE_SIMULATION_END_REQUESTED
@@ -27316,7 +26912,6 @@ components:
                 - MONGOTUNE_WRITE_BLOCK_POLICY_INELIGIBLE
                 - PREDICTIVE_AUTOSCALING_ENABLED
                 - PREDICTIVE_AUTOSCALING_DISABLED
-                - DEPUTY_SETTINGS_UPDATED
                 - SHADOW_CLUSTER_CREATE_EXPOSURE
                 - SHADOW_CLUSTER_DELETE_EXPOSURE
                 - SHADOW_CLUSTER_RECORDING_STATUS_UPDATE
@@ -27637,7 +27232,6 @@ components:
                 - SERVERLESS_INSTANCE_UPDATE_COMPLETED
                 - SERVERLESS_INSTANCE_DELETE_SUBMITTED
                 - SERVERLESS_INSTANCE_DELETED
-                - SERVERLESS_INSTANCE_BLOCKED
                 - SERVERLESS_INSTANCE_UNBLOCKED
             example: SERVERLESS_INSTANCE_CREATED
             title: NDS Serverless Instance Audit Types
@@ -29358,7 +28952,6 @@ components:
                 - ORG_PUBLIC_API_ACCESS_LIST_NOT_REQUIRED
                 - ORG_EMPLOYEE_ACCESS_RESTRICTED
                 - ORG_EMPLOYEE_ACCESS_UNRESTRICTED
-                - ORG_SFDC_ACCOUNT_ID_CHANGED
                 - ORG_CONNECTED_TO_MLAB
                 - ORG_DISCONNECTED_FROM_MLAB
                 - ORG_IDP_CERTIFICATE_CURRENT
@@ -29989,20 +29582,11 @@ components:
                     pattern: ^([a-f0-9]{24})$
                     type: string
                 roles:
-                    description: One or more project level roles to assign to the MongoDB Cloud user.
+                    description: One or more project-level roles to assign to the MongoDB Cloud user.
+                    externalDocs:
+                        description: MongoDB Atlas User Roles
+                        url: https://www.mongodb.com/docs/atlas/reference/user-roles/
                     items:
-                        enum:
-                            - GROUP_BACKUP_MANAGER
-                            - GROUP_CLUSTER_MANAGER
-                            - GROUP_DATA_ACCESS_ADMIN
-                            - GROUP_DATA_ACCESS_READ_ONLY
-                            - GROUP_DATA_ACCESS_READ_WRITE
-                            - GROUP_DATABASE_ACCESS_ADMIN
-                            - GROUP_OBSERVABILITY_VIEWER
-                            - GROUP_OWNER
-                            - GROUP_READ_ONLY
-                            - GROUP_SEARCH_INDEX_EDITOR
-                            - GROUP_STREAM_PROCESSING_OWNER
                         type: string
                     type: array
                     uniqueItems: true
@@ -30638,6 +30222,30 @@ components:
                     readOnly: true
                     type: integer
             type: object
+        PaginatedApiSKUView:
+            properties:
+                links:
+                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                    externalDocs:
+                        description: Web Linking Specification (RFC 5988)
+                        url: https://datatracker.ietf.org/doc/html/rfc5988
+                    items:
+                        $ref: '#/components/schemas/Link'
+                    readOnly: true
+                    type: array
+                results:
+                    description: List of returned documents that MongoDB Cloud provides when completing this request.
+                    items:
+                        $ref: '#/components/schemas/SkuResponse'
+                    readOnly: true
+                    type: array
+                totalCount:
+                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    format: int32
+                    minimum: 0
+                    readOnly: true
+                    type: integer
+            type: object
         PaginatedApiStandbyLinkFailoverResponse:
             properties:
                 links:
@@ -30821,6 +30429,56 @@ components:
                     description: List of returned documents that MongoDB Cloud provides when completing this request.
                     items:
                         $ref: '#/components/schemas/CloudAppUser'
+                    readOnly: true
+                    type: array
+                totalCount:
+                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    format: int32
+                    minimum: 0
+                    readOnly: true
+                    type: integer
+            type: object
+        PaginatedAtlasAiModelsApiKeysResponse:
+            description: List response for AI Model API keys at the organization and project level.
+            properties:
+                links:
+                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                    externalDocs:
+                        description: Web Linking Specification (RFC 5988)
+                        url: https://datatracker.ietf.org/doc/html/rfc5988
+                    items:
+                        $ref: '#/components/schemas/Link'
+                    readOnly: true
+                    type: array
+                results:
+                    description: List of returned documents that MongoDB Cloud provides when completing this request.
+                    items:
+                        $ref: '#/components/schemas/AiModelsApiKeyResponse'
+                    readOnly: true
+                    type: array
+                totalCount:
+                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    format: int32
+                    minimum: 0
+                    readOnly: true
+                    type: integer
+            type: object
+        PaginatedAtlasAiModelsRateLimitsResponse:
+            description: List response for AI Model Rate Limits at the organization and project level.
+            properties:
+                links:
+                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                    externalDocs:
+                        description: Web Linking Specification (RFC 5988)
+                        url: https://datatracker.ietf.org/doc/html/rfc5988
+                    items:
+                        $ref: '#/components/schemas/Link'
+                    readOnly: true
+                    type: array
+                results:
+                    description: List of returned documents that MongoDB Cloud provides when completing this request.
+                    items:
+                        $ref: '#/components/schemas/AiModelsRateLimitResponse'
                     readOnly: true
                     type: array
                 totalCount:
@@ -36527,6 +36185,17 @@ components:
                 - createSupportingIndexes
             type: object
             writeOnly: true
+        SkuResponse:
+            properties:
+                description:
+                    description: Human-readable short summary of what this SKU represents.
+                    readOnly: true
+                    type: string
+                id:
+                    description: Unique string that identifies the SKU.
+                    readOnly: true
+                    type: string
+            type: object
         Slack:
             description: Details to integrate one Slack account with one MongoDB Cloud project.
             properties:
@@ -37210,6 +36879,15 @@ components:
                 name:
                     description: Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
                     type: string
+                state:
+                    description: The state of the connection.
+                    enum:
+                        - PENDING
+                        - READY
+                        - DELETING
+                        - FAILED
+                    readOnly: true
+                    type: string
                 type:
                     description: Type of the connection.
                     enum:
@@ -37674,15 +37352,18 @@ components:
                     type: string
                 vendor:
                     description: |-
-                        Vendor that manages the cloud service. The following are the vendor values per provider:
+                        Vendor that manages the cloud service. The list of supported vendor values is:
                         - AWS
                         -- MSK for AWS MSK Kafka clusters
                         -- CONFLUENT for Confluent Kafka clusters on AWS
-                        -- KINESIS for AWS Kinesis Data Streams (coming soon).
+                        -- KINESIS for AWS Kinesis Data Streams
 
                         - Azure
                         -- EVENTHUB for Azure EventHub.
-                        -- CONFLUENT for the Confluent Kafka clusters on Azure
+                        -- CONFLUENT for Confluent Kafka clusters on Azure
+
+                        - GCP
+                        -- CONFLUENT for Confluent Kafka clusters on GCP
 
                         **NOTE** Omitting the vendor field will default to using the GENERIC vendor.
                     type: string
@@ -38526,18 +38207,9 @@ components:
                     type: array
                 roleNames:
                     description: One or more project-level roles to assign to the team.
-                    enum:
-                        - GROUP_BACKUP_MANAGER
-                        - GROUP_CLUSTER_MANAGER
-                        - GROUP_DATA_ACCESS_ADMIN
-                        - GROUP_DATA_ACCESS_READ_ONLY
-                        - GROUP_DATA_ACCESS_READ_WRITE
-                        - GROUP_DATABASE_ACCESS_ADMIN
-                        - GROUP_OBSERVABILITY_VIEWER
-                        - GROUP_OWNER
-                        - GROUP_READ_ONLY
-                        - GROUP_SEARCH_INDEX_EDITOR
-                        - GROUP_STREAM_PROCESSING_OWNER
+                    externalDocs:
+                        description: MongoDB Cloud User Roles
+                        url: https://www.mongodb.com/docs/atlas/reference/user-roles/
                     items:
                         type: string
                     type: array
@@ -39651,20 +39323,11 @@ components:
         UpdateGroupRolesForUser:
             properties:
                 groupRoles:
-                    description: One or more project level roles to assign to the MongoDB Cloud user.
+                    description: One or more project-level roles to assign to the MongoDB Cloud user.
+                    externalDocs:
+                        description: MongoDB Atlas User Roles
+                        url: https://www.mongodb.com/docs/atlas/reference/user-roles/
                     items:
-                        enum:
-                            - GROUP_BACKUP_MANAGER
-                            - GROUP_CLUSTER_MANAGER
-                            - GROUP_DATA_ACCESS_ADMIN
-                            - GROUP_DATA_ACCESS_READ_ONLY
-                            - GROUP_DATA_ACCESS_READ_WRITE
-                            - GROUP_DATABASE_ACCESS_ADMIN
-                            - GROUP_OBSERVABILITY_VIEWER
-                            - GROUP_OWNER
-                            - GROUP_READ_ONLY
-                            - GROUP_SEARCH_INDEX_EDITOR
-                            - GROUP_STREAM_PROCESSING_OWNER
                         type: string
                     type: array
                     uniqueItems: true
@@ -41279,7 +40942,7 @@ info:
     termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
     title: MongoDB Atlas Administration API
     version: "2.0"
-    x-xgen-sha: 5b5653b36ddde6cc73bdaba9cecd1feb6721dcbc
+    x-xgen-sha: 7f3d06f809ddb27a9e5e435283fbe4ed951e19c3
 openapi: 3.0.1
 paths:
     /api/atlas/v2:
@@ -42516,6 +42179,414 @@ paths:
                 - Project IP Access List
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Project-IP-Access-List/operation/getGroupAccessListStatus
             x-xgen-operation-id-override: getAccessListStatus
+    /api/atlas/v2/groups/{groupId}/activityFeed:
+        get:
+            description: Returns a pre-filtered activity feed link for the specified project based on the provided date range and event types. The returned link can be shared and opened to view the activity feed with the same filters applied. To use this resource, the requesting Service Account or API Key must have the Project Read Only role or higher.
+            operationId: getGroupActivityFeed
+            parameters:
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/pretty'
+                - description: |-
+                    Category of incident recorded at this moment in time.
+
+                    **IMPORTANT**: The complete list of event type values changes frequently.
+                  in: query
+                  name: eventType
+                  schema:
+                    description: List of event types to filter the activity feed.
+                    externalDocs:
+                        description: Event Types
+                        url: https://www.mongodb.com/docs/atlas/reference/atlas-event-types/
+                    items:
+                        $ref: '#/components/schemas/EventTypeForNdsGroup'
+                    maxItems: 20
+                    type: array
+                - description: End date and time for events to include in the activity feed link. ISO 8601 timestamp format in UTC.
+                  in: query
+                  name: maxDate
+                  schema:
+                    externalDocs:
+                        description: ISO 8601
+                        url: https://en.wikipedia.org/wiki/ISO_8601
+                    format: date-time
+                    type: string
+                - description: Start date and time for events to include in the activity feed link. ISO 8601 timestamp format in UTC.
+                  in: query
+                  name: minDate
+                  schema:
+                    externalDocs:
+                        description: ISO 8601
+                        url: https://en.wikipedia.org/wiki/ISO_8601
+                    format: date-time
+                    type: string
+                - description: Human-readable label that identifies the cluster.
+                  in: query
+                  name: clusterName
+                  schema:
+                    description: List of cluster names to filter the activity feed.
+                    items:
+                        type: string
+                    maxItems: 20
+                    type: array
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.2025-03-12+json:
+                            schema:
+                                $ref: '#/components/schemas/ActivityFeedLinkResponse'
+                            x-xgen-version: "2025-03-12"
+                    description: OK
+                "400":
+                    $ref: '#/components/responses/badRequest'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return Pre-Filtered Activity Feed Link for One Project
+            tags:
+                - Activity Feed
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Activity-Feed/operation/getGroupActivityFeed
+    /api/atlas/v2/groups/{groupId}/aiModelApiKeys:
+        get:
+            description: Retrieve AI model API keys for the given group.
+            operationId: listGroupAiModelApiKeys
+            parameters:
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/itemsPerPage'
+                - $ref: '#/components/parameters/pageNum'
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/PaginatedAtlasAiModelsApiKeysResponse'
+                            x-xgen-preview:
+                                public: "true"
+                            x-xgen-version: preview
+                    description: OK
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return AI Model API Keys for One Group
+            tags:
+                - AI Models
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/listGroupAiModelApiKeys
+            x-xgen-operation-id-override: listGroupModelKeys
+        post:
+            description: Create a new AI model API key for the given group.
+            operationId: createGroupAiModelApiKey
+            parameters:
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+            requestBody:
+                content:
+                    application/vnd.atlas.preview+json:
+                        schema:
+                            $ref: '#/components/schemas/AiModelsApiKeyCreateRequest'
+                description: A request containing the name of the new API key.
+                required: true
+            responses:
+                "201":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/AiModelsApiKeyResponse'
+                            x-xgen-preview:
+                                public: "true"
+                            x-xgen-version: preview
+                    description: Created
+                "400":
+                    $ref: '#/components/responses/badRequest'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Create New AI Model API Key
+            tags:
+                - AI Models
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/createGroupAiModelApiKey
+            x-xgen-operation-id-override: createModelApiKey
+    /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}:
+        delete:
+            description: Delete an existing AI model API key in the given group.
+            operationId: deleteGroupAiModelApiKey
+            parameters:
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+                - description: The id of the API key to be deleted.
+                  in: path
+                  name: apiKeyId
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            x-xgen-preview:
+                                public: "true"
+                            x-xgen-version: preview
+                    description: This endpoint does not return a response body.
+                "400":
+                    $ref: '#/components/responses/badRequest'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Delete Existing AI Model API Key
+            tags:
+                - AI Models
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/deleteGroupAiModelApiKey
+            x-xgen-operation-id-override: deleteModelApiKey
+        get:
+            description: Retrieve a single AI model API key for the given group.
+            operationId: getGroupAiModelApiKey
+            parameters:
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+                - description: The id of the API key to be retrieved.
+                  in: path
+                  name: apiKeyId
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/AiModelsApiKeyResponse'
+                            x-xgen-preview:
+                                public: "true"
+                            x-xgen-version: preview
+                    description: OK
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return Single AI Model API Key for One Group
+            tags:
+                - AI Models
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/getGroupAiModelApiKey
+            x-xgen-operation-id-override: getGroupModelKey
+        patch:
+            description: Update an existing AI model API key in the given group.
+            operationId: updateGroupAiModelApiKey
+            parameters:
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+                - description: The id of the API key to be updated.
+                  in: path
+                  name: apiKeyId
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/vnd.atlas.preview+json:
+                        schema:
+                            $ref: '#/components/schemas/AiModelsApiKeyUpdateRequest'
+                description: A request containing the new name for the API key.
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/AiModelsApiKeyResponse'
+                            x-xgen-preview:
+                                public: "true"
+                            x-xgen-version: preview
+                    description: OK
+                "400":
+                    $ref: '#/components/responses/badRequest'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Update Existing AI Model API Key
+            tags:
+                - AI Models
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/updateGroupAiModelApiKey
+            x-xgen-operation-id-override: updateModelApiKey
+    /api/atlas/v2/groups/{groupId}/aiModelRateLimits:
+        get:
+            description: Retrieve AI model rate limits for the given group.
+            operationId: listGroupAiModelRateLimits
+            parameters:
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/itemsPerPage'
+                - $ref: '#/components/parameters/pageNum'
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/PaginatedAtlasAiModelsRateLimitsResponse'
+                            x-xgen-preview:
+                                public: "true"
+                            x-xgen-version: preview
+                    description: OK
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return AI Model Rate Limits for One Group
+            tags:
+                - AI Models
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/listGroupAiModelRateLimits
+            x-xgen-operation-id-override: listGroupModelLimits
+    /api/atlas/v2/groups/{groupId}/aiModelRateLimits/{modelGroupName}:
+        get:
+            description: Retrieve a single AI model rate limit for the given group.
+            operationId: getGroupAiModelRateLimit
+            parameters:
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+                - description: The name of the model group to be retrieved.
+                  in: path
+                  name: modelGroupName
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/AiModelsRateLimitResponse'
+                            x-xgen-preview:
+                                public: "true"
+                            x-xgen-version: preview
+                    description: OK
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return Single AI Model Rate Limit for One Group
+            tags:
+                - AI Models
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/getGroupAiModelRateLimit
+            x-xgen-operation-id-override: getGroupModelLimit
+        patch:
+            description: Update an AI model rate limit for the given model group.
+            operationId: updateGroupAiModelRateLimit
+            parameters:
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+                - description: The name of the model group to be updated.
+                  in: path
+                  name: modelGroupName
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/vnd.atlas.preview+json:
+                        schema:
+                            $ref: '#/components/schemas/AiModelsRateLimitUpdateRequest'
+                description: A request containing the new rate limits for the given model group.
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/AiModelsRateLimitResponse'
+                            x-xgen-preview:
+                                public: "true"
+                            x-xgen-version: preview
+                    description: OK
+                "400":
+                    $ref: '#/components/responses/badRequest'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Update AI Model Rate Limit
+            tags:
+                - AI Models
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/updateGroupAiModelRateLimit
+            x-xgen-operation-id-override: updateModelRateLimit
+    /api/atlas/v2/groups/{groupId}/aiModelRateLimits:reset:
+        post:
+            description: Reset the AI Model rate limits for the given group to default values.
+            operationId: resetGroupAiModelRateLimits
+            parameters:
+                - $ref: '#/components/parameters/groupId'
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+            responses:
+                "204":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            x-xgen-preview:
+                                public: "true"
+                            x-xgen-version: preview
+                    description: This endpoint does not return a response body.
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Reset AI Model Rate Limits for Group
+            tags:
+                - AI Models
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/resetGroupAiModelRateLimits
+            x-xgen-method-verb-override:
+                customMethod: "True"
+                verb: reset
+            x-xgen-operation-id-override: resetModelRateLimits
     /api/atlas/v2/groups/{groupId}/alertConfigs:
         get:
             description: |-
@@ -45683,7 +45754,7 @@ paths:
             description: |-
                 Requests one snapshot for the specified shared cluster. This resource returns a `snapshotURL` that you can use to download the snapshot. This `snapshotURL` remains active for four hours after you make the request. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
-                This endpoint can also be used on Flex clusters that were created using the [createCluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createCluster) endpoint or former M2/M5 clusters that have been migrated to Flex clusters until January 2026, after which this endpoint will be sunset. Please use the downloadFlexBackup endpoint instead.
+                This endpoint can also be used on Flex clusters that were created using the [createCluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createCluster) endpoint or former M2/M5 clusters that have been migrated to Flex clusters until January 22, 2026, after which this endpoint will be sunset. Please use the downloadFlexBackup endpoint instead.
             externalDocs:
                 description: downloadFlexBackup
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Snapshots/operation/downloadFlexBackup
@@ -45712,7 +45783,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/TenantRestore'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -45740,7 +45811,7 @@ paths:
             description: |-
                 Restores the specified M2 or M5 cluster. MongoDB Cloud limits which clusters can be the target clusters of a restore. The target cluster can't use encryption at rest, run a major release MongoDB version different than the snapshot, or receive client requests during restores. MongoDB Cloud deletes all existing data on the target cluster prior to the restore operation. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
-                This endpoint can also be used on Flex clusters that were created using the [createCluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createCluster) endpoint or former M2/M5 clusters that have been migrated to Flex clusters until January 2026, after which this endpoint will be sunset. Please use the createFlexBackupRestoreJob endpoint instead.
+                This endpoint can also be used on Flex clusters that were created using the [createCluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createCluster) endpoint or former M2/M5 clusters that have been migrated to Flex clusters until January 22, 2026, after which this endpoint will be sunset. Please use the createFlexBackupRestoreJob endpoint instead.
             externalDocs:
                 description: createFlexBackupRestoreJob
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Restore-Jobs/operation/createFlexBackupRestoreJob
@@ -45769,7 +45840,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/TenantRestore'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -45795,7 +45866,7 @@ paths:
             description: |-
                 Returns all restore jobs for the specified M2 or M5 cluster. Restore jobs restore a cluster using a snapshot. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
-                This endpoint can also be used on Flex clusters that were created using the [createCluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createCluster) endpoint or former M2/M5 clusters that have been migrated to Flex clusters until January 2026, after which this endpoint will be sunset. Please use the listFlexBackupRestoreJobs endpoint instead.
+                This endpoint can also be used on Flex clusters that were created using the [createCluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createCluster) endpoint or former M2/M5 clusters that have been migrated to Flex clusters until January 22, 2026, after which this endpoint will be sunset. Please use the listFlexBackupRestoreJobs endpoint instead.
             externalDocs:
                 description: listFlexBackupRestoreJobs
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Restore-Jobs/operation/listFlexBackupRestoreJobs
@@ -45817,7 +45888,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/PaginatedTenantRestoreView'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -45841,7 +45912,7 @@ paths:
             description: |-
                 Returns the specified restore job for the specified M2 or M5 cluster. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
-                This endpoint can also be used on Flex clusters that were created using the [createCluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createCluster) endpoint or former M2/M5 clusters that have been migrated to Flex clusters until January 2026, after which this endpoint will be sunset. Please use the getFlexBackupRestoreJob endpoint instead.
+                This endpoint can also be used on Flex clusters that were created using the [createCluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createCluster) endpoint or former M2/M5 clusters that have been migrated to Flex clusters until January 22, 2026, after which this endpoint will be sunset. Please use the getFlexBackupRestoreJob endpoint instead.
             externalDocs:
                 description: getFlexBackupRestoreJob
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Restore-Jobs/operation/getFlexBackupRestoreJob
@@ -45870,7 +45941,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/TenantRestore'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -45894,7 +45965,7 @@ paths:
             description: |-
                 Returns details for all snapshots for the specified shared cluster. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
-                This API also works for Flex clusters that were created using the [createCluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createCluster) endpoint or former M2/M5 clusters that have been migrated to Flex clusters, until January 2026, after which this endpoint will be sunset. Please use the listFlexBackups endpoint instead.
+                This API also works for Flex clusters that were created using the [createCluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createCluster) endpoint or former M2/M5 clusters that have been migrated to Flex clusters, until January 22, 2026, after which this endpoint will be sunset. Please use the listFlexBackups endpoint instead.
             externalDocs:
                 description: listFlexBackups
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Snapshots/operation/listFlexBackups
@@ -45916,7 +45987,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/PaginatedTenantSnapshotView'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -45940,7 +46011,7 @@ paths:
             description: |-
                 Returns details for one snapshot for the specified shared cluster. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
-                This endpoint can also be used on Flex clusters that were created using the [createCluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createCluster) endpoint or former M2/M5 clusters that have been migrated to Flex clusters until January 2026, after which this endpoint will be sunset. Please use the getFlexBackup endpoint instead.
+                This endpoint can also be used on Flex clusters that were created using the [createCluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createCluster) endpoint or former M2/M5 clusters that have been migrated to Flex clusters until January 22, 2026, after which this endpoint will be sunset. Please use the getFlexBackup endpoint instead.
             externalDocs:
                 description: getFlexBackup
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Snapshots/operation/getFlexBackup
@@ -45969,7 +46040,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/BackupTenantSnapshot'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -46576,6 +46647,22 @@ paths:
                                 xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation.
                             x-xgen-version: "2023-02-01"
                         application/vnd.atlas.2024-08-05+json:
+                            examples:
+                                200 Example:
+                                    description: 200 Example
+                                    value:
+                                        customZoneMapping:
+                                            DE: 32b6e34b3d91647abb20e7b8
+                                            US-VA: 32b6e34b3d91647abb20e7b8
+                                        managedNamespaces:
+                                            - collection: collectionNameExample
+                                              customShardKey: myShardKey
+                                              db: DatabaseExample
+                                              isCustomShardKeyHashed: false
+                                              isShardKeyUnique: false
+                                              numInitialChunks: 42
+                                              presplitHashedZones: false
+                                        selfManagedSharding: true
                             schema:
                                 $ref: '#/components/schemas/GeoSharding20240805'
                             x-xgen-IPA-exception:
@@ -46627,6 +46714,22 @@ paths:
                             x-sunset: "2026-03-01"
                             x-xgen-version: "2023-02-01"
                         application/vnd.atlas.2024-08-05+json:
+                            examples:
+                                200 Example:
+                                    description: 200 Example
+                                    value:
+                                        customZoneMapping:
+                                            DE: 32b6e34b3d91647abb20e7b8
+                                            US-VA: 32b6e34b3d91647abb20e7b8
+                                        managedNamespaces:
+                                            - collection: collectionNameExample
+                                              customShardKey: myShardKey
+                                              db: DatabaseExample
+                                              isCustomShardKeyHashed: false
+                                              isShardKeyUnique: false
+                                              numInitialChunks: 42
+                                              presplitHashedZones: false
+                                        selfManagedSharding: true
                             schema:
                                 $ref: '#/components/schemas/GeoSharding20240805'
                             x-xgen-version: "2024-08-05"
@@ -46689,6 +46792,22 @@ paths:
                             x-sunset: "2026-03-01"
                             x-xgen-version: "2023-02-01"
                         application/vnd.atlas.2024-08-05+json:
+                            examples:
+                                200 Example:
+                                    description: 200 Example
+                                    value:
+                                        customZoneMapping:
+                                            DE: 32b6e34b3d91647abb20e7b8
+                                            US-VA: 32b6e34b3d91647abb20e7b8
+                                        managedNamespaces:
+                                            - collection: collectionNameExample
+                                              customShardKey: myShardKey
+                                              db: DatabaseExample
+                                              isCustomShardKeyHashed: false
+                                              isShardKeyUnique: false
+                                              numInitialChunks: 42
+                                              presplitHashedZones: false
+                                        selfManagedSharding: true
                             schema:
                                 $ref: '#/components/schemas/GeoSharding20240805'
                             x-xgen-version: "2024-08-05"
@@ -46750,6 +46869,22 @@ paths:
                             x-sunset: "2026-03-01"
                             x-xgen-version: "2023-02-01"
                         application/vnd.atlas.2024-08-05+json:
+                            examples:
+                                200 Example:
+                                    description: 200 Example
+                                    value:
+                                        customZoneMapping:
+                                            DE: 32b6e34b3d91647abb20e7b8
+                                            US-VA: 32b6e34b3d91647abb20e7b8
+                                        managedNamespaces:
+                                            - collection: collectionNameExample
+                                              customShardKey: myShardKey
+                                              db: DatabaseExample
+                                              isCustomShardKeyHashed: false
+                                              isShardKeyUnique: false
+                                              numInitialChunks: 42
+                                              presplitHashedZones: false
+                                        selfManagedSharding: true
                             schema:
                                 $ref: '#/components/schemas/GeoSharding20240805'
                             x-xgen-version: "2024-08-05"
@@ -46814,6 +46949,22 @@ paths:
                             x-sunset: "2026-03-01"
                             x-xgen-version: "2023-02-01"
                         application/vnd.atlas.2024-08-05+json:
+                            examples:
+                                200 Example:
+                                    description: 200 Example
+                                    value:
+                                        customZoneMapping:
+                                            DE: 32b6e34b3d91647abb20e7b8
+                                            US-VA: 32b6e34b3d91647abb20e7b8
+                                        managedNamespaces:
+                                            - collection: collectionNameExample
+                                              customShardKey: myShardKey
+                                              db: DatabaseExample
+                                              isCustomShardKeyHashed: false
+                                              isShardKeyUnique: false
+                                              numInitialChunks: 42
+                                              presplitHashedZones: false
+                                        selfManagedSharding: true
                             schema:
                                 $ref: '#/components/schemas/GeoSharding20240805'
                             x-xgen-version: "2024-08-05"
@@ -49605,7 +49756,7 @@ paths:
             x-xgen-operation-id-override: listClusterProviderRegions
     /api/atlas/v2/groups/{groupId}/clusters/tenantUpgrade:
         post:
-            description: "Upgrades a shared-tier cluster to a Flex or Dedicated (M10+) cluster in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Cluster Manager role. Each project supports up to 25 clusters. \n\nThis endpoint can also be used to upgrade Flex clusters that were created using the [createCluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createCluster) API or former M2/M5 clusters that have been migrated to Flex clusters, using instanceSizeName to “M2” or “M5” until January 2026. This functionality will be available until January 2026, after which it will only be available for M0 clusters. Please use the upgradeFlexCluster endpoint instead."
+            description: "Upgrades a shared-tier cluster to a Flex or Dedicated (M10+) cluster in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Cluster Manager role. Each project supports up to 25 clusters. \n\nThis endpoint can also be used to upgrade Flex clusters that were created using the [createCluster](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/createCluster) API or former M2/M5 clusters that have been migrated to Flex clusters, using instanceSizeName to “M2” or “M5” until January 2026. This functionality will be available until January 22, 2026, after which it will only be available for M0 clusters. Please use the upgradeFlexCluster endpoint instead."
             externalDocs:
                 description: upgradeFlexCluster
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Clusters/operation/upgradeFlexCluster
@@ -55112,7 +55263,7 @@ paths:
             description: |-
                 Returns all private endpoints for one serverless instance. You must have at least the Project Read Only role for the project to successfully call this resource.
 
-                This feature does not work for Flex clusters. To continue using Private Endpoints once Serverless is replaced by Flex, please use a Dedicated cluster instead.
+                This feature does not work for Flex clusters. To continue using Private Endpoints once Serverless is replaced by Flex, please use a Dedicated cluster instead. This endpoint will be sunset on January 22, 2026.
             operationId: listGroupPrivateEndpointServerlessInstanceEndpoint
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -55134,7 +55285,7 @@ paths:
                                 type: array
                                 x-xgen-IPA-exception:
                                     xgen-IPA-124-array-max-items: Schema predates IPA validation.
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-IPA-exception:
                                 xgen-IPA-110-collections-response-define-links-array: Content predates IPA validation.
                                 xgen-IPA-110-collections-response-define-results-array: Content predates IPA validation.
@@ -55163,7 +55314,7 @@ paths:
 
                  A new endpoint won't be immediately available after creation.  Read the steps in the linked tutorial for detailed guidance.
 
-                This feature does not work for Flex clusters. To continue using Private Endpoints once Serverless is replaced by Flex, please use a Dedicated cluster instead.
+                This feature does not work for Flex clusters. To continue using Private Endpoints once Serverless is replaced by Flex, please use a Dedicated cluster instead. This endpoint will be sunset on January 22, 2026.
             externalDocs:
                 description: Set Up a Private Endpoint for a Serverless Instance Tutorial
                 url: https://dochub.mongodb.org/core/serverless-private-endpoint
@@ -55191,7 +55342,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessTenantEndpoint'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: Created
                 "400":
@@ -55215,7 +55366,7 @@ paths:
             description: |-
                 Remove one private endpoint from one serverless instance. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
-                This feature does not work for Flex clusters. To continue using Private Endpoints once Serverless is replaced by Flex, please use a Dedicated cluster instead.
+                This feature does not work for Flex clusters. To continue using Private Endpoints once Serverless is replaced by Flex, please use a Dedicated cluster instead. This endpoint will be sunset on January 22, 2026.
             operationId: deleteGroupPrivateEndpointServerlessInstanceEndpoint
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -55238,7 +55389,7 @@ paths:
                 "204":
                     content:
                         application/vnd.atlas.2023-01-01+json:
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: This endpoint does not return a response body.
                 "400":
@@ -55261,7 +55412,7 @@ paths:
             description: |-
                 Return one private endpoint for one serverless instance. Identify this endpoint using its unique ID. You must have at least the Project Read Only role for the project to successfully call this resource.
 
-                This feature does not work for Flex clusters. To continue using Private Endpoints once Serverless is replaced by Flex, please use a Dedicated cluster instead.
+                This feature does not work for Flex clusters. To continue using Private Endpoints once Serverless is replaced by Flex, please use a Dedicated cluster instead. This endpoint will be sunset on January 22, 2026.
             operationId: getGroupPrivateEndpointServerlessInstanceEndpoint
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -55286,7 +55437,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessTenantEndpoint'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-IPA-exception:
                                 xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation.
                             x-xgen-version: "2023-01-01"
@@ -55311,7 +55462,7 @@ paths:
             description: |-
                 Updates one private endpoint for one serverless instance. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
-                This feature does not work for Flex clusters. To continue using Private Endpoints once Serverless is replaced by Flex, please use a Dedicated cluster instead.
+                This feature does not work for Flex clusters. To continue using Private Endpoints once Serverless is replaced by Flex, please use a Dedicated cluster instead. This endpoint will be sunset on January 22, 2026.
             operationId: updateGroupPrivateEndpointServerlessInstanceEndpoint
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -55343,7 +55494,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessTenantEndpoint'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -56808,7 +56959,7 @@ paths:
             description: |-
                 Returns details for all serverless instances in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
-                This endpoint also lists Flex clusters that were created using the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or former Serverless instances that have been migrated to Flex clusters, until January 2026 after which this endpoint will be sunset. Continuous backups are not supported and serverlessContinuousBackupEnabled will not take effect on these clusters. Please use the listFlexClusters endpoint instead.
+                This endpoint also lists Flex clusters that were created using the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or former Serverless instances that have been migrated to Flex clusters, until January 15, 2026 after which this endpoint will begin returning an empty list. The endpoint will be removed entirely on January 15, 2027. Continuous backups are not supported and serverlessContinuousBackupEnabled will not take effect on these clusters. Please use the listFlexClusters endpoint instead.
             externalDocs:
                 description: listFlexClusters
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Clusters/operation/listFlexClusters
@@ -56826,7 +56977,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/PaginatedServerlessInstanceDescriptionView'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2027-01-15"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "401":
@@ -56850,7 +57001,7 @@ paths:
         post:
             deprecated: true
             description: |-
-                Update as of Feb 2025: This endpoint now creates a Flex cluster instead. This endpoint will no longer be supported starting January 2026. Continuous backups are not supported and serverlessContinuousBackupEnabled will not take effect. Please use the createFlexCluster endpoint instead.
+                Update as of Feb 2025: This endpoint now creates a Flex cluster instead. This endpoint will no longer be supported starting on January 22, 2026. Continuous backups are not supported and serverlessContinuousBackupEnabled will not take effect. Please use the createFlexCluster endpoint instead.
 
                 Creates one serverless instance in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
             externalDocs:
@@ -56874,7 +57025,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessInstanceDescription'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: Created
                 "400":
@@ -56905,7 +57056,7 @@ paths:
             description: |-
                 Returns all restore jobs for one serverless instance from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
-                This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. This endpoint will be sunset in January 2026. Please use the listFlexBackupRestoreJobs endpoint instead.
+                This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. This endpoint will be sunset on January 22, 2026. Please use the listFlexBackupRestoreJobs endpoint instead.
             externalDocs:
                 description: listFlexBackupRestoreJobs
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Restore-Jobs/operation/listFlexBackupRestoreJobs
@@ -56930,7 +57081,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/PaginatedApiAtlasServerlessBackupRestoreJobView'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -56953,7 +57104,7 @@ paths:
             description: |-
                 Restores one snapshot of one serverless instance from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
-                This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. This endpoint will be sunset in January 2026. Please use the createFlexBackupRestoreJob endpoint instead.
+                This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. This endpoint will be sunset on January 22, 2026. Please use the createFlexBackupRestoreJob endpoint instead.
             externalDocs:
                 description: createFlexBackupRestoreJob
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Restore-Jobs/operation/createFlexBackupRestoreJob
@@ -56982,7 +57133,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessBackupRestoreJob'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -57008,7 +57159,7 @@ paths:
             description: |-
                 Returns one restore job for one serverless instance from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
-                This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. This endpoint will be sunset in January 2026. Please use the getFlexBackupRestoreJob endpoint instead.
+                This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. This endpoint will be sunset on January 22, 2026. Please use the getFlexBackupRestoreJob endpoint instead.
             externalDocs:
                 description: getFlexBackupRestoreJob
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Restore-Jobs/operation/getFlexBackupRestoreJob
@@ -57037,7 +57188,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessBackupRestoreJob'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-IPA-exception:
                                 xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation.
                             x-xgen-version: "2023-01-01"
@@ -57063,7 +57214,7 @@ paths:
             description: |-
                 Returns all snapshots of one serverless instance from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
-                This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. This endpoint will be sunset in January 2026. Please use the listFlexBackups endpoint instead.
+                This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. This endpoint will be sunset on January 22, 2026. Please use the listFlexBackups endpoint instead.
             externalDocs:
                 description: listFlexBackups
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Snapshots/operation/listFlexBackups
@@ -57088,7 +57239,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/PaginatedApiAtlasServerlessBackupSnapshotView'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -57112,7 +57263,7 @@ paths:
             description: |-
                 Returns one snapshot of one serverless instance from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
-                This endpoint can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) API or Flex clusters that were migrated from Serverless instances. This endpoint will be sunset in January 2026. Please use the getFlexBackup endpoint instead.
+                This endpoint can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) API or Flex clusters that were migrated from Serverless instances. This endpoint will be sunset on January 22, 2026. Please use the getFlexBackup endpoint instead.
             externalDocs:
                 description: getFlexBackup
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Snapshots/operation/getFlexBackup
@@ -57141,7 +57292,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessBackupSnapshot'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-IPA-exception:
                                 xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation.
                             x-xgen-version: "2023-01-01"
@@ -57164,7 +57315,7 @@ paths:
     /api/atlas/v2/groups/{groupId}/serverless/{clusterName}/performanceAdvisor/autoIndexing:
         get:
             deprecated: true
-            description: Get whether the Serverless Auto Indexing feature is enabled. This endpoint returns a value for Flex clusters that were created with the createServerlessInstance endpoint or Flex clusters that were migrated from Serverless instances. However, the value returned is not indicative of the Auto Indexing state as Auto Indexing is unavailable for Flex clusters. This endpoint will be sunset in January 2026.
+            description: Get whether the Serverless Auto Indexing feature is enabled. This endpoint returns a value for Flex clusters that were created with the createServerlessInstance endpoint or Flex clusters that were migrated from Serverless instances. However, the value returned is not indicative of the Auto Indexing state as Auto Indexing is unavailable for Flex clusters. This endpoint will be sunset on January 22, 2026.
             externalDocs:
                 description: createServerlessInstance
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance
@@ -57186,7 +57337,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 type: boolean
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "401":
@@ -57209,7 +57360,7 @@ paths:
             x-xgen-operation-id-override: getServerlessAutoIndexing
         post:
             deprecated: true
-            description: Set whether the Serverless Auto Indexing feature is enabled. This endpoint sets a value for Flex clusters that were created with the createServerlessInstance endpoint or Flex clusters that were migrated from Serverless instances. However, the value returned is not indicative of the Auto Indexing state as Auto Indexing is unavailable for Flex clusters. This endpoint will be sunset in January 2026.
+            description: Set whether the Serverless Auto Indexing feature is enabled. This endpoint sets a value for Flex clusters that were created with the createServerlessInstance endpoint or Flex clusters that were migrated from Serverless instances. However, the value returned is not indicative of the Auto Indexing state as Auto Indexing is unavailable for Flex clusters. This endpoint will be sunset on January 22, 2026.
             externalDocs:
                 description: createServerlessInstance
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance
@@ -57234,7 +57385,7 @@ paths:
                 "200":
                     content:
                         application/vnd.atlas.2023-01-01+json:
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "401":
@@ -57261,7 +57412,7 @@ paths:
             description: |-
                 Removes one serverless instance from the specified project. The serverless instance must have termination protection disabled in order to be deleted. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
-                This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. This endpoint will be sunset in January 2026. Please use the deleteFlexCluster endpoint instead.
+                This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. This endpoint will be sunset on January 22, 2026. Please use the deleteFlexCluster endpoint instead.
             externalDocs:
                 description: deleteFlexCluster
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Clusters/operation/deleteFlexCluster
@@ -57283,7 +57434,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/RequestAccepted'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: Accepted
                 "400":
@@ -57311,7 +57462,7 @@ paths:
             description: |-
                 Returns details for one serverless instance in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
-                This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. Continuous backups are not supported and serverlessContinuousBackupEnabled will not take effect on these clusters. This endpoint will be sunset in January 2026. Please use the getFlexCluster endpoint instead.
+                This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. Continuous backups are not supported and serverlessContinuousBackupEnabled will not take effect on these clusters. This endpoint will be sunset on January 15, 2027. Please use the getFlexCluster endpoint instead.
             externalDocs:
                 description: getFlexCluster
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Clusters/operation/getFlexCluster
@@ -57333,7 +57484,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessInstanceDescription'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2027-01-15"
                             x-xgen-IPA-exception:
                                 xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation.
                             x-xgen-version: "2023-01-01"
@@ -57363,7 +57514,7 @@ paths:
             description: |-
                 Updates one serverless instance in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
 
-                This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. This endpoint will be sunset in January 2026. Continuous backups are not supported and serverlessContinuousBackupEnabled will not take effect on these clusters. Please use the updateFlexCluster endpoint instead.
+                This API can also be used on Flex clusters that were created with the [createServerlessInstance](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Serverless-Instances/operation/createServerlessInstance) endpoint or Flex clusters that were migrated from Serverless instances. This endpoint will be sunset on January 22, 2026. Continuous backups are not supported and serverlessContinuousBackupEnabled will not take effect on these clusters. Please use the updateFlexCluster endpoint instead.
             externalDocs:
                 description: updateFlexCluster
                 url: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Clusters/operation/updateFlexCluster
@@ -57392,7 +57543,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ServerlessInstanceDescription'
-                            x-sunset: "2026-01-15"
+                            x-sunset: "2026-01-22"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "400":
@@ -60528,6 +60679,208 @@ paths:
             tags:
                 - Organizations
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Organizations/operation/updateOrg
+    /api/atlas/v2/orgs/{orgId}/activityFeed:
+        get:
+            description: Returns a pre-filtered activity feed link for the specified organization based on the provided date range and event types. The returned link can be shared and opened to view the activity feed with the same filters applied. To use this resource, the requesting Service Account or API Key must have the Organization Member role.
+            operationId: getOrgActivityFeed
+            parameters:
+                - $ref: '#/components/parameters/orgId'
+                - $ref: '#/components/parameters/pretty'
+                - description: |-
+                    Category of incident recorded at this moment in time.
+
+                    **IMPORTANT**: The complete list of event type values changes frequently.
+                  in: query
+                  name: eventType
+                  schema:
+                    description: List of event types to filter the activity feed.
+                    externalDocs:
+                        description: Event Types
+                        url: https://www.mongodb.com/docs/atlas/reference/atlas-event-types/
+                    items:
+                        $ref: '#/components/schemas/EventTypeForOrg'
+                    maxItems: 20
+                    type: array
+                - description: End date and time for events to include in the activity feed link. ISO 8601 timestamp format in UTC.
+                  in: query
+                  name: maxDate
+                  schema:
+                    externalDocs:
+                        description: ISO 8601
+                        url: https://en.wikipedia.org/wiki/ISO_8601
+                    format: date-time
+                    type: string
+                - description: Start date and time for events to include in the activity feed link. ISO 8601 timestamp format in UTC.
+                  in: query
+                  name: minDate
+                  schema:
+                    externalDocs:
+                        description: ISO 8601
+                        url: https://en.wikipedia.org/wiki/ISO_8601
+                    format: date-time
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.2025-03-12+json:
+                            schema:
+                                $ref: '#/components/schemas/ActivityFeedLinkResponse'
+                            x-xgen-version: "2025-03-12"
+                    description: OK
+                "400":
+                    $ref: '#/components/responses/badRequest'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return Pre-Filtered Activity Feed Link for One Organization
+            tags:
+                - Activity Feed
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Activity-Feed/operation/getOrgActivityFeed
+    /api/atlas/v2/orgs/{orgId}/aiModelApiKeys:
+        get:
+            description: Retrieve AI model API keys for the given organization.
+            operationId: listOrgAiModelApiKeys
+            parameters:
+                - $ref: '#/components/parameters/orgId'
+                - $ref: '#/components/parameters/itemsPerPage'
+                - $ref: '#/components/parameters/pageNum'
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/PaginatedAtlasAiModelsApiKeysResponse'
+                            x-xgen-preview:
+                                public: "true"
+                            x-xgen-version: preview
+                    description: OK
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return AI Model API Keys for One Organization
+            tags:
+                - AI Models
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/listOrgAiModelApiKeys
+            x-xgen-operation-id-override: listOrgModelKeys
+    /api/atlas/v2/orgs/{orgId}/aiModelApiKeys/{apiKeyId}:
+        get:
+            description: Retrieve a single AI model API key for the given organization.
+            operationId: getOrgAiModelApiKey
+            parameters:
+                - $ref: '#/components/parameters/orgId'
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+                - description: The id of the API key to be retrieved.
+                  in: path
+                  name: apiKeyId
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/AiModelsApiKeyResponse'
+                            x-xgen-preview:
+                                public: "true"
+                            x-xgen-version: preview
+                    description: OK
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return Single AI Model API Key for One Organization
+            tags:
+                - AI Models
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/getOrgAiModelApiKey
+            x-xgen-operation-id-override: getOrgModelKey
+    /api/atlas/v2/orgs/{orgId}/aiModelRateLimits:
+        get:
+            description: Retrieve AI model rate limits for the given organization.
+            operationId: listOrgAiModelRateLimits
+            parameters:
+                - $ref: '#/components/parameters/orgId'
+                - $ref: '#/components/parameters/itemsPerPage'
+                - $ref: '#/components/parameters/pageNum'
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/PaginatedAtlasAiModelsRateLimitsResponse'
+                            x-xgen-preview:
+                                public: "true"
+                            x-xgen-version: preview
+                    description: OK
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return AI Model Rate Limits for One Organization
+            tags:
+                - AI Models
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/listOrgAiModelRateLimits
+            x-xgen-operation-id-override: listOrgModelLimits
+    /api/atlas/v2/orgs/{orgId}/aiModelRateLimits/{modelGroupName}:
+        get:
+            description: Retrieve a single AI model rate limit for the given organization.
+            operationId: getOrgAiModelRateLimit
+            parameters:
+                - $ref: '#/components/parameters/orgId'
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+                - description: The name of the model group to be retrieved.
+                  in: path
+                  name: modelGroupName
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/AiModelsRateLimitResponse'
+                            x-xgen-preview:
+                                public: "true"
+                            x-xgen-version: preview
+                    description: OK
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return Single AI Model Rate Limit for One Organization
+            tags:
+                - AI Models
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Models/operation/getOrgAiModelRateLimit
+            x-xgen-operation-id-override: getOrgModelLimit
     /api/atlas/v2/orgs/{orgId}/apiKeys:
         get:
             description: Returns all organization API keys for the specified organization. The organization API keys grant programmatic access to an organization. You can't use the API key to log into MongoDB Cloud through the console. To use this resource, the requesting Service Account or API Key must have the Organization Member role.
@@ -63790,6 +64143,68 @@ paths:
                 - MongoDB Cloud Users
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/MongoDB-Cloud-Users/operation/removeOrgUserRole
             x-xgen-operation-id-override: removeOrgRole
+    /api/atlas/v2/skus:
+        get:
+            description: Returns all available SKUs (Stock Keeping Units) that can appear on MongoDB invoices. SKUs represent different products and services offered by MongoDB.
+            operationId: listSkus
+            parameters:
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/includeCount'
+                - $ref: '#/components/parameters/itemsPerPage'
+                - $ref: '#/components/parameters/pageNum'
+                - $ref: '#/components/parameters/pretty'
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.2025-03-12+json:
+                            schema:
+                                $ref: '#/components/schemas/PaginatedApiSKUView'
+                            x-xgen-version: "2025-03-12"
+                    description: OK
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return All Stock Keeping Units
+            tags:
+                - Invoices
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Invoices/operation/listSkus
+    /api/atlas/v2/skus/{skuId}:
+        get:
+            description: Returns details about a single SKU (Stock Keeping Unit) by its identifier. SKUs represent different products and services offered by MongoDB.
+            operationId: getSku
+            parameters:
+                - description: Unique identifier of the SKU to retrieve.
+                  example: ATLAS_AWS_INSTANCE_M10
+                  in: path
+                  name: skuId
+                  required: true
+                  schema:
+                    type: string
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/pretty'
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.2025-03-12+json:
+                            schema:
+                                $ref: '#/components/schemas/SkuResponse'
+                            x-xgen-version: "2025-03-12"
+                    description: OK
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return One Stock Keeping Unit
+            tags:
+                - Invoices
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Invoices/operation/getSku
     /api/atlas/v2/unauth/controlPlaneIPAddresses:
         get:
             description: Returns all control plane IP addresses.
@@ -63945,6 +64360,8 @@ servers:
 tags:
     - description: Returns access logs for authentication attempts made to Atlas database deployments. To view database access history, you must have either the Project Owner or Organization Owner role.
       name: Access Tracking
+    - description: Returns, adds, edits, and removes API Keys and Rate Limits for your AI Models.
+      name: AI Models
     - description: Returns and edits the conditions that trigger alerts and how MongoDB Cloud notifies users. This collection remains under revision and may change.
       name: Alert Configurations
     - description: Returns and acknowledges alerts that MongoDB Cloud triggers based on the alert conditions that you define. This collection remains under revision and may change.
