@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -145,6 +146,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if portMappingEnabled, ok := d.GetOk("port_mapping_enabled"); ok {
 		request.PortMappingEnabled = conversion.Pointer(portMappingEnabled.(bool))
+		if request.GetPortMappingEnabled() && providerName != constant.GCP {
+			return diag.FromErr(errors.New("port_mapping_enabled is only supported for GCP provider"))
+		}
 	}
 
 	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.CreatePrivateEndpointService(ctx, projectID, request).Execute()
