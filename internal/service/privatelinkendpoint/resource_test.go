@@ -122,69 +122,69 @@ func TestAccPrivateLinkEndpoint_deleteOnCreateTimeout(t *testing.T) {
 	})
 }
 
-// TODO: Uncomment these tests when the port-mapping API is GA.
-// These tests are currently commented out because the port-mapping feature is under a feature flag.
-// func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicitly_enabled(t *testing.T) {
-// 	var (
-// 		resourceName = "mongodbatlas_privatelink_endpoint.test"
-// 		projectID    = acc.ProjectIDExecution(t)
-// 		region       = "us-west3"
-// 		providerName = constant.GCP
-// 	)
-//
-// 	resource.ParallelTest(t, resource.TestCase{
-// 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-// 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-// 		CheckDestroy:             checkDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: configWithPortMapping(projectID, providerName, region, true),
-// 				Check: resource.ComposeAggregateTestCheckFunc(
-// 					append(checkBasic(resourceName, providerName, region),
-// 						checkPortMappingEnabled(resourceName, true),
-// 					)...,
-// 				),
-// 			},
-// 			{
-// 				ResourceName:      resourceName,
-// 				ImportStateIdFunc: importStateIDFunc(resourceName),
-// 				ImportState:       true,
-// 				ImportStateVerify: true,
-// 			},
-// 		},
-// 	})
-// }
-//
-// func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicitly_disabled(t *testing.T) {
-// 	var (
-// 		resourceName = "mongodbatlas_privatelink_endpoint.test"
-// 		projectID    = acc.ProjectIDExecution(t)
-// 		region       = "us-west3"
-// 		providerName = constant.GCP
-// 	)
-//
-// 	resource.ParallelTest(t, resource.TestCase{
-// 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-// 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-// 		CheckDestroy:             checkDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: configWithPortMapping(projectID, providerName, region, false),
-// 				Check: resource.ComposeAggregateTestCheckFunc(
-// 					append(checkBasic(resourceName, providerName, region),
-// 						checkPortMappingEnabled(resourceName, false),
-// 					)...,
-// 				),
-// 			},
-// 			{
-// 				ResourceName:      resourceName,
-// 				ImportStateIdFunc: importStateIDFunc(resourceName),
-// 				ImportState:       true,
-// 				ImportStateVerify: true,
-// 			},
-// 		},
-// 	})
-// }
+func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicitly_enabled(t *testing.T) {
+	t.Skip("TODO: CLOUDP-363083 Enable these tests when the port-mapping API is GA.")
+	var (
+		resourceName = "mongodbatlas_privatelink_endpoint.test"
+		projectID    = acc.ProjectIDExecution(t)
+		region       = "us-west3"
+		providerName = constant.GCP
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPortMapping(projectID, providerName, region, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					append(checkBasic(resourceName, providerName, region),
+						checkPortMappingEnabled(resourceName, true),
+					)...,
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicitly_disabled(t *testing.T) {
+	t.Skip("TODO: CLOUDP-363083 Enable these tests when the port-mapping API is GA.")
+	var (
+		resourceName = "mongodbatlas_privatelink_endpoint.test"
+		projectID    = acc.ProjectIDExecution(t)
+		region       = "us-west3"
+		providerName = constant.GCP
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPortMapping(projectID, providerName, region, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					append(checkBasic(resourceName, providerName, region),
+						checkPortMappingEnabled(resourceName, false),
+					)...,
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
 
 func configDeleteOnCreateTimeout(projectID, providerName, region, timeout string, deleteOnTimeout bool) string {
 	return fmt.Sprintf(`
@@ -274,15 +274,13 @@ func configBasic(projectID, providerName, region string) string {
 	`, projectID, providerName, region)
 }
 
-// TODO: Uncomment these tests when the port-mapping API is GA.
-// These tests are currently commented out because the port-mapping feature is under a feature flag.
-// func configWithPortMapping(projectID, providerName, region string, portMappingEnabled bool) string {
-// 	return fmt.Sprintf(`
-// 		resource "mongodbatlas_privatelink_endpoint" "test" {
-// 			project_id           = %[1]q
-// 			provider_name        = %[2]q
-// 			region               = %[3]q
-// 			port_mapping_enabled = %[4]t
-// 		}
-// 	`, projectID, providerName, region, portMappingEnabled)
-// }
+func configWithPortMapping(projectID, providerName, region string, portMappingEnabled bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_privatelink_endpoint" "test" {
+			project_id           = %[1]q
+			provider_name        = %[2]q
+			region               = %[3]q
+			port_mapping_enabled = %[4]t
+		}
+	`, projectID, providerName, region, portMappingEnabled)
+}
