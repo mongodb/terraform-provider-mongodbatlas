@@ -10,23 +10,16 @@ subcategory: "Private Endpoint Services"
 
 The [private link Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/latest) makes use of this resource and simplifies its use.
 
-~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource: <br> - Organization Owner <br> - Project Owner
+-> **NOTE:** You must have Organization Owner or Project Owner role. A network container is created for a private endpoint if one does not yet exist in the project. Before configuring a private endpoint for a new region, review the [Multi-Region Private Endpoints](https://www.mongodb.com/docs/atlas/troubleshoot-private-endpoints/#multi-region-private-endpoints) troubleshooting documentation.
 
-~> **IMPORTANT:** Before configuring a private endpoint for a new region in your cluster,
-ensure that you review the [Multi-Region Private Endpoints](https://www.mongodb.com/docs/atlas/troubleshoot-private-endpoints/#multi-region-private-endpoints) troubleshooting documentation.
-
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
--> **NOTE:** A network container is created for a private endpoint to reside in if one does not yet exist in the project.  
-
-~> **IMPORTANT:** For GCP Private Service Connect, MongoDB encourages customers to use the port-mapped architecture by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource. The port-mapped architecture, regardless of cloud provider, uses a single set of resources to support up to 150 nodes through port mapping, enabling direct targeting of specific nodes using only one customer IP address. In contrast, the GCP legacy private endpoint architecture requires dedicated resources for each Atlas node, which can lead to IP address exhaustion and requires full redeployment when changing the number of private service connections per region group. For migration guidance, see the [GCP Private Service Connect to Port-Mapped Architecture](../guides/gcp-privatelink-port-mapping-migration.md).
+~> **IMPORTANT:** For GCP, MongoDB encourages customers to use the port-mapped architecture by setting `port_mapping_enabled = true`. This architecture uses a single set of resources to support up to 150 nodes. The legacy architecture requires dedicated resources for each Atlas node, which can lead to IP address exhaustion. For migration guidance, see the [GCP Private Service Connect to Port-Mapped Architecture](../guides/gcp-privatelink-port-mapping-migration.md).
 
 ## Example Usage
 
 ```terraform
 resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id    = "<PROJECT-ID>"
-  provider_name = "AWS/AZURE"
+  provider_name = "AWS/AZURE/GCP"
   region        = "US_EAST_1"
 
   timeouts {
@@ -43,7 +36,7 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 
 ## Argument Reference
 
-* `project_id` - Required 	Unique identifier for the project.
+* `project_id` - (Required) Unique identifier for the project, also known as `group_id` in the official documentation.
 * `provider_name` - (Required) Name of the cloud provider for which you want to create the private endpoint service. Atlas accepts `AWS`, `AZURE` or `GCP`.
 * `region` - (Required) Cloud provider region in which you want to create the private endpoint connection.
 Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws), [AZURE regions](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure) and [GCP regions](https://docs.atlas.mongodb.com/reference/google-gcp/#std-label-google-gcp)

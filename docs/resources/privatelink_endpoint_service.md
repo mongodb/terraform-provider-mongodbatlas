@@ -6,17 +6,13 @@ subcategory: "Private Endpoint Services"
 
 `mongodbatlas_privatelink_endpoint_service` provides a Private Endpoint Interface Link resource. This represents a Private Endpoint Interface Link, which adds one [Interface Endpoint](https://www.mongodb.com/docs/atlas/security-private-endpoint/#private-endpoint-concepts) to a private endpoint connection in an Atlas project.
 
-> **IMPORTANT:** This resource links your cloud provider's Private Endpoint to the MongoDB Atlas Private Endpoint Service. It does not create the service itself (this is done by `mongodbatlas_privatelink_endpoint`). You first create the service in Atlas with `mongodbatlas_privatelink_endpoint`, then the endpoint is created in your cloud provider, and you link them together with the `mongodbatlas_privatelink_endpoint_service` resource.
+~> **IMPORTANT:** This resource links your cloud provider's Private Endpoint to the MongoDB Atlas Private Endpoint Service. It does not create the service itself (this is done by `mongodbatlas_privatelink_endpoint`). You first create the service in Atlas with `mongodbatlas_privatelink_endpoint`, then the endpoint is created in your cloud provider, and you link them together with the `mongodbatlas_privatelink_endpoint_service` resource.
 
 The [private link Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/latest) makes use of this resource and simplifies its use.
 
-~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource: <br> - Organization Owner <br> - Project Owner
+-> **NOTE:** You must have Organization Owner or Project Owner role. Create and delete operations wait for all clusters on the project to IDLE to ensure the latest connection strings can be retrieved (default timeout: 2hrs).
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
--> **NOTE:** Create and delete wait for all clusters on the project to IDLE in order for their operations to complete. This ensures the latest connection strings can be retrieved following creation or deletion of this resource. Default timeout is 2hrs.
-
-~> **IMPORTANT:** For GCP Private Service Connect, MongoDB encourages customers to use the port-mapped architecture by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource. The port-mapped architecture, regardless of cloud provider, uses a single set of resources to support up to 150 nodes through port mapping, enabling direct targeting of specific nodes using only one customer IP address. In contrast, the GCP legacy private endpoint architecture requires dedicated resources for each Atlas node, which can lead to IP address exhaustion and requires full redeployment when changing the number of private service connections per region group. For migration guidance, see the [GCP Private Service Connect to Port-Mapped Architecture](../guides/gcp-privatelink-port-mapping-migration.md).
+~> **IMPORTANT:** For GCP, MongoDB encourages customers to use the port-mapped architecture by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource. This architecture uses a single set of resources to support up to 150 nodes. The legacy architecture requires dedicated resources for each Atlas node, which can lead to IP address exhaustion. For migration guidance, see the [GCP Private Service Connect to Port-Mapped Architecture](../guides/gcp-privatelink-port-mapping-migration.md).
 
 ## Example with AWS
 
@@ -218,7 +214,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the project.
+* `project_id` - (Required) Unique identifier for the project, also known as `group_id` in the official documentation.
 * `private_link_id` - (Required) Unique identifier of the `AWS`, `AZURE` or `GCP` PrivateLink connection which is created by `mongodbatlas_privatelink_endpoint` resource.
 * `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC. For `AWS` and `AZURE`, this is the interface endpoint identifier. For `GCP` port-mapped architecture, this is the forwarding rule name. For `GCP` legacy private endpoint architecture, this is the endpoint group name.
 * `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS`, `AZURE` or `GCP`.

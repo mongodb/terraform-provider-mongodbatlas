@@ -4,13 +4,9 @@ page_title: "Migration Guide: GCP Private Service Connect to Port-Mapped Archite
 
 # Migration Guide: GCP Private Service Connect to Port-Mapped Architecture
 
-## Overview
+**Objective**: Migrate from the legacy GCP Private Service Connect architecture (one service attachment per Atlas node) to the port-mapped architecture (one service attachment for up to 150 nodes) for `mongodbatlas_privatelink_endpoint` and `mongodbatlas_privatelink_endpoint_service` resources.
 
-This guide explains how to migrate from the legacy GCP Private Service Connect architecture to the port-mapped architecture for MongoDB Atlas private link endpoints.
-
-The steps in this guide are for migrating Terraform-managed GCP private link endpoint resources, `mongodbatlas_privatelink_endpoint`, and `mongodbatlas_privatelink_endpoint_service`. In the legacy architecture, service attachments were mapped 1:1 with Atlas nodes (one service attachment per node). In the port-mapped architecture, one service attachment can be mapped to up to 150 nodes via ports designated per node, enabling direct targeting of specific nodes using only one customer IP address.
-
-**Note:** Migration to the port-mapped architecture is recommended but **not required**. If you are currently using the legacy architecture, you may continue to do so. This guide is for users who wish to adopt the port-mapped architecture for simplified management and reduced resource overhead.
+-> **Note:** Migration to the port-mapped architecture is recommended but **not required**. You may continue using the legacy architecture.
 
 ## Why Migrate to Port-Mapped Architecture?
 
@@ -24,44 +20,27 @@ The port-mapped architecture addresses these limitations by using one service at
 
 ## Architecture Comparison
 
-The following table shows the key differences between the legacy and port-mapped architectures:
+| Resource | Legacy | Port-Mapped |
+|----------|--------|-------------|
+| `google_compute_address` | One per node | 1 total |
+| `google_compute_forwarding_rule` | One per node | 1 total |
 
-| Aspect | Legacy Architecture | Port-Mapped Architecture |
-|--------|---------------------|------------------------|
-| `mongodbatlas_privatelink_endpoint.port_mapping_enabled` | Not set (defaults to `false`) | Must be set to `true` |
-| `google_compute_address` count | One per Atlas node | 1 address (total, supports up to 150 nodes) |
-| `google_compute_forwarding_rule` count | One per Atlas node | 1 forwarding rule (total, supports up to 150 nodes) |
-| `mongodbatlas_privatelink_endpoint_service.endpoint_service_id` | Required (is the endpoint group name) | Required (is the forwarding rule name) |
-| `mongodbatlas_privatelink_endpoint_service.private_endpoint_ip_address` | Not used | Required (the IP address of the forwarding rule) |
-| `mongodbatlas_privatelink_endpoint_service.endpoints` | Required (one endpoint per Atlas node) | Not used |
-| `mongodbatlas_privatelink_endpoint_service.gcp_project_id` | Required | Required |
-| `mongodbatlas_privatelink_endpoint_service.endpoint_group_names` | A list of endpoint group names associated with the private endpoint service | A list of private endpoint names associated with the private endpoint service |
-| `mongodbatlas_privatelink_endpoint_service.service_attachment_names` | A list of service attachments connected to the private endpoint service (one per Atlas node) | A list of one service attachment connected to the private endpoint service |
-| Connection String Format | Uses `pl-0` identifier (e.g., `cluster0-pl-0.a0b1c2.domain.com`) | Uses `psc-0` identifier (e.g., `cluster0-psc-0.a0b1c2.domain.com`). **Exception:** Cross-cloud clusters that span a region with a port-mapped endpoint service continue using `pl-0`. |
+**Key attribute changes:**
 
-## Before You Begin
+- `mongodbatlas_privatelink_endpoint.port_mapping_enabled`: Set to `true` (legacy defaults to `false`)
+- `mongodbatlas_privatelink_endpoint_service.endpoint_service_id`: Forwarding rule name (legacy uses arbitrary endpoint group name)
+- `mongodbatlas_privatelink_endpoint_service.private_endpoint_ip_address`: Required (not used in legacy)
+- `mongodbatlas_privatelink_endpoint_service.endpoints`: Not used (required in legacy)
 
-- **Backup your Terraform state file** before making any changes.
-- **Test the process in a non-production environment** if possible.
+## Best Practices Before Migrating
+
+- Backup your Terraform state file before making any changes.
+- Test the process in a non-production environment if possible.
 - Ensure you have the necessary GCP permissions to create and delete Compute Addresses and Forwarding Rules.
 
-### Important Considerations
+-> **Note:** You cannot modify an existing `mongodbatlas_privatelink_endpoint` to enable port mapping. You must create new resources alongside the legacy ones, then remove the legacy resources after migration.
 
-#### Cannot Modify Existing mongodbatlas_privatelink_endpoint
-
-**You cannot modify an existing `mongodbatlas_privatelink_endpoint` to enable port mapping.** The `port_mapping_enabled` attribute must be set when the `mongodbatlas_privatelink_endpoint` is first created. If you need to migrate, you must:
-
-1. Create a new `mongodbatlas_privatelink_endpoint` with `port_mapping_enabled = true`.
-2. Create new GCP resources (1 address, 1 forwarding rule).
-3. Create a new `mongodbatlas_privatelink_endpoint_service` linking to the new `mongodbatlas_privatelink_endpoint`.
-4. Update your application connection strings.
-5. Delete unused resources.
-
-#### Downtime
-
-**Downtime occurs during the migration process when updating application connection strings**, not during Terraform operations. You can maintain both your legacy and port-mapped architectures in the same region during the transition. This ensures a stable migration path before you tear down the original resource.
-
-After creating the port-mapped resources in Step 2, you will need to test and update your application connection strings to use the port-mapped private endpoint. You can retrieve the updated connection string from your cluster's private endpoint configuration.
+-> **Note:** Downtime occurs when updating application connection strings, not during Terraform operations. You can run both architectures in parallel during the transition.
 
 ---
 
@@ -75,229 +54,126 @@ For complete migration examples showing the step-by-step transition from legacy 
 
 For a working example of the port-mapped architecture, see the [port-mapped architecture example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped).
 
-### Step 1: Initial Configuration - Legacy Architecture Only
+### 1) Initial Configuration (Legacy Architecture)
 
-Original configuration with legacy architecture. The number of endpoints is configurable via the `legacy_endpoint_count` variable (defaults to 50) and should match your Atlas project's `privateServiceConnectionsPerRegionGroup` setting. See [Set One Project Limit](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-setgrouplimit) for more information on the default value.
+Your existing legacy configuration typically includes multiple GCP addresses and forwarding rules (one per Atlas node). The count defaults to 50 based on your Atlas project's `privateServiceConnectionsPerRegionGroup` setting.
 
-```terraform
-# Create mongodbatlas_privatelink_endpoint with legacy architecture
+```hcl
 resource "mongodbatlas_privatelink_endpoint" "legacy" {
-  project_id               = var.project_id
-  provider_name            = "GCP"
-  region                   = var.gcp_region
-  # port_mapping_enabled is not set (defaults to false for legacy architecture)
-}
-
-# Create a Google Network
-resource "google_compute_network" "default" {
-  project = var.gcp_project_id
-  name    = "my-network"
-}
-
-# Create a Google Sub Network
-resource "google_compute_subnetwork" "default" {
-  project       = google_compute_network.default.project
-  name          = "my-subnet"
-  ip_cidr_range = "10.0.0.0/16"
+  project_id    = var.project_id
+  provider_name = "GCP"
   region        = var.gcp_region
-  network       = google_compute_network.default.id
+  # port_mapping_enabled not set (defaults to false)
 }
 
-# Create Google Addresses (required for legacy architecture)
 resource "google_compute_address" "legacy" {
   count        = var.legacy_endpoint_count
-  project      = google_compute_subnetwork.default.project
-  name         = "tf-test-legacy${count.index}"
+  project      = var.gcp_project_id
+  name         = "legacy-address-${count.index}"
   subnetwork   = google_compute_subnetwork.default.id
   address_type = "INTERNAL"
-  address      = "10.0.42.${count.index}"
-  region       = google_compute_subnetwork.default.region
-
-  depends_on = [mongodbatlas_privatelink_endpoint.legacy]
+  region       = var.gcp_region
 }
 
-# Create Forwarding rules (required for legacy architecture)
 resource "google_compute_forwarding_rule" "legacy" {
   count                 = var.legacy_endpoint_count
-  target                = mongodbatlas_privatelink_endpoint.legacy.service_attachment_names[count.index]
-  project               = google_compute_address.legacy[count.index].project
-  region                = google_compute_address.legacy[count.index].region
+  project               = var.gcp_project_id
   name                  = google_compute_address.legacy[count.index].name
+  target                = mongodbatlas_privatelink_endpoint.legacy.service_attachment_names[count.index]
   ip_address            = google_compute_address.legacy[count.index].id
   network               = google_compute_network.default.id
+  region                = var.gcp_region
   load_balancing_scheme = ""
 }
 
-# Create mongodbatlas_privatelink_endpoint_service with legacy architecture
 resource "mongodbatlas_privatelink_endpoint_service" "legacy" {
-  project_id               = mongodbatlas_privatelink_endpoint.legacy.project_id
-  private_link_id          = mongodbatlas_privatelink_endpoint.legacy.private_link_id
-  provider_name            = "GCP"
-  # Note: endpoint_service_id is the endpoint group name for legacy architecture.
-  # It's used only as an identifier and doesn't need to match any GCP resource name.
-  endpoint_service_id      = "legacy-endpoint-group"
-  gcp_project_id           = var.gcp_project_id
-  # Legacy architecture requires the endpoints list with all endpoints
+  project_id          = mongodbatlas_privatelink_endpoint.legacy.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint.legacy.private_link_id
+  provider_name       = "GCP"
+  endpoint_service_id = "legacy-endpoint-group"
+  gcp_project_id      = var.gcp_project_id
+
   dynamic "endpoints" {
     for_each = google_compute_address.legacy
-
     content {
       ip_address    = endpoints.value["address"]
       endpoint_name = google_compute_forwarding_rule.legacy[endpoints.key].name
     }
   }
-
-  depends_on = [google_compute_forwarding_rule.legacy]
 }
 ```
 
-### Step 2: Create Port-Mapped Endpoint (Parallel Setup)
+### 2) Create Port-Mapped Endpoint (Parallel Setup)
 
-**Resource Naming:** When creating the port-mapped resources, consider using different names to avoid conflicts during the parallel setup phase. For example:
-- Legacy: `google_compute_address.legacy` (with count).
-- Port-mapped: `google_compute_address.port_mapped` (single resource).
+Add the port-mapped resources alongside your existing legacy resources. Use different resource names (e.g., `port_mapped` vs `legacy`) to avoid conflicts.
 
-1. **Add the port-mapped mongodbatlas_privatelink_endpoint alongside your existing legacy resources:**
-
-```terraform
-# New: Create mongodbatlas_privatelink_endpoint with port-mapped architecture
+```hcl
 resource "mongodbatlas_privatelink_endpoint" "port_mapped" {
-  project_id               = var.project_id
-  provider_name            = "GCP"
-  region                   = var.gcp_region
-  port_mapping_enabled     = true
+  project_id           = var.project_id
+  provider_name        = "GCP"
+  region               = var.gcp_region
+  port_mapping_enabled = true
 }
 
-# New: Create Google Address (1 address for port-mapped architecture)
-# Note: Uses existing network and subnet from Step 1
 resource "google_compute_address" "port_mapped" {
-  project      = google_compute_subnetwork.default.project
-  name         = "tf-test-port-mapped-endpoint"
+  project      = var.gcp_project_id
+  name         = "port-mapped-endpoint"
   subnetwork   = google_compute_subnetwork.default.id
   address_type = "INTERNAL"
-  address      = "10.0.42.100"
-  region       = google_compute_subnetwork.default.region
-
-  depends_on = [mongodbatlas_privatelink_endpoint.port_mapped]
+  region       = var.gcp_region
 }
 
-# New: Create Forwarding Rule (1 rule for port-mapped architecture)
 resource "google_compute_forwarding_rule" "port_mapped" {
-  target                = mongodbatlas_privatelink_endpoint.port_mapped.service_attachment_names[0]
-  project               = google_compute_address.port_mapped.project
-  region                = google_compute_address.port_mapped.region
+  project               = var.gcp_project_id
   name                  = google_compute_address.port_mapped.name
+  target                = mongodbatlas_privatelink_endpoint.port_mapped.service_attachment_names[0]
   ip_address            = google_compute_address.port_mapped.id
   network               = google_compute_network.default.id
+  region                = var.gcp_region
   load_balancing_scheme = ""
 }
 
-# New: Create mongodbatlas_privatelink_endpoint_service with port-mapped architecture
-resource "mongodbatlas_privatelink_endpoint_service" "port_mapped" {
-  project_id                = mongodbatlas_privatelink_endpoint.port_mapped.project_id
-  private_link_id           = mongodbatlas_privatelink_endpoint.port_mapped.private_link_id
-  provider_name             = "GCP"
-  endpoint_service_id       = google_compute_forwarding_rule.port_mapped.name
-  private_endpoint_ip_address = google_compute_address.port_mapped.address
-  gcp_project_id            = var.gcp_project_id
-}
-```
-
-**Apply and test:**
-
-1. Run `terraform plan` to review the changes. You should see:
-   - A new `mongodbatlas_privatelink_endpoint.port_mapped` resource being created.
-   - New GCP resources (1 address, 1 forwarding rule) being created.
-   - A new `mongodbatlas_privatelink_endpoint_service.port_mapped` resource being created.
-   - Your existing legacy resources remain unchanged.
-
-2. Run `terraform apply` to create the port-mapped endpoint resources.
-
-3. **Update your application connection strings** to use the port-mapped endpoint. You can retrieve the connection string from your cluster's private endpoint configuration. **This is when downtime occurs** - update connection strings and restart your applications.
-
-   **Note:** The port-mapped connection strings will have a different format than legacy connection strings. Legacy connection strings use the `pl-0` identifier (e.g., `cluster0-pl-0.a0b1c2.domain.com`), while port-mapped connection strings use the `psc-0` identifier (e.g., `cluster0-psc-0.a0b1c2.domain.com`). **Exception:** For cross-cloud clusters that span a region with a port-mapped endpoint service, the connection string will continue using the `pl-0` identifier. For all other cases (multi-region or single-region clusters), the connection string will use the `psc-0` identifier. Make sure to update all application connection strings accordingly.
-
-4. Test your application connectivity with the port-mapped endpoint to ensure everything works correctly.
-
-5. Re-run `terraform plan` to ensure you have no unexpected changes: `No changes. Your infrastructure matches the configuration.`
-
-### Step 3: Final State - Remove Legacy Resources
-
-Once you have verified that the port-mapped endpoint works correctly and your applications are using it, remove the legacy resources from your configuration:
-
-```terraform
-# from Step 2, port-mapped architecture
-resource "mongodbatlas_privatelink_endpoint" "port_mapped" {
-  project_id               = var.project_id
-  provider_name            = "GCP"
-  region                   = var.gcp_region
-  port_mapping_enabled     = true
-}
-
-# from Step 1, also used for the port-mapped architecture
-resource "google_compute_network" "default" {
-  project = var.gcp_project_id
-  name    = "my-network"
-}
-
-# from Step 1, also used for the port-mapped architecture
-resource "google_compute_subnetwork" "default" {
-  project       = google_compute_network.default.project
-  name          = "my-subnet"
-  ip_cidr_range = "10.0.0.0/16"
-  region        = var.gcp_region
-  network       = google_compute_network.default.id
-}
-
-# from Step 2, port-mapped architecture
-resource "google_compute_address" "port_mapped" {
-  project      = google_compute_subnetwork.default.project
-  name         = "tf-test-port-mapped-endpoint"
-  subnetwork   = google_compute_subnetwork.default.id
-  address_type = "INTERNAL"
-  address      = "10.0.42.100"
-  region       = google_compute_subnetwork.default.region
-
-  depends_on = [mongodbatlas_privatelink_endpoint.port_mapped]
-}
-
-# from Step 2, port-mapped architecture
-resource "google_compute_forwarding_rule" "port_mapped" {
-  target                = mongodbatlas_privatelink_endpoint.port_mapped.service_attachment_names[0]
-  project               = google_compute_address.port_mapped.project
-  region                = google_compute_address.port_mapped.region
-  name                  = google_compute_address.port_mapped.name
-  ip_address            = google_compute_address.port_mapped.id
-  network               = google_compute_network.default.id
-  load_balancing_scheme = ""
-}
-
-# from Step 2, port-mapped architecture
 resource "mongodbatlas_privatelink_endpoint_service" "port_mapped" {
   project_id                  = mongodbatlas_privatelink_endpoint.port_mapped.project_id
   private_link_id             = mongodbatlas_privatelink_endpoint.port_mapped.private_link_id
   provider_name               = "GCP"
   endpoint_service_id         = google_compute_forwarding_rule.port_mapped.name
   private_endpoint_ip_address = google_compute_address.port_mapped.address
-  gcp_project_id             = var.gcp_project_id
+  gcp_project_id              = var.gcp_project_id
 }
 ```
 
-1. Run `terraform plan` to verify:
-   - Legacy endpoint resources are planned for destruction.
-   - Legacy GCP resources (addresses and forwarding rules matching your `legacy_endpoint_count` variable) are planned for destruction.
-   - Only the port-mapped architecture resources remain.
-   - No unexpected changes.
+**Apply and test:**
 
-2. Run `terraform apply` to finalize the migration. This will:
-   - Delete the legacy `mongodbatlas_privatelink_endpoint_service` resource.
-   - Delete the legacy `mongodbatlas_privatelink_endpoint` resource.
-   - Delete the legacy Google Compute Addresses (number matches your `legacy_endpoint_count` variable).
-   - Delete the legacy Google Compute Forwarding Rules (number matches your `legacy_endpoint_count` variable).
+1. Run `terraform plan` — verify new port-mapped resources will be created and legacy resources remain unchanged.
 
-3. Verify that your applications and infrastructure continue to work with the port-mapped endpoint.
+2. Run `terraform apply` to create the port-mapped resources.
 
-4. Re-run `terraform plan` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.`
+3. **Update your application connection strings.** This is when downtime occurs. Retrieve the new connection string from your cluster's private endpoint configuration.
+
+   -> **Note:** Connection string format changes from `pl-0` (e.g., `cluster0-pl-0.a0b1c2.domain.com`) to `psc-0` (e.g., `cluster0-psc-0.a0b1c2.domain.com`). Exception: Cross-cloud clusters spanning a region with port-mapped endpoints continue using `pl-0`.
+
+4. Test application connectivity with the port-mapped endpoint.
+
+5. Run `terraform plan` to confirm: `No changes. Your infrastructure matches the configuration.`
+
+### 3) Remove Legacy Resources
+
+Once you have verified that the port-mapped endpoint works correctly and your applications are using it:
+
+1. Remove the legacy resources from your Terraform configuration:
+   - `mongodbatlas_privatelink_endpoint.legacy`
+   - `mongodbatlas_privatelink_endpoint_service.legacy`
+   - `google_compute_address.legacy`
+   - `google_compute_forwarding_rule.legacy`
+
+2. Keep the shared resources (`google_compute_network`, `google_compute_subnetwork`) and all port-mapped resources from Step 2.
+
+3. Run `terraform plan` to verify legacy resources will be destroyed and port-mapped resources remain unchanged.
+
+4. Run `terraform apply` to delete the legacy resources.
+
+5. Run `terraform plan` again to confirm: `No changes. Your infrastructure matches the configuration.`
 
 ---
 
