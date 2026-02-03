@@ -84,7 +84,7 @@ func DataSource() *schema.Resource {
 			"port_mapping_enabled": {
 				Type:        schema.TypeBool,
 				Computed:    true,
-				Description: "Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-mapped architecture. When `false` or unset, it uses the legacy architecture. Only applicable for GCP provider.",
+				Description: "Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-mapped architecture. When `false` or unset, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.",
 			},
 		},
 	}

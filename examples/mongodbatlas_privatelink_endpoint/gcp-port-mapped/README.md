@@ -1,10 +1,10 @@
 # Example with GCP with Port-Mapped Architecture and MongoDB Atlas Private Endpoint
 
-This project demonstrates the **port-mapped architecture** for setting up GCP Private Service Connect with MongoDB Atlas. Unlike the legacy architecture that requires dedicated resources for each Atlas node, the port-mapped architecture design uses a single set of resources to support up to 150 nodes, enabling direct targeting of specific nodes using only one customer IP address.
+This project demonstrates the **port-mapped architecture** for setting up GCP Private Service Connect with MongoDB Atlas. Unlike the GCP legacy private endpoint architecture that requires dedicated resources for each Atlas node, the port-mapped architecture design uses a single set of resources to support up to 150 nodes, enabling direct targeting of specific nodes using only one customer IP address.
 
 ## Architecture Comparison
 
-| Feature | Legacy Architecture | Port-Mapped Architecture (this example) |
+| Feature | GCP Legacy Private Endpoint Architecture | Port-Mapped Architecture (this example) |
 |---------|-------------------|---------------------------|
 | Resources per Atlas node | Dedicated forwarding rule, service attachment, and instance group | Single set of resources for up to 150 nodes |
 | `port_mapping_enabled` | `false` (or omitted) | `true` |

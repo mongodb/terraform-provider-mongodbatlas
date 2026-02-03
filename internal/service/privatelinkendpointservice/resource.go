@@ -145,7 +145,7 @@ func Resource() *schema.Resource {
 			"port_mapping_enabled": {
 				Type:        schema.TypeBool,
 				Computed:    true,
-				Description: "Flag that indicates whether the underlying `privatelink_endpoint` resource uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-mapped architecture. When `false`, it uses the legacy architecture. Only applicable for GCP provider.",
+				Description: "Flag that indicates whether the underlying `privatelink_endpoint` resource uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-mapped architecture. When `false`, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.",
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
@@ -182,7 +182,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(errors.New("`gcp_project_id` must be set for GCP"))
 		}
 		if hasPrivateEndpointIP == hasEndpoints {
-			return diag.FromErr(errors.New("for GCP, you must provide exactly one of: `private_endpoint_ip_address` (port-mapped architecture) or `endpoints` (legacy architecture)"))
+			return diag.FromErr(errors.New("for GCP, you must provide exactly one of: `private_endpoint_ip_address` (port-mapped architecture) or `endpoints` (GCP legacy private endpoint architecture)"))
 		}
 		if hasPrivateEndpointIP && !hasEndpoints {
 			createEndpointRequest.EndpointGroupName = &endpointServiceID
