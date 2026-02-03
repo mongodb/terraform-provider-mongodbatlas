@@ -17,7 +17,7 @@ func TestAccNetworkRSPrivateLinkEndpointAWS_basic(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		projectID    = acc.ProjectIDExecution(t)
-		region       = "us-east-1"
+		region       = "us-east-1" // Use different region to avoid project conflicts.
 		providerName = constant.AWS
 	)
 
@@ -105,7 +105,7 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 func TestAccPrivateLinkEndpoint_deleteOnCreateTimeout(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
-		region       = "eu-west-1"
+		region       = "eu-west-1" // Use different region to avoid project conflicts.
 		providerName = constant.AWS
 	)
 
