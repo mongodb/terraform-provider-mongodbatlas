@@ -46,13 +46,9 @@ The port-mapped architecture addresses these limitations by using one service at
 
 ## Migration Steps
 
-For complete migration examples showing the step-by-step transition from legacy to port-mapped architecture, see the [GCP Private Link migration example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_gcp_private_link_to_port_mapped_architecture).
+For complete migration examples showing the step-by-step transition from legacy to port-mapped architecture, see the [GCP Private Link migration examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_gcp_private_link_to_port_mapped_architecture). If you are managing the resources directly (not using modules), see the [basic example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_gcp_private_link_to_port_mapped_architecture/basic). Module maintainers can update their modules to support port-mapped architecture while maintaining backward compatibility. To learn how, review the examples from a [module maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_gcp_private_link_to_port_mapped_architecture/module_maintainer) and [module user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_gcp_private_link_to_port_mapped_architecture/module_user) point of view.
 
-- **Direct Resource Management**: If you are managing the resources directly (not using modules), see the [basic migration example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_gcp_private_link_to_port_mapped_architecture/basic).
-- **Module Maintainers**: If you own and maintain modules to manage your private link resources, see the [module maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_gcp_private_link_to_port_mapped_architecture/module_maintainer) to learn how to update your module to support port-mapped architecture while maintaining backward compatibility.
-- **Module Users**: If you are using a Terraform module to manage your private link resources, see the [module user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_gcp_private_link_to_port_mapped_architecture/module_user) to learn how to upgrade to a module version that supports port-mapped architecture.
-
-For a working example of the port-mapped architecture, see the [port-mapped architecture example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped).
+For a working example of the port-mapped architecture without migration context, see the [port-mapped architecture example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped).
 
 ### 1) Initial Configuration (Legacy Architecture)
 
@@ -179,7 +175,6 @@ Once you have verified that the port-mapped endpoint works correctly and your ap
 
 ## Additional Resources
 
-- [GCP Private Service Connect Documentation](https://www.mongodb.com/docs/atlas/security-private-endpoint/)
+- [Set Up a Private Endpoint (MongoDB Atlas Documentation)](https://www.mongodb.com/docs/atlas/security-private-endpoint/)
 - [Private Endpoint Resource Documentation](../resources/privatelink_endpoint.md)
 - [Private Endpoint Service Resource Documentation](../resources/privatelink_endpoint_service.md)
-- [Port-Mapped Architecture Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)

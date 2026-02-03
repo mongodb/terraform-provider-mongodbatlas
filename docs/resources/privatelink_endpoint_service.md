@@ -272,4 +272,6 @@ Private Endpoint Link Connection can be imported using project ID and username, 
 $ terraform import mongodbatlas_privatelink_endpoint_service.test 1112222b3bf99403840e8934--3242342343112--vpce-4242342343--AWS
 ```
 
-See detailed information for arguments and attributes: [MongoDB API Private Endpoint Link Connection](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/)
+For more information, see:
+- [MongoDB API Private Endpoint Link Connection](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/) for detailed arguments and attributes.
+- [Set Up a Private Endpoint](https://www.mongodb.com/docs/atlas/security-private-endpoint/) for general guidance on private endpoints in MongoDB Atlas.
