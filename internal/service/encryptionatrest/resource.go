@@ -80,10 +80,10 @@ type TFAzureKeyVaultConfigModel struct {
 	KeyIdentifier            types.String `tfsdk:"key_identifier"`
 	Secret                   types.String `tfsdk:"secret"`
 	TenantID                 types.String `tfsdk:"tenant_id"`
+	RoleID                   types.String `tfsdk:"role_id"`
 	Enabled                  types.Bool   `tfsdk:"enabled"`
 	RequirePrivateNetworking types.Bool   `tfsdk:"require_private_networking"`
 	Valid                    types.Bool   `tfsdk:"valid"`
-	RoleID                   types.String `tfsdk:"role_id"`
 }
 type TFGcpKmsConfigModel struct {
 	ServiceAccountKey    types.String `tfsdk:"service_account_key"`
