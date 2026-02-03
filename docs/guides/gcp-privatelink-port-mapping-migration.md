@@ -28,7 +28,7 @@ The port-mapped architecture addresses these limitations by using one service at
 **Key attribute changes:**
 
 - `mongodbatlas_privatelink_endpoint.port_mapping_enabled`: Set to `true` (legacy defaults to `false`)
-- `mongodbatlas_privatelink_endpoint_service.endpoint_service_id`: Forwarding rule name (legacy uses arbitrary endpoint group name)
+- `mongodbatlas_privatelink_endpoint_service.endpoint_service_id`: Forwarding rule name (legacy: endpoint group name)
 - `mongodbatlas_privatelink_endpoint_service.private_endpoint_ip_address`: Required (not used in legacy)
 - `mongodbatlas_privatelink_endpoint_service.endpoints`: Not used (required in legacy)
 

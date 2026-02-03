@@ -21,11 +21,6 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id    = "<PROJECT-ID>"
   provider_name = "AWS/AZURE/GCP"
   region        = "US_EAST_1"
-
-  timeouts {
-    create = "30m"
-    delete = "20m"
-  }
 }
 ```
 
