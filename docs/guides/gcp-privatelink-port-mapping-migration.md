@@ -27,10 +27,10 @@ The port-mapped architecture addresses these limitations by using one service at
 
 **Key attribute changes:**
 
-- `mongodbatlas_privatelink_endpoint.port_mapping_enabled`: Set to `true` (legacy defaults to `false`)
-- `mongodbatlas_privatelink_endpoint_service.endpoint_service_id`: Forwarding rule name (legacy: endpoint group name)
-- `mongodbatlas_privatelink_endpoint_service.private_endpoint_ip_address`: Required (not used in legacy)
-- `mongodbatlas_privatelink_endpoint_service.endpoints`: Not used (required in legacy)
+- `mongodbatlas_privatelink_endpoint.port_mapping_enabled`: Set to `true` (legacy defaults to `false`).
+- `mongodbatlas_privatelink_endpoint_service.endpoint_service_id`: Forwarding rule name (legacy: endpoint group name).
+- `mongodbatlas_privatelink_endpoint_service.private_endpoint_ip_address`: Required (not used in legacy).
+- `mongodbatlas_privatelink_endpoint_service.endpoints`: Not used (required in legacy).
 
 ## Best Practices Before Migrating
 
@@ -145,7 +145,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "port_mapped" {
 
 **Apply and test:**
 
-1. Run `terraform plan` — verify new port-mapped resources will be created and legacy resources remain unchanged.
+1. Run `terraform plan` to verify new port-mapped resources will be created and legacy resources remain unchanged.
 
 2. Run `terraform apply` to create the port-mapped resources.
 
