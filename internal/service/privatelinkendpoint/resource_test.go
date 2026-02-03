@@ -123,7 +123,6 @@ func TestAccPrivateLinkEndpoint_deleteOnCreateTimeout(t *testing.T) {
 }
 
 func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicitly_enabled(t *testing.T) {
-	t.Skip("TODO: CLOUDP-363083 Enable these tests when the port-mapping API is GA.")
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		projectID    = acc.ProjectIDExecution(t)
@@ -155,7 +154,6 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 }
 
 func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicitly_disabled(t *testing.T) {
-	t.Skip("TODO: CLOUDP-363083 Enable these tests when the port-mapping API is GA.")
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		projectID    = acc.ProjectIDExecution(t)
