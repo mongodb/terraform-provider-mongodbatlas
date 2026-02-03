@@ -273,5 +273,5 @@ $ terraform import mongodbatlas_privatelink_endpoint_service.test 1112222b3bf994
 ```
 
 For more information, see:
-- [MongoDB API Private Endpoint Link Connection](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/) for detailed arguments and attributes.
+- [MongoDB API Private Endpoint Link Connection](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupprivateendpointendpointserviceendpoint) for detailed arguments and attributes.
 - [Set Up a Private Endpoint](https://www.mongodb.com/docs/atlas/security-private-endpoint/) for general guidance on private endpoints in MongoDB Atlas.
