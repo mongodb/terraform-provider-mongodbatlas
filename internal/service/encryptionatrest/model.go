@@ -79,14 +79,14 @@ func NewTFAzureKeyVaultConfigItem(az *admin.AzureKeyVault) *TFAzureKeyVaultConfi
 
 	return &TFAzureKeyVaultConfigModel{
 		Enabled:                  types.BoolPointerValue(az.Enabled),
-		ClientID:                 types.StringValue(az.GetClientID()),
+		ClientID:                 conversion.StringNullIfEmpty(az.GetClientID()),
 		AzureEnvironment:         types.StringValue(az.GetAzureEnvironment()),
 		SubscriptionID:           types.StringValue(az.GetSubscriptionID()),
 		ResourceGroupName:        types.StringValue(az.GetResourceGroupName()),
 		KeyVaultName:             types.StringValue(az.GetKeyVaultName()),
 		KeyIdentifier:            types.StringValue(az.GetKeyIdentifier()),
 		RoleID:                   conversion.StringNullIfEmpty(az.GetRoleId()),
-		TenantID:                 types.StringValue(az.GetTenantID()),
+		TenantID:                 conversion.StringNullIfEmpty(az.GetTenantID()),
 		Secret:                   conversion.StringNullIfEmpty(az.GetSecret()),
 		RequirePrivateNetworking: types.BoolValue(az.GetRequirePrivateNetworking()),
 		Valid:                    types.BoolPointerValue(az.Valid),
