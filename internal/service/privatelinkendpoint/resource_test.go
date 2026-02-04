@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -13,24 +14,26 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccNetworkRSPrivateLinkEndpointAWS_basic(t *testing.T) {
+func TestAccPrivateLinkEndpoint_basicAWS(t *testing.T) {
+	resource.ParallelTest(t, *basicAWSTestCase(t, "us-east-1"))
+}
+
+func basicAWSTestCase(tb testing.TB, region string) *resource.TestCase {
+	tb.Helper()
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
-		projectID    = acc.ProjectIDExecution(t)
-		region       = "us-east-1" // Use different region to avoid project conflicts.
+		projectID    = acc.ProjectIDExecution(tb)
 		providerName = constant.AWS
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, providerName, region),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkBasic(resourceName, providerName, region)...,
-				),
+				Config: configBasic(projectID, providerName, region, nil),
+				Check:  checkBasic(resourceName, providerName, region, nil),
 			},
 			{
 				ResourceName:      resourceName,
@@ -39,10 +42,10 @@ func TestAccNetworkRSPrivateLinkEndpointAWS_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 		},
-	})
+	}
 }
 
-func TestAccNetworkRSPrivateLinkEndpointAzure_basic(t *testing.T) {
+func TestAccPrivateLinkEndpoint_basicAzure(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		projectID    = acc.ProjectIDExecution(t)
@@ -56,10 +59,8 @@ func TestAccNetworkRSPrivateLinkEndpointAzure_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, providerName, region),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkBasic(resourceName, providerName, region)...,
-				),
+				Config: configBasic(projectID, providerName, region, nil),
+				Check:  checkBasic(resourceName, providerName, region, nil),
 			},
 			{
 				ResourceName:      resourceName,
@@ -71,7 +72,7 @@ func TestAccNetworkRSPrivateLinkEndpointAzure_basic(t *testing.T) {
 	})
 }
 
-func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
+func TestAccPrivateLinkEndpoint_basicGCP(t *testing.T) {
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
 		projectID    = acc.ProjectIDExecution(t)
@@ -85,12 +86,8 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, providerName, region),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					append(checkBasic(resourceName, providerName, region),
-						checkPortMappingEnabled(resourceName, false),
-					)...,
-				),
+				Config: configBasic(projectID, providerName, region, nil),
+				Check:  checkBasic(resourceName, providerName, region, conversion.Pointer(false)),
 			},
 			{
 				ResourceName:      resourceName,
@@ -105,7 +102,7 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 func TestAccPrivateLinkEndpoint_deleteOnCreateTimeout(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
-		region       = "eu-west-1" // Use different region to avoid project conflicts.
+		region       = "eu-west-1"
 		providerName = constant.AWS
 	)
 
@@ -122,26 +119,31 @@ func TestAccPrivateLinkEndpoint_deleteOnCreateTimeout(t *testing.T) {
 	})
 }
 
-func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicitly_enabled(t *testing.T) {
+func TestAccPrivateLinkEndpoint_gcpPortMappingEnabled(t *testing.T) {
+	resource.ParallelTest(t, *basicGCPTestCaseWithPortMapping(t, true))
+}
+
+func TestAccPrivateLinkEndpoint_gcpPortMappingDisabled(t *testing.T) {
+	resource.ParallelTest(t, *basicGCPTestCaseWithPortMapping(t, false))
+}
+
+func basicGCPTestCaseWithPortMapping(tb testing.TB, portMappingEnabled bool) *resource.TestCase {
+	tb.Helper()
 	var (
 		resourceName = "mongodbatlas_privatelink_endpoint.test"
-		projectID    = acc.ProjectIDExecution(t)
-		region       = "us-west3"
+		projectID    = acc.ProjectIDExecution(tb)
 		providerName = constant.GCP
+		region       = "us-west3"
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithPortMapping(projectID, providerName, region, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					append(checkBasic(resourceName, providerName, region),
-						checkPortMappingEnabled(resourceName, true),
-					)...,
-				),
+				Config: configBasic(projectID, providerName, region, conversion.Pointer(portMappingEnabled)),
+				Check:  checkBasic(resourceName, providerName, region, conversion.Pointer(portMappingEnabled)),
 			},
 			{
 				ResourceName:      resourceName,
@@ -150,53 +152,7 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicit
 				ImportStateVerify: true,
 			},
 		},
-	})
-}
-
-func TestAccNetworkRSPrivateLinkEndpointGCP_basic_with_new_architecture_explicitly_disabled(t *testing.T) {
-	var (
-		resourceName = "mongodbatlas_privatelink_endpoint.test"
-		projectID    = acc.ProjectIDExecution(t)
-		region       = "us-west3"
-		providerName = constant.GCP
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithPortMapping(projectID, providerName, region, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					append(checkBasic(resourceName, providerName, region),
-						checkPortMappingEnabled(resourceName, false),
-					)...,
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func configDeleteOnCreateTimeout(projectID, providerName, region, timeout string, deleteOnTimeout bool) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_privatelink_endpoint" "test" {
-			project_id    = %[1]q
-			provider_name = %[2]q
-			region        = %[3]q
-			delete_on_create_timeout = %[5]t
-			
-			timeouts {
-				create = %[4]q
-			}
-		}
-	`, projectID, providerName, region, timeout, deleteOnTimeout)
+	}
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
@@ -243,8 +199,40 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func checkBasic(resourceName, providerName, region string) []resource.TestCheckFunc {
-	return []resource.TestCheckFunc{
+func configDeleteOnCreateTimeout(projectID, providerName, region, timeout string, deleteOnTimeout bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_privatelink_endpoint" "test" {
+			project_id    = %[1]q
+			provider_name = %[2]q
+			region        = %[3]q
+			delete_on_create_timeout = %[5]t
+			
+			timeouts {
+				create = %[4]q
+			}
+		}
+	`, projectID, providerName, region, timeout, deleteOnTimeout)
+}
+
+// configBasic is a helper function to create a basic configuration for a private link endpoint.
+// IMPORTANT: Use a different region in each test to avoid project conflicts. Legacy and port-mapped GCP can use the same region.
+func configBasic(projectID, providerName, region string, portMappingEnabled *bool) string {
+	portMappingEnabledStr := ""
+	if portMappingEnabled != nil {
+		portMappingEnabledStr = fmt.Sprintf("port_mapping_enabled = %t", *portMappingEnabled)
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_privatelink_endpoint" "test" {
+			project_id    = %[1]q
+			provider_name = %[2]q
+			region        = %[3]q
+			%[4]s
+		}
+	`, projectID, providerName, region, portMappingEnabledStr)
+}
+
+func checkBasic(resourceName, providerName, region string, portMappingEnabled *bool) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 		resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
@@ -252,33 +240,8 @@ func checkBasic(resourceName, providerName, region string) []resource.TestCheckF
 		resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
 		resource.TestCheckResourceAttr(resourceName, "region", region),
 	}
-}
-
-func checkPortMappingEnabled(resourceName string, enabled bool) resource.TestCheckFunc {
-	value := "false"
-	if enabled {
-		value = "true"
+	if portMappingEnabled != nil {
+		checks = append(checks, resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", strconv.FormatBool(*portMappingEnabled)))
 	}
-	return resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", value)
-}
-
-func configBasic(projectID, providerName, region string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_privatelink_endpoint" "test" {
-			project_id    = %[1]q
-			provider_name = %[2]q
-			region        = %[3]q
-		}
-	`, projectID, providerName, region)
-}
-
-func configWithPortMapping(projectID, providerName, region string, portMappingEnabled bool) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_privatelink_endpoint" "test" {
-			project_id           = %[1]q
-			provider_name        = %[2]q
-			region               = %[3]q
-			port_mapping_enabled = %[4]t
-		}
-	`, projectID, providerName, region, portMappingEnabled)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
