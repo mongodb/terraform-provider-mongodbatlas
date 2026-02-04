@@ -89,7 +89,7 @@ func TestAccPrivateLinkEndpoint_basicGCP(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(projectID, providerName, region, nil),
-				Check:  checkBasic(providerName, region, conversion.Pointer(false)),
+				Check:  checkBasic(providerName, region, nil),
 			},
 			{
 				ResourceName:      resourceName,
