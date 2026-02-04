@@ -537,15 +537,11 @@ func HandleAzureKeyVaultConfigDefaults(ctx context.Context, earRSCurrent, earRSN
 		return
 	}
 
-	// Some fields may be omitted in the response (especially sensitive fields like client_id, tenant_id, secret).
-	// To keep state stable after Create/Update, we need topreserve those values from config (or prior state).
+	// handling sensitive values that are not returned in the API response, so we sync them from the config
+	// that user provided. encryptionAtRestRSConfig is nil during Read(), so we use the current plan
 	if earRSConfig != nil && len(earRSConfig.AzureKeyVaultConfig) > 0 {
-		earRSNew.AzureKeyVaultConfig[0].ClientID = earRSConfig.AzureKeyVaultConfig[0].ClientID
-		earRSNew.AzureKeyVaultConfig[0].TenantID = earRSConfig.AzureKeyVaultConfig[0].TenantID
 		earRSNew.AzureKeyVaultConfig[0].Secret = earRSConfig.AzureKeyVaultConfig[0].Secret
 	} else {
-		earRSNew.AzureKeyVaultConfig[0].ClientID = earRSCurrent.AzureKeyVaultConfig[0].ClientID
-		earRSNew.AzureKeyVaultConfig[0].TenantID = earRSCurrent.AzureKeyVaultConfig[0].TenantID
 		earRSNew.AzureKeyVaultConfig[0].Secret = earRSCurrent.AzureKeyVaultConfig[0].Secret
 	}
 }
