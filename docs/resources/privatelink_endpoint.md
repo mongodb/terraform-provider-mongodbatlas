@@ -45,6 +45,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - Terraform's internal unique identifier. Use `private_link_id` instead to reference the private endpoint connection.
 * `private_link_id` - Unique identifier of the private endpoint connection.
+* `region_name` - Region for the Private Service Connect endpoint service.
 * `error_message` - Error message pertaining to the private endpoint connection. Returns null if there are no errors.
 * `status` - Status of the private endpoint connection. See the provider-specific status values below.
 
@@ -72,7 +73,6 @@ In addition to all arguments above, the following attributes are exported:
 ### GCP
 
 * `endpoint_group_names` - For port-mapped architectures, this is a list of private endpoint names associated with the private endpoint service. For GCP legacy private endpoint architectures, this is a list of the endpoint group names associated with the private endpoint service.
-* `region_name` - Region for the Private Service Connect endpoint service.
 * `service_attachment_names` - For port-mapped architecture, this is a list containing one service attachment connected to the private endpoint service. For GCP legacy private endpoint architecture, this is a list of service attachments connected to the private endpoint service (one per Atlas node). Returns an empty list while Atlas creates the service attachments.
 * `status` values:
   * `AVAILABLE` - Atlas created the load balancer and the GCP Private Service Connect service.
