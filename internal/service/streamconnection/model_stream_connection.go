@@ -158,16 +158,18 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 	rID := fmt.Sprintf("%s-%s-%s", streamWorkspaceName, projID, conversion.SafeString(apiResp.Name))
 
 	connectionModel := TFStreamConnectionModel{
-		ID:                     types.StringValue(rID),
-		ProjectID:              types.StringValue(projID),
-		ConnectionName:         types.StringPointerValue(apiResp.Name),
-		Type:                   types.StringPointerValue(apiResp.Type),
-		ClusterName:            types.StringPointerValue(apiResp.ClusterName),
-		ClusterProjectID:       types.StringPointerValue(apiResp.ClusterGroupId),
-		BootstrapServers:       types.StringPointerValue(apiResp.BootstrapServers),
-		URL:                    types.StringPointerValue(apiResp.Url),
-		SchemaRegistryURLs:     types.ListNull(types.StringType),
-		SchemaRegistryProvider: types.StringPointerValue(apiResp.Provider),
+		TFStreamConnectionCommonModel: TFStreamConnectionCommonModel{
+			ID:                     types.StringValue(rID),
+			ProjectID:              types.StringValue(projID),
+			ConnectionName:         types.StringPointerValue(apiResp.Name),
+			Type:                   types.StringPointerValue(apiResp.Type),
+			ClusterName:            types.StringPointerValue(apiResp.ClusterName),
+			ClusterProjectID:       types.StringPointerValue(apiResp.ClusterGroupId),
+			BootstrapServers:       types.StringPointerValue(apiResp.BootstrapServers),
+			URL:                    types.StringPointerValue(apiResp.Url),
+			SchemaRegistryURLs:     types.ListNull(types.StringType),
+			SchemaRegistryProvider: types.StringPointerValue(apiResp.Provider),
+		},
 	}
 
 	// Preserve user-configured timeouts
@@ -345,18 +347,18 @@ func newTFSchemaRegistryAuthentication(ctx context.Context, currAuthConfig *type
 	return &nullValue, nil
 }
 
-func NewTFStreamConnections(ctx context.Context,
+func NewTFStreamConnectionsDS(ctx context.Context,
 	streamConnectionsConfig *TFStreamConnectionsDSModel,
 	paginatedResult *admin.PaginatedApiStreamsConnection) (*TFStreamConnectionsDSModel, diag.Diagnostics) {
 	input := paginatedResult.GetResults()
-	results := make([]TFStreamConnectionModel, len(input))
+	results := make([]TFStreamConnectionDSModel, len(input))
 
 	workspaceName := streamConnectionsConfig.WorkspaceName.ValueString()
 	instanceName := streamConnectionsConfig.InstanceName.ValueString()
 
 	for i := range input {
 		projectID := streamConnectionsConfig.ProjectID.ValueString()
-		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, nil, nil, &input[i], nil)
+		connectionModel, diags := NewTFStreamConnectionDS(ctx, projectID, instanceName, workspaceName, nil, nil, &input[i])
 		if diags.HasError() {
 			return nil, diags
 		}
