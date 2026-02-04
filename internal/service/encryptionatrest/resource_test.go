@@ -157,6 +157,8 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 }
 
 func TestAccEncryptionAtRest_basicAzureWithRole(t *testing.T) {
+	acc.SkipTestForCI(t) // needs Azure configuration
+
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
