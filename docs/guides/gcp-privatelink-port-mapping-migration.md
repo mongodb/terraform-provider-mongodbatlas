@@ -54,7 +54,7 @@ For a working example of the port-mapped architecture without migration context,
 
 Your existing legacy configuration typically includes multiple GCP addresses and forwarding rules (one per Atlas node). The count defaults to 50 based on your Atlas project's `privateServiceConnectionsPerRegionGroup` setting.
 
-```hcl
+```terraform
 resource "mongodbatlas_privatelink_endpoint" "legacy" {
   project_id    = var.project_id
   provider_name = "GCP"
@@ -103,7 +103,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "legacy" {
 
 Add the port-mapped resources alongside your existing legacy resources. Use different resource names (e.g., `port_mapped` vs `legacy`) to avoid conflicts.
 
-```hcl
+```terraform
 resource "mongodbatlas_privatelink_endpoint" "port_mapped" {
   project_id           = var.project_id
   provider_name        = "GCP"
@@ -147,7 +147,19 @@ resource "mongodbatlas_privatelink_endpoint_service" "port_mapped" {
 
 3. **Update your application connection strings.** This is when downtime occurs. Retrieve the new connection string from your cluster's private endpoint configuration.
 
-   -> **Note:** Connection string format changes from `pl-0` (e.g., `cluster0-pl-0.a0b1c2.domain.com`) to `psc-0` (e.g., `cluster0-psc-0.a0b1c2.domain.com`). For single-region and multi-region clusters, the connection string uses `psc-0`. **Exception:** Cross-cloud clusters spanning a region with a port-mapped endpoint continue using `pl-0`. Make sure to update all application connection strings accordingly.
+   -> **Note:** Connection string hostnames change from `pl-0` (e.g., `cluster0-pl-0.a0b1c2.domain.com`) to `psc-0` (e.g., `cluster0-psc-0.a0b1c2.domain.com`) for port-mapped endpoints. For single-region and multi-region clusters, the connection string uses `psc-0`. **Exception:** Cross-cloud clusters spanning a region with a port-mapped endpoint continue using `pl-0`.
+
+   Instead of relying on hostname patterns, you can programmatically retrieve the correct connection string by matching the `endpoint_service_id`, e.g.:
+
+   ```terraform
+   locals {
+     private_endpoints = try(flatten([for cs in mongodbatlas_advanced_cluster.this.connection_strings.private_endpoint : cs]), [])
+     connection_strings = [
+       for pe in local.private_endpoints : pe.srv_connection_string
+       if contains([for e in pe.endpoints : e.endpoint_id], mongodbatlas_privatelink_endpoint_service.this.endpoint_service_id)
+     ]
+   }
+   ```
 
 4. Test application connectivity with the port-mapped endpoint.
 
