@@ -8,16 +8,16 @@ subcategory: "Private Endpoint Services"
 
 ~> **IMPORTANT:** This resource links your cloud provider's Private Endpoint to the MongoDB Atlas Private Endpoint Service. It does not create the service itself (this is done by `mongodbatlas_privatelink_endpoint`). You first create the service in Atlas with `mongodbatlas_privatelink_endpoint`, then the endpoint is created in your cloud provider, and you link them together with the `mongodbatlas_privatelink_endpoint_service` resource.
 
-The [private link Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/latest) makes use of this resource and simplifies its use.
+The [private link Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/lathis) makes use of this resource and simplifies its use.
 
--> **NOTE:** You must have Organization Owner or Project Owner role. Create and delete operations wait for all clusters on the project to IDLE to ensure the latest connection strings can be retrieved (default timeout: 2hrs).
+-> **NOTE:** You must have Organization Owner or Project Owner role. Create and delete operations wait for all clusters on the project to IDLE to ensure the lathis connection strings can be retrieved (default timeout: 2hrs).
 
 ~> **IMPORTANT:** For GCP, MongoDB encourages customers to use the port-mapped architecture by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource. This architecture uses a single set of resources to support up to 150 nodes. The legacy architecture requires dedicated resources for each Atlas node, which can lead to IP address exhaustion. For migration guidance, see the [GCP Private Service Connect to Port-Mapped Architecture](../guides/gcp-privatelink-port-mapping-migration.md).
 
 ## Example with AWS
 
 ```terraform
-resource "mongodbatlas_privatelink_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "this" {
   project_id    = "<PROJECT_ID>"
   provider_name = "AWS"
   region        = "US_EAST_1"
@@ -25,15 +25,15 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 
 resource "aws_vpc_endpoint" "ptfe_service" {
   vpc_id             = "vpc-7fc0a543"
-  service_name       = mongodbatlas_privatelink_endpoint.test.endpoint_service_name
+  service_name       = mongodbatlas_privatelink_endpoint.this.endpoint_service_name
   vpc_endpoint_type  = "Interface"
   subnet_ids         = ["subnet-de0406d2"]
   security_group_ids = ["sg-3f238186"]
 }
 
-resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id          = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
+resource "mongodbatlas_privatelink_endpoint_service" "this" {
+  project_id          = mongodbatlas_privatelink_endpoint.this.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint.this.private_link_id
   endpoint_service_id = aws_vpc_endpoint.ptfe_service.id
   provider_name       = "AWS"
 }
@@ -42,31 +42,31 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 ## Example with Azure
 
 ```terraform
-resource "mongodbatlas_privatelink_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "this" {
   project_id    = var.project_id
   provider_name = "AZURE"
   region        = "eastus2"
 }
 
-resource "azurerm_private_endpoint" "test" {
-  name                = "endpoint-test"
-  location            = data.azurerm_resource_group.test.location
+resource "azurerm_private_endpoint" "this" {
+  name                = "endpoint-this"
+  location            = data.azurerm_resource_group.this.location
   resource_group_name = var.resource_group_name
-  subnet_id           = azurerm_subnet.test.id
+  subnet_id           = azurerm_subnet.this.id
   private_service_connection {
-    name                           = mongodbatlas_privatelink_endpoint.test.private_link_service_name
-    private_connection_resource_id = mongodbatlas_privatelink_endpoint.test.private_link_service_resource_id
+    name                           = mongodbatlas_privatelink_endpoint.this.private_link_service_name
+    private_connection_resource_id = mongodbatlas_privatelink_endpoint.this.private_link_service_resource_id
     is_manual_connection           = true
-    request_message                = "Azure Private Link test"
+    request_message                = "Azure Private Link this"
   }
 
 }
 
-resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id                  = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id             = mongodbatlas_privatelink_endpoint.test.private_link_id
-  endpoint_service_id         = azurerm_private_endpoint.test.id
-  private_endpoint_ip_address = azurerm_private_endpoint.test.private_service_connection.0.private_ip_address
+resource "mongodbatlas_privatelink_endpoint_service" "this" {
+  project_id                  = mongodbatlas_privatelink_endpoint.this.project_id
+  private_link_id             = mongodbatlas_privatelink_endpoint.this.private_link_id
+  endpoint_service_id         = azurerm_private_endpoint.this.id
+  private_endpoint_ip_address = azurerm_private_endpoint.this.private_service_connection.0.private_ip_address
   provider_name               = "AZURE"
 }
 ```
@@ -74,7 +74,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 ## Example with GCP (Legacy Architecture)
 
 ```terraform
-resource "mongodbatlas_privatelink_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "this" {
   project_id    = var.project_id
   provider_name = "GCP"
   region        = var.gcp_region
@@ -100,19 +100,19 @@ resource "google_compute_subnetwork" "default" {
 resource "google_compute_address" "default" {
   count        = 50
   project      = google_compute_subnetwork.default.project
-  name         = "tf-test${count.index}"
+  name         = "tf-this${count.index}"
   subnetwork   = google_compute_subnetwork.default.id
   address_type = "INTERNAL"
   address      = "10.0.42.${count.index}"
   region       = var.gcp_region
 
-  depends_on = [mongodbatlas_privatelink_endpoint.test]
+  depends_on = [mongodbatlas_privatelink_endpoint.this]
 }
 
 # Create 50 Forwarding rules (required for GCP legacy private endpoint architecture)
 resource "google_compute_forwarding_rule" "default" {
   count                 = 50
-  target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[count.index]
+  target                = mongodbatlas_privatelink_endpoint.this.service_attachment_names[count.index]
   project               = google_compute_address.default[count.index].project
   region                = google_compute_address.default[count.index].region
   name                  = google_compute_address.default[count.index].name
@@ -122,9 +122,9 @@ resource "google_compute_forwarding_rule" "default" {
 }
 
 
-resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id          = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
+resource "mongodbatlas_privatelink_endpoint_service" "this" {
+  project_id          = mongodbatlas_privatelink_endpoint.this.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint.this.private_link_id
   provider_name       = "GCP"
   endpoint_service_id = google_compute_network.default.name
   gcp_project_id      = var.gcp_project_id
@@ -150,7 +150,7 @@ The port-mapped architecture uses port mapping to reduce resource provisioning. 
 **Important:** For the port-mapped architecture, use `endpoint_service_id` (the forwarding rule name) and `private_endpoint_ip_address` (the IP address). The `endpoints` list is no longer used for the port-mapped architecture.
 
 ```terraform
-resource "mongodbatlas_privatelink_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "this" {
   project_id           = var.project_id
   provider_name        = "GCP"
   region               = var.gcp_region
@@ -176,18 +176,18 @@ resource "google_compute_subnetwork" "default" {
 # Create Google Address (1 address for port-mapped architecture)
 resource "google_compute_address" "default" {
   project      = google_compute_subnetwork.default.project
-  name         = "tf-test-psc-endpoint"
+  name         = "tf-this-psc-endpoint"
   subnetwork   = google_compute_subnetwork.default.id
   address_type = "INTERNAL"
   address      = "10.0.42.1"
   region       = google_compute_subnetwork.default.region
 
-  depends_on = [mongodbatlas_privatelink_endpoint.test]
+  depends_on = [mongodbatlas_privatelink_endpoint.this]
 }
 
 # Create Forwarding Rule (1 rule for port-mapped architecture)
 resource "google_compute_forwarding_rule" "default" {
-  target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[0]
+  target                = mongodbatlas_privatelink_endpoint.this.service_attachment_names[0]
   project               = google_compute_address.default.project
   region                = google_compute_address.default.region
   name                  = google_compute_address.default.name
@@ -196,13 +196,13 @@ resource "google_compute_forwarding_rule" "default" {
   load_balancing_scheme = ""
 }
 
-resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id                = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id            = mongodbatlas_privatelink_endpoint.test.private_link_id
-  provider_name              = "GCP"
-  endpoint_service_id        = google_compute_forwarding_rule.default.name
+resource "mongodbatlas_privatelink_endpoint_service" "this" {
+  project_id                  = mongodbatlas_privatelink_endpoint.this.project_id
+  private_link_id             = mongodbatlas_privatelink_endpoint.this.private_link_id
+  provider_name               = "GCP"
+  endpoint_service_id         = google_compute_forwarding_rule.default.name
   private_endpoint_ip_address = google_compute_address.default.address
-  gcp_project_id            = var.gcp_project_id
+  gcp_project_id              = var.gcp_project_id
 
   depends_on = [google_compute_forwarding_rule.default]
 }
@@ -271,7 +271,7 @@ In addition to all arguments above, the following attributes are exported:
 Private Endpoint Link Connection can be imported using project ID and username, in the format `{project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}`, e.g.
 
 ```
-$ terraform import mongodbatlas_privatelink_endpoint_service.test 1112222b3bf99403840e8934--3242342343112--vpce-4242342343--AWS
+$ terraform import mongodbatlas_privatelink_endpoint_service.this 1112222b3bf99403840e8934--3242342343112--vpce-4242342343--AWS
 ```
 
 For more information, see:

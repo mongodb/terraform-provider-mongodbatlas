@@ -2,7 +2,7 @@
 # This example demonstrates the port-mapped architecture.
 
 # Create mongodbatlas_privatelink_endpoint with port-mapped architecture
-resource "mongodbatlas_privatelink_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "this" {
   project_id           = var.project_id
   provider_name        = "GCP"
   region               = var.gcp_region
@@ -34,13 +34,13 @@ resource "google_compute_address" "default" {
   address      = var.address_ip
   region       = google_compute_subnetwork.default.region
 
-  depends_on = [mongodbatlas_privatelink_endpoint.test]
+  depends_on = [mongodbatlas_privatelink_endpoint.this]
 }
 
 # Create Forwarding Rule (1 rule for port-mapped architecture)
 # The service_attachment_names list will contain exactly one service attachment when using the port-mapped architecture.
 resource "google_compute_forwarding_rule" "default" {
-  target                = mongodbatlas_privatelink_endpoint.test.service_attachment_names[0]
+  target                = mongodbatlas_privatelink_endpoint.this.service_attachment_names[0]
   project               = google_compute_address.default.project
   region                = google_compute_address.default.region
   name                  = google_compute_address.default.name
@@ -52,9 +52,9 @@ resource "google_compute_forwarding_rule" "default" {
 # Create mongodbatlas_privatelink_endpoint_service with port-mapped architecture
 # For the port-mapped architecture, endpoint_service_id must match the forwarding rule name 
 # and private_endpoint_ip_address the IP address. The endpoints list is no longer used for the port-mapped architecture.
-resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id                  = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id             = mongodbatlas_privatelink_endpoint.test.private_link_id
+resource "mongodbatlas_privatelink_endpoint_service" "this" {
+  project_id                  = mongodbatlas_privatelink_endpoint.this.project_id
+  private_link_id             = mongodbatlas_privatelink_endpoint.this.private_link_id
   provider_name               = "GCP"
   endpoint_service_id         = google_compute_forwarding_rule.default.name
   private_endpoint_ip_address = google_compute_address.default.address
@@ -64,14 +64,14 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 data "mongodbatlas_advanced_cluster" "cluster" {
   count = var.cluster_name == "" ? 0 : 1
   # Use endpoint service as source of project_id to gather cluster data after endpoint changes are applied
-  project_id = mongodbatlas_privatelink_endpoint_service.test.project_id
+  project_id = mongodbatlas_privatelink_endpoint_service.this.project_id
   name       = var.cluster_name
 
-  depends_on = [mongodbatlas_privatelink_endpoint_service.test]
+  depends_on = [mongodbatlas_privatelink_endpoint_service.this]
 }
 
 locals {
-  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
+  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.this.endpoint_service_id
   private_endpoints   = try(flatten([for cs in data.mongodbatlas_advanced_cluster.cluster[0].connection_strings.private_endpoint : cs]), [])
 
   connection_strings = [

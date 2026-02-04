@@ -22,7 +22,7 @@ The port-mapped architecture uses:
 The key configuration is the `port_mapping_enabled = true` setting:
 
 ```hcl
-resource "mongodbatlas_privatelink_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "this" {
   project_id           = var.project_id
   provider_name        = "GCP"
   region               = var.gcp_region

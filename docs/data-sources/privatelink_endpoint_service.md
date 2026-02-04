@@ -11,7 +11,7 @@ subcategory: "Private Endpoint Services"
 ## Example with AWS
 
 ```terraform
-resource "mongodbatlas_privatelink_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "this" {
   project_id    = "<PROJECT_ID>"
   provider_name = "AWS"
   region        = "US_EAST_1"
@@ -19,23 +19,23 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 
 resource "aws_vpc_endpoint" "ptfe_service" {
   vpc_id             = "vpc-7fc0a543"
-  service_name       = mongodbatlas_privatelink_endpoint.test.endpoint_service_name
+  service_name       = mongodbatlas_privatelink_endpoint.this.endpoint_service_name
   vpc_endpoint_type  = "Interface"
   subnet_ids         = ["subnet-de0406d2"]
   security_group_ids = ["sg-3f238186"]
 }
 
-resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id          = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id     = mongodbatlas_privatelink_endpoint.test.private_link_id
+resource "mongodbatlas_privatelink_endpoint_service" "this" {
+  project_id          = mongodbatlas_privatelink_endpoint.this.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint.this.private_link_id
   endpoint_service_id = aws_vpc_endpoint.ptfe_service.id
   provider_name       = "AWS"
 }
 
-data "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id          = mongodbatlas_privatelink_endpoint_service.test.project_id
-  private_link_id     = mongodbatlas_privatelink_endpoint_service.test.private_link_id
-  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
+data "mongodbatlas_privatelink_endpoint_service" "this" {
+  project_id          = mongodbatlas_privatelink_endpoint_service.this.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint_service.this.private_link_id
+  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.this.endpoint_service_id
   provider_name       = "AWS"
 }
 ```
@@ -43,38 +43,38 @@ data "mongodbatlas_privatelink_endpoint_service" "test" {
 ## Example with Azure
 
 ```terraform
-resource "mongodbatlas_privatelink_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "this" {
   project_id    = var.project_id
   provider_name = "AZURE"
   region        = "eastus2"
 }
 
-resource "azurerm_private_endpoint" "test" {
-  name                = "endpoint-test"
-  location            = data.azurerm_resource_group.test.location
+resource "azurerm_private_endpoint" "this" {
+  name                = "endpoint-this"
+  location            = data.azurerm_resource_group.this.location
   resource_group_name = var.resource_group_name
-  subnet_id           = azurerm_subnet.test.id
+  subnet_id           = azurerm_subnet.this.id
   private_service_connection {
-    name                           = mongodbatlas_privatelink_endpoint.test.private_link_service_name
-    private_connection_resource_id = mongodbatlas_privatelink_endpoint.test.private_link_service_resource_id
+    name                           = mongodbatlas_privatelink_endpoint.this.private_link_service_name
+    private_connection_resource_id = mongodbatlas_privatelink_endpoint.this.private_link_service_resource_id
     is_manual_connection           = true
-    request_message                = "Azure Private Link test"
+    request_message                = "Azure Private Link this"
   }
 
 }
 
-resource "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id                  = mongodbatlas_privatelink_endpoint.test.project_id
-  private_link_id             = mongodbatlas_privatelink_endpoint.test.private_link_id
-  endpoint_service_id         = azurerm_private_endpoint.test.id
-  private_endpoint_ip_address = azurerm_private_endpoint.test.private_service_connection.0.private_ip_address
+resource "mongodbatlas_privatelink_endpoint_service" "this" {
+  project_id                  = mongodbatlas_privatelink_endpoint.this.project_id
+  private_link_id             = mongodbatlas_privatelink_endpoint.this.private_link_id
+  endpoint_service_id         = azurerm_private_endpoint.this.id
+  private_endpoint_ip_address = azurerm_private_endpoint.this.private_service_connection.0.private_ip_address
   provider_name               = "AZURE"
 }
 
-data "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id          = mongodbatlas_privatelink_endpoint_service.test.project_id
-  private_link_id     = mongodbatlas_privatelink_endpoint_service.test.private_link_id
-  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
+data "mongodbatlas_privatelink_endpoint_service" "this" {
+  project_id          = mongodbatlas_privatelink_endpoint_service.this.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint_service.this.private_link_id
+  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.this.endpoint_service_id
   provider_name       = "AZURE"
 }
 ```
@@ -82,10 +82,10 @@ data "mongodbatlas_privatelink_endpoint_service" "test" {
 ## Example with GCP (Legacy Architecture)
 
 ```terraform
-data "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id          = mongodbatlas_privatelink_endpoint_service.test.project_id
-  private_link_id     = mongodbatlas_privatelink_endpoint_service.test.private_link_id
-  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
+data "mongodbatlas_privatelink_endpoint_service" "this" {
+  project_id          = mongodbatlas_privatelink_endpoint_service.this.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint_service.this.private_link_id
+  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.this.endpoint_service_id
   provider_name       = "GCP"
 }
 ```
@@ -97,10 +97,10 @@ The port-mapped architecture uses port mapping to reduce resource provisioning. 
 **Important:** For the port-mapped architecture, use `endpoint_service_id` (the forwarding rule name) and `private_endpoint_ip_address` (the IP address). The `endpoints` list is no longer used for the port-mapped architecture.
 
 ```terraform
-data "mongodbatlas_privatelink_endpoint_service" "test" {
-  project_id          = mongodbatlas_privatelink_endpoint_service.test.project_id
-  private_link_id     = mongodbatlas_privatelink_endpoint_service.test.private_link_id
-  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.test.endpoint_service_id
+data "mongodbatlas_privatelink_endpoint_service" "this" {
+  project_id          = mongodbatlas_privatelink_endpoint_service.this.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint_service.this.private_link_id
+  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.this.endpoint_service_id
   provider_name       = "GCP"
 }
 ```
