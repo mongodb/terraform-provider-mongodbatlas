@@ -4,7 +4,7 @@ terraform {
       source = "mongodb/mongodbatlas"
     }
     google = {
-      source  = "hashicorp/google"
+      source = "hashicorp/google"
     }
   }
   required_version = ">= 0.13"

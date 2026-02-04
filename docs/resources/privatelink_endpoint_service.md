@@ -8,9 +8,9 @@ subcategory: "Private Endpoint Services"
 
 ~> **IMPORTANT:** This resource links your cloud provider's Private Endpoint to the MongoDB Atlas Private Endpoint Service. It does not create the service itself (this is done by `mongodbatlas_privatelink_endpoint`). You first create the service in Atlas with `mongodbatlas_privatelink_endpoint`, then the endpoint is created in your cloud provider, and you link them together with the `mongodbatlas_privatelink_endpoint_service` resource.
 
-The [private link Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/lathis) makes use of this resource and simplifies its use.
+The [private link Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/latest) makes use of this resource and simplifies its use.
 
--> **NOTE:** You must have Organization Owner or Project Owner role. Create and delete operations wait for all clusters on the project to IDLE to ensure the lathis connection strings can be retrieved (default timeout: 2hrs).
+-> **NOTE:** You must have Organization Owner or Project Owner role. Create and delete operations wait for all clusters on the project to IDLE to ensure the latest connection strings can be retrieved (default timeout: 2hrs).
 
 ~> **IMPORTANT:** For GCP, MongoDB encourages customers to use the port-mapped architecture by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource. This architecture uses a single set of resources to support up to 150 nodes. The legacy architecture requires dedicated resources for each Atlas node, which can lead to IP address exhaustion. For migration guidance, see the [GCP Private Service Connect to Port-Mapped Architecture](../guides/gcp-privatelink-port-mapping-migration.md).
 
