@@ -240,19 +240,21 @@ func configBasic(projectID, providerName, region string, portMappingEnabled *boo
 }
 
 func checkBasic(providerName, region string, portMappingEnabled *bool) resource.TestCheckFunc {
-	attrsSet := []string{"project_id", "private_link_id"}
-	attrsMap := map[string]string{
-		"provider_name": providerName,
-		"region":        region,
+	checks := []resource.TestCheckFunc{
+		checkExists(resourceName),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
+		resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+		resource.TestCheckResourceAttr(resourceName, "region", region),
+		resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "private_link_id"),
+		resource.TestCheckResourceAttr(dataSourceName, "provider_name", providerName),
 	}
 	if portMappingEnabled != nil {
-		attrsMap["port_mapping_enabled"] = strconv.FormatBool(*portMappingEnabled)
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", strconv.FormatBool(*portMappingEnabled)),
+			resource.TestCheckResourceAttr(dataSourceName, "port_mapping_enabled", strconv.FormatBool(*portMappingEnabled)),
+		)
 	}
-
-	checks := []resource.TestCheckFunc{checkExists(resourceName)}
-	checks = acc.AddAttrSetChecks(resourceName, checks, attrsSet...)
-	checks = acc.AddAttrChecks(resourceName, checks, attrsMap)
-	checks = acc.AddAttrSetChecks(dataSourceName, checks, attrsSet...)
-	checks = acc.AddAttrChecks(dataSourceName, checks, attrsMap)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
