@@ -22,7 +22,6 @@ const (
 func TestAccPrivateLinkEndpointService_completeAWS(t *testing.T) {
 	var (
 		projectID       = acc.ProjectIDExecution(t)
-		region          = os.Getenv("AWS_REGION")
 		vpcID           = os.Getenv("AWS_VPC_ID")
 		subnetID        = os.Getenv("AWS_SUBNET_ID")
 		securityGroupID = os.Getenv("AWS_SECURITY_GROUP_ID")
@@ -34,7 +33,7 @@ func TestAccPrivateLinkEndpointService_completeAWS(t *testing.T) {
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		Steps: []resource.TestStep{
 			{
-				Config: configCompleteAWS(projectID, region, vpcID, subnetID, securityGroupID),
+				Config: configCompleteAWS(projectID, vpcID, subnetID, securityGroupID),
 				Check:  checkCompleteAWS(),
 			},
 			{
@@ -124,11 +123,11 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func configCompleteAWS(projectID, region, vpcID, subnetID, securityGroupID string) string {
+func configCompleteAWS(projectID, vpcID, subnetID, securityGroupID string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_privatelink_endpoint" "this" {
 			project_id    = %[1]q
-			region        = %[2]q
+			region        = "us-east-1"
 			provider_name = "AWS"
 		}
 
@@ -139,9 +138,9 @@ func configCompleteAWS(projectID, region, vpcID, subnetID, securityGroupID strin
 		}
 
 		resource "aws_vpc_endpoint" "this" {
-			vpc_id             = %[3]q
-			subnet_ids         = [%[4]q]
-			security_group_ids = [%[5]q]
+			vpc_id             = %[2]q
+			subnet_ids         = [%[3]q]
+			security_group_ids = [%[4]q]
 			service_name       = mongodbatlas_privatelink_endpoint.this.endpoint_service_name
 			vpc_endpoint_type  = "Interface"
 		}
@@ -159,7 +158,7 @@ func configCompleteAWS(projectID, region, vpcID, subnetID, securityGroupID strin
 			endpoint_service_id = mongodbatlas_privatelink_endpoint_service.this.endpoint_service_id
 			provider_name       = mongodbatlas_privatelink_endpoint.this.provider_name
 		}
-	`, projectID, region, vpcID, subnetID, securityGroupID)
+	`, projectID, vpcID, subnetID, securityGroupID)
 }
 
 func checkCompleteAWS() resource.TestCheckFunc {
