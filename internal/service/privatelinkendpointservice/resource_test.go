@@ -13,93 +13,29 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Complete(t *testing.T) {
-	testCase := basicAWSTestCase(t)
-	resource.Test(t, *testCase)
-}
+const (
+	resourceName       = "mongodbatlas_privatelink_endpoint_service.this"
+	datasourceName     = "data." + resourceName
+	dummyVPCEndpointID = "vpce-11111111111111111"
+)
 
-func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Failed(t *testing.T) {
+func TestAccPrivateLinkEndpointService_completeAWS(t *testing.T) {
 	var (
-		resourceSuffix = "test"
-
-		providerName = "AWS"
-		projectID    = acc.ProjectIDExecution(t)
-		region       = os.Getenv("AWS_REGION")
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		CheckDestroy:             checkDestroy,
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configFailAWS(
-					projectID, providerName, region, resourceSuffix,
-				),
-				ExpectError: regexp.MustCompile("privatelink endpoint service is in a failed state: Interface endpoint vpce-11111111111111111 was not found."),
-			},
-		},
-	})
-}
-
-func TestAccNetworkRSPrivateLinkEndpointService_deleteOnCreateTimeout(t *testing.T) {
-	var (
-		resourceSuffix = "test"
-		providerName   = "AWS"
-		region         = os.Getenv("AWS_REGION")
-		// Create private link endpoint outside of test configuration to avoid cleanup issues
-		projectID, privateLinkEndpointID = acc.PrivateLinkEndpointIDExecution(t, providerName, region)
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		CheckDestroy:             checkDestroy,
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configDeleteOnCreateTimeoutWithExistingEndpoint(
-					projectID, providerName, privateLinkEndpointID, resourceSuffix, "1s", true,
-				),
-				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
-			},
-		},
-	})
-}
-
-func basicAWSTestCase(tb testing.TB) *resource.TestCase {
-	tb.Helper()
-	acc.SkipTestForCI(tb) // needs AWS configuration
-	var (
-		resourceSuffix = "test"
-		resourceName   = fmt.Sprintf("mongodbatlas_privatelink_endpoint_service.%s", resourceSuffix)
-		datasourceName = fmt.Sprintf("data.mongodbatlas_privatelink_endpoint_service.%s", resourceSuffix)
-
-		awsAccessKey = os.Getenv("AWS_ACCESS_KEY_ID")
-		awsSecretKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
-
-		providerName    = "AWS"
-		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+		projectID       = acc.ProjectIDExecution(t)
 		region          = os.Getenv("AWS_REGION")
 		vpcID           = os.Getenv("AWS_VPC_ID")
 		subnetID        = os.Getenv("AWS_SUBNET_ID")
 		securityGroupID = os.Getenv("AWS_SECURITY_GROUP_ID")
-		checkAttrs      = []string{"project_id", "private_link_id", "endpoint_service_id"}
 	)
-	checks := []resource.TestCheckFunc{checkExists(resourceName)}
-	checks = acc.AddAttrSetChecks(resourceName, checks, checkAttrs...)
-	checks = acc.AddAttrSetChecks(datasourceName, checks, checkAttrs...)
-
-	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(tb); acc.PreCheckAwsEnvPrivateLinkEndpointService(tb) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckAwsEnvPrivateLinkEndpointService(t) },
 		CheckDestroy:             checkDestroy,
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		Steps: []resource.TestStep{
 			{
-				Config: configCompleteAWS(
-					awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix,
-				),
-				Check: resource.ComposeAggregateTestCheckFunc(checks...),
+				Config: configCompleteAWS(projectID, region, vpcID, subnetID, securityGroupID),
+				Check:  checkCompleteAWS(),
 			},
 			{
 				ResourceName:            resourceName,
@@ -109,7 +45,37 @@ func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 				ImportStateVerifyIgnore: []string{"private_link_id"},
 			},
 		},
-	}
+	})
+}
+
+func TestAccPrivateLinkEndpointService_failedAWS(t *testing.T) {
+	projectID := acc.ProjectIDExecution(t)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configFailedAWS(projectID, "EU_WEST_1"), // Different region to avoid project conflicts.
+				ExpectError: regexp.MustCompile("privatelink endpoint service is in a failed state: Interface endpoint " + dummyVPCEndpointID + " was not found."),
+			},
+		},
+	})
+}
+
+func TestAccPrivateLinkEndpointService_deleteOnCreateTimeout(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				// Different region to avoid project conflicts.
+				Config:      configDeleteOnCreateTimeout(acc.PrivateLinkEndpointIDExecution(t, "AWS", "US_WEST_2")),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+		},
+	})
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
@@ -158,74 +124,85 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func configCompleteAWS(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix string) string {
+func configCompleteAWS(projectID, region, vpcID, subnetID, securityGroupID string) string {
 	return fmt.Sprintf(`
-		provider "aws" {
-			region        = "%[5]s"
-			access_key = "%[1]s"
-			secret_key = "%[2]s"
+		resource "mongodbatlas_privatelink_endpoint" "this" {
+			project_id    = %[1]q
+			region        = %[2]q
+			provider_name = "AWS"
 		}
 
-		resource "mongodbatlas_privatelink_endpoint" "test" {
-			project_id    = "%[3]s"
-			provider_name = "%[4]s"
-			region        = "%[5]s"
+		data "mongodbatlas_privatelink_endpoint" "this" {
+			project_id      = mongodbatlas_privatelink_endpoint.this.project_id
+			provider_name   = mongodbatlas_privatelink_endpoint.this.provider_name
+			private_link_id = mongodbatlas_privatelink_endpoint.this.private_link_id
 		}
 
-		resource "aws_vpc_endpoint" "ptfe_service" {
-			vpc_id             = "%[6]s"
-			service_name       = mongodbatlas_privatelink_endpoint.test.endpoint_service_name
+		resource "aws_vpc_endpoint" "this" {
+			vpc_id             = %[3]q
+			subnet_ids         = [%[4]q]
+			security_group_ids = [%[5]q]
+			service_name       = mongodbatlas_privatelink_endpoint.this.endpoint_service_name
 			vpc_endpoint_type  = "Interface"
-			subnet_ids         = ["%[7]s"]
-			security_group_ids = ["%[8]s"]
-			
 		}
 
-		resource "mongodbatlas_privatelink_endpoint_service" %[9]q {
-			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
-			endpoint_service_id   = aws_vpc_endpoint.ptfe_service.id
-			private_link_id       = mongodbatlas_privatelink_endpoint.test.id
-			provider_name         = "%[4]s"
+		resource "mongodbatlas_privatelink_endpoint_service" "this" {
+			project_id          = %[1]q
+			endpoint_service_id = aws_vpc_endpoint.this.id
+			private_link_id     = mongodbatlas_privatelink_endpoint.this.private_link_id
+			provider_name       = "AWS"
 		}
 
-		data "mongodbatlas_privatelink_endpoint_service" %[9]q {
-			project_id            = %[3]q
-			private_link_id       =  mongodbatlas_privatelink_endpoint_service.%[9]s.private_link_id
-			endpoint_service_id = mongodbatlas_privatelink_endpoint_service.%[9]s.endpoint_service_id
-			provider_name = "%[4]s"
+		data "mongodbatlas_privatelink_endpoint_service" "this" {
+			project_id          = mongodbatlas_privatelink_endpoint_service.this.project_id
+			private_link_id     = mongodbatlas_privatelink_endpoint.this.private_link_id
+			endpoint_service_id = mongodbatlas_privatelink_endpoint_service.this.endpoint_service_id
+			provider_name       = mongodbatlas_privatelink_endpoint.this.provider_name
 		}
-	`, awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, resourceSuffix)
+	`, projectID, region, vpcID, subnetID, securityGroupID)
 }
 
-func configFailAWS(projectID, providerName, region, resourceSuffix string) string {
+func checkCompleteAWS() resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		checkExists(resourceName),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttrSet(resourceName, "private_link_id"),
+		resource.TestCheckResourceAttrSet(resourceName, "endpoint_service_id"),
+		resource.TestCheckResourceAttrSet(datasourceName, "project_id"),
+		resource.TestCheckResourceAttrSet(datasourceName, "private_link_id"),
+		resource.TestCheckResourceAttrSet(datasourceName, "endpoint_service_id"),
+	)
+}
+
+func configFailedAWS(projectID, region string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_privatelink_endpoint" "test" {
 			project_id    = %[1]q
-			provider_name = %[2]q
-			region        = %[3]q
+			provider_name = "AWS"
+			region        = %[2]q
 		}
 
-		resource "mongodbatlas_privatelink_endpoint_service" %[4]q {
-			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
-			endpoint_service_id   = "vpce-11111111111111111"
-			private_link_id       = mongodbatlas_privatelink_endpoint.test.id
-			provider_name         = %[2]q
+		resource "mongodbatlas_privatelink_endpoint_service" "this" {
+			project_id          = mongodbatlas_privatelink_endpoint.test.project_id
+			endpoint_service_id = %[3]q
+			private_link_id     = mongodbatlas_privatelink_endpoint.test.id
+			provider_name       = "AWS"
 		}
-	`, projectID, providerName, region, resourceSuffix)
+	`, projectID, region, dummyVPCEndpointID)
 }
 
-func configDeleteOnCreateTimeoutWithExistingEndpoint(projectID, providerName, privateLinkEndpointID, resourceSuffix, timeout string, deleteOnTimeout bool) string {
+func configDeleteOnCreateTimeout(projectID, privateLinkEndpointID string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_privatelink_endpoint_service" %[4]q {
-			project_id            = %[1]q
-			private_link_id       = %[3]q
-			endpoint_service_id   = "vpce-11111111111111111"
-			provider_name         = %[2]q
-			delete_on_create_timeout = %[6]t
-			
+		resource "mongodbatlas_privatelink_endpoint_service" "this" {
+			project_id               = %[1]q
+			private_link_id          = %[2]q
+			endpoint_service_id      = %[3]q
+			provider_name            = "AWS"
+			delete_on_create_timeout = true
+
 			timeouts {
-				create = %[5]q
+				create = "1s"
 			}
 		}
-	`, projectID, providerName, privateLinkEndpointID, resourceSuffix, timeout, deleteOnTimeout)
+	`, projectID, privateLinkEndpointID, dummyVPCEndpointID)
 }
