@@ -124,10 +124,15 @@ func checkDestroy(s *terraform.State) error {
 }
 
 func configCompleteAWS(projectID, vpcID, subnetID, securityGroupID string) string {
+	const region = "us-east-1" // Different region to avoid project conflicts.
 	return fmt.Sprintf(`
+		provider "aws" {
+			region = %[5]q
+		}
+
 		resource "mongodbatlas_privatelink_endpoint" "this" {
 			project_id    = %[1]q
-			region        = "us-east-1"
+			region        = %[5]q
 			provider_name = "AWS"
 		}
 
@@ -158,7 +163,7 @@ func configCompleteAWS(projectID, vpcID, subnetID, securityGroupID string) strin
 			endpoint_service_id = mongodbatlas_privatelink_endpoint_service.this.endpoint_service_id
 			provider_name       = mongodbatlas_privatelink_endpoint.this.provider_name
 		}
-	`, projectID, vpcID, subnetID, securityGroupID)
+	`, projectID, vpcID, subnetID, securityGroupID, region)
 }
 
 func checkCompleteAWS() resource.TestCheckFunc {
