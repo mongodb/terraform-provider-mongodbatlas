@@ -118,25 +118,29 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err))
 	}
-
 	if err := d.Set("delete_requested", cast.ToBool(serviceEndpoint.GetDeleteRequested())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "delete_requested", endpointServiceID, err))
 	}
-
 	if err := d.Set("error_message", serviceEndpoint.GetErrorMessage()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "error_message", endpointServiceID, err))
 	}
-
 	if err := d.Set("aws_connection_status", serviceEndpoint.GetConnectionStatus()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "aws_connection_status", endpointServiceID, err))
 	}
-
+	if err := d.Set("interface_endpoint_id", serviceEndpoint.GetInterfaceEndpointId()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "interface_endpoint_id", endpointServiceID, err))
+	}
+	if err := d.Set("private_endpoint_connection_name", serviceEndpoint.GetPrivateEndpointConnectionName()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_connection_name", endpointServiceID, err))
+	}
+	if err := d.Set("private_endpoint_resource_id", serviceEndpoint.GetPrivateEndpointResourceId()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_resource_id", endpointServiceID, err))
+	}
 	switch providerName {
 	case constant.AZURE:
 		if err := d.Set("azure_status", serviceEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
 		}
-
 		if err := d.Set("private_endpoint_ip_address", serviceEndpoint.GetPrivateEndpointIPAddress()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
 		}
@@ -144,11 +148,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err := d.Set("port_mapping_enabled", serviceEndpoint.GetPortMappingEnabled()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "port_mapping_enabled", privateLinkID, err))
 		}
-
 		if err := d.Set("gcp_status", serviceEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
 		}
-
 		if serviceEndpoint.GetPortMappingEnabled() {
 			if len(serviceEndpoint.GetEndpoints()) != 1 {
 				return diag.FromErr(fmt.Errorf("unexpected API response: port-mapped architecture requires exactly one endpoint, but found %d endpoints. This is an API inconsistency. Please contact MongoDB support", len(serviceEndpoint.GetEndpoints())))
@@ -168,7 +170,6 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			}
 		}
 	}
-
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":          projectID,
 		"private_link_id":     privateLinkID,
