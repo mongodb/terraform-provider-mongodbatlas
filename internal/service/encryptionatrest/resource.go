@@ -233,7 +233,7 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 						},
 						"role_id": schema.StringAttribute{
 							Optional:            true,
-							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the Azure Service Principal that MongoDB Cloud uses to access the Azure Key Vault.",
+							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the Azure Service Principal that Atlas uses to access the Azure Key Vault.",
 						},
 					},
 				},
