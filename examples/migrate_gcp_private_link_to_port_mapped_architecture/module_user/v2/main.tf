@@ -26,16 +26,6 @@ module "private_link" {
   subnet_ip_cidr_range            = var.subnet_ip_cidr_range
 }
 
-output "legacy_endpoint_service_id" {
-  description = "Endpoint service ID for legacy architecture"
-  value       = module.private_link.legacy_endpoint_service_id
-}
-
-output "port_mapped_endpoint_service_id" {
-  description = "Endpoint service ID for port-mapped architecture"
-  value       = module.private_link.port_mapped_endpoint_service_id
-}
-
 output "private_link_id" {
   description = "Private link ID"
   value       = module.private_link.private_link_id

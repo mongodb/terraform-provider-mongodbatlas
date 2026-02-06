@@ -10,29 +10,17 @@ subcategory: "Private Endpoint Services"
 
 The [private link Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/latest) makes use of this resource and simplifies its use.
 
-~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource: <br> - Organization Owner <br> - Project Owner
+-> **NOTE:** You must have Organization Owner or Project Owner role. A network container is created for a private endpoint if one does not yet exist in the project. Before configuring a private endpoint for a new region, review the [Multi-Region Private Endpoints](https://www.mongodb.com/docs/atlas/troubleshoot-private-endpoints/#multi-region-private-endpoints) troubleshooting documentation.
 
-~> **IMPORTANT:** Before configuring a private endpoint for a new region in your cluster,
-ensure that you review the [Multi-Region Private Endpoints](https://www.mongodb.com/docs/atlas/troubleshoot-private-endpoints/#multi-region-private-endpoints) troubleshooting documentation.
-
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
--> **NOTE:** A network container is created for a private endpoint to reside in if one does not yet exist in the project.  
-
-~> **IMPORTANT:** For GCP Private Service Connect, MongoDB encourages customers to use the port-mapped architecture by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource. The port-mapped architecture, regardless of cloud provider, uses a single set of resources to support up to 150 nodes through port mapping, enabling direct targeting of specific nodes using only one customer IP address. In contrast, the GCP legacy private endpoint architecture requires dedicated resources for each Atlas node, which can lead to IP address exhaustion and requires full redeployment when changing the number of private service connections per region group. For migration guidance, see the [GCP Private Service Connect to Port-Mapped Architecture](../guides/gcp-privatelink-port-mapping-migration.md).
+~> **IMPORTANT:** For GCP, MongoDB encourages customers to use the port-mapped architecture by setting `port_mapping_enabled = true`. This architecture uses a single set of resources to support up to 150 nodes. The legacy architecture requires dedicated resources for each Atlas node, which can lead to IP address exhaustion. For migration guidance, see the [GCP Private Service Connect to Port-Mapped Architecture](../guides/gcp-privatelink-port-mapping-migration.md).
 
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_privatelink_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "this" {
   project_id    = "<PROJECT-ID>"
-  provider_name = "AWS/AZURE"
+  provider_name = "AWS/AZURE/GCP"
   region        = "US_EAST_1"
-
-  timeouts {
-    create = "30m"
-    delete = "20m"
-  }
 }
 ```
 
@@ -43,7 +31,7 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
 
 ## Argument Reference
 
-* `project_id` - Required 	Unique identifier for the project.
+* `project_id` - (Required) Unique identifier for the project, also known as `group_id` in the official documentation.
 * `provider_name` - (Required) Name of the cloud provider for which you want to create the private endpoint service. Atlas accepts `AWS`, `AZURE` or `GCP`.
 * `region` - (Required) Cloud provider region in which you want to create the private endpoint connection.
 Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws), [AZURE regions](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure) and [GCP regions](https://docs.atlas.mongodb.com/reference/google-gcp/#std-label-google-gcp)
@@ -55,41 +43,50 @@ Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amaz
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The Terraform's unique identifier used internally for state management.
-* `private_link_id` - Unique identifier of the AWS PrivateLink connection.
-* `error_message` - Error message pertaining to the AWS PrivateLink connection. Returns null if there are no errors.
-AWS: 
-  * `endpoint_service_name` - Name of the PrivateLink endpoint service in AWS. Returns null while the endpoint service is being created.
-  * `interface_endpoints` - Unique identifiers of the interface endpoints in your VPC that you added to the AWS PrivateLink connection.
-AZURE:
-  * `private_endpoints` - All private endpoints that you have added to this Azure Private Link Service.
-  * `private_link_service_name` - Name of the Azure Private Link Service that Atlas manages.
-GCP: 
-  * `endpoint_group_names` - For port-mapped architectures, this is a list of private endpoint names associated with the private endpoint service. For GCP legacy private endpoint architectures, this is a list of the endpoint group names associated with the private endpoint service.
-  * `region_name` - Region for the Private Service Connect endpoint service.
-  * `service_attachment_names` - For port-mapped architecture, this is a list containing one service attachment connected to the private endpoint service. For GCP legacy private endpoint architecture, this is a list of service attachments connected to the private endpoint service (one per Atlas node). Returns an empty list while Atlas creates the service attachments.
-* `status` - Status of the AWS PrivateLink connection, Azure Private Link Service, or GCP Private Service Connect service. Atlas returns one of the following values:
-  AWS:
-    * `AVAILABLE` 	Atlas is creating the network load balancer and VPC endpoint service.
-    * `WAITING_FOR_USER` The Atlas network load balancer and VPC endpoint service are created and ready to receive connection requests. When you receive this status, create an interface endpoint to continue configuring the AWS PrivateLink connection.
-    * `FAILED` 	A system failure has occurred.
-    * `DELETING` 	The AWS PrivateLink connection is being deleted.
-  AZURE:
-    * `AVAILABLE` 	Atlas created the load balancer and the Private Link Service.
-    * `INITIATING` 	Atlas is creating the load balancer and the Private Link Service.
-    * `FAILED` 	Atlas failed to create the load balancer and the Private Link service.
-    * `DELETING` 	Atlas is deleting the Private Link service.
-  GCP:
-    * `AVAILABLE` 	Atlas created the load balancer and the GCP Private Service Connect service.
-    * `INITIATING` 	Atlas is creating the load balancer and the GCP Private Service Connect service.
-    * `FAILED`  	Atlas failed to create the load balancer and the GCP Private Service Connect service.
-    * `DELETING` 	Atlas is deleting the GCP Private Service Connect service.
+* `id` - Terraform's internal unique identifier. Use `private_link_id` instead to reference the private endpoint connection.
+* `private_link_id` - Unique identifier of the private endpoint connection.
+* `region_name` - Region for the Private Service Connect endpoint service.
+* `error_message` - Error message pertaining to the private endpoint connection. Returns null if there are no errors.
+* `status` - Status of the private endpoint connection. See the provider-specific status values below.
+
+### AWS
+
+* `endpoint_service_name` - Name of the PrivateLink endpoint service in AWS. Returns null while the endpoint service is being created.
+* `interface_endpoints` - Unique identifiers of the interface endpoints in your VPC that you added to the AWS PrivateLink connection.
+* `status` values:
+  * `AVAILABLE` - Atlas is creating the network load balancer and VPC endpoint service.
+  * `WAITING_FOR_USER` - The Atlas network load balancer and VPC endpoint service are created and ready to receive connection requests. When you receive this status, create an interface endpoint to continue configuring the AWS PrivateLink connection.
+  * `FAILED` - A system failure has occurred.
+  * `DELETING` - The AWS PrivateLink connection is being deleted.
+
+### AZURE
+
+* `private_endpoints` - All private endpoints that you have added to this Azure Private Link Service.
+* `private_link_service_name` - Name of the Azure Private Link Service that Atlas manages.
+* `private_link_service_resource_id` - Resource ID of the Azure Private Link Service.
+* `status` values:
+  * `AVAILABLE` - Atlas created the load balancer and the Private Link Service.
+  * `INITIATING` - Atlas is creating the load balancer and the Private Link Service.
+  * `FAILED` - Atlas failed to create the load balancer and the Private Link service.
+  * `DELETING` - Atlas is deleting the Private Link service.
+
+### GCP
+
+* `endpoint_group_names` - For port-mapped architectures, this is a list of private endpoint names associated with the private endpoint service. For GCP legacy private endpoint architectures, this is a list of the endpoint group names associated with the private endpoint service.
+* `service_attachment_names` - For port-mapped architecture, this is a list containing one service attachment connected to the private endpoint service. For GCP legacy private endpoint architecture, this is a list of service attachments connected to the private endpoint service (one per Atlas node). Returns an empty list while Atlas creates the service attachments.
+* `status` values:
+  * `AVAILABLE` - Atlas created the load balancer and the GCP Private Service Connect service.
+  * `INITIATING` - Atlas is creating the load balancer and the GCP Private Service Connect service.
+  * `FAILED` - Atlas failed to create the load balancer and the GCP Private Service Connect service.
+  * `DELETING` - Atlas is deleting the GCP Private Service Connect service.
 
 ## Import
 Private Endpoint Service can be imported using project ID, private link ID, provider name and region, in the format `{project_id}-{private_link_id}-{provider_name}-{region}`, e.g.
 
 ```
-$ terraform import mongodbatlas_privatelink_endpoint.test 1112222b3bf99403840e8934-3242342343112-AWS-us-east-1
+$ terraform import mongodbatlas_privatelink_endpoint.this 1112222b3bf99403840e8934-3242342343112-AWS-us-east-1
 ```
 
-See detailed information for arguments and attributes: [MongoDB API Private Endpoint Service](https://docs.atlas.mongodb.com/reference/api/private-endpoints-service-create-one/)
+For more information, see:
+- [MongoDB API Private Endpoint Service](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupprivateendpointendpointservice) for detailed arguments and attributes.
+- [Set Up a Private Endpoint](https://www.mongodb.com/docs/atlas/security-private-endpoint/) for general guidance on private endpoints in MongoDB Atlas.

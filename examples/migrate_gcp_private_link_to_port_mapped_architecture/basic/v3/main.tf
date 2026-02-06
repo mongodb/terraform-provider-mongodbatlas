@@ -11,8 +11,9 @@ resource "mongodbatlas_privatelink_endpoint" "port_mapped" {
 
 # from v1, also used for the port-mapped architecture
 resource "google_compute_network" "default" {
-  project = var.gcp_project_id
-  name    = var.network_name
+  project                 = var.gcp_project_id
+  name                    = var.network_name
+  auto_create_subnetworks = false
 }
 
 # from v1, also used for the port-mapped architecture

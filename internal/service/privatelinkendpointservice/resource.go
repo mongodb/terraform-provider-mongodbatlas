@@ -19,7 +19,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	// TODO: update before merging to master:  "go.mongodb.org/atlas-sdk/v20250312010/admin"
+	// TODO: CLOUDP-363083 Revert to latest SDK // "go.mongodb.org/atlas-sdk/v20250312013/admin"
 	"github.com/mongodb/atlas-sdk-go/admin"
 )
 
@@ -156,7 +156,7 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	// TODO: CLOUDP-363083 Revert to latest SDK // connV2 := d.Client.AtlasV2
 	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
@@ -184,18 +184,16 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if hasPrivateEndpointIP == hasEndpoints {
 			return diag.FromErr(errors.New("for GCP, you must provide exactly one of: `private_endpoint_ip_address` (port-mapped architecture) or `endpoints` (GCP legacy private endpoint architecture)"))
 		}
-		if hasPrivateEndpointIP && !hasEndpoints {
-			createEndpointRequest.EndpointGroupName = &endpointServiceID
-			createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
-			singleEndpoint := admin.CreateGCPForwardingRuleRequest{
-				IpAddress:    conversion.Pointer(privateEndpointIP.(string)),
-				EndpointName: &endpointServiceID,
+		createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
+		createEndpointRequest.EndpointGroupName = &endpointServiceID
+		if hasPrivateEndpointIP { // Port-mapped architecture.
+			createEndpointRequest.Endpoints = &[]admin.CreateGCPForwardingRuleRequest{
+				{
+					IpAddress:    conversion.Pointer(privateEndpointIP.(string)),
+					EndpointName: &endpointServiceID,
+				},
 			}
-			endpointsList := []admin.CreateGCPForwardingRuleRequest{singleEndpoint}
-			createEndpointRequest.Endpoints = &endpointsList
 		} else {
-			createEndpointRequest.EndpointGroupName = &endpointServiceID
-			createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
 			createEndpointRequest.Endpoints = expandGCPEndpoints(endpoints.([]any))
 		}
 	}
@@ -230,7 +228,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	clusterConf := &retry.StateChangeConf{
 		Pending: []string{"REPEATING", "PENDING"},
 		Target:  []string{"IDLE", "DELETED"},
-		// TODO: update before merging to master: ResourceClusterListAdvancedRefreshFunc to advancedcluster.ResourceClusterListAdvancedRefreshFunc
+		// TODO: CLOUDP-363083 Revert ResourceClusterListAdvancedRefreshFunc to advancedcluster.ResourceClusterListAdvancedRefreshFunc
 		Refresh:    ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: delayAndMinTimeout,
@@ -253,9 +251,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	// TODO: CLOUDP-363083 Revert to latest SDK // connV2 := d.Client.AtlasV2
 	connV2 := meta.(*config.MongoDBClient).AtlasPreview
-
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
@@ -344,7 +341,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	// TODO: CLOUDP-363083 Revert // connV2 := d.Client.AtlasV2
 	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 
 	ids := conversion.DecodeStateID(d.Id())
@@ -377,7 +374,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterConf := &retry.StateChangeConf{
 			Pending: []string{"REPEATING", "PENDING"},
 			Target:  []string{"IDLE", "DELETED"},
-			// TODO: update before merging to master: ResourceClusterListAdvancedRefreshFunc to advancedcluster.ResourceClusterListAdvancedRefreshFunc
+			// TODO: CLOUDP-363083 Revert ResourceClusterListAdvancedRefreshFunc to advancedcluster.ResourceClusterListAdvancedRefreshFunc
 			Refresh:    ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: delayAndMinTimeout,
@@ -394,7 +391,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	// TODO: CLOUDP-363083 Revert to latest SDK // connV2 := d.Client.AtlasV2
 	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 
 	parts := strings.SplitN(d.Id(), "--", 4)
@@ -449,7 +446,7 @@ func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID
 			return nil, "", err
 		}
 
-		if strings.EqualFold(providerName, constant.AZURE) || strings.EqualFold(providerName, constant.GCP) {
+		if providerName == constant.AZURE || providerName == constant.GCP {
 			if i.GetStatus() != "AVAILABLE" {
 				return "", i.GetStatus(), nil
 			}
@@ -519,7 +516,7 @@ func flattenGCPEndpoints(apiObjects *[]admin.GCPConsumerForwardingRule) []any {
 	return tfList
 }
 
-// TODO: update before merging to master: delete ResourceClusterListAdvancedRefreshFunc and use advancedcluster.ResourceClusterListAdvancedRefreshFunc
+// TODO: CLOUDP-363083 Delete ResourceClusterListAdvancedRefreshFunc and use advancedcluster.ResourceClusterListAdvancedRefreshFunc
 func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		clusters, resp, err := clustersAPI.ListClusters(ctx, projectID).Execute()

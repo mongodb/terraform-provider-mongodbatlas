@@ -11,8 +11,9 @@ resource "mongodbatlas_privatelink_endpoint" "legacy" {
 
 # Create a Google Network
 resource "google_compute_network" "default" {
-  project = var.gcp_project_id
-  name    = var.network_name
+  project                 = var.gcp_project_id
+  name                    = var.network_name
+  auto_create_subnetworks = false
 }
 
 # Create a Google Sub Network

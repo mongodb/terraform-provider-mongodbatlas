@@ -24,7 +24,6 @@ The rest of this example is a step by step guide on how to migrate from legacy t
 
 - Terraform CLI >= 1.0.
 - Terraform MongoDB Atlas Provider with port-mapped architecture support.
-- Google Cloud Provider >= 4.0.
 - A MongoDB Atlas account.
 - A Google Cloud account with appropriate permissions.
 - Configure the provider (can also be done by configuring `atlas_client_id` and `atlas_client_secret` in variables).

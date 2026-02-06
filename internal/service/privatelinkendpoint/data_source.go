@@ -91,8 +91,7 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	// TODO: CLOUDP-363083 Revert // connV2 := d.Client.AtlasV2
 	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 
 	projectID := d.Get("project_id").(string)

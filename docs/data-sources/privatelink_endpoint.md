@@ -14,21 +14,22 @@ ensure that you review the [Multi-Region Private Endpoints](https://www.mongodb.
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_privatelink_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "this" {
   project_id    = "<PROJECT-ID>"
   provider_name = "AWS"
   region        = "US_EAST_1"
 }
 
-data "mongodbatlas_privatelink_endpoint" "test" {
-	project_id      = mongodbatlas_privatelink_endpoint.test.project_id
-	private_link_id = mongodbatlas_privatelink_endpoint.test.private_link_id
+data "mongodbatlas_privatelink_endpoint" "this" {
+	project_id      = mongodbatlas_privatelink_endpoint.this.project_id
+	private_link_id = mongodbatlas_privatelink_endpoint.this.private_link_id
     provider_name = "AWS"
 }
 ```
 
 ### Available complete examples
 - [Setup private connection to a MongoDB Atlas Cluster with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+- [GCP Private Service Connect Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.5.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
 
 ## Argument Reference
 

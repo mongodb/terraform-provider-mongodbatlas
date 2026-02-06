@@ -13,11 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	// TODO: update before merging to master:  "go.mongodb.org/atlas-sdk/v20250312010/admin"
+	// TODO: CLOUDP-363083 Revert to latest SDK // "go.mongodb.org/atlas-sdk/v20250312013/admin"
 	"github.com/mongodb/atlas-sdk-go/admin"
 )
 
@@ -132,7 +133,7 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	// TODO: CLOUDP-363083 Revert // connV2 := d.Client.AtlasV2
 	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
@@ -145,6 +146,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if portMappingEnabled, ok := d.GetOk("port_mapping_enabled"); ok {
 		request.PortMappingEnabled = conversion.Pointer(portMappingEnabled.(bool))
+		if request.GetPortMappingEnabled() && providerName != constant.GCP {
+			return diag.FromErr(errors.New("port_mapping_enabled is only supported for GCP provider"))
+		}
 	}
 
 	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.CreatePrivateEndpointService(ctx, projectID, request).Execute()
@@ -189,9 +193,8 @@ func resourceCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta any
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	// TODO: CLOUDP-363083 Revert // connV2 := d.Client.AtlasV2
 	connV2 := meta.(*config.MongoDBClient).AtlasPreview
-
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
@@ -270,9 +273,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
+	// TODO: CLOUDP-363083 Revert // connV2 := d.Client.AtlasV2
 	connV2 := meta.(*config.MongoDBClient).AtlasPreview
-
 	ids := conversion.DecodeStateID(d.Id())
 	privateLinkID := ids["private_link_id"]
 	projectID := ids["project_id"]
