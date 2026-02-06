@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -44,23 +45,23 @@ func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPl
 	var policies []TFPolicyModel
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("policies"), &policies)...)
 	sdkPolicies := NewAdminPolicies(ctx, policies)
-	var orgID, name *string
+	var orgID, name types.String
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("org_id"), &orgID)...)
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("name"), &name)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if name == nil || orgID == nil {
+	if name.IsUnknown() || name.IsNull() || orgID.IsUnknown() || orgID.IsNull() {
 		return
 	}
 	sdkCreate := &admin.ApiAtlasResourcePolicyCreate{
-		Name:     *name,
+		Name:     name.ValueString(),
 		Policies: sdkPolicies,
 	}
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.ResourcePoliciesApi.ValidateResourcePolicies(ctx, *orgID, sdkCreate).Execute()
+	_, _, err := connV2.ResourcePoliciesApi.ValidateResourcePolicies(ctx, orgID.ValueString(), sdkCreate).Execute()
 	if err != nil {
-		conversion.AddJSONBodyErrorToDiagnostics(fmt.Sprintf("Policy Validation failed (name=%s): ", *name), err, &resp.Diagnostics)
+		conversion.AddJSONBodyErrorToDiagnostics(fmt.Sprintf("Policy Validation failed (name=%s): ", name.ValueString()), err, &resp.Diagnostics)
 	}
 }
 
