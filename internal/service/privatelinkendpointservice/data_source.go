@@ -97,6 +97,11 @@ func DataSource() *schema.Resource {
 				Computed:    true,
 				Description: "Status of the GCP endpoint. Only populated for port-mapped architecture.",
 			},
+			"gcp_project_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Unique identifier of the GCP project in which you created your endpoints. Only applicable for GCP provider.",
+			},
 			"port_mapping_enabled": {
 				Type:        schema.TypeBool,
 				Computed:    true,
@@ -150,6 +155,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		if err := d.Set("gcp_status", serviceEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
+		}
+		if err := d.Set("gcp_project_id", serviceEndpoint.GetGcpProjectId()); err != nil {
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_project_id", endpointServiceID, err))
 		}
 		if serviceEndpoint.GetPortMappingEnabled() {
 			if len(serviceEndpoint.GetEndpoints()) != 1 {

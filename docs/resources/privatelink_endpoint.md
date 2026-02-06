@@ -19,7 +19,7 @@ The [private link Terraform module](https://registry.terraform.io/modules/terraf
 ```terraform
 resource "mongodbatlas_privatelink_endpoint" "this" {
   project_id    = "<PROJECT-ID>"
-  provider_name = "AWS/AZURE/GCP"
+  provider_name = "AWS" # or "AZURE" or "GCP"
   region        = "US_EAST_1"
 }
 ```
