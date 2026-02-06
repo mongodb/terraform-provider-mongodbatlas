@@ -79,13 +79,14 @@ func NewTFAzureKeyVaultConfigItem(az *admin.AzureKeyVault) *TFAzureKeyVaultConfi
 
 	return &TFAzureKeyVaultConfigModel{
 		Enabled:                  types.BoolPointerValue(az.Enabled),
-		ClientID:                 types.StringValue(az.GetClientID()),
+		ClientID:                 types.StringPointerValue(az.ClientID),
 		AzureEnvironment:         types.StringValue(az.GetAzureEnvironment()),
 		SubscriptionID:           types.StringValue(az.GetSubscriptionID()),
 		ResourceGroupName:        types.StringValue(az.GetResourceGroupName()),
 		KeyVaultName:             types.StringValue(az.GetKeyVaultName()),
 		KeyIdentifier:            types.StringValue(az.GetKeyIdentifier()),
-		TenantID:                 types.StringValue(az.GetTenantID()),
+		RoleID:                   types.StringPointerValue(az.RoleId),
+		TenantID:                 types.StringPointerValue(az.TenantID),
 		Secret:                   conversion.StringNullIfEmpty(az.GetSecret()),
 		RequirePrivateNetworking: types.BoolValue(az.GetRequirePrivateNetworking()),
 		Valid:                    types.BoolPointerValue(az.Valid),
@@ -156,6 +157,7 @@ func NewAtlasAzureKeyVault(tfAzKeyVaultConfigSlice []TFAzureKeyVaultConfigModel)
 		Secret:                   v.Secret.ValueStringPointer(),
 		TenantID:                 v.TenantID.ValueStringPointer(),
 		RequirePrivateNetworking: v.RequirePrivateNetworking.ValueBoolPointer(),
+		RoleId:                   v.RoleID.ValueStringPointer(),
 	}
 }
 

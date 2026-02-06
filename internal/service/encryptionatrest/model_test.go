@@ -56,6 +56,7 @@ var (
 		ResourceGroupName:        &resourceGroupName,
 		KeyVaultName:             &keyVaultName,
 		KeyIdentifier:            &keyIdentifier,
+		RoleId:                   &roleID,
 		TenantID:                 &tenantID,
 		Secret:                   &secret,
 		RequirePrivateNetworking: &requirePrivateNetworking,
@@ -71,6 +72,7 @@ var (
 		TenantID:                 types.StringValue(tenantID),
 		Secret:                   types.StringValue(secret),
 		RequirePrivateNetworking: types.BoolValue(requirePrivateNetworking),
+		RoleID:                   types.StringValue(roleID),
 	}
 	GoogleCloudKMS = &admin.GoogleCloudKMS{
 		Enabled:              &enabled,
