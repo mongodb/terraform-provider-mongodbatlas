@@ -427,8 +427,8 @@ github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx
 github.com/mmcloughlin/avo v0.5.0/go.mod h1:ChHFdoV7ql95Wi7vuq2YT1bwCJqiWdZrQ1im3VujLYM=
 github.com/mongodb-forks/digest v1.1.0 h1:7eUdsR1BtqLv0mdNm4OXs6ddWvR4X2/OsLwdKksrOoc=
 github.com/mongodb-forks/digest v1.1.0/go.mod h1:rb+EX8zotClD5Dj4NdgxnJXG9nwrlx3NWKJ8xttz1Dg=
-github.com/mongodb/atlas-sdk-go v1.0.1-0.20260202084524-df38c3f1c3e9 h1:LuP8HriRBrtLLaVa8kgZUD2HHfJ/oyYH9WJkcFGTUOA=
-github.com/mongodb/atlas-sdk-go v1.0.1-0.20260202084524-df38c3f1c3e9/go.mod h1:+l6Tn+kxjtOIwK54Wu6kk12jbP+ipY/mEHeF3wYGFW8=
+github.com/mongodb/atlas-sdk-go v1.0.1-0.20260206071432-f9aef53165c8 h1:OQExAP7CsuKeCeChloSR3RCa/v3E5rqDBPzUxKw5Thw=
+github.com/mongodb/atlas-sdk-go v1.0.1-0.20260206071432-f9aef53165c8/go.mod h1:+l6Tn+kxjtOIwK54Wu6kk12jbP+ipY/mEHeF3wYGFW8=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
@@ -586,8 +586,8 @@ go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0 h1:d/gbYJ+obR0EM/3DZf7+ZM
 go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0/go.mod h1:O47ZrMMfcWb31wznNIq2PQkkdoFoK0ea2GlmRqGJC2s=
 go.mongodb.org/atlas-sdk/v20241113005 v20241113005.0.0 h1:aaU2E4rtzYXuEDxv9MoSON2gOEAA9M2gsDf2CqjcGj8=
 go.mongodb.org/atlas-sdk/v20241113005 v20241113005.0.0/go.mod h1:eV9REWR36iVMrpZUAMZ5qPbXEatoVfmzwT+Ue8yqU+U=
-go.mongodb.org/atlas-sdk/v20250312013 v20250312013.1.0 h1:PLlmXHXUw1Cu9KerLbUYWdFM6boxcL/f8T7UxCM0Phk=
-go.mongodb.org/atlas-sdk/v20250312013 v20250312013.1.0/go.mod h1:dua7g/y3zGGBgnvMdXV2BjUVkRI4kJfGnYXMlje0Edc=
+go.mongodb.org/atlas-sdk/v20250312013 v20250312013.2.0 h1:RclCsea9qDsYn6eeHdguc/uB4MrT5+Xmm+Y1DdMV6SE=
+go.mongodb.org/atlas-sdk/v20250312013 v20250312013.2.0/go.mod h1:dua7g/y3zGGBgnvMdXV2BjUVkRI4kJfGnYXMlje0Edc=
 go.mongodb.org/realm v0.1.0 h1:zJiXyLaZrznQ+Pz947ziSrDKUep39DO4SfA0Fzx8M4M=
 go.mongodb.org/realm v0.1.0/go.mod h1:4Vj6iy+Puo1TDERcoh4XZ+pjtwbOzPpzqy3Cwe8ZmDM=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
