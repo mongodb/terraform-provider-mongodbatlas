@@ -8,102 +8,18 @@ subcategory: "Private Endpoint Services"
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
-## Example with AWS
-
-```terraform
-resource "mongodbatlas_privatelink_endpoint" "this" {
-  project_id    = "<PROJECT_ID>"
-  provider_name = "AWS"
-  region        = "US_EAST_1"
-}
-
-resource "aws_vpc_endpoint" "ptfe_service" {
-  vpc_id             = "vpc-7fc0a543"
-  service_name       = mongodbatlas_privatelink_endpoint.this.endpoint_service_name
-  vpc_endpoint_type  = "Interface"
-  subnet_ids         = ["subnet-de0406d2"]
-  security_group_ids = ["sg-3f238186"]
-}
-
-resource "mongodbatlas_privatelink_endpoint_service" "this" {
-  project_id          = mongodbatlas_privatelink_endpoint.this.project_id
-  private_link_id     = mongodbatlas_privatelink_endpoint.this.private_link_id
-  endpoint_service_id = aws_vpc_endpoint.ptfe_service.id
-  provider_name       = "AWS"
-}
-
-data "mongodbatlas_privatelink_endpoint_service" "this" {
-  project_id          = mongodbatlas_privatelink_endpoint_service.this.project_id
-  private_link_id     = mongodbatlas_privatelink_endpoint_service.this.private_link_id
-  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.this.endpoint_service_id
-  provider_name       = "AWS"
-}
-```
-
-## Example with Azure
-
-```terraform
-resource "mongodbatlas_privatelink_endpoint" "this" {
-  project_id    = var.project_id
-  provider_name = "AZURE"
-  region        = "eastus2"
-}
-
-resource "azurerm_private_endpoint" "this" {
-  name                = "endpoint-this"
-  location            = data.azurerm_resource_group.this.location
-  resource_group_name = var.resource_group_name
-  subnet_id           = azurerm_subnet.this.id
-  private_service_connection {
-    name                           = mongodbatlas_privatelink_endpoint.this.private_link_service_name
-    private_connection_resource_id = mongodbatlas_privatelink_endpoint.this.private_link_service_resource_id
-    is_manual_connection           = true
-    request_message                = "Azure Private Link this"
-  }
-
-}
-
-resource "mongodbatlas_privatelink_endpoint_service" "this" {
-  project_id                  = mongodbatlas_privatelink_endpoint.this.project_id
-  private_link_id             = mongodbatlas_privatelink_endpoint.this.private_link_id
-  endpoint_service_id         = azurerm_private_endpoint.this.id
-  private_endpoint_ip_address = azurerm_private_endpoint.this.private_service_connection.0.private_ip_address
-  provider_name               = "AZURE"
-}
-
-data "mongodbatlas_privatelink_endpoint_service" "this" {
-  project_id          = mongodbatlas_privatelink_endpoint_service.this.project_id
-  private_link_id     = mongodbatlas_privatelink_endpoint_service.this.private_link_id
-  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.this.endpoint_service_id
-  provider_name       = "AZURE"
-}
-```
-
-## Example with GCP (Legacy Architecture)
+## Example Usage
 
 ```terraform
 data "mongodbatlas_privatelink_endpoint_service" "this" {
   project_id          = mongodbatlas_privatelink_endpoint_service.this.project_id
   private_link_id     = mongodbatlas_privatelink_endpoint_service.this.private_link_id
   endpoint_service_id = mongodbatlas_privatelink_endpoint_service.this.endpoint_service_id
-  provider_name       = "GCP"
+  provider_name       = "AWS" # or "AZURE" or "GCP"
 }
 ```
 
-## Example with GCP (Port-Mapped Architecture)
-
-The port-mapped architecture uses port mapping to reduce resource provisioning. In the GCP legacy private endpoint architecture, service attachments were mapped 1:1 with Atlas nodes (one service attachment per node). In the port-mapped architecture, regardless of cloud provider, one service attachment can be mapped to up to 150 nodes via ports designated per node, enabling direct targeting of specific nodes using only one customer IP address. Enable it by setting `port_mapping_enabled = true` on the `mongodbatlas_privatelink_endpoint` resource.
-
-**Important:** For the port-mapped architecture, use `endpoint_service_id` (the forwarding rule name) and `private_endpoint_ip_address` (the IP address). The `endpoints` list is no longer used for the port-mapped architecture.
-
-```terraform
-data "mongodbatlas_privatelink_endpoint_service" "this" {
-  project_id          = mongodbatlas_privatelink_endpoint_service.this.project_id
-  private_link_id     = mongodbatlas_privatelink_endpoint_service.this.private_link_id
-  endpoint_service_id = mongodbatlas_privatelink_endpoint_service.this.endpoint_service_id
-  provider_name       = "GCP"
-}
-```
+See [`mongodbatlas_privatelink_endpoint_service` resource](../resources/privatelink_endpoint_service.md) for complete examples with each cloud provider.
 
 ### Available complete examples
 - [Setup private connection to a MongoDB Atlas Cluster with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.6.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
@@ -111,10 +27,10 @@ data "mongodbatlas_privatelink_endpoint_service" "this" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the project.
-* `private_link_id` - (Required) Unique identifier of the private endpoint service for which you want to retrieve a private endpoint.
+* `project_id` - (Required) Unique identifier for the project, also known as `group_id` in the official documentation.
+* `private_link_id` - (Required) Unique identifier of the `AWS`, `AZURE` or `GCP` PrivateLink connection which is created by `mongodbatlas_privatelink_endpoint` resource.
 * `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC. For `AWS` and `AZURE`, this is the interface endpoint identifier. For `GCP` port-mapped architecture, this is the forwarding rule name. For `GCP` legacy private endpoint architecture, this is the endpoint group name.
-* `provider_name` - (Required) Cloud provider for which you want to retrieve a private endpoint. Atlas accepts `AWS`, `AZURE` or `GCP`.
+* `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS`, `AZURE` or `GCP`.
 
 ## Attributes Reference
 
@@ -129,7 +45,7 @@ In addition to all arguments above, the following attributes are exported:
 * `error_message` - Error message pertaining to the interface endpoint. Returns null if there are no errors.
 * `aws_connection_status` - Status of the interface endpoint for AWS.
   Returns one of the following values:
-  * `NONE` - Atlas created the network load balancer and VPC endpoint service, but AWS hasn’t yet created the VPC endpoint.
+  * `NONE` - Atlas created the network load balancer and VPC endpoint service, but AWS hasn't yet created the VPC endpoint.
   * `PENDING_ACCEPTANCE` - AWS has received the connection request from your VPC endpoint to the Atlas VPC endpoint service.
   * `PENDING` - AWS is establishing the connection between your VPC endpoint and the Atlas VPC endpoint service.
   * `AVAILABLE` - Atlas VPC resources are connected to the VPC endpoint in your VPC. You can connect to Atlas clusters in this region using AWS PrivateLink.
@@ -148,6 +64,7 @@ In addition to all arguments above, the following attributes are exported:
   * `FAILED` - Atlas failed to accept the connection your private endpoint.
   * `DELETING` - Atlas is removing the connection to your private endpoint from the Private Link service.
 * `gcp_endpoint_status` - Status of the individual endpoint. Only populated for port-mapped architecture. Returns one of the following values: `INITIATING`, `AVAILABLE`, `FAILED`, `DELETING`.
+* `gcp_project_id` - Unique identifier of the GCP project in which the endpoints were created. Only applicable for GCP provider.
 * `endpoints` - Collection of individual private endpoints that comprise your network endpoint group. Only populated for GCP legacy private endpoint architecture.
   * `endpoint_name` - Forwarding rule that corresponds to the endpoint you created.
   * `ip_address` - Private IP address of the network endpoint group you created.
