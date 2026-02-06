@@ -29,7 +29,7 @@ See [`mongodbatlas_privatelink_endpoint_service` resource](../resources/privatel
 
 * `project_id` - (Required) Unique identifier for the project.
 * `private_link_id` - (Required) Unique identifier of the private endpoint service for which you want to retrieve a private endpoint.
-* `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC.
+* `endpoint_service_id` - (Required) Identifier of the endpoint resource in your cloud provider: for `AWS` and `AZURE`, the interface endpoint ID; for `GCP` port-mapped architecture, the forwarding rule name; for `GCP` legacy architecture, the network endpoint group name.
 * `provider_name` - (Required) Cloud provider for which you want to retrieve a private endpoint. Atlas accepts `AWS`, `AZURE` or `GCP`.
 
 ## Attributes Reference
