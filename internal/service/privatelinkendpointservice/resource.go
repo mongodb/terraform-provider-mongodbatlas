@@ -404,7 +404,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	endpointServiceID := parts[2]
 	providerName := parts[3]
 
-	_, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
+	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
@@ -423,6 +423,12 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 
 	if err := d.Set("provider_name", providerName); err != nil {
 		return nil, fmt.Errorf(errorEndpointSetting, "provider_name", privateLinkID, err)
+	}
+
+	if providerName == constant.GCP {
+		if err := d.Set("gcp_project_id", privateEndpoint.GetGcpProjectId()); err != nil {
+			return nil, fmt.Errorf(errorEndpointSetting, "gcp_project_id", privateLinkID, err)
+		}
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
