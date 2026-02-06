@@ -1,8 +1,11 @@
 ## (Unreleased)
 
+## 2.6.0 (February 04, 2026)
+
 NOTES:
 
 * data-source/mongodbatlas_push_based_log_export: Deprecates this data source in favor of `data.mongodbatlas_log_integration` ([#4012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4012))
+* resource/mongodbatlas_project_ip_access_lists: In-place updates are not currently supported. Modifying any attribute requires a replacement ([#4139](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4139))
 * resource/mongodbatlas_push_based_log_export: Deprecates this resource in favor of `mongodbatlas_log_integration` ([#4012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4012))
 
 FEATURES:
