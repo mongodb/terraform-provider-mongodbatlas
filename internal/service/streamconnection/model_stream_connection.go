@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -147,7 +148,8 @@ func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionM
 }
 
 // NewTFStreamConnection determines if the original model was created with instance_name or workspace_name and sets the appropriate field.
-func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig, currSchemaRegistryAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
+// The planTimeouts parameter is optional and used to preserve user-configured timeouts across create/update operations.
+func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig, currSchemaRegistryAuthConfig *types.Object, apiResp *admin.StreamsConnection, planTimeouts *timeouts.Value) (*TFStreamConnectionModel, diag.Diagnostics) {
 	streamWorkspaceName := workspaceName
 	if instanceName != "" {
 		streamWorkspaceName = instanceName
@@ -156,16 +158,23 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 	rID := fmt.Sprintf("%s-%s-%s", streamWorkspaceName, projID, conversion.SafeString(apiResp.Name))
 
 	connectionModel := TFStreamConnectionModel{
-		ID:                     types.StringValue(rID),
-		ProjectID:              types.StringValue(projID),
-		ConnectionName:         types.StringPointerValue(apiResp.Name),
-		Type:                   types.StringPointerValue(apiResp.Type),
-		ClusterName:            types.StringPointerValue(apiResp.ClusterName),
-		ClusterProjectID:       types.StringPointerValue(apiResp.ClusterGroupId),
-		BootstrapServers:       types.StringPointerValue(apiResp.BootstrapServers),
-		URL:                    types.StringPointerValue(apiResp.Url),
-		SchemaRegistryURLs:     types.ListNull(types.StringType),
-		SchemaRegistryProvider: types.StringPointerValue(apiResp.Provider),
+		TFStreamConnectionCommonModel: TFStreamConnectionCommonModel{
+			ID:                     types.StringValue(rID),
+			ProjectID:              types.StringValue(projID),
+			ConnectionName:         types.StringPointerValue(apiResp.Name),
+			Type:                   types.StringPointerValue(apiResp.Type),
+			ClusterName:            types.StringPointerValue(apiResp.ClusterName),
+			ClusterProjectID:       types.StringPointerValue(apiResp.ClusterGroupId),
+			BootstrapServers:       types.StringPointerValue(apiResp.BootstrapServers),
+			URL:                    types.StringPointerValue(apiResp.Url),
+			SchemaRegistryURLs:     types.ListNull(types.StringType),
+			SchemaRegistryProvider: types.StringPointerValue(apiResp.Provider),
+		},
+	}
+
+	// Preserve user-configured timeouts
+	if planTimeouts != nil {
+		connectionModel.Timeouts = *planTimeouts
 	}
 
 	// Set the appropriate field based on the original model
@@ -273,6 +282,15 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 	return &connectionModel, nil
 }
 
+// NewTFStreamConnectionDS creates a data source model by reusing NewTFStreamConnection and converting.
+func NewTFStreamConnectionDS(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig, currSchemaRegistryAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionDSModel, diag.Diagnostics) {
+	model, diags := NewTFStreamConnection(ctx, projID, instanceName, workspaceName, currAuthConfig, currSchemaRegistryAuthConfig, apiResp, nil)
+	if diags.HasError() {
+		return nil, diags
+	}
+	return model.ToDS(), nil
+}
+
 func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *types.Object, authResp *admin.StreamsKafkaAuthentication) (*types.Object, diag.Diagnostics) {
 	if authResp != nil {
 		resultAuthModel := TFConnectionAuthenticationModel{
@@ -329,18 +347,18 @@ func newTFSchemaRegistryAuthentication(ctx context.Context, currAuthConfig *type
 	return &nullValue, nil
 }
 
-func NewTFStreamConnections(ctx context.Context,
+func NewTFStreamConnectionsDS(ctx context.Context,
 	streamConnectionsConfig *TFStreamConnectionsDSModel,
 	paginatedResult *admin.PaginatedApiStreamsConnection) (*TFStreamConnectionsDSModel, diag.Diagnostics) {
 	input := paginatedResult.GetResults()
-	results := make([]TFStreamConnectionModel, len(input))
+	results := make([]TFStreamConnectionDSModel, len(input))
 
 	workspaceName := streamConnectionsConfig.WorkspaceName.ValueString()
 	instanceName := streamConnectionsConfig.InstanceName.ValueString()
 
 	for i := range input {
 		projectID := streamConnectionsConfig.ProjectID.ValueString()
-		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, nil, nil, &input[i])
+		connectionModel, diags := NewTFStreamConnectionDS(ctx, projectID, instanceName, workspaceName, nil, nil, &input[i])
 		if diags.HasError() {
 			return nil, diags
 		}
