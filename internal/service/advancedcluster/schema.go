@@ -82,6 +82,9 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			"config_server_type": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Describes a sharded cluster's config server type.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"connection_strings": schema.SingleNestedAttribute{
 				Computed:            true,
@@ -265,8 +268,10 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"root_cert_type": schema.StringAttribute{
-				Computed:            true,
-				Optional:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: "Root Certificate Authority that MongoDB Cloud cluster uses. MongoDB Cloud supports Internet Security Research Group.",
 			},
 			"state_name": schema.StringAttribute{

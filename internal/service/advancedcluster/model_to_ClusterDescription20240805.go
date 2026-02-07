@@ -42,7 +42,6 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		RedactClientLogData:              conversion.NilForUnknown(input.RedactClientLogData, input.RedactClientLogData.ValueBoolPointer()),
 		ReplicaSetScalingStrategy:        conversion.NilForUnknown(input.ReplicaSetScalingStrategy, input.ReplicaSetScalingStrategy.ValueStringPointer()),
 		ReplicationSpecs:                 newReplicationSpec(ctx, input.ReplicationSpecs, diags),
-		RootCertType:                     conversion.NilForUnknown(input.RootCertType, input.RootCertType.ValueStringPointer()),
 		Tags:                             newResourceTag(ctx, diags, input.Tags),
 		TerminationProtectionEnabled:     conversion.NilForUnknown(input.TerminationProtectionEnabled, input.TerminationProtectionEnabled.ValueBoolPointer()),
 		VersionReleaseSystem:             conversion.NilForUnknown(input.VersionReleaseSystem, input.VersionReleaseSystem.ValueStringPointer()),
