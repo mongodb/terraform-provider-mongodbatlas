@@ -155,6 +155,8 @@ func overrideAttributesWithPrevStateValue(ctx context.Context, modelIn, modelOut
 	if modelIn.ConfigServerManagementMode.IsNull() {
 		modelOut.ConfigServerManagementMode = types.StringNull()
 	}
+
+	modelOut.ReplicationSpecs = overrideReplicationSpecsWithPrevStateValue(ctx, modelIn.ReplicationSpecs, modelOut.ReplicationSpecs)
 }
 
 func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {
@@ -262,4 +264,41 @@ func overrideAdvancedConfigurationWithPrevStateValue(ctx context.Context, acIn, 
 		return acOut
 	}
 	return newObj
+}
+
+// overrideReplicationSpecsWithPrevStateValue preserves null zone_name in replication_specs when the user didn't configure it.
+// Without this, the API response value (e.g. "ZoneName managed by Terraform") would replace null, causing an inconsistent result after apply.
+func overrideReplicationSpecsWithPrevStateValue(ctx context.Context, specsIn, specsOut types.List) types.List {
+	if specsIn.IsNull() || specsIn.IsUnknown() || specsOut.IsNull() || specsOut.IsUnknown() {
+		return specsOut
+	}
+
+	elemsIn := specsIn.Elements()
+	elemsOut := specsOut.Elements()
+	if len(elemsIn) != len(elemsOut) {
+		return specsOut
+	}
+
+	newElems := make([]TFReplicationSpecsModel, len(elemsOut))
+	for i := range elemsOut {
+		var specIn, specOut TFReplicationSpecsModel
+		if diags := tfsdk.ValueAs(ctx, elemsIn[i], &specIn); diags.HasError() {
+			return specsOut
+		}
+		if diags := tfsdk.ValueAs(ctx, elemsOut[i], &specOut); diags.HasError() {
+			return specsOut
+		}
+
+		if specIn.ZoneName.IsNull() {
+			specOut.ZoneName = types.StringNull()
+		}
+
+		newElems[i] = specOut
+	}
+
+	newList, diags := types.ListValueFrom(ctx, replicationSpecsObjType, newElems)
+	if diags.HasError() {
+		return specsOut
+	}
+	return newList
 }
