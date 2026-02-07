@@ -28,31 +28,31 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 	return &TFModel{
 		AcceptDataRisksAndForceReplicaSetReconfig: types.StringPointerValue(conversion.TimePtrToStringPtr(input.AcceptDataRisksAndForceReplicaSetReconfig)),
 		AdvancedConfiguration:                     types.ObjectNull(advancedConfigurationObjType.AttrTypes),
-		BackupEnabled:                             types.BoolValue(conversion.SafeValue(input.BackupEnabled)),
+		BackupEnabled:                             types.BoolPointerValue(input.BackupEnabled),
 		BiConnectorConfig:                         biConnector,
-		ClusterType:                               types.StringValue(conversion.SafeValue(input.ClusterType)),
-		ConfigServerManagementMode:                types.StringValue(conversion.SafeValue(input.ConfigServerManagementMode)),
-		ConfigServerType:                          types.StringValue(conversion.SafeValue(input.ConfigServerType)),
+		ClusterType:                               types.StringPointerValue(input.ClusterType),
+		ConfigServerManagementMode:                types.StringPointerValue(input.ConfigServerManagementMode),
+		ConfigServerType:                          types.StringPointerValue(input.ConfigServerType),
 		ConnectionStrings:                         connectionStrings,
-		CreateDate:                                types.StringValue(conversion.SafeValue(conversion.TimePtrToStringPtr(input.CreateDate))),
-		EncryptionAtRestProvider:                  types.StringValue(conversion.SafeValue(input.EncryptionAtRestProvider)),
-		GlobalClusterSelfManagedSharding:          types.BoolValue(conversion.SafeValue(input.GlobalClusterSelfManagedSharding)),
-		ProjectID:                                 types.StringValue(conversion.SafeValue(input.GroupId)),
-		ClusterID:                                 types.StringValue(conversion.SafeValue(input.Id)),
+		CreateDate:                                types.StringPointerValue(conversion.TimePtrToStringPtr(input.CreateDate)),
+		EncryptionAtRestProvider:                  types.StringPointerValue(input.EncryptionAtRestProvider),
+		GlobalClusterSelfManagedSharding:          types.BoolPointerValue(input.GlobalClusterSelfManagedSharding),
+		ProjectID:                                 types.StringPointerValue(input.GroupId),
+		ClusterID:                                 types.StringPointerValue(input.Id),
 		Labels:                                    labels,
-		MongoDBMajorVersion:                       types.StringValue(conversion.SafeValue(input.MongoDBMajorVersion)),
-		MongoDBVersion:                            types.StringValue(conversion.SafeValue(input.MongoDBVersion)),
-		Name:                                      types.StringValue(conversion.SafeValue(input.Name)),
-		Paused:                                    types.BoolValue(conversion.SafeValue(input.Paused)),
-		PitEnabled:                                types.BoolValue(conversion.SafeValue(input.PitEnabled)),
-		RedactClientLogData:                       types.BoolValue(conversion.SafeValue(input.RedactClientLogData)),
-		ReplicaSetScalingStrategy:                 types.StringValue(conversion.SafeValue(input.ReplicaSetScalingStrategy)),
+		MongoDBMajorVersion:                       types.StringPointerValue(input.MongoDBMajorVersion),
+		MongoDBVersion:                            types.StringPointerValue(input.MongoDBVersion),
+		Name:                                      types.StringPointerValue(input.Name),
+		Paused:                                    types.BoolPointerValue(input.Paused),
+		PitEnabled:                                types.BoolPointerValue(input.PitEnabled),
+		RedactClientLogData:                       types.BoolPointerValue(input.RedactClientLogData),
+		ReplicaSetScalingStrategy:                 types.StringPointerValue(input.ReplicaSetScalingStrategy),
 		ReplicationSpecs:                          replicationSpecs,
-		RootCertType:                              types.StringValue(conversion.SafeValue(input.RootCertType)),
-		StateName:                                 types.StringValue(conversion.SafeValue(input.StateName)),
+		RootCertType:                              types.StringPointerValue(input.RootCertType),
+		StateName:                                 types.StringPointerValue(input.StateName),
 		Tags:                                      tags,
-		TerminationProtectionEnabled:              types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
-		VersionReleaseSystem:                      types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
+		TerminationProtectionEnabled:              types.BoolPointerValue(input.TerminationProtectionEnabled),
+		VersionReleaseSystem:                      types.StringPointerValue(input.VersionReleaseSystem),
 		PinnedFCV:                                 pinnedFCV,
 	}
 }
@@ -69,32 +69,32 @@ func newTFModelDS(ctx context.Context, input *admin.ClusterDescription20240805, 
 		return nil
 	}
 	return &TFModelDS{
-		BackupEnabled:                    types.BoolValue(conversion.SafeValue(input.BackupEnabled)),
+		BackupEnabled:                    types.BoolPointerValue(input.BackupEnabled),
 		BiConnectorConfig:                biConnector,
-		ClusterType:                      types.StringValue(conversion.SafeValue(input.ClusterType)),
-		ConfigServerManagementMode:       types.StringValue(conversion.SafeValue(input.ConfigServerManagementMode)),
-		ConfigServerType:                 types.StringValue(conversion.SafeValue(input.ConfigServerType)),
+		ClusterType:                      types.StringPointerValue(input.ClusterType),
+		ConfigServerManagementMode:       types.StringPointerValue(input.ConfigServerManagementMode),
+		ConfigServerType:                 types.StringPointerValue(input.ConfigServerType),
 		ConnectionStrings:                connectionStrings,
-		CreateDate:                       types.StringValue(conversion.SafeValue(conversion.TimePtrToStringPtr(input.CreateDate))),
-		EncryptionAtRestProvider:         types.StringValue(conversion.SafeValue(input.EncryptionAtRestProvider)),
-		GlobalClusterSelfManagedSharding: types.BoolValue(conversion.SafeValue(input.GlobalClusterSelfManagedSharding)),
-		ProjectID:                        types.StringValue(conversion.SafeValue(input.GroupId)),
-		ClusterID:                        types.StringValue(conversion.SafeValue(input.Id)),
+		CreateDate:                       types.StringPointerValue(conversion.TimePtrToStringPtr(input.CreateDate)),
+		EncryptionAtRestProvider:         types.StringPointerValue(input.EncryptionAtRestProvider),
+		GlobalClusterSelfManagedSharding: types.BoolPointerValue(input.GlobalClusterSelfManagedSharding),
+		ProjectID:                        types.StringPointerValue(input.GroupId),
+		ClusterID:                        types.StringPointerValue(input.Id),
 		Labels:                           labels,
-		MongoDBMajorVersion:              types.StringValue(conversion.SafeValue(input.MongoDBMajorVersion)),
-		MongoDBVersion:                   types.StringValue(conversion.SafeValue(input.MongoDBVersion)),
-		Name:                             types.StringValue(conversion.SafeValue(input.Name)),
-		Paused:                           types.BoolValue(conversion.SafeValue(input.Paused)),
-		PitEnabled:                       types.BoolValue(conversion.SafeValue(input.PitEnabled)),
-		RedactClientLogData:              types.BoolValue(conversion.SafeValue(input.RedactClientLogData)),
-		ReplicaSetScalingStrategy:        types.StringValue(conversion.SafeValue(input.ReplicaSetScalingStrategy)),
+		MongoDBMajorVersion:              types.StringPointerValue(input.MongoDBMajorVersion),
+		MongoDBVersion:                   types.StringPointerValue(input.MongoDBVersion),
+		Name:                             types.StringPointerValue(input.Name),
+		Paused:                           types.BoolPointerValue(input.Paused),
+		PitEnabled:                       types.BoolPointerValue(input.PitEnabled),
+		RedactClientLogData:              types.BoolPointerValue(input.RedactClientLogData),
+		ReplicaSetScalingStrategy:        types.StringPointerValue(input.ReplicaSetScalingStrategy),
 		ReplicationSpecs:                 replicationSpecs,
 		EffectiveReplicationSpecs:        effectiveReplicationSpecs,
-		RootCertType:                     types.StringValue(conversion.SafeValue(input.RootCertType)),
-		StateName:                        types.StringValue(conversion.SafeValue(input.StateName)),
+		RootCertType:                     types.StringPointerValue(input.RootCertType),
+		StateName:                        types.StringPointerValue(input.StateName),
 		Tags:                             tags,
-		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
-		VersionReleaseSystem:             types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
+		TerminationProtectionEnabled:     types.BoolPointerValue(input.TerminationProtectionEnabled),
+		VersionReleaseSystem:             types.StringPointerValue(input.VersionReleaseSystem),
 		PinnedFCV:                        pinnedFCV,
 	}
 }
@@ -104,8 +104,8 @@ func newBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, 
 		return types.ObjectNull(biConnectorConfigObjType.AttrTypes)
 	}
 	tfModel := TFBiConnectorModel{
-		Enabled:        types.BoolValue(conversion.SafeValue(input.Enabled)),
-		ReadPreference: types.StringValue(conversion.SafeValue(input.ReadPreference)),
+		Enabled:        types.BoolPointerValue(input.Enabled),
+		ReadPreference: types.StringPointerValue(input.ReadPreference),
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, biConnectorConfigObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
@@ -118,11 +118,11 @@ func newConnectionStringsObjType(ctx context.Context, input *admin.ClusterConnec
 	}
 	privateEndpoint := newPrivateEndpointObjType(ctx, input.PrivateEndpoint, diags)
 	tfModel := TFConnectionStringsModel{
-		Private:         types.StringValue(conversion.SafeValue(input.Private)),
+		Private:         types.StringPointerValue(input.Private),
 		PrivateEndpoint: privateEndpoint,
-		PrivateSrv:      types.StringValue(conversion.SafeValue(input.PrivateSrv)),
-		Standard:        types.StringValue(conversion.SafeValue(input.Standard)),
-		StandardSrv:     types.StringValue(conversion.SafeValue(input.StandardSrv)),
+		PrivateSrv:      types.StringPointerValue(input.PrivateSrv),
+		Standard:        types.StringPointerValue(input.Standard),
+		StandardSrv:     types.StringPointerValue(input.StandardSrv),
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, connectionStringsObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
@@ -210,7 +210,7 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 		}
 		tfModels[i] = TFReplicationSpecsModel{
 			RegionConfigs: regionConfigs,
-			ZoneName:      types.StringValue(conversion.SafeValue(item.ZoneName)),
+			ZoneName:      types.StringPointerValue(item.ZoneName),
 		}
 	}
 	return &tfModels
@@ -227,11 +227,11 @@ func convertEffectiveReplicationSpecs(ctx context.Context, input *[]admin.Replic
 		}
 		specContainerIDs := selectContainerIDs(&item, containerIDs)
 		tfModels[i] = TFEffectiveReplicationSpecsModel{
-			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
+			ExternalId:    types.StringPointerValue(item.Id),
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, specContainerIDs),
 			RegionConfigs: regionConfigs,
-			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
-			ZoneName:      types.StringValue(conversion.SafeValue(item.ZoneName)),
+			ZoneId:        types.StringPointerValue(item.ZoneId),
+			ZoneName:      types.StringPointerValue(item.ZoneName),
 		}
 	}
 	return &tfModels
@@ -276,11 +276,11 @@ func newPrivateEndpointObjType(ctx context.Context, input *[]admin.ClusterDescri
 	for i, item := range *input {
 		endpoints := newEndpointsObjType(ctx, item.Endpoints, diags)
 		tfModels[i] = TFPrivateEndpointModel{
-			ConnectionString:                  types.StringValue(conversion.SafeValue(item.ConnectionString)),
+			ConnectionString:                  types.StringPointerValue(item.ConnectionString),
 			Endpoints:                         endpoints,
-			SrvConnectionString:               types.StringValue(conversion.SafeValue(item.SrvConnectionString)),
-			SrvShardOptimizedConnectionString: types.StringValue(conversion.SafeValue(item.SrvShardOptimizedConnectionString)),
-			Type:                              types.StringValue(conversion.SafeValue(item.Type)),
+			SrvConnectionString:               types.StringPointerValue(item.SrvConnectionString),
+			SrvShardOptimizedConnectionString: types.StringPointerValue(item.SrvShardOptimizedConnectionString),
+			Type:                              types.StringPointerValue(item.Type),
 		}
 	}
 	listType, diagsLocal := types.ListValueFrom(ctx, privateEndpointObjType, tfModels)
@@ -296,9 +296,9 @@ func newRegionConfigModel(ctx context.Context, item *admin.CloudRegionConfig2024
 		BackingProviderName:  types.StringPointerValue(item.BackingProviderName),
 		ElectableSpecs:       newSpecsFromHwObjType(ctx, item.ElectableSpecs, diags),
 		Priority:             types.Int64PointerValue(conversion.IntPtrToInt64Ptr(item.Priority)),
-		ProviderName:         types.StringValue(conversion.SafeValue(item.ProviderName)),
+		ProviderName:         types.StringPointerValue(item.ProviderName),
 		ReadOnlySpecs:        newSpecsObjType(ctx, item.ReadOnlySpecs, diags),
-		RegionName:           types.StringValue(conversion.SafeValue(item.RegionName)),
+		RegionName:           types.StringPointerValue(item.RegionName),
 	}
 }
 
@@ -338,9 +338,9 @@ func newEndpointsObjType(ctx context.Context, input *[]admin.ClusterDescriptionC
 	tfModels := make([]TFEndpointsModel, len(*input))
 	for i, item := range *input {
 		tfModels[i] = TFEndpointsModel{
-			EndpointId:   types.StringValue(conversion.SafeValue(item.EndpointId)),
-			ProviderName: types.StringValue(conversion.SafeValue(item.ProviderName)),
-			Region:       types.StringValue(conversion.SafeValue(item.Region)),
+			EndpointId:   types.StringPointerValue(item.EndpointId),
+			ProviderName: types.StringPointerValue(item.ProviderName),
+			Region:       types.StringPointerValue(item.Region),
 		}
 	}
 	listType, diagsLocal := types.ListValueFrom(ctx, endpointsObjType, tfModels)
@@ -387,14 +387,14 @@ func newAutoScalingObjType(ctx context.Context, input *admin.AdvancedAutoScaling
 	compute := input.Compute
 	tfModel := TFAutoScalingModel{}
 	if compute != nil {
-		tfModel.ComputeMaxInstanceSize = types.StringValue(conversion.SafeValue(compute.MaxInstanceSize))
-		tfModel.ComputeMinInstanceSize = types.StringValue(conversion.SafeValue(compute.MinInstanceSize))
-		tfModel.ComputeEnabled = types.BoolValue(conversion.SafeValue(compute.Enabled))
-		tfModel.ComputeScaleDownEnabled = types.BoolValue(conversion.SafeValue(compute.ScaleDownEnabled))
+		tfModel.ComputeMaxInstanceSize = types.StringPointerValue(compute.MaxInstanceSize)
+		tfModel.ComputeMinInstanceSize = types.StringPointerValue(compute.MinInstanceSize)
+		tfModel.ComputeEnabled = types.BoolPointerValue(compute.Enabled)
+		tfModel.ComputeScaleDownEnabled = types.BoolPointerValue(compute.ScaleDownEnabled)
 	}
 	diskGB := input.DiskGB
 	if diskGB != nil {
-		tfModel.DiskGBEnabled = types.BoolValue(conversion.SafeValue(diskGB.Enabled))
+		tfModel.DiskGBEnabled = types.BoolPointerValue(diskGB.Enabled)
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, autoScalingObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
