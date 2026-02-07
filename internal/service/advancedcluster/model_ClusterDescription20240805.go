@@ -355,8 +355,8 @@ func newSpecsObjType(ctx context.Context, input *admin.DedicatedHardwareSpec2024
 	tfModel := TFSpecsModel{
 		DiskIops:      types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.DiskIOPS)),
 		DiskSizeGb:    types.Float64PointerValue(input.DiskSizeGB),
-		EbsVolumeType: types.StringValue(conversion.SafeValue(input.EbsVolumeType)),
-		InstanceSize:  types.StringValue(conversion.SafeValue(input.InstanceSize)),
+		EbsVolumeType: types.StringPointerValue(input.EbsVolumeType),
+		InstanceSize:  types.StringPointerValue(input.InstanceSize),
 		NodeCount:     types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.NodeCount)),
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, tfModel)
@@ -371,8 +371,8 @@ func newSpecsFromHwObjType(ctx context.Context, input *admin.HardwareSpec2024080
 	tfModel := TFSpecsModel{
 		DiskIops:      types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.DiskIOPS)),
 		DiskSizeGb:    types.Float64PointerValue(input.DiskSizeGB),
-		EbsVolumeType: types.StringValue(conversion.SafeValue(input.EbsVolumeType)),
-		InstanceSize:  types.StringValue(conversion.SafeValue(input.InstanceSize)),
+		EbsVolumeType: types.StringPointerValue(input.EbsVolumeType),
+		InstanceSize:  types.StringPointerValue(input.InstanceSize),
 		NodeCount:     types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.NodeCount)),
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, tfModel)
