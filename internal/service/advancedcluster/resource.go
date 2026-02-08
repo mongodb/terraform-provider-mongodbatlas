@@ -150,7 +150,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
 		ArgsDefault:           advConfig,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
-	})
+	}, plan.AdvancedConfiguration)
 	if diags.HasError() {
 		return
 	}
@@ -189,7 +189,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
 		ArgsDefault:           nil,
 		ClusterAdvancedConfig: cluster.AdvancedConfiguration,
-	})
+	}, state.AdvancedConfiguration)
 	if diags.HasError() {
 		return
 	}
@@ -278,7 +278,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
 			ArgsDefault:           advConfig,
 			ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
-		})
+		}, plan.AdvancedConfiguration)
 		if diags.HasError() {
 			return
 		}
@@ -389,16 +389,25 @@ func readAdvancedConfigIfUnset(ctx context.Context, diags *diag.Diagnostics, cli
 	p.ArgsDefault = advConfig
 }
 
-func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, p *ProcessArgs) {
-	// If AdvancedConfiguration is null (user didn't configure it), preserve null and skip API values.
-	// This happens when overrideAttributesWithPrevStateValue sets it to null in getBasicClusterModel.
-	if model.AdvancedConfiguration.IsNull() {
+// updateModelAdvancedConfig populates the model's AdvancedConfiguration from the API response.
+// configuredAdvConfig is the plan/state's advanced_configuration value used to determine whether
+// the user configured it. When null, AdvancedConfiguration stays null in the model. When not null,
+// the model is populated from the API and then null sub-fields from configuredAdvConfig are preserved.
+func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, p *ProcessArgs, configuredAdvConfig types.Object) {
+	if configuredAdvConfig.IsNull() {
+		model.AdvancedConfiguration = types.ObjectNull(advancedConfigurationObjType.AttrTypes)
 		return
 	}
 	readAdvancedConfigIfUnset(ctx, diags, client, model.ProjectID.ValueString(), model.Name.ValueString(), p)
-	if !diags.HasError() {
-		model.AdvancedConfiguration = buildAdvancedConfigObjType(ctx, p, diags)
+	if diags.HasError() {
+		return
 	}
+	model.AdvancedConfiguration = buildAdvancedConfigObjType(ctx, p, diags)
+	if diags.HasError() {
+		return
+	}
+	// Preserve null values for sub-fields the user didn't configure (e.g. only javascript_enabled was set).
+	model.AdvancedConfiguration = overrideAdvancedConfigurationWithPrevStateValue(ctx, configuredAdvConfig, model.AdvancedConfiguration)
 }
 
 func updateModelAdvancedConfigDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModelDS, p *ProcessArgs) {

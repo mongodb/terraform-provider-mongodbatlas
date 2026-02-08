@@ -104,21 +104,17 @@ func overrideAttributesWithPrevStateValue(ctx context.Context, modelIn, modelOut
 	modelOut.DeleteOnCreateTimeout = modelIn.DeleteOnCreateTimeout
 	modelOut.RetainBackupsEnabled = modelIn.RetainBackupsEnabled
 
-	// Preserve null values for Optional-only attributes bi_connector_config and advanced_configuration.
-	// In v3.0.0, these attributes are Optional-only (not Computed), so if the user
-	// didn't configure them, they should remain null in state even if the API returns values.
+	// Preserve null values for Optional-only attribute bi_connector_config.
+	// In v3.0.0, this attribute is Optional-only (not Computed), so if the user
+	// didn't configure it, it should remain null in state even if the API returns values.
 	if modelIn.BiConnectorConfig.IsNull() {
 		modelOut.BiConnectorConfig = types.ObjectNull(biConnectorConfigObjType.AttrTypes)
 	} else {
-		// Preserve null values for partially configured bi_connector_config
+		// Preserve null values for partially configured bi_connector_config.
 		modelOut.BiConnectorConfig = overrideBiConnectorConfigWithPrevStateValue(ctx, modelIn.BiConnectorConfig, modelOut.BiConnectorConfig)
 	}
-	if modelIn.AdvancedConfiguration.IsNull() {
-		modelOut.AdvancedConfiguration = types.ObjectNull(advancedConfigurationObjType.AttrTypes)
-	} else {
-		// Preserve null values for partially configured advanced_configuration
-		modelOut.AdvancedConfiguration = overrideAdvancedConfigurationWithPrevStateValue(ctx, modelIn.AdvancedConfiguration, modelOut.AdvancedConfiguration)
-	}
+	// Note: advanced_configuration null preservation is handled by updateModelAdvancedConfig
+	// because newTFModel always sets AdvancedConfiguration to null (it's populated from a separate API endpoint).
 
 	// Preserve null values for other Optional-only attributes.
 	// These were changed from Optional+Computed to Optional-only in v3.0.0.
@@ -266,8 +262,18 @@ func overrideAdvancedConfigurationWithPrevStateValue(ctx context.Context, acIn, 
 	return newObj
 }
 
-// overrideReplicationSpecsWithPrevStateValue preserves null zone_name in replication_specs when the user didn't configure it.
-// Without this, the API response value (e.g. "ZoneName managed by Terraform") would replace null, causing an inconsistent result after apply.
+// overrideReplicationSpecsWithPrevStateValue preserves null values for Optional-only attributes in replication_specs
+// when the user didn't configure them. Without this, the API response values would replace null, causing an
+// "inconsistent result after apply" error.
+//
+// Background: the provider (TF v3) always sends the Use-Effective-Fields-Replication-Specs header. When Atlas
+// receives a Create or Update with this header, it changes behavior: replicationSpecs in the response starts
+// echoing back only what Terraform sent in the request, while effectiveReplicationSpecs contains the full
+// computed values (with disk_iops, ebs_volume_type, auto_scaling defaults, etc.). However, for existing clusters
+// that have never been created or updated with this header, the Atlas API still returns replicationSpecs identical
+// to effectiveReplicationSpecs (all fields populated). This means on the first Update in TF v3 — whether from a
+// cluster-to-advanced_cluster migration, a provider v2-to-v3 upgrade, or any cluster not yet updated with the
+// header — the API response includes fields the user didn't configure, causing plan/state inconsistencies.
 func overrideReplicationSpecsWithPrevStateValue(ctx context.Context, specsIn, specsOut types.List) types.List {
 	if specsIn.IsNull() || specsIn.IsUnknown() || specsOut.IsNull() || specsOut.IsUnknown() {
 		return specsOut
@@ -293,6 +299,8 @@ func overrideReplicationSpecsWithPrevStateValue(ctx context.Context, specsIn, sp
 			specOut.ZoneName = types.StringNull()
 		}
 
+		specOut.RegionConfigs = overrideRegionConfigsWithPrevStateValue(ctx, specIn.RegionConfigs, specOut.RegionConfigs)
+
 		newElems[i] = specOut
 	}
 
@@ -301,4 +309,141 @@ func overrideReplicationSpecsWithPrevStateValue(ctx context.Context, specsIn, sp
 		return specsOut
 	}
 	return newList
+}
+
+// overrideRegionConfigsWithPrevStateValue preserves null values for Optional-only attributes within each region_config.
+func overrideRegionConfigsWithPrevStateValue(ctx context.Context, regionsIn, regionsOut types.List) types.List {
+	if regionsIn.IsNull() || regionsIn.IsUnknown() || regionsOut.IsNull() || regionsOut.IsUnknown() {
+		return regionsOut
+	}
+
+	elemsIn := regionsIn.Elements()
+	elemsOut := regionsOut.Elements()
+	if len(elemsIn) != len(elemsOut) {
+		return regionsOut
+	}
+
+	newElems := make([]TFRegionConfigsModel, len(elemsOut))
+	for i := range elemsOut {
+		var rcIn, rcOut TFRegionConfigsModel
+		if diags := tfsdk.ValueAs(ctx, elemsIn[i], &rcIn); diags.HasError() {
+			return regionsOut
+		}
+		if diags := tfsdk.ValueAs(ctx, elemsOut[i], &rcOut); diags.HasError() {
+			return regionsOut
+		}
+
+		if rcIn.AnalyticsSpecs.IsNull() {
+			rcOut.AnalyticsSpecs = types.ObjectNull(specsObjType.AttrTypes)
+		} else {
+			rcOut.AnalyticsSpecs = overrideSpecsWithPrevStateValue(ctx, rcIn.AnalyticsSpecs, rcOut.AnalyticsSpecs)
+		}
+		if rcIn.ReadOnlySpecs.IsNull() {
+			rcOut.ReadOnlySpecs = types.ObjectNull(specsObjType.AttrTypes)
+		} else {
+			rcOut.ReadOnlySpecs = overrideSpecsWithPrevStateValue(ctx, rcIn.ReadOnlySpecs, rcOut.ReadOnlySpecs)
+		}
+		if rcIn.ElectableSpecs.IsNull() {
+			rcOut.ElectableSpecs = types.ObjectNull(specsObjType.AttrTypes)
+		} else {
+			rcOut.ElectableSpecs = overrideSpecsWithPrevStateValue(ctx, rcIn.ElectableSpecs, rcOut.ElectableSpecs)
+		}
+		if rcIn.AutoScaling.IsNull() {
+			rcOut.AutoScaling = types.ObjectNull(autoScalingObjType.AttrTypes)
+		} else {
+			rcOut.AutoScaling = overrideAutoScalingWithPrevStateValue(ctx, rcIn.AutoScaling, rcOut.AutoScaling)
+		}
+		if rcIn.AnalyticsAutoScaling.IsNull() {
+			rcOut.AnalyticsAutoScaling = types.ObjectNull(autoScalingObjType.AttrTypes)
+		} else {
+			rcOut.AnalyticsAutoScaling = overrideAutoScalingWithPrevStateValue(ctx, rcIn.AnalyticsAutoScaling, rcOut.AnalyticsAutoScaling)
+		}
+		if rcIn.BackingProviderName.IsNull() {
+			rcOut.BackingProviderName = types.StringNull()
+		}
+
+		newElems[i] = rcOut
+	}
+
+	newList, diags := types.ListValueFrom(ctx, regionConfigsObjType, newElems)
+	if diags.HasError() {
+		return regionsOut
+	}
+	return newList
+}
+
+// overrideSpecsWithPrevStateValue preserves null values for Optional-only attributes within a specs block
+// (electable_specs, read_only_specs, analytics_specs) when partially configured.
+func overrideSpecsWithPrevStateValue(ctx context.Context, specsIn, specsOut types.Object) types.Object {
+	if specsIn.IsNull() || specsIn.IsUnknown() || specsOut.IsNull() || specsOut.IsUnknown() {
+		return specsOut
+	}
+
+	var in, out TFSpecsModel
+	if diags := tfsdk.ValueAs(ctx, specsIn, &in); diags.HasError() {
+		return specsOut
+	}
+	if diags := tfsdk.ValueAs(ctx, specsOut, &out); diags.HasError() {
+		return specsOut
+	}
+
+	if in.DiskIops.IsNull() {
+		out.DiskIops = types.Int64Null()
+	}
+	if in.DiskSizeGb.IsNull() {
+		out.DiskSizeGb = types.Float64Null()
+	}
+	if in.EbsVolumeType.IsNull() {
+		out.EbsVolumeType = types.StringNull()
+	}
+	if in.InstanceSize.IsNull() {
+		out.InstanceSize = types.StringNull()
+	}
+	if in.NodeCount.IsNull() {
+		out.NodeCount = types.Int64Null()
+	}
+
+	newObj, diags := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, out)
+	if diags.HasError() {
+		return specsOut
+	}
+	return newObj
+}
+
+// overrideAutoScalingWithPrevStateValue preserves null values for Optional-only attributes within an auto_scaling block
+// when partially configured.
+func overrideAutoScalingWithPrevStateValue(ctx context.Context, asIn, asOut types.Object) types.Object {
+	if asIn.IsNull() || asIn.IsUnknown() || asOut.IsNull() || asOut.IsUnknown() {
+		return asOut
+	}
+
+	var in, out TFAutoScalingModel
+	if diags := tfsdk.ValueAs(ctx, asIn, &in); diags.HasError() {
+		return asOut
+	}
+	if diags := tfsdk.ValueAs(ctx, asOut, &out); diags.HasError() {
+		return asOut
+	}
+
+	if in.ComputeEnabled.IsNull() {
+		out.ComputeEnabled = types.BoolNull()
+	}
+	if in.ComputeScaleDownEnabled.IsNull() {
+		out.ComputeScaleDownEnabled = types.BoolNull()
+	}
+	if in.ComputeMaxInstanceSize.IsNull() {
+		out.ComputeMaxInstanceSize = types.StringNull()
+	}
+	if in.ComputeMinInstanceSize.IsNull() {
+		out.ComputeMinInstanceSize = types.StringNull()
+	}
+	if in.DiskGBEnabled.IsNull() {
+		out.DiskGBEnabled = types.BoolNull()
+	}
+
+	newObj, diags := types.ObjectValueFrom(ctx, autoScalingObjType.AttrTypes, out)
+	if diags.HasError() {
+		return asOut
+	}
+	return newObj
 }
