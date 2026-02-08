@@ -2,6 +2,7 @@ package advancedcluster
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -25,7 +26,7 @@ func updateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 		projectID   = waitParams.ProjectID
 		clusterName = waitParams.ClusterName
 	)
-	if !update.IsZeroValues(p.ArgsDefault) {
+	if !isEmptyProcessArgs(p.ArgsDefault) {
 		// Read current API processArgs and recompute the diff against them.
 		// This avoids unnecessary PATCH calls when the API already has the desired values,
 		// which happens after a moved block migration where the TF state has all-null fields
@@ -35,7 +36,7 @@ func updateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 			return nil, false
 		}
 	}
-	if !update.IsZeroValues(p.ArgsDefault) {
+	if !isEmptyProcessArgs(p.ArgsDefault) {
 		changed = true
 		advConfig, _, err = client.AtlasV2.ClustersApi.UpdateProcessArgs(ctx, projectID, clusterName, p.ArgsDefault).Execute()
 		if err != nil {
@@ -51,6 +52,23 @@ func updateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 		changed = true
 	}
 	return advConfig, changed
+}
+
+// isEmptyProcessArgs checks if the processArgs request would produce an empty JSON body ("{}").
+// This is used instead of update.IsZeroValues to decide whether to call UpdateProcessArgs, because
+// IsZeroValues uses reflect.DeepEqual which can return false for structs that still serialize to "{}".
+// This happens because Go's json omitempty omits non-nil pointers to empty values (e.g., *[]string
+// pointing to []string{} is omitted), while reflect.DeepEqual treats &[]string{} as different from nil.
+// Without this check, a PATCH with an empty body "{}" would be sent to the processArgs API unnecessarily.
+func isEmptyProcessArgs(req *admin.ClusterDescriptionProcessArgs20240805) bool {
+	if req == nil {
+		return true
+	}
+	b, err := json.Marshal(req)
+	if err != nil {
+		return false
+	}
+	return string(b) == "{}"
 }
 
 // recalculatePatchProcessArgs reads the current API processArgs and recomputes the diff against the proposed patch.
