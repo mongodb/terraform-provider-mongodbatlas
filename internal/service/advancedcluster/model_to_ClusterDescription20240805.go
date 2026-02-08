@@ -3,6 +3,7 @@ package advancedcluster
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"go.mongodb.org/atlas-sdk/v20250312013/admin"
 
@@ -84,6 +85,10 @@ func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnos
 	}
 }
 
+// newComponentLabel converts a TF map to an SDK labels slice.
+// Results are sorted by key to ensure deterministic ordering, since Go map iteration is random.
+// Without sorting, PatchPayload's jsondiff would detect false changes from different orderings
+// between state and plan, causing unnecessary cluster PATCH calls.
 func newComponentLabel(ctx context.Context, diags *diag.Diagnostics, input types.Map) *[]admin.ComponentLabel {
 	elms := make(map[string]types.String, len(input.Elements()))
 	localDiags := input.ElementsAs(ctx, &elms, false)
@@ -91,14 +96,20 @@ func newComponentLabel(ctx context.Context, diags *diag.Diagnostics, input types
 	if diags.HasError() {
 		return nil
 	}
-	ret := make([]admin.ComponentLabel, 0, len(input.Elements()))
-	for key, value := range elms {
+	keys := make([]string, 0, len(elms))
+	for key := range elms {
 		if key == LegacyIgnoredLabelKey {
 			diags.AddError(ErrLegacyIgnoreLabel.Error(), ErrLegacyIgnoreLabel.Error())
 			return nil
 		}
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	ret := make([]admin.ComponentLabel, 0, len(keys))
+	for _, key := range keys {
+		value := elms[key]
 		ret = append(ret, admin.ComponentLabel{
-			Key:   &key,
+			Key:   conversion.StringPtr(key),
 			Value: value.ValueStringPointer(),
 		})
 	}
@@ -133,6 +144,10 @@ func resolveZoneNameOrUseDefault(item *TFReplicationSpecsModel) string {
 	return *zoneName
 }
 
+// newResourceTag converts a TF map to an SDK tags slice.
+// Results are sorted by key to ensure deterministic ordering, since Go map iteration is random.
+// Without sorting, PatchPayload's jsondiff would detect false changes from different orderings
+// between state and plan, causing unnecessary cluster PATCH calls.
 func newResourceTag(ctx context.Context, diags *diag.Diagnostics, input types.Map) *[]admin.ResourceTag {
 	elms := make(map[string]types.String, len(input.Elements()))
 	localDiags := input.ElementsAs(ctx, &elms, false)
@@ -140,8 +155,14 @@ func newResourceTag(ctx context.Context, diags *diag.Diagnostics, input types.Ma
 	if diags.HasError() {
 		return nil
 	}
-	ret := make([]admin.ResourceTag, 0, len(input.Elements()))
-	for key, value := range elms {
+	keys := make([]string, 0, len(elms))
+	for key := range elms {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	ret := make([]admin.ResourceTag, 0, len(keys))
+	for _, key := range keys {
+		value := elms[key]
 		ret = append(ret, admin.ResourceTag{
 			Key:   key,
 			Value: value.ValueString(),
