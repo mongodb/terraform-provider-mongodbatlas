@@ -26,6 +26,16 @@ func updateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 		clusterName = waitParams.ClusterName
 	)
 	if !update.IsZeroValues(p.ArgsDefault) {
+		// Read current API processArgs and recompute the diff against them.
+		// This avoids unnecessary PATCH calls when the API already has the desired values,
+		// which happens after a moved block migration where the TF state has all-null fields
+		// but the API already has the correct values from the source resource.
+		p.ArgsDefault = recalculatePatchProcessArgs(ctx, diags, client, projectID, clusterName, p.ArgsDefault)
+		if diags.HasError() {
+			return nil, false
+		}
+	}
+	if !update.IsZeroValues(p.ArgsDefault) {
 		changed = true
 		advConfig, _, err = client.AtlasV2.ClustersApi.UpdateProcessArgs(ctx, projectID, clusterName, p.ArgsDefault).Execute()
 		if err != nil {
@@ -41,6 +51,24 @@ func updateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 		changed = true
 	}
 	return advConfig, changed
+}
+
+// recalculatePatchProcessArgs reads the current API processArgs and recomputes the diff against the proposed patch.
+// This ensures we only send a PATCH when there's an actual change. PatchPayload only considers Add and Replace
+// operations as changes (not Remove), so comparing the full API response against a partial patch request is safe —
+// fields not in the patch (nil → absent from JSON → Remove operation) are ignored.
+func recalculatePatchProcessArgs(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, patchReq *admin.ClusterDescriptionProcessArgs20240805) *admin.ClusterDescriptionProcessArgs20240805 {
+	currentArgs, _, err := client.AtlasV2.ClustersApi.GetProcessArgs(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		diags.AddError(errorAdvancedConfRead, defaultAPIErrorDetails(clusterName, err))
+		return nil
+	}
+	recalculated, err := update.PatchPayload(currentArgs, patchReq)
+	if err != nil {
+		diags.AddError("error recalculating processArgs patch", err.Error())
+		return nil
+	}
+	return recalculated
 }
 
 func readIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, configNew *admin.ClusterDescriptionProcessArgs20240805) (latest *admin.ClusterDescriptionProcessArgs20240805) {
