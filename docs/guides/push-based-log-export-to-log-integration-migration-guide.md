@@ -37,7 +37,7 @@ This migration uses a **create-before-destroy** pattern rather than a `moved` bl
 
 ## Migration Steps
 
-For complete working examples, see the [basic migration example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_push_based_log_export_to_log_integration/basic).
+For complete working examples, see the [migration examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_push_based_log_export_to_log_integration/).
 
 ### Step 1: Create the New Resource
 
