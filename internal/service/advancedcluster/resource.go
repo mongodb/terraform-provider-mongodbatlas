@@ -236,7 +236,17 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		case diff.upgradeTenantReq != nil:
 			clusterResp = upgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
 		case diff.clusterPatchOnlyReq != nil:
-			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
+			// Recalculate the cluster patch against current API values to avoid unnecessary PATCH calls.
+			// After a state upgrade (v1→v3), Optional-only attributes like backup_enabled may be null in state
+			// but the API already has the correct values, producing false diffs. Recalculating against the API
+			// filters out these no-op changes.
+			recalculated := recalculateClusterPatch(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, diff.planReq)
+			if diags.HasError() {
+				return
+			}
+			if recalculated != nil {
+				clusterResp = r.applyClusterChanges(ctx, diags, recalculated, waitParams)
+			}
 		}
 		if diags.HasError() {
 			return
@@ -463,6 +473,7 @@ func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.D
 
 type clusterDiff struct {
 	clusterPatchOnlyReq       *admin.ClusterDescription20240805
+	planReq                   *admin.ClusterDescription20240805 // full plan SDK request, used to recalculate patch against API.
 	upgradeTenantReq          *admin.LegacyAtlasTenantClusterUpgradeRequest
 	upgradeFlexToDedicatedReq *admin.AtlasTenantClusterUpgradeRequest20240805
 	isUpgradeTenantToFlex     bool
@@ -505,7 +516,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	if upgradeTenantReq := getUpgradeTenantRequest(stateReq, patchReq); upgradeTenantReq != nil {
 		return clusterDiff{upgradeTenantReq: upgradeTenantReq}
 	}
-	return clusterDiff{clusterPatchOnlyReq: patchReq}
+	return clusterDiff{clusterPatchOnlyReq: patchReq, planReq: planReq}
 }
 
 func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {

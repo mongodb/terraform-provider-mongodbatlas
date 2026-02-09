@@ -89,6 +89,30 @@ func recalculatePatchProcessArgs(ctx context.Context, diags *diag.Diagnostics, c
 	return recalculated
 }
 
+// recalculateClusterPatch reads the current cluster from the API and recomputes the diff against the proposed patch.
+// This avoids unnecessary PATCH calls when the API already has the desired values, which happens after a state
+// upgrade (v1→v3) where the TF state has null values for Optional-only attributes (e.g., backup_enabled) but
+// the API already has the correct values. The state/plan diff produces false changes because the state was
+// overridden to null by overrideAttributesWithPrevStateValue.
+// Similarly, zone_name defaults to "ZoneName managed by Terraform" in the plan when the user doesn't configure it,
+// which differs from the API's actual zone_name, producing a false replicationSpecs change.
+func recalculateClusterPatch(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, planReq *admin.ClusterDescription20240805) *admin.ClusterDescription20240805 {
+	currentCluster, _, err := client.AtlasV2.ClustersApi.GetCluster(ctx, projectID, clusterName).Execute()
+	if err != nil {
+		diags.AddError(errorReadResource, defaultAPIErrorDetails(clusterName, err))
+		return nil
+	}
+	patchOptions := update.PatchOptions{
+		IgnoreInStatePrefix: []string{"replicationSpecs"},
+	}
+	recalculated, err := update.PatchPayload(currentCluster, planReq, patchOptions)
+	if err != nil {
+		diags.AddError("error recalculating cluster patch", err.Error())
+		return nil
+	}
+	return recalculated
+}
+
 func readIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, configNew *admin.ClusterDescriptionProcessArgs20240805) (latest *admin.ClusterDescriptionProcessArgs20240805) {
 	var err error
 	if configNew == nil {
