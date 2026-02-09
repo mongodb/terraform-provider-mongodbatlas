@@ -64,9 +64,20 @@ func newClusterAdvancedConfiguration(ctx context.Context, objInput *types.Object
 	return &admin.ApiAtlasClusterAdvancedConfiguration{
 		MinimumEnabledTlsProtocol:      conversion.NilForUnknown(inputAdvConfig.MinimumEnabledTlsProtocol, inputAdvConfig.MinimumEnabledTlsProtocol.ValueStringPointer()),
 		TlsCipherConfigMode:            conversion.NilForUnknown(inputAdvConfig.TlsCipherConfigMode, inputAdvConfig.TlsCipherConfigMode.ValueStringPointer()),
-		CustomOpensslCipherConfigTls12: conversion.Pointer(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls12)),
-		CustomOpensslCipherConfigTls13: conversion.Pointer(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls13)),
+		CustomOpensslCipherConfigTls12: stringSliceFromSet(ctx, inputAdvConfig.CustomOpensslCipherConfigTls12),
+		CustomOpensslCipherConfigTls13: stringSliceFromSet(ctx, inputAdvConfig.CustomOpensslCipherConfigTls13),
 	}
+}
+
+// stringSliceFromSet returns nil when the set is null or unknown (user didn't configure it), avoiding
+// false diffs in PatchPayload. conversion.Pointer(TypesSetToString(...)) always produces &[]string{}
+// for null sets, which differs from the API's nil or populated cipher list.
+func stringSliceFromSet(ctx context.Context, set types.Set) *[]string {
+	if set.IsNull() || set.IsUnknown() {
+		return nil
+	}
+	result := conversion.TypesSetToString(ctx, set)
+	return &result
 }
 
 func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.BiConnector {
