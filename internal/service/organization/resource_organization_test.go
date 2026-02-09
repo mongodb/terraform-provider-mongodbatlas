@@ -378,6 +378,7 @@ func configBasic(orgOwnerID, name, description, roleNames string, useSkipDefault
 		name = %q
 		description = %q
 		role_names = [%q]
+		service_account_secret_expires_after_hours = 8760
 		
 		%s
 	  }
@@ -393,6 +394,7 @@ func configWithSettings(orgOwnerID, name, description, roleNames string, setting
 		name = %q
 		description = %q
 		role_names = [%q]
+		service_account_secret_expires_after_hours = 8760
 		%s
 	  }
 	`, orgOwnerID, name, description, roleNames, settingsStr)
@@ -487,7 +489,7 @@ func checkAggr(orgOwnerID, name, description string, settings *admin.Organizatio
 		checkExists(resourceName),
 	}
 	checks = acc.AddAttrChecks(resourceName, checks, attributes)
-	checks = acc.AddAttrSetChecks(resourceName, checks, "role_names.#")
+	checks = acc.AddAttrSetChecks(resourceName, checks, "role_names.#", "client_id", "client_secret")
 	checks = append(checks, extra...)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }

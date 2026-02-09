@@ -18,8 +18,8 @@ import (
 )
 
 var (
-	attrsCreateRequired = []string{"org_owner_id", "description", "role_names"} // name not included as it's already required in the schema.
-	attrsCreateOnly     = []string{"org_owner_id", "description", "role_names", "federation_settings_id"}
+	attrsCreateRequired = []string{"org_owner_id", "description", "role_names", "service_account_secret_expires_after_hours"} // name not included as it's already required in the schema.
+	attrsCreateOnly     = []string{"org_owner_id", "description", "role_names", "federation_settings_id", "service_account_secret_expires_after_hours"}
 )
 
 func Resource() *schema.Resource {
@@ -100,6 +100,20 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"service_account_secret_expires_after_hours": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"client_id": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+			"client_secret": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -127,6 +141,17 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	if err := d.Set("public_key", organization.ApiKey.GetPublicKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
+	}
+	if sa, ok := organization.GetServiceAccountOk(); ok {
+		if err := d.Set("client_id", sa.GetClientId()); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `client_id`: %s", err))
+		}
+		secrets := sa.GetSecrets()
+		if len(secrets) > 0 {
+			if err := d.Set("client_secret", secrets[0].GetSecret()); err != nil {
+				return diag.FromErr(fmt.Errorf("error setting `client_secret`: %s", err))
+			}
+		}
 	}
 	conn = getAtlasV2Connection(d, meta) // Using new credentials from the created organization.
 	orgID := organization.Organization.GetId()
@@ -266,6 +291,13 @@ func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizat
 
 	if federationSettingsID, ok := d.Get("federation_settings_id").(string); ok && federationSettingsID != "" {
 		createRequest.FederationSettingsId = &federationSettingsID
+	}
+
+	createRequest.ServiceAccount = &admin.OrgServiceAccountRequest{
+		Name:                    d.Get("name").(string),
+		Description:             d.Get("description").(string),
+		Roles:                   conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()),
+		SecretExpiresAfterHours: d.Get("service_account_secret_expires_after_hours").(int),
 	}
 
 	return createRequest
