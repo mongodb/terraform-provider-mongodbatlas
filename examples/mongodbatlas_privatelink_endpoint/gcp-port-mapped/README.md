@@ -102,3 +102,8 @@ Once you are finished your testing, ensure you destroy the resources to avoid un
 ``` bash
 $ terraform destroy
 ```
+
+## References
+
+- [Set Up a Private Endpoint for GCP (MongoDB Atlas Documentation)](https://www.mongodb.com/docs/atlas/security-private-endpoint/?cloud-provider=gcp)
+- [Migration Guide: GCP Private Service Connect to Port-Mapped Architecture](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/gcp-privatelink-port-mapping-migration)
