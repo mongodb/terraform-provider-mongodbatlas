@@ -8,7 +8,10 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312013/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -181,4 +184,88 @@ func TestNewTFModelDSPEmptyModel(t *testing.T) {
 	unit.AssertDiagsOK(t, diags)
 	assert.Empty(t, resultModel.ResourcePolicies)
 	assert.Equal(t, orgID, resultModel.OrgID.ValueString())
+}
+
+func TestModifyPlan_SkipsValidationWhenValuesUnknownOrNull(t *testing.T) {
+	testCases := map[string]struct {
+		orgIDValue any
+		nameValue  any
+	}{
+		"unknown org_id": {
+			orgIDValue: tftypes.UnknownValue,
+			nameValue:  "test-name",
+		},
+		"unknown name": {
+			orgIDValue: "65def6ce0f722a1507105aa5",
+			nameValue:  tftypes.UnknownValue,
+		},
+		"null org_id": {
+			orgIDValue: nil,
+			nameValue:  "test-name",
+		},
+		"null name": {
+			orgIDValue: "65def6ce0f722a1507105aa5",
+			nameValue:  nil,
+		},
+		"both unknown": {
+			orgIDValue: tftypes.UnknownValue,
+			nameValue:  tftypes.UnknownValue,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			plan := buildResourcePolicyPlan(t, tc.orgIDValue, tc.nameValue)
+			req := resource.ModifyPlanRequest{Plan: plan}
+			resp := &resource.ModifyPlanResponse{Plan: plan}
+
+			rs := resourcepolicy.Resource()
+			rsMp, ok := rs.(resource.ResourceWithModifyPlan)
+			if !ok {
+				t.Fatal("resource does not implement ResourceWithModifyPlan")
+			}
+			rsMp.ModifyPlan(t.Context(), req, resp)
+
+			assert.False(t, resp.Diagnostics.HasError())
+		})
+	}
+}
+
+func buildResourcePolicyPlan(t *testing.T, orgIDValue, nameValue any) tfsdk.Plan {
+	t.Helper()
+	ctx := t.Context()
+	schema := resourcepolicy.ResourceSchema(ctx)
+	userMetadataType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"id":   tftypes.String,
+			"name": tftypes.String,
+		},
+	}
+	policyType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"body": tftypes.String,
+			"id":   tftypes.String,
+		},
+	}
+	raw := tftypes.NewValue(schema.Type().TerraformType(ctx), map[string]tftypes.Value{
+		"org_id":               tftypes.NewValue(tftypes.String, orgIDValue),
+		"name":                 tftypes.NewValue(tftypes.String, nameValue),
+		"description":          tftypes.NewValue(tftypes.String, nil),
+		"id":                   tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+		"version":              tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+		"created_date":         tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+		"last_updated_date":    tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+		"created_by_user":      tftypes.NewValue(userMetadataType, tftypes.UnknownValue),
+		"last_updated_by_user": tftypes.NewValue(userMetadataType, tftypes.UnknownValue),
+		"policies": tftypes.NewValue(tftypes.List{ElementType: policyType}, []tftypes.Value{
+			tftypes.NewValue(policyType, map[string]tftypes.Value{
+				"body": tftypes.NewValue(tftypes.String, "forbid(principal, action, resource);"),
+				"id":   tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			}),
+		}),
+	})
+	return tfsdk.Plan{
+		Schema: schema,
+		Raw:    raw,
+	}
 }
