@@ -187,6 +187,6 @@ Once you have verified that the port-mapped endpoint works correctly and your ap
 
 ## Additional Resources
 
-- [Set Up a Private Endpoint (MongoDB Atlas Documentation)](https://www.mongodb.com/docs/atlas/security-private-endpoint/)
+- [Set Up a Private Endpoint for GCP (MongoDB Atlas Documentation)](https://www.mongodb.com/docs/atlas/security-private-endpoint/?cloud-provider=gcp)
 - [Private Endpoint Resource Documentation](../resources/privatelink_endpoint.md)
 - [Private Endpoint Service Resource Documentation](../resources/privatelink_endpoint_service.md)
