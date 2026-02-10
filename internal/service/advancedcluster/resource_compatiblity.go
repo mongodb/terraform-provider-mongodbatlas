@@ -151,6 +151,9 @@ func overrideAttributesWithPrevStateValue(ctx context.Context, modelIn, modelOut
 	if modelIn.ConfigServerManagementMode.IsNull() {
 		modelOut.ConfigServerManagementMode = types.StringNull()
 	}
+	if modelIn.PinnedFCV.IsNull() {
+		modelOut.PinnedFCV = types.ObjectNull(pinnedFCVObjType.AttrTypes)
+	}
 
 	modelOut.ReplicationSpecs = overrideReplicationSpecsWithPrevStateValue(ctx, modelIn.ReplicationSpecs, modelOut.ReplicationSpecs)
 }
@@ -275,8 +278,11 @@ func overrideAdvancedConfigurationWithPrevStateValue(ctx context.Context, acIn, 
 // cluster-to-advanced_cluster migration, a provider v2-to-v3 upgrade, or any cluster not yet updated with the
 // header — the API response includes fields the user didn't configure, causing plan/state inconsistencies.
 func overrideReplicationSpecsWithPrevStateValue(ctx context.Context, specsIn, specsOut types.List) types.List {
-	if specsIn.IsNull() || specsIn.IsUnknown() || specsOut.IsNull() || specsOut.IsUnknown() {
+	if specsOut.IsNull() || specsOut.IsUnknown() {
 		return specsOut
+	}
+	if specsIn.IsNull() || specsIn.IsUnknown() {
+		return nullifyOptionalOnlyInReplicationSpecs(ctx, specsOut)
 	}
 
 	elemsIn := specsIn.Elements()
@@ -304,6 +310,27 @@ func overrideReplicationSpecsWithPrevStateValue(ctx context.Context, specsIn, sp
 		newElems[i] = specOut
 	}
 
+	newList, diags := types.ListValueFrom(ctx, replicationSpecsObjType, newElems)
+	if diags.HasError() {
+		return specsOut
+	}
+	return newList
+}
+
+// nullifyOptionalOnlyInReplicationSpecs nullifies Optional-only attributes in replication_specs when the previous
+// state has no replication_specs (e.g., after a state upgrade). Currently, zone_name is the only Optional-only
+// attribute at the replication_specs level.
+func nullifyOptionalOnlyInReplicationSpecs(ctx context.Context, specsOut types.List) types.List {
+	elemsOut := specsOut.Elements()
+	newElems := make([]TFReplicationSpecsModel, len(elemsOut))
+	for i := range elemsOut {
+		var specOut TFReplicationSpecsModel
+		if diags := tfsdk.ValueAs(ctx, elemsOut[i], &specOut); diags.HasError() {
+			return specsOut
+		}
+		specOut.ZoneName = types.StringNull()
+		newElems[i] = specOut
+	}
 	newList, diags := types.ListValueFrom(ctx, replicationSpecsObjType, newElems)
 	if diags.HasError() {
 		return specsOut

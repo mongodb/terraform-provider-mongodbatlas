@@ -50,8 +50,7 @@ func stateUpgrader(ctx context.Context, req resource.UpgradeStateRequest, resp *
 var stateAttrs = map[string]tftypes.Type{
 	"project_id":             tftypes.String, // project_id and name to identify the cluster.
 	"name":                   tftypes.String,
-	"retain_backups_enabled": tftypes.Bool,   // TF specific so can't be got in Read.
-	"mongo_db_major_version": tftypes.String, // Has special logic in overrideAttributesWithPrevStateValue that needs the previous state.
+	"retain_backups_enabled": tftypes.Bool, // TF specific so can't be got in Read.
 	"timeouts": tftypes.Object{ // TF specific so can't be got in Read.
 		AttributeTypes: map[string]tftypes.Type{
 			"create": tftypes.String,
@@ -85,10 +84,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	if diags.HasError() {
 		return
 	}
-	model.AdvancedConfiguration = buildAdvancedConfigObjType(ctx, &ProcessArgs{
-		ArgsDefault:           nil,
-		ClusterAdvancedConfig: nil,
-	}, diags)
+	model.AdvancedConfiguration = types.ObjectNull(advancedConfigurationObjType.AttrTypes)
 	model.Timeouts = getTimeoutFromStateObj(stateObj)
 	if diags.HasError() {
 		return
@@ -141,8 +137,5 @@ func getTimeoutFromStateObj(stateObj map[string]tftypes.Value) timeouts.Value {
 func setOptionalModelAttrs(stateObj map[string]tftypes.Value, model *TFModel) {
 	if retainBackupsEnabled := schemafunc.GetAttrFromStateObj[bool](stateObj, "retain_backups_enabled"); retainBackupsEnabled != nil {
 		model.RetainBackupsEnabled = types.BoolPointerValue(retainBackupsEnabled)
-	}
-	if mongoDBMajorVersion := schemafunc.GetAttrFromStateObj[string](stateObj, "mongo_db_major_version"); mongoDBMajorVersion != nil {
-		model.MongoDBMajorVersion = types.StringPointerValue(mongoDBMajorVersion)
 	}
 }
