@@ -147,10 +147,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf("error setting `client_id`: %s", err))
 		}
 		secrets := sa.GetSecrets()
-		if len(secrets) > 0 {
-			if err := d.Set("client_secret", secrets[0].GetSecret()); err != nil {
-				return diag.FromErr(fmt.Errorf("error setting `client_secret`: %s", err))
-			}
+		if len(secrets) == 0 {
+			return diag.FromErr(fmt.Errorf("service account was created but no client secret was returned by the API"))
+		}
+		if err := d.Set("client_secret", secrets[0].GetSecret()); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `client_secret`: %s", err))
 		}
 	}
 	conn = getAtlasV2Connection(d, meta) // Using new credentials from the created organization.

@@ -1,3 +1,11 @@
 ```release-note:enhancement
-resource/mongodbatlas_organization: Adds automatic Service Account creation alongside the organization, exporting `client_id` and `client_secret` as computed sensitive attributes. Adds `service_account_secret_expires_after_hours` attribute to configure the secret expiration time
+resource/mongodbatlas_organization: Adds `client_id` computed attribute with the Service Account Client ID created alongside the organization
+```
+
+```release-note:enhancement
+resource/mongodbatlas_organization: Adds `client_secret` computed attribute with the Service Account secret created alongside the organization
+```
+
+```release-note:enhancement
+resource/mongodbatlas_organization: Adds `service_account_secret_expires_after_hours` attribute to configure the Service Account secret expiration time
 ```

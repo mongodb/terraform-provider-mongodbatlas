@@ -13,7 +13,7 @@ subcategory: "Organizations"
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_organization" "test" {
+resource "mongodbatlas_organization" "this" {
   org_owner_id = "<ORG_OWNER_ID>"
   name = "testCreateORG"
   description = "test API key and Service Account from Org Creation"
@@ -62,7 +62,7 @@ In addition to all arguments above, the following attributes are exported:
 You can import an existing organization using the organization ID, e.g.:
 
 ```
-$ terraform import mongodbatlas_organization.example 5d09d6a59ccf6445652a444a
+$ terraform import mongodbatlas_organization.this 5d09d6a59ccf6445652a444a
 ```
 
 ~> **IMPORTANT:** When importing an existing organization, you should **NOT** specify the creation-only attributes (`org_owner_id`, `description`, `role_names`, `federation_settings_id`, `service_account_secret_expires_after_hours`) in your Terraform configuration.
