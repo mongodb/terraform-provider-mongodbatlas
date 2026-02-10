@@ -18,8 +18,9 @@ import (
 )
 
 var (
-	attrsCreateRequired = []string{"org_owner_id", "description", "role_names", "service_account_secret_expires_after_hours"} // name not included as it's already required in the schema.
-	attrsCreateOnly     = []string{"org_owner_id", "description", "role_names", "federation_settings_id", "service_account_secret_expires_after_hours"}
+	attrsCreateRequired    = []string{"org_owner_id"}              // name not included as it's already required in the schema.
+	attrsCreateRequiredPAK = []string{"description", "role_names"} // only required when creating a PAK (no service_account block).
+	attrsCreateOnly        = []string{"org_owner_id", "description", "role_names", "federation_settings_id", "service_account"}
 )
 
 func Resource() *schema.Resource {
@@ -100,19 +101,43 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"service_account_secret_expires_after_hours": {
-				Type:     schema.TypeInt,
+			"service_account": {
+				Type:     schema.TypeList,
 				Optional: true,
-			},
-			"client_id": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-			"client_secret": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"roles": {
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"secret_expires_after_hours": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"client_id": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"client_secret": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -124,8 +149,16 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf("%s is required during organization creation", attr))
 		}
 	}
-	if err := ValidateAPIKeyIsOrgOwner(conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())); err != nil {
-		return diag.FromErr(err)
+	_, usingSA := d.GetOk("service_account")
+	if !usingSA {
+		for _, attr := range attrsCreateRequiredPAK {
+			if _, ok := d.GetOk(attr); !ok {
+				return diag.FromErr(fmt.Errorf("%s is required during organization creation when not using service_account", attr))
+			}
+		}
+		if err := ValidateAPIKeyIsOrgOwner(conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 	conn := getAtlasV2Connection(d, meta) // Using provider credentials.
 	organization, resp, err := conn.OrganizationsApi.CreateOrg(ctx, newCreateOrganizationRequest(d)).Execute()
@@ -136,22 +169,20 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		return diag.FromErr(fmt.Errorf("error creating Organization: %s", err))
 	}
-	if err := d.Set("private_key", organization.ApiKey.GetPrivateKey()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
-	}
-	if err := d.Set("public_key", organization.ApiKey.GetPublicKey()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
-	}
-	if sa, ok := organization.GetServiceAccountOk(); ok {
-		if err := d.Set("client_id", sa.GetClientId()); err != nil {
-			return diag.FromErr(fmt.Errorf("error setting `client_id`: %s", err))
+	if _, ok := d.GetOk("service_account"); ok {
+		sa, saOk := organization.GetServiceAccountOk()
+		if !saOk {
+			return diag.FromErr(fmt.Errorf("service account was not returned by the API"))
 		}
-		secrets := sa.GetSecrets()
-		if len(secrets) == 0 {
-			return diag.FromErr(fmt.Errorf("service account was created but no client secret was returned by the API"))
+		if err := setServiceAccountState(d, sa); err != nil {
+			return diag.FromErr(err)
 		}
-		if err := d.Set("client_secret", secrets[0].GetSecret()); err != nil {
-			return diag.FromErr(fmt.Errorf("error setting `client_secret`: %s", err))
+	} else {
+		if err := d.Set("private_key", organization.ApiKey.GetPrivateKey()); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
+		}
+		if err := d.Set("public_key", organization.ApiKey.GetPublicKey()); err != nil {
+			return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 		}
 	}
 	conn = getAtlasV2Connection(d, meta) // Using new credentials from the created organization.
@@ -283,22 +314,29 @@ func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizat
 		Name:                      d.Get("name").(string),
 		OrgOwnerId:                conversion.Pointer(d.Get("org_owner_id").(string)),
 		SkipDefaultAlertsSettings: conversion.Pointer(skipDefaultAlertsSettings),
-
-		ApiKey: &admin.CreateAtlasOrganizationApiKey{
-			Roles: conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()),
-			Desc:  d.Get("description").(string),
-		},
 	}
 
 	if federationSettingsID, ok := d.Get("federation_settings_id").(string); ok && federationSettingsID != "" {
 		createRequest.FederationSettingsId = &federationSettingsID
 	}
 
-	createRequest.ServiceAccount = &admin.OrgServiceAccountRequest{
-		Name:                    d.Get("name").(string),
-		Description:             d.Get("description").(string),
-		Roles:                   conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()),
-		SecretExpiresAfterHours: d.Get("service_account_secret_expires_after_hours").(int),
+	// API does not allow both apiKey and serviceAccount in the same request.
+	if v, ok := d.GetOk("service_account"); ok {
+		saList := v.([]any)
+		if len(saList) > 0 {
+			saMap := saList[0].(map[string]any)
+			createRequest.ServiceAccount = &admin.OrgServiceAccountRequest{
+				Name:                    saMap["name"].(string),
+				Description:             saMap["description"].(string),
+				Roles:                   conversion.ExpandStringList(saMap["roles"].(*schema.Set).List()),
+				SecretExpiresAfterHours: saMap["secret_expires_after_hours"].(int),
+			}
+		}
+	} else {
+		createRequest.ApiKey = &admin.CreateAtlasOrganizationApiKey{
+			Roles: conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()),
+			Desc:  d.Get("description").(string),
+		}
 	}
 
 	return createRequest
@@ -324,23 +362,62 @@ func ValidateAPIKeyIsOrgOwner(roles []string) error {
 	return fmt.Errorf("`role_names` for new API Key must have the ORG_OWNER role to use this resource")
 }
 
+// setServiceAccountState merges the SA API response (client_id, client_secret) into the existing service_account block in state.
+func setServiceAccountState(d *schema.ResourceData, sa *admin.OrgServiceAccount) error {
+	secrets := sa.GetSecrets()
+	if len(secrets) == 0 {
+		return fmt.Errorf("service account was created but no client secret was returned by the API")
+	}
+	// Preserve user-configured input values from the existing block, only adding computed outputs.
+	existing := d.Get("service_account").([]any)
+	if len(existing) == 0 {
+		return fmt.Errorf("service account was returned by the API but service_account block is not configured")
+	}
+	saMap := existing[0].(map[string]any)
+	saMap["client_id"] = sa.GetClientId()
+	saMap["client_secret"] = secrets[0].GetSecret()
+	return d.Set("service_account", []any{saMap})
+}
+
 // getAtlasV2Connection uses the created credentials for the organization if they exist.
-// Otherwise, it uses the provider credentials, e.g. if the resource was imported.
+// It tries PAK credentials first, then SA credentials from the service_account block,
+// and falls back to provider credentials (e.g. if the resource was imported).
 func getAtlasV2Connection(d *schema.ResourceData, meta any) *admin.APIClient {
 	currentClient := meta.(*config.MongoDBClient)
+
+	// Try PAK credentials
 	publicKey := d.Get("public_key").(string)
 	privateKey := d.Get("private_key").(string)
-	if publicKey == "" || privateKey == "" {
-		return currentClient.AtlasV2
+	if publicKey != "" && privateKey != "" {
+		c := &config.Credentials{
+			PublicKey:  publicKey,
+			PrivateKey: privateKey,
+			BaseURL:    currentClient.BaseURL,
+		}
+		if newClient, err := config.NewClient(c, currentClient.TerraformVersion); err == nil {
+			return newClient.AtlasV2
+		}
 	}
-	c := &config.Credentials{
-		PublicKey:  publicKey,
-		PrivateKey: privateKey,
-		BaseURL:    currentClient.BaseURL,
+
+	// Try SA credentials from service_account block
+	if v, ok := d.GetOk("service_account"); ok {
+		saList := v.([]any)
+		if len(saList) > 0 {
+			saMap := saList[0].(map[string]any)
+			clientID, _ := saMap["client_id"].(string)
+			clientSecret, _ := saMap["client_secret"].(string)
+			if clientID != "" && clientSecret != "" {
+				c := &config.Credentials{
+					ClientID:     clientID,
+					ClientSecret: clientSecret,
+					BaseURL:      currentClient.BaseURL,
+				}
+				if newClient, err := config.NewClient(c, currentClient.TerraformVersion); err == nil {
+					return newClient.AtlasV2
+				}
+			}
+		}
 	}
-	newClient, err := config.NewClient(c, currentClient.TerraformVersion)
-	if err != nil {
-		return currentClient.AtlasV2
-	}
-	return newClient.AtlasV2
+
+	return currentClient.AtlasV2
 }

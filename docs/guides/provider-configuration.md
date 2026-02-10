@@ -27,7 +27,7 @@ SAs simplify authentication by eliminating the need to create new Atlas-specific
 
 To use SA authentication, create an SA in your [MongoDB Atlas organization](https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) and set the credentials, for example:
 
-~> **NOTE:** When creating a new organization with the [`mongodbatlas_organization`](../resources/organization) resource, a Service Account is automatically created alongside the organization. The resulting `client_id` and `client_secret` attributes can be used directly to configure the provider for the new organization.
+~> **NOTE:** When creating a new organization with the [`mongodbatlas_organization`](../resources/organization) resource, you can define a `service_account` block to create a Service Account instead of a Programmatic API Key. The resulting `client_id` and `client_secret` attributes can be used directly to configure the provider for the new organization.
 
 ```terraform
 provider "mongodbatlas" {

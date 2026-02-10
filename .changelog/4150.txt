@@ -1,11 +1,3 @@
 ```release-note:enhancement
-resource/mongodbatlas_organization: Adds `client_id` computed attribute with the Service Account Client ID created alongside the organization
-```
-
-```release-note:enhancement
-resource/mongodbatlas_organization: Adds `client_secret` computed attribute with the Service Account secret created alongside the organization
-```
-
-```release-note:enhancement
-resource/mongodbatlas_organization: Adds `service_account_secret_expires_after_hours` attribute to configure the Service Account secret expiration time
+resource/mongodbatlas_organization: Adds optional `service_account` block to create a Service Account instead of a Programmatic API Key on organization creation
 ```
