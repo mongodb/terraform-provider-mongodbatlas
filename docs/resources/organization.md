@@ -67,9 +67,9 @@ resource "mongodbatlas_organization" "this" {
 
 ~> **NOTE:** - If you create an organization with our Terraform provider version >=1.30.0, this field is set to `true` by default.<br> - If you have an existing organization created with our Terraform provider version <1.30.0, this field might be `false`, which is the [API default value](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createorganization). To prevent the creation of future default alerts, set this explicitly to `true`.
 
-### service_account
+* `service_account` - (Optional) Block to create a Service Account instead of a Programmatic API Key when creating the organization. The API does not allow creating both in the same request. If omitted, a Programmatic API Key is created (default behavior). This block can't be updated after creation. See [Service Account](#service-account).
 
-Optional block to create a Service Account instead of a Programmatic API Key when creating the organization. The API does not allow creating both in the same request. If omitted, a Programmatic API Key is created (default behavior). This block can't be updated after creation.
+### Service Account
 
 * `name` - (Required) Human-readable name for the Service Account.
 * `description` - (Required) Human-readable description for the Service Account.
