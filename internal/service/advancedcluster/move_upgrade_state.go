@@ -50,7 +50,8 @@ func stateUpgrader(ctx context.Context, req resource.UpgradeStateRequest, resp *
 var stateAttrs = map[string]tftypes.Type{
 	"project_id":             tftypes.String, // project_id and name to identify the cluster.
 	"name":                   tftypes.String,
-	"retain_backups_enabled": tftypes.Bool, // TF specific so can't be got in Read.
+	"retain_backups_enabled": tftypes.Bool,   // TF specific so can't be got in Read.
+	"mongo_db_major_version": tftypes.String, // Optional-only in v3, must be preserved from old state to avoid plan diff.
 	"timeouts": tftypes.Object{ // TF specific so can't be got in Read.
 		AttributeTypes: map[string]tftypes.Type{
 			"create": tftypes.String,
@@ -137,5 +138,8 @@ func getTimeoutFromStateObj(stateObj map[string]tftypes.Value) timeouts.Value {
 func setOptionalModelAttrs(stateObj map[string]tftypes.Value, model *TFModel) {
 	if retainBackupsEnabled := schemafunc.GetAttrFromStateObj[bool](stateObj, "retain_backups_enabled"); retainBackupsEnabled != nil {
 		model.RetainBackupsEnabled = types.BoolPointerValue(retainBackupsEnabled)
+	}
+	if v := schemafunc.GetAttrFromStateObj[string](stateObj, "mongo_db_major_version"); v != nil {
+		model.MongoDBMajorVersion = types.StringPointerValue(v)
 	}
 }

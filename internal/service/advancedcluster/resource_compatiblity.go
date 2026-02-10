@@ -318,8 +318,8 @@ func overrideReplicationSpecsWithPrevStateValue(ctx context.Context, specsIn, sp
 }
 
 // nullifyOptionalOnlyInReplicationSpecs nullifies Optional-only attributes in replication_specs when the previous
-// state has no replication_specs (e.g., after a state upgrade). Currently, zone_name is the only Optional-only
-// attribute at the replication_specs level.
+// state has no replication_specs (e.g., after a state upgrade or move from cluster to advanced_cluster).
+// This includes zone_name at the spec level and various sub-attributes within region_configs.
 func nullifyOptionalOnlyInReplicationSpecs(ctx context.Context, specsOut types.List) types.List {
 	elemsOut := specsOut.Elements()
 	newElems := make([]TFReplicationSpecsModel, len(elemsOut))
@@ -329,6 +329,7 @@ func nullifyOptionalOnlyInReplicationSpecs(ctx context.Context, specsOut types.L
 			return specsOut
 		}
 		specOut.ZoneName = types.StringNull()
+		specOut.RegionConfigs = nullifyOptionalOnlyInRegionConfigs(ctx, specOut.RegionConfigs)
 		newElems[i] = specOut
 	}
 	newList, diags := types.ListValueFrom(ctx, replicationSpecsObjType, newElems)
@@ -336,6 +337,69 @@ func nullifyOptionalOnlyInReplicationSpecs(ctx context.Context, specsOut types.L
 		return specsOut
 	}
 	return newList
+}
+
+// nullifyOptionalOnlyInRegionConfigs nullifies Optional-only attributes within each region_config
+// when there is no previous state to compare against (e.g., after a move from cluster to advanced_cluster).
+func nullifyOptionalOnlyInRegionConfigs(ctx context.Context, regionsOut types.List) types.List {
+	if regionsOut.IsNull() || regionsOut.IsUnknown() {
+		return regionsOut
+	}
+	elemsOut := regionsOut.Elements()
+	newElems := make([]TFRegionConfigsModel, len(elemsOut))
+	for i := range elemsOut {
+		var rcOut TFRegionConfigsModel
+		if diags := tfsdk.ValueAs(ctx, elemsOut[i], &rcOut); diags.HasError() {
+			return regionsOut
+		}
+		rcOut.AutoScaling = types.ObjectNull(autoScalingObjType.AttrTypes)
+		rcOut.AnalyticsAutoScaling = types.ObjectNull(autoScalingObjType.AttrTypes)
+		rcOut.BackingProviderName = types.StringNull()
+		rcOut.AnalyticsSpecs = nullifySpecsIfNodeCountZero(ctx, rcOut.AnalyticsSpecs)
+		rcOut.ReadOnlySpecs = nullifySpecsIfNodeCountZero(ctx, rcOut.ReadOnlySpecs)
+		rcOut.ElectableSpecs = nullifyOptionalOnlyInSpecs(ctx, rcOut.ElectableSpecs)
+		newElems[i] = rcOut
+	}
+	newList, diags := types.ListValueFrom(ctx, regionConfigsObjType, newElems)
+	if diags.HasError() {
+		return regionsOut
+	}
+	return newList
+}
+
+// nullifySpecsIfNodeCountZero returns null if node_count is 0 (not user-configured),
+// otherwise delegates to nullifyOptionalOnlyInSpecs to nullify sub-fields.
+func nullifySpecsIfNodeCountZero(ctx context.Context, specs types.Object) types.Object {
+	if specs.IsNull() || specs.IsUnknown() {
+		return specs
+	}
+	var model TFSpecsModel
+	if diags := tfsdk.ValueAs(ctx, specs, &model); diags.HasError() {
+		return specs
+	}
+	if model.NodeCount.ValueInt64() == 0 {
+		return types.ObjectNull(specsObjType.AttrTypes)
+	}
+	return nullifyOptionalOnlyInSpecs(ctx, specs)
+}
+
+// nullifyOptionalOnlyInSpecs nullifies disk_iops and ebs_volume_type within a specs object,
+// keeping node_count, instance_size, and disk_size_gb which are user-visible attributes.
+func nullifyOptionalOnlyInSpecs(ctx context.Context, specs types.Object) types.Object {
+	if specs.IsNull() || specs.IsUnknown() {
+		return specs
+	}
+	var model TFSpecsModel
+	if diags := tfsdk.ValueAs(ctx, specs, &model); diags.HasError() {
+		return specs
+	}
+	model.DiskIops = types.Int64Null()
+	model.EbsVolumeType = types.StringNull()
+	newObj, diags := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, model)
+	if diags.HasError() {
+		return specs
+	}
+	return newObj
 }
 
 // overrideRegionConfigsWithPrevStateValue preserves null values for Optional-only attributes within each region_config.

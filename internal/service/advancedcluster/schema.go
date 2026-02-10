@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -89,6 +90,9 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			"connection_strings": schema.SingleNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "Collection of Uniform Resource Locators that point to the MongoDB database.",
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"private": schema.StringAttribute{
 						Computed:            true,
@@ -199,6 +203,9 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			"mongo_db_version": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Version of MongoDB that the cluster runs.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Required:            true,
@@ -277,6 +284,9 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			"state_name": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Human-readable label that indicates the current operating condition of this cluster.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"termination_protection_enabled": schema.BoolAttribute{
 				Optional:            true,

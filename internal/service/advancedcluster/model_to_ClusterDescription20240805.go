@@ -101,6 +101,9 @@ func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnos
 // Without sorting, PatchPayload's jsondiff would detect false changes from different orderings
 // between state and plan, causing unnecessary cluster PATCH calls.
 func newComponentLabel(ctx context.Context, diags *diag.Diagnostics, input types.Map) *[]admin.ComponentLabel {
+	if input.IsNull() || input.IsUnknown() {
+		return nil
+	}
 	elms := make(map[string]types.String, len(input.Elements()))
 	localDiags := input.ElementsAs(ctx, &elms, false)
 	diags.Append(localDiags...)
@@ -160,6 +163,9 @@ func resolveZoneNameOrUseDefault(item *TFReplicationSpecsModel) string {
 // Without sorting, PatchPayload's jsondiff would detect false changes from different orderings
 // between state and plan, causing unnecessary cluster PATCH calls.
 func newResourceTag(ctx context.Context, diags *diag.Diagnostics, input types.Map) *[]admin.ResourceTag {
+	if input.IsNull() || input.IsUnknown() {
+		return nil
+	}
 	elms := make(map[string]types.String, len(input.Elements()))
 	localDiags := input.ElementsAs(ctx, &elms, false)
 	diags.Append(localDiags...)

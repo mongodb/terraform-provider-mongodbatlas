@@ -284,7 +284,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	if advConfigChanged {
+	switch {
+	case advConfigChanged:
 		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
 			ArgsDefault:           advConfig,
 			ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
@@ -292,7 +293,14 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		if diags.HasError() {
 			return
 		}
-	} else {
+	case !plan.AdvancedConfiguration.Equal(state.AdvancedConfiguration):
+		// No real API change, but plan and state disagree (e.g. migration from null to configured).
+		// Populate model from API so state matches plan.
+		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, p, plan.AdvancedConfiguration)
+		if diags.HasError() {
+			return
+		}
+	default:
 		modelOut.AdvancedConfiguration = state.AdvancedConfiguration
 	}
 	diags.Append(resp.State.Set(ctx, modelOut)...)
