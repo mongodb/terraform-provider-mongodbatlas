@@ -184,6 +184,7 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 						},
 						"client_id": schema.StringAttribute{
 							Optional:            true,
+							Computed:            true,
 							Sensitive:           true,
 							MarkdownDescription: "Unique 36-hexadecimal character string that identifies an Azure application associated with your Azure Active Directory tenant.",
 						},
@@ -216,6 +217,7 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 						},
 						"tenant_id": schema.StringAttribute{
 							Optional:            true,
+							Computed:            true,
 							Sensitive:           true,
 							MarkdownDescription: "Unique 36-hexadecimal character string that identifies the Azure Active Directory tenant within your Azure subscription.",
 						},
