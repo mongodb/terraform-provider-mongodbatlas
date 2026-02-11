@@ -17,9 +17,7 @@ Note: It is possible to configure Atlas Encryption at Rest to communicate with A
 - `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
 - `atlas_project_id`: Atlas Project ID
 - `azure_subscription_id`: Azure ID that identifies your Azure subscription
-- `azure_client_id`: Azure ID identifies an Azure application associated with your Azure Active Directory tenant
-- `azure_client_secret`: Secret associated to the Azure application
-- `azure_tenant_id`: Azure ID  that identifies the Azure Active Directory tenant within your Azure subscription
+- `azure_role_id`: Azure ID that identifies the Azure Service Principal that Atlas uses to access the Azure Key Vault.
 - `azure_resource_group_name`: Name of the Azure resource group that contains your Azure Key Vault
 - `azure_key_vault_name`: Unique string that identifies the Azure Key Vault that contains your key
 - `azure_key_identifier`: Web address with a unique key that identifies for your Azure Key Vault
