@@ -31,11 +31,11 @@ func TestAccAIModelRateLimit_basic(t *testing.T) {
 		orgID     = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID = acc.ProjectIDExecution(t)
 	)
-	// Serial test excecution to avoid conflicts with other tests that use the same project and model group names.
+	// Serial test execution to avoid conflicts with other tests that use the same project and model group names.
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		// CheckDestroy not used: rate limits are singleton resources that always exist per project and model group.
+		// TODO: CLOUDP-374704, CLOUDP-372674 - Implement CheckDestroy checking default limits when SDK can be used.
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, projectID, 100, 1000),
@@ -157,7 +157,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 // rateLimitExists checks if a rate limit exists.
 // Uses UntypedAPICall because the API is in preview and not yet available in the SDK.
-// TODO: Use SDK before merging to master in CLOUDP-372674.
+// TODO: CLOUDP-374704 - Use SDK before merging to master in CLOUDP-372674.
 func rateLimitExists(rs *terraform.ResourceState) bool {
 	callParams := config.APICallParams{
 		VersionHeader: "application/vnd.atlas.preview+json",
