@@ -62,7 +62,7 @@ func TestAccAIModelRateLimit_invalidValues(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configInvalid(projectID, "unexisting_model_group", 100, 1000),
+				Config:      configInvalid(projectID, "nonexistent_model_group", 100, 1000),
 				ExpectError: regexp.MustCompile("RESOURCE_NOT_FOUND"),
 			},
 			{
