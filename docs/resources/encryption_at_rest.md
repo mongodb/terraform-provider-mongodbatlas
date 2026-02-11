@@ -223,6 +223,7 @@ Optional:
 - `key_vault_name` (String) Unique string that identifies the Azure Key Vault that contains your key.
 - `require_private_networking` (Boolean) Enable connection to your Azure Key Vault over private networking.
 - `resource_group_name` (String) Name of the Azure resource group that contains your Azure Key Vault.
+- `role_id` (String) Unique 24-hexadecimal digit string that identifies the Azure Service Principal that Atlas uses to access the Azure Key Vault.
 - `secret` (String, Sensitive) Private data that you need secured and that belongs to the specified Azure Key Vault (AKV) tenant (**azureKeyVault.tenantID**). This data can include any type of sensitive data such as passwords, database connection strings, API keys, and the like. AKV stores this information as encrypted binary data.
 - `subscription_id` (String, Sensitive) Unique 36-hexadecimal character string that identifies your Azure subscription.
 - `tenant_id` (String, Sensitive) Unique 36-hexadecimal character string that identifies the Azure Active Directory tenant within your Azure subscription.

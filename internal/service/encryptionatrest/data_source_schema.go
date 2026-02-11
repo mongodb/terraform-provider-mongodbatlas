@@ -73,6 +73,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						Sensitive:           true,
 						MarkdownDescription: "Web address with a unique key that identifies for your Azure Key Vault.",
 					},
+					"role_id": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the Azure Service Principal that Atlas uses to access the Azure Key Vault.",
+					},
 					"key_vault_name": schema.StringAttribute{
 						Computed:            true,
 						MarkdownDescription: "Unique string that identifies the Azure Key Vault that contains your key.",
