@@ -6,7 +6,7 @@ subcategory: "Organizations"
 
 `mongodbatlas_organization` provides programmatic management (including creation) of a MongoDB Atlas Organization resource.
 
-~> **IMPORTANT NOTE:**  When you establish an Atlas organization using this resource, it automatically generates a set of initial credentials. By default, a Programmatic API Key (public and private key) is created. Alternatively, you can define a `service_account` block to create a Service Account (client ID and client secret) instead. The API does not allow creating both in the same request. These credential values are vital to store because you'll need to use them to grant access to the newly created Atlas organization. To use this resource, `role_names` must have the ORG_OWNER role specified.
+~> **IMPORTANT NOTE:**  When you establish an Atlas organization using this resource, it automatically generates a set of initial credentials. By default, a Programmatic API Key (public and private key) is created — in this case, `role_names` must have the ORG_OWNER role specified. We recommend defining a `service_account` block to create a [Service Account](../guides/provider-configuration#service-account-recommended) (client ID and client secret) instead, as Service Accounts are the preferred authentication method. The API does not allow creating both in the same request. These credential values are vital to store because you'll need to use them to grant access to the newly created Atlas organization.
 
 ~> **IMPORTANT NOTE:** To use this resource, the requesting API Key must have the Organization Owner role. The requesting API Key's organization must be a paying organization. To learn more, see Configure a Paying Organization in the MongoDB Atlas documentation.
 
@@ -29,15 +29,18 @@ resource "mongodbatlas_organization" "this" {
 resource "mongodbatlas_organization" "this" {
   org_owner_id = "<ORG_OWNER_ID>"
   name = "testCreateORG"
-  description = "test from Org Creation"
-  role_names = ["ORG_OWNER"]
 
   service_account {
-    name = "my-sa"
-    description = "Service Account from Org Creation"
-    roles = ["ORG_OWNER"]
+    name                       = "my-sa"
+    description                = "Service Account from Org Creation"
+    roles                      = ["ORG_OWNER"]
     secret_expires_after_hours = 8760
   }
+}
+
+output "service_account_secret" {
+  value     = try(mongodbatlas_organization.this.service_account[0].secrets[0].secret, null)
+  sensitive = true
 }
 ```
 
@@ -71,12 +74,22 @@ resource "mongodbatlas_organization" "this" {
 
 ### Service Account
 
-* `name` - (Required) Human-readable name for the Service Account.
-* `description` - (Required) Human-readable description for the Service Account.
-* `roles` - (Required) A list of organization-level roles for the Service Account. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the available roles.
-* `secret_expires_after_hours` - (Required) The expiration time of the Service Account secret, provided in hours.
-* `client_id` - The Client ID of the Service Account created alongside the organization.
-* `client_secret` - The secret for the Service Account. This value is only returned when the organization is first created and is saved within the Terraform state file.
+* `name` - (Required) Human-readable name for the Service Account. The name is modifiable and does not have to be unique.
+* `description` - (Required) Human readable description for the Service Account.
+* `roles` - (Required) A list of organization-level roles for the Service Account.
+* `secret_expires_after_hours` - (Required) The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings.
+* `client_id` - The Client ID of the Service Account.
+* `created_at` - The date that the Service Account was created on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+* `secrets` - A list of secrets associated with the specified Service Account. See [Secrets](#secrets).
+
+### Secrets
+
+* `created_at` - The date that the secret was created on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+* `expires_at` - The date for the expiration of the secret. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+* `secret_id` - Unique 24-hexadecimal digit string that identifies the secret.
+* `last_used_at` - The last time the secret was used. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+* `masked_secret_value` - The masked Service Account secret.
+* `secret` - (Sensitive) The secret for the Service Account. It will be returned only the first time after creation.
 
 ## Attributes Reference
 

@@ -484,7 +484,7 @@ func getTestClientWithNewOrgCreds(rs *terraform.ResourceState) (*admin.APIClient
 	}
 
 	clientID := rs.Primary.Attributes["service_account.0.client_id"]
-	clientSecret := rs.Primary.Attributes["service_account.0.client_secret"]
+	clientSecret := rs.Primary.Attributes["service_account.0.secrets.0.secret"]
 	if clientID != "" && clientSecret != "" {
 		c := &config.Credentials{
 			ClientID:     clientID,
@@ -569,7 +569,9 @@ func checkAggrSA(orgOwnerID, name string, settings *admin.OrganizationSettings, 
 	}
 	checks = acc.AddAttrChecks(resourceName, checks, attributes)
 	checks = acc.AddAttrSetChecks(resourceName, checks,
-		"service_account.0.client_id", "service_account.0.client_secret")
+		"service_account.0.client_id", "service_account.0.created_at",
+		"service_account.0.secrets.0.secret", "service_account.0.secrets.0.created_at",
+		"service_account.0.secrets.0.expires_at", "service_account.0.secrets.0.secret_id")
 	checks = append(checks, extra...)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }

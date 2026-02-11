@@ -1,3 +1,11 @@
 ```release-note:enhancement
 resource/mongodbatlas_organization: Adds optional `service_account` block to create a Service Account instead of a Programmatic API Key on organization creation
 ```
+
+```release-note:enhancement
+resource/mongodbatlas_organization: Adds `service_account.client_id` computed attribute with the Service Account Client ID
+```
+
+```release-note:enhancement
+resource/mongodbatlas_organization: Adds `service_account.secrets` computed attribute with the Service Account secrets list
+```

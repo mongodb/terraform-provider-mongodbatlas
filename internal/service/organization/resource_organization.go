@@ -127,14 +127,45 @@ func Resource() *schema.Resource {
 							Required: true,
 						},
 						"client_id": {
-							Type:      schema.TypeString,
-							Computed:  true,
-							Sensitive: true,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
-						"client_secret": {
-							Type:      schema.TypeString,
-							Computed:  true,
-							Sensitive: true,
+						"created_at": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"secrets": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"created_at": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"expires_at": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"secret_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"last_used_at": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"masked_secret_value": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"secret": {
+										Type:      schema.TypeString,
+										Computed:  true,
+										Sensitive: true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -362,12 +393,8 @@ func ValidateAPIKeyIsOrgOwner(roles []string) error {
 	return fmt.Errorf("`role_names` for new API Key must have the ORG_OWNER role to use this resource")
 }
 
-// setServiceAccountState merges the SA API response (client_id, client_secret) into the existing service_account block in state.
+// setServiceAccountState merges the SA API response into the existing service_account block in state.
 func setServiceAccountState(d *schema.ResourceData, sa *admin.OrgServiceAccount) error {
-	secrets := sa.GetSecrets()
-	if len(secrets) == 0 {
-		return fmt.Errorf("service account was created but no client secret was returned by the API")
-	}
 	// Preserve user-configured input values from the existing block, only adding computed outputs.
 	existing := d.Get("service_account").([]any)
 	if len(existing) == 0 {
@@ -375,7 +402,20 @@ func setServiceAccountState(d *schema.ResourceData, sa *admin.OrgServiceAccount)
 	}
 	saMap := existing[0].(map[string]any)
 	saMap["client_id"] = sa.GetClientId()
-	saMap["client_secret"] = secrets[0].GetSecret()
+	saMap["created_at"] = sa.GetCreatedAt().String()
+
+	var secretsList []map[string]any
+	for _, s := range sa.GetSecrets() {
+		secretsList = append(secretsList, map[string]any{
+			"created_at":          s.GetCreatedAt().String(),
+			"expires_at":          s.GetExpiresAt().String(),
+			"secret_id":           s.GetId(),
+			"last_used_at":        s.GetLastUsedAt().String(),
+			"masked_secret_value": s.GetMaskedSecretValue(),
+			"secret":              s.GetSecret(),
+		})
+	}
+	saMap["secrets"] = secretsList
 	return d.Set("service_account", []any{saMap})
 }
 
@@ -405,11 +445,16 @@ func getAtlasV2Connection(d *schema.ResourceData, meta any) *admin.APIClient {
 		if len(saList) > 0 {
 			saMap := saList[0].(map[string]any)
 			clientID, _ := saMap["client_id"].(string)
-			clientSecret, _ := saMap["client_secret"].(string)
-			if clientID != "" && clientSecret != "" {
+			secretValue := ""
+			if secretsList, ok := saMap["secrets"].([]any); ok && len(secretsList) > 0 {
+				if secretMap, ok := secretsList[0].(map[string]any); ok {
+					secretValue, _ = secretMap["secret"].(string)
+				}
+			}
+			if clientID != "" && secretValue != "" {
 				c := &config.Credentials{
 					ClientID:     clientID,
-					ClientSecret: clientSecret,
+					ClientSecret: secretValue,
 					BaseURL:      currentClient.BaseURL,
 				}
 				if newClient, err := config.NewClient(c, currentClient.TerraformVersion); err == nil {
