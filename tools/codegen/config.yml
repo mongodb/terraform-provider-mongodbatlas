@@ -86,8 +86,8 @@ resources:
     update:
       path: *ai_model_rate_limit_item_path
       method: PATCH
-    delete: # TODO: Change in CLOUDP-373917 to use reset path groupId/modelGroupName when available
-      path: /api/atlas/v2/groups/{groupId}/aiModelRateLimits:reset
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/aiModelRateLimits/{modelGroupName}:reset
       method: POST
     version_header: application/vnd.atlas.preview+json
     schema: &ai_model_rate_limit_schema

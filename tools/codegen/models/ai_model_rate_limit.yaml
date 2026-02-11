@@ -64,7 +64,7 @@ schema:
 operations:
     delete:
         http_method: POST
-        path: /api/atlas/v2/groups/{projectId}/aiModelRateLimits:reset
+        path: /api/atlas/v2/groups/{projectId}/aiModelRateLimits/{modelGroupName}:reset
     create:
         http_method: PATCH
         path: /api/atlas/v2/groups/{projectId}/aiModelRateLimits/{modelGroupName}

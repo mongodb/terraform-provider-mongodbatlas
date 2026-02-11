@@ -137,7 +137,8 @@ func readAPICallParams(model any) *config.APICallParams {
 
 func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
-		"projectId": model.ProjectId.ValueString(),
+		"projectId":      model.ProjectId.ValueString(),
+		"modelGroupName": model.ModelGroupName.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
 		Hooks:  r,
@@ -146,7 +147,7 @@ func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *d
 		Diags:  diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
-			RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelRateLimits:reset",
+			RelativePath:  "/api/atlas/v2/groups/{projectId}/aiModelRateLimits/{modelGroupName}:reset",
 			PathParams:    pathParams,
 			Method:        "POST",
 		},
