@@ -78,6 +78,8 @@ output "service_account_secret" {
 * `description` - (Required) Human readable description for the Service Account.
 * `roles` - (Required) A list of organization-level roles for the Service Account.
 * `secret_expires_after_hours` - (Required) The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings.
+
+~> **WARNING:** Service Account secrets expire after the configured `secret_expires_after_hours` period. To avoid losing access to the Atlas Administration API, update your application with the new client secret before the current one expires. If all secrets expire without being replaced, you will lose access to the organization. For more information, see [Rotate Service Account Secrets](https://www.mongodb.com/docs/atlas/tutorial/rotate-service-account-secrets/).
 * `client_id` - The Client ID of the Service Account.
 * `created_at` - The date that the Service Account was created on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 * `secrets` - A list of secrets associated with the specified Service Account. See [Secrets](#secrets).
