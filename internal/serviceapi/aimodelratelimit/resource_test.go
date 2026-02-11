@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -30,7 +31,6 @@ func TestAccAIModelRateLimit_basic(t *testing.T) {
 		orgID     = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID = acc.ProjectIDExecution(t)
 	)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -50,6 +50,36 @@ func TestAccAIModelRateLimit_basic(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "project_id",
 				ImportState:                          true,
 				ImportStateVerify:                    true,
+			},
+		},
+	})
+}
+
+func TestAccAIModelRateLimit_invalidValues(t *testing.T) {
+	projectID := acc.ProjectIDExecution(t)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configInvalid(projectID, "unexisting_model_group", 100, 1000),
+				ExpectError: regexp.MustCompile("RESOURCE_NOT_FOUND"),
+			},
+			{
+				Config:      configInvalid(projectID, modelGroupName, 0, 1000),
+				ExpectError: regexp.MustCompile("BAD_REQUEST"),
+			},
+			{
+				Config:      configInvalid(projectID, modelGroupName, -1, 1000),
+				ExpectError: regexp.MustCompile("BAD_REQUEST"),
+			},
+			{
+				Config:      configInvalid(projectID, modelGroupName, 100, 0),
+				ExpectError: regexp.MustCompile("BAD_REQUEST"),
+			},
+			{
+				Config:      configInvalid(projectID, modelGroupName, 100, -1),
+				ExpectError: regexp.MustCompile("BAD_REQUEST"),
 			},
 		},
 	})
@@ -84,6 +114,17 @@ func configBasic(orgID, projectID string, requestsPerMinute, tokensPerMinute int
 			depends_on = [mongodbatlas_ai_model_rate_limit.this]
 		}
 	`, orgID, projectID, modelGroupName, requestsPerMinute, tokensPerMinute)
+}
+
+func configInvalid(projectID, modelGroupName string, requestsPerMinute, tokensPerMinute int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_ai_model_rate_limit" "this" {
+			project_id                 = %[1]q
+			model_group_name           = %[2]q
+			requests_per_minute_limit  = %[3]d
+			tokens_per_minute_limit    = %[4]d
+		}
+	`, projectID, modelGroupName, requestsPerMinute, tokensPerMinute)
 }
 
 func checkBasic() resource.TestCheckFunc {
