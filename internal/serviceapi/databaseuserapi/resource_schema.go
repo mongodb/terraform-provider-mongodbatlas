@@ -111,9 +111,9 @@ type TFModel struct {
 	AwsIAMType      types.String                               `tfsdk:"aws_iam_type"`
 	DatabaseName    types.String                               `tfsdk:"database_name"`
 	DeleteAfterDate types.String                               `tfsdk:"delete_after_date"`
-	Description     types.String                               `tfsdk:"description" autogen:"includenullonupdate"`
+	Description     types.String                               `tfsdk:"description" autogen:"sendnullasnullonupdate"`
 	GroupId         types.String                               `tfsdk:"group_id"`
-	Labels          customtypes.MapValue[types.String]         `tfsdk:"labels" autogen:"listasmap"`
+	Labels          customtypes.MapValue[types.String]         `tfsdk:"labels" autogen:"listasmap,sendnullasemptyonupdate"`
 	LdapAuthType    types.String                               `tfsdk:"ldap_auth_type"`
 	OidcAuthType    types.String                               `tfsdk:"oidc_auth_type"`
 	Password        types.String                               `tfsdk:"password" autogen:"sensitive"`

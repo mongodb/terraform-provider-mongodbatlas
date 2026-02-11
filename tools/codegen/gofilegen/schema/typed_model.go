@@ -112,8 +112,10 @@ func typedModelProperty(attr *codespec.Attribute, isDataSource bool, dsPrefix st
 		autogenTags = append(autogenTags, "omitjson")
 	case codespec.OmitInUpdateBody:
 		autogenTags = append(autogenTags, "omitjsonupdate")
-	case codespec.IncludeNullOnUpdate:
-		autogenTags = append(autogenTags, "includenullonupdate")
+	case codespec.SendNullAsNullOnUpdate:
+		autogenTags = append(autogenTags, "sendnullasnullonupdate")
+	case codespec.SendNullAsEmptyOnUpdate:
+		autogenTags = append(autogenTags, "sendnullasemptyonupdate")
 	}
 
 	if len(autogenTags) > 0 {
