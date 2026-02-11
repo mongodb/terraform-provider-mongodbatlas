@@ -23,7 +23,7 @@ resource "mongodbatlas_organization" "this" {
 }
 ```
 
-### With Service Account
+### With Service Account (Recommended)
 
 ```terraform
 resource "mongodbatlas_organization" "this" {
