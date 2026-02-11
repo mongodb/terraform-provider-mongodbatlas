@@ -67,7 +67,7 @@ output "log_integrations_results" {
 
 ### Optional
 
-- `integration_type` (String) Optional filter by integration type (e.g., 'S3_LOG_EXPORT').
+- `integration_type` (String) Optional filter by integration type (e.g., `S3_LOG_EXPORT`).
 
 ### Read-Only
 
@@ -78,12 +78,22 @@ output "log_integrations_results" {
 
 Read-Only:
 
+- `azure_container` (String) Azure Blob Storage container name for log files.
+- `azure_prefix_path` (String) Blob path prefix for organizing log files within the container.
+- `azure_service_principal_id` (String) Unique 24-character hexadecimal string that identifies the Azure Service Principal.
+- `azure_storage_account_name` (String) Azure Storage Account name where logs will be stored.
 - `bucket_name` (String) Human-readable label that identifies the S3 bucket name for storing log files.
+- `gcs_bucket_name` (String) GCS bucket name for storing log files.
+- `gcs_prefix_path` (String) GCS object path prefix for organizing log files.
+- `gcs_role_id` (String) Unique 24-character hexadecimal string that identifies the GCP service account role.
 - `iam_role_id` (String) Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
 - `integration_id` (String) Unique 24-character hexadecimal digit string that identifies the log integration configuration.
 - `kms_key` (String) AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
-- `log_types` (Set of String) Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.
+- `log_types` (Set of String) Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.
+- `otel_endpoint` (String) OpenTelemetry collector endpoint URL.
 - `prefix_path` (String) S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
+- `region` (String) Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.
+- `splunk_hec_url` (String) Splunk HTTP Event Collector (HEC) endpoint URL.
 - `type` (String) Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
 
 For more information see: [MongoDB Atlas API - Log Integration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-push-based-log-export) Documentation.
