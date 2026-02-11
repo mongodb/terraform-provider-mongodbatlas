@@ -31,7 +31,8 @@ func TestAccAIModelRateLimit_basic(t *testing.T) {
 		orgID     = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID = acc.ProjectIDExecution(t)
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	// Serial test excecution to avoid conflicts with other tests that use the same project and model group names.
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		// CheckDestroy not used: rate limits are singleton resources that always exist per project and model group.
