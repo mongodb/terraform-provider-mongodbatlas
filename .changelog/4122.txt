@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/mongodbatlas_stream_connection: Adds connection state polling to improve reliability of create and update operations
+```
+
+```release-note:enhancement
+resource/mongodbatlas_stream_connection: Adds user-configurable timeouts for create and update operations
+```
