@@ -401,6 +401,17 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
+                    - string: {}
+                      description: The connection's region.
+                      computed_optional_required: computed
+                      tf_schema_name: region
+                      tf_model_name: Region
+                      api_name: region
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - single_nested:
                         nested_object:
                             attributes:
@@ -676,7 +687,7 @@ schema:
                       tf_schema_name: max_tier_size
                       tf_model_name: MaxTierSize
                       api_name: maxTierSize
-                      req_body_usage: ""
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                       present_in_any_response: true
@@ -687,7 +698,7 @@ schema:
                       tf_schema_name: tier
                       tf_model_name: Tier
                       api_name: tier
-                      req_body_usage: ""
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                       present_in_any_response: true
@@ -702,9 +713,9 @@ schema:
           tf_schema_name: stream_config
           tf_model_name: StreamConfig
           api_name: streamConfig
-          req_body_usage: omit_in_update_body
+          req_body_usage: all_request_bodies
           sensitive: false
-          create_only: true
+          create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
 operations:

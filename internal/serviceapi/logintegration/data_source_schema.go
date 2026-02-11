@@ -14,9 +14,37 @@ import (
 func DataSourceSchema(ctx context.Context) dsschema.Schema {
 	return dsschema.Schema{
 		Attributes: map[string]dsschema.Attribute{
+			"azure_container": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Azure Blob Storage container name for log files.",
+			},
+			"azure_prefix_path": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Blob path prefix for organizing log files within the container.",
+			},
+			"azure_service_principal_id": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the Azure Service Principal.",
+			},
+			"azure_storage_account_name": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Azure Storage Account name where logs will be stored.",
+			},
 			"bucket_name": dsschema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Human-readable label that identifies the S3 bucket name for storing log files.",
+			},
+			"gcs_bucket_name": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "GCS bucket name for storing log files.",
+			},
+			"gcs_prefix_path": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "GCS object path prefix for organizing log files.",
+			},
+			"gcs_role_id": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the GCP service account role.",
 			},
 			"iam_role_id": dsschema.StringAttribute{
 				Computed:            true,
@@ -32,9 +60,13 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"log_types": dsschema.SetAttribute{
 				Computed:            true,
-				MarkdownDescription: "Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.",
+				MarkdownDescription: "Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.",
 				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
+			},
+			"otel_endpoint": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "OpenTelemetry collector endpoint URL.",
 			},
 			"prefix_path": dsschema.StringAttribute{
 				Computed:            true,
@@ -43,6 +75,14 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			"project_id": dsschema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+			},
+			"region": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.",
+			},
+			"splunk_hec_url": dsschema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Splunk HTTP Event Collector (HEC) endpoint URL.",
 			},
 			"type": dsschema.StringAttribute{
 				Computed:            true,
@@ -53,12 +93,22 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
-	BucketName    types.String                       `tfsdk:"bucket_name" autogen:"omitjson"`
-	IamRoleId     types.String                       `tfsdk:"iam_role_id" autogen:"omitjson"`
-	IntegrationId types.String                       `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
-	KmsKey        types.String                       `tfsdk:"kms_key" autogen:"omitjson"`
-	LogTypes      customtypes.SetValue[types.String] `tfsdk:"log_types" autogen:"omitjson"`
-	PrefixPath    types.String                       `tfsdk:"prefix_path" autogen:"omitjson"`
-	ProjectId     types.String                       `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Type          types.String                       `tfsdk:"type" autogen:"omitjson"`
+	AzureContainer          types.String                       `tfsdk:"azure_container" autogen:"omitjson"`
+	AzurePrefixPath         types.String                       `tfsdk:"azure_prefix_path" autogen:"omitjson"`
+	AzureServicePrincipalId types.String                       `tfsdk:"azure_service_principal_id" autogen:"omitjson"`
+	AzureStorageAccountName types.String                       `tfsdk:"azure_storage_account_name" autogen:"omitjson"`
+	BucketName              types.String                       `tfsdk:"bucket_name" autogen:"omitjson"`
+	GcsBucketName           types.String                       `tfsdk:"gcs_bucket_name" autogen:"omitjson"`
+	GcsPrefixPath           types.String                       `tfsdk:"gcs_prefix_path" autogen:"omitjson"`
+	GcsRoleId               types.String                       `tfsdk:"gcs_role_id" autogen:"omitjson"`
+	IamRoleId               types.String                       `tfsdk:"iam_role_id" autogen:"omitjson"`
+	IntegrationId           types.String                       `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
+	KmsKey                  types.String                       `tfsdk:"kms_key" autogen:"omitjson"`
+	LogTypes                customtypes.SetValue[types.String] `tfsdk:"log_types" autogen:"omitjson"`
+	OtelEndpoint            types.String                       `tfsdk:"otel_endpoint" autogen:"omitjson"`
+	PrefixPath              types.String                       `tfsdk:"prefix_path" autogen:"omitjson"`
+	ProjectId               types.String                       `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	Region                  types.String                       `tfsdk:"region" autogen:"omitjson"`
+	SplunkHecUrl            types.String                       `tfsdk:"splunk_hec_url" autogen:"omitjson"`
+	Type                    types.String                       `tfsdk:"type" autogen:"omitjson"`
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -30,11 +31,11 @@ func TestAccAIModelRateLimit_basic(t *testing.T) {
 		orgID     = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectID = acc.ProjectIDExecution(t)
 	)
-
-	resource.ParallelTest(t, resource.TestCase{
+	// Serial test execution to avoid conflicts with other tests that use the same project and model group names.
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		// CheckDestroy not used: rate limits are singleton resources that always exist per project and model group.
+		// TODO: CLOUDP-374704, CLOUDP-372674 - Implement CheckDestroy checking default limits when SDK can be used.
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, projectID, 100, 1000),
@@ -50,6 +51,36 @@ func TestAccAIModelRateLimit_basic(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "project_id",
 				ImportState:                          true,
 				ImportStateVerify:                    true,
+			},
+		},
+	})
+}
+
+func TestAccAIModelRateLimit_invalidValues(t *testing.T) {
+	projectID := acc.ProjectIDExecution(t)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configInvalid(projectID, "nonexistent_model_group", 100, 1000),
+				ExpectError: regexp.MustCompile("RESOURCE_NOT_FOUND"),
+			},
+			{
+				Config:      configInvalid(projectID, modelGroupName, 0, 1000),
+				ExpectError: regexp.MustCompile("BAD_REQUEST"),
+			},
+			{
+				Config:      configInvalid(projectID, modelGroupName, -1, 1000),
+				ExpectError: regexp.MustCompile("BAD_REQUEST"),
+			},
+			{
+				Config:      configInvalid(projectID, modelGroupName, 100, 0),
+				ExpectError: regexp.MustCompile("BAD_REQUEST"),
+			},
+			{
+				Config:      configInvalid(projectID, modelGroupName, 100, -1),
+				ExpectError: regexp.MustCompile("BAD_REQUEST"),
 			},
 		},
 	})
@@ -86,6 +117,17 @@ func configBasic(orgID, projectID string, requestsPerMinute, tokensPerMinute int
 	`, orgID, projectID, modelGroupName, requestsPerMinute, tokensPerMinute)
 }
 
+func configInvalid(projectID, modelGroupName string, requestsPerMinute, tokensPerMinute int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_ai_model_rate_limit" "this" {
+			project_id                 = %[1]q
+			model_group_name           = %[2]q
+			requests_per_minute_limit  = %[3]d
+			tokens_per_minute_limit    = %[4]d
+		}
+	`, projectID, modelGroupName, requestsPerMinute, tokensPerMinute)
+}
+
 func checkBasic() resource.TestCheckFunc {
 	attrsSet := []string{"model_group_name", "requests_per_minute_limit", "tokens_per_minute_limit"}
 	return resource.ComposeAggregateTestCheckFunc(
@@ -115,7 +157,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 // rateLimitExists checks if a rate limit exists.
 // Uses UntypedAPICall because the API is in preview and not yet available in the SDK.
-// TODO: Use SDK before merging to master in CLOUDP-372674.
+// TODO: CLOUDP-374704 - Use SDK before merging to master in CLOUDP-372674.
 func rateLimitExists(rs *terraform.ResourceState) bool {
 	callParams := config.APICallParams{
 		VersionHeader: "application/vnd.atlas.preview+json",

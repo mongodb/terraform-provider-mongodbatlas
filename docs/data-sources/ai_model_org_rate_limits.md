@@ -34,7 +34,7 @@ Read-Only:
 
 - `model_group_name` (String) Identifier used to reference this model group.
 - `model_names` (List of String) List of embedding model names included in this model group.
-- `requests_per_minute_limit` (Number) The number of requests per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
-- `tokens_per_minute_limit` (Number) The number of tokens per minute allowed for this model group. Cannot be less than zero. Cannot be more than the organization level limit for this group model.
+- `requests_per_minute_limit` (Number) The number of requests per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.
+- `tokens_per_minute_limit` (Number) The number of tokens per minute allowed for this model group. Must be a positive integer. Cannot be more than the organization level limit for this group model.
 
 For more information, see [Manage AI Model Rate Limits](https://www.mongodb.com/docs/voyageai/management/rate-limits/).

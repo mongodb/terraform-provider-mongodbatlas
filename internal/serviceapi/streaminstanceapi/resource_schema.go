@@ -170,6 +170,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "The Schema Registry provider.",
 						},
+						"region": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The connection's region.",
+						},
 						"schema_registry_authentication": schema.SingleNestedAttribute{
 							Computed:            true,
 							MarkdownDescription: "Authentication configuration for Schema Registry.",
@@ -274,7 +278,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Configuration options for an Atlas Stream Processing Workspace.",
 				CustomType:          customtypes.NewObjectType[TFStreamConfigModel](ctx),
-				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
 				Attributes: map[string]schema.Attribute{
 					"max_tier_size": schema.StringAttribute{
 						Optional:            true,
@@ -297,7 +300,7 @@ type TFModel struct {
 	Hostnames         customtypes.ListValue[types.String]               `tfsdk:"hostnames" autogen:"omitjson"`
 	Name              types.String                                      `tfsdk:"name" autogen:"omitjsonupdate"`
 	SampleConnections customtypes.ObjectValue[TFSampleConnectionsModel] `tfsdk:"sample_connections" autogen:"omitjsonupdate"`
-	StreamConfig      customtypes.ObjectValue[TFStreamConfigModel]      `tfsdk:"stream_config" autogen:"omitjsonupdate"`
+	StreamConfig      customtypes.ObjectValue[TFStreamConfigModel]      `tfsdk:"stream_config"`
 }
 type TFConnectionsModel struct {
 	Authentication               customtypes.ObjectValue[TFConnectionsAuthenticationModel]               `tfsdk:"authentication" autogen:"omitjson"`
@@ -311,6 +314,7 @@ type TFConnectionsModel struct {
 	Name                         types.String                                                            `tfsdk:"name" autogen:"omitjson"`
 	Networking                   customtypes.ObjectValue[TFConnectionsNetworkingModel]                   `tfsdk:"networking" autogen:"omitjson"`
 	Provider                     types.String                                                            `tfsdk:"provider" autogen:"omitjson"`
+	Region                       types.String                                                            `tfsdk:"region" autogen:"omitjson"`
 	SchemaRegistryAuthentication customtypes.ObjectValue[TFConnectionsSchemaRegistryAuthenticationModel] `tfsdk:"schema_registry_authentication" autogen:"omitjson"`
 	SchemaRegistryUrls           customtypes.SetValue[types.String]                                      `tfsdk:"schema_registry_urls" autogen:"omitjson"`
 	Security                     customtypes.ObjectValue[TFConnectionsSecurityModel]                     `tfsdk:"security" autogen:"omitjson"`

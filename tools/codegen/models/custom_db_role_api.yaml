@@ -57,7 +57,7 @@ schema:
                         name: ActionsResources
                         model: customtypes.NestedListValue[TFActionsResourcesModel]
                         schema: customtypes.NewNestedListType[TFActionsResourcesModel](ctx)
-                      computed_optional_required: optional
+                      computed_optional_required: required
                       tf_schema_name: resources
                       tf_model_name: Resources
                       api_name: resources
