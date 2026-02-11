@@ -16,9 +16,41 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"api_key": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Datadog API key for authentication.",
+			},
+			"azure_container": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Azure Blob Storage container name for log files.",
+			},
+			"azure_prefix_path": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Blob path prefix for organizing log files within the container.",
+			},
+			"azure_service_principal_id": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the Azure Service Principal.",
+			},
+			"azure_storage_account_name": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Azure Storage Account name where logs will be stored.",
+			},
 			"bucket_name": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "Human-readable label that identifies the S3 bucket name for storing log files.",
+			},
+			"gcs_bucket_name": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "GCS bucket name for storing log files.",
+			},
+			"gcs_prefix_path": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "GCS object path prefix for organizing log files.",
+			},
+			"gcs_role_id": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the GCP service account role.",
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
@@ -26,7 +58,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"iam_role_id": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.",
 			},
 			"integration_id": schema.StringAttribute{
@@ -40,13 +72,46 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"log_types": schema.SetAttribute{
 				Required:            true,
-				MarkdownDescription: "Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.",
+				MarkdownDescription: "Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.",
 				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
+			"otel_endpoint": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.",
+			},
+			"otel_supplied_headers": schema.ListNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.",
+				CustomType:          customtypes.NewNestedListType[TFOtelSuppliedHeadersModel](ctx),
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Header name.",
+						},
+						"value": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Header value.",
+						},
+					},
+				},
+			},
 			"prefix_path": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.",
+			},
+			"region": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.",
+			},
+			"splunk_hec_token": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Splunk HTTP Event Collector (HEC) token for authentication.",
+			},
+			"splunk_hec_url": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Splunk HTTP Event Collector (HEC) endpoint URL.",
 			},
 			"type": schema.StringAttribute{
 				Required:            true,
@@ -57,12 +122,29 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	BucketName    types.String                       `tfsdk:"bucket_name"`
-	ProjectId     types.String                       `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	IamRoleId     types.String                       `tfsdk:"iam_role_id"`
-	IntegrationId types.String                       `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
-	KmsKey        types.String                       `tfsdk:"kms_key"`
-	LogTypes      customtypes.SetValue[types.String] `tfsdk:"log_types"`
-	PrefixPath    types.String                       `tfsdk:"prefix_path"`
-	Type          types.String                       `tfsdk:"type"`
+	ApiKey                  types.String                                            `tfsdk:"api_key"`
+	AzureContainer          types.String                                            `tfsdk:"azure_container"`
+	AzurePrefixPath         types.String                                            `tfsdk:"azure_prefix_path"`
+	AzureServicePrincipalId types.String                                            `tfsdk:"azure_service_principal_id"`
+	AzureStorageAccountName types.String                                            `tfsdk:"azure_storage_account_name"`
+	BucketName              types.String                                            `tfsdk:"bucket_name"`
+	GcsBucketName           types.String                                            `tfsdk:"gcs_bucket_name"`
+	GcsPrefixPath           types.String                                            `tfsdk:"gcs_prefix_path"`
+	GcsRoleId               types.String                                            `tfsdk:"gcs_role_id"`
+	ProjectId               types.String                                            `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	IamRoleId               types.String                                            `tfsdk:"iam_role_id"`
+	IntegrationId           types.String                                            `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
+	KmsKey                  types.String                                            `tfsdk:"kms_key"`
+	LogTypes                customtypes.SetValue[types.String]                      `tfsdk:"log_types"`
+	OtelEndpoint            types.String                                            `tfsdk:"otel_endpoint"`
+	OtelSuppliedHeaders     customtypes.NestedListValue[TFOtelSuppliedHeadersModel] `tfsdk:"otel_supplied_headers"`
+	PrefixPath              types.String                                            `tfsdk:"prefix_path"`
+	Region                  types.String                                            `tfsdk:"region"`
+	SplunkHecToken          types.String                                            `tfsdk:"splunk_hec_token"`
+	SplunkHecUrl            types.String                                            `tfsdk:"splunk_hec_url"`
+	Type                    types.String                                            `tfsdk:"type"`
+}
+type TFOtelSuppliedHeadersModel struct {
+	Name  types.String `tfsdk:"name"`
+	Value types.String `tfsdk:"value"`
 }

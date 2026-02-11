@@ -354,7 +354,7 @@ schema:
                                     package: customtypes
                                     model: customtypes.ListValue[jsontypes.Normalized]
                                     schema: customtypes.NewListType[jsontypes.Normalized](ctx)
-                                  computed_optional_required: optional
+                                  computed_optional_required: required
                                   tf_schema_name: types
                                   tf_model_name: Types
                                   api_name: types

@@ -156,7 +156,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									MarkdownDescription: "Label that identifies the type set name. Each `typeSets.name` must be unique within the same index definition.",
 								},
 								"types": schema.ListAttribute{
-									Optional:            true,
+									Required:            true,
 									MarkdownDescription: "List of types associated with the type set. Each type definition must include a `type` field specifying the search field type (`autocomplete`, `boolean`, `date`, `geo`, `number`, `objectId`, `string`, `token`, or `uuid`) and may include additional configuration properties specific to that type.",
 									CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 									ElementType:         jsontypes.NormalizedType{},
