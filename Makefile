@@ -19,7 +19,7 @@ LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/versio
 GOLANGCI_VERSION=v2.8.0 # Also update golangci-lint GH action in code-health.yml when updating this version
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
-export SHELL := env PATH="$(PATH)" /bin/bash
+export SHELL := env PATH=$(PATH) /bin/bash
 
 default: build
 
