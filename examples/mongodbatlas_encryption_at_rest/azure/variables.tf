@@ -21,12 +21,26 @@ variable "azure_subscription_id" {
 variable "azure_client_id" {
   type        = string
   description = "Azure ID identifies an Azure application associated with your Azure Active Directory tenant"
+  default     = null
 }
 
 variable "azure_client_secret" {
   type        = string
   sensitive   = true
   description = "Secret associated to the Azure application"
+  default     = null
+}
+
+variable "azure_role_id" {
+  type        = string
+  description = "Azure ID that identifies the Azure Service Principal that Atlas uses to access the Azure Key Vault"
+  default     = null
+}
+
+variable "atlas_azure_app_id" {
+  type        = string
+  description = "Application (client) ID of the Atlas Azure AD application"
+  default     = null
 }
 
 variable "azure_tenant_id" {
