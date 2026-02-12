@@ -37,12 +37,6 @@ variable "azure_role_id" {
   default     = null
 }
 
-variable "atlas_azure_app_id" {
-  type        = string
-  description = "Application (client) ID of the Atlas Azure AD application"
-  default     = null
-}
-
 variable "azure_tenant_id" {
   type        = string
   description = "Azure ID  that identifies the Azure Active Directory tenant within your Azure subscription"
