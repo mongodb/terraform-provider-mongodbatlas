@@ -23,7 +23,7 @@ import (
 //   - `omitjson`: Attribute is never marshaled.
 //   - `omitjsonupdate`: Attribute is not marshaled if isUpdate is true.
 //   - `sendnullasnullonupdate`: Attribute is marshaled as null if isUpdate is true.
-//   - `sendnullasemptyonupdate`: Attribute is marshaled as empty if isUpdate is true (collections only).
+//   - `sendnullasemptyonupdate`: Attribute is marshaled as empty value (`[]` or `{}`) if isUpdate is true (collections only).
 func Marshal(model any, isUpdate bool) ([]byte, error) {
 	valModel := reflect.ValueOf(model)
 	if valModel.Kind() != reflect.Ptr {
