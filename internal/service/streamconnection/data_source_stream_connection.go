@@ -53,7 +53,7 @@ func (d *streamConnectionDS) Schema(ctx context.Context, req datasource.SchemaRe
 }
 
 func (d *streamConnectionDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var streamConnectionConfig TFStreamConnectionModel
+	var streamConnectionConfig TFStreamConnectionDSModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &streamConnectionConfig)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -61,7 +61,12 @@ func (d *streamConnectionDS) Read(ctx context.Context, req datasource.ReadReques
 
 	connV2 := d.Client.AtlasV2
 	projectID := streamConnectionConfig.ProjectID.ValueString()
-	workspaceOrInstanceName := getWorkspaceOrInstanceName(&streamConnectionConfig)
+	instanceName := streamConnectionConfig.InstanceName.ValueString()
+	workspaceName := streamConnectionConfig.WorkspaceName.ValueString()
+	workspaceOrInstanceName := workspaceName
+	if workspaceOrInstanceName == "" {
+		workspaceOrInstanceName = instanceName
+	}
 	if workspaceOrInstanceName == "" {
 		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
 		return
@@ -73,9 +78,7 @@ func (d *streamConnectionDS) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	instanceName := streamConnectionConfig.InstanceName.ValueString()
-	workspaceName := streamConnectionConfig.WorkspaceName.ValueString()
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, nil, nil, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnectionDS(ctx, projectID, instanceName, workspaceName, nil, nil, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

@@ -271,10 +271,9 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 					checkKafkaAttributesAcceptance(dataSourceName, instanceName, "kafka-conn-ssl", "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, false),
 				),
 			},
-			// cannot change networking access type once set
 			{
 				Config:      networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
-				ExpectError: regexp.MustCompile("STREAM_NETWORKING_ACCESS_TYPE_CANNOT_BE_MODIFIED"),
+				ExpectError: regexp.MustCompile("STREAM_NETWORKING_CANNOT_BE_MODIFIED"),
 			},
 			{
 				ResourceName:            resourceName,
