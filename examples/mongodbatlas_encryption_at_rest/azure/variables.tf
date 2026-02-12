@@ -31,12 +31,6 @@ variable "azure_client_secret" {
   default     = null
 }
 
-variable "azure_role_id" {
-  type        = string
-  description = "Azure ID that identifies the Azure Service Principal that Atlas uses to access the Azure Key Vault"
-  default     = null
-}
-
 variable "azure_tenant_id" {
   type        = string
   description = "Azure ID  that identifies the Azure Active Directory tenant within your Azure subscription"
