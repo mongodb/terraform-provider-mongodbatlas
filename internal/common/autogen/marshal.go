@@ -18,11 +18,12 @@ import (
 //   - Terraform types: String, Bool, Int64, Float64.
 //   - Custom types: Object, Map, List, Set & jsontypes.Normalized.
 //
-// Attributes that are null or unknown are not marshaled.
-// Attributes with autogen tag `omitjson` are never marshaled, this only applies to the root model.
-// Attributes with autogen tag `omitjsonupdate` are not marshaled if isUpdate is true, this only applies to the root model.
-// Attributes with autogen tag `includenullonupdate` are marshaled if isUpdate is true (even if null), this only applies to the root model.
-// Null list or set root elements are sent as empty arrays if isUpdate is true.
+// Attributes that are null or unknown are not marshaled by default.
+// This behavior can be controlled via autogen tags (tags are exclusive):
+//   - `omitjson`: Attribute is never marshaled.
+//   - `omitjsonupdate`: Attribute is not marshaled if isUpdate is true.
+//   - `sendnullasnullonupdate`: Attribute is marshaled as null if isUpdate is true.
+//   - `sendnullasemptyonupdate`: Attribute is marshaled as empty value (`[]` or `{}`) if isUpdate is true (collections only).
 func Marshal(model any, isUpdate bool) ([]byte, error) {
 	valModel := reflect.ValueOf(model)
 	if valModel.Kind() != reflect.Ptr {
@@ -78,8 +79,8 @@ func marshalAttr(attrNameJSON string, attrValModel reflect.Value, objJSON map[st
 		return err
 	}
 
-	// Emit empty array for null list/set attributes unless explicit configuration with includeNullOnUpdate
-	if val == nil && isUpdate && !tags.IncludeNullOnUpdate {
+	// Emit empty collection on update for null list/set/map attributes when configured via sendNullAsEmptyOnUpdate
+	if val == nil && isUpdate && tags.SendNullAsEmptyOnUpdate {
 		switch obj.(type) {
 		case customtypes.ListValueInterface, customtypes.NestedListValueInterface, customtypes.SetValueInterface, customtypes.NestedSetValueInterface:
 			val = []any{}
@@ -88,8 +89,8 @@ func marshalAttr(attrNameJSON string, attrValModel reflect.Value, objJSON map[st
 		}
 	}
 
-	// Emit value if non-nil, or emit null on update when configured by includeNullOnUpdate
-	if val != nil || (isUpdate && tags.IncludeNullOnUpdate) {
+	// Emit value if non-nil, or emit null on update when configured via sendNullAsNullOnUpdate
+	if val != nil || (isUpdate && tags.SendNullAsNullOnUpdate) {
 		if tags.ListAsMap {
 			val = ModifyJSONFromMapToList(val)
 		}

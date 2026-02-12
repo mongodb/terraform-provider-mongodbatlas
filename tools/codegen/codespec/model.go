@@ -144,10 +144,11 @@ const (
 type AttributeReqBodyUsage string
 
 const (
-	AllRequestBodies    AttributeReqBodyUsage = "all_request_bodies" // by default attribute is sent in request bodies
-	OmitInUpdateBody    AttributeReqBodyUsage = "omit_in_update_body"
-	IncludeNullOnUpdate AttributeReqBodyUsage = "include_null_on_update" // attributes that always must be sent in update request body even if null
-	OmitAlways          AttributeReqBodyUsage = "omit_always"            // this covers computed-only attributes and attributes which are only used for path/query params
+	AllRequestBodies        AttributeReqBodyUsage = "all_request_bodies" // by default attribute is sent in request bodies
+	OmitInUpdateBody        AttributeReqBodyUsage = "omit_in_update_body"
+	SendNullAsNullOnUpdate  AttributeReqBodyUsage = "send_null_as_null_on_update"  // attributes with null value are sent as null in update request body
+	SendNullAsEmptyOnUpdate AttributeReqBodyUsage = "send_null_as_empty_on_update" // attributes with null value are sent as empty in update request body (collections only)
+	OmitAlways              AttributeReqBodyUsage = "omit_always"                  // this covers computed-only attributes and attributes which are only used for path/query params
 )
 
 type BoolAttribute struct {
