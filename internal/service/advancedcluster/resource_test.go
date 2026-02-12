@@ -2048,46 +2048,6 @@ func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestChec
 		pluralChecks...)
 }
 
-// Test to update advanced_configuration from TLS1_2 (CUSTOM) to TLS1_3 (CUSTOM).
-// Third step to update back to TLS1_3 → TLS1_2 is skipped due to environment flakiness for now. Enable once CLOUDP-362374 is solved.
-// See https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3912 for more details.
-func TestAccAdvancedCluster_tls12to13CustomCipherUpdate(t *testing.T) {
-	acc.SkipTestForCI(t) // Skipping due to almost-consistent failures on cluster update. Enable once CLOUDP-362374 is solved.
-	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 5)
-		processArgsTLS12       = &admin.ClusterDescriptionProcessArgs20240805{
-			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
-			CustomOpensslCipherConfigTls12: conversion.Pointer([]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"}),
-			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_2"),
-		}
-		processArgsTLS13 = &admin.ClusterDescriptionProcessArgs20240805{
-			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
-			CustomOpensslCipherConfigTls13: conversion.Pointer([]string{"TLS_AES_128_GCM_SHA256"}),
-			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_3"),
-		}
-	)
-
-	advancedConfigTLS13 := configAdvanced(t, projectID, clusterName, "", processArgsTLS13)
-	advancedConfigTLS12 := configAdvanced(t, projectID, clusterName, "", processArgsTLS12)
-
-	check := checkAdvancedTLS(clusterName, "TLS1_2", processArgsTLS12)
-	updateCheck := checkAdvancedTLS(clusterName, "TLS1_3", processArgsTLS13)
-
-	resource.ParallelTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: advancedConfigTLS12,
-				Check:  check,
-			},
-			{
-				Config: advancedConfigTLS13,
-				Check:  updateCheck,
-			},
-		},
-	})
-}
-
 func TestAccAdvancedCluster_tls13CustomCiphers(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)

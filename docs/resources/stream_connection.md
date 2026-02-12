@@ -67,7 +67,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```terraform
 resource "mongodbatlas_stream_connection" "example-kafka-oauthbearer" {
     project_id      = var.project_id
-    instance_name   = mongodbatlas_stream_instance.example.instance_name
+    workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
     connection_name = "KafkaOAuthbearerConnection"
     type            = "Kafka"
     authentication = {
@@ -138,7 +138,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```terraform
 resource "mongodbatlas_stream_connection" "example-https" {
   project_id      = var.project_id
-  workspace_name   = mongodbatlas_stream_instance.example.instance_name
+  workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
   connection_name = "https_connection_tf_new"
   type            = "Https"
   url             = "https://example.com"
@@ -154,7 +154,7 @@ resource "mongodbatlas_stream_connection" "example-https" {
 ```terraform
 resource "mongodbatlas_stream_connection" "example-schema-registry" {
   project_id               = var.project_id
-  workspace_name           = mongodbatlas_stream_instance.example.instance_name
+  workspace_name           = mongodbatlas_stream_workspace.example.workspace_name
   connection_name          = "SchemaRegistryConnection"
   type                     = "SchemaRegistry"
   schema_registry_provider = "CONFLUENT"
@@ -172,7 +172,7 @@ resource "mongodbatlas_stream_connection" "example-schema-registry" {
 ```terraform
 resource "mongodbatlas_stream_connection" "example-schema-registry-sasl" {
   project_id               = var.project_id
-  workspace_name           = mongodbatlas_stream_instance.example.instance_name
+  workspace_name           = mongodbatlas_stream_workspace.example.workspace_name
   connection_name          = "SchemaRegistryConnectionSASL"
   type                     = "SchemaRegistry"
   schema_registry_provider = "CONFLUENT"
@@ -183,15 +183,65 @@ resource "mongodbatlas_stream_connection" "example-schema-registry-sasl" {
 }
 ```
 
+### Example Usage with Stream Processor
+
+When using a stream connection with a stream processor, the connection must be fully provisioned before the processor can be created. The provider automatically waits for connections to be ready after creation or updates. The example below shows a typical pattern:
+
+```terraform
+resource "mongodbatlas_stream_workspace" "example" {
+  project_id     = var.project_id
+  workspace_name = "ExampleWorkspace"
+  data_process_region = {
+    region         = "VIRGINIA_USA"
+    cloud_provider = "AWS"
+  }
+}
+
+# Source connection (Sample data)
+resource "mongodbatlas_stream_connection" "source" {
+  project_id      = var.project_id
+  workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+  connection_name = "sample_stream_solar"
+  type            = "Sample"
+}
+
+# Sink connection (Atlas Cluster)
+resource "mongodbatlas_stream_connection" "sink" {
+  project_id      = var.project_id
+  workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+  connection_name = "ClusterConnection"
+  type            = "Cluster"
+  cluster_name    = mongodbatlas_cluster.example.name
+  db_role_to_execute = {
+    role = "atlasAdmin"
+    type = "BUILT_IN"
+  }
+}
+
+# Stream processor that depends on both connections
+resource "mongodbatlas_stream_processor" "example" {
+  project_id     = var.project_id
+  workspace_name = mongodbatlas_stream_workspace.example.workspace_name
+  processor_name = "ExampleProcessor"
+  pipeline = jsonencode([
+    { "$source" = { "connectionName" = mongodbatlas_stream_connection.source.connection_name } },
+    { "$emit" = { "connectionName" = mongodbatlas_stream_connection.sink.connection_name } }
+  ])
+  state = "STARTED"
+}
+```
+
+~> **NOTE:** The stream processor resource automatically depends on the stream connections through the `connection_name` references in the pipeline. This ensures proper creation order. The provider waits for each connection to be fully provisioned before returning from create or update operations.
+
 ## Argument Reference
 
+**NOTE:** Either `workspace_name` or `instance_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is an alias for `instance_name`. `workspace_name` should be used instead of `instance_name`.
+
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
-* `instance_name` - (Deprecated) Label that identifies the stream processing workspace. Attribute is deprecated and will be removed in following major versions in favor of `workspace_name`.
-* `workspace_name` - (Optional) Label that identifies the stream processing workspace. Conflicts with `instance_name`.
+* `workspace_name` - (Optional) Label that identifies the stream processing workspace.
+* `instance_name` - (Optional, Deprecated) Label that identifies the stream processing workspace. Use `workspace_name` instead; this attribute will be removed in a future major version.
 * `connection_name` - (Required) Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
 * `type` - (Required) Type of connection. Can be `AWSLambda`, `Cluster`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
-
-~> **NOTE:** Either `workspace_name` or `instance_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is an alias for `instance_name`. `workspace_name` should be used instead of `instance_name`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -255,6 +305,22 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
   * `SASL_INHERIT` - Inherits the authentication configuration from Kafka for the Confluent Schema Registry.
 * `username` - Username for the Schema Registry. Required when `type` is `USER_INFO`.
 * `password` - Password for the Schema Registry. Required when `type` is `USER_INFO`.
+
+### Timeouts
+
+```terraform
+resource "mongodbatlas_stream_connection" "example" {
+  # ... other configuration ...
+
+  timeouts = {
+    create = "30m"
+    update = "30m"
+  }
+}
+```
+
+* `create` - (Optional) The maximum time to wait for the stream connection to be fully provisioned after creation. Defaults to `20m` (20 minutes).
+* `update` - (Optional) The maximum time to wait for the stream connection to be fully provisioned after an update. Defaults to `20m` (20 minutes).
 
 ## Import
 

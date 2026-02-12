@@ -1,5 +1,10 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* resource/mongodbatlas_stream_connection: Adds connection state polling to improve reliability of create and update operations ([#4122](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4122))
+* resource/mongodbatlas_stream_connection: Adds user-configurable timeouts for create and update operations ([#4122](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4122))
+
 ## 2.6.0 (February 04, 2026)
 
 NOTES:
