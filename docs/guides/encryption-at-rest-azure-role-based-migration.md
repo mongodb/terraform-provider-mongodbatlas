@@ -4,7 +4,7 @@ page_title: "Migration Guide: Encryption at Rest (Azure) Client Credentials to R
 
 # Migration Guide: Encryption at Rest (Azure) Client Credentials to Role-based Auth
 
-**Objective**: Migrate from using Azure client credentials (object_id,tenant_id, and secret) to role-based authentication using an Atlas-managed role via mongodbatlas_encryption_at_rest.azure_key_vault_config.azure_role_id`.
+**Objective**: Migrate from using Azure client credentials (`client_id`, `tenant_id`, and `secret`) to role-based authentication using an Atlas-managed role via `mongodbatlas_encryption_at_rest.azure_key_vault_config.azure_role_id`.
 
 **Note**: After migrating to role-based authentication, reverting back to client credentials is not supported.
 
@@ -19,7 +19,7 @@ page_title: "Migration Guide: Encryption at Rest (Azure) Client Credentials to R
 This configuration serves as the starting point for the migration.
 
 ```hcl
-resource "mongodbatlas_encryption_at_rest" "test" {
+resource "mongodbatlas_encryption_at_rest" "this" {
   project_id = var.atlas_project_id
 
   azure_key_vault_config {
