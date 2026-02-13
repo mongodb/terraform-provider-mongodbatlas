@@ -21,12 +21,14 @@ variable "azure_subscription_id" {
 variable "azure_client_id" {
   type        = string
   description = "Azure ID identifies an Azure application associated with your Azure Active Directory tenant"
+  default     = null
 }
 
 variable "azure_client_secret" {
   type        = string
   sensitive   = true
   description = "Secret associated to the Azure application"
+  default     = null
 }
 
 variable "azure_tenant_id" {
