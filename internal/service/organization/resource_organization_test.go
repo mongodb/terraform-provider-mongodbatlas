@@ -145,6 +145,34 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSOrganization_ServiceAccount(t *testing.T) {
+	acc.SkipTestForCI(t) // affects the org
+
+	var (
+		orgOwnerID = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
+		name       = acc.RandomName()
+		saName     = "test-sa"
+		saDesc     = "test SA for Acceptance tests"
+		saRole     = "ORG_OWNER"
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configServiceAccount(orgOwnerID, name, saName, saDesc, saRole),
+				Check: checkAggrSA(orgOwnerID, name, defaultSettings,
+					resource.TestCheckResourceAttr(resourceName, "service_account.0.name", saName),
+					resource.TestCheckResourceAttr(resourceName, "service_account.0.description", saDesc),
+					resource.TestCheckResourceAttr(resourceName, "service_account.0.secret_expires_after_hours", "8760"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConfigRSOrganizationCreate_Errors(t *testing.T) {
 	var (
 		roleName    = "ORG_OWNER"
@@ -384,6 +412,21 @@ func configBasic(orgOwnerID, name, description, roleNames string, useSkipDefault
 	`, orgOwnerID, name, description, roleNames, skipDefaultAlertSettingsStr)
 }
 
+func configServiceAccount(orgOwnerID, name, saName, saDesc, saRole string) string {
+	return fmt.Sprintf(`
+	  resource "mongodbatlas_organization" "test" {
+		org_owner_id = %q
+		name = %q
+		service_account {
+			name = %q
+			description = %q
+			roles = [%q]
+			secret_expires_after_hours = 8760
+		}
+	  }
+	`, orgOwnerID, name, saName, saDesc, saRole)
+}
+
 func configWithSettings(orgOwnerID, name, description, roleNames string, settingsConfig *admin.OrganizationSettings) string {
 	settingsStr := getSettingsConfig(settingsConfig)
 
@@ -423,20 +466,39 @@ func getSettingsConfig(settings *admin.OrganizationSettings) string {
 // getTestClientWithNewOrgCreds creates a new Atlas client with credentials for the newly created organization which
 // is required to call relevant API methods for the new organization, for example ListOrganizations requires that the requesting API
 // key must have the Organization Member role. So we cannot invoke API methods on the new organization with credentials configured in the provider.
+// It tries PAK credentials first, then SA credentials.
 func getTestClientWithNewOrgCreds(rs *terraform.ResourceState) (*admin.APIClient, error) {
-	if rs.Primary.Attributes["public_key"] == "" {
-		return nil, fmt.Errorf("no public_key is set")
+	publicKey := rs.Primary.Attributes["public_key"]
+	privateKey := rs.Primary.Attributes["private_key"]
+	if publicKey != "" && privateKey != "" {
+		c := &config.Credentials{
+			PublicKey:  publicKey,
+			PrivateKey: privateKey,
+			BaseURL:    acc.MongoDBClient.BaseURL,
+		}
+		client, err := config.NewClient(c, acc.MongoDBClient.TerraformVersion)
+		if err != nil {
+			return nil, fmt.Errorf("error creating client with PAK credentials: %s", err)
+		}
+		return client.AtlasV2, nil
 	}
-	if rs.Primary.Attributes["private_key"] == "" {
-		return nil, fmt.Errorf("no private_key is set")
+
+	clientID := rs.Primary.Attributes["service_account.0.client_id"]
+	clientSecret := rs.Primary.Attributes["service_account.0.secrets.0.secret"]
+	if clientID != "" && clientSecret != "" {
+		c := &config.Credentials{
+			ClientID:     clientID,
+			ClientSecret: clientSecret,
+			BaseURL:      acc.MongoDBClient.BaseURL,
+		}
+		client, err := config.NewClient(c, acc.MongoDBClient.TerraformVersion)
+		if err != nil {
+			return nil, fmt.Errorf("error creating client with SA credentials: %s", err)
+		}
+		return client.AtlasV2, nil
 	}
-	c := &config.Credentials{
-		PublicKey:  rs.Primary.Attributes["public_key"],
-		PrivateKey: rs.Primary.Attributes["private_key"],
-		BaseURL:    acc.MongoDBClient.BaseURL,
-	}
-	client, _ := config.NewClient(c, acc.MongoDBClient.TerraformVersion)
-	return client.AtlasV2, nil
+
+	return nil, fmt.Errorf("no credentials available (neither PAK nor SA)")
 }
 
 func TestValidateAPIKeyIsOrgOwner(t *testing.T) {
@@ -487,7 +549,29 @@ func checkAggr(orgOwnerID, name, description string, settings *admin.Organizatio
 		checkExists(resourceName),
 	}
 	checks = acc.AddAttrChecks(resourceName, checks, attributes)
-	checks = acc.AddAttrSetChecks(resourceName, checks, "role_names.#")
+	checks = acc.AddAttrSetChecks(resourceName, checks, "role_names.#", "public_key", "private_key")
+	checks = append(checks, extra...)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func checkAggrSA(orgOwnerID, name string, settings *admin.OrganizationSettings, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	attributes := map[string]string{
+		"name":                       name,
+		"org_owner_id":               orgOwnerID,
+		"api_access_list_required":   strconv.FormatBool(settings.GetApiAccessListRequired()),
+		"multi_factor_auth_required": strconv.FormatBool(settings.GetMultiFactorAuthRequired()),
+		"restrict_employee_access":   strconv.FormatBool(settings.GetRestrictEmployeeAccess()),
+		"gen_ai_features_enabled":    strconv.FormatBool(settings.GetGenAIFeaturesEnabled()),
+		"security_contact":           settings.GetSecurityContact(),
+	}
+	checks := []resource.TestCheckFunc{
+		checkExists(resourceName),
+	}
+	checks = acc.AddAttrChecks(resourceName, checks, attributes)
+	checks = acc.AddAttrSetChecks(resourceName, checks,
+		"service_account.0.client_id", "service_account.0.created_at",
+		"service_account.0.secrets.0.secret", "service_account.0.secrets.0.created_at",
+		"service_account.0.secrets.0.expires_at", "service_account.0.secrets.0.secret_id")
 	checks = append(checks, extra...)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }

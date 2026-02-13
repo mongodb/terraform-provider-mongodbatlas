@@ -18,6 +18,8 @@ This guide applies to both organization-level and project-level service accounts
 
 **Note**: The steps below use organization-level resources, but the same approach applies to project-level resources.
 
+~> **WARNING:** Service Account secrets expire after the configured `secret_expires_after_hours` period. To avoid losing access to the Atlas Administration API, update your application with the new client secret as soon as possible after rotation. If all secrets expire before being replaced, you will lose access to the organization. For more information, see [Rotate Service Account Secrets](https://www.mongodb.com/docs/atlas/tutorial/rotate-service-account-secrets/).
+
 ## Best Practices Before Starting
 
 - **Backup your Terraform state file** before making any changes.
