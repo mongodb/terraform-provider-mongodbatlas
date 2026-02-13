@@ -54,6 +54,6 @@ resource "mongodbatlas_advanced_cluster" "geosharded" {
   depends_on = [
     mongodbatlas_privatelink_endpoint_service.pe_east_service,
     mongodbatlas_privatelink_endpoint_service.pe_west_service,
-    mongodbatlas_private_endpoint_regional_mode.test
+    mongodbatlas_private_endpoint_regional_mode.this
   ]
 }

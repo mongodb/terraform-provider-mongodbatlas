@@ -1,4 +1,4 @@
-resource "mongodbatlas_private_endpoint_regional_mode" "test" {
+resource "mongodbatlas_private_endpoint_regional_mode" "this" {
   project_id = var.project_id
   enabled    = true
 }
