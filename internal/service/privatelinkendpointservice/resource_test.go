@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -77,10 +78,14 @@ func TestAccPrivateLinkEndpointService_deleteOnCreateTimeout(t *testing.T) {
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 			{
-				// Wait for async endpoint service deletion (triggered by delete_on_create_timeout)
-				// to complete before Terraform's destroy tries to delete the parent endpoint.
-				PreConfig: func() { waitForNoInterfaceEndpoints(t, projectID, "AWS") },
+				// Ensure endpoint service deletion completes before parent endpoint destroy.
+				PreConfig: func() { waitForNoInterfaceEndpoints(t, projectID, "AWS", "US_WEST_2") },
 				Config:    configEndpointOnly(projectID, "US_WEST_2"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPostRefresh: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(), // Only mongodbatlas_privatelink_endpoint should be present in the plan, and it is unchanged.
+					},
+				},
 			},
 		},
 	})
@@ -204,7 +209,7 @@ func configFailedAWS(projectID, region string) string {
 	`, projectID, region, dummyVPCEndpointID)
 }
 
-func waitForNoInterfaceEndpoints(t *testing.T, projectID, providerName string) {
+func waitForNoInterfaceEndpoints(t *testing.T, projectID, providerName, region string) {
 	t.Helper()
 	stateConf := &retry.StateChangeConf{
 		Pending: []string{"PENDING"},
@@ -216,13 +221,13 @@ func waitForNoInterfaceEndpoints(t *testing.T, projectID, providerName string) {
 				return nil, "", err
 			}
 			for _, svc := range services {
-				if len(svc.GetInterfaceEndpoints()) > 0 {
-					return nil, "PENDING", nil
+				if svc.GetRegionName() == region && len(svc.GetInterfaceEndpoints()) > 0 {
+					return "", "PENDING", nil
 				}
 			}
-			return nil, "CLEAR", nil
+			return "", "CLEAR", nil
 		},
-		Timeout:    5 * time.Minute,
+		Timeout:    30 * time.Minute,
 		MinTimeout: 10 * time.Second,
 		Delay:      10 * time.Second,
 	}
