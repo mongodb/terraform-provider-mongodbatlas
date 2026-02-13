@@ -6,8 +6,11 @@ import (
 	"os"
 	"regexp"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -63,6 +66,7 @@ func TestAccPrivateLinkEndpointService_failedAWS(t *testing.T) {
 }
 
 func TestAccPrivateLinkEndpointService_deleteOnCreateTimeout(t *testing.T) {
+	projectID := acc.ProjectIDExecution(t)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		CheckDestroy:             checkDestroy,
@@ -70,8 +74,18 @@ func TestAccPrivateLinkEndpointService_deleteOnCreateTimeout(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// Different region to avoid project conflicts.
-				Config:      configDeleteOnCreateTimeout(acc.PrivateLinkEndpointIDExecution(t, "AWS", "US_WEST_2")),
+				Config:      configDeleteOnCreateTimeout(projectID, "US_WEST_2"),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+			{
+				// Ensure endpoint service deletion completes before parent endpoint destroy.
+				PreConfig: func() { waitForNoInterfaceEndpoints(t, projectID, "AWS", "US_WEST_2") },
+				Config:    configEndpointOnly(projectID, "US_WEST_2"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPostRefresh: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(), // Only mongodbatlas_privatelink_endpoint should be present in the plan, and it is unchanged.
+					},
+				},
 			},
 		},
 	})
@@ -180,27 +194,65 @@ func checkCompleteAWS() resource.TestCheckFunc {
 
 func configFailedAWS(projectID, region string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_privatelink_endpoint" "test" {
+		resource "mongodbatlas_privatelink_endpoint" "this" {
 			project_id    = %[1]q
 			provider_name = "AWS"
 			region        = %[2]q
 		}
 
 		resource "mongodbatlas_privatelink_endpoint_service" "this" {
-			project_id          = mongodbatlas_privatelink_endpoint.test.project_id
+			project_id          = mongodbatlas_privatelink_endpoint.this.project_id
 			endpoint_service_id = %[3]q
-			private_link_id     = mongodbatlas_privatelink_endpoint.test.id
+			private_link_id     = mongodbatlas_privatelink_endpoint.this.id
 			provider_name       = "AWS"
 		}
 	`, projectID, region, dummyVPCEndpointID)
 }
 
-func configDeleteOnCreateTimeout(projectID, privateLinkEndpointID string) string {
+func waitForNoInterfaceEndpoints(t *testing.T, projectID, providerName, region string) {
+	t.Helper()
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{"PENDING"},
+		Target:  []string{"CLEAR"},
+		Refresh: func() (any, string, error) {
+			services, _, err := acc.ConnV2().PrivateEndpointServicesApi.
+				ListPrivateEndpointService(context.Background(), projectID, providerName).Execute()
+			if err != nil {
+				return nil, "", err
+			}
+			for _, svc := range services {
+				if svc.GetRegionName() == region && len(svc.GetInterfaceEndpoints()) > 0 {
+					return "", "PENDING", nil
+				}
+			}
+			return "", "CLEAR", nil
+		},
+		Timeout:    30 * time.Minute,
+		MinTimeout: 10 * time.Second,
+		Delay:      10 * time.Second,
+	}
+	_, err := stateConf.WaitForStateContext(context.Background())
+	if err != nil {
+		t.Logf("Warning: timeout waiting for interface endpoints to be removed: %v", err)
+	}
+}
+
+func configEndpointOnly(projectID, region string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_privatelink_endpoint" "this" {
+			project_id    = %[1]q
+			provider_name = "AWS"
+			region        = %[2]q
+		}
+	`, projectID, region)
+}
+
+func configDeleteOnCreateTimeout(projectID, region string) string {
+	return configEndpointOnly(projectID, region) + fmt.Sprintf(`
 		resource "mongodbatlas_privatelink_endpoint_service" "this" {
-			project_id               = %[1]q
-			private_link_id          = %[2]q
-			endpoint_service_id      = %[3]q
+			project_id               = mongodbatlas_privatelink_endpoint.this.project_id
+			private_link_id          = mongodbatlas_privatelink_endpoint.this.private_link_id
+			endpoint_service_id      = %[1]q
 			provider_name            = "AWS"
 			delete_on_create_timeout = true
 
@@ -208,5 +260,5 @@ func configDeleteOnCreateTimeout(projectID, privateLinkEndpointID string) string
 				create = "1s"
 			}
 		}
-	`, projectID, privateLinkEndpointID, dummyVPCEndpointID)
+	`, dummyVPCEndpointID)
 }

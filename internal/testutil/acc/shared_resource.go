@@ -27,14 +27,12 @@ type projectInfo struct {
 }
 
 var sharedInfo = struct {
-	clusterName             string
-	streamInstanceName      string
-	privateLinkEndpointID   string
-	privateLinkProviderName string
-	projects                []projectInfo
-	mu                      sync.Mutex
-	muSleep                 sync.Mutex
-	init                    bool
+	clusterName        string
+	streamInstanceName string
+	projects           []projectInfo
+	mu                 sync.Mutex
+	muSleep            sync.Mutex
+	init               bool
 }{
 	projects: []projectInfo{},
 }
@@ -68,13 +66,6 @@ func cleanupSharedResources() error {
 		fmt.Printf("Deleting execution stream instance: %s, project id: %s\n", sharedInfo.streamInstanceName, firstProjectID)
 		if _, err := clean.RemoveStreamInstances(context.TODO(), false, ConnV2(), firstProjectID); err != nil {
 			fmt.Printf("[ERROR] Stream instance deletion failed: %v\n", err)
-			hasError = true
-		}
-	}
-	if sharedInfo.privateLinkEndpointID != "" {
-		fmt.Printf("Deleting execution private link endpoint: %s, project id: %s, provider: %s\n", sharedInfo.privateLinkEndpointID, firstProjectID, sharedInfo.privateLinkProviderName)
-		if err := deletePrivateLinkEndpoint(firstProjectID, sharedInfo.privateLinkProviderName, sharedInfo.privateLinkEndpointID); err != nil {
-			fmt.Printf("[ERROR] Private link endpoint deletion failed: %v\n", err)
 			hasError = true
 		}
 	}
@@ -248,29 +239,6 @@ func SerialSleep(tb testing.TB) {
 	defer sharedInfo.muSleep.Unlock()
 
 	time.Sleep(5 * time.Second)
-}
-
-// PrivateLinkEndpointIDExecution returns a private link endpoint id created for the execution of the tests.
-// The endpoint is created with provider "AWS" and region from environment variable.
-// When `MONGODB_ATLAS_PROJECT_ID` is defined, it is used instead of creating a project.
-func PrivateLinkEndpointIDExecution(tb testing.TB, providerName, region string) (projectID, privateLinkEndpointID string) {
-	tb.Helper()
-	SkipInUnitTest(tb)
-	require.True(tb, sharedInfo.init, "sharedInfo not initialized, use acc.Run() to run tests that require shared resources")
-
-	projectID = ProjectIDExecution(tb) // ensure the execution project is created before endpoint creation
-
-	sharedInfo.mu.Lock()
-	defer sharedInfo.mu.Unlock()
-
-	// lazy creation so it's only done if really needed
-	if sharedInfo.privateLinkEndpointID == "" {
-		tb.Logf("Creating execution private link endpoint for provider: %s, region: %s\n", providerName, region)
-		sharedInfo.privateLinkEndpointID = createPrivateLinkEndpoint(tb, projectID, providerName, region)
-		sharedInfo.privateLinkProviderName = providerName
-	}
-
-	return projectID, sharedInfo.privateLinkEndpointID
 }
 
 // NextProjectIDClusterName is an internal method used when we want to reuse a projectID respecting `MaxClustersNodesPerProject` and `MaxFreeTierClusterCount`
