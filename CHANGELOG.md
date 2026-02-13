@@ -1,7 +1,15 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Guide:** Migration Guide: GCP Private Service Connect to Port-Mapped Architecture ([#4103](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4103))
+
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_privatelink_endpoint: Adds `port_mapping_enabled` attribute to enable the new port-mapped architecture for GCP Private Service Connect ([#4017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4017))
+* data-source/mongodbatlas_privatelink_endpoint_service: Adds `port_mapping_enabled` attribute to enable the new port-mapped architecture for GCP Private Service Connect ([#4017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4017))
+* resource/mongodbatlas_privatelink_endpoint: Adds `port_mapping_enabled` attribute to enable the new port-mapped architecture for GCP Private Service Connect ([#4017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4017))
+* resource/mongodbatlas_privatelink_endpoint_service: Adds `port_mapping_enabled` attribute to enable the new port-mapped architecture for GCP Private Service Connect ([#4017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4017))
 * resource/mongodbatlas_stream_connection: Adds connection state polling to improve reliability of create and update operations ([#4122](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4122))
 * resource/mongodbatlas_stream_connection: Adds user-configurable timeouts for create and update operations ([#4122](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4122))
 
