@@ -382,7 +382,7 @@ schema:
                       tf_schema_name: type_sets
                       tf_model_name: TypeSets
                       api_name: typeSets
-                      req_body_usage: include_null_on_update
+                      req_body_usage: send_null_as_null_on_update
                       sensitive: false
                       create_only: false
                       present_in_any_response: false

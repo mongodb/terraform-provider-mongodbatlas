@@ -248,8 +248,10 @@ func commonRSAndDSOverridesTransformation(attr *Attribute, paths *attrPaths, sch
 	if override.Sensitive != nil {
 		attr.Sensitive = *override.Sensitive
 	}
-	if override.IncludeNullOnUpdate != nil && *override.IncludeNullOnUpdate {
-		attr.ReqBodyUsage = IncludeNullOnUpdate
+	if override.RequestBodyUsage != nil {
+		if err := applyReqBodyUsageOverride(*override.RequestBodyUsage, attr); err != nil {
+			return err
+		}
 	}
 	if override.Type != nil {
 		if err := applyTypeOverride(&override, attr); err != nil {
@@ -339,6 +341,18 @@ func getComputabilityFromConfig(computability config.Computability) ComputedOpti
 		return Optional
 	}
 	return Required
+}
+
+func applyReqBodyUsageOverride(reqBodyUsage config.ReqBodyUsage, attr *Attribute) error {
+	switch reqBodyUsage {
+	case config.SendNullAsNullOnUpdate:
+		attr.ReqBodyUsage = SendNullAsNullOnUpdate
+		return nil
+	case config.SendNullAsEmptyOnUpdate:
+		attr.ReqBodyUsage = SendNullAsEmptyOnUpdate
+		return nil
+	}
+	return fmt.Errorf("unsupported request body usage defined in configuration: %s for attribute %s", reqBodyUsage, attr.TFSchemaName)
 }
 
 // ApplyTimeoutTransformation adds a timeout attribute to the resource schema if any operation has wait blocks.
@@ -544,5 +558,7 @@ func tagsAndLabelsAsMapTypeTransformation(attr *Attribute, _ *attrPaths, _ confi
 		ElementType: String,
 	}
 	attr.ListTypeAsMap = true
+	// Send an empty map on updates if the tags/labels attribute is null
+	attr.ReqBodyUsage = SendNullAsEmptyOnUpdate
 	return nil
 }

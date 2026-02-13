@@ -631,8 +631,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	ReplicationSpecs                              customtypes.NestedListValue[TFReplicationSpecsModel]       `tfsdk:"replication_specs"`
-	Labels                                        customtypes.MapValue[types.String]                         `tfsdk:"labels" autogen:"listasmap"`
-	Tags                                          customtypes.MapValue[types.String]                         `tfsdk:"tags" autogen:"listasmap"`
+	Labels                                        customtypes.MapValue[types.String]                         `tfsdk:"labels" autogen:"listasmap,sendnullasemptyonupdate"`
+	Tags                                          customtypes.MapValue[types.String]                         `tfsdk:"tags" autogen:"listasmap,sendnullasemptyonupdate"`
 	MongoDBEmployeeAccessGrant                    customtypes.ObjectValue[TFMongoDBEmployeeAccessGrantModel] `tfsdk:"mongo_db_employee_access_grant"`
 	MongoDBVersion                                types.String                                               `tfsdk:"mongo_db_version" autogen:"omitjson"`
 	ConfigServerManagementMode                    types.String                                               `tfsdk:"config_server_management_mode"`

@@ -511,7 +511,7 @@ schema:
           tf_schema_name: labels
           tf_model_name: Labels
           api_name: labels
-          req_body_usage: all_request_bodies
+          req_body_usage: send_null_as_empty_on_update
           sensitive: false
           create_only: false
           present_in_any_response: true
@@ -1286,7 +1286,7 @@ schema:
           tf_schema_name: tags
           tf_model_name: Tags
           api_name: tags
-          req_body_usage: all_request_bodies
+          req_body_usage: send_null_as_empty_on_update
           sensitive: false
           create_only: false
           present_in_any_response: true

@@ -14,11 +14,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20250312013/admin"
+
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 const (
@@ -72,7 +74,7 @@ func Resource() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Computed:      true,
-				ConflictsWith: []string{"gcp_project_id", "endpoints"},
+				ConflictsWith: []string{"endpoints"},
 			},
 			"private_endpoint_resource_id": {
 				Type:     schema.TypeString,
@@ -94,15 +96,14 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"endpoint_group_name": {
+			"endpoint_group_name": { // This attribute is not used anywhere in the code. Refraining from removal because of potential breaking change. This will be removed in CLOUDP-374187.
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"gcp_project_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"private_endpoint_ip_address"},
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 			"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
 				Type:        schema.TypeBool,
@@ -136,6 +137,16 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"gcp_endpoint_status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Status of the GCP endpoint. Only populated for port-mapped architecture.",
+			},
+			"port_mapping_enabled": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Flag that indicates whether the underlying `privatelink_endpoint` resource uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-mapped architecture. When `false`, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.",
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(2 * time.Hour),
@@ -150,28 +161,40 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
 	endpointServiceID := d.Get("endpoint_service_id").(string)
-	pEIA, pEIAOk := d.GetOk("private_endpoint_ip_address")
-	gPI, gPIOk := d.GetOk("gcp_project_id")
-	e, eOk := d.GetOk("endpoints")
+	privateEndpointIP, hasPrivateEndpointIP := d.GetOk("private_endpoint_ip_address")
+	gcpProjectID, hasGCPProjectID := d.GetOk("gcp_project_id")
+	endpoints, hasEndpoints := d.GetOk("endpoints")
 
 	createEndpointRequest := &admin.CreateEndpointRequest{}
 
 	switch providerName {
-	case "AWS":
+	case constant.AWS:
 		createEndpointRequest.Id = &endpointServiceID
-	case "AZURE":
-		if !pEIAOk {
+	case constant.AZURE:
+		if !hasPrivateEndpointIP {
 			return diag.FromErr(errors.New("`private_endpoint_ip_address` must be set when `provider_name` is `AZURE`"))
 		}
 		createEndpointRequest.Id = &endpointServiceID
-		createEndpointRequest.PrivateEndpointIPAddress = conversion.Pointer(pEIA.(string))
-	case "GCP":
-		if !gPIOk || !eOk {
-			return diag.FromErr(errors.New("`gcp_project_id`, `endpoints` must be set when `provider_name` is `GCP`"))
+		createEndpointRequest.PrivateEndpointIPAddress = conversion.Pointer(privateEndpointIP.(string))
+	case constant.GCP:
+		if !hasGCPProjectID {
+			return diag.FromErr(errors.New("`gcp_project_id` must be set for GCP"))
 		}
+		if hasPrivateEndpointIP == hasEndpoints {
+			return diag.FromErr(errors.New("for GCP, you must provide exactly one of: `private_endpoint_ip_address` (port-mapped architecture) or `endpoints` (GCP legacy private endpoint architecture)"))
+		}
+		createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
 		createEndpointRequest.EndpointGroupName = &endpointServiceID
-		createEndpointRequest.GcpProjectId = conversion.Pointer(gPI.(string))
-		createEndpointRequest.Endpoints = expandGCPEndpoints(e.([]any))
+		if hasPrivateEndpointIP { // Port-mapped architecture.
+			createEndpointRequest.Endpoints = &[]admin.CreateGCPForwardingRuleRequest{
+				{
+					IpAddress:    conversion.Pointer(privateEndpointIP.(string)),
+					EndpointName: &endpointServiceID,
+				},
+			}
+		} else {
+			createEndpointRequest.Endpoints = expandGCPEndpoints(endpoints.([]any))
+		}
 	}
 
 	_, _, err := connV2.PrivateEndpointServicesApi.CreatePrivateEndpoint(ctx, projectID, providerName, privateLinkID, createEndpointRequest).Execute()
@@ -227,7 +250,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
@@ -255,22 +277,12 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "aws_connection_status", endpointServiceID, err))
 	}
 
-	if providerName == "AZURE" {
-		if err := d.Set("azure_status", privateEndpoint.GetStatus()); err != nil {
-			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
-		}
-	}
-
 	if err := d.Set("interface_endpoint_id", privateEndpoint.GetInterfaceEndpointId()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "interface_endpoint_id", endpointServiceID, err))
 	}
 
 	if err := d.Set("private_endpoint_connection_name", privateEndpoint.GetPrivateEndpointConnectionName()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_connection_name", endpointServiceID, err))
-	}
-
-	if err := d.Set("private_endpoint_ip_address", privateEndpoint.GetPrivateEndpointIPAddress()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
 	}
 
 	if err := d.Set("private_endpoint_resource_id", privateEndpoint.GetPrivateEndpointResourceId()); err != nil {
@@ -281,13 +293,41 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoint_service_id", endpointServiceID, err))
 	}
 
-	if err := d.Set("endpoints", flattenGCPEndpoints(privateEndpoint.Endpoints)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoints", endpointServiceID, err))
-	}
+	switch providerName {
+	case constant.AZURE:
+		if err := d.Set("azure_status", privateEndpoint.GetStatus()); err != nil {
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
+		}
 
-	if providerName == "GCP" {
+		if err := d.Set("private_endpoint_ip_address", privateEndpoint.GetPrivateEndpointIPAddress()); err != nil {
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
+		}
+	case constant.GCP:
+		if err := d.Set("port_mapping_enabled", privateEndpoint.GetPortMappingEnabled()); err != nil {
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "port_mapping_enabled", privateLinkID, err))
+		}
+
 		if err := d.Set("gcp_status", privateEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
+		}
+
+		if privateEndpoint.GetPortMappingEnabled() {
+			if len(privateEndpoint.GetEndpoints()) != 1 {
+				return diag.FromErr(fmt.Errorf("unexpected API response: port-mapped architecture requires exactly one endpoint, but found %d endpoints. This is an API inconsistency. Please contact MongoDB support", len(privateEndpoint.GetEndpoints())))
+			}
+			firstEndpoint := privateEndpoint.GetEndpoints()[0]
+
+			if err := d.Set("gcp_endpoint_status", firstEndpoint.GetStatus()); err != nil {
+				return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_endpoint_status", endpointServiceID, err))
+			}
+
+			if err := d.Set("private_endpoint_ip_address", firstEndpoint.GetIpAddress()); err != nil {
+				return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
+			}
+		} else {
+			if err := d.Set("endpoints", flattenGCPEndpoints(privateEndpoint.Endpoints)); err != nil {
+				return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoints", endpointServiceID, err))
+			}
 		}
 	}
 
@@ -299,7 +339,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
@@ -347,38 +386,35 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
 	parts := strings.SplitN(d.Id(), "--", 4)
 	if len(parts) != 4 {
 		return nil, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}")
 	}
-
 	projectID := parts[0]
 	privateLinkID := parts[1]
 	endpointServiceID := parts[2]
 	providerName := parts[3]
-
-	_, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
+	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
-
 	if err := d.Set("project_id", projectID); err != nil {
 		return nil, fmt.Errorf(errorEndpointSetting, "project_id", privateLinkID, err)
 	}
-
 	if err := d.Set("private_link_id", privateLinkID); err != nil {
 		return nil, fmt.Errorf(errorEndpointSetting, "private_link_id", privateLinkID, err)
 	}
-
 	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
 		return nil, fmt.Errorf(errorEndpointSetting, "endpoint_service_id", privateLinkID, err)
 	}
-
 	if err := d.Set("provider_name", providerName); err != nil {
 		return nil, fmt.Errorf(errorEndpointSetting, "provider_name", privateLinkID, err)
 	}
-
+	if providerName == constant.GCP {
+		if err := d.Set("gcp_project_id", privateEndpoint.GetGcpProjectId()); err != nil {
+			return nil, fmt.Errorf(errorEndpointSetting, "gcp_project_id", privateLinkID, err)
+		}
+	}
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":          projectID,
 		"private_link_id":     privateLinkID,
@@ -400,7 +436,7 @@ func resourceRefreshFunc(ctx context.Context, client *admin.APIClient, projectID
 			return nil, "", err
 		}
 
-		if strings.EqualFold(providerName, "azure") || strings.EqualFold(providerName, "gcp") {
+		if providerName == constant.AZURE || providerName == constant.GCP {
 			if i.GetStatus() != "AVAILABLE" {
 				return "", i.GetStatus(), nil
 			}
@@ -448,8 +484,6 @@ func expandGCPEndpoints(tfList []any) *[]admin.CreateGCPForwardingRuleRequest {
 
 func flattenGCPEndpoint(apiObject admin.GCPConsumerForwardingRule) map[string]any {
 	tfMap := map[string]any{}
-
-	log.Printf("[DEBIG] apiObject : %+v", apiObject)
 
 	tfMap["endpoint_name"] = apiObject.GetEndpointName()
 	tfMap["ip_address"] = apiObject.GetIpAddress()

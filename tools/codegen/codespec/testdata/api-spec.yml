@@ -1183,6 +1183,12 @@ components:
         attrAlwaysInUpdates:
           type: string
           description: Always in updates
+        attrSendNullInUpdates:
+          type: string
+          description: Send null in updates
+        attrSendEmptyInUpdates:
+          type: string
+          description: Send empty in updates
     SingleNestedAttrWithNestedMaps:
       type: object
       description: Test field description
@@ -1246,6 +1252,12 @@ components:
         attrAlwaysInUpdates:
           type: string
           description: Always in updates
+        attrSendNullInUpdates:
+          type: string
+          description: Send null in updates
+        attrSendEmptyInUpdates:
+          type: string
+          description: Send empty in updates
       required:
         - nestedListArrayAttr
     SimpleStringRefObject:

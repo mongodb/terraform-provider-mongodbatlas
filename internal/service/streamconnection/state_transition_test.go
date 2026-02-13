@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312013/admin"
-	"go.mongodb.org/atlas-sdk/v20250312013/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/mockadmin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 )
