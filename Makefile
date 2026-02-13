@@ -16,7 +16,7 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v2.7.2 # Also update golangci-lint GH action in code-health.yml when updating this version
+GOLANGCI_VERSION=v2.8.0 # Also update golangci-lint GH action in code-health.yml when updating this version
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -142,29 +142,33 @@ update-atlas-sdk: ## Update the Atlas SDK dependency
 	./scripts/update-sdk.sh
 
 # e.g. run: make scaffold resource_name=streamInstance type=resource
-# - type argument can have the values: `resource`, `data-source`, `plural-data-source`.
+# type - valid values: `resource`, `data-source`, `plural-data-source`.
 # details on usage can be found in contributing/development-best-practices.md under "Scaffolding initial Code and File Structure"
 .PHONY: scaffold
 scaffold: ## Create scaffolding for a new resource
 	@go run ./tools/scaffold/*.go $(resource_name) $(type)
 	@echo "Reminder: configure the new $(type) in provider.go"
 
+# Generate flattened API spec used by codegen
+# api_spec_url (optional) - URL to the OpenAPI spec (default: https://raw.githubusercontent.com/mongodb/openapi/main/openapi/v2.yaml).
 .PHONY: autogen-update-api-spec
-autogen-update-api-spec: ## Generate flattened API spec used by codegen
-	@scripts/generate-autogen-api-spec.sh
+autogen-update-api-spec:
+	@scripts/generate-autogen-api-spec.sh $(api_spec_url)
 
 # Generate resources using API spec present in tools/codegen/atlasapispec/multi-version-api-spec.flattened.yml
-# resource_name is optional, if not provided all configured resource models will be generated
-# resource_tier is optional; valid values: prod, internal (default: all)
-# step is optional; valid values: model-gen, code-gen (default: both)
+# resource_name (optional) - If not provided all configured resource models will be generated.
+# resource_tier (optional) - Valid values: `prod`, `internal` (default: all).
+# step (optional) - Valid values: `model-gen`, `code-gen` (default: both).
 # e.g. make autogen-generate-resources resource_name=search_deployment_api
 .PHONY: autogen-generate-resources
 autogen-generate-resources:
 	@go run ./tools/codegen/main.go $(if $(resource_name),--resource-name $(resource_name),) $(if $(resource_tier),--resource-tier $(resource_tier),) $(if $(step),--step $(step),)
 
-## Complete generation pipeline: Fetch latest API Spec -> update resource models -> generate resource code
-# resource_name is optional, if not provided all configured resources code will be generated
-# resource_tier is optional; valid values: prod, internal (default: all)
+# Complete generation pipeline: Fetch latest API Spec -> update resource models -> generate resource code
+# api_spec_url (optional) - URL to the OpenAPI spec (default: https://raw.githubusercontent.com/mongodb/openapi/main/openapi/v2.yaml).
+# resource_name (optional) - If not provided all configured resources code will be generated
+# resource_tier (optional) - Valid values: `prod`, `internal` (default: all)
+# step (optional) - Valid values: `model-gen`, `code-gen` (default: both).
 # e.g. make autogen-pipeline resource_tier=prod
 .PHONY: autogen-pipeline
 autogen-pipeline: autogen-update-api-spec autogen-generate-resources
@@ -231,6 +235,18 @@ add-lines:
 	rm -f file.tmp
 	sed 's/${find}/${add}${find}/' "${filename}" > "file.tmp"
 	mv file.tmp ${filename}
+
+.PHONY: add-lines-if-missing ${filename} ${resource}
+add-lines-if-missing:
+	@if ! grep -q "${resource}.Resource," "${filename}" 2>/dev/null; then \
+		make add-lines filename=${filename} find="project.Resource," add="${resource}.Resource,\n"; \
+	fi
+
+.PHONY: add-datasource-if-exists ${filename} ${resource}
+add-datasource-if-exists:
+	@if [ -f "internal/serviceapi/${resource}/data_source.go" ] && ! grep -q "${resource}.DataSource," "${filename}" 2>/dev/null; then \
+		make add-lines filename=${filename} find="project.DataSource," add="${resource}.DataSource,\n"; \
+	fi
 
 .PHONY: change-lines ${filename} ${find} ${new}
 change-lines:

@@ -5,7 +5,7 @@ on:
     inputs:
       branches:
         description: 'Dev branch names to update from master'
-        default: '["CLOUDP-371552-dev-voyage", "CLOUDP-346617-dev-gcp-port-based"]'
+        default: '["CLOUDP-371552-dev-voyage", "CLOUDP-346617-dev-gcp-port-based", "CLOUDP-379436-dev-log-streaming-via-iac"]'
   schedule:
     - cron: "0 5 * * 1,4" # workflow runs every Monday and Thursday at 5 AM UTC
 concurrency:

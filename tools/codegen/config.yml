@@ -472,7 +472,7 @@ resources:
         password:
           sensitive: true
         description:
-          include_null_on_update: true
+          request_body_usage: "send_null_as_null_on_update"
 
   # Singleton resource in project.
   # Create uses PATCH.
@@ -672,7 +672,7 @@ resources:
         indexId: indexID # path param name does not match the API response property
       overrides:
         definition.type_sets:
-          include_null_on_update: true # on update if an empty array is sent the index definition is rejected with error Invalid definition: "typeSets" cannot be empty.
+          request_body_usage: "send_null_as_null_on_update" # on update if an empty array is sent the index definition is rejected with error Invalid definition: "typeSets" cannot be empty.
 
   # Update doesn't work because API defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
   # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
@@ -749,6 +749,90 @@ resources:
           computability:
             optional: true
             computed: true
+
+  stream_connection_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections
+      method: POST
+      wait: &stream-connection-create-wait
+        state_property: "state"
+        pending_states: ["PENDING"]
+        target_states: ["READY"]
+        timeout_seconds: 300
+        min_timeout_seconds: 10
+        delay_seconds: 10
+    update:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+      method: PATCH
+      wait: *stream-connection-create-wait
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+      method: DELETE
+      wait:
+        <<: *stream-connection-create-wait
+        pending_states: ["READY", "PENDING", "DELETING"]
+        target_states: ["DELETED"]
+    version_header: application/vnd.atlas.2023-02-01+json
+    # All defined configuration is for trying to reach backwards compatibility with curated resource
+    schema:
+      ignores:
+        [
+          # Hide noisy subresource link blocks (curated resource doesn't expose them)
+          "links",
+          "authentication.links",
+          "aws.links",
+          "db_role_to_execute.links",
+          "networking.links",
+          "networking.access.links",
+          "security.links",
+        ]
+      aliases:
+        name: connectionName # path param name does not match the API request property.
+        groupId: projectId
+        # align with curated resource
+        tenantName: workspaceName
+        clusterGroupId: clusterProjectId
+        provider: schemaRegistryProvider
+      overrides:
+        project_id:
+          description: *project_id_description
+        # Align required fields with curated schema
+        connection_name:
+          computability:
+            required: true
+        type:
+          computability:
+            required: true
+        db_role_to_execute.role:
+          computability:
+            required: true
+        db_role_to_execute.type:
+          computability:
+            required: true
+        networking.access:
+          computability:
+            required: true
+        networking.access.type:
+          computability:
+            required: true
+        aws.role_arn:
+          computability:
+            required: true
+
+        # Preserve secrets like the curated resource does
+        schema_registry_authentication.password:
+          sensitive: true
+
+        # Mark ssl_key_password as sensitive
+        authentication.ssl_key_password:
+          sensitive: true
+
+        # Curated schema models URLs as list (autogen defaults to set)
+        schema_registry_urls:
+          type: list
 
   alert_configuration_api:
     read:
@@ -1065,3 +1149,42 @@ resources:
             description: "Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`."
           aws_security_group:
             description: "Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`."
+
+  log_integration:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+      method: PUT
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+      method: DELETE
+    schema:
+      aliases:
+        groupId: projectId
+        alertConfigId: integrationId
+        id: integrationId
+      overrides:
+          project_id:
+            description: *project_id_description
+          integration_id:
+            immutable_computed: true
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/logIntegrations
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+          alertConfigId: integrationId
+          id: integrationId
+        overrides:
+          project_id:
+            description: *project_id_description

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312013/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -1019,6 +1019,7 @@ func TestAccCluster_withAutoScalingAWS(t *testing.T) {
 }
 
 func TestAccCluster_tenant(t *testing.T) {
+	acc.SkipTestForCI(t) // test encountered flakiness (~75% success rate), related ticket: CLOUDP-375027
 	var (
 		resourceName           = "mongodbatlas_cluster.tenant"
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
@@ -1046,8 +1047,7 @@ func TestAccCluster_tenant(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
-					// We need to check for both 10 (expected) and 5 as API encounters flakiness (~75% success rate), related ticket: CLOUDP-375027
-					resource.TestCheckResourceAttrWith(resourceName, "disk_size_gb", acc.MatchesExpression(`^(5|10)$`)),
+					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
 				),
 			},
 		},

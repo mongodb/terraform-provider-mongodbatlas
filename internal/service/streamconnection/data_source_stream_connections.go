@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312013/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 var _ datasource.DataSource = &streamConnectionsDS{}
@@ -95,7 +95,7 @@ func (d *streamConnectionsDS) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	newStreamConnectionsModel, diags := NewTFStreamConnections(ctx, &streamConnectionsConfig, apiResp)
+	newStreamConnectionsModel, diags := NewTFStreamConnectionsDS(ctx, &streamConnectionsConfig, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -104,12 +104,12 @@ func (d *streamConnectionsDS) Read(ctx context.Context, req datasource.ReadReque
 }
 
 type TFStreamConnectionsDSModel struct {
-	ID            types.String              `tfsdk:"id"`
-	ProjectID     types.String              `tfsdk:"project_id"`
-	InstanceName  types.String              `tfsdk:"instance_name"`
-	WorkspaceName types.String              `tfsdk:"workspace_name"`
-	Results       []TFStreamConnectionModel `tfsdk:"results"`
-	PageNum       types.Int64               `tfsdk:"page_num"`
-	ItemsPerPage  types.Int64               `tfsdk:"items_per_page"`
-	TotalCount    types.Int64               `tfsdk:"total_count"`
+	ID            types.String                `tfsdk:"id"`
+	ProjectID     types.String                `tfsdk:"project_id"`
+	InstanceName  types.String                `tfsdk:"instance_name"`
+	WorkspaceName types.String                `tfsdk:"workspace_name"`
+	Results       []TFStreamConnectionDSModel `tfsdk:"results"`
+	PageNum       types.Int64                 `tfsdk:"page_num"`
+	ItemsPerPage  types.Int64                 `tfsdk:"items_per_page"`
+	TotalCount    types.Int64                 `tfsdk:"total_count"`
 }

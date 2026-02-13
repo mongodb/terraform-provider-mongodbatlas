@@ -57,7 +57,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Tags                      customtypes.MapValue[types.String] `tfsdk:"tags" autogen:"listasmap"`
+	Tags                      customtypes.MapValue[types.String] `tfsdk:"tags" autogen:"listasmap,sendnullasemptyonupdate"`
 	Created                   types.String                       `tfsdk:"created" autogen:"omitjson"`
 	Id                        types.String                       `tfsdk:"id" autogen:"omitjson"`
 	Name                      types.String                       `tfsdk:"name"`
