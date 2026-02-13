@@ -54,8 +54,10 @@ Use `defer` to defer the next scheduled maintenance event by one week. This only
 
 ```terraform
   resource "mongodbatlas_maintenance_window" "test" {
-    project_id = "<your-project-id>"
-    defer      = true
+    project_id  = "<your-project-id>"
+    day_of_week = 3
+    hour_of_day = 4
+    defer       = true
   }
 ```
 
