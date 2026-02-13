@@ -96,7 +96,7 @@ func (c *Credentials) Errors() string {
 			return "Service Account will be used but Client Secret is required"
 		}
 	case Digest:
-		if strings.HasPrefix(c.PublicKey, serviceAccountPrefix) || strings.HasPrefix(c.PrivateKey, serviceAccountPrefix) {
+		if strings.HasPrefix(c.PublicKey, serviceAccountPrefix) {
 			return "Service Account credentials (starting with 'mdb_sa') were provided in public_key/private_key which are meant for Programmatic Access Keys. " +
 				"Please use client_id and client_secret arguments for Service Account authentication"
 		}
