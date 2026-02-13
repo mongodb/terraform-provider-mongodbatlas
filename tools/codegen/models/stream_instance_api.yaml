@@ -4,7 +4,6 @@ schema:
         - list_nested:
             nested_object:
                 discriminator:
-                    property_name: type
                     mapping:
                         AWSKinesisDataStreams:
                             allowed:
@@ -44,6 +43,7 @@ schema:
                                 - provider
                                 - schema_registry_authentication
                                 - schema_registry_urls
+                    property_name: type
                 attributes:
                     - single_nested:
                         nested_object:
@@ -445,7 +445,6 @@ schema:
                     - single_nested:
                         nested_object:
                             discriminator:
-                                property_name: type
                                 mapping:
                                     SASL_INHERIT:
                                         allowed: []
@@ -456,6 +455,7 @@ schema:
                                         required:
                                             - password
                                             - username
+                                property_name: type
                             attributes:
                                 - string: {}
                                   description: Password or Private Key for authentication.

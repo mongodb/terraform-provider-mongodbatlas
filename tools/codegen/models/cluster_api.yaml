@@ -665,7 +665,6 @@ schema:
                     - list_nested:
                         nested_object:
                             discriminator:
-                                property_name: provider_name
                                 mapping:
                                     AWS:
                                         allowed:
@@ -697,6 +696,7 @@ schema:
                                     TENANT:
                                         allowed:
                                             - backing_provider_name
+                                property_name: provider_name
                             attributes:
                                 - single_nested:
                                     nested_object:

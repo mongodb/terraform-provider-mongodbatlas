@@ -1,7 +1,6 @@
 schema:
     description: Creates one connection for a stream workspace in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner or Project Stream Processing Owner role.
     discriminator:
-        property_name: type
         mapping:
             AWSKinesisDataStreams:
                 allowed:
@@ -41,6 +40,7 @@ schema:
                     - schema_registry_authentication
                     - schema_registry_provider
                     - schema_registry_urls
+        property_name: type
     attributes:
         - single_nested:
             nested_object:
@@ -453,7 +453,6 @@ schema:
         - single_nested:
             nested_object:
                 discriminator:
-                    property_name: type
                     mapping:
                         SASL_INHERIT:
                             allowed: []
@@ -464,6 +463,7 @@ schema:
                             required:
                                 - password
                                 - username
+                    property_name: type
                 attributes:
                     - string: {}
                       description: Password or Private Key for authentication.

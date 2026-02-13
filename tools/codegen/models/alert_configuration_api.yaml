@@ -117,7 +117,6 @@ schema:
         - single_nested:
             nested_object:
                 discriminator:
-                    property_name: metric_name
                     mapping:
                         FLEX_AVG_COMMAND_EXECUTION_TIME:
                             allowed: []
@@ -149,6 +148,7 @@ schema:
                             allowed: []
                         FLEX_OPCOUNTER_UPDATE:
                             allowed: []
+                    property_name: metric_name
                 attributes:
                     - string: {}
                       description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
@@ -642,7 +642,6 @@ schema:
         - single_nested:
             nested_object:
                 discriminator:
-                    property_name: metric_name
                     mapping:
                         STREAM_PROCESSOR_CHANGE_STREAM_LAG:
                             allowed: []
@@ -652,6 +651,7 @@ schema:
                             allowed: []
                         STREAM_PROCESSOR_OUTPUT_MESSAGE_COUNT:
                             allowed: []
+                    property_name: metric_name
                 attributes:
                     - string: {}
                       description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
@@ -869,7 +869,6 @@ data_sources:
             - single_nested:
                 nested_object:
                     discriminator:
-                        property_name: metric_name
                         mapping:
                             FLEX_AVG_COMMAND_EXECUTION_TIME:
                                 allowed: []
@@ -901,6 +900,7 @@ data_sources:
                                 allowed: []
                             FLEX_OPCOUNTER_UPDATE:
                                 allowed: []
+                        property_name: metric_name
                     attributes:
                         - string: {}
                           description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
@@ -1394,7 +1394,6 @@ data_sources:
             - single_nested:
                 nested_object:
                     discriminator:
-                        property_name: metric_name
                         mapping:
                             STREAM_PROCESSOR_CHANGE_STREAM_LAG:
                                 allowed: []
@@ -1404,6 +1403,7 @@ data_sources:
                                 allowed: []
                             STREAM_PROCESSOR_OUTPUT_MESSAGE_COUNT:
                                 allowed: []
+                        property_name: metric_name
                     attributes:
                         - string: {}
                           description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
@@ -1619,7 +1619,6 @@ data_sources:
                         - single_nested:
                             nested_object:
                                 discriminator:
-                                    property_name: metric_name
                                     mapping:
                                         FLEX_AVG_COMMAND_EXECUTION_TIME:
                                             allowed: []
@@ -1651,6 +1650,7 @@ data_sources:
                                             allowed: []
                                         FLEX_OPCOUNTER_UPDATE:
                                             allowed: []
+                                    property_name: metric_name
                                 attributes:
                                     - string: {}
                                       description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
@@ -2144,7 +2144,6 @@ data_sources:
                         - single_nested:
                             nested_object:
                                 discriminator:
-                                    property_name: metric_name
                                     mapping:
                                         STREAM_PROCESSOR_CHANGE_STREAM_LAG:
                                             allowed: []
@@ -2154,6 +2153,7 @@ data_sources:
                                             allowed: []
                                         STREAM_PROCESSOR_OUTPUT_MESSAGE_COUNT:
                                             allowed: []
+                                    property_name: metric_name
                                 attributes:
                                     - string: {}
                                       description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
