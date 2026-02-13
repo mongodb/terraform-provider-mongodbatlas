@@ -248,17 +248,11 @@ func configEndpointOnly(projectID, region string) string {
 }
 
 func configDeleteOnCreateTimeout(projectID, region string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_privatelink_endpoint" "this" {
-			project_id    = %[1]q
-			provider_name = "AWS"
-			region        = %[2]q
-		}
-
+	return configEndpointOnly(projectID, region) + fmt.Sprintf(`
 		resource "mongodbatlas_privatelink_endpoint_service" "this" {
 			project_id               = mongodbatlas_privatelink_endpoint.this.project_id
 			private_link_id          = mongodbatlas_privatelink_endpoint.this.private_link_id
-			endpoint_service_id      = %[3]q
+			endpoint_service_id      = %[1]q
 			provider_name            = "AWS"
 			delete_on_create_timeout = true
 
@@ -266,5 +260,5 @@ func configDeleteOnCreateTimeout(projectID, region string) string {
 				create = "1s"
 			}
 		}
-	`, projectID, region, dummyVPCEndpointID)
+	`, dummyVPCEndpointID)
 }
