@@ -379,13 +379,8 @@ jobs:
             - 'internal/service/ldapverify/*.go'  
           mongodb_employee_access_grant:
             - 'internal/service/mongodbemployeeaccessgrant/*.go'
-          network:
-            - 'internal/service/networkcontainer/*.go'
-            - 'internal/service/networkpeering/*.go'
-            - 'internal/service/privateendpointregionalmode/*.go'
-            - 'internal/service/privatelinkendpoint/*.go'
+          network: # TODO: Revert before merging
             - 'internal/service/privatelinkendpointservice/*.go'
-            - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go' 
           project:
             - 'internal/common/autogen/*.go'
             - 'internal/service/accesslistapikey/*.go'
@@ -1193,13 +1188,10 @@ jobs:
           AZURE_VNET_NAME: ${{ secrets.azure_vnet_name }}
           AZURE_VNET_NAME_UPDATED: ${{ secrets.azure_vnet_name_updated }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          # TODO: Revert before merging
+          ACCTEST_REGEX_RUN: '^TestAccPrivateLinkEndpointService_deleteOnCreateTimeout'
           ACCTEST_PACKAGES: |
-            ./internal/service/networkcontainer
-            ./internal/service/networkpeering
-            ./internal/service/privateendpointregionalmode
-            ./internal/service/privatelinkendpoint
             ./internal/service/privatelinkendpointservice
-            ./internal/service/privatelinkendpointservicedatafederationonlinearchive
         run: make testacc
       
   project: 
