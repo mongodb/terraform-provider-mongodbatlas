@@ -6,7 +6,9 @@ import (
 	"os"
 	"regexp"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -73,6 +75,12 @@ func TestAccPrivateLinkEndpointService_deleteOnCreateTimeout(t *testing.T) {
 				// Different region to avoid project conflicts.
 				Config:      configDeleteOnCreateTimeout(projectID, "US_WEST_2"),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+			{
+				// Wait for async endpoint service deletion (triggered by delete_on_create_timeout)
+				// to complete before Terraform's destroy tries to delete the parent endpoint.
+				PreConfig: func() { waitForNoInterfaceEndpoints(t, projectID, "AWS") },
+				Config:    configEndpointOnly(projectID, "US_WEST_2"),
 			},
 		},
 	})
@@ -194,6 +202,44 @@ func configFailedAWS(projectID, region string) string {
 			provider_name       = "AWS"
 		}
 	`, projectID, region, dummyVPCEndpointID)
+}
+
+func waitForNoInterfaceEndpoints(t *testing.T, projectID, providerName string) {
+	t.Helper()
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{"PENDING"},
+		Target:  []string{"CLEAR"},
+		Refresh: func() (any, string, error) {
+			services, _, err := acc.ConnV2().PrivateEndpointServicesApi.
+				ListPrivateEndpointService(context.Background(), projectID, providerName).Execute()
+			if err != nil {
+				return nil, "", err
+			}
+			for _, svc := range services {
+				if len(svc.GetInterfaceEndpoints()) > 0 {
+					return nil, "PENDING", nil
+				}
+			}
+			return nil, "CLEAR", nil
+		},
+		Timeout:    5 * time.Minute,
+		MinTimeout: 10 * time.Second,
+		Delay:      10 * time.Second,
+	}
+	_, err := stateConf.WaitForStateContext(context.Background())
+	if err != nil {
+		t.Logf("Warning: timeout waiting for interface endpoints to be removed: %v", err)
+	}
+}
+
+func configEndpointOnly(projectID, region string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_privatelink_endpoint" "this" {
+			project_id    = %[1]q
+			provider_name = "AWS"
+			region        = %[2]q
+		}
+	`, projectID, region)
 }
 
 func configDeleteOnCreateTimeout(projectID, region string) string {
