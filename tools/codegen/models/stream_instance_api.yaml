@@ -3,6 +3,47 @@ schema:
     attributes:
         - list_nested:
             nested_object:
+                discriminator:
+                    property_name: type
+                    mapping:
+                        AWSKinesisDataStreams:
+                            allowed:
+                                - aws
+                                - networking
+                        AWSLambda:
+                            allowed:
+                                - aws
+                        Cluster:
+                            allowed:
+                                - cluster_group_id
+                                - cluster_name
+                                - db_role_to_execute
+                        Https:
+                            allowed:
+                                - headers
+                                - url
+                        Kafka:
+                            allowed:
+                                - authentication
+                                - bootstrap_servers
+                                - config
+                                - networking
+                                - security
+                        S3:
+                            allowed:
+                                - aws
+                                - networking
+                        Sample:
+                            allowed: []
+                        SchemaRegistry:
+                            allowed:
+                                - provider
+                                - schema_registry_authentication
+                                - schema_registry_urls
+                            required:
+                                - provider
+                                - schema_registry_authentication
+                                - schema_registry_urls
                 attributes:
                     - single_nested:
                         nested_object:
@@ -403,6 +444,18 @@ schema:
                       request_only_required_on_create: false
                     - single_nested:
                         nested_object:
+                            discriminator:
+                                property_name: type
+                                mapping:
+                                    SASL_INHERIT:
+                                        allowed: []
+                                    USER_INFO:
+                                        allowed:
+                                            - password
+                                            - username
+                                        required:
+                                            - password
+                                            - username
                             attributes:
                                 - string: {}
                                   description: Password or Private Key for authentication.

@@ -765,6 +765,115 @@ paths:
       summary: Enable the Test Resource With Multiple Caps feature for a project
       tags:
         - Test Resource
+  "/api/atlas/v2/groups/{groupId}/polymorphicResource":
+    post:
+      description: POST API description
+      operationId: createPolymorphicResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/PolymorphicResource"
+            x-xgen-version: 2023-01-01
+        description: Create request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/PolymorphicResourceResponse"
+              x-xgen-version: 2023-01-01
+          description: OK
+    get:
+      description: GET API description
+      operationId: getPolymorphicResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/PolymorphicResourceResponse"
+              x-xgen-version: 2023-01-01
+          description: OK
+    patch:
+      description: PATCH API description
+      operationId: updatePolymorphicResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/PolymorphicResource"
+            x-xgen-version: 2023-01-01
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+    delete:
+      description: DELETE API description
+      operationId: deletePolymorphicResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+  "/api/atlas/v2/groups/{groupId}/nestedPolymorphicResource":
+    post:
+      description: POST API description
+      operationId: createNestedPolymorphicResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/NestedPolymorphicResource"
+            x-xgen-version: 2023-01-01
+        description: Create request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/NestedPolymorphicResource"
+              x-xgen-version: 2023-01-01
+          description: OK
+    get:
+      description: GET API description
+      operationId: getNestedPolymorphicResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/NestedPolymorphicResource"
+              x-xgen-version: 2023-01-01
+          description: OK
+    delete:
+      description: DELETE API description
+      operationId: deleteNestedPolymorphicResource
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
   "/api/atlas/v2/groups/{groupId}/users":
     post:
       description: POST API description
@@ -1237,3 +1346,113 @@ components:
         email:
           type: string
           description: Test field description
+    PolymorphicResource:
+      type: object
+      description: A polymorphic resource
+      properties:
+        type:
+          type: string
+          description: The discriminator type
+          enum:
+            - TypeA
+            - TypeB
+        commonAttr:
+          type: string
+          description: Common attribute across all types
+        typeAOnlyAttr:
+          type: string
+          description: Attribute only for TypeA
+        typeAOptionalAttr:
+          type: string
+          description: Optional attribute for TypeA
+        typeBOnlyAttr:
+          type: string
+          description: Attribute only for TypeB
+        computedTypeAAttr:
+          type: string
+          description: Computed attribute for TypeA
+          readOnly: true
+      required:
+        - type
+        - commonAttr
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          TypeA:
+            properties:
+              - typeAOnlyAttr
+              - typeAOptionalAttr
+              - computedTypeAAttr
+              - type
+            required:
+              - typeAOnlyAttr
+              - computedTypeAAttr
+          TypeB:
+            properties:
+              - typeBOnlyAttr
+              - type
+            required:
+              - typeBOnlyAttr
+    PolymorphicResourceResponse:
+      type: object
+      description: Response for polymorphic resource
+      properties:
+        type:
+          type: string
+          description: The discriminator type
+          enum:
+            - TypeA
+            - TypeB
+        commonAttr:
+          type: string
+          description: Common attribute across all types
+        typeAOnlyAttr:
+          type: string
+          description: Attribute only for TypeA
+        typeAOptionalAttr:
+          type: string
+          description: Optional attribute for TypeA
+        typeBOnlyAttr:
+          type: string
+          description: Attribute only for TypeB
+        computedTypeAAttr:
+          type: string
+          description: Computed attribute for TypeA
+          readOnly: true
+        responseOnlyAttr:
+          type: string
+          description: Response-only attribute for TypeA
+          readOnly: true
+        responseRequiredAttr:
+          type: string
+          description: Response-only attribute that is required in the response discriminator
+          readOnly: true
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          TypeA:
+            properties:
+              - typeAOnlyAttr
+              - typeAOptionalAttr
+              - computedTypeAAttr
+              - responseOnlyAttr
+              - responseRequiredAttr
+              - type
+            required:
+              - typeAOnlyAttr
+              - computedTypeAAttr
+              - responseRequiredAttr
+          TypeB:
+            properties:
+              - typeBOnlyAttr
+              - type
+            required:
+              - typeBOnlyAttr
+    NestedPolymorphicResource:
+      type: object
+      properties:
+        nestedPoly:
+          $ref: "#/components/schemas/PolymorphicResource"
+        topLevelAttr:
+          type: string
+          description: Top level attribute

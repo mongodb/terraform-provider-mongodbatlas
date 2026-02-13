@@ -1,5 +1,15 @@
 schema:
     description: Creates a new log integration configuration identified by a unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+    discriminator:
+        property_name: type
+        mapping:
+            S3_LOG_EXPORT:
+                allowed:
+                    - bucket_name
+                    - iam_role_id
+                    - kms_key
+                    - log_types
+                    - prefix_path
     attributes:
         - string: {}
           description: Human-readable label that identifies the S3 bucket name for storing log files.
@@ -232,6 +242,20 @@ data_sources:
               request_only_required_on_create: false
             - list_nested:
                 nested_object:
+                    discriminator:
+                        property_name: type
+                        mapping:
+                            S3_LOG_EXPORT:
+                                allowed:
+                                    - bucket_name
+                                    - iam_role_id
+                                    - kms_key
+                                    - log_types
+                                    - prefix_path
+                                required:
+                                    - bucket_name
+                                    - iam_role_id
+                                    - prefix_path
                     attributes:
                         - string: {}
                           description: Human-readable label that identifies the S3 bucket name for storing log files.

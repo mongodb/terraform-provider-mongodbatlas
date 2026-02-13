@@ -93,10 +93,21 @@ type MoveState struct {
 }
 
 type Schema struct {
-	Description        *string `yaml:"description,omitempty"`
-	DeprecationMessage *string `yaml:"deprecation_message,omitempty"`
+	Description        *string        `yaml:"description,omitempty"`
+	DeprecationMessage *string        `yaml:"deprecation_message,omitempty"`
+	Discriminator      *Discriminator `yaml:"discriminator,omitempty"`
 
 	Attributes Attributes `yaml:"attributes"`
+}
+
+type Discriminator struct {
+	Mapping      map[string]DiscriminatorType `yaml:"mapping"`
+	PropertyName string                       `yaml:"property_name"`
+}
+
+type DiscriminatorType struct {
+	Allowed  []string `yaml:"allowed"`
+	Required []string `yaml:"required,omitempty"`
 }
 
 type Attributes []Attribute
@@ -194,7 +205,8 @@ type ListNestedAttribute struct {
 	NestedObject NestedAttributeObject `yaml:"nested_object"`
 }
 type NestedAttributeObject struct {
-	Attributes Attributes `yaml:"attributes"`
+	Discriminator *Discriminator `yaml:"discriminator,omitempty"`
+	Attributes    Attributes     `yaml:"attributes"`
 }
 
 type TimeoutsAttribute struct {

@@ -76,24 +76,44 @@ func updateAttrWithNewSource(existingAttr, newAttr *Attribute, reqBodyUsage Attr
 	// handle nested attributes
 	if existingAttr.ListNested != nil && newAttr.ListNested != nil {
 		mergeNestedAttributes(&existingAttr.ListNested.NestedObject.Attributes, newAttr.ListNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
+		existingAttr.ListNested.NestedObject.Discriminator = MergeDiscriminators(
+			existingAttr.ListNested.NestedObject.Discriminator,
+			newAttr.ListNested.NestedObject.Discriminator,
+			isFromResponse,
+		)
 	} else if newAttr.ListNested != nil {
 		existingAttr.ListNested = newAttr.ListNested
 	}
 
 	if existingAttr.SingleNested != nil && newAttr.SingleNested != nil {
 		mergeNestedAttributes(&existingAttr.SingleNested.NestedObject.Attributes, newAttr.SingleNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
+		existingAttr.SingleNested.NestedObject.Discriminator = MergeDiscriminators(
+			existingAttr.SingleNested.NestedObject.Discriminator,
+			newAttr.SingleNested.NestedObject.Discriminator,
+			isFromResponse,
+		)
 	} else if newAttr.SingleNested != nil {
 		existingAttr.SingleNested = newAttr.SingleNested
 	}
 
 	if existingAttr.SetNested != nil && newAttr.SetNested != nil {
 		mergeNestedAttributes(&existingAttr.SetNested.NestedObject.Attributes, newAttr.SetNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
+		existingAttr.SetNested.NestedObject.Discriminator = MergeDiscriminators(
+			existingAttr.SetNested.NestedObject.Discriminator,
+			newAttr.SetNested.NestedObject.Discriminator,
+			isFromResponse,
+		)
 	} else if newAttr.SetNested != nil {
 		existingAttr.SetNested = newAttr.SetNested
 	}
 
 	if existingAttr.MapNested != nil && newAttr.MapNested != nil {
 		mergeNestedAttributes(&existingAttr.MapNested.NestedObject.Attributes, newAttr.MapNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
+		existingAttr.MapNested.NestedObject.Discriminator = MergeDiscriminators(
+			existingAttr.MapNested.NestedObject.Discriminator,
+			newAttr.MapNested.NestedObject.Discriminator,
+			isFromResponse,
+		)
 	} else if newAttr.MapNested != nil {
 		existingAttr.MapNested = newAttr.MapNested
 	}

@@ -116,6 +116,39 @@ schema:
           request_only_required_on_create: false
         - single_nested:
             nested_object:
+                discriminator:
+                    property_name: metric_name
+                    mapping:
+                        FLEX_AVG_COMMAND_EXECUTION_TIME:
+                            allowed: []
+                        FLEX_AVG_READ_EXECUTION_TIME:
+                            allowed: []
+                        FLEX_AVG_WRITE_EXECUTION_TIME:
+                            allowed: []
+                        FLEX_CONNECTIONS:
+                            allowed: []
+                        FLEX_CONNECTIONS_PERCENT:
+                            allowed: []
+                        FLEX_DATA_SIZE_TOTAL:
+                            allowed: []
+                        FLEX_NETWORK_BYTES_IN:
+                            allowed: []
+                        FLEX_NETWORK_BYTES_OUT:
+                            allowed: []
+                        FLEX_NETWORK_NUM_REQUESTS:
+                            allowed: []
+                        FLEX_OPCOUNTER_CMD:
+                            allowed: []
+                        FLEX_OPCOUNTER_DELETE:
+                            allowed: []
+                        FLEX_OPCOUNTER_GETMORE:
+                            allowed: []
+                        FLEX_OPCOUNTER_INSERT:
+                            allowed: []
+                        FLEX_OPCOUNTER_QUERY:
+                            allowed: []
+                        FLEX_OPCOUNTER_UPDATE:
+                            allowed: []
                 attributes:
                     - string: {}
                       description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
@@ -608,6 +641,17 @@ schema:
           request_only_required_on_create: false
         - single_nested:
             nested_object:
+                discriminator:
+                    property_name: metric_name
+                    mapping:
+                        STREAM_PROCESSOR_CHANGE_STREAM_LAG:
+                            allowed: []
+                        STREAM_PROCESSOR_DLQ_MESSAGE_COUNT:
+                            allowed: []
+                        STREAM_PROCESSOR_KAFKA_LAG:
+                            allowed: []
+                        STREAM_PROCESSOR_OUTPUT_MESSAGE_COUNT:
+                            allowed: []
                 attributes:
                     - string: {}
                       description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
@@ -824,6 +868,39 @@ data_sources:
               request_only_required_on_create: false
             - single_nested:
                 nested_object:
+                    discriminator:
+                        property_name: metric_name
+                        mapping:
+                            FLEX_AVG_COMMAND_EXECUTION_TIME:
+                                allowed: []
+                            FLEX_AVG_READ_EXECUTION_TIME:
+                                allowed: []
+                            FLEX_AVG_WRITE_EXECUTION_TIME:
+                                allowed: []
+                            FLEX_CONNECTIONS:
+                                allowed: []
+                            FLEX_CONNECTIONS_PERCENT:
+                                allowed: []
+                            FLEX_DATA_SIZE_TOTAL:
+                                allowed: []
+                            FLEX_NETWORK_BYTES_IN:
+                                allowed: []
+                            FLEX_NETWORK_BYTES_OUT:
+                                allowed: []
+                            FLEX_NETWORK_NUM_REQUESTS:
+                                allowed: []
+                            FLEX_OPCOUNTER_CMD:
+                                allowed: []
+                            FLEX_OPCOUNTER_DELETE:
+                                allowed: []
+                            FLEX_OPCOUNTER_GETMORE:
+                                allowed: []
+                            FLEX_OPCOUNTER_INSERT:
+                                allowed: []
+                            FLEX_OPCOUNTER_QUERY:
+                                allowed: []
+                            FLEX_OPCOUNTER_UPDATE:
+                                allowed: []
                     attributes:
                         - string: {}
                           description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
@@ -1316,6 +1393,17 @@ data_sources:
               request_only_required_on_create: false
             - single_nested:
                 nested_object:
+                    discriminator:
+                        property_name: metric_name
+                        mapping:
+                            STREAM_PROCESSOR_CHANGE_STREAM_LAG:
+                                allowed: []
+                            STREAM_PROCESSOR_DLQ_MESSAGE_COUNT:
+                                allowed: []
+                            STREAM_PROCESSOR_KAFKA_LAG:
+                                allowed: []
+                            STREAM_PROCESSOR_OUTPUT_MESSAGE_COUNT:
+                                allowed: []
                     attributes:
                         - string: {}
                           description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
@@ -1530,6 +1618,39 @@ data_sources:
                           request_only_required_on_create: false
                         - single_nested:
                             nested_object:
+                                discriminator:
+                                    property_name: metric_name
+                                    mapping:
+                                        FLEX_AVG_COMMAND_EXECUTION_TIME:
+                                            allowed: []
+                                        FLEX_AVG_READ_EXECUTION_TIME:
+                                            allowed: []
+                                        FLEX_AVG_WRITE_EXECUTION_TIME:
+                                            allowed: []
+                                        FLEX_CONNECTIONS:
+                                            allowed: []
+                                        FLEX_CONNECTIONS_PERCENT:
+                                            allowed: []
+                                        FLEX_DATA_SIZE_TOTAL:
+                                            allowed: []
+                                        FLEX_NETWORK_BYTES_IN:
+                                            allowed: []
+                                        FLEX_NETWORK_BYTES_OUT:
+                                            allowed: []
+                                        FLEX_NETWORK_NUM_REQUESTS:
+                                            allowed: []
+                                        FLEX_OPCOUNTER_CMD:
+                                            allowed: []
+                                        FLEX_OPCOUNTER_DELETE:
+                                            allowed: []
+                                        FLEX_OPCOUNTER_GETMORE:
+                                            allowed: []
+                                        FLEX_OPCOUNTER_INSERT:
+                                            allowed: []
+                                        FLEX_OPCOUNTER_QUERY:
+                                            allowed: []
+                                        FLEX_OPCOUNTER_UPDATE:
+                                            allowed: []
                                 attributes:
                                     - string: {}
                                       description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
@@ -2022,6 +2143,17 @@ data_sources:
                           request_only_required_on_create: false
                         - single_nested:
                             nested_object:
+                                discriminator:
+                                    property_name: metric_name
+                                    mapping:
+                                        STREAM_PROCESSOR_CHANGE_STREAM_LAG:
+                                            allowed: []
+                                        STREAM_PROCESSOR_DLQ_MESSAGE_COUNT:
+                                            allowed: []
+                                        STREAM_PROCESSOR_KAFKA_LAG:
+                                            allowed: []
+                                        STREAM_PROCESSOR_OUTPUT_MESSAGE_COUNT:
+                                            allowed: []
                                 attributes:
                                     - string: {}
                                       description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.
