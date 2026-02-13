@@ -1192,6 +1192,8 @@ jobs:
           AWS_SECURITY_GROUP_2: ${{ vars.AWS_SECURITY_GROUP_2 }}
           AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
           AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
+          AWS_SUBNET_ID: ${{ vars.AWS_SUBNET_ID }}
+          AWS_SECURITY_GROUP_ID: ${{ vars.AWS_SECURITY_GROUP_ID }}
           AZURE_DIRECTORY_ID: ${{ secrets.azure_directory_id }}
           AZURE_RESOURCE_GROUP_NAME: ${{ secrets.azure_resource_group_name }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}

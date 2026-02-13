@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"os"
+	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
@@ -83,6 +84,8 @@ func (c *Credentials) Warnings() string {
 	return ""
 }
 
+const serviceAccountPrefix = "mdb_sa"
+
 func (c *Credentials) Errors() string {
 	switch c.AuthMethod() {
 	case ServiceAccount:
@@ -93,6 +96,10 @@ func (c *Credentials) Errors() string {
 			return "Service Account will be used but Client Secret is required"
 		}
 	case Digest:
+		if strings.HasPrefix(c.PublicKey, serviceAccountPrefix) {
+			return "Service Account credentials (starting with 'mdb_sa') were provided in public_key/private_key which are meant for Programmatic Access Keys. " +
+				"Please use client_id and client_secret arguments for Service Account authentication"
+		}
 		if c.PublicKey == "" {
 			return "API Key will be used but Public Key is required"
 		}

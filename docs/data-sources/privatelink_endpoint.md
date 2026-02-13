@@ -14,21 +14,22 @@ ensure that you review the [Multi-Region Private Endpoints](https://www.mongodb.
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_privatelink_endpoint" "test" {
+resource "mongodbatlas_privatelink_endpoint" "this" {
   project_id    = "<PROJECT-ID>"
   provider_name = "AWS"
   region        = "US_EAST_1"
 }
 
-data "mongodbatlas_privatelink_endpoint" "test" {
-	project_id      = mongodbatlas_privatelink_endpoint.test.project_id
-	private_link_id = mongodbatlas_privatelink_endpoint.test.private_link_id
+data "mongodbatlas_privatelink_endpoint" "this" {
+	project_id      = mongodbatlas_privatelink_endpoint.this.project_id
+	private_link_id = mongodbatlas_privatelink_endpoint.this.private_link_id
     provider_name = "AWS"
 }
 ```
 
 ### Available complete examples
 - [Setup private connection to a MongoDB Atlas Cluster with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.6.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+- [GCP Private Service Connect Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.6.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
 
 ## Argument Reference
 
@@ -55,8 +56,9 @@ In addition to all arguments above, the following attributes are exported:
 * `private_endpoints` - All private endpoints that you have added to this Azure Private Link Service.
 * `private_link_service_name` - Name of the Azure Private Link Service that Atlas manages.
 * `private_link_service_resource_id` - Resource ID of the Azure Private Link Service that Atlas manages.
-* `endpoint_group_names` - GCP network endpoint groups corresponding to the Private Service Connect endpoint service.
-* `region_name` - GCP region for the Private Service Connect endpoint service.
-* `service_attachment_names` - Unique alphanumeric and special character strings that identify the service attachments associated with the GCP Private Service Connect endpoint service.
+* `endpoint_group_names` - For port-mapped architectures, this is a list of private endpoint names associated with the private endpoint service. For GCP legacy private endpoint architectures, this is a list of the endpoint group names associated with the private endpoint service.
+* `region_name` - Region for the Private Service Connect endpoint service.
+* `service_attachment_names` - For port-mapped architecture, this is a list containing one service attachment connected to the private endpoint service. For GCP legacy private endpoint architecture, this is a list of service attachments connected to the private endpoint service (one per Atlas node).
+* `port_mapping_enabled` - Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-mapped architecture. When `false` or unset, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.
 
 See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/private-endpoints-service-get-one/) Documentation for more information.

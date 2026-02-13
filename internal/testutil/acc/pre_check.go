@@ -261,10 +261,15 @@ func PreCheckAwsRegionCases(tb testing.TB) {
 
 func PreCheckAwsEnvPrivateLinkEndpointService(tb testing.TB) {
 	tb.Helper()
+	PreCheckBasic(tb)
+
 	if os.Getenv("AWS_ACCESS_KEY_ID") == "" ||
 		os.Getenv("AWS_SECRET_ACCESS_KEY") == "" ||
-		os.Getenv("AWS_VPC_ID") == "" {
-		tb.Fatal("`AWS_ACCESS_KEY_ID`, `AWS_VPC_ID` and `AWS_SECRET_ACCESS_KEY` must be set for acceptance testing")
+		os.Getenv("AWS_REGION") == "" ||
+		os.Getenv("AWS_VPC_ID") == "" ||
+		os.Getenv("AWS_SUBNET_ID") == "" ||
+		os.Getenv("AWS_SECURITY_GROUP_ID") == "" {
+		tb.Fatal("`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_VPC_ID`, `AWS_SUBNET_ID`, `AWS_SECURITY_GROUP_ID` must be set for acceptance testing")
 	}
 }
 
