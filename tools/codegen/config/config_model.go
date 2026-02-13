@@ -52,15 +52,15 @@ type SchemaOptions struct {
 }
 
 type Override struct {
-	Computability       *Computability `yaml:"computability,omitempty"`
-	Sensitive           *bool          `yaml:"sensitive"`
-	IncludeNullOnUpdate *bool          `yaml:"include_null_on_update"`
-	SkipStateListMerge  *bool          `yaml:"skip_state_list_merge"`
-	ImmutableComputed   *bool          `yaml:"immutable_computed"` // Currently supported for string attributes, support for additional types can be added as needed.
-	Type                *Type          `yaml:"type"`
-	Description         string         `yaml:"description"`
-	PlanModifiers       []PlanModifier `yaml:"plan_modifiers"`
-	Validators          []Validator    `yaml:"validators"`
+	Computability      *Computability `yaml:"computability,omitempty"`
+	Sensitive          *bool          `yaml:"sensitive"`
+	RequestBodyUsage   *ReqBodyUsage  `yaml:"request_body_usage,omitempty"`
+	SkipStateListMerge *bool          `yaml:"skip_state_list_merge"`
+	ImmutableComputed  *bool          `yaml:"immutable_computed"` // Currently supported for string attributes, support for additional types can be added as needed.
+	Type               *Type          `yaml:"type"`
+	Description        string         `yaml:"description"`
+	PlanModifiers      []PlanModifier `yaml:"plan_modifiers"`
+	Validators         []Validator    `yaml:"validators"`
 }
 
 type PlanModifier struct {
@@ -78,6 +78,13 @@ type Computability struct {
 	Computed bool `yaml:"computed"`
 	Required bool `yaml:"required"`
 }
+
+type ReqBodyUsage string
+
+const (
+	SendNullAsNullOnUpdate  ReqBodyUsage = "send_null_as_null_on_update"  // attributes with null value are sent as null in update request body
+	SendNullAsEmptyOnUpdate ReqBodyUsage = "send_null_as_empty_on_update" // attributes with null value are sent as empty in update request body (collections only)
+)
 
 type Type string
 

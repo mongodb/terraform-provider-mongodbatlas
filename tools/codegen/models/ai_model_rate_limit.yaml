@@ -1,5 +1,5 @@
 schema:
-    description: Update an AI model rate limit for the given model group.
+    description: Update an AI model rate limit for the given model group. To use this resource, the requesting Service Account or API Key must have the Project Owner or Project Model Owner role.
     attributes:
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies your project.
@@ -77,7 +77,7 @@ operations:
     version_header: application/vnd.atlas.preview+json
 data_sources:
     schema:
-        singular_ds_description: Retrieve a single AI model rate limit for the given group.
+        singular_ds_description: Retrieve a single AI model rate limit for the given group. To use this resource, the requesting Service Account or API Key must have the Project Owner, Project Model Owner, or Project Read Only role.
         singular_ds_attributes:
             - string: {}
               description: The name of the model group to be retrieved.
@@ -139,7 +139,7 @@ data_sources:
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
-        plural_ds_description: Retrieve AI model rate limits for the given group.
+        plural_ds_description: Retrieve AI model rate limits for the given group. To use this resource, the requesting Service Account or API Key must have the Project Owner, Project Model Owner, or Project Read Only role.
         plural_ds_attributes:
             - string: {}
               description: Unique 24-hexadecimal digit string that identifies your project.

@@ -42,7 +42,7 @@ schema:
           tf_schema_name: description
           tf_model_name: Description
           api_name: description
-          req_body_usage: include_null_on_update
+          req_body_usage: send_null_as_null_on_update
           sensitive: false
           create_only: false
           present_in_any_response: true
@@ -72,7 +72,7 @@ schema:
           tf_schema_name: labels
           tf_model_name: Labels
           api_name: labels
-          req_body_usage: all_request_bodies
+          req_body_usage: send_null_as_empty_on_update
           sensitive: false
           create_only: false
           present_in_any_response: true
@@ -155,7 +155,7 @@ schema:
             name: Roles
             model: customtypes.NestedListValue[TFRolesModel]
             schema: customtypes.NewNestedListType[TFRolesModel](ctx)
-          computed_optional_required: required
+          computed_optional_required: optional
           tf_schema_name: roles
           tf_model_name: Roles
           api_name: roles

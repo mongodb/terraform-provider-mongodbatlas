@@ -427,6 +427,30 @@ components:
         vpcNetworkName:
           description: The name of the VPC network.
           type: string
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          aws:
+            properties:
+              - awsAccountId
+              - cidrBlock
+              - cloudProvider
+              - links
+              - vpcId
+          azure:
+            properties:
+              - azureSubscriptionId
+              - cidrBlock
+              - cloudProvider
+              - links
+              - virtualNetworkName
+          gcp:
+            properties:
+              - cidrBlock
+              - cloudProvider
+              - gcpProjectId
+              - links
+              - vpcNetworkName
     AcknowledgeAlert:
       description: Acknowledging an alert prevents successive notifications. Specify the `acknowledgeUntil` date and optional comment or `unacknowledgeAlert` boolean.
       properties:
@@ -806,8 +830,6 @@ components:
           items:
             $ref: "#/components/schemas/DiskBackupApiPolicyItem"
           type: array
-      required:
-        - policyItems
       type: object
     AiModelsApiKeyCreateRequest:
       properties:
@@ -1287,6 +1309,7 @@ components:
           items:
             example: 32b6e34b3d91647abb20e7b8
             pattern: ^([a-f0-9]{8,32})$
+            readOnly: true
             type: string
           readOnly: true
           type: array
@@ -1709,6 +1732,54 @@ components:
               default: 255
               description: Maximum number of characters in a single token. Tokens greater than this length are split at this length into multiple tokens.
               type: integer
+          x-xgen-discriminator:
+            propertyName: type
+            mapping:
+              edgeGram:
+                properties:
+                  - maxGram
+                  - minGram
+                  - type
+                required:
+                  - maxGram
+                  - minGram
+              keyword:
+                properties:
+                  - type
+              nGram:
+                properties:
+                  - maxGram
+                  - minGram
+                  - type
+                required:
+                  - maxGram
+                  - minGram
+              regexCaptureGroup:
+                properties:
+                  - group
+                  - pattern
+                  - type
+                required:
+                  - group
+                  - pattern
+              regexSplit:
+                properties:
+                  - pattern
+                  - type
+                required:
+                  - pattern
+              standard:
+                properties:
+                  - maxTokenLength
+                  - type
+              uaxUrlEmail:
+                properties:
+                  - maxTokenLength
+                  - type
+              whitespace:
+                properties:
+                  - maxTokenLength
+                  - type
       required:
         - name
         - tokenizer
@@ -2117,19 +2188,6 @@ components:
       readOnly: true
       title: BSON Timestamp
       type: object
-    ApiChartsDashboardImportResponseView:
-      description: Imported dashboard and associated imported items.
-      properties:
-        dashboard:
-          $ref: "#/components/schemas/ImportedDashboard"
-        items:
-          description: Imported items.
-          items:
-            $ref: "#/components/schemas/ImportedItem"
-          type: array
-      required:
-        - items
-      type: object
     ApiCheckpointPartView:
       description: Metadata contained in one document that describes the complete snapshot taken for this node.
       properties:
@@ -2178,6 +2236,7 @@ components:
         parameters:
           description: Parameters used to give more information about the error.
           items:
+            readOnly: true
             type: object
           readOnly: true
           type: array
@@ -2293,10 +2352,8 @@ components:
           type: array
       readOnly: true
       required:
-        - accessList
         - id
         - publicKey
-        - roles
       type: object
     ApiKeyUserDetails:
       description: Details of the Programmatic API Keys.
@@ -2629,12 +2686,6 @@ components:
         - standbyLinkId
         - status
       type: object
-    ApiVersion:
-      properties:
-        version:
-          description: Object representing a version of the Atlas Admin API.
-          type: string
-      type: object
     AssociatedInvoice:
       description: An invoice associated with an organization.
       properties:
@@ -2695,47 +2746,6 @@ components:
           type: boolean
       required:
         - name
-      type: object
-    AtlasRateLimitBucketState:
-      description: Configuration and current state of a single rate limit token bucket.
-      properties:
-        capacity:
-          description: The capacity of the bucket.
-          format: int64
-          readOnly: true
-          type: integer
-        name:
-          description: The name of the bucket.
-          readOnly: true
-          type: string
-        remaining:
-          description: The remaining tokens of the bucket.
-          format: int64
-          readOnly: true
-          type: integer
-      type: object
-    AtlasRateLimitInspectionResponse:
-      description: Rate limit inspection response containing bucket states for debugging and monitoring.
-      properties:
-        limits:
-          description: List of bucket states.
-          items:
-            $ref: "#/components/schemas/AtlasRateLimitBucketState"
-          readOnly: true
-          type: array
-        scope:
-          description: The scope type of the rate limit.
-          enum:
-            - GROUP
-            - ORGANIZATION
-            - USER
-            - IP
-          readOnly: true
-          type: string
-        scopeId:
-          description: The scope id associated to the bucket.
-          readOnly: true
-          type: string
       type: object
     AtlasSearchAnalyzer:
       properties:
@@ -3088,7 +3098,6 @@ components:
           uniqueItems: true
       required:
         - externalGroupName
-        - roleAssignments
       title: Federated Authentication Role Mapping
       type: object
     AutoExportPolicyView:
@@ -4193,6 +4202,45 @@ components:
       required:
         - containerId
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - accepterRegionName
+              - awsAccountId
+              - connectionId
+              - errorStateName
+              - routeTableCidrBlock
+              - statusName
+              - vpcId
+            required:
+              - accepterRegionName
+              - awsAccountId
+              - routeTableCidrBlock
+              - vpcId
+          AZURE:
+            properties:
+              - azureDirectoryId
+              - azureSubscriptionId
+              - errorState
+              - resourceGroupName
+              - status
+              - vnetName
+            required:
+              - azureDirectoryId
+              - azureSubscriptionId
+              - resourceGroupName
+              - vnetName
+          GCP:
+            properties:
+              - errorMessage
+              - gcpProjectId
+              - networkName
+              - status
+            required:
+              - gcpProjectId
+              - networkName
     BaseStreamsRegion:
       description: Name of the cloud provider region hosting Atlas Stream Processing.
       type: string
@@ -4666,7 +4714,6 @@ components:
         - lastName
         - mobileNumber
         - password
-        - roles
         - username
       type: object
     CloudCluster:
@@ -4845,7 +4892,6 @@ components:
       required:
         - databaseName
         - groupId
-        - roles
         - username
       type: object
     CloudProviderAccessAWSIAMRole:
@@ -4971,6 +5017,21 @@ components:
         featureId:
           $ref: "#/components/schemas/CloudProviderAccessFeatureUsagePushBasedLogExportFeatureId"
       type: object
+      x-xgen-discriminator:
+        propertyName: featureType
+        mapping:
+          ATLAS_DATA_LAKE:
+            properties:
+              - featureId
+          ENCRYPTION_AT_REST:
+            properties:
+              - featureId
+          EXPORT_SNAPSHOT:
+            properties:
+              - featureId
+          PUSH_BASED_LOG_EXPORT:
+            properties:
+              - featureId
     CloudProviderAccessFeatureUsagePushBasedLogExportFeatureId:
       description: Identifying characteristics about the Amazon Web Services (AWS) Simple Storage Service (S3) export bucket linked to this AWS Identity and Access Management (IAM) role.
       properties:
@@ -5119,6 +5180,34 @@ components:
       required:
         - providerName
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - atlasAWSAccountArn
+              - atlasAssumedRoleExternalId
+              - authorizedDate
+              - createdDate
+              - featureUsages
+              - iamAssumedRoleArn
+              - roleId
+          AZURE:
+            properties:
+              - _id
+              - atlasAzureAppId
+              - createdDate
+              - featureUsages
+              - lastUpdatedDate
+              - servicePrincipalId
+              - tenantId
+          GCP:
+            properties:
+              - createdDate
+              - featureUsages
+              - gcpServiceAccountForAtlas
+              - roleId
+              - status
     CloudProviderAccessRoleRequest:
       description: Cloud provider access role.
       properties:
@@ -5193,6 +5282,32 @@ components:
       required:
         - providerName
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - atlasAWSAccountArn
+              - atlasAssumedRoleExternalId
+              - authorizedDate
+              - createdDate
+              - featureUsages
+              - roleId
+          AZURE:
+            properties:
+              - _id
+              - atlasAzureAppId
+              - createdDate
+              - featureUsages
+              - lastUpdatedDate
+              - servicePrincipalId
+              - tenantId
+          GCP:
+            properties:
+              - createdDate
+              - featureUsages
+              - gcpServiceAccountForAtlas
+              - roleId
     CloudProviderAccessRoleRequestUpdate:
       description: Cloud provider access role.
       properties:
@@ -5269,6 +5384,29 @@ components:
       required:
         - providerName
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - atlasAWSAccountArn
+              - atlasAssumedRoleExternalId
+              - authorizedDate
+              - createdDate
+              - featureUsages
+              - iamAssumedRoleArn
+              - roleId
+          AZURE:
+            properties:
+              - _id
+              - atlasAzureAppId
+              - createdDate
+              - featureUsages
+              - lastUpdatedDate
+              - servicePrincipalId
+              - tenantId
+          GCP:
+            properties: []
     CloudProviderAccessRoles:
       properties:
         awsIamRoles:
@@ -5505,6 +5643,33 @@ components:
           readOnly: true
           type: string
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - atlasCidrBlock
+              - regionName
+              - vpcId
+            required:
+              - regionName
+          AZURE:
+            properties:
+              - atlasCidrBlock
+              - azureSubscriptionId
+              - region
+              - vnetName
+            required:
+              - atlasCidrBlock
+              - region
+          GCP:
+            properties:
+              - atlasCidrBlock
+              - gcpProjectId
+              - networkName
+              - regions
+            required:
+              - atlasCidrBlock
     CloudProviderEndpointServiceRequest:
       properties:
         portMappingEnabled:
@@ -5734,6 +5899,30 @@ components:
           type: string
       title: Cloud Service Provider Settings for Multi-Cloud Clusters
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - analyticsAutoScaling
+              - analyticsSpecs
+              - autoScaling
+              - readOnlySpecs
+          AZURE:
+            properties:
+              - analyticsAutoScaling
+              - analyticsSpecs
+              - autoScaling
+              - readOnlySpecs
+          GCP:
+            properties:
+              - analyticsAutoScaling
+              - analyticsSpecs
+              - autoScaling
+              - readOnlySpecs
+          TENANT:
+            properties:
+              - backingProviderName
     CloudRegionConfig20240805:
       description: Cloud service provider on which MongoDB Cloud provisions the hosts.
       properties:
@@ -5930,6 +6119,39 @@ components:
           type: string
       title: Cloud Service Provider Settings
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - analyticsAutoScaling
+              - analyticsSpecs
+              - autoScaling
+              - effectiveAnalyticsSpecs
+              - effectiveElectableSpecs
+              - effectiveReadOnlySpecs
+              - readOnlySpecs
+          AZURE:
+            properties:
+              - analyticsAutoScaling
+              - analyticsSpecs
+              - autoScaling
+              - effectiveAnalyticsSpecs
+              - effectiveElectableSpecs
+              - effectiveReadOnlySpecs
+              - readOnlySpecs
+          GCP:
+            properties:
+              - analyticsAutoScaling
+              - analyticsSpecs
+              - autoScaling
+              - effectiveAnalyticsSpecs
+              - effectiveElectableSpecs
+              - effectiveReadOnlySpecs
+              - readOnlySpecs
+          TENANT:
+            properties:
+              - backingProviderName
     CloudSearchMetrics:
       properties:
         groupId:
@@ -5969,13 +6191,11 @@ components:
           description: List that contains all available Atlas Search status metrics when MongoDB Atlas received this request.
           items:
             $ref: "#/components/schemas/FTSMetric"
+          readOnly: true
           type: array
       required:
         - groupId
-        - hardwareMetrics
-        - indexMetrics
         - processId
-        - statusMetrics
       type: object
     ClusterAutoScalingSettings:
       description: Range of instance sizes to which your cluster can scale.
@@ -6869,6 +7089,40 @@ components:
         - providerName
       title: Cloud Service Provider Settings for a Cluster
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - autoScaling
+              - diskIOPS
+              - encryptEBSVolume
+              - instanceSizeName
+              - regionName
+              - volumeType
+          AZURE:
+            properties:
+              - autoScaling
+              - diskTypeName
+              - instanceSizeName
+              - regionName
+          FLEX:
+            properties:
+              - backingProviderName
+              - instanceSizeName
+              - regionName
+          GCP:
+            properties:
+              - autoScaling
+              - instanceSizeName
+              - regionName
+          TENANT:
+            properties:
+              - autoScaling
+              - backingProviderName
+              - effectiveInstanceSizeName
+              - instanceSizeName
+              - regionName
     ClusterSearchIndex:
       properties:
         collectionName:
@@ -7071,6 +7325,19 @@ components:
         - database
         - name
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          search:
+            properties:
+              - analyzer
+              - analyzers
+              - mappings
+              - searchAnalyzer
+              - synonyms
+          vectorSearch:
+            properties:
+              - fields
     ClusterServerlessBackupOptions:
       description: Group of settings that configure serverless backup.
       properties:
@@ -7125,8 +7392,6 @@ components:
             type: string
           readOnly: true
           type: array
-      required:
-        - rankedNamespaces
       type: object
     Collation:
       description: One or more settings that specify language-specific rules to compare strings within this index.
@@ -7562,6 +7827,18 @@ components:
           type: string
       type: object
       writeOnly: true
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          AWS:
+            properties:
+              - region
+          AZURE:
+            properties:
+              - region
+          GCP:
+            properties:
+              - region
     CreateEndpointRequest:
       type: object
       properties:
@@ -7721,6 +7998,19 @@ components:
           format: int32
           type: integer
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          CUSTOM:
+            properties:
+              - query
+            required:
+              - query
+          DATE:
+            properties:
+              - dateField
+              - dateFormat
+              - expireAfterDays
     CustomSessionTimeouts:
       description: Defines the session timeout settings for managing user sessions at the organization level. When set to null, the field's value is unset, and the default timeout settings are applied.
       properties:
@@ -7743,8 +8033,6 @@ components:
           items:
             $ref: "#/components/schemas/ZoneMapping"
           type: array
-      required:
-        - customZoneMappings
       type: object
     DBRoleToExecute:
       description: The name of a Built in or Custom DB Role to connect to an Atlas Cluster.
@@ -7865,6 +8153,23 @@ components:
         - value
       title: Limits
       type: object
+      x-xgen-discriminator:
+        propertyName: name
+        mapping:
+          atlas.project.deployment.clusters:
+            properties: []
+          atlas.project.deployment.nodesPerPrivateLinkRegion:
+            properties: []
+          atlas.project.deployment.serverlessMTMs:
+            properties: []
+          atlas.project.security.databaseAccess.customRoles:
+            properties: []
+          atlas.project.security.databaseAccess.users:
+            properties: []
+          atlas.project.security.networkAccess.crossRegionEntries:
+            properties: []
+          atlas.project.security.networkAccess.entries:
+            properties: []
     DataFederationTenantQueryLimit:
       description: Details of a tenant-level query limit for Data Federation. Query limit is the limit on the amount of usage during a time period based on cost.
       properties:
@@ -8337,6 +8642,55 @@ components:
       required:
         - provider
       type: object
+      x-xgen-discriminator:
+        propertyName: provider
+        mapping:
+          atlas:
+            properties:
+              - clusterName
+              - projectId
+              - readConcern
+              - readPreference
+          azure:
+            properties:
+              - containerName
+              - delimiter
+              - prefix
+              - public
+              - region
+              - replacementDelimiter
+              - serviceURL
+          dls:aws:
+            properties:
+              - region
+          dls:azure:
+            properties:
+              - region
+          dls:gcp:
+            properties:
+              - region
+          gcs:
+            properties:
+              - bucket
+              - delimiter
+              - prefix
+              - public
+              - region
+              - replacementDelimiter
+          http:
+            properties:
+              - allowInsecure
+              - defaultFormat
+              - urls
+          s3:
+            properties:
+              - additionalStorageClasses
+              - bucket
+              - delimiter
+              - includeTags
+              - prefix
+              - public
+              - region
     DataLakeTenant:
       properties:
         cloudProviderConfig:
@@ -8397,6 +8751,18 @@ components:
           type: string
       readOnly: true
       type: object
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          AWS:
+            properties:
+              - region
+          AZURE:
+            properties:
+              - region
+          GCP:
+            properties:
+              - region
     DataProtectionSettings:
       properties:
         authorizedEmail:
@@ -8681,7 +9047,6 @@ components:
           type: array
       required:
         - action
-        - resources
       title: Database Privilege Action
       type: object
     DatabaseRollingIndexRequest:
@@ -8723,7 +9088,6 @@ components:
       required:
         - collection
         - db
-        - keys
       type: object
     DatabaseUserRole:
       description: Range of resources available to this database user.
@@ -9134,6 +9498,46 @@ components:
       required:
         - frequencyType
       type: object
+      x-xgen-discriminator:
+        propertyName: frequencyType
+        mapping:
+          daily:
+            properties:
+              - retentionUnit
+              - retentionValue
+            required:
+              - retentionUnit
+              - retentionValue
+          hourly:
+            properties:
+              - retentionUnit
+              - retentionValue
+            required:
+              - retentionUnit
+              - retentionValue
+          monthly:
+            properties:
+              - retentionUnit
+              - retentionValue
+            required:
+              - retentionUnit
+              - retentionValue
+          ondemand:
+            properties: []
+          weekly:
+            properties:
+              - retentionUnit
+              - retentionValue
+            required:
+              - retentionUnit
+              - retentionValue
+          yearly:
+            properties:
+              - retentionUnit
+              - retentionValue
+            required:
+              - retentionUnit
+              - retentionValue
     DiskBackupCopySetting:
       description: Copy setting item in the desired backup policy.
       properties:
@@ -9778,6 +10182,19 @@ components:
           readOnly: true
           type: array
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          replicaSet:
+            properties:
+              - cloudProvider
+              - copyRegions
+              - replicaSetName
+          shardedCluster:
+            properties:
+              - configServerType
+              - members
+              - snapshotIds
     DiskBackupSnapshotAWSExportBucketRequest:
       allOf:
         - $ref: "#/components/schemas/DiskBackupSnapshotExportBucketRequest"
@@ -9915,6 +10332,33 @@ components:
       required:
         - cloudProvider
       type: object
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          AWS:
+            properties:
+              - bucketName
+              - iamRoleId
+              - requirePrivateNetworking
+            required:
+              - bucketName
+              - iamRoleId
+          AZURE:
+            properties:
+              - bucketName
+              - roleId
+              - serviceUrl
+              - tenantId
+            required:
+              - roleId
+              - serviceUrl
+          GCP:
+            properties:
+              - bucketName
+              - roleId
+            required:
+              - bucketName
+              - roleId
     DiskBackupSnapshotExportBucketResponse:
       description: Disk backup snapshot Export Bucket.
       properties:
@@ -9981,6 +10425,30 @@ components:
         - bucketName
         - cloudProvider
       type: object
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          AWS:
+            properties:
+              - iamRoleId
+              - region
+              - requirePrivateNetworking
+            required:
+              - iamRoleId
+          AZURE:
+            properties:
+              - roleId
+              - serviceUrl
+              - tenantId
+            required:
+              - roleId
+              - serviceUrl
+              - tenantId
+          GCP:
+            properties:
+              - roleId
+            required:
+              - roleId
     DiskBackupSnapshotRestoreJob:
       properties:
         cancelled:
@@ -10174,8 +10642,6 @@ components:
         useOrgAndGroupNamesInExportPrefix:
           description: Flag that indicates whether to use organization and project names instead of organization and project UUIDs in the path to the metadata files that MongoDB Cloud uploads to your Export Bucket.
           type: boolean
-      required:
-        - policies
       type: object
     DiskBackupSnapshotSchedule20240805:
       properties:
@@ -10265,8 +10731,6 @@ components:
         useOrgAndGroupNamesInExportPrefix:
           description: Flag that indicates whether to use organization and project names instead of organization and project UUIDs in the path to the metadata files that MongoDB Cloud uploads to your Export Bucket.
           type: boolean
-      required:
-        - policies
       type: object
     DiskGBAutoScaling:
       description: Setting that enables disk auto-scaling.
@@ -10469,6 +10933,15 @@ components:
           type: string
       title: Encryption At Rest Private Endpoint
       type: object
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          AWS:
+            properties:
+              - privateEndpointConnectionName
+          AZURE:
+            properties:
+              - privateEndpointConnectionName
     EmployeeAccessGrantView:
       description: MongoDB employee granted access level and expiration for a cluster.
       properties:
@@ -10601,6 +11074,23 @@ components:
       required:
         - cloudProvider
       type: object
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          AWS:
+            properties:
+              - endpointServiceName
+              - interfaceEndpoints
+          AZURE:
+            properties:
+              - privateEndpoints
+              - privateLinkServiceName
+              - privateLinkServiceResourceId
+          GCP:
+            properties:
+              - endpointGroupNames
+              - portMappingEnabled
+              - serviceAttachmentNames
     EventSeverity:
       description: Severity of the event.
       enum:
@@ -13032,6 +13522,39 @@ components:
         - metricName
       title: Flex Cluster Metric Threshold
       type: object
+      x-xgen-discriminator:
+        propertyName: metricName
+        mapping:
+          FLEX_AVG_COMMAND_EXECUTION_TIME:
+            properties: []
+          FLEX_AVG_READ_EXECUTION_TIME:
+            properties: []
+          FLEX_AVG_WRITE_EXECUTION_TIME:
+            properties: []
+          FLEX_CONNECTIONS:
+            properties: []
+          FLEX_CONNECTIONS_PERCENT:
+            properties: []
+          FLEX_DATA_SIZE_TOTAL:
+            properties: []
+          FLEX_NETWORK_BYTES_IN:
+            properties: []
+          FLEX_NETWORK_BYTES_OUT:
+            properties: []
+          FLEX_NETWORK_NUM_REQUESTS:
+            properties: []
+          FLEX_OPCOUNTER_CMD:
+            properties: []
+          FLEX_OPCOUNTER_DELETE:
+            properties: []
+          FLEX_OPCOUNTER_GETMORE:
+            properties: []
+          FLEX_OPCOUNTER_INSERT:
+            properties: []
+          FLEX_OPCOUNTER_QUERY:
+            properties: []
+          FLEX_OPCOUNTER_UPDATE:
+            properties: []
     FlexConnectionStrings20241113:
       description: Collection of Uniform Resource Locators that point to the MongoDB database.
       externalDocs:
@@ -13593,8 +14116,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     GroupRole:
       properties:
@@ -13892,6 +14413,30 @@ components:
         - roles
         - username
       type: object
+      x-xgen-discriminator:
+        propertyName: orgMembershipStatus
+        mapping:
+          ACTIVE:
+            properties:
+              - country
+              - createdAt
+              - firstName
+              - lastAuth
+              - lastName
+              - mobileNumber
+            required:
+              - createdAt
+              - firstName
+              - lastName
+          PENDING:
+            properties:
+              - invitationCreatedAt
+              - invitationExpiresAt
+              - inviterUsername
+            required:
+              - invitationCreatedAt
+              - invitationExpiresAt
+              - inviterUsername
     HardwareSpec:
       description: Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region.
       type: object
@@ -14015,53 +14560,6 @@ components:
             - M0
           readOnly: true
           type: string
-      type: object
-    Header:
-      description: HTTP header with name and value.
-      properties:
-        name:
-          description: Header name.
-          example: Authorization
-          type: string
-        value:
-          description: Header value.
-          example: Bearer token123
-          type: string
-      required:
-        - name
-        - value
-      type: object
-    ImportedDashboard:
-      description: Imported dashboard.
-      properties:
-        embeddingId:
-          description: Embedding ID of the item. This field only returns if embedding is enabled for the entity.
-          type: string
-        id:
-          description: ID of the dashboard.
-          type: string
-        title:
-          description: Title of the dashboard.
-          type: string
-      required:
-        - id
-        - title
-      type: object
-    ImportedItem:
-      description: Imported Item.
-      properties:
-        embeddingId:
-          description: Embedding ID of the item. This will only be returned if embedding is enabled for the entity.
-          type: string
-        id:
-          description: ID of the item.
-          type: string
-        title:
-          description: Title of the item.
-          type: string
-      required:
-        - id
-        - title
       type: object
     InboundControlPlaneCloudProviderIPAddresses:
       description: List of inbound IP addresses to the Atlas control plane, categorized by cloud provider. If your application allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your API requests can reach the Atlas control plane.
@@ -14228,28 +14726,6 @@ components:
           type: object
       type: object
       writeOnly: true
-    Info:
-      description: Information about the MongoDB Atlas Administration API OpenAPI Specification.
-      properties:
-        description:
-          description: Description of the MongoDB Atlas Administration API.
-          example: The MongoDB Atlas Administration API allows developers to manage all components in MongoDB Atlas.
-          type: string
-        license:
-          $ref: "#/components/schemas/License"
-        termsOfService:
-          description: Terms of Service URL.
-          example: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
-          type: string
-        title:
-          description: Title of the MongoDB Atlas Administration API.
-          example: MongoDB Atlas Administration API.
-          type: string
-        version:
-          description: Version of the MongoDB Atlas Administration API.
-          example: "2.0"
-          type: string
-      type: object
     IngestionPipelineRun:
       description: Run details of a Data Lake Pipeline.
       properties:
@@ -14359,6 +14835,14 @@ components:
           type: array
       title: Ingestion Destination
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          DLS:
+            properties:
+              - metadataProvider
+              - metadataRegion
+              - partitionFields
     IngestionSource:
       description: Ingestion Source of a Data Lake Pipeline.
       properties:
@@ -14390,6 +14874,22 @@ components:
           type: string
       title: Ingestion Source
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          ON_DEMAND_CPS:
+            properties:
+              - clusterName
+              - collectionName
+              - databaseName
+              - groupId
+          PERIODIC_CPS:
+            properties:
+              - clusterName
+              - collectionName
+              - databaseName
+              - groupId
+              - policyItemId
     InvoiceLineItem:
       description: One service included in this invoice.
       properties:
@@ -15362,18 +15862,6 @@ components:
           description: Human-readable label that identifies the zone in a Global Cluster. Provide this value only if `clusterType` is `GEOSHARDED`.
           type: string
       type: object
-    License:
-      description: License information of the MongoDB Atlas Administration API.
-      properties:
-        name:
-          description: Name of the license.
-          example: CC BY-NC-SA 3.0 US
-          type: string
-        url:
-          description: URL of the license.
-          example: https://creativecommons.org/licenses/by-nc-sa/3.0/us/
-          type: string
-      type: object
     Link:
       properties:
         href:
@@ -15422,8 +15910,6 @@ components:
           readOnly: true
           type: string
       required:
-        - deployments
-        - migrationHosts
         - name
         - projectId
       type: object
@@ -15490,7 +15976,6 @@ components:
       required:
         - destination
         - dropEnabled
-        - migrationHosts
         - source
       type: object
     LiveMigrationRequest20240530:
@@ -15532,7 +16017,6 @@ components:
           $ref: "#/components/schemas/Source"
       required:
         - destination
-        - migrationHosts
         - source
       type: object
     LiveMigrationResponse:
@@ -15605,7 +16089,7 @@ components:
         type:
           description: Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
           enum:
-            - AZURE_LOG_EXPORT
+            - S3_LOG_EXPORT
           type: string
         bucketName:
           description: Human-readable label that identifies the S3 bucket name for storing log files.
@@ -15624,76 +16108,24 @@ components:
           description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
           example: mongo-logs/
           type: string
-        apiKey:
-          description: Datadog API key for authentication.
-          example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
-          type: string
-        region:
-          description: "Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED."
-          enum:
-            - US1
-            - US3
-            - US5
-            - EU
-            - AP1
-            - AP2
-            - US1_FED
-          example: US1
-          type: string
-        gcsBucketName:
-          description: GCS bucket name for storing log files.
-          example: my-gcs-log-bucket
-          type: string
-        gcsPrefixPath:
-          description: GCS object path prefix for organizing log files.
-          example: mongodb-logs/
-          type: string
-        gcsRoleId:
-          description: Unique 24-character hexadecimal string that identifies the GCP service account role.
-          example: 507f1f77bcf86cd799439011
-          pattern: ^[a-f0-9]{24}$
-          type: string
-        otelEndpoint:
-          description: OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.
-          example: https://otel-collector.example.com:4318/v1/logs
-          type: string
-        otelSuppliedHeaders:
-          description: HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.
-          items:
-            $ref: "#/components/schemas/Header"
-          maxItems: 10
-          minItems: 1
-          type: array
-        splunkHecToken:
-          description: Splunk HTTP Event Collector (HEC) token for authentication.
-          example: 12345678-1234-1234-1234-123456789012
-          type: string
-        splunkHecUrl:
-          description: Splunk HTTP Event Collector (HEC) endpoint URL.
-          example: https://http-inputs-acme.splunkcloud.com:8088/services/collector
-          type: string
-        azureContainer:
-          description: Azure Blob Storage container name for log files.
-          example: mongodb-logs
-          type: string
-        azurePrefixPath:
-          description: Blob path prefix for organizing log files within the container.
-          example: logs/mongodb/
-          type: string
-        azureServicePrincipalId:
-          description: Unique 24-character hexadecimal string that identifies the Azure Service Principal.
-          example: 507f1f77bcf86cd799439011
-          pattern: ^[a-fA-F0-9]{24}$
-          type: string
-        azureStorageAccountName:
-          description: Azure Storage Account name where logs will be stored.
-          example: mylogstorageaccount
-          type: string
       required:
         - logTypes
         - type
       title: Log Export Integration Request
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          S3_LOG_EXPORT:
+            properties:
+              - bucketName
+              - iamRoleId
+              - kmsKey
+              - prefixPath
+            required:
+              - bucketName
+              - iamRoleId
+              - prefixPath
     LogIntegrationResponse:
       description: Response schema for log integration operations.
       properties:
@@ -15714,7 +16146,7 @@ components:
         type:
           description: Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
           enum:
-            - AZURE_LOG_EXPORT
+            - S3_LOG_EXPORT
           type: string
         bucketName:
           description: Human-readable label that identifies the S3 bucket name for storing log files.
@@ -15733,62 +16165,24 @@ components:
           description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
           example: mongo-logs/
           type: string
-        region:
-          description: "Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED."
-          enum:
-            - US1
-            - US3
-            - US5
-            - EU
-            - AP1
-            - AP2
-            - US1_FED
-          example: US1
-          type: string
-        gcsBucketName:
-          description: GCS bucket name for storing log files.
-          example: my-gcs-log-bucket
-          type: string
-        gcsPrefixPath:
-          description: GCS object path prefix for organizing log files.
-          example: mongodb-logs/
-          type: string
-        gcsRoleId:
-          description: Unique 24-character hexadecimal string that identifies the GCP service account role.
-          example: 507f1f77bcf86cd799439011
-          pattern: ^[a-f0-9]{24}$
-          type: string
-        otelEndpoint:
-          description: OpenTelemetry collector endpoint URL.
-          example: https://otel-collector.example.com:4318/v1/logs
-          type: string
-        splunkHecUrl:
-          description: Splunk HTTP Event Collector (HEC) endpoint URL.
-          example: https://http-inputs-acme.splunkcloud.com:8088/services/collector
-          type: string
-        azureContainer:
-          description: Azure Blob Storage container name for log files.
-          example: mongodb-logs
-          type: string
-        azurePrefixPath:
-          description: Blob path prefix for organizing log files within the container.
-          example: logs/mongodb/
-          type: string
-        azureServicePrincipalId:
-          description: Unique 24-character hexadecimal string that identifies the Azure Service Principal.
-          example: 507f1f77bcf86cd799439011
-          pattern: ^[a-f0-9]{24}$
-          type: string
-        azureStorageAccountName:
-          description: Azure Storage Account name where logs will be stored.
-          example: mylogstorageaccount
-          type: string
       required:
         - id
-        - logTypes
         - type
       title: Log Integration Response
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          S3_LOG_EXPORT:
+            properties:
+              - bucketName
+              - iamRoleId
+              - kmsKey
+              - prefixPath
+            required:
+              - bucketName
+              - iamRoleId
+              - prefixPath
     ManagedNamespaces:
       properties:
         collection:
@@ -16558,11 +16952,31 @@ components:
         - type
       title: Online Archive Schedule
       type: object
-    OpenApiInfo:
-      properties:
-        info:
-          $ref: "#/components/schemas/Info"
-      type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          DAILY:
+            properties:
+              - endHour
+              - endMinute
+              - startHour
+              - startMinute
+          DEFAULT:
+            properties: []
+          MONTHLY:
+            properties:
+              - dayOfMonth
+              - endHour
+              - endMinute
+              - startHour
+              - startMinute
+          WEEKLY:
+            properties:
+              - dayOfWeek
+              - endHour
+              - endMinute
+              - startHour
+              - startMinute
     OrgAssociatedInvoiceResponse:
       description: Response containing associated invoices for an organization.
       properties:
@@ -16609,8 +17023,6 @@ components:
             - ACTIVE
             - INACTIVE
           type: string
-      required:
-        - federatedDomains
       title: Organization Federation Settings
       type: object
     OrgGroup:
@@ -16672,8 +17084,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     OrgServiceAccount:
       description: Organization Service Account that Atlas created for the organization.
@@ -16889,6 +17299,30 @@ components:
         - roles
         - username
       type: object
+      x-xgen-discriminator:
+        propertyName: orgMembershipStatus
+        mapping:
+          ACTIVE:
+            properties:
+              - country
+              - createdAt
+              - firstName
+              - lastAuth
+              - lastName
+              - mobileNumber
+            required:
+              - createdAt
+              - firstName
+              - lastName
+          PENDING:
+            properties:
+              - invitationCreatedAt
+              - invitationExpiresAt
+              - inviterUsername
+            required:
+              - invitationCreatedAt
+              - invitationExpiresAt
+              - inviterUsername
     OrgUserRolesRequest:
       description: Organization and project level roles to assign the MongoDB Cloud user within one organization.
       properties:
@@ -17211,8 +17645,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedAlertConfigView:
       properties:
@@ -17237,8 +17669,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedAlertView:
       properties:
@@ -17263,8 +17693,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiApiUserView:
       properties:
@@ -17289,8 +17717,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiAppUserView:
       properties:
@@ -17315,8 +17741,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiAtlasCheckpointView:
       properties:
@@ -17341,8 +17765,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiAtlasDatabaseUserView:
       description: List of MongoDB Database users granted access to databases in the specified project.
@@ -17368,8 +17790,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiAtlasDiskBackupExportJobView:
       properties:
@@ -17394,8 +17814,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiAtlasEARPrivateEndpointView:
       properties:
@@ -17420,8 +17838,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiAtlasFlexBackupRestoreJob20241113View:
       properties:
@@ -17446,8 +17862,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiAtlasFlexBackupSnapshot20241113View:
       properties:
@@ -17472,8 +17886,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiAtlasObjectStoragePrivateEndpointResponseView:
       properties:
@@ -17498,8 +17910,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiAtlasProviderRegionsView:
       properties:
@@ -17524,8 +17934,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiAtlasServerlessBackupRestoreJobView:
       properties:
@@ -17550,8 +17958,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiAtlasServerlessBackupSnapshotView:
       properties:
@@ -17576,8 +17982,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiInvoiceMetadataView:
       properties:
@@ -17602,8 +18006,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiInvoiceView:
       properties:
@@ -17628,8 +18030,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiSKUView:
       properties:
@@ -17654,8 +18054,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiStandbyLinkFailoverResponse:
       properties:
@@ -17680,8 +18078,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiStandbyLinkResponse:
       properties:
@@ -17706,8 +18102,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiStreamsConnectionView:
       properties:
@@ -17732,8 +18126,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiStreamsPrivateLinkView:
       properties:
@@ -17758,8 +18150,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiStreamsStreamProcessorWithStatsView:
       properties:
@@ -17784,8 +18174,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedApiStreamsTenantView:
       properties:
@@ -17810,60 +18198,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
-      type: object
-    PaginatedApiStreamsTransitGatewayAttachmentResponse:
-      properties:
-        links:
-          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-          externalDocs:
-            description: Web Linking Specification (RFC 5988)
-            url: https://datatracker.ietf.org/doc/html/rfc5988
-          items:
-            $ref: "#/components/schemas/Link"
-          readOnly: true
-          type: array
-        results:
-          description: List of returned documents that MongoDB Cloud provides when completing this request.
-          items:
-            $ref: "#/components/schemas/StreamsTransitGatewayAttachmentResponse"
-          readOnly: true
-          type: array
-        totalCount:
-          description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
-          format: int32
-          minimum: 0
-          readOnly: true
-          type: integer
-      required:
-        - results
-      type: object
-    PaginatedApiStreamsTransitGatewayRouteResponse:
-      properties:
-        links:
-          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-          externalDocs:
-            description: Web Linking Specification (RFC 5988)
-            url: https://datatracker.ietf.org/doc/html/rfc5988
-          items:
-            $ref: "#/components/schemas/Link"
-          readOnly: true
-          type: array
-        results:
-          description: List of returned documents that MongoDB Cloud provides when completing this request.
-          items:
-            $ref: "#/components/schemas/StreamsTransitGatewayRouteResponse"
-          readOnly: true
-          type: array
-        totalCount:
-          description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
-          format: int32
-          minimum: 0
-          readOnly: true
-          type: integer
-      required:
-        - results
       type: object
     PaginatedApiUserAccessListResponseView:
       properties:
@@ -17888,34 +18222,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
-      type: object
-    PaginatedApiVersions:
-      properties:
-        links:
-          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-          externalDocs:
-            description: Web Linking Specification (RFC 5988)
-            url: https://datatracker.ietf.org/doc/html/rfc5988
-          items:
-            $ref: "#/components/schemas/Link"
-          readOnly: true
-          type: array
-        results:
-          description: List of returned documents that MongoDB Cloud provides when completing this request.
-          items:
-            $ref: "#/components/schemas/ApiVersion"
-          readOnly: true
-          type: array
-        totalCount:
-          description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
-          format: int32
-          minimum: 0
-          readOnly: true
-          type: integer
-      required:
-        - results
       type: object
     PaginatedAppUserView:
       properties:
@@ -17940,8 +18246,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedAtlasAiModelsApiKeysResponse:
       description: List response for AI Model API keys at the organization and project level.
@@ -17967,8 +18271,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedAtlasAiModelsRateLimitsResponse:
       description: List response for AI Model Rate Limits at the organization and project level.
@@ -17994,8 +18296,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedAtlasGroupView:
       properties:
@@ -18020,8 +18320,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedAvailableVersionView:
       properties:
@@ -18046,8 +18344,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedBackupSnapshotExportBucketView:
       properties:
@@ -18072,8 +18368,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedBackupSnapshotExportBucketsView:
       properties:
@@ -18098,8 +18392,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedBackupSnapshotView:
       properties:
@@ -18124,8 +18416,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedCloudBackupReplicaSetView:
       properties:
@@ -18150,8 +18440,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedCloudBackupRestoreJobView:
       properties:
@@ -18176,8 +18464,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedCloudBackupShardedClusterSnapshotView:
       properties:
@@ -18202,8 +18488,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedCloudProviderContainerView:
       description: List of Network Peering Containers that Amazon Web Services serves.
@@ -18229,8 +18513,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       title: Network Peering
       type: object
     PaginatedClusterDescription20240805:
@@ -18256,8 +18538,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedConnectedOrgConfigsView:
       properties:
@@ -18282,8 +18562,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedContainerPeerView:
       description: Group of Network Peering connection settings.
@@ -18309,8 +18587,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedDatabaseView:
       properties:
@@ -18335,8 +18611,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedDiskPartitionView:
       properties:
@@ -18361,8 +18635,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedEventTypeDetailsResponse:
       properties:
@@ -18387,8 +18659,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedFederationIdentityProvider:
       properties:
@@ -18413,8 +18683,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedFlexClusters20241113:
       properties:
@@ -18439,8 +18707,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedGroupServiceAccounts:
       description: A list of Project Service Accounts.
@@ -18466,8 +18732,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedGroupUserView:
       properties:
@@ -18492,8 +18756,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedHostView_Atlas:
       properties:
@@ -18518,8 +18780,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedIntegrationView:
       properties:
@@ -18544,8 +18804,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedLegacyClusterView:
       properties:
@@ -18570,8 +18828,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedLogIntegrationResponse:
       properties:
@@ -18596,8 +18852,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedNetworkAccessView:
       properties:
@@ -18622,8 +18876,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedOnlineArchiveView:
       properties:
@@ -18648,8 +18900,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedOrgGroupView:
       properties:
@@ -18674,8 +18924,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedOrgServiceAccounts:
       description: A list of Organization Service Accounts.
@@ -18701,8 +18949,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedOrgUserView:
       properties:
@@ -18727,8 +18973,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedOrganizationView:
       properties:
@@ -18753,8 +18997,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedPipelineRunView:
       properties:
@@ -18779,8 +19021,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedPrivateNetworkEndpointIdEntryView:
       properties:
@@ -18805,8 +19045,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedPublicApiUsageDetailsLineItemView:
       properties:
@@ -18831,8 +19069,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedQueryShapes:
       description: Paginated collection of query shapes. This endpoint returns a maximum of 100 results.
@@ -18858,35 +19094,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
-      type: object
-    PaginatedRateLimitEndpointSets:
-      description: A list of rate limit endpoint sets.
-      properties:
-        links:
-          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-          externalDocs:
-            description: Web Linking Specification (RFC 5988)
-            url: https://datatracker.ietf.org/doc/html/rfc5988
-          items:
-            $ref: "#/components/schemas/Link"
-          readOnly: true
-          type: array
-        results:
-          description: List of returned documents that MongoDB Cloud provides when completing this request.
-          items:
-            $ref: "#/components/schemas/RateLimitEndpointSetResponse"
-          readOnly: true
-          type: array
-        totalCount:
-          description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
-          format: int32
-          minimum: 0
-          readOnly: true
-          type: integer
-      required:
-        - results
       type: object
     PaginatedRestoreJobView:
       properties:
@@ -18911,8 +19118,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedRoleMappingView:
       description: List role mappings from the specified organization in the specified federation.
@@ -18938,8 +19143,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedSandboxConfigs:
       properties:
@@ -18964,8 +19167,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedServerlessInstanceDescriptionView:
       properties:
@@ -18990,8 +19191,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedServiceAccountGroup:
       description: A list of projects associated with the Service Account.
@@ -19017,8 +19216,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedServiceAccountIPAccessEntryView:
       properties:
@@ -19043,8 +19240,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedSnapshotView:
       properties:
@@ -19069,34 +19264,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
-      type: object
-    PaginatedStreamsTransitGatewayInvitationsResponse:
-      properties:
-        links:
-          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-          externalDocs:
-            description: Web Linking Specification (RFC 5988)
-            url: https://datatracker.ietf.org/doc/html/rfc5988
-          items:
-            $ref: "#/components/schemas/Link"
-          readOnly: true
-          type: array
-        results:
-          description: List of returned documents that MongoDB Cloud provides when completing this request.
-          items:
-            $ref: "#/components/schemas/StreamsTransitGatewayInvitationsResponse"
-          readOnly: true
-          type: array
-        totalCount:
-          description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
-          format: int32
-          minimum: 0
-          readOnly: true
-          type: integer
-      required:
-        - results
       type: object
     PaginatedTeamRoleView:
       properties:
@@ -19121,8 +19288,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedTeamView:
       properties:
@@ -19147,8 +19312,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedTenantRestoreView:
       properties:
@@ -19173,8 +19336,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedTenantSnapshotView:
       properties:
@@ -19199,8 +19360,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PaginatedUserCertView:
       properties:
@@ -19225,8 +19384,6 @@ components:
           minimum: 0
           readOnly: true
           type: integer
-      required:
-        - results
       type: object
     PartitionFieldView:
       description: Metadata to partition this online archive.
@@ -19551,8 +19708,6 @@ components:
             type: string
           readOnly: true
           type: array
-      required:
-        - pinnedNamespaces
       type: object
     PipelineRunStats:
       description: Runtime statistics for this Data Lake Pipeline run.
@@ -19676,6 +19831,26 @@ components:
       required:
         - cloudProvider
       type: object
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          AWS:
+            properties:
+              - connectionStatus
+              - interfaceEndpointId
+          AZURE:
+            properties:
+              - privateEndpointConnectionName
+              - privateEndpointIPAddress
+              - privateEndpointResourceId
+              - status
+          GCP:
+            properties:
+              - endpointGroupName
+              - endpoints
+              - gcpProjectId
+              - portMappingEnabled
+              - status
     PrivateNetworkEndpointIdEntry:
       properties:
         azureLinkId:
@@ -19996,90 +20171,6 @@ components:
           items:
             $ref: "#/components/schemas/QueryStatsSummary"
           type: array
-      type: object
-    RateLimitEndpointSetCapacity:
-      description: The rate limit capacity for the endpoint set.
-      properties:
-        defaultValue:
-          description: The default request capacity of the endpoint set. Returned if there is a capacity override set for the requested entity.
-          format: int64
-          type: integer
-        value:
-          description: The applied request capacity of the endpoint set.
-          format: int64
-          type: integer
-      type: object
-    RateLimitEndpointSetEndpoint:
-      properties:
-        method:
-          description: The HTTP method of the endpoint.
-          enum:
-            - GET
-            - POST
-            - PUT
-            - DELETE
-            - PATCH
-          type: string
-        path:
-          description: The URL path of the endpoint.
-          example: /api/atlas/v2/rateLimits
-          type: string
-      type: object
-    RateLimitEndpointSetRefillDurationSeconds:
-      description: The rate limit refill duration for the endpoint set.
-      properties:
-        defaultValue:
-          description: The default rate limit refill duration, in seconds, of the endpoint set. Returned if there is a rate limit refill duration override set for the requested entity.
-          format: int64
-          type: integer
-        value:
-          description: The applied rate limit refill duration of the endpoint set.
-          format: int64
-          type: integer
-      type: object
-    RateLimitEndpointSetRefillRate:
-      description: The rate limit refill rate for the endpoint set.
-      properties:
-        defaultValue:
-          description: The default rate limit refill rate of the endpoint set. Returned if there is a rate limit refill rate override set for the requested entity.
-          format: int64
-          type: integer
-        value:
-          description: The applied rate limit refill rate of the endpoint set.
-          format: int64
-          type: integer
-      type: object
-    RateLimitEndpointSetResponse:
-      properties:
-        capacity:
-          $ref: "#/components/schemas/RateLimitEndpointSetCapacity"
-        endpointSetId:
-          description: The ID of the endpoint set.
-          example: rateLimitsInspection_group
-          type: string
-        endpointSetName:
-          description: The endpoint set name.
-          example: Rate Limits Inspection
-          type: string
-        endpoints:
-          description: A list of endpoints associated with the specified endpoint set.
-          items:
-            $ref: "#/components/schemas/RateLimitEndpointSetEndpoint"
-          maxItems: 100
-          type: array
-          uniqueItems: true
-        refillDurationSeconds:
-          $ref: "#/components/schemas/RateLimitEndpointSetRefillDurationSeconds"
-        refillRate:
-          $ref: "#/components/schemas/RateLimitEndpointSetRefillRate"
-        scope:
-          description: The scope of the endpoint set.
-          enum:
-            - IP
-            - GROUP
-            - ORGANIZATION
-            - USER
-          type: string
       type: object
     RawMetricUnits:
       default: RAW
@@ -20420,6 +20511,18 @@ components:
       required:
         - type
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          SASL_INHERIT:
+            properties: []
+          USER_INFO:
+            properties:
+              - password
+              - username
+            required:
+              - password
+              - username
     SearchIndexCreateRequest:
       properties:
         collectionName:
@@ -20444,6 +20547,13 @@ components:
         - database
         - name
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          search:
+            properties: []
+          vectorSearch:
+            properties: []
     SearchIndexDefinitionVersion:
       description: Object which includes the version number of the index definition and the time that the index definition was created.
       properties:
@@ -20526,6 +20636,15 @@ components:
           type: array
       title: Search Index Response
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          search:
+            properties:
+              - synonymMappingStatus
+              - synonymMappingStatusDetail
+          vectorSearch:
+            properties: []
     SearchIndexUpdateRequest:
       properties:
         definition:
@@ -20809,7 +20928,6 @@ components:
           type: array
       required:
         - name
-        - types
       title: TypeSets
       type: object
     ServerlessBackupRestoreJob:
@@ -21299,6 +21417,16 @@ components:
       required:
         - providerName
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - cloudProviderEndpointId
+          AZURE:
+            properties:
+              - cloudProviderEndpointId
+              - privateEndpointIpAddress
     ServiceAccountGroup:
       properties:
         groupId:
@@ -21419,8 +21547,6 @@ components:
           type: array
           uniqueItems: true
           writeOnly: true
-      required:
-        - key
       type: object
       writeOnly: true
     ShardingRequest:
@@ -21439,7 +21565,6 @@ components:
           writeOnly: true
       required:
         - createSupportingIndexes
-        - shardingEntries
       type: object
       writeOnly: true
     SkuResponse:
@@ -21568,6 +21693,17 @@ components:
           $ref: "#/components/schemas/RawMetricUnits"
       title: Stream Processor Metric Threshold
       type: object
+      x-xgen-discriminator:
+        propertyName: metricName
+        mapping:
+          STREAM_PROCESSOR_CHANGE_STREAM_LAG:
+            properties: []
+          STREAM_PROCESSOR_DLQ_MESSAGE_COUNT:
+            properties: []
+          STREAM_PROCESSOR_KAFKA_LAG:
+            properties: []
+          STREAM_PROCESSOR_OUTPUT_MESSAGE_COUNT:
+            properties: []
     StreamsAWSConnectionConfig:
       description: AWS configurations for AWS-based connection types.
       properties:
@@ -21682,6 +21818,47 @@ components:
           uniqueItems: true
       readOnly: true
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          AWSKinesisDataStreams:
+            properties:
+              - aws
+              - networking
+          AWSLambda:
+            properties:
+              - aws
+          Cluster:
+            properties:
+              - clusterGroupId
+              - clusterName
+              - dbRoleToExecute
+          Https:
+            properties:
+              - headers
+              - url
+          Kafka:
+            properties:
+              - authentication
+              - bootstrapServers
+              - config
+              - networking
+              - security
+          S3:
+            properties:
+              - aws
+              - networking
+          Sample:
+            properties: []
+          SchemaRegistry:
+            properties:
+              - provider
+              - schemaRegistryAuthentication
+              - schemaRegistryUrls
+            required:
+              - provider
+              - schemaRegistryAuthentication
+              - schemaRegistryUrls
     StreamsDLQ:
       description: Dead letter queue for the stream processor.
       externalDocs:
@@ -22272,130 +22449,6 @@ components:
         streamConfig:
           $ref: "#/components/schemas/StreamConfig"
       type: object
-    StreamsTransitGatewayAttachmentRequest:
-      properties:
-        cloudProvider:
-          description: Provider for the transit gateway resources.
-          type: string
-          writeOnly: true
-        regionName:
-          description: AWS region name.
-          type: string
-          writeOnly: true
-        tgwId:
-          description: AWS transit gateway ID.
-          pattern: ^(tgw-)[0-9a-zA-Z]+$
-          type: string
-        vpcId:
-          description: AWS VPC ID.
-          pattern: ^(vpc-)[0-9a-zA-Z]+$
-          type: string
-          writeOnly: true
-      type: object
-    StreamsTransitGatewayAttachmentResponse:
-      properties:
-        links:
-          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-          externalDocs:
-            description: Web Linking Specification (RFC 5988)
-            url: https://datatracker.ietf.org/doc/html/rfc5988
-          items:
-            $ref: "#/components/schemas/Link"
-          readOnly: true
-          type: array
-        tgwAttachmentId:
-          description: The AWS Transit Gateway Attachment ID.
-          pattern: ^(tgw-attach-)[0-9a-zA-Z]+$
-          readOnly: true
-          type: string
-        tgwId:
-          description: AWS transit gateway ID.
-          pattern: ^(tgw-)[0-9a-zA-Z]+$
-          type: string
-      type: object
-    StreamsTransitGatewayInvitationsResponse:
-      properties:
-        links:
-          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-          externalDocs:
-            description: Web Linking Specification (RFC 5988)
-            url: https://datatracker.ietf.org/doc/html/rfc5988
-          items:
-            $ref: "#/components/schemas/Link"
-          readOnly: true
-          type: array
-        tgwId:
-          description: AWS transit gateway ID.
-          pattern: ^(tgw-)[0-9a-zA-Z]+$
-          type: string
-        tgwResourceShareArn:
-          description: AWS Transit Gateway resource share ARN.
-          type: string
-        tgwResourceShareInvitationArn:
-          description: AWS Transit Gateway resource share invitation ARN.
-          type: string
-      type: object
-    StreamsTransitGatewayResourceShare:
-      properties:
-        cloudProvider:
-          description: Provider for the transit gateway resources.
-          type: string
-        links:
-          description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
-          externalDocs:
-            description: Web Linking Specification (RFC 5988)
-            url: https://datatracker.ietf.org/doc/html/rfc5988
-          items:
-            $ref: "#/components/schemas/Link"
-          readOnly: true
-          type: array
-        regionName:
-          description: AWS Region name.
-          type: string
-        tgwId:
-          description: AWS transit gateway ID.
-          pattern: ^(tgw-)[0-9a-zA-Z]+$
-          type: string
-        tgwResourceShareArn:
-          description: AWS Transit Gateway resource share ARN.
-          type: string
-        tgwResourceShareInvitationArn:
-          description: AWS Transit Gateway resource share invitation ARN.
-          readOnly: true
-          type: string
-      type: object
-    StreamsTransitGatewayRouteRequest:
-      description: Container for metadata needed to create a Transit Gateway route.
-      properties:
-        destinationCidr:
-          description: The route's destination CIDR.
-          type: string
-        region:
-          description: The region of the Atlas VPCs where this route should take effect.
-          type: string
-        tgwId:
-          description: The AWS ID of the Transit Gateway through which traffic will be routed.
-          type: string
-      type: object
-    StreamsTransitGatewayRouteResponse:
-      description: Container for metadata associated with a Transit Gateway route.
-      properties:
-        destinationCidr:
-          description: The route's destination CIDR.
-          type: string
-        region:
-          description: The region of the Atlas VPCs where this route should take effect.
-          type: string
-        tgwId:
-          description: The AWS ID of the Transit Gateway through which traffic will be routed.
-          type: string
-        tgwRouteId:
-          description: The ID of the Transit Gateway route.
-          example: 32b6e34b3d91647abb20e7b8
-          pattern: ^([a-f0-9]{24})$
-          readOnly: true
-          type: string
-      type: object
     SynonymMappingStatusDetail:
       description: Contains the status of the index's synonym mappings on each search host. This field (and its subfields) only appear if the index has synonyms defined.
       properties:
@@ -22816,6 +22869,78 @@ components:
           type: string
       title: Third-Party Integration
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          DATADOG:
+            properties:
+              - apiKey
+              - region
+              - sendCollectionLatencyMetrics
+              - sendDatabaseMetrics
+              - sendQueryStatsMetrics
+              - sendUserProvidedResourceTags
+            required:
+              - apiKey
+          MICROSOFT_TEAMS:
+            properties:
+              - microsoftTeamsWebhookUrl
+            required:
+              - microsoftTeamsWebhookUrl
+          NEW_RELIC:
+            properties:
+              - accountId
+              - licenseKey
+              - readToken
+              - writeToken
+            required:
+              - accountId
+              - licenseKey
+              - readToken
+              - writeToken
+          OPS_GENIE:
+            properties:
+              - apiKey
+              - region
+            required:
+              - apiKey
+          PAGER_DUTY:
+            properties:
+              - region
+              - serviceKey
+            required:
+              - serviceKey
+          PROMETHEUS:
+            properties:
+              - enabled
+              - password
+              - sendUserProvidedResourceTagsEnabled
+              - serviceDiscovery
+              - username
+            required:
+              - enabled
+              - serviceDiscovery
+              - username
+          SLACK:
+            properties:
+              - apiToken
+              - channelName
+              - teamName
+            required:
+              - apiToken
+              - channelName
+          VICTOR_OPS:
+            properties:
+              - apiKey
+              - routingKey
+            required:
+              - apiKey
+          WEBHOOK:
+            properties:
+              - secret
+              - url
+            required:
+              - url
     TimeMetricUnits:
       default: HOURS
       description: Element used to express the quantity. This can be an element of time, storage capacity, and the like.
@@ -23287,8 +23412,6 @@ components:
             description: Stored Source Fields
             url: https://dochub.mongodb.org/core/atlas-search-stored-source
           type: object
-      required:
-        - fields
       title: Vector Search Index Definition
       type: object
     VectorSearchIndexStatusDetail:
@@ -23806,7 +23929,7 @@ info:
   termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
   title: MongoDB Atlas Administration API
   version: "2.0"
-  x-xgen-sha: edaf1e5120589d01d6af3496d72ea12b77c5bf9b
+  x-xgen-sha: 8afc7807f1480616ce254bcc9f26e3e54117b2e3
 openapi: 3.0.1
 paths:
   /api/atlas/v2:
@@ -24407,9 +24530,9 @@ paths:
   /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders/{identityProviderId}:
     delete:
       description: |-
-        Deletes one identity provider in the specified federation. To use this resource, the requesting Service Account or API Key must have the Organization Owner role in one of the connected organizations. 
+        Deletes one identity provider in the specified federation. To use this resource, the requesting Service Account or API Key must have the Organization Owner role for the connected organization. 
 
-        **Note**: Requests to this resource will fail if the identity provider has any connected organizations. Before deleting an identity provider, disconnect all organizations and confirm that no organization in your account uses this identity provider.
+        **Note**: Requests to this resource will fail if the identity provider is connected to more than one organization or is connected to an organization unowned by the requesting Service Account or API key. Before deleting an identity provider, confirm that no organization in your federation uses this identity provider.
       externalDocs:
         description: Manage Organization Mapping for Federated Authentication
         url: https://www.mongodb.com/docs/atlas/security/manage-org-mapping/
@@ -24495,6 +24618,8 @@ paths:
         Updates one identity provider in the specified federation. To use this resource, the requesting Service Account or API Key must have the Organization Owner role in one of the connected organizations.
 
         **Note**: Changing authorization types and/or updating authorization claims can prevent current users and/or groups from accessing the database.
+
+        **Note**: When deactivating a SAML identity provider connected to an organization, the requesting Service Account or API key must have the Organization Owner role for the organization. If the identity provider is connected to multiple organizations, the request will fail.
       operationId: updateFederationSettingIdentityProvider
       parameters:
         - $ref: "#/components/parameters/federationSettingsId"
@@ -25447,43 +25572,6 @@ paths:
         - AI Model Rate Limits
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Model-Rate-Limits/operation/updateGroupAiModelRateLimit
       x-xgen-operation-id-override: updateModelRateLimit
-  /api/atlas/v2/groups/{groupId}/aiModelRateLimits/{modelGroupName}:reset:
-    post:
-      description: Reset the AI model rate limit for the given model group to default values.
-      operationId: resetGroupAiModelRateLimit
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - $ref: "#/components/parameters/envelope"
-        - $ref: "#/components/parameters/pretty"
-        - description: The name of the model group to be reset to default rate limits.
-          in: path
-          name: modelGroupName
-          required: true
-          schema:
-            type: string
-      responses:
-        "204":
-          content:
-            application/vnd.atlas.preview+json:
-              x-xgen-preview:
-                public: "true"
-              x-xgen-version: preview
-          description: This endpoint does not return a response body.
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Reset AI Model Rate Limit for One Model Group
-      tags:
-        - AI Model Rate Limits
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Model-Rate-Limits/operation/resetGroupAiModelRateLimit
-      x-xgen-operation-id-override: resetModelRateLimit
   /api/atlas/v2/groups/{groupId}/aiModelRateLimits:reset:
     post:
       description: Reset the AI Model rate limits for the given group to default values.
@@ -26996,125 +27084,6 @@ paths:
         - Cloud Backups
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Backups/operation/updateGroupBackupCompliancePolicy
       x-xgen-operation-id-override: updateCompliancePolicy
-  /api/atlas/v2/groups/{groupId}/chartsDashboards/{dashboardId}:export:
-    get:
-      description: Exports the specified Charts dashboard. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
-      operationId: exportGroupChartsDashboard
-      parameters:
-        - $ref: "#/components/parameters/envelope"
-        - $ref: "#/components/parameters/groupId"
-        - description: ID of the dashboard to export.
-          in: path
-          name: dashboardId
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                description: This resource returns an exported Charts dashboard. You can use this response to import to the Charts Dashboard Import endpoint.
-                type: string
-              x-xgen-preview:
-                name: charts-dashboards
-                public: "false"
-              x-xgen-version: preview
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "429":
-          $ref: "#/components/responses/tooManyRequests"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Export One Charts Dashboard
-      tags:
-        - Charts Dashboards
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Charts-Dashboards/operation/exportGroupChartsDashboard
-      x-xgen-operation-id-override: exportChartsDashboard
-  /api/atlas/v2/groups/{groupId}/chartsDashboards:import:
-    post:
-      description: Imports the Charts dashboard that the template specifies. Optionally, you can specify `overwrite=true` to import into an existing dashboard. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
-      operationId: importGroupChartsDashboards
-      parameters:
-        - $ref: "#/components/parameters/envelope"
-        - $ref: "#/components/parameters/groupId"
-        - description: Setting this to true enables importing into an existing dashboard.
-          in: query
-          name: overwrite
-          schema:
-            type: boolean
-      requestBody:
-        content:
-          application/vnd.atlas.preview+json:
-            examples:
-              Sample import response body:
-                description: Sample import response body
-                value:
-                  dashboards:
-                    dashboard-1:
-                      description: Dashboard description
-                      embedding:
-                        anonymousAuthEnabled: true
-                      filters: []
-                      layout: []
-                      title: Dashboard title
-                  dataSources:
-                    data-source-1:
-                      alias: "Sample Data: Movies"
-                      collection: movies
-                      database: sample_data
-                      deployment: sample-data-cluster
-                      sourceType: cluster
-                  exportVersion: 9
-                  items:
-                    item-1:
-                      calculatedFields: []
-                      query: null
-                      sample: false
-                  queries: {}
-            schema:
-              type: object
-            x-xgen-preview:
-              name: charts-dashboards
-              public: "false"
-            x-xgen-version: preview
-        description: Schema corresponding to the response fetched from an exported dashboard.
-        required: true
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/ApiChartsDashboardImportResponseView"
-              x-xgen-preview:
-                name: charts-dashboards
-                public: "false"
-              x-xgen-version: preview
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "429":
-          $ref: "#/components/responses/tooManyRequests"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Import One Charts Dashboard
-      tags:
-        - Charts Dashboards
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Charts-Dashboards/operation/importGroupChartsDashboards
-      x-xgen-operation-id-override: importChartsDashboards
   /api/atlas/v2/groups/{groupId}/cloudProviderAccess:
     get:
       description: Returns all cloud provider access roles with access to the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
@@ -27576,12 +27545,6 @@ paths:
             schema:
               $ref: "#/components/schemas/ClusterDescription20240805"
             x-xgen-version: 2024-10-23
-          application/vnd.atlas.preview+json:
-            schema:
-              $ref: "#/components/schemas/ClusterDescription20240805"
-            x-xgen-preview:
-              public: "true"
-            x-xgen-version: preview
         description: Cluster to create in this project.
         required: true
       responses:
@@ -27606,15 +27569,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/ClusterDescription20240805"
               x-xgen-version: 2024-10-23
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/ClusterDescription20240805"
-              x-xgen-IPA-exception:
-                xgen-IPA-106-create-method-request-body-is-request-suffixed-object: Content predates IPA validation.
-                xgen-IPA-106-create-method-request-has-no-readonly-fields: Content predates IPA validation.
-              x-xgen-preview:
-                public: "true"
-              x-xgen-version: preview
           description: Created
         "400":
           $ref: "#/components/responses/badRequest"
@@ -27802,12 +27756,6 @@ paths:
             schema:
               $ref: "#/components/schemas/ClusterDescription20240805"
             x-xgen-version: 2024-10-23
-          application/vnd.atlas.preview+json:
-            schema:
-              $ref: "#/components/schemas/ClusterDescription20240805"
-            x-xgen-preview:
-              public: "true"
-            x-xgen-version: preview
         description: Cluster to update in the specified project.
         required: true
       responses:
@@ -27832,12 +27780,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/ClusterDescription20240805"
               x-xgen-version: 2024-10-23
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/ClusterDescription20240805"
-              x-xgen-preview:
-                public: "true"
-              x-xgen-version: preview
           description: OK
         "400":
           $ref: "#/components/responses/badRequest"
@@ -39946,38 +39888,6 @@ paths:
         - Push-Based Log Export
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Push-Based-Log-Export/operation/createGroupPushBasedLogExport
       x-xgen-operation-id-override: createLogExport
-  /api/atlas/v2/groups/{groupId}/ratelimits:
-    get:
-      description: Retrieve rate limiting bucket state for the specified group.
-      operationId: getGroupRatelimits
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - $ref: "#/components/parameters/envelope"
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/AtlasRateLimitInspectionResponse"
-              x-xgen-preview:
-                name: rate-limit
-                public: "false"
-              x-xgen-version: preview
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Return Rate Limit State for One Group
-      tags:
-        - Rate Limit
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limit/operation/getGroupRatelimits
   /api/atlas/v2/groups/{groupId}/sampleDatasetLoad/{name}:
     post:
       description: Requests loading the MongoDB sample dataset into the specified cluster. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
@@ -41776,7 +41686,7 @@ paths:
       x-xgen-operation-id-override: updateStreamWorkspace
   /api/atlas/v2/groups/{groupId}/streams/{tenantName}/auditLogs:
     get:
-      description: "Downloads the audit logs for the specified Atlas Streams Processing workspace or stream processor. By default, logs cover periods of 30 days. To use this resource, the requesting Service Account or API Key must have the Project Data Access roles, Project Owner role or Project Stream Processing Owner role. The API does not support direct calls with the json response schema. You must request a gzip response schema using an accept header of the format: `Accept: application/vnd.atlas.YYYY-MM-DD+gzip`."
+      description: "Downloads the audit logs for the specified Atlas Streams Processing workspace. By default, logs cover periods of 30 days. To use this resource, the requesting Service Account or API Key must have the Project Data Access roles, Project Owner role or Project Stream Processing Owner role. The API does not support direct calls with the json response schema. You must request a gzip response schema using an accept header of the format: `Accept: application/vnd.atlas.YYYY-MM-DD+gzip`."
       operationId: downloadGroupStreamAuditLogs
       parameters:
         - $ref: "#/components/parameters/envelope"
@@ -41797,11 +41707,6 @@ paths:
             format: int64
             pattern: "1199145600"
             type: integer
-        - description: Name of the stream processor to download logs for. An empty string will download logs for all stream processors in the workspace.
-          in: query
-          name: spName
-          schema:
-            type: string
         - description: Label that identifies the stream workspace.
           in: path
           name: tenantName
@@ -41813,7 +41718,7 @@ paths:
           content:
             application/vnd.atlas.2023-02-01+gzip:
               schema:
-                description: Compressed archive containing `[tenantName]_[spName]_[startTime]_[endTime]_audit.log` downloads
+                description: Compressed archive labeled `auditLogs.gz` downloads
                 format: binary
                 type: string
               x-xgen-version: 2023-02-01
@@ -42408,71 +42313,6 @@ paths:
         - Streams
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/getGroupStreamProcessors
       x-xgen-operation-id-override: getStreamProcessors
-  /api/atlas/v2/groups/{groupId}/streams/{tenantName}:downloadOperationalLogs:
-    get:
-      description: 'Downloads the operational logs for the specified Atlas Streams Processing workspace or stream processor. By default, logs cover periods of 30 days. To use this resource, the requesting Service Account or API Key must have the Project Data Access roles, Project Owner role or Project Stream Processing Owner role. The API does not support direct calls with the json response schema. You must request a gzip response schema using an accept header of the format: "Accept: application/vnd.atlas.2025-03-12+gzip".'
-      operationId: downloadGroupStreamOperationalLogs
-      parameters:
-        - $ref: "#/components/parameters/envelope"
-        - $ref: "#/components/parameters/groupId"
-        - description: Timestamp that specifies the end point for the range of log messages to download.  MongoDB Cloud expresses this timestamp in the number of seconds that have elapsed since the UNIX epoch.
-          in: query
-          name: endDate
-          schema:
-            example: 1636481348
-            format: int64
-            pattern: "1199145600"
-            type: integer
-        - description: Timestamp that specifies the starting point for the range of log messages to download. MongoDB Cloud expresses this timestamp in the number of seconds that have elapsed since the UNIX epoch.
-          in: query
-          name: startDate
-          schema:
-            example: 1636466948
-            format: int64
-            pattern: "1199145600"
-            type: integer
-        - description: Name of the stream processor to download logs for. An empty string will download logs for all stream processors in the workspace.
-          in: query
-          name: spName
-          schema:
-            type: string
-        - description: Label that identifies the stream workspace.
-          in: path
-          name: tenantName
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.2025-03-12+gzip:
-              schema:
-                description: Compressed archive labeled `[tenantName]_[spName]_[startTime]_[endTime]_queries.gz` downloads
-                format: binary
-                readOnly: true
-                type: string
-              x-xgen-version: 2025-03-12
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "409":
-          $ref: "#/components/responses/conflict"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Download Operational Logs for One Atlas Stream Processing Workspace
-      tags:
-        - Streams
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/downloadGroupStreamOperationalLogs
-      x-xgen-method-verb-override:
-        customMethod: "True"
-        verb: download
-      x-xgen-operation-id-override: downloadOperationalLogs
   /api/atlas/v2/groups/{groupId}/streams/accountDetails:
     get:
       description: Returns the Account ID, and the VPC ID for the group and region specified.
@@ -42865,497 +42705,6 @@ paths:
         - Streams
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/withGroupStreamSampleConnections
       x-xgen-operation-id-override: withStreamSampleConnections
-  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayAttachments:
-    get:
-      description: Returns the Transit Gateway Attachments for this group in the shared Atlas AWS Account.
-      operationId: listGroupStreamsTransitGatewayAttachments
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - $ref: "#/components/parameters/envelope"
-        - $ref: "#/components/parameters/itemsPerPage"
-        - $ref: "#/components/parameters/pageNum"
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/PaginatedApiStreamsTransitGatewayAttachmentResponse"
-              x-xgen-preview:
-                name: aws-transit-gateway
-              x-xgen-version: preview
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Return All Transit Gateway Attachments for One Group
-      tags:
-        - Streams
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/listGroupStreamsTransitGatewayAttachments
-      x-xgen-operation-id-override: listTransitGatewayAttachments
-    post:
-      description: Creates Transit Gateway Attachment with the provided VPC for a Transit Gateway that has been shared with an Atlas AWS Account. This Transit Gateway will be used in Atlas Streams private networking connections.
-      operationId: createGroupStreamsTransitGatewayAttachment
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - $ref: "#/components/parameters/envelope"
-      requestBody:
-        content:
-          application/vnd.atlas.preview+json:
-            schema:
-              $ref: "#/components/schemas/StreamsTransitGatewayAttachmentRequest"
-            x-xgen-preview:
-              name: aws-transit-gateway
-            x-xgen-version: preview
-        description: Metadata needed for creating a transit gateway attachment.
-        required: true
-      responses:
-        "201":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/StreamsTransitGatewayAttachmentResponse"
-              x-xgen-preview:
-                name: aws-transit-gateway
-              x-xgen-version: preview
-          description: Created
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Create One Transit Gateway Attachment
-      tags:
-        - Streams
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createGroupStreamsTransitGatewayAttachment
-      x-xgen-operation-id-override: createTransitGatewayAttachment
-  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayAttachments/{attachmentId}:
-    delete:
-      description: Deletes a transit gateway attachment.
-      operationId: deleteGroupStreamsTransitGatewayAttachment
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - $ref: "#/components/parameters/envelope"
-        - description: Unique identifier that identifies the Transit Gateway Attachment.
-          in: path
-          name: attachmentId
-          required: true
-          schema:
-            example: tgw-attach-01f8100bc7EXAMPLE
-            pattern: ^tgw-attach-[0-9a-zA-Z]+$
-            type: string
-      responses:
-        "204":
-          content:
-            application/vnd.atlas.preview+json:
-              x-xgen-preview:
-                name: aws-transit-gateway
-              x-xgen-version: preview
-          description: No Content
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Delete One Transit Gateway Attachment
-      tags:
-        - Streams
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamsTransitGatewayAttachment
-      x-xgen-operation-id-override: deleteTransitGatewayAttachment
-    get:
-      description: Returns one Transit Gateway Attachment for this group from the shared Atlas AWS Account.
-      operationId: getGroupStreamsTransitGatewayAttachment
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - $ref: "#/components/parameters/envelope"
-        - description: Unique identifier that identifies the Transit Gateway Attachment.
-          in: path
-          name: attachmentId
-          required: true
-          schema:
-            example: tgw-attach-01f8100bc7EXAMPLE
-            pattern: ^tgw-attach-[0-9a-zA-Z]+$
-            type: string
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/StreamsTransitGatewayAttachmentResponse"
-              x-xgen-preview:
-                name: aws-transit-gateway
-              x-xgen-version: preview
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Return One Transit Gateway Attachment for One Group
-      tags:
-        - Streams
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/getGroupStreamsTransitGatewayAttachment
-      x-xgen-operation-id-override: getTransitGatewayAttachment
-  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayInvitations:
-    get:
-      description: Returns the AWS RAM Resource Shares and Transit Gateway IDs for a Transit Gateway that has been shared with an Atlas AWS Account. This only returns the resource shares cached for Atlas Streams Processing.
-      operationId: listGroupStreamsTransitGatewayInvitations
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - $ref: "#/components/parameters/envelope"
-        - $ref: "#/components/parameters/itemsPerPage"
-        - $ref: "#/components/parameters/pageNum"
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/PaginatedStreamsTransitGatewayInvitationsResponse"
-              x-xgen-preview:
-                name: aws-transit-gateway
-              x-xgen-version: preview
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Return All Streams Transit Gateway Invitations
-      tags:
-        - Streams
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/listGroupStreamsTransitGatewayInvitations
-      x-xgen-operation-id-override: listTransitGatewayInvitations
-  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayInvitations/{resourceShareArn}:
-    delete:
-      description: Deletes an AWS Resource Share Invitation for a Transit Gateway that has been shared with an Atlas AWS account. This does not delete the resource share invitation from the sender's AWS account. This only deletes the resource share invitation that's cached for Atlas Streams Processing.
-      operationId: deleteGroupStreamsTransitGatewayInvitation
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - $ref: "#/components/parameters/envelope"
-        - description: AWS Transit Gateway resource share ARN.
-          in: path
-          name: resourceShareArn
-          required: true
-          schema:
-            type: string
-      responses:
-        "204":
-          content:
-            application/vnd.atlas.preview+json:
-              x-xgen-preview:
-                name: aws-transit-gateway
-              x-xgen-version: preview
-          description: This endpoint does not return a response body.
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Delete One Transit Gateway Invitation
-      tags:
-        - Streams
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamsTransitGatewayInvitation
-      x-xgen-operation-id-override: deleteTransitGatewayInvitation
-    get:
-      description: Returns the details of one AWS Resource Share Invitation for a Transit Gateway that has been shared with an Atlas AWS Account. This only returns the resource share invitation cached for Atlas Streams Processing.
-      operationId: getGroupStreamsTransitGatewayInvitation
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - $ref: "#/components/parameters/envelope"
-        - description: AWS Transit Gateway resource share ARN.
-          in: path
-          name: resourceShareArn
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/StreamsTransitGatewayInvitationsResponse"
-              x-xgen-preview:
-                name: aws-transit-gateway
-              x-xgen-version: preview
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Return One Transit Gateway Invitation
-      tags:
-        - Streams
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/getGroupStreamsTransitGatewayInvitation
-      x-xgen-operation-id-override: getTransitGatewayInvitation
-  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayInvitations:accept:
-    post:
-      description: Accept AWS RAM Resource Share for a Transit Gateway that has been shared with an Atlas AWS account. This Transit Gateway will be used in Atlas Streams private networking connections.
-      operationId: acceptGroupStreamsTransitGatewayInvitations
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - $ref: "#/components/parameters/envelope"
-      requestBody:
-        content:
-          application/vnd.atlas.preview+json:
-            schema:
-              $ref: "#/components/schemas/StreamsTransitGatewayResourceShare"
-            x-xgen-preview:
-              name: aws-transit-gateway
-            x-xgen-version: preview
-        description: Detailed information on accepting a transit gateway resource share invitation.
-        required: true
-      responses:
-        "204":
-          content:
-            application/vnd.atlas.preview+json:
-              x-xgen-preview:
-                name: aws-transit-gateway
-              x-xgen-version: preview
-          description: This endpoint does not return a response body.
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Accept Transit Gateway Resource Share Invitations
-      tags:
-        - Streams
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/acceptGroupStreamsTransitGatewayInvitations
-      x-xgen-operation-id-override: acceptTransitGatewayInvitations
-  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayInvitations:reject:
-    post:
-      description: Rejects AWS RAM Resource Share for a Transit Gateway that has been shared with an Atlas AWS account.
-      operationId: rejectGroupStreamsTransitGatewayInvitations
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - $ref: "#/components/parameters/envelope"
-      requestBody:
-        content:
-          application/vnd.atlas.preview+json:
-            schema:
-              $ref: "#/components/schemas/StreamsTransitGatewayResourceShare"
-            x-xgen-preview:
-              name: aws-transit-gateway
-            x-xgen-version: preview
-        description: Detailed information on rejecting a transit gateway resource share invitation.
-        required: true
-      responses:
-        "204":
-          content:
-            application/vnd.atlas.preview+json:
-              x-xgen-preview:
-                name: aws-transit-gateway
-              x-xgen-version: preview
-          description: This endpoint does not return a response body.
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Reject Transit Gateway Resource Share Invitations
-      tags:
-        - Streams
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/rejectGroupStreamsTransitGatewayInvitations
-      x-xgen-operation-id-override: rejectTransitGatewayInvitations
-  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayRoutes:
-    get:
-      description: List Transit Gateway routes in the default route table associated with Atlas VPC.
-      operationId: listGroupStreamsTransitGatewayRoutes
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - $ref: "#/components/parameters/envelope"
-        - $ref: "#/components/parameters/itemsPerPage"
-        - $ref: "#/components/parameters/pageNum"
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/PaginatedApiStreamsTransitGatewayRouteResponse"
-              x-xgen-preview:
-                name: aws-transit-gateway
-              x-xgen-version: preview
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Return All Transit Gateway Routes in the Default Route Table for One Atlas VPC
-      tags:
-        - Streams
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/listGroupStreamsTransitGatewayRoutes
-      x-xgen-operation-id-override: listTransitGatewayRoutes
-    post:
-      description: Creates a route in the default route table associated with Atlas VPC to route all traffic destined for provided CIDR to the provided Transit Gateway.
-      operationId: createGroupStreamsTransitGatewayRoute
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - $ref: "#/components/parameters/envelope"
-      requestBody:
-        content:
-          application/vnd.atlas.preview+json:
-            schema:
-              $ref: "#/components/schemas/StreamsTransitGatewayRouteRequest"
-            x-xgen-preview:
-              name: aws-transit-gateway
-            x-xgen-version: preview
-        description: Metadata needed for creating a transit gateway route.
-        required: true
-      responses:
-        "201":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/StreamsTransitGatewayRouteResponse"
-              x-xgen-preview:
-                name: aws-transit-gateway
-              x-xgen-version: preview
-          description: Created
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Create One Transit Gateway Route in the Default Route Table for One Atlas VPC
-      tags:
-        - Streams
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createGroupStreamsTransitGatewayRoute
-      x-xgen-operation-id-override: createTransitGatewayRoute
-  /api/atlas/v2/groups/{groupId}/streamsTransitGatewayRoutes/{routeId}:
-    delete:
-      description: Deletes a transit gateway route in the default route table associated with Atlas VPC.
-      operationId: deleteGroupStreamsTransitGatewayRoute
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - $ref: "#/components/parameters/envelope"
-        - description: The Object ID that uniquely identifies a transit gateway route.
-          in: path
-          name: routeId
-          required: true
-          schema:
-            example: 32b6e34b3d91647abb20e7b8
-            pattern: ^([a-f0-9]{24})$
-            type: string
-      responses:
-        "204":
-          content:
-            application/vnd.atlas.preview+json:
-              x-xgen-preview:
-                name: aws-transit-gateway
-              x-xgen-version: preview
-          description: No Content
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Delete One Transit Gateway Route in the Default Route Table for One Atlas VPC
-      tags:
-        - Streams
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteGroupStreamsTransitGatewayRoute
-      x-xgen-operation-id-override: deleteTransitGatewayRoute
-    get:
-      description: Retrieves a transit gateway route in the default route table associated with Atlas VPC.
-      operationId: getGroupStreamsTransitGatewayRoute
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-        - description: The Object ID that uniquely identifies a transit gateway route.
-          in: path
-          name: routeId
-          required: true
-          schema:
-            example: 32b6e34b3d91647abb20e7b8
-            pattern: ^([a-f0-9]{24})$
-            type: string
-        - $ref: "#/components/parameters/envelope"
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/StreamsTransitGatewayRouteResponse"
-              x-xgen-preview:
-                name: aws-transit-gateway
-              x-xgen-version: preview
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Return One Transit Gateway Route in the Default Route Table for One Atlas VPC
-      tags:
-        - Streams
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/getGroupStreamsTransitGatewayRoute
-      x-xgen-operation-id-override: getTransitGatewayRoute
   /api/atlas/v2/groups/{groupId}/teams:
     get:
       description: Returns all teams to which the authenticated user has access in the project specified using its unique 24-hexadecimal digit identifier. All members of the team share the same project access. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
@@ -44199,48 +43548,6 @@ paths:
       tags:
         - Projects
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Projects/operation/getGroupByName
-  /api/atlas/v2/openapi/info:
-    get:
-      description: This resource returns general information about the MongoDB Atlas Administration API OpenAPI Specification.
-      operationId: getOpenapiInfo
-      parameters:
-        - $ref: "#/components/parameters/pretty"
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.2024-05-30+json:
-              schema:
-                $ref: "#/components/schemas/OpenApiInfo"
-              x-sunset: 9999-12-31
-              x-xgen-version: 2024-05-30
-            application/vnd.atlas.2024-08-05+json:
-              schema:
-                $ref: "#/components/schemas/OpenApiInfo"
-              x-xgen-version: 2024-08-05
-            application/vnd.atlas.2025-09-22.upcoming+json:
-              schema:
-                $ref: "#/components/schemas/OpenApiInfo"
-              x-xgen-version: 2025-09-22.upcoming
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/OpenApiInfo"
-              x-sunset: 9999-12-31
-              x-xgen-preview:
-                public: "true"
-              x-xgen-version: preview
-          description: OK
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Return General Information on MongoDB Atlas Administration API OpenAPI Specification
-      tags:
-        - OpenAPI
-      x-xgen-method-verb-override:
-        customMethod: "False"
-        verb: get
   /api/atlas/v2/orgs:
     get:
       description: Returns all organizations to which the requesting Service Account or API Key has access. To use this resource, the requesting Service Account or API Key must have the Organization Member role.
@@ -46103,38 +45410,6 @@ paths:
         - Resource Policies
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Resource-Policies/operation/getOrgNonCompliantResources
       x-xgen-operation-id-override: getNonCompliantResources
-  /api/atlas/v2/orgs/{orgId}/ratelimits:
-    get:
-      description: Retrieve rate limiting bucket state for the specified organization.
-      operationId: getOrgRatelimits
-      parameters:
-        - $ref: "#/components/parameters/orgId"
-        - $ref: "#/components/parameters/envelope"
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/AtlasRateLimitInspectionResponse"
-              x-xgen-preview:
-                name: rate-limit
-                public: "false"
-              x-xgen-version: preview
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Return Rate Limit State for One Organization
-      tags:
-        - Rate Limit
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limit/operation/getOrgRatelimits
   /api/atlas/v2/orgs/{orgId}/resourcePolicies:
     get:
       description: Return all Atlas Resource Policies for the organization.
@@ -48031,143 +47306,6 @@ paths:
         - MongoDB Cloud Users
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/MongoDB-Cloud-Users/operation/removeOrgUserRole
       x-xgen-operation-id-override: removeOrgRole
-  /api/atlas/v2/rateLimits:
-    get:
-      description: Get all rate limits for all v2 Atlas Administration API endpoint sets.
-      operationId: listRateLimits
-      parameters:
-        - $ref: "#/components/parameters/itemsPerPage"
-        - $ref: "#/components/parameters/pageNum"
-        - $ref: "#/components/parameters/pretty"
-        - $ref: "#/components/parameters/envelope"
-        - description: Unique 24-hexadecimal digit string that identifies the Atlas Project to request rate limits for. When this parameter is provided, only group scoped endpoint sets are returned and the limits returned are applicable to the specified project. The requesting user must have the Project Read Only role for the specified project.
-          in: query
-          name: groupId
-          schema:
-            example: 32b6e34b3d91647abb20e7b8
-            pattern: ^([a-f0-9]{24})$
-            type: string
-        - description: Unique 24-hexadecimal digit string that identifies the Atlas Organization to request rate limits for. When this parameter is provided, only organization scoped endpoint sets are returned and the limits returned are applicable to the specified organization. The requesting user must have the Organization Read Only role for the specified organization.
-          in: query
-          name: orgId
-          schema:
-            example: 32b6e34b3d91647abb20e7b8
-            pattern: ^([a-f0-9]{24})$
-            type: string
-        - description: A string that identifies the Atlas user to request rate limits for. The ID can for example be the Service Account Client ID or the API Public Key. When this parameter is provided, only user scoped endpoint sets are returned and the limits returned are applicable to the specified user. The requesting user must be the same as the specified user.
-          in: query
-          name: userId
-          schema:
-            example: mdb_sa_id_1234567890abcdef12345678
-            type: string
-        - description: An IP address to request rate limits for. When this parameter is provided, only IP scoped endpoint sets are returned and the limits returned are applicable to the specified IP address. The requesting user must have the same IP address as the one provided in the request.
-          in: query
-          name: ipAddress
-          schema:
-            example: 127.0.0.1
-            pattern: ^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}|([0-9a-f]{1,4}:){7}[0-9a-f]{1,4}$
-            type: string
-        - description: Filters the returned endpoint sets by the provided endpoint set name. Multiple names may be provided, for example `/rateLimits?name=Name1&name=Name2`. For names that use spaces, replace the space with its URL-encoded value (`%20`).
-          in: query
-          name: name
-          schema:
-            example: Rate Limits Inspection
-            type: string
-        - description: Filters the returned endpoint sets by the provided endpoint path. Multiple paths may be provided, for example `/rateLimits?endpointPath=%2Fapi%2Fatlas%2Fv2%2Fclusters&endpointPath=%2Fapi%2Fatlas%2Fv2%2Fgroups%2F%7BgroupId%7D%2F`. Replace `/`, `{` and `}` with their URL-encoded values (`%2F`, `%7B` and `%7D` respectively).
-          in: query
-          name: endpointPath
-          schema:
-            example: /api/atlas/v2/clusters
-            type: string
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/PaginatedRateLimitEndpointSets"
-              x-xgen-preview:
-                name: rate-limit
-                public: "false"
-              x-xgen-version: preview
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Return All Rate Limits
-      tags:
-        - Rate Limit
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limit/operation/listRateLimits
-  /api/atlas/v2/rateLimits/{endpointSetId}:
-    get:
-      description: Get one rate limit endpoint set.
-      operationId: getRateLimit
-      parameters:
-        - description: The ID of the rate limit endpoint set.
-          in: path
-          name: endpointSetId
-          required: true
-          schema:
-            example: rateLimitsInspection_group
-            type: string
-        - $ref: "#/components/parameters/pretty"
-        - $ref: "#/components/parameters/envelope"
-        - description: Unique 24-hexadecimal digit string that identifies the Atlas Project to request rate limits for. When this parameter is provided, the limits returned are applicable to the specified project. The requesting user must have the Project Read Only role for the specified project.
-          in: query
-          name: groupId
-          schema:
-            example: 32b6e34b3d91647abb20e7b8
-            pattern: ^([a-f0-9]{24})$
-            type: string
-        - description: Unique 24-hexadecimal digit string that identifies the Atlas Organization to request rate limits for. When this parameter is provided, the limits returned are applicable to the specified organization. The requesting user must have the Organization Read Only role for the specified organization.
-          in: query
-          name: orgId
-          schema:
-            example: 32b6e34b3d91647abb20e7b8
-            pattern: ^([a-f0-9]{24})$
-            type: string
-        - description: A string that identifies the Atlas user to request rate limits for. The ID can for example be the Service Account Client ID or the API Public Key. When this parameter is provided, the limits returned are applicable to the specified  user. The requesting user must be the same as the specified user.
-          in: query
-          name: userId
-          schema:
-            example: mdb_sa_id_1234567890abcdef12345678
-            type: string
-        - description: An IP address to request rate limits for. When this parameter is provided, the limits returned are applicable to the specified IP address. The requesting user must have the same IP address as the one provided in the request.
-          in: query
-          name: ipAddress
-          schema:
-            example: 127.0.0.1
-            pattern: ^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}|([0-9a-f]{1,4}:){7}[0-9a-f]{1,4}$
-            type: string
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/RateLimitEndpointSetResponse"
-              x-xgen-preview:
-                name: rate-limit
-                public: "false"
-              x-xgen-version: preview
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Return One Rate Limit
-      tags:
-        - Rate Limit
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limit/operation/getRateLimit
   /api/atlas/v2/skus:
     get:
       description: Returns all available SKUs (Stock Keeping Units) that can appear on MongoDB invoices. SKUs represent different products and services offered by MongoDB.
@@ -48256,122 +47394,6 @@ paths:
         - Root
       x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Root/operation/listControlPlaneIpAddresses
       x-xgen-operation-id-override: listControlPlaneAddresses
-  /api/atlas/v2/unauth/openapi/versions:
-    get:
-      description: API that provides a list of available versions for a given environment.
-      operationId: listOpenapiVersions
-      parameters:
-        - $ref: "#/components/parameters/envelope"
-        - $ref: "#/components/parameters/itemsPerPage"
-        - $ref: "#/components/parameters/pageNum"
-        - $ref: "#/components/parameters/pretty"
-        - description: The environment to get the versions from. If not provided, it returns the versions for the given MongoDB URL. (E.g. prod for cloud.mongodb.com).
-          in: query
-          name: env
-          schema:
-            enum:
-              - dev
-              - qa
-              - prod
-              - stage
-            type: string
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.2024-08-05+json:
-              schema:
-                $ref: "#/components/schemas/PaginatedApiVersions"
-              x-xgen-version: 2024-08-05
-            application/vnd.atlas.2024-08-05+yaml:
-              schema:
-                $ref: "#/components/schemas/PaginatedApiVersions"
-              x-xgen-version: 2024-08-05
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/PaginatedApiVersions"
-              x-xgen-preview:
-                name: version-resource
-              x-xgen-version: preview
-            application/vnd.atlas.preview+yaml:
-              schema:
-                $ref: "#/components/schemas/PaginatedApiVersions"
-              x-xgen-preview:
-                name: version-resource
-              x-xgen-version: preview
-          description: OK
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Return All Versions for One Environment
-      tags:
-        - OpenAPI
-  /api/atlas/v2/unauth/ratelimits:
-    get:
-      description: Retrieve rate limiting bucket state for unauthenticated requests.
-      operationId: listRatelimits
-      parameters:
-        - $ref: "#/components/parameters/envelope"
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/AtlasRateLimitInspectionResponse"
-              x-xgen-IPA-exception:
-                xgen-IPA-110-collections-response-define-links-array: The API is in private preview. We will fix this before moving to stable.
-                xgen-IPA-110-collections-response-define-results-array: The API is in private preview. We will fix this before moving to stable.
-                xgen-IPA-110-collections-use-paginated-prefix: The API is in private preview. We will fix this before moving to stable.
-              x-xgen-preview:
-                name: rate-limit
-                public: "false"
-              x-xgen-version: preview
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "404":
-          $ref: "#/components/responses/notFound"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Return Rate Limit State for Unauthenticated Requests
-      tags:
-        - Rate Limit
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limit/operation/listRatelimits
-  /api/atlas/v2/userRateLimits:
-    get:
-      description: Retrieve rate limiting bucket state for the current user.
-      operationId: listUserRatelimits
-      parameters:
-        - $ref: "#/components/parameters/envelope"
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.preview+json:
-              schema:
-                $ref: "#/components/schemas/AtlasRateLimitInspectionResponse"
-              x-xgen-IPA-exception:
-                xgen-IPA-110-collections-response-define-links-array: The API is in private preview. We will fix this before moving to stable.
-                xgen-IPA-110-collections-response-define-results-array: The API is in private preview. We will fix this before moving to stable.
-                xgen-IPA-110-collections-use-paginated-prefix: The API is in private preview. We will fix this before moving to stable.
-              x-xgen-preview:
-                name: rate-limit
-                public: "false"
-              x-xgen-version: preview
-          description: OK
-        "400":
-          $ref: "#/components/responses/badRequest"
-        "401":
-          $ref: "#/components/responses/unauthorized"
-        "403":
-          $ref: "#/components/responses/forbidden"
-        "500":
-          $ref: "#/components/responses/internalServerError"
-      summary: Return Rate Limit State for One User
-      tags:
-        - Rate Limit
-      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limit/operation/listUserRatelimits
   /api/atlas/v2/users:
     post:
       deprecated: true
@@ -48513,8 +47535,6 @@ tags:
     name: Auditing
   - description: Returns and edits custom DNS configurations for MongoDB Cloud database deployments on AWS. The resource requires your Project ID. If you use the VPC peering on AWS and you use your own DNS servers instead of Amazon Route 53, enable custom DNS. Before 31 March 2020, applications deployed within AWS using custom DNS services and VPC-peered with MongoDB Cloud couldn't connect over private IP addresses. Custom DNS resolved to public IP addresses. AWS internal DNS resolved to private IP addresses. Applications deployed with custom DNS services in AWS should use Private IP for Peering connection strings.
     name: AWS Clusters DNS
-  - description: Returns, adds, and edits Charts Dashboard instances. This resource applies only to projects with a Charts tenant, and requires your Project ID.
-    name: Charts Dashboards
   - description: Manages Cloud Backup snapshots, snapshot export buckets, restore jobs, and schedules. This resource applies only to clusters that use Cloud Backups.
     name: Cloud Backups
   - description: Manages the Cloud Migration Service. Source organizations, projects, and MongoDB clusters reside on Cloud Manager or Ops Manager. Destination organizations, projects, and MongoDB clusters reside on MongoDB Cloud. Source databases can't use any authentication except SCRAM-SHA.
@@ -48572,8 +47592,6 @@ tags:
     name: Network Peering
   - description: Returns, adds, edits, or removes an online archive.
     name: Online Archive
-  - description: Returns information about the MongoDB Atlas Specification.
-    name: OpenAPI
   - description: Returns, adds, and edits organizational units in MongoDB Cloud.
     name: Organizations
   - description: Returns suggested indexes and slow query data for a database deployment. Also enables or disables MongoDB Cloud-managed slow operation thresholds. To view field values in a sample query, you must have the Project Data Access Read Only role or higher. Otherwise, MongoDB Cloud returns redacted data rather than the field values.
@@ -48588,8 +47606,6 @@ tags:
     name: Projects
   - description: You can continually export mongod, mongos, and audit logs to an AWS S3 bucket. The new `/logIntegrations` API provides 1-minute log export. The existing `/pushBasedLogExport` API provides 5-minute log export and will be deprecated in the future. The log export integrations are managed at the project level.
     name: Push-Based Log Export
-  - description: Inspect Rate Limit bucket states.
-    name: Rate Limit
   - description: Configure and manage Atlas Resource Policies within your organization.
     name: Resource Policies
   - description: Creates one index to a database deployment in a rolling manner. Rolling indexes build indexes on the applicable nodes sequentially and may reduce the performance impact of an index build if your deployment's average CPU utilization exceeds (N-1)/N-10% where N is the number of CPU threads available to mongod of if the WiredTiger cache fill ratio regularly exceeds 90%. If your deployment does not meet this criteria, use the default index build. You can't create a rolling index on an `M0` free cluster or `M2/M5` shared cluster.

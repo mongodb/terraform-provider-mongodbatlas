@@ -530,8 +530,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 type TFModel struct {
 	DiskSizeGB                                types.Float64                                              `tfsdk:"disk_size_gb"`
 	ReplicationSpecs                          customtypes.NestedListValue[TFReplicationSpecsModel]       `tfsdk:"replication_specs"`
-	Tags                                      customtypes.MapValue[types.String]                         `tfsdk:"tags" autogen:"listasmap"`
-	Labels                                    customtypes.MapValue[types.String]                         `tfsdk:"labels" autogen:"listasmap"`
+	Tags                                      customtypes.MapValue[types.String]                         `tfsdk:"tags" autogen:"listasmap,sendnullasemptyonupdate"`
+	Labels                                    customtypes.MapValue[types.String]                         `tfsdk:"labels" autogen:"listasmap,sendnullasemptyonupdate"`
 	Id                                        types.String                                               `tfsdk:"id" autogen:"omitjson"`
 	MongoDBMajorVersion                       types.String                                               `tfsdk:"mongo_db_major_version"`
 	ConfigServerType                          types.String                                               `tfsdk:"config_server_type" autogen:"omitjson"`

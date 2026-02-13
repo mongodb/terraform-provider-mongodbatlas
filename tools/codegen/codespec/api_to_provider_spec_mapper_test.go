@@ -336,6 +336,26 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							PresentInAnyResponse:     true,
 						},
 						{
+							TFSchemaName:             "attr_send_empty_in_updates",
+							TFModelName:              "AttrSendEmptyInUpdates",
+							APIName:                  "attrSendEmptyInUpdates",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("Send empty in updates"),
+							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInAnyResponse:     true,
+						},
+						{
+							TFSchemaName:             "attr_send_null_in_updates",
+							TFModelName:              "AttrSendNullInUpdates",
+							APIName:                  "attrSendNullInUpdates",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("Send null in updates"),
+							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInAnyResponse:     true,
+						},
+						{
 							TFSchemaName:             "cluster_name",
 							TFModelName:              "ClusterName",
 							APIName:                  "clusterName",
@@ -627,13 +647,23 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 					Description: conversion.StringPtr(testResourceDesc),
 					Attributes: codespec.Attributes{
 						{
-							TFSchemaName:             "attr_always_in_updates",
-							TFModelName:              "AttrAlwaysInUpdates",
-							APIName:                  "attrAlwaysInUpdates",
+							TFSchemaName:             "attr_send_empty_in_updates",
+							TFModelName:              "AttrSendEmptyInUpdates",
+							APIName:                  "attrSendEmptyInUpdates",
 							ComputedOptionalRequired: codespec.Optional,
 							String:                   &codespec.StringAttribute{},
-							Description:              conversion.StringPtr("Always in updates"),
-							ReqBodyUsage:             codespec.IncludeNullOnUpdate,
+							Description:              conversion.StringPtr("Send empty in updates"),
+							ReqBodyUsage:             codespec.SendNullAsEmptyOnUpdate,
+							PresentInAnyResponse:     true,
+						},
+						{
+							TFSchemaName:             "attr_send_null_in_updates",
+							TFModelName:              "AttrSendNullInUpdates",
+							APIName:                  "attrSendNullInUpdates",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("Send null in updates"),
+							ReqBodyUsage:             codespec.SendNullAsNullOnUpdate,
 							PresentInAnyResponse:     true,
 						},
 						{
@@ -2089,5 +2119,6 @@ func TestConvertToProviderSpec_withTagsAndLabelsAsMapType(t *testing.T) {
 		assert.Nil(t, attr.ListNested, "Attribute %s should be a map type", attr.TFSchemaName)
 		assert.True(t, attr.ListTypeAsMap, "Attribute %s should have correct flag", attr.TFSchemaName)
 		assert.Contains(t, []string{"labels", "tags"}, attr.TFSchemaName, "Resource attribute should be either 'labels' or 'tags'")
+		assert.Equal(t, codespec.SendNullAsEmptyOnUpdate, attr.ReqBodyUsage, "Attribute %s should have correct ReqBodyUsage", attr.TFSchemaName)
 	}
 }

@@ -2,99 +2,11 @@ schema:
     description: Creates a new log integration configuration identified by a unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
     attributes:
         - string: {}
-          description: Datadog API key for authentication.
-          computed_optional_required: optional
-          tf_schema_name: api_key
-          tf_model_name: ApiKey
-          api_name: apiKey
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: false
-          request_only_required_on_create: false
-        - string: {}
-          description: Azure Blob Storage container name for log files.
-          computed_optional_required: optional
-          tf_schema_name: azure_container
-          tf_model_name: AzureContainer
-          api_name: azureContainer
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
-          description: Blob path prefix for organizing log files within the container.
-          computed_optional_required: optional
-          tf_schema_name: azure_prefix_path
-          tf_model_name: AzurePrefixPath
-          api_name: azurePrefixPath
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
-          description: Unique 24-character hexadecimal string that identifies the Azure Service Principal.
-          computed_optional_required: optional
-          tf_schema_name: azure_service_principal_id
-          tf_model_name: AzureServicePrincipalId
-          api_name: azureServicePrincipalId
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
-          description: Azure Storage Account name where logs will be stored.
-          computed_optional_required: optional
-          tf_schema_name: azure_storage_account_name
-          tf_model_name: AzureStorageAccountName
-          api_name: azureStorageAccountName
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
           description: Human-readable label that identifies the S3 bucket name for storing log files.
           computed_optional_required: optional
           tf_schema_name: bucket_name
           tf_model_name: BucketName
           api_name: bucketName
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
-          description: GCS bucket name for storing log files.
-          computed_optional_required: optional
-          tf_schema_name: gcs_bucket_name
-          tf_model_name: GcsBucketName
-          api_name: gcsBucketName
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
-          description: GCS object path prefix for organizing log files.
-          computed_optional_required: optional
-          tf_schema_name: gcs_prefix_path
-          tf_model_name: GcsPrefixPath
-          api_name: gcsPrefixPath
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
-          description: Unique 24-character hexadecimal string that identifies the GCP service account role.
-          computed_optional_required: optional
-          tf_schema_name: gcs_role_id
-          tf_model_name: GcsRoleId
-          api_name: gcsRoleId
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -162,95 +74,11 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.
-          computed_optional_required: optional
-          tf_schema_name: otel_endpoint
-          tf_model_name: OtelEndpoint
-          api_name: otelEndpoint
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - list_nested:
-            nested_object:
-                attributes:
-                    - string: {}
-                      description: Header name.
-                      computed_optional_required: required
-                      tf_schema_name: name
-                      tf_model_name: Name
-                      api_name: name
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: false
-                      request_only_required_on_create: false
-                    - string: {}
-                      description: Header value.
-                      computed_optional_required: required
-                      tf_schema_name: value
-                      tf_model_name: Value
-                      api_name: value
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: false
-                      request_only_required_on_create: false
-          description: HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.
-          custom_type:
-            package: customtypes
-            name: OtelSuppliedHeaders
-            model: customtypes.NestedListValue[TFOtelSuppliedHeadersModel]
-            schema: customtypes.NewNestedListType[TFOtelSuppliedHeadersModel](ctx)
-          computed_optional_required: optional
-          tf_schema_name: otel_supplied_headers
-          tf_model_name: OtelSuppliedHeaders
-          api_name: otelSuppliedHeaders
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: false
-          request_only_required_on_create: false
-        - string: {}
           description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
           computed_optional_required: optional
           tf_schema_name: prefix_path
           tf_model_name: PrefixPath
           api_name: prefixPath
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
-          description: 'Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.'
-          computed_optional_required: optional
-          tf_schema_name: region
-          tf_model_name: Region
-          api_name: region
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
-          description: Splunk HTTP Event Collector (HEC) token for authentication.
-          computed_optional_required: optional
-          tf_schema_name: splunk_hec_token
-          tf_model_name: SplunkHecToken
-          api_name: splunkHecToken
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: false
-          request_only_required_on_create: false
-        - string: {}
-          description: Splunk HTTP Event Collector (HEC) endpoint URL.
-          computed_optional_required: optional
-          tf_schema_name: splunk_hec_url
-          tf_model_name: SplunkHecUrl
-          api_name: splunkHecUrl
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -286,88 +114,11 @@ data_sources:
         singular_ds_description: Returns the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
         singular_ds_attributes:
             - string: {}
-              description: Azure Blob Storage container name for log files.
-              computed_optional_required: computed
-              tf_schema_name: azure_container
-              tf_model_name: AzureContainer
-              api_name: azureContainer
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
-              description: Blob path prefix for organizing log files within the container.
-              computed_optional_required: computed
-              tf_schema_name: azure_prefix_path
-              tf_model_name: AzurePrefixPath
-              api_name: azurePrefixPath
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
-              description: Unique 24-character hexadecimal string that identifies the Azure Service Principal.
-              computed_optional_required: computed
-              tf_schema_name: azure_service_principal_id
-              tf_model_name: AzureServicePrincipalId
-              api_name: azureServicePrincipalId
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
-              description: Azure Storage Account name where logs will be stored.
-              computed_optional_required: computed
-              tf_schema_name: azure_storage_account_name
-              tf_model_name: AzureStorageAccountName
-              api_name: azureStorageAccountName
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
               description: Human-readable label that identifies the S3 bucket name for storing log files.
               computed_optional_required: computed
               tf_schema_name: bucket_name
               tf_model_name: BucketName
               api_name: bucketName
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
-              description: GCS bucket name for storing log files.
-              computed_optional_required: computed
-              tf_schema_name: gcs_bucket_name
-              tf_model_name: GcsBucketName
-              api_name: gcsBucketName
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
-              description: GCS object path prefix for organizing log files.
-              computed_optional_required: computed
-              tf_schema_name: gcs_prefix_path
-              tf_model_name: GcsPrefixPath
-              api_name: gcsPrefixPath
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
-              description: Unique 24-character hexadecimal string that identifies the GCP service account role.
-              computed_optional_required: computed
-              tf_schema_name: gcs_role_id
-              tf_model_name: GcsRoleId
-              api_name: gcsRoleId
               req_body_usage: omit_always
               sensitive: false
               create_only: false
@@ -423,17 +174,6 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: OpenTelemetry collector endpoint URL.
-              computed_optional_required: computed
-              tf_schema_name: otel_endpoint
-              tf_model_name: OtelEndpoint
-              api_name: otelEndpoint
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
               description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
               computed_optional_required: computed
               tf_schema_name: prefix_path
@@ -450,28 +190,6 @@ data_sources:
               tf_schema_name: project_id
               tf_model_name: ProjectId
               api_name: groupId
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
-              description: 'Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.'
-              computed_optional_required: computed
-              tf_schema_name: region
-              tf_model_name: Region
-              api_name: region
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
-              description: Splunk HTTP Event Collector (HEC) endpoint URL.
-              computed_optional_required: computed
-              tf_schema_name: splunk_hec_url
-              tf_model_name: SplunkHecUrl
-              api_name: splunkHecUrl
               req_body_usage: omit_always
               sensitive: false
               create_only: false
@@ -516,88 +234,11 @@ data_sources:
                 nested_object:
                     attributes:
                         - string: {}
-                          description: Azure Blob Storage container name for log files.
-                          computed_optional_required: computed
-                          tf_schema_name: azure_container
-                          tf_model_name: AzureContainer
-                          api_name: azureContainer
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - string: {}
-                          description: Blob path prefix for organizing log files within the container.
-                          computed_optional_required: computed
-                          tf_schema_name: azure_prefix_path
-                          tf_model_name: AzurePrefixPath
-                          api_name: azurePrefixPath
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - string: {}
-                          description: Unique 24-character hexadecimal string that identifies the Azure Service Principal.
-                          computed_optional_required: computed
-                          tf_schema_name: azure_service_principal_id
-                          tf_model_name: AzureServicePrincipalId
-                          api_name: azureServicePrincipalId
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - string: {}
-                          description: Azure Storage Account name where logs will be stored.
-                          computed_optional_required: computed
-                          tf_schema_name: azure_storage_account_name
-                          tf_model_name: AzureStorageAccountName
-                          api_name: azureStorageAccountName
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - string: {}
                           description: Human-readable label that identifies the S3 bucket name for storing log files.
                           computed_optional_required: computed
                           tf_schema_name: bucket_name
                           tf_model_name: BucketName
                           api_name: bucketName
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - string: {}
-                          description: GCS bucket name for storing log files.
-                          computed_optional_required: computed
-                          tf_schema_name: gcs_bucket_name
-                          tf_model_name: GcsBucketName
-                          api_name: gcsBucketName
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - string: {}
-                          description: GCS object path prefix for organizing log files.
-                          computed_optional_required: computed
-                          tf_schema_name: gcs_prefix_path
-                          tf_model_name: GcsPrefixPath
-                          api_name: gcsPrefixPath
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - string: {}
-                          description: Unique 24-character hexadecimal string that identifies the GCP service account role.
-                          computed_optional_required: computed
-                          tf_schema_name: gcs_role_id
-                          tf_model_name: GcsRoleId
-                          api_name: gcsRoleId
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
@@ -653,44 +294,11 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: OpenTelemetry collector endpoint URL.
-                          computed_optional_required: computed
-                          tf_schema_name: otel_endpoint
-                          tf_model_name: OtelEndpoint
-                          api_name: otelEndpoint
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - string: {}
                           description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
                           computed_optional_required: computed
                           tf_schema_name: prefix_path
                           tf_model_name: PrefixPath
                           api_name: prefixPath
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - string: {}
-                          description: 'Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.'
-                          computed_optional_required: computed
-                          tf_schema_name: region
-                          tf_model_name: Region
-                          api_name: region
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - string: {}
-                          description: Splunk HTTP Event Collector (HEC) endpoint URL.
-                          computed_optional_required: computed
-                          tf_schema_name: splunk_hec_url
-                          tf_model_name: SplunkHecUrl
-                          api_name: splunkHecUrl
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false

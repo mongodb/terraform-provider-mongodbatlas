@@ -31,6 +31,8 @@ resources:
           "outer_object",
           "optional_string_attr",
           "attr_always_in_updates",
+          "attr_send_null_in_updates",
+          "attr_send_empty_in_updates",
           "nested_list_array_attr.list_primitive_string_attr",
           "nested_list_array_attr.list_primitive_string_computed_attr",
           "nested_set_array_attr.list_primitive_string_attr",
