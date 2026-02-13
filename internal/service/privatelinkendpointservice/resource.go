@@ -18,9 +18,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 
-	// TODO: CLOUDP-363083 Revert to latest SDK // "go.mongodb.org/atlas-sdk/v20250312013/admin"
-	"github.com/mongodb/atlas-sdk-go/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 const (
@@ -156,8 +156,7 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// TODO: CLOUDP-363083 Revert to latest SDK // connV2 := d.Client.AtlasV2
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
@@ -226,10 +225,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	clusterConf := &retry.StateChangeConf{
-		Pending: []string{"REPEATING", "PENDING"},
-		Target:  []string{"IDLE", "DELETED"},
-		// TODO: CLOUDP-363083 Revert ResourceClusterListAdvancedRefreshFunc to advancedcluster.ResourceClusterListAdvancedRefreshFunc
-		Refresh:    ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
+		Pending:    []string{"REPEATING", "PENDING"},
+		Target:     []string{"IDLE", "DELETED"},
+		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: delayAndMinTimeout,
 		Delay:      delayAndMinTimeout,
@@ -251,8 +249,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// TODO: CLOUDP-363083 Revert to latest SDK // connV2 := d.Client.AtlasV2
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
@@ -341,9 +338,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// TODO: CLOUDP-363083 Revert // connV2 := d.Client.AtlasV2
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
-
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
@@ -372,10 +367,9 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 
 		clusterConf := &retry.StateChangeConf{
-			Pending: []string{"REPEATING", "PENDING"},
-			Target:  []string{"IDLE", "DELETED"},
-			// TODO: CLOUDP-363083 Revert ResourceClusterListAdvancedRefreshFunc to advancedcluster.ResourceClusterListAdvancedRefreshFunc
-			Refresh:    ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
+			Pending:    []string{"REPEATING", "PENDING"},
+			Target:     []string{"IDLE", "DELETED"},
+			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: delayAndMinTimeout,
 			Delay:      delayAndMinTimeout,
@@ -391,46 +385,36 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	// TODO: CLOUDP-363083 Revert to latest SDK // connV2 := d.Client.AtlasV2
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
-
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	parts := strings.SplitN(d.Id(), "--", 4)
 	if len(parts) != 4 {
 		return nil, errors.New("import format error: to import a MongoDB Private Endpoint, use the format {project_id}--{private_link_id}--{endpoint_service_id}--{provider_name}")
 	}
-
 	projectID := parts[0]
 	privateLinkID := parts[1]
 	endpointServiceID := parts[2]
 	providerName := parts[3]
-
 	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
-
 	if err := d.Set("project_id", projectID); err != nil {
 		return nil, fmt.Errorf(errorEndpointSetting, "project_id", privateLinkID, err)
 	}
-
 	if err := d.Set("private_link_id", privateLinkID); err != nil {
 		return nil, fmt.Errorf(errorEndpointSetting, "private_link_id", privateLinkID, err)
 	}
-
 	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
 		return nil, fmt.Errorf(errorEndpointSetting, "endpoint_service_id", privateLinkID, err)
 	}
-
 	if err := d.Set("provider_name", providerName); err != nil {
 		return nil, fmt.Errorf(errorEndpointSetting, "provider_name", privateLinkID, err)
 	}
-
 	if providerName == constant.GCP {
 		if err := d.Set("gcp_project_id", privateEndpoint.GetGcpProjectId()); err != nil {
 			return nil, fmt.Errorf(errorEndpointSetting, "gcp_project_id", privateLinkID, err)
 		}
 	}
-
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":          projectID,
 		"private_link_id":     privateLinkID,
@@ -520,37 +504,4 @@ func flattenGCPEndpoints(apiObjects *[]admin.GCPConsumerForwardingRule) []any {
 	}
 
 	return tfList
-}
-
-// TODO: CLOUDP-363083 Delete ResourceClusterListAdvancedRefreshFunc and use advancedcluster.ResourceClusterListAdvancedRefreshFunc
-func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersApi) retry.StateRefreshFunc {
-	return func() (any, string, error) {
-		clusters, resp, err := clustersAPI.ListClusters(ctx, projectID).Execute()
-
-		if err != nil && strings.Contains(err.Error(), "reset by peer") {
-			return nil, "REPEATING", nil
-		}
-
-		if err != nil && clusters == nil && resp == nil {
-			return nil, "", err
-		}
-
-		if err != nil {
-			if validate.StatusNotFound(resp) {
-				return "", "DELETED", nil
-			}
-			if validate.StatusServiceUnavailable(resp) {
-				return "", "PENDING", nil
-			}
-			return nil, "", err
-		}
-
-		for i := range clusters.GetResults() {
-			cluster := clusters.GetResults()[i]
-			if cluster.GetStateName() != "IDLE" {
-				return cluster, "PENDING", nil
-			}
-		}
-		return clusters, "IDLE", nil
-	}
 }

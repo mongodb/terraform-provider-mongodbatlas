@@ -18,8 +18,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	// TODO: CLOUDP-363083 Revert to latest SDK // "go.mongodb.org/atlas-sdk/v20250312013/admin"
-	"github.com/mongodb/atlas-sdk-go/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 const (
@@ -133,8 +132,7 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// TODO: CLOUDP-363083 Revert // connV2 := d.Client.AtlasV2
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	providerName := d.Get("provider_name").(string)
 	region := d.Get("region").(string)
@@ -193,8 +191,7 @@ func resourceCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta any
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// TODO: CLOUDP-363083 Revert // connV2 := d.Client.AtlasV2
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	privateLinkID := ids["private_link_id"]
@@ -273,8 +270,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// TODO: CLOUDP-363083 Revert // connV2 := d.Client.AtlasV2
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	privateLinkID := ids["private_link_id"]
 	projectID := ids["project_id"]

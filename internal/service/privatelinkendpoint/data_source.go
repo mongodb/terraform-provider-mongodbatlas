@@ -91,9 +91,7 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// TODO: CLOUDP-363083 Revert // connV2 := d.Client.AtlasV2
-	connV2 := meta.(*config.MongoDBClient).AtlasPreview
-
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
