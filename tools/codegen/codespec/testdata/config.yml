@@ -191,6 +191,31 @@ resources:
         # original API name "username" while the schema uses the aliased name "dbUser"
         username: dbUser
   
+  test_polymorphic_resource:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/polymorphicResource
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/polymorphicResource
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/polymorphicResource
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/polymorphicResource
+      method: DELETE
+
+  test_nested_polymorphic_resource:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/nestedPolymorphicResource
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/nestedPolymorphicResource
+      method: POST
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/nestedPolymorphicResource
+      method: DELETE
+
   test_schema_ignore_and_id_attributes:
     read:
       path: /api/atlas/v2/groups/{groupId}/simpleTestResource
