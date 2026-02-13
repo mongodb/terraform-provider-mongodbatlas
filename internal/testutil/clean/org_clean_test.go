@@ -76,7 +76,11 @@ func TestCleanProjectAndClusters(t *testing.T) {
 	client := acc.ConnV2()
 	dryRun, _ := strconv.ParseBool(os.Getenv("DRY_RUN"))
 	onlyZeroClusters, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_CLEAN_ONLY_WHEN_NO_CLUSTERS"))
+	skipGracePeriod, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_CLEAN_SKIP_GRACE_PERIOD"))
 	skipProjectsAfter := time.Now().Add(-keepProjectsCreatedWithinHours * time.Hour)
+	if skipGracePeriod {
+		skipProjectsAfter = time.Now()
+	}
 	retryAttemptsStr := os.Getenv("MONGODB_ATLAS_CLEAN_RETRY_ATTEMPTS")
 	runRetries := retryAttempts
 	if retryAttemptsStr != "" {

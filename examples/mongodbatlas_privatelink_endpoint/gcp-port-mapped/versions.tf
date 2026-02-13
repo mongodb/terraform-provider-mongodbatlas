@@ -1,16 +1,11 @@
 terraform {
   required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.0"
-    }
     mongodbatlas = {
       source = "mongodb/mongodbatlas"
     }
 
     google = {
-      source  = "hashicorp/google"
-      version = "~> 4.0"
+      source = "hashicorp/google"
     }
   }
   required_version = ">= 1.0"

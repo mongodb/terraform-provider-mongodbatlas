@@ -26,7 +26,7 @@ func TestMigCloudUserProjectAssignmentRS_migrationJourney(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		username    = acc.RandomEmail()
-		projectName = fmt.Sprintf("mig_user_project_%s", acc.RandomName())
+		projectName = acc.RandomProjectName()
 		roles       = []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"}
 	)
 
