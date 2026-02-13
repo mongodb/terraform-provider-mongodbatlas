@@ -106,7 +106,9 @@ type Discriminator struct {
 }
 
 type DiscriminatorType struct {
-	Allowed  []string `yaml:"allowed"`
+	// Allowed enumerates every sub-type specific attributes valid for this discriminator value.
+	Allowed []string `yaml:"allowed"`
+	// Required is a subset of Allowed that the user must explicitly set in their configuration.
 	Required []string `yaml:"required,omitempty"`
 }
 
