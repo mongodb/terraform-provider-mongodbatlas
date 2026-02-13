@@ -37,7 +37,7 @@ Once maintenance is scheduled for your cluster, you cannot change your maintenan
 
 ### Automatic Deferral
 
-Use `auto_defer_once_enabled` to enable automatic deferral.
+Use `auto_defer_once_enabled` to enable or disable automatic deferral.
 
 ```terraform
   resource "mongodbatlas_maintenance_window" "test" {
