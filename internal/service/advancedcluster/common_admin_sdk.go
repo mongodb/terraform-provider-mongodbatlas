@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sort"
 
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 
@@ -102,6 +103,10 @@ func recalculateClusterPatch(ctx context.Context, diags *diag.Diagnostics, clien
 		diags.AddError(errorReadResource, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
+	// Sort tags and labels so jsondiff comparison is order-independent. The plan request
+	// has sorted arrays (from newResourceTag/newComponentLabel), but the API response
+	// returns them in arbitrary order, causing false diffs.
+	sortClusterTagsAndLabels(currentCluster)
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"replicationSpecs"},
 	}
@@ -111,6 +116,22 @@ func recalculateClusterPatch(ctx context.Context, diags *diag.Diagnostics, clien
 		return nil
 	}
 	return recalculated
+}
+
+// sortClusterTagsAndLabels sorts Tags and Labels by key to match the sorted order produced by
+// newResourceTag and newComponentLabel. Without this, jsondiff.Compare detects false array diffs
+// when the API returns elements in a different order than the plan.
+func sortClusterTagsAndLabels(cluster *admin.ClusterDescription20240805) {
+	if cluster.Tags != nil {
+		sort.Slice(*cluster.Tags, func(i, j int) bool {
+			return (*cluster.Tags)[i].Key < (*cluster.Tags)[j].Key
+		})
+	}
+	if cluster.Labels != nil {
+		sort.Slice(*cluster.Labels, func(i, j int) bool {
+			return conversion.SafeString((*cluster.Labels)[i].Key) < conversion.SafeString((*cluster.Labels)[j].Key)
+		})
+	}
 }
 
 func readIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, configNew *admin.ClusterDescriptionProcessArgs20240805) (latest *admin.ClusterDescriptionProcessArgs20240805) {

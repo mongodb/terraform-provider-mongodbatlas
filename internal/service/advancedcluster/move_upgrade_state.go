@@ -46,21 +46,36 @@ func stateUpgrader(ctx context.Context, req resource.UpgradeStateRequest, resp *
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	// Upgrade-specific: extract replication_specs from old raw JSON to preserve zone_name, disk_iops,
-	// node_count, instance_size, disk_size_gb, etc. during schema upgrades (v1/v2 → v3).
-	// Not done for the move path (cluster→advanced_cluster) because the source has a different schema.
+	// Upgrade-specific: extract attributes from old raw JSON to preserve user-visible values during
+	// schema upgrades (v1/v2 → v3). Not done for the move path (cluster→advanced_cluster) because
+	// the source has a different schema.
 	setReplicationSpecsFromOldJSON(ctx, &resp.Diagnostics, req.RawState.JSON, &resp.State)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	setBiConnectorFromOldJSON(ctx, &resp.Diagnostics, req.RawState.JSON, &resp.State)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	setAdvancedConfigFromOldJSON(ctx, &resp.Diagnostics, req.RawState.JSON, &resp.State)
 }
 
 // stateAttrs has the attributes needed from source schema.
 // Filling these attributes in the destination will prevent plan changes when moving/upgrading state.
 // Read will fill in the rest.
 var stateAttrs = map[string]tftypes.Type{
-	"project_id":             tftypes.String, // project_id and name to identify the cluster.
-	"name":                   tftypes.String,
-	"retain_backups_enabled": tftypes.Bool,   // TF specific so can't be got in Read.
-	"backup_enabled":         tftypes.Bool,   // Optional-only in v3; was Optional+Computed in v1/v2.
-	"mongo_db_major_version": tftypes.String, // Optional-only in v3, must be preserved from old state to avoid plan diff.
+	"project_id":               tftypes.String, // project_id and name to identify the cluster.
+	"name":                     tftypes.String,
+	"retain_backups_enabled":   tftypes.Bool,   // TF specific so can't be got in Read.
+	"backup_enabled":           tftypes.Bool,   // Optional-only in v3; was Optional+Computed in v1/v2.
+	"delete_on_create_timeout": tftypes.Bool,   // TF specific; CreateOnlyBoolWithDefault errors if state is null but config has a value.
+	"mongo_db_major_version":   tftypes.String, // Optional-only in v3, must be preserved from old state to avoid plan diff.
+	// Optional-only in v3; were Optional+Computed in v1/v2. Without extraction, overrideAttributesWithPrevStateValue
+	// sees null in upgraded state and nullifies the API value, causing plan diffs for users who configure these in v3.
+	// Only fields that were causing original phantom diffs are extracted; other Optional-only scalars are left null
+	// to avoid removal diffs for users who don't configure them.
+	"pit_enabled":                    tftypes.Bool,
+	"termination_protection_enabled": tftypes.Bool,
 	"timeouts": tftypes.Object{ // TF specific so can't be got in Read.
 		AttributeTypes: map[string]tftypes.Type{
 			"create": tftypes.String,
@@ -151,8 +166,17 @@ func setOptionalModelAttrs(stateObj map[string]tftypes.Value, model *TFModel) {
 	if v := schemafunc.GetAttrFromStateObj[bool](stateObj, "backup_enabled"); v != nil {
 		model.BackupEnabled = types.BoolPointerValue(v)
 	}
+	if v := schemafunc.GetAttrFromStateObj[bool](stateObj, "delete_on_create_timeout"); v != nil {
+		model.DeleteOnCreateTimeout = types.BoolPointerValue(v)
+	}
 	if v := schemafunc.GetAttrFromStateObj[string](stateObj, "mongo_db_major_version"); v != nil {
 		model.MongoDBMajorVersion = types.StringPointerValue(v)
+	}
+	if v := schemafunc.GetAttrFromStateObj[bool](stateObj, "pit_enabled"); v != nil {
+		model.PitEnabled = types.BoolPointerValue(v)
+	}
+	if v := schemafunc.GetAttrFromStateObj[bool](stateObj, "termination_protection_enabled"); v != nil {
+		model.TerminationProtectionEnabled = types.BoolPointerValue(v)
 	}
 }
 
@@ -342,7 +366,10 @@ func buildReplicationSpecsFromOldSpecs(ctx context.Context, diags *diag.Diagnost
 		// Expand num_shards: in v1, one entry with num_shards=N means N shards sharing the same config.
 		for range old.NumShards {
 			allSpecs = append(allSpecs, TFReplicationSpecsModel{
-				ZoneName:      types.StringValue(old.ZoneName),
+				// Null instead of the old value: v1 had Default: "ZoneName managed by Terraform" so old state
+				// always has this value, but most v3 users don't configure zone_name (Optional, no default).
+				// Setting null → override nullifies API value → matches absent config → no diff.
+				ZoneName:      types.StringNull(),
 				RegionConfigs: regionConfigs,
 			})
 		}
@@ -414,4 +441,170 @@ func buildSpecsObject(ctx context.Context, diags *diag.Diagnostics, old *oldSpec
 	obj, objDiags := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, model)
 	diags.Append(objDiags...)
 	return obj
+}
+
+// parseNestedObjectFromJSON extracts a nested object from raw JSON, handling both
+// v2/v3 TPF format (JSON object) and v1 SDKv2 TypeList MaxItems=1 format (JSON array with one element).
+func parseNestedObjectFromJSON(data json.RawMessage) map[string]json.RawMessage {
+	// Try as object first (v2/v3 TPF format).
+	var obj map[string]json.RawMessage
+	if err := json.Unmarshal(data, &obj); err == nil {
+		return obj
+	}
+	// Try as list (v1 SDKv2 format: TypeList MaxItems=1).
+	var list []map[string]json.RawMessage
+	if err := json.Unmarshal(data, &list); err == nil && len(list) > 0 {
+		return list[0]
+	}
+	return nil
+}
+
+// setBiConnectorFromOldJSON extracts bi_connector_config from the old raw JSON state.
+// Without this, bi_connector_config is null in the upgraded state → overrideAttributesWithPrevStateValue
+// nullifies the API value → config has values → plan diff.
+func setBiConnectorFromOldJSON(ctx context.Context, diags *diag.Diagnostics, jsonData []byte, stateOut *tfsdk.State) {
+	if len(jsonData) == 0 {
+		return
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(jsonData, &raw); err != nil {
+		return
+	}
+	bcBytes, ok := raw["bi_connector_config"]
+	if !ok {
+		// v1 SDKv2 used "bi_connector" as the key.
+		bcBytes, ok = raw["bi_connector"]
+		if !ok {
+			return
+		}
+	}
+	bcObj := parseNestedObjectFromJSON(bcBytes)
+	if bcObj == nil {
+		return
+	}
+	enabled, _ := unmarshalJSONField[bool](bcObj, "enabled")
+	readPref, _ := unmarshalJSONField[string](bcObj, "read_preference")
+	if enabled == nil && readPref == nil {
+		return
+	}
+	biModel := TFBiConnectorModel{
+		Enabled:        types.BoolPointerValue(enabled),
+		ReadPreference: types.StringPointerValue(readPref),
+	}
+	biObj, objDiags := types.ObjectValueFrom(ctx, biConnectorConfigObjType.AttrTypes, biModel)
+	diags.Append(objDiags...)
+	if diags.HasError() {
+		return
+	}
+	var model TFModel
+	diags.Append(stateOut.Get(ctx, &model)...)
+	if diags.HasError() {
+		return
+	}
+	model.BiConnectorConfig = biObj
+	diags.Append(stateOut.Set(ctx, model)...)
+}
+
+// setAdvancedConfigFromOldJSON extracts advanced_configuration from the old raw JSON state.
+// Without this, advanced_configuration is null in the upgraded state → updateModelAdvancedConfig
+// sees null → skips processArgs API → stays null → config has values → plan diff.
+func setAdvancedConfigFromOldJSON(ctx context.Context, diags *diag.Diagnostics, jsonData []byte, stateOut *tfsdk.State) {
+	if len(jsonData) == 0 {
+		return
+	}
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(jsonData, &raw); err != nil {
+		return
+	}
+	acBytes, ok := raw["advanced_configuration"]
+	if !ok {
+		return
+	}
+	acObj := parseNestedObjectFromJSON(acBytes)
+	if acObj == nil {
+		return
+	}
+	advConfig := buildAdvancedConfigFromOldJSON(acObj)
+	configObj, objDiags := types.ObjectValueFrom(ctx, advancedConfigurationObjType.AttrTypes, advConfig)
+	diags.Append(objDiags...)
+	if diags.HasError() {
+		return
+	}
+	var model TFModel
+	diags.Append(stateOut.Get(ctx, &model)...)
+	if diags.HasError() {
+		return
+	}
+	model.AdvancedConfiguration = configObj
+	diags.Append(stateOut.Set(ctx, model)...)
+}
+
+// buildAdvancedConfigFromOldJSON builds a TFAdvancedConfigurationModel from raw JSON fields.
+// Skips removed v1 fields (default_read_concern, fail_index_key_too_long).
+// Special case: change_stream_options value -1 was a v1 sentinel for "not set" (Default: -1) → null.
+func buildAdvancedConfigFromOldJSON(acObj map[string]json.RawMessage) TFAdvancedConfigurationModel {
+	model := TFAdvancedConfigurationModel{
+		ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: types.Int64Null(),
+		DefaultWriteConcern:              types.StringNull(),
+		JavascriptEnabled:                types.BoolNull(),
+		MinimumEnabledTlsProtocol:        types.StringNull(),
+		NoTableScan:                      types.BoolNull(),
+		OplogMinRetentionHours:           types.Float64Null(),
+		OplogSizeMb:                      types.Int64Null(),
+		SampleRefreshIntervalBiconnector: types.Int64Null(),
+		SampleSizeBiconnector:            types.Int64Null(),
+		TransactionLifetimeLimitSeconds:  types.Int64Null(),
+		DefaultMaxTimeMS:                 types.Int64Null(),
+		TlsCipherConfigMode:              types.StringNull(),
+		CustomOpensslCipherConfigTls12:   types.SetNull(types.StringType),
+		CustomOpensslCipherConfigTls13:   types.SetNull(types.StringType),
+	}
+
+	// Integer fields: JSON numbers unmarshal as float64, cast to int64.
+	if v, err := unmarshalJSONField[float64](acObj, "change_stream_options_pre_and_post_images_expire_after_seconds"); err == nil && v != nil {
+		intVal := int64(*v)
+		// -1 was v1's Default sentinel for "not set"; treat as null.
+		if intVal != -1 {
+			model.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = types.Int64Value(intVal)
+		}
+	}
+	if v, err := unmarshalJSONField[float64](acObj, "oplog_size_mb"); err == nil && v != nil {
+		model.OplogSizeMb = types.Int64Value(int64(*v))
+	}
+	if v, err := unmarshalJSONField[float64](acObj, "sample_refresh_interval_bi_connector"); err == nil && v != nil {
+		model.SampleRefreshIntervalBiconnector = types.Int64Value(int64(*v))
+	}
+	if v, err := unmarshalJSONField[float64](acObj, "sample_size_bi_connector"); err == nil && v != nil {
+		model.SampleSizeBiconnector = types.Int64Value(int64(*v))
+	}
+	if v, err := unmarshalJSONField[float64](acObj, "transaction_lifetime_limit_seconds"); err == nil && v != nil {
+		model.TransactionLifetimeLimitSeconds = types.Int64Value(int64(*v))
+	}
+	if v, err := unmarshalJSONField[float64](acObj, "default_max_time_ms"); err == nil && v != nil {
+		model.DefaultMaxTimeMS = types.Int64Value(int64(*v))
+	}
+
+	// Float64 fields.
+	if v, err := unmarshalJSONField[float64](acObj, "oplog_min_retention_hours"); err == nil && v != nil {
+		model.OplogMinRetentionHours = types.Float64Value(*v)
+	}
+
+	// String fields.
+	if v, err := unmarshalJSONField[string](acObj, "default_write_concern"); err == nil && v != nil {
+		model.DefaultWriteConcern = types.StringValue(*v)
+	}
+	if v, err := unmarshalJSONField[string](acObj, "minimum_enabled_tls_protocol"); err == nil && v != nil {
+		model.MinimumEnabledTlsProtocol = types.StringValue(*v)
+	}
+	// tls_cipher_config_mode deliberately NOT extracted: users who don't configure it would get removal diffs.
+
+	// Bool fields.
+	if v, err := unmarshalJSONField[bool](acObj, "javascript_enabled"); err == nil && v != nil {
+		model.JavascriptEnabled = types.BoolValue(*v)
+	}
+	if v, err := unmarshalJSONField[bool](acObj, "no_table_scan"); err == nil && v != nil {
+		model.NoTableScan = types.BoolValue(*v)
+	}
+	// custom_openssl_cipher_config_tls12/13 deliberately NOT extracted: users who don't configure them would get removal diffs.
+	return model
 }
