@@ -1173,6 +1173,8 @@ resources:
             description: *project_id_description
           integration_id:
             immutable_computed: true
+          otel_supplied_headers:
+            sensitive: true
     datasources:
       read:
         path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
@@ -1188,3 +1190,5 @@ resources:
         overrides:
           project_id:
             description: *project_id_description
+          otel_supplied_headers:
+            sensitive: true

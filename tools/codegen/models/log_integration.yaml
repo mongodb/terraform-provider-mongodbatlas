@@ -1,9 +1,20 @@
 schema:
-    description: Creates a new log integration configuration identified by a unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+    description: Creates a new log integration configuration identified by a unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
     attributes:
         - string: {}
-          description: Human-readable label that identifies the S3 bucket name for storing log files.
-          computed_optional_required: required
+          description: API key for authentication.
+          computed_optional_required: optional
+          tf_schema_name: api_key
+          tf_model_name: ApiKey
+          api_name: apiKey
+          req_body_usage: all_request_bodies
+          sensitive: true
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Name of the bucket to store log files.
+          computed_optional_required: optional
           tf_schema_name: bucket_name
           tf_model_name: BucketName
           api_name: bucketName
@@ -24,8 +35,30 @@ schema:
           present_in_any_response: false
           request_only_required_on_create: false
         - string: {}
-          description: Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
-          computed_optional_required: required
+          description: HTTP Event Collector (HEC) token for authentication.
+          computed_optional_required: optional
+          tf_schema_name: hec_token
+          tf_model_name: HecToken
+          api_name: hecToken
+          req_body_usage: all_request_bodies
+          sensitive: true
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: HTTP Event Collector (HEC) endpoint URL.
+          computed_optional_required: optional
+          tf_schema_name: hec_url
+          tf_model_name: HecUrl
+          api_name: hecUrl
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.
+          computed_optional_required: optional
           tf_schema_name: iam_role_id
           tf_model_name: IamRoleId
           api_name: iamRoleId
@@ -59,7 +92,7 @@ schema:
           request_only_required_on_create: false
         - set:
             element_type: 4
-          description: 'Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.'
+          description: Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.
           custom_type:
             package: customtypes
             model: customtypes.SetValue[types.String]
@@ -74,8 +107,59 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
-          computed_optional_required: required
+          description: OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.
+          computed_optional_required: optional
+          tf_schema_name: otel_endpoint
+          tf_model_name: OtelEndpoint
+          api_name: otelEndpoint
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Header name.
+                      computed_optional_required: required
+                      tf_schema_name: name
+                      tf_model_name: Name
+                      api_name: name
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Header value.
+                      computed_optional_required: required
+                      tf_schema_name: value
+                      tf_model_name: Value
+                      api_name: value
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.
+          custom_type:
+            package: customtypes
+            name: OtelSuppliedHeaders
+            model: customtypes.NestedListValue[TFOtelSuppliedHeadersModel]
+            schema: customtypes.NewNestedListType[TFOtelSuppliedHeadersModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: otel_supplied_headers
+          tf_model_name: OtelSuppliedHeaders
+          api_name: otelSuppliedHeaders
+          req_body_usage: all_request_bodies
+          sensitive: true
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
+          computed_optional_required: optional
           tf_schema_name: prefix_path
           tf_model_name: PrefixPath
           api_name: prefixPath
@@ -85,7 +169,62 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
+          description: 'Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.'
+          computed_optional_required: optional
+          tf_schema_name: region
+          tf_model_name: Region
+          api_name: region
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-character hexadecimal string that identifies the GCP service account role.
+          computed_optional_required: optional
+          tf_schema_name: role_id
+          tf_model_name: RoleId
+          api_name: roleId
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-character hexadecimal string that identifies the Service Principal.
+          computed_optional_required: optional
+          tf_schema_name: service_principal_id
+          tf_model_name: ServicePrincipalId
+          api_name: servicePrincipalId
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Storage account name where logs will be stored.
+          computed_optional_required: optional
+          tf_schema_name: storage_account_name
+          tf_model_name: StorageAccountName
+          api_name: storageAccountName
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Storage container name for log files.
+          computed_optional_required: optional
+          tf_schema_name: storage_container_name
+          tf_model_name: StorageContainerName
+          api_name: storageContainerName
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type.
           computed_optional_required: required
           tf_schema_name: type
           tf_model_name: Type
@@ -111,10 +250,21 @@ operations:
     version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
     schema:
-        singular_ds_description: Returns the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+        singular_ds_description: Returns the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
         singular_ds_attributes:
             - string: {}
-              description: Human-readable label that identifies the S3 bucket name for storing log files.
+              description: API key for authentication.
+              computed_optional_required: computed
+              tf_schema_name: api_key
+              tf_model_name: ApiKey
+              api_name: apiKey
+              req_body_usage: omit_always
+              sensitive: true
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Name of the bucket to store log files.
               computed_optional_required: computed
               tf_schema_name: bucket_name
               tf_model_name: BucketName
@@ -125,7 +275,29 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
+              description: HTTP Event Collector (HEC) token for authentication.
+              computed_optional_required: computed
+              tf_schema_name: hec_token
+              tf_model_name: HecToken
+              api_name: hecToken
+              req_body_usage: omit_always
+              sensitive: true
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: HTTP Event Collector (HEC) endpoint URL.
+              computed_optional_required: computed
+              tf_schema_name: hec_url
+              tf_model_name: HecUrl
+              api_name: hecUrl
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.
               computed_optional_required: computed
               tf_schema_name: iam_role_id
               tf_model_name: IamRoleId
@@ -159,7 +331,7 @@ data_sources:
               request_only_required_on_create: false
             - set:
                 element_type: 4
-              description: 'Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.'
+              description: Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.
               custom_type:
                 package: customtypes
                 model: customtypes.SetValue[types.String]
@@ -174,7 +346,58 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
+              description: OpenTelemetry collector endpoint URL.
+              computed_optional_required: computed
+              tf_schema_name: otel_endpoint
+              tf_model_name: OtelEndpoint
+              api_name: otelEndpoint
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Header name.
+                          computed_optional_required: computed
+                          tf_schema_name: name
+                          tf_model_name: Name
+                          api_name: name
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Header value.
+                          computed_optional_required: computed
+                          tf_schema_name: value
+                          tf_model_name: Value
+                          api_name: value
+                          req_body_usage: omit_always
+                          sensitive: true
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.
+              custom_type:
+                package: customtypes
+                name: OtelSuppliedHeaders
+                model: customtypes.NestedListValue[TFOtelSuppliedHeadersModel]
+                schema: customtypes.NewNestedListType[TFOtelSuppliedHeadersModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: otel_supplied_headers
+              tf_model_name: OtelSuppliedHeaders
+              api_name: otelSuppliedHeaders
+              req_body_usage: omit_always
+              sensitive: true
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
               computed_optional_required: computed
               tf_schema_name: prefix_path
               tf_model_name: PrefixPath
@@ -196,7 +419,62 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
+              description: 'Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.'
+              computed_optional_required: computed
+              tf_schema_name: region
+              tf_model_name: Region
+              api_name: region
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-character hexadecimal string that identifies the GCP service account role.
+              computed_optional_required: computed
+              tf_schema_name: role_id
+              tf_model_name: RoleId
+              api_name: roleId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-character hexadecimal string that identifies the Service Principal.
+              computed_optional_required: computed
+              tf_schema_name: service_principal_id
+              tf_model_name: ServicePrincipalId
+              api_name: servicePrincipalId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Storage account name where logs will be stored.
+              computed_optional_required: computed
+              tf_schema_name: storage_account_name
+              tf_model_name: StorageAccountName
+              api_name: storageAccountName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Storage container name for log files.
+              computed_optional_required: computed
+              tf_schema_name: storage_container_name
+              tf_model_name: StorageContainerName
+              api_name: storageContainerName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type.
               computed_optional_required: computed
               tf_schema_name: type
               tf_model_name: Type
@@ -206,10 +484,10 @@ data_sources:
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
-        plural_ds_description: Returns all log integration configurations for the project. Optionally filter by integration type. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+        plural_ds_description: Returns all log integration configurations for the project. Optionally filter by integration type. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
         plural_ds_attributes:
             - string: {}
-              description: Optional filter by integration type (e.g., 'S3_LOG_EXPORT').
+              description: Optional filter by integration type (e.g., `S3_LOG_EXPORT`).
               computed_optional_required: optional
               tf_schema_name: integration_type
               tf_model_name: IntegrationType
@@ -234,7 +512,18 @@ data_sources:
                 nested_object:
                     attributes:
                         - string: {}
-                          description: Human-readable label that identifies the S3 bucket name for storing log files.
+                          description: API key for authentication.
+                          computed_optional_required: computed
+                          tf_schema_name: api_key
+                          tf_model_name: ApiKey
+                          api_name: apiKey
+                          req_body_usage: omit_always
+                          sensitive: true
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Name of the bucket to store log files.
                           computed_optional_required: computed
                           tf_schema_name: bucket_name
                           tf_model_name: BucketName
@@ -245,7 +534,29 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
+                          description: HTTP Event Collector (HEC) token for authentication.
+                          computed_optional_required: computed
+                          tf_schema_name: hec_token
+                          tf_model_name: HecToken
+                          api_name: hecToken
+                          req_body_usage: omit_always
+                          sensitive: true
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: HTTP Event Collector (HEC) endpoint URL.
+                          computed_optional_required: computed
+                          tf_schema_name: hec_url
+                          tf_model_name: HecUrl
+                          api_name: hecUrl
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.
                           computed_optional_required: computed
                           tf_schema_name: iam_role_id
                           tf_model_name: IamRoleId
@@ -279,7 +590,7 @@ data_sources:
                           request_only_required_on_create: false
                         - set:
                             element_type: 4
-                          description: 'Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.'
+                          description: Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.
                           custom_type:
                             package: customtypes
                             model: customtypes.SetValue[types.String]
@@ -294,7 +605,58 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
+                          description: OpenTelemetry collector endpoint URL.
+                          computed_optional_required: computed
+                          tf_schema_name: otel_endpoint
+                          tf_model_name: OtelEndpoint
+                          api_name: otelEndpoint
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - list_nested:
+                            nested_object:
+                                attributes:
+                                    - string: {}
+                                      description: Header name.
+                                      computed_optional_required: computed
+                                      tf_schema_name: name
+                                      tf_model_name: Name
+                                      api_name: name
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Header value.
+                                      computed_optional_required: computed
+                                      tf_schema_name: value
+                                      tf_model_name: Value
+                                      api_name: value
+                                      req_body_usage: omit_always
+                                      sensitive: true
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.
+                          custom_type:
+                            package: customtypes
+                            name: ResultsOtelSuppliedHeaders
+                            model: customtypes.NestedListValue[TFResultsOtelSuppliedHeadersModel]
+                            schema: customtypes.NewNestedListType[TFResultsOtelSuppliedHeadersModel](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: otel_supplied_headers
+                          tf_model_name: OtelSuppliedHeaders
+                          api_name: otelSuppliedHeaders
+                          req_body_usage: omit_always
+                          sensitive: true
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
                           computed_optional_required: computed
                           tf_schema_name: prefix_path
                           tf_model_name: PrefixPath
@@ -305,7 +667,62 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
+                          description: 'Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.'
+                          computed_optional_required: computed
+                          tf_schema_name: region
+                          tf_model_name: Region
+                          api_name: region
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-character hexadecimal string that identifies the GCP service account role.
+                          computed_optional_required: computed
+                          tf_schema_name: role_id
+                          tf_model_name: RoleId
+                          api_name: roleId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-character hexadecimal string that identifies the Service Principal.
+                          computed_optional_required: computed
+                          tf_schema_name: service_principal_id
+                          tf_model_name: ServicePrincipalId
+                          api_name: servicePrincipalId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Storage account name where logs will be stored.
+                          computed_optional_required: computed
+                          tf_schema_name: storage_account_name
+                          tf_model_name: StorageAccountName
+                          api_name: storageAccountName
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Storage container name for log files.
+                          computed_optional_required: computed
+                          tf_schema_name: storage_container_name
+                          tf_model_name: StorageContainerName
+                          api_name: storageContainerName
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type.
                           computed_optional_required: computed
                           tf_schema_name: type
                           tf_model_name: Type
