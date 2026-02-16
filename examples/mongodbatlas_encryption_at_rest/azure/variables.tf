@@ -13,10 +13,6 @@ variable "atlas_project_id" {
   description = "Atlas Project ID"
   type        = string
 }
-variable "azure_subscription_id" {
-  type        = string
-  description = "Azure ID that identifies your Azure subscription"
-}
 
 variable "azure_resource_group_name" {
   type        = string
@@ -33,7 +29,7 @@ variable "azure_key_identifier" {
   description = "Web address with a unique key that identifies for your Azure Key Vault"
 }
 
-variable "role_id" {
+variable "azure_role_id" {
   type        = string
   description = "Azure ID that identifies the role with permissions to access your Azure Key Vault"
 }
