@@ -4,7 +4,7 @@ page_title: "Migration Guide: Encryption at Rest (Azure) Client Credentials to R
 
 # Migration Guide: Encryption at Rest (Azure) Client Credentials to Role-based Auth
 
-**Objective**: Migrate from using Azure client credentials (`client_id`, `tenant_id`, and `secret`) to role-based authentication using an Atlas-managed role via `mongodbatlas_encryption_at_rest.azure_key_vault_config.azure_role_id`.
+**Objective**: Migrate from using Azure client credentials (`client_id`, `tenant_id`, and `secret`) to role-based authentication using an Atlas-managed role via `mongodbatlas_encryption_at_rest.azure_key_vault_config.role_id`.
 
 **Note**: After migrating to role-based authentication, reverting back to client credentials is not supported.
 
@@ -70,7 +70,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "this" {
 }
 ```
 
-The value `mongodbatlas_cloud_provider_access_authorization.this.role_id` is the Azure role identifier you use as `azure_role_id` in `azure_key_vault_config`.
+The value `mongodbatlas_cloud_provider_access_authorization.this.role_id` is the Azure role identifier you use as `role_id` in `azure_key_vault_config`.
 
 ### 2) Grant Key Vault permissions to the Atlas role
 
@@ -95,7 +95,7 @@ resource "azurerm_key_vault_access_policy" "kv_crypto_perms" {
 
 ### 3) Update the Encryption at Rest resource to use role-based auth
 
-Replace the `client_id`, `secret`, and `tenant_id` with `azure_role_id` using the value from the authorization resource:
+Replace the `client_id`, `secret`, and `tenant_id` with `role_id` using the value from the authorization resource:
 
 ```hcl
 resource "mongodbatlas_encryption_at_rest" "this" {
@@ -110,7 +110,7 @@ resource "mongodbatlas_encryption_at_rest" "this" {
     key_vault_name      = var.azure_key_vault_name
     key_identifier      = var.azure_key_identifier
 
-    azure_role_id = mongodbatlas_cloud_provider_access_authorization.this.role_id
+    role_id = mongodbatlas_cloud_provider_access_authorization.this.role_id
   }
 
   depends_on = [
@@ -130,7 +130,7 @@ Running `terraform plan` should show a change similar to:
         # (2 unchanged attributes hidden)
 
       ~ azure_key_vault_config {
-          + azure_role_id       = "<AZURE_ROLE_ID>"
+          + role_id       = "<YOUR_ROLE_ID>"
           - client_id           = (sensitive value) -> null
           - secret              = (sensitive value) -> null
           - tenant_id           = (sensitive value) -> null
