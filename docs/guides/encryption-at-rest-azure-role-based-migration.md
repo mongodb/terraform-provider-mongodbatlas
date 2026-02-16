@@ -40,7 +40,7 @@ resource "mongodbatlas_encryption_at_rest" "this" {
 
 ### 1) Obtain the Atlas-managed Azure role
 
-Add the following resources to enable Atlas Cloud Provider Access for Azure and authorize it for your project:
+Add the following resources to enable and authorize Atlas Cloud Provider Access for Azure for your project:
 
 ```hcl
 resource "azuread_service_principal" "atlas_sp" {
@@ -76,11 +76,20 @@ The value `mongodbatlas_cloud_provider_access_authorization.this.role_id` is the
 
 Grant your Azure Service Principal the required permissions on the Key Vault used by Atlas. You can use either access policies or RBAC role assignments. Below are examples with the AzureRM provider.
 
-Grant access policy permissions for key operations (Get/Encrypt/Decrypt):
+First, ensure you have a reference to your existing Key Vault:
+
+```hcl
+data "azurerm_key_vault" "existing_kv" {
+  name                = var.azure_key_vault_name
+  resource_group_name = var.azure_resource_group_name
+}
+```
+
+Then, grant access policy permissions for key operations (Get/Encrypt/Decrypt):
 
 ```hcl
 resource "azurerm_key_vault_access_policy" "kv_crypto_perms" {
-  key_vault_id = azurerm_key_vault.kv.id
+  key_vault_id = data.azurerm_key_vault.existing_kv.id
 
   tenant_id = var.azure_tenant_id
   object_id = azuread_service_principal.atlas_sp.object_id
@@ -121,7 +130,9 @@ resource "mongodbatlas_encryption_at_rest" "this" {
 
 **Note:** The `depends_on` block ensures that Terraform configures the Key Vault permissions before it configures the encryption at rest resource. This is necessary when you create both resources in the same `terraform apply` execution.
 
-Running `terraform plan` should show a change similar to:
+### 4) Review your plan
+
+Run `terraform plan` and review the plan output carefully before confirming. The plan should be similar to the following example:
 
 ```shell
 # mongodbatlas_encryption_at_rest.this will be updated in-place
@@ -131,22 +142,20 @@ Running `terraform plan` should show a change similar to:
 
       ~ azure_key_vault_config {
           + role_id       = "<YOUR_ROLE_ID>"
-          - client_id           = (sensitive value) -> null
           - secret              = (sensitive value) -> null
-          - tenant_id           = (sensitive value) -> null
           ~ valid               = true -> (known after apply)
             # (other unchanged attributes hidden)
         }
     }
 ```
 
-### 4) Apply the changes
+### 5) Apply the changes
 
 ```shell
 terraform apply
 ```
 
-Review the plan output carefully before confirming. Once applied, your encryption at rest configuration will use role-based authentication instead of client credentials.
+Once applied, your encryption at rest configuration starts using role-based authentication instead of client credentials.
 
 ## Additional Resources
 
