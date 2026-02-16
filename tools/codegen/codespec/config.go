@@ -2,7 +2,6 @@ package codespec
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
@@ -17,17 +16,14 @@ const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resour
 	"deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a " +
 	"transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`."
 
-func ApplyTransformationsWithConfigOpts(resourceConfig *config.Resource, resource *Resource) error {
+func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resource *Resource) error {
 	if resource == nil || resource.Schema == nil {
 		return nil
 	}
 	// Start with empty paths for both schemaPath (snake_case) and apiPath (camelCase)
-	if err := applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes); err != nil {
+	if err := applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
-	// Reconcile discriminator property names and variant attribute names after aliases are applied.
-	// This is resource-specific since discriminators are only relevant for resources.
-	applyAliasesToDiscriminators(resource.Schema, resourceConfig.SchemaOptions.Aliases)
 	applyAliasToPathParams(&resource.Operations, resourceConfig.SchemaOptions.Aliases)
 	ApplyDeleteOnCreateTimeoutTransformation(resource)
 	ApplyTimeoutTransformation(resource)
@@ -35,17 +31,17 @@ func ApplyTransformationsWithConfigOpts(resourceConfig *config.Resource, resourc
 }
 
 // ApplyTransformationsToDataSources applies schema transformations and path param aliasing to data sources.
-// This mirrors ApplyTransformationsWithConfigOpts for resources, without timeout-related and create-only transformations.
+// This mirrors applyTransformationsWithConfigOpts for resources, without timeout-related and create-only transformations.
 // Exported for testing purposes.
 func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSources) error {
 	if ds == nil || ds.Schema == nil {
 		return nil
 	}
 
-	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.SingularDSAttributes); err != nil {
+	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.SingularDSAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations for singular data source: %w", err)
 	}
-	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.PluralDSAttributes); err != nil {
+	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.PluralDSAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations for plural data source: %w", err)
 	}
 
@@ -110,13 +106,11 @@ var dataSourceTransformations = []AttributeTransformation{
 	// Note: resource-specific transformations (createOnly, requestOnlyRequiredOnCreate, immutableComputed) are excluded for data sources
 }
 
-func applyAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes) error {
-	parentPaths := &attrPaths{schemaPath: "", apiPath: ""}
+func applyAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths) error {
 	return applyAttributeTransformationsList(schemaOptions, attributes, parentPaths, transformations)
 }
 
-func applyDataSourceAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes) error {
-	parentPaths := &attrPaths{schemaPath: "", apiPath: ""}
+func applyDataSourceAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths) error {
 	return applyAttributeTransformationsList(schemaOptions, attributes, parentPaths, dataSourceTransformations)
 }
 
@@ -416,114 +410,6 @@ func setCreateOnlyValue(attr *Attribute) {
 
 func attrPathForOverrides(attrPathName string) string {
 	return strings.TrimPrefix(attrPathName, "results.")
-}
-
-// applyAliasesToDiscriminators walks the schema tree and applies alias renames to all discriminators
-// found at the root level and within nested attributes. This is called after attribute transformations
-// so that the attribute tree structure (including type overrides like list->set) is already finalized.
-func applyAliasesToDiscriminators(schema *Schema, aliases map[string]string) {
-	if schema == nil || len(aliases) == 0 {
-		return
-	}
-	applyAliasesToDiscriminator(schema.Discriminator, aliases, "")
-	applyAliasesToNestedDiscriminators(schema.Attributes, aliases, "")
-}
-
-// applyAliasesToNestedDiscriminators recursively walks attributes and applies alias renames
-// to discriminators found on nested attribute objects.
-func applyAliasesToNestedDiscriminators(attributes Attributes, aliases map[string]string, parentAPIPath string) {
-	for i := range attributes {
-		attr := &attributes[i]
-		apiPath := buildPath(parentAPIPath, attr.APIName)
-
-		switch {
-		case attr.ListNested != nil:
-			applyAliasesToDiscriminator(attr.ListNested.NestedObject.Discriminator, aliases, apiPath)
-			applyAliasesToNestedDiscriminators(attr.ListNested.NestedObject.Attributes, aliases, apiPath)
-		case attr.SingleNested != nil:
-			applyAliasesToDiscriminator(attr.SingleNested.NestedObject.Discriminator, aliases, apiPath)
-			applyAliasesToNestedDiscriminators(attr.SingleNested.NestedObject.Attributes, aliases, apiPath)
-		case attr.SetNested != nil:
-			applyAliasesToDiscriminator(attr.SetNested.NestedObject.Discriminator, aliases, apiPath)
-			applyAliasesToNestedDiscriminators(attr.SetNested.NestedObject.Attributes, aliases, apiPath)
-		case attr.MapNested != nil:
-			applyAliasesToDiscriminator(attr.MapNested.NestedObject.Discriminator, aliases, apiPath)
-			applyAliasesToNestedDiscriminators(attr.MapNested.NestedObject.Attributes, aliases, apiPath)
-		}
-	}
-}
-
-// applyAliasesToDiscriminator reconciles discriminator property names and variant attribute names
-// when aliases have been applied. It renames PropertyName and all entries in Allowed/Required lists
-// according to the aliases applicable at this nesting level.
-func applyAliasesToDiscriminator(disc *Discriminator, aliases map[string]string, parentAPIPath string) {
-	if disc == nil || len(aliases) == 0 {
-		return
-	}
-
-	// Build a rename map: old_snake -> new_snake for aliases at this nesting level.
-	// Aliases use camelCase API names (e.g., "groupId: projectId" or "nestedObject.innerAttr: renamedAttr").
-	// We need to match aliases that apply at this level (either path-based or attribute-name only).
-	renameMap := make(map[string]string)
-	for original, alias := range aliases {
-		var apiName string
-		if parentAPIPath != "" {
-			// Check path-based alias (e.g., "nestedObject.innerAttr")
-			prefix := parentAPIPath + "."
-			if strings.HasPrefix(original, prefix) {
-				apiName = strings.TrimPrefix(original, prefix)
-			}
-		}
-		if apiName == "" {
-			// Fall back to attribute-name only (no dot means root-level alias)
-			if !strings.Contains(original, ".") {
-				apiName = original
-			} else if parentAPIPath == "" {
-				// At root level, also check path-based aliases without parent prefix
-				apiName = original
-			}
-		}
-		if apiName != "" {
-			oldSnake := stringcase.ToSnakeCase(apiName)
-			newSnake := stringcase.ToSnakeCase(alias)
-			if oldSnake != newSnake {
-				renameMap[oldSnake] = newSnake
-			}
-		}
-	}
-
-	if len(renameMap) == 0 {
-		return
-	}
-
-	// Rename PropertyName if aliased
-	if newName, found := renameMap[disc.PropertyName]; found {
-		disc.PropertyName = newName
-	}
-
-	// Rename entries in Allowed and Required lists
-	for key, variant := range disc.Mapping {
-		variant.Allowed = renameStringSlice(variant.Allowed, renameMap)
-		variant.Required = renameStringSlice(variant.Required, renameMap)
-		disc.Mapping[key] = variant
-	}
-}
-
-// renameStringSlice applies renames from the map to a string slice, returning a new sorted slice.
-func renameStringSlice(items []string, renameMap map[string]string) []string {
-	if len(items) == 0 {
-		return items
-	}
-	result := make([]string, len(items))
-	for i, item := range items {
-		if newName, found := renameMap[item]; found {
-			result[i] = newName
-		} else {
-			result[i] = item
-		}
-	}
-	sort.Strings(result)
-	return result
 }
 
 // tagsAndLabelsAsMapTypeTransformation transforms attributes that represent collections of key/value pairs (tags and labels) from a nested list of objects into a Map type.
