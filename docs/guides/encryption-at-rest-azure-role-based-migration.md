@@ -119,7 +119,7 @@ resource "mongodbatlas_encryption_at_rest" "this" {
 }
 ```
 
-**Note:** The `depends_on` block ensures Terraform configures the Key Vault permissions before it configures the encryption at rest resource. This is necessary when both resources are created in the same apply.
+**Note:** The `depends_on` block ensures that Terraform configures the Key Vault permissions before it configures the encryption at rest resource. This is necessary when you create both resources in the same `terraform apply` execution.
 
 Running `terraform plan` should show a change similar to:
 
