@@ -191,7 +191,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(err)
 		}
 	}
-	conn := getAtlasV2Connection(d, meta) // Using provider credentials.
+	conn := getAtlasV2Connection(ctx, d, meta) // Using provider credentials.
 	organization, resp, err := conn.OrganizationsApi.CreateOrg(ctx, newCreateOrganizationRequest(d)).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) && !strings.Contains(err.Error(), "USER_NOT_FOUND") {
@@ -216,7 +216,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 		}
 	}
-	conn = getAtlasV2Connection(d, meta) // Using new credentials from the created organization.
+	conn = getAtlasV2Connection(ctx, d, meta) // Using new credentials from the created organization.
 	orgID := organization.Organization.GetId()
 	_, _, errUpdate := conn.OrganizationsApi.UpdateOrgSettings(ctx, orgID, newOrganizationSettings(d)).Execute()
 	if errUpdate != nil {
@@ -234,7 +234,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := getAtlasV2Connection(d, meta)
+	conn := getAtlasV2Connection(ctx, d, meta)
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
@@ -282,7 +282,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := getAtlasV2Connection(d, meta)
+	conn := getAtlasV2Connection(ctx, d, meta)
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	for _, attr := range attrsCreateOnly {
@@ -315,7 +315,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := getAtlasV2Connection(d, meta)
+	conn := getAtlasV2Connection(ctx, d, meta)
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
@@ -422,7 +422,9 @@ func setServiceAccountState(d *schema.ResourceData, sa *admin.OrgServiceAccount)
 // getAtlasV2Connection uses the created credentials for the organization if they exist.
 // It tries PAK credentials first, then SA credentials from the service_account block,
 // and falls back to provider credentials (e.g. if the resource was imported).
-func getAtlasV2Connection(d *schema.ResourceData, meta any) *admin.APIClient {
+// For SA credentials, if they are present but no longer valid (e.g. expired secret or
+// insufficient access), the function falls back to provider credentials.
+func getAtlasV2Connection(ctx context.Context, d *schema.ResourceData, meta any) *admin.APIClient {
 	currentClient := meta.(*config.MongoDBClient)
 
 	// Try PAK credentials
@@ -439,7 +441,8 @@ func getAtlasV2Connection(d *schema.ResourceData, meta any) *admin.APIClient {
 		}
 	}
 
-	// Try SA credentials from service_account block
+	// Try SA credentials from service_account block.
+	// Falls back to provider credentials if SA creds are no longer valid.
 	if v, ok := d.GetOk("service_account"); ok {
 		saList := v.([]any)
 		if len(saList) > 0 {
@@ -452,17 +455,35 @@ func getAtlasV2Connection(d *schema.ResourceData, meta any) *admin.APIClient {
 				}
 			}
 			if clientID != "" && secretValue != "" {
-				c := &config.Credentials{
-					ClientID:     clientID,
-					ClientSecret: secretValue,
-					BaseURL:      currentClient.BaseURL,
-				}
-				if newClient, err := config.NewClient(c, currentClient.TerraformVersion); err == nil {
-					return newClient.AtlasV2
+				if saClient := newSAClient(ctx, d, clientID, secretValue, currentClient); saClient != nil {
+					return saClient
 				}
 			}
 		}
 	}
 
 	return currentClient.AtlasV2
+}
+
+// newSAClient creates an API client using SA credentials and verifies access to the organization
+// with an explicit GetOrg call. Returns nil if the credentials are invalid or lack access.
+func newSAClient(ctx context.Context, d *schema.ResourceData, clientID, secretValue string, currentClient *config.MongoDBClient) *admin.APIClient {
+	c := &config.Credentials{
+		ClientID:     clientID,
+		ClientSecret: secretValue,
+		BaseURL:      currentClient.BaseURL,
+	}
+	newClient, err := config.NewClient(c, currentClient.TerraformVersion)
+	if err != nil {
+		return nil
+	}
+	if d.Id() != "" {
+		ids := conversion.DecodeStateID(d.Id())
+		if orgID := ids["org_id"]; orgID != "" {
+			if _, _, err := newClient.AtlasV2.OrganizationsApi.GetOrg(ctx, orgID).Execute(); err != nil {
+				return nil
+			}
+		}
+	}
+	return newClient.AtlasV2
 }

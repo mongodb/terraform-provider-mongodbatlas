@@ -6,7 +6,7 @@ subcategory: "Organizations"
 
 `mongodbatlas_organization` provides programmatic management (including creation) of a MongoDB Atlas Organization resource.
 
-~> **IMPORTANT NOTE:**  When you establish an Atlas organization using this resource, it automatically generates a set of initial credentials. By default, a Programmatic API Key (public and private key) is created — in this case, `role_names` must have the ORG_OWNER role specified. We recommend defining a `service_account` block to create a [Service Account](../guides/provider-configuration#service-account-recommended) (client ID and client secret) instead, as Service Accounts are the preferred authentication method. The API does not allow creating both in the same request. These credential values are vital to store because you'll need to use them to grant access to the newly created Atlas organization.
+~> **IMPORTANT NOTE:**  When you establish an Atlas organization using this resource, it automatically generates a set of initial credentials. By default, a Programmatic API Key (public and private key) is created — in this case, `role_names` must have the ORG_OWNER role specified. Alternatively, you can define a `service_account` block to create a [Service Account](../guides/provider-configuration#service-account-recommended) (client ID and client secret) instead. The API does not allow creating both in the same request. These credential values are stored in the Terraform state and used by the resource for subsequent operations on the organization.
 
 ~> **IMPORTANT NOTE:** To use this resource, the requesting API Key must have the Organization Owner role. The requesting API Key's organization must be a paying organization. To learn more, see Configure a Paying Organization in the MongoDB Atlas documentation.
 
@@ -23,7 +23,7 @@ resource "mongodbatlas_organization" "this" {
 }
 ```
 
-### With Service Account (Recommended)
+### With Service Account
 
 ```terraform
 resource "mongodbatlas_organization" "this" {
@@ -57,7 +57,11 @@ output "service_account_secret" {
 * `org_owner_id` - (Optional) Unique 24-hexadecimal digit string that identifies the Atlas user that you want to assign the Organization Owner role. This user must be a member of the same organization as the calling API key.  This is only required when authenticating with Programmatic API Keys. [MongoDB Atlas Admin API - Get User By Username](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/MongoDB-Cloud-Users/operation/getUserByUsername). This attribute is required in creation and can't be updated later.
 * `description` - (Optional) Programmatic API Key description. This attribute is required in creation and can't be updated later.
 
-~> **NOTE:** Creating an organization will return a set of credentials that can be used to authenticate and manage the new organization with MongoDB Atlas Terraform modules/blueprints. These credentials will be used by the `mongodbatlas_organization` resource. In case of importing the resource, these credentials will be empty so the provider credentials will be used instead.
+~> **NOTE:** Creating an organization will return a set of credentials that are stored in the Terraform state and used by the `mongodbatlas_organization` resource for subsequent operations (read, update, delete) on the new organization. The credentials stored depend on the authentication method used during creation:
+- **Programmatic API Key (default):** `public_key` and `private_key` are stored. These credentials do not expire.
+- **Service Account:** `service_account.client_id` and `service_account.secrets.0.secret` are stored. Service Account secrets expire after the configured `secret_expires_after_hours` period. When the secret expires, the resource automatically falls back to provider-level credentials for subsequent operations.
+- In case of importing the resource, no organization-specific credentials are stored and provider credentials are used instead.
+- Terraform state contains sensitive credential data. Follow [Terraform's best practices for sensitive data in state](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
 
 * `role_names` - (Optional) List of Organization roles that the Programmatic API key needs to have. Ensure that you provide at least one role and ensure all roles are valid for the Organization.  You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles that you can assign to a Programmatic API key. This attribute is required in creation and can't be updated later.
 * `federation_settings_id` - (Optional) Unique 24-hexadecimal digit string that identifies the federation to link the newly created organization to. If specified, the proposed Organization Owner of the new organization must have the Organization Owner role in an organization associated with the federation. This attribute can't be updated after creation.
@@ -98,8 +102,8 @@ output "service_account_secret" {
 In addition to all arguments above, the following attributes are exported:
 
 * `org_id` - The organization id.
-* `public_key` - Public API key value set for the specified organization API key. Only populated when no `service_account` block is defined.
-* `private_key` - Redacted private key returned for this organization API key. This key displays unredacted when first created and is saved within the Terraform state file. Only populated when no `service_account` block is defined.
+* `public_key` - Public API key value set for the specified organization API key. Stored in the Terraform state and used for subsequent resource operations. Only populated when no `service_account` block is defined.
+* `private_key` - Private key returned for this organization API key. This key displays unredacted when first created and is stored in the Terraform state file. Used for subsequent resource operations. Only populated when no `service_account` block is defined.
 
 ## Import
 
