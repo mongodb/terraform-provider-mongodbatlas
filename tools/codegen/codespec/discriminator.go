@@ -13,6 +13,12 @@ import (
 // It converts API property names (camelCase) to TF schema names (snake_case),
 // excludes the discriminator property itself from variant mappings,
 // and filters readOnly properties from the required list (keeping them in allowed).
+//
+// Returns nil when all variant mappings have empty allowed lists. This happens when
+// polymorphism is at the value level (different enum values for a specific property
+// like `units`) rather than at the structural level (different properties per variant).
+// In such cases the discriminator acts as a pure enum constraint on the discriminator
+// property itself and carries no actionable per-variant metadata for Terraform.
 func extractDiscriminator(schema *APISpecSchema) *Discriminator {
 	if schema == nil {
 		return nil
@@ -59,6 +65,10 @@ func extractDiscriminator(schema *APISpecSchema) *Discriminator {
 			Allowed:  allowed,
 			Required: required,
 		}
+	}
+
+	if AllVariantsEmpty(mapping) {
+		return nil
 	}
 
 	return &Discriminator{
@@ -167,6 +177,15 @@ func clearRequired(disc *Discriminator) *Discriminator {
 		}
 	}
 	return result
+}
+
+func AllVariantsEmpty(mapping map[string]DiscriminatorType) bool {
+	for _, variant := range mapping {
+		if len(variant.Allowed) > 0 {
+			return false
+		}
+	}
+	return true
 }
 
 // unionStrings returns the sorted union of two string slices with no duplicates.

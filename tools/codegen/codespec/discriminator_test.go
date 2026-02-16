@@ -7,6 +7,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestAllVariantsEmpty_AllEmpty(t *testing.T) {
+	mapping := map[string]codespec.DiscriminatorType{
+		"METRIC_A": {Allowed: nil},
+		"METRIC_B": {Allowed: []string{}},
+		"METRIC_C": {},
+	}
+	assert.True(t, codespec.AllVariantsEmpty(mapping))
+}
+
 func TestMergeDiscriminators_BothNil(t *testing.T) {
 	result := codespec.MergeDiscriminators(nil, nil, false)
 	assert.Nil(t, result)
