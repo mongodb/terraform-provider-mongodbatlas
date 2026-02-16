@@ -67,7 +67,7 @@ output "log_integrations_results" {
 
 ### Optional
 
-- `integration_type` (String) Optional filter by integration type (e.g., 'S3_LOG_EXPORT').
+- `integration_type` (String) Optional filter by integration type (e.g., `S3_LOG_EXPORT`).
 
 ### Read-Only
 
@@ -78,13 +78,31 @@ output "log_integrations_results" {
 
 Read-Only:
 
-- `bucket_name` (String) Human-readable label that identifies the S3 bucket name for storing log files.
-- `iam_role_id` (String) Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
+- `api_key` (String, Sensitive) API key for authentication.
+- `bucket_name` (String) Name of the bucket to store log files.
+- `hec_token` (String, Sensitive) HTTP Event Collector (HEC) token for authentication.
+- `hec_url` (String) HTTP Event Collector (HEC) endpoint URL.
+- `iam_role_id` (String) Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.
 - `integration_id` (String) Unique 24-character hexadecimal digit string that identifies the log integration configuration.
 - `kms_key` (String) AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
-- `log_types` (Set of String) Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.
-- `prefix_path` (String) S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
-- `type` (String) Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
+- `log_types` (Set of String) Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.
+- `otel_endpoint` (String) OpenTelemetry collector endpoint URL.
+- `otel_supplied_headers` (Attributes List, Sensitive) HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB. (see [below for nested schema](#nestedatt--results--otel_supplied_headers))
+- `prefix_path` (String) Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
+- `region` (String) Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.
+- `role_id` (String) Unique 24-character hexadecimal string that identifies the GCP service account role.
+- `service_principal_id` (String) Unique 24-character hexadecimal string that identifies the Service Principal.
+- `storage_account_name` (String) Storage account name where logs will be stored.
+- `storage_container_name` (String) Storage container name for log files.
+- `type` (String) Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type.
+
+<a id="nestedatt--results--otel_supplied_headers"></a>
+### Nested Schema for `results.otel_supplied_headers`
+
+Read-Only:
+
+- `name` (String) Header name.
+- `value` (String, Sensitive) Header value.
 
 For more information see: [MongoDB Atlas API - Log Integration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-push-based-log-export) Documentation.
 
