@@ -17,9 +17,8 @@ import (
 )
 
 const (
-	resourceName       = "mongodbatlas_privatelink_endpoint_service.this"
-	datasourceName     = "data." + resourceName
-	dummyVPCEndpointID = "vpce-11111111111111111"
+	resourceName   = "mongodbatlas_privatelink_endpoint_service.this"
+	datasourceName = "data." + resourceName
 )
 
 func TestAccPrivateLinkEndpointService_completeAWS(t *testing.T) {
@@ -51,6 +50,7 @@ func TestAccPrivateLinkEndpointService_completeAWS(t *testing.T) {
 }
 
 func TestAccPrivateLinkEndpointService_failedAWS(t *testing.T) {
+	const dummyVPCEndpointID = "vpce-11111111111111111" // Different endpoint ID to avoid project conflicts.
 	projectID := acc.ProjectIDExecution(t)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -58,7 +58,7 @@ func TestAccPrivateLinkEndpointService_failedAWS(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configFailedAWS(projectID, "EU_WEST_1"), // Different region to avoid project conflicts.
+				Config:      configFailedAWS(projectID, "EU_WEST_1", dummyVPCEndpointID), // Different region to avoid project conflicts.
 				ExpectError: regexp.MustCompile("privatelink endpoint service is in a failed state: Interface endpoint " + dummyVPCEndpointID + " was not found."),
 			},
 		},
@@ -192,7 +192,7 @@ func checkCompleteAWS() resource.TestCheckFunc {
 	)
 }
 
-func configFailedAWS(projectID, region string) string {
+func configFailedAWS(projectID, region, vpcEndpointID string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_privatelink_endpoint" "this" {
 			project_id    = %[1]q
@@ -206,7 +206,7 @@ func configFailedAWS(projectID, region string) string {
 			private_link_id     = mongodbatlas_privatelink_endpoint.this.id
 			provider_name       = "AWS"
 		}
-	`, projectID, region, dummyVPCEndpointID)
+	`, projectID, region, vpcEndpointID)
 }
 
 func waitForNoInterfaceEndpoints(t *testing.T, projectID, providerName, region string) {
@@ -248,6 +248,7 @@ func configEndpointOnly(projectID, region string) string {
 }
 
 func configDeleteOnCreateTimeout(projectID, region string) string {
+	const dummyVPCEndpointID = "vpce-22222222222222222" // Different endpoint ID to avoid project conflicts.
 	return configEndpointOnly(projectID, region) + fmt.Sprintf(`
 		resource "mongodbatlas_privatelink_endpoint_service" "this" {
 			project_id               = mongodbatlas_privatelink_endpoint.this.project_id
