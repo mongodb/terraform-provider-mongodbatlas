@@ -18,24 +18,6 @@ variable "azure_subscription_id" {
   description = "Azure ID that identifies your Azure subscription"
 }
 
-variable "azure_client_id" {
-  type        = string
-  description = "Azure ID identifies an Azure application associated with your Azure Active Directory tenant"
-  default     = null
-}
-
-variable "azure_client_secret" {
-  type        = string
-  sensitive   = true
-  description = "Secret associated to the Azure application"
-  default     = null
-}
-
-variable "azure_tenant_id" {
-  type        = string
-  description = "Azure ID  that identifies the Azure Active Directory tenant within your Azure subscription"
-}
-
 variable "azure_resource_group_name" {
   type        = string
   description = "Name of the Azure resource group that contains your Azure Key Vault"
@@ -49,6 +31,11 @@ variable "azure_key_vault_name" {
 variable "azure_key_identifier" {
   type        = string
   description = "Web address with a unique key that identifies for your Azure Key Vault"
+}
+
+variable "role_id" {
+  type        = string
+  description = "Azure ID that identifies the role with permissions to access your Azure Key Vault"
 }
 
 
