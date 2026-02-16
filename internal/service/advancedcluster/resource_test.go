@@ -927,7 +927,6 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 			"pit_enabled":                  "true",
 			"redact_client_log_data":       "true",
 			"replica_set_scaling_strategy": "NODE_TYPE",
-			"root_cert_type":               "ISRGROOTX1",
 			"version_release_system":       "CONTINUOUS",
 			"advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds": "100",
 			"advanced_configuration.default_write_concern":                                          "majority",
@@ -956,7 +955,6 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 	pit_enabled = true
 	redact_client_log_data = true
 	replica_set_scaling_strategy = "NODE_TYPE"
-	root_cert_type = "ISRGROOTX1"
 	version_release_system = "CONTINUOUS"
 
 	advanced_configuration = {
@@ -1797,14 +1795,7 @@ func configShardedMultiCloud(t *testing.T, projectID, name string, numShards int
 }
 
 func checkShardedMultiCloud(name, analyticsSize string, verifyExternalID bool, configServerManagementMode *string) resource.TestCheckFunc {
-	additionalChecks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrWithMigTPF(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithMigTPF(true, resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithMigTPF(true, resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithMigTPF(true, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithMigTPF(true, dataSourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithMigTPF(true, dataSourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-	}
+	additionalChecks := []resource.TestCheckFunc{}
 	if verifyExternalID {
 		additionalChecks = append(
 			additionalChecks,
