@@ -16,18 +16,32 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"api_key": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "API key for authentication.",
+				Sensitive:           true,
+			},
 			"bucket_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Human-readable label that identifies the S3 bucket name for storing log files.",
+				Optional:            true,
+				MarkdownDescription: "Name of the bucket to store log files.",
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
+			"hec_token": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "HTTP Event Collector (HEC) token for authentication.",
+				Sensitive:           true,
+			},
+			"hec_url": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "HTTP Event Collector (HEC) endpoint URL.",
+			},
 			"iam_role_id": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.",
+				Optional:            true,
+				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.",
 			},
 			"integration_id": schema.StringAttribute{
 				Computed:            true,
@@ -40,29 +54,86 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"log_types": schema.SetAttribute{
 				Required:            true,
-				MarkdownDescription: "Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.",
+				MarkdownDescription: "Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.",
 				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
+			"otel_endpoint": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.",
+			},
+			"otel_supplied_headers": schema.ListNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.",
+				Sensitive:           true,
+				CustomType:          customtypes.NewNestedListType[TFOtelSuppliedHeadersModel](ctx),
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"name": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Header name.",
+						},
+						"value": schema.StringAttribute{
+							Required:            true,
+							MarkdownDescription: "Header value.",
+							Sensitive:           true,
+						},
+					},
+				},
+			},
 			"prefix_path": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.",
+				Optional:            true,
+				MarkdownDescription: "Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.",
+			},
+			"region": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.",
+			},
+			"role_id": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the GCP service account role.",
+			},
+			"service_principal_id": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the Service Principal.",
+			},
+			"storage_account_name": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Storage account name where logs will be stored.",
+			},
+			"storage_container_name": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Storage container name for log files.",
 			},
 			"type": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.",
+				MarkdownDescription: "Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type.",
 			},
 		},
 	}
 }
 
 type TFModel struct {
-	BucketName    types.String                       `tfsdk:"bucket_name"`
-	ProjectId     types.String                       `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	IamRoleId     types.String                       `tfsdk:"iam_role_id"`
-	IntegrationId types.String                       `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
-	KmsKey        types.String                       `tfsdk:"kms_key"`
-	LogTypes      customtypes.SetValue[types.String] `tfsdk:"log_types"`
-	PrefixPath    types.String                       `tfsdk:"prefix_path"`
-	Type          types.String                       `tfsdk:"type"`
+	ApiKey               types.String                                            `tfsdk:"api_key" autogen:"sensitive"`
+	BucketName           types.String                                            `tfsdk:"bucket_name"`
+	ProjectId            types.String                                            `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	HecToken             types.String                                            `tfsdk:"hec_token" autogen:"sensitive"`
+	HecUrl               types.String                                            `tfsdk:"hec_url"`
+	IamRoleId            types.String                                            `tfsdk:"iam_role_id"`
+	IntegrationId        types.String                                            `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
+	KmsKey               types.String                                            `tfsdk:"kms_key"`
+	LogTypes             customtypes.SetValue[types.String]                      `tfsdk:"log_types"`
+	OtelEndpoint         types.String                                            `tfsdk:"otel_endpoint"`
+	OtelSuppliedHeaders  customtypes.NestedListValue[TFOtelSuppliedHeadersModel] `tfsdk:"otel_supplied_headers" autogen:"sensitive"`
+	PrefixPath           types.String                                            `tfsdk:"prefix_path"`
+	Region               types.String                                            `tfsdk:"region"`
+	RoleId               types.String                                            `tfsdk:"role_id"`
+	ServicePrincipalId   types.String                                            `tfsdk:"service_principal_id"`
+	StorageAccountName   types.String                                            `tfsdk:"storage_account_name"`
+	StorageContainerName types.String                                            `tfsdk:"storage_container_name"`
+	Type                 types.String                                            `tfsdk:"type"`
+}
+type TFOtelSuppliedHeadersModel struct {
+	Name  types.String `tfsdk:"name"`
+	Value types.String `tfsdk:"value" autogen:"sensitive"`
 }

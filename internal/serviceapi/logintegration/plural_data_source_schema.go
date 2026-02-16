@@ -16,7 +16,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 		Attributes: map[string]dsschema.Attribute{
 			"integration_type": dsschema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Optional filter by integration type (e.g., 'S3_LOG_EXPORT').",
+				MarkdownDescription: "Optional filter by integration type (e.g., `S3_LOG_EXPORT`).",
 			},
 			"project_id": dsschema.StringAttribute{
 				Required:            true,
@@ -28,13 +28,27 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 				CustomType:          customtypes.NewNestedListType[TFPluralDSResultsModel](ctx),
 				NestedObject: dsschema.NestedAttributeObject{
 					Attributes: map[string]dsschema.Attribute{
+						"api_key": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "API key for authentication.",
+							Sensitive:           true,
+						},
 						"bucket_name": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Human-readable label that identifies the S3 bucket name for storing log files.",
+							MarkdownDescription: "Name of the bucket to store log files.",
+						},
+						"hec_token": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "HTTP Event Collector (HEC) token for authentication.",
+							Sensitive:           true,
+						},
+						"hec_url": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "HTTP Event Collector (HEC) endpoint URL.",
 						},
 						"iam_role_id": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.",
+							MarkdownDescription: "Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.",
 						},
 						"integration_id": dsschema.StringAttribute{
 							Computed:            true,
@@ -46,17 +60,60 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 						},
 						"log_types": dsschema.SetAttribute{
 							Computed:            true,
-							MarkdownDescription: "Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.",
+							MarkdownDescription: "Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.",
 							CustomType:          customtypes.NewSetType[types.String](ctx),
 							ElementType:         types.StringType,
 						},
+						"otel_endpoint": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "OpenTelemetry collector endpoint URL.",
+						},
+						"otel_supplied_headers": dsschema.ListNestedAttribute{
+							Computed:            true,
+							MarkdownDescription: "HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.",
+							Sensitive:           true,
+							CustomType:          customtypes.NewNestedListType[TFPluralDSResultsOtelSuppliedHeadersModel](ctx),
+							NestedObject: dsschema.NestedAttributeObject{
+								Attributes: map[string]dsschema.Attribute{
+									"name": dsschema.StringAttribute{
+										Computed:            true,
+										MarkdownDescription: "Header name.",
+									},
+									"value": dsschema.StringAttribute{
+										Computed:            true,
+										MarkdownDescription: "Header value.",
+										Sensitive:           true,
+									},
+								},
+							},
+						},
 						"prefix_path": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.",
+							MarkdownDescription: "Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.",
+						},
+						"region": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.",
+						},
+						"role_id": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Unique 24-character hexadecimal string that identifies the GCP service account role.",
+						},
+						"service_principal_id": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Unique 24-character hexadecimal string that identifies the Service Principal.",
+						},
+						"storage_account_name": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Storage account name where logs will be stored.",
+						},
+						"storage_container_name": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Storage container name for log files.",
 						},
 						"type": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.",
+							MarkdownDescription: "Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type.",
 						},
 					},
 				},
@@ -71,11 +128,25 @@ type TFPluralDSModel struct {
 	Results         customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
 }
 type TFPluralDSResultsModel struct {
-	BucketName    types.String                       `tfsdk:"bucket_name" autogen:"omitjson"`
-	IamRoleId     types.String                       `tfsdk:"iam_role_id" autogen:"omitjson"`
-	IntegrationId types.String                       `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
-	KmsKey        types.String                       `tfsdk:"kms_key" autogen:"omitjson"`
-	LogTypes      customtypes.SetValue[types.String] `tfsdk:"log_types" autogen:"omitjson"`
-	PrefixPath    types.String                       `tfsdk:"prefix_path" autogen:"omitjson"`
-	Type          types.String                       `tfsdk:"type" autogen:"omitjson"`
+	ApiKey               types.String                                                           `tfsdk:"api_key" autogen:"sensitive,omitjson"`
+	BucketName           types.String                                                           `tfsdk:"bucket_name" autogen:"omitjson"`
+	HecToken             types.String                                                           `tfsdk:"hec_token" autogen:"sensitive,omitjson"`
+	HecUrl               types.String                                                           `tfsdk:"hec_url" autogen:"omitjson"`
+	IamRoleId            types.String                                                           `tfsdk:"iam_role_id" autogen:"omitjson"`
+	IntegrationId        types.String                                                           `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
+	KmsKey               types.String                                                           `tfsdk:"kms_key" autogen:"omitjson"`
+	LogTypes             customtypes.SetValue[types.String]                                     `tfsdk:"log_types" autogen:"omitjson"`
+	OtelEndpoint         types.String                                                           `tfsdk:"otel_endpoint" autogen:"omitjson"`
+	OtelSuppliedHeaders  customtypes.NestedListValue[TFPluralDSResultsOtelSuppliedHeadersModel] `tfsdk:"otel_supplied_headers" autogen:"sensitive,omitjson"`
+	PrefixPath           types.String                                                           `tfsdk:"prefix_path" autogen:"omitjson"`
+	Region               types.String                                                           `tfsdk:"region" autogen:"omitjson"`
+	RoleId               types.String                                                           `tfsdk:"role_id" autogen:"omitjson"`
+	ServicePrincipalId   types.String                                                           `tfsdk:"service_principal_id" autogen:"omitjson"`
+	StorageAccountName   types.String                                                           `tfsdk:"storage_account_name" autogen:"omitjson"`
+	StorageContainerName types.String                                                           `tfsdk:"storage_container_name" autogen:"omitjson"`
+	Type                 types.String                                                           `tfsdk:"type" autogen:"omitjson"`
+}
+type TFPluralDSResultsOtelSuppliedHeadersModel struct {
+	Name  types.String `tfsdk:"name" autogen:"omitjson"`
+	Value types.String `tfsdk:"value" autogen:"sensitive,omitjson"`
 }
