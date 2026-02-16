@@ -13,7 +13,7 @@ resource "mongodbatlas_encryption_at_rest" "test" {
     resource_group_name = var.azure_resource_group_name
     key_vault_name      = var.azure_key_vault_name
     key_identifier      = var.azure_key_identifier
-    role_id             = var.role_id
+    azure_role_id       = var.azure_role_id
   }
 }
 
