@@ -16,15 +16,11 @@ Note: It is possible to configure Atlas Encryption at Rest to communicate with A
 - `atlas_client_id`: MongoDB Atlas Service Account Client ID
 - `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
 - `atlas_project_id`: Atlas Project ID
-- `atlas_azure_app_id`: Application (client) ID of the Atlas Azure AD application
-- `azure_tenant_id`: Azure AD tenant ID where the service principal exists
 - `azure_subscription_id`: Azure ID that identifies your Azure subscription
-- `azure_role_id`: Azure role ID created by Atlas and returned by `mongodbatlas_cloud_provider_access_authorization.role_id` (used for role-based authentication)
-- `azure_client_id`: Azure client ID for the service principal (used for client credentials authentication, deprecated)
-- `azure_client_secret`: Azure client secret for the service principal (used for client credentials authentication, deprecated)
 - `azure_resource_group_name`: Name of the Azure resource group that contains your Azure Key Vault
 - `azure_key_vault_name`: Unique string that identifies the Azure Key Vault that contains your key
 - `azure_key_identifier`: Web address with a unique key that identifies for your Azure Key Vault
+- `role_id`: Azure ID that identifies the Azure Service Principal that Atlas uses to access the Azure Key Vault.
 
 **NOTE**: The Azure application (associated to `azure_client_id`) must have the following permissions associated to the Azure Key Vault (`azure_key_vault_name`):
 - GET (Key Management Operation), ENCRYPT (Cryptographic Operation) and DECRYPT (Cryptographic Operation) policy permissions.
