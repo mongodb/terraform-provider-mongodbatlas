@@ -1,4 +1,5 @@
 schema:
+    expanded_model: true
     description: Creates one connection for a stream workspace in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner or Project Stream Processing Owner role.
     attributes:
         - single_nested:

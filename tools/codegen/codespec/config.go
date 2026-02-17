@@ -20,6 +20,7 @@ func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resourc
 	if resource == nil || resource.Schema == nil {
 		return nil
 	}
+	resource.Schema.ExpandedModel = resourceConfig.SchemaOptions.ExpandedModel
 	// Start with empty paths for both schemaPath (snake_case) and apiPath (camelCase)
 	if err := applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)

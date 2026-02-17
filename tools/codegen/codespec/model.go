@@ -93,6 +93,7 @@ type MoveState struct {
 }
 
 type Schema struct {
+	ExpandedModel      bool    `yaml:"expanded_model"`
 	Description        *string `yaml:"description,omitempty"`
 	DeprecationMessage *string `yaml:"deprecation_message,omitempty"`
 

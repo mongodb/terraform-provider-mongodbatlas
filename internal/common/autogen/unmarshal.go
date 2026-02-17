@@ -49,6 +49,26 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 			continue // skip fields that cannot be set
 		}
 
+		// Flatten anonymous embedded structs (e.g. TFExpandedModel) by recursively
+		// applying unmarshal over the same JSON object.
+		if field.Anonymous {
+			if fieldModel.Kind() == reflect.Struct {
+				if err := unmarshalAttrs(objJSON, fieldModel.Addr().Interface()); err != nil {
+					return err
+				}
+				continue
+			}
+			if fieldModel.Kind() == reflect.Ptr && fieldModel.Type().Elem().Kind() == reflect.Struct {
+				if fieldModel.IsNil() {
+					fieldModel.Set(reflect.New(fieldModel.Type().Elem()))
+				}
+				if err := unmarshalAttrs(objJSON, fieldModel.Interface()); err != nil {
+					return err
+				}
+				continue
+			}
+		}
+
 		tags := GetPropertyTags(&field)
 		apiName := getAPINameFromTag(field.Name, tags)
 

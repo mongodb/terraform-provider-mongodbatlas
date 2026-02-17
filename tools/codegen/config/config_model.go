@@ -46,9 +46,10 @@ type MoveState struct {
 }
 
 type SchemaOptions struct {
-	Aliases   map[string]string   `yaml:"aliases"` // keys and values use camelCase (e.g., groupId: projectId, nestedObject.innerAttr: renamedAttr). Supports path params and request/response body fields via APIName preservation and apiname tag generation
-	Overrides map[string]Override `yaml:"overrides"`
-	Ignores   []string            `yaml:"ignores"`
+	ExpandedModel bool                `yaml:"expanded_model"`
+	Aliases       map[string]string   `yaml:"aliases"` // keys and values use camelCase (e.g., groupId: projectId, nestedObject.innerAttr: renamedAttr). Supports path params and request/response body fields via APIName preservation and apiname tag generation
+	Overrides     map[string]Override `yaml:"overrides"`
+	Ignores       []string            `yaml:"ignores"`
 }
 
 type Override struct {
