@@ -1188,7 +1188,7 @@ jobs:
           AZURE_VNET_NAME: ${{ secrets.azure_vnet_name }}
           AZURE_VNET_NAME_UPDATED: ${{ secrets.azure_vnet_name_updated }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          MONGODB_ATLAS_PROJECT_ID: "6994abccd99aec41b025e12c"
+          MONGODB_ATLAS_PROJECT_ID: "6994adeed99aec41b02758ec"
           ACCTEST_PACKAGES: |
             ./internal/service/privatelinkendpoint
         run: make testacc
