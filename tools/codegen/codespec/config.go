@@ -17,40 +17,55 @@ const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resour
 	"deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a " +
 	"transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`."
 
-func ApplyTransformationsWithConfigOpts(resourceConfig *config.Resource, resource *Resource) error {
+func ApplyTransformationsToResource(resourceConfig *config.Resource, resource *Resource) error {
 	if resource == nil || resource.Schema == nil {
 		return nil
 	}
-	// Start with empty paths for both schemaPath (snake_case) and apiPath (camelCase)
-	if err := applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes); err != nil {
+	parentPaths := &attrPaths{schemaPath: "", apiPath: ""}
+	if err := applyAttributeTransformationsList(resourceConfig.SchemaOptions, &resource.Schema.Attributes, parentPaths, transformations); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
-	// Reconcile discriminator property names and variant attribute names after aliases are applied.
-	// This is resource-specific since discriminators are only relevant for resources.
-	applyAliasesToDiscriminators(resource.Schema, resourceConfig.SchemaOptions.Aliases)
-	applyAliasToPathParams(&resource.Operations, resourceConfig.SchemaOptions.Aliases)
+	applyCommonAliasTransformations(&resource.Operations, resourceConfig.SchemaOptions.Aliases, resource.Schema.Discriminator, &resource.Schema.Attributes)
 	ApplyDeleteOnCreateTimeoutTransformation(resource)
 	ApplyTimeoutTransformation(resource)
 	return nil
 }
 
 // ApplyTransformationsToDataSources applies schema transformations and path param aliasing to data sources.
-// This mirrors ApplyTransformationsWithConfigOpts for resources, without timeout-related and create-only transformations.
+// This mirrors ApplyTransformationsToResource for resources, without timeout-related and create-only transformations.
 // Exported for testing purposes.
 func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSources) error {
 	if ds == nil || ds.Schema == nil {
 		return nil
 	}
 
-	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.SingularDSAttributes); err != nil {
+	parentPaths := &attrPaths{schemaPath: "", apiPath: ""}
+	if err := applyAttributeTransformationsList(dsConfig.SchemaOptions, ds.Schema.SingularDSAttributes, parentPaths, dataSourceTransformations); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations for singular data source: %w", err)
 	}
-	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.PluralDSAttributes); err != nil {
+	if err := applyAttributeTransformationsList(dsConfig.SchemaOptions, ds.Schema.PluralDSAttributes, parentPaths, dataSourceTransformations); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations for plural data source: %w", err)
 	}
 
-	applyAliasToPathParams(&ds.Operations, dsConfig.SchemaOptions.Aliases)
+	applyCommonAliasTransformations(
+		&ds.Operations,
+		dsConfig.SchemaOptions.Aliases,
+		nil,
+		ds.Schema.SingularDSAttributes,
+		ds.Schema.PluralDSAttributes,
+	)
 	return nil
+}
+
+func applyCommonAliasTransformations(operations *APIOperations, aliases map[string]string, rootDiscriminator *Discriminator, attributeSets ...*Attributes) {
+	applyAliasesToDiscriminator(rootDiscriminator, aliases, "")
+	for _, attributes := range attributeSets {
+		if attributes == nil {
+			continue
+		}
+		applyAliasesToNestedDiscriminators(*attributes, aliases, "")
+	}
+	applyAliasToPathParams(operations, aliases)
 }
 
 // applyAliasToPathParams replaces path parameter placeholders with their aliased names in all operation paths.
@@ -108,16 +123,6 @@ var dataSourceTransformations = []AttributeTransformation{
 	commonRSAndDSOverridesTransformation,
 	tagsAndLabelsAsMapTypeTransformation,
 	// Note: resource-specific transformations (createOnly, requestOnlyRequiredOnCreate, immutableComputed) are excluded for data sources
-}
-
-func applyAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes) error {
-	parentPaths := &attrPaths{schemaPath: "", apiPath: ""}
-	return applyAttributeTransformationsList(schemaOptions, attributes, parentPaths, transformations)
-}
-
-func applyDataSourceAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes) error {
-	parentPaths := &attrPaths{schemaPath: "", apiPath: ""}
-	return applyAttributeTransformationsList(schemaOptions, attributes, parentPaths, dataSourceTransformations)
 }
 
 func applyAttributeTransformationsList(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths, transformationList []AttributeTransformation) error {
@@ -411,17 +416,6 @@ func setCreateOnlyValue(attr *Attribute) {
 
 func attrPathForOverrides(attrPathName string) string {
 	return strings.TrimPrefix(attrPathName, "results.")
-}
-
-// applyAliasesToDiscriminators walks the schema tree and applies alias renames to all discriminators
-// found at the root level and within nested attributes. This is called after attribute transformations
-// so that the attribute tree structure (including type overrides like list->set) is already finalized.
-func applyAliasesToDiscriminators(schema *Schema, aliases map[string]string) {
-	if schema == nil || len(aliases) == 0 {
-		return
-	}
-	applyAliasesToDiscriminator(schema.Discriminator, aliases, "")
-	applyAliasesToNestedDiscriminators(schema.Attributes, aliases, "")
 }
 
 // applyAliasesToNestedDiscriminators recursively walks attributes and applies alias renames

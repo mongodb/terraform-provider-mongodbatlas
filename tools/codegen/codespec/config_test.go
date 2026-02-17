@@ -184,7 +184,7 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 	}
 }
 
-func TestApplyTransformationsWithConfigOpts_AliasAttributeTransformation(t *testing.T) {
+func TestApplyTransformationsToResource_AliasAttributeTransformation(t *testing.T) {
 	tests := map[string]struct {
 		inputResource      *codespec.Resource
 		inputConfig        *config.Resource
@@ -436,14 +436,14 @@ func TestApplyTransformationsWithConfigOpts_AliasAttributeTransformation(t *test
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			err := codespec.ApplyTransformationsWithConfigOpts(tc.inputConfig, tc.inputResource)
+			err := codespec.ApplyTransformationsToResource(tc.inputConfig, tc.inputResource)
 			require.NoError(t, err)
 			assert.Equal(t, tc.expectedAttributes, tc.inputResource.Schema.Attributes)
 		})
 	}
 }
 
-func TestApplyTransformationsWithConfigOpts_AliasDiscriminatorTransformation(t *testing.T) {
+func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *testing.T) {
 	tests := map[string]struct {
 		inputResource      *codespec.Resource
 		inputConfig        *config.Resource
@@ -763,7 +763,7 @@ func TestApplyTransformationsWithConfigOpts_AliasDiscriminatorTransformation(t *
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			err := codespec.ApplyTransformationsWithConfigOpts(tc.inputConfig, tc.inputResource)
+			err := codespec.ApplyTransformationsToResource(tc.inputConfig, tc.inputResource)
 			require.NoError(t, err)
 			assert.Equal(t, tc.expectedAttributes, tc.inputResource.Schema.Attributes)
 			if tc.expectedDiscrim != nil {
