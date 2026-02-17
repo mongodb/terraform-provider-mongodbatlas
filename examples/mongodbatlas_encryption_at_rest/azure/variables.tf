@@ -34,4 +34,8 @@ variable "azure_role_id" {
   description = "Azure ID that identifies the role with permissions to access your Azure Key Vault"
 }
 
+variable "azure_subscription_id" {
+  description = "The Azure subscription ID to use for provisioning resources."
+  type        = string
+}
 
