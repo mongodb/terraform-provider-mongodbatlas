@@ -666,6 +666,30 @@ schema:
                       request_only_required_on_create: false
                     - list_nested:
                         nested_object:
+                            discriminator:
+                                mapping:
+                                    AWS:
+                                        allowed:
+                                            - analytics_auto_scaling
+                                            - analytics_specs
+                                            - auto_scaling
+                                            - read_only_specs
+                                    AZURE:
+                                        allowed:
+                                            - analytics_auto_scaling
+                                            - analytics_specs
+                                            - auto_scaling
+                                            - read_only_specs
+                                    GCP:
+                                        allowed:
+                                            - analytics_auto_scaling
+                                            - analytics_specs
+                                            - auto_scaling
+                                            - read_only_specs
+                                    TENANT:
+                                        allowed:
+                                            - backing_provider_name
+                                property_name: provider_name
                             attributes:
                                 - single_nested:
                                     nested_object:

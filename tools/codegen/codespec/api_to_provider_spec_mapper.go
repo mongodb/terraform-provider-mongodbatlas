@@ -142,24 +142,25 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	}
 
 	var createRequestAttributes, updateRequestAttributes, createResponseAttributes, readResponseAttributes Attributes
+	var requestDisc, responseDisc *Discriminator
 	var err error
 
 	if resourceConfig.Create != nil && !resourceConfig.Create.SchemaIgnore && createOp != nil {
-		createRequestAttributes, err = opRequestToAttributes(createOp, configuredVersion)
+		createRequestAttributes, requestDisc, err = opRequestToAttributes(createOp, configuredVersion)
 		if err != nil {
 			return nil, fmt.Errorf("failed to process create request attributes for %s: %w", name, err)
 		}
-		createResponseAttributes = opResponseToAttributes(createOp, configuredVersion)
+		createResponseAttributes, _ = opResponseToAttributes(createOp, configuredVersion)
 	}
 
 	if resourceConfig.Update != nil && !resourceConfig.Update.SchemaIgnore {
-		updateRequestAttributes, err = opRequestToAttributes(updateOp, configuredVersion)
+		updateRequestAttributes, _, err = opRequestToAttributes(updateOp, configuredVersion)
 		if err != nil {
 			return nil, fmt.Errorf("failed to process update request attributes for %s: %w", name, err)
 		}
 	}
 	if resourceConfig.Read != nil && !resourceConfig.Read.SchemaIgnore && readOp != nil {
-		readResponseAttributes = opResponseToAttributes(readOp, configuredVersion)
+		readResponseAttributes, responseDisc = opResponseToAttributes(readOp, configuredVersion)
 	}
 
 	attributes := mergeAttributes(&attributeDefinitionSources{
@@ -169,12 +170,14 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		createResponse:   createResponseAttributes,
 		readResponse:     readResponseAttributes,
 	})
+	rootDiscriminator := MergeDiscriminators(requestDisc, responseDisc, true)
 
 	var schema *Schema
 	if createOp != nil || readOp != nil || updateOp != nil {
 		schema = &Schema{
 			Description:        oasResource.Description,
 			DeprecationMessage: resourceConfig.DeprecationMessage,
+			Discriminator:      rootDiscriminator,
 			Attributes:         attributes,
 		}
 	}
@@ -312,26 +315,24 @@ func queryParamsToAttributes(op *high.Operation) Attributes {
 	return queryAttributes
 }
 
-func opRequestToAttributes(op *high.Operation, configuredVersion *string) (Attributes, error) {
+func opRequestToAttributes(op *high.Operation, configuredVersion *string) (Attributes, *Discriminator, error) {
 	if op == nil {
-		return nil, nil
+		return nil, nil, nil
 	}
-	var requestAttributes Attributes
 	requestSchema, err := buildSchemaFromRequest(op, configuredVersion)
 	if err != nil {
-		return nil, fmt.Errorf("request schema could not be mapped (OperationId: %s): %w", op.OperationId, err)
+		return nil, nil, fmt.Errorf("request schema could not be mapped (OperationId: %s): %w", op.OperationId, err)
 	}
 
-	requestAttributes, err = buildResourceAttrs(requestSchema, "", true)
+	requestAttributes, err := buildResourceAttrs(requestSchema, "", true)
 	if err != nil {
-		return nil, fmt.Errorf("request attributes could not be mapped (OperationId: %s): %w", op.OperationId, err)
+		return nil, nil, fmt.Errorf("request attributes could not be mapped (OperationId: %s): %w", op.OperationId, err)
 	}
 
-	return requestAttributes, nil
+	return requestAttributes, extractDiscriminator(requestSchema), nil
 }
 
-func opResponseToAttributes(op *high.Operation, configuredVersion *string) Attributes {
-	var responseAttributes Attributes
+func opResponseToAttributes(op *high.Operation, configuredVersion *string) (Attributes, *Discriminator) {
 	responseSchema, err := buildSchemaFromResponse(op, configuredVersion)
 	if err != nil {
 		if errors.Is(err, errSchemaNotFound) {
@@ -339,13 +340,14 @@ func opResponseToAttributes(op *high.Operation, configuredVersion *string) Attri
 		} else {
 			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		}
-	} else {
-		responseAttributes, err = buildResourceAttrs(responseSchema, "", false)
-		if err != nil {
-			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
-		}
+		return nil, nil
 	}
-	return responseAttributes
+	responseAttributes, err := buildResourceAttrs(responseSchema, "", false)
+	if err != nil {
+		log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
+		return nil, nil
+	}
+	return responseAttributes, extractDiscriminator(responseSchema)
 }
 
 func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, name string) (APISpecResource, error) {
@@ -454,7 +456,7 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 			return nil, fmt.Errorf("unable to extract data source read operation: %w", err)
 		}
 
-		readResponseAttributes := opResponseToAttributes(oasReadOp, configuredVersion)
+		readResponseAttributes, _ := opResponseToAttributes(oasReadOp, configuredVersion)
 		pathParams := pathParamsToAttributes(oasReadOp)
 
 		// Merge all attributes, applying aliases to path params during merge to avoid duplicates
@@ -478,7 +480,7 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 			return nil, fmt.Errorf("unable to extract data source read operation: %w", err)
 		}
 
-		readResponseAttributes := opResponseToAttributes(oasListOp, configuredVersion)
+		readResponseAttributes, _ := opResponseToAttributes(oasListOp, configuredVersion)
 		params := pathParamsToAttributes(oasListOp)
 		params = append(params, queryParamsToAttributes(oasListOp)...)
 

@@ -229,7 +229,10 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 			return nil, fmt.Errorf("error while building nested schema: %s", name)
 		}
 
-		nestedObject := NestedAttributeObject{Attributes: objectAttributes}
+		nestedObject := NestedAttributeObject{
+			Discriminator: extractDiscriminator(itemSchema),
+			Attributes:    objectAttributes,
+		}
 		if len(nestedObject.Attributes) == 0 {
 			// objects without attributes use JSON custom type as element
 			result := s.buildRegularCollectionAttribute(name, tfModelName, computability, isSet, CustomTypeJSON)
@@ -290,7 +293,8 @@ func (s *APISpecSchema) buildMapAttr(name, ancestorsName string, computability C
 			result.CustomType = NewCustomNestedMapType(fullName)
 			result.MapNested = &MapNestedAttribute{
 				NestedObject: NestedAttributeObject{
-					Attributes: mapAttributes,
+					Discriminator: extractDiscriminator(mapSchema),
+					Attributes:    mapAttributes,
 				},
 			}
 		}
@@ -327,7 +331,8 @@ func (s *APISpecSchema) buildSingleNestedAttr(name, ancestorsName string, comput
 		attr.CustomType = NewCustomObjectType(fullName)
 		attr.SingleNested = &SingleNestedAttribute{
 			NestedObject: NestedAttributeObject{
-				Attributes: objectAttributes,
+				Discriminator: extractDiscriminator(s),
+				Attributes:    objectAttributes,
 			},
 		}
 	} else { // objects without attributes use JSON custom type
