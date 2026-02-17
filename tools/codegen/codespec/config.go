@@ -22,7 +22,7 @@ func ApplyTransformationsToResource(resourceConfig *config.Resource, resource *R
 		return nil
 	}
 	parentPaths := &attrPaths{schemaPath: "", apiPath: ""}
-	if err := applyAttributeTransformationsList(resourceConfig.SchemaOptions, &resource.Schema.Attributes, parentPaths, transformations); err != nil {
+	if err := applyAttributeTransformationsList(resourceConfig.SchemaOptions, &resource.Schema.Attributes, parentPaths, resourceTransformations); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
 	applyCommonAliasTransformations(&resource.Operations, resourceConfig.SchemaOptions.Aliases, resource.Schema.Discriminator, &resource.Schema.Attributes)
@@ -109,7 +109,7 @@ type attrPaths struct {
 // Implementations may mutate the attribute in-place.
 type AttributeTransformation func(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error
 
-var transformations = []AttributeTransformation{
+var resourceTransformations = []AttributeTransformation{
 	aliasTransformation,
 	commonRSAndDSOverridesTransformation,
 	immutableComputedOverrideTransformation,
