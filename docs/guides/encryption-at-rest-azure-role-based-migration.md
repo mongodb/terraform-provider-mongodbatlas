@@ -6,8 +6,6 @@ page_title: "Migration Guide: Encryption at Rest (Azure) Client Credentials to R
 
 **Objective**: Migrate from using Azure client credentials (`client_id`, `tenant_id`, and `secret`) to role-based authentication using an Atlas-managed role via `mongodbatlas_encryption_at_rest.azure_key_vault_config.role_id`.
 
-**Note**: After migrating to role-based authentication, reverting back to client credentials is not supported.
-
 ## Best Practices Before Migrating
 
 - Test the migration in a non-production environment if possible.
@@ -43,7 +41,7 @@ resource "mongodbatlas_encryption_at_rest" "this" {
 Add the following resources to enable and authorize Atlas Cloud Provider Access for Azure for your project:
 
 ```hcl
-resource "azuread_service_principal" "atlas_sp" {
+data "azuread_service_principal" "atlas_sp" {
   client_id = var.atlas_azure_app_id
 }
 
@@ -53,7 +51,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "this" {
 
     azure_config {
         atlas_azure_app_id   = var.atlas_azure_app_id
-        service_principal_id = azuread_service_principal.atlas_sp.object_id
+        service_principal_id = data.azuread_service_principal.atlas_sp.object_id
         tenant_id            = var.azure_tenant_id
     }
 }
@@ -64,7 +62,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "this" {
 
     azure {
         atlas_azure_app_id   = var.atlas_azure_app_id
-        service_principal_id = azuread_service_principal.atlas_sp.object_id
+        service_principal_id = data.azuread_service_principal.atlas_sp.object_id
         tenant_id            = var.azure_tenant_id
     }
 }
@@ -92,7 +90,7 @@ resource "azurerm_key_vault_access_policy" "kv_crypto_perms" {
   key_vault_id = data.azurerm_key_vault.existing_kv.id
 
   tenant_id = var.azure_tenant_id
-  object_id = azuread_service_principal.atlas_sp.object_id
+  object_id = data.azuread_service_principal.atlas_sp.object_id
 
   key_permissions = [
     "Get",
