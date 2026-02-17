@@ -665,7 +665,7 @@ func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *test
 										PropertyName: "type_field",
 										Mapping: map[string]codespec.DiscriminatorType{
 											"InnerA": {
-												Allowed:  []string{"type_field", "inner_attr"},
+												Allowed:  []string{"inner_attr", "type_field"},
 												Required: []string{"type_field"},
 											},
 										},
