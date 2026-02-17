@@ -6,13 +6,13 @@ subcategory: "Organizations"
 
 `mongodbatlas_organization` provides programmatic management (including creation) of a MongoDB Atlas Organization resource.
 
-~> **IMPORTANT NOTE:**  When you establish an Atlas organization using this resource, it automatically generates a set of initial credentials. By default, a Programmatic API Key (public and private key) is created — in this case, `role_names` must have the ORG_OWNER role specified. Alternatively, you can define a `service_account` block to create a [Service Account](../guides/provider-configuration#service-account-recommended) (client ID and client secret) instead. The API does not allow creating both in the same request. These credential values are stored in the Terraform state and used by the resource for subsequent operations on the organization.
+~> **IMPORTANT NOTE:**  When you establish an Atlas organization using this resource, it automatically generates a set of initial credentials. Defining `description` and `role_names` creates a Programmatic API Key (public and private key) — in this case, `role_names` must have the ORG_OWNER role specified. Defining a `service_account` block creates a [Service Account](../guides/provider-configuration#service-account-recommended) (client ID and client secret) instead. The API does not allow creating both in the same request. These credential values are stored in the Terraform state and used by the resource for subsequent operations on the organization.
 
 ~> **IMPORTANT NOTE:** To use this resource, the requesting API Key must have the Organization Owner role. The requesting API Key's organization must be a paying organization. To learn more, see Configure a Paying Organization in the MongoDB Atlas documentation.
 
 ## Example Usage
 
-### With Programmatic API Key (default)
+### With Programmatic API Key
 
 ```terraform
 resource "mongodbatlas_organization" "this" {
@@ -58,7 +58,7 @@ output "service_account_secret" {
 * `description` - (Optional) Programmatic API Key description. This attribute is required in creation and can't be updated later.
 
 ~> **NOTE:** Creating an organization will return a set of credentials that are stored in the Terraform state and used by the `mongodbatlas_organization` resource for subsequent operations (read, update, delete) on the new organization. The credentials stored depend on the authentication method used during creation:
-- **Programmatic API Key (default):** `public_key` and `private_key` are stored. These credentials do not expire.
+- **Programmatic API Key:** `public_key` and `private_key` are stored. These credentials do not expire.
 - **Service Account:** `service_account.client_id` and `service_account.secrets.0.secret` are stored. Service Account secrets expire after the configured `secret_expires_after_hours` period. When the secret expires, the resource automatically falls back to provider-level credentials for subsequent operations.
 - In case of importing the resource, no organization-specific credentials are stored and provider credentials are used instead.
 - Terraform state contains sensitive credential data. Follow [Terraform's best practices for sensitive data in state](https://developer.hashicorp.com/terraform/language/state/sensitive-data).
@@ -74,7 +74,7 @@ output "service_account_secret" {
 
 ~> **NOTE:** - If you create an organization with our Terraform provider version >=1.30.0, this field is set to `true` by default.<br> - If you have an existing organization created with our Terraform provider version <1.30.0, this field might be `false`, which is the [API default value](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createorganization). To prevent the creation of future default alerts, set this explicitly to `true`.
 
-* `service_account` - (Optional) Block to create a Service Account instead of a Programmatic API Key when creating the organization. The API does not allow creating both in the same request. If omitted, a Programmatic API Key is created (default behavior). This block can't be updated after creation. See [Service Account](#service-account).
+* `service_account` - (Optional) Block to create a Service Account instead of a Programmatic API Key when creating the organization. The API does not allow creating both in the same request. Mutually exclusive with `description` and `role_names`. This block can't be updated after creation. See [Service Account](#service-account).
 
 ### Service Account
 
@@ -93,8 +93,6 @@ output "service_account_secret" {
 * `created_at` - The date that the secret was created on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 * `expires_at` - The date for the expiration of the secret. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 * `secret_id` - Unique 24-hexadecimal digit string that identifies the secret.
-* `last_used_at` - The last time the secret was used. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-* `masked_secret_value` - The masked Service Account secret.
 * `secret` - (Sensitive) The secret for the Service Account. It will be returned only the first time after creation.
 
 ## Attributes Reference

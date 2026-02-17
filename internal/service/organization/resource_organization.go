@@ -151,14 +151,6 @@ func Resource() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"last_used_at": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"masked_secret_value": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
 									"secret": {
 										Type:      schema.TypeString,
 										Computed:  true,
@@ -200,7 +192,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		return diag.FromErr(fmt.Errorf("error creating Organization: %s", err))
 	}
-	if _, ok := d.GetOk("service_account"); ok {
+	if usingSA {
 		sa, saOk := organization.GetServiceAccountOk()
 		if !saOk {
 			return diag.FromErr(fmt.Errorf("service account was not returned by the API"))
@@ -407,12 +399,10 @@ func setServiceAccountState(d *schema.ResourceData, sa *admin.OrgServiceAccount)
 	var secretsList []map[string]any
 	for _, s := range sa.GetSecrets() {
 		secretsList = append(secretsList, map[string]any{
-			"created_at":          s.GetCreatedAt().String(),
-			"expires_at":          s.GetExpiresAt().String(),
-			"secret_id":           s.GetId(),
-			"last_used_at":        s.GetLastUsedAt().String(),
-			"masked_secret_value": s.GetMaskedSecretValue(),
-			"secret":              s.GetSecret(),
+			"created_at": s.GetCreatedAt().String(),
+			"expires_at": s.GetExpiresAt().String(),
+			"secret_id":  s.GetId(),
+			"secret":     s.GetSecret(),
 		})
 	}
 	saMap["secrets"] = secretsList
