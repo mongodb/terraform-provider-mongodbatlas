@@ -13,18 +13,18 @@ Note: It is possible to configure Atlas Encryption at Rest to communicate with A
 
 **1\. Provide the appropriate values for the input variables.**
 
-- `atlas_client_id`: MongoDB Atlas Service Account Client ID
-- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
-- `atlas_project_id`: Atlas Project ID
-- `azure_subscription_id`: Azure ID that identifies your Azure subscription
-- `azure_resource_group_name`: Name of the Azure resource group that contains your Azure Key Vault
-- `azure_key_vault_name`: Unique string that identifies the Azure Key Vault that contains your key
-- `azure_key_identifier`: Web address with a unique key that identifies for your Azure Key Vault
-- `azure_role_id`: Azure ID that identifies the Azure Service Principal that Atlas uses to access the Azure Key Vault.
+    - `atlas_client_id`: MongoDB Atlas Service Account Client ID
+    - `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
+    - `atlas_project_id`: Atlas Project ID
+    - `azure_subscription_id`: Azure ID that identifies your Azure subscription
+    - `azure_resource_group_name`: Name of the Azure resource group that contains your Azure Key Vault
+    - `azure_key_vault_name`: Unique string that identifies the Azure Key Vault that contains your key
+    - `azure_key_identifier`: Web address with a unique key that identifies for your Azure Key Vault
+    - `azure_role_id`: Azure ID that identifies the Azure Service Principal that Atlas uses to access the Azure Key Vault.
 
-**NOTE**: The Azure application (associated to `azure_client_id`) must have the following permissions associated to the Azure Key Vault (`azure_key_vault_name`):
-- GET (Key Management Operation), ENCRYPT (Cryptographic Operation) and DECRYPT (Cryptographic Operation) policy permissions.
-- A `Key Vault Reader` role.
+**NOTE**: The Azure application (associated to `azure_role_id`) must have the following permissions associated to the Azure Key Vault (`azure_key_vault_name`):
+    - GET (Key Management Operation), ENCRYPT (Cryptographic Operation) and DECRYPT (Cryptographic Operation) policy permissions.
+    - A `Key Vault Reader` role.
 
 **2\. Review the Terraform plan.**
 
