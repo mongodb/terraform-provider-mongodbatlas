@@ -184,6 +184,364 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 	}
 }
 
+func TestApplyTransformationsWithConfigOpts_AliasTransformation(t *testing.T) {
+	tests := map[string]struct {
+		inputResource      *codespec.Resource
+		inputConfig        *config.Resource
+		expectedDiscrim    *codespec.Discriminator
+		expectedAttributes codespec.Attributes
+	}{
+		"Root-level simple alias renames attribute preserving APIName": {
+			inputConfig: &config.Resource{
+				SchemaOptions: config.SchemaOptions{
+					Aliases: map[string]string{
+						"groupId": "projectId",
+					},
+				},
+			},
+			inputResource: &codespec.Resource{
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
+							APIName:                  "groupId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+						{
+							TFSchemaName:             "name",
+							TFModelName:              "Name",
+							APIName:                  "name",
+							ComputedOptionalRequired: codespec.Computed,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{},
+					Read:   &codespec.APIOperation{},
+				},
+			},
+			expectedAttributes: codespec.Attributes{
+				{
+					TFSchemaName:             "project_id",
+					TFModelName:              "ProjectId",
+					APIName:                  "groupId", // preserved for apiname tag
+					ComputedOptionalRequired: codespec.Required,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.OmitAlways,
+					CreateOnly:               true, // OmitAlways + Required triggers createOnly
+				},
+				{
+					TFSchemaName:             "name",
+					TFModelName:              "Name",
+					APIName:                  "name",
+					ComputedOptionalRequired: codespec.Computed,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+			},
+		},
+		"Path-based nested alias only renames targeted nested attribute": {
+			inputConfig: &config.Resource{
+				SchemaOptions: config.SchemaOptions{
+					Aliases: map[string]string{
+						"nestedObjA.innerAttr": "renamedAttr",
+					},
+				},
+			},
+			inputResource: &codespec.Resource{
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "nested_obj_a",
+							TFModelName:              "NestedObjA",
+							APIName:                  "nestedObjA",
+							ComputedOptionalRequired: codespec.Computed,
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: codespec.Attributes{
+										{
+											TFSchemaName:             "inner_attr",
+											TFModelName:              "InnerAttr",
+											APIName:                  "innerAttr",
+											ComputedOptionalRequired: codespec.Computed,
+											String:                   &codespec.StringAttribute{},
+											ReqBodyUsage:             codespec.OmitAlways,
+										},
+									},
+								},
+							},
+							ReqBodyUsage: codespec.OmitAlways,
+						},
+						{
+							TFSchemaName:             "nested_obj_b",
+							TFModelName:              "NestedObjB",
+							APIName:                  "nestedObjB",
+							ComputedOptionalRequired: codespec.Computed,
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: codespec.Attributes{
+										{
+											TFSchemaName:             "inner_attr",
+											TFModelName:              "InnerAttr",
+											APIName:                  "innerAttr",
+											ComputedOptionalRequired: codespec.Computed,
+											String:                   &codespec.StringAttribute{},
+											ReqBodyUsage:             codespec.OmitAlways,
+										},
+									},
+								},
+							},
+							ReqBodyUsage: codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{},
+					Read:   &codespec.APIOperation{},
+				},
+			},
+			expectedAttributes: codespec.Attributes{
+				{
+					TFSchemaName:             "nested_obj_a",
+					TFModelName:              "NestedObjA",
+					APIName:                  "nestedObjA",
+					ComputedOptionalRequired: codespec.Computed,
+					ListNested: &codespec.ListNestedAttribute{
+						NestedObject: codespec.NestedAttributeObject{
+							Attributes: codespec.Attributes{
+								{
+									// Renamed via path-based alias
+									TFSchemaName:             "renamed_attr",
+									TFModelName:              "RenamedAttr",
+									APIName:                  "innerAttr", // preserved
+									ComputedOptionalRequired: codespec.Computed,
+									String:                   &codespec.StringAttribute{},
+									ReqBodyUsage:             codespec.OmitAlways,
+								},
+							},
+						},
+					},
+					ReqBodyUsage: codespec.OmitAlways,
+				},
+				{
+					TFSchemaName:             "nested_obj_b",
+					TFModelName:              "NestedObjB",
+					APIName:                  "nestedObjB",
+					ComputedOptionalRequired: codespec.Computed,
+					ListNested: &codespec.ListNestedAttribute{
+						NestedObject: codespec.NestedAttributeObject{
+							Attributes: codespec.Attributes{
+								{
+									// NOT renamed - path-based alias is scoped to nestedObjA only
+									TFSchemaName:             "inner_attr",
+									TFModelName:              "InnerAttr",
+									APIName:                  "innerAttr",
+									ComputedOptionalRequired: codespec.Computed,
+									String:                   &codespec.StringAttribute{},
+									ReqBodyUsage:             codespec.OmitAlways,
+								},
+							},
+						},
+					},
+					ReqBodyUsage: codespec.OmitAlways,
+				},
+			},
+		},
+		"Root-level discriminator property and variant lists renamed by alias": {
+			inputConfig: &config.Resource{
+				SchemaOptions: config.SchemaOptions{
+					Aliases: map[string]string{
+						"typeField": "kind",
+					},
+				},
+			},
+			inputResource: &codespec.Resource{
+				Schema: &codespec.Schema{
+					Discriminator: &codespec.Discriminator{
+						PropertyName: "type_field",
+						Mapping: map[string]codespec.DiscriminatorType{
+							"VariantA": {
+								Allowed:  []string{"type_field", "variant_a_attr"},
+								Required: []string{"type_field"},
+							},
+							"VariantB": {
+								Allowed:  []string{"type_field", "variant_b_attr"},
+								Required: []string{"type_field"},
+							},
+						},
+					},
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "type_field",
+							TFModelName:              "TypeField",
+							APIName:                  "typeField",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.AllRequestBodies,
+						},
+						{
+							TFSchemaName:             "variant_a_attr",
+							TFModelName:              "VariantAAttr",
+							APIName:                  "variantAAttr",
+							ComputedOptionalRequired: codespec.Computed,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{},
+					Read:   &codespec.APIOperation{},
+				},
+			},
+			expectedAttributes: codespec.Attributes{
+				{
+					TFSchemaName:             "kind",
+					TFModelName:              "Kind",
+					APIName:                  "typeField", // preserved
+					ComputedOptionalRequired: codespec.Required,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.AllRequestBodies,
+				},
+				{
+					TFSchemaName:             "variant_a_attr",
+					TFModelName:              "VariantAAttr",
+					APIName:                  "variantAAttr",
+					ComputedOptionalRequired: codespec.Computed,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+			},
+			expectedDiscrim: &codespec.Discriminator{
+				PropertyName: "kind",
+				Mapping: map[string]codespec.DiscriminatorType{
+					"VariantA": {
+						Allowed:  []string{"kind", "variant_a_attr"},
+						Required: []string{"kind"},
+					},
+					"VariantB": {
+						Allowed:  []string{"kind", "variant_b_attr"},
+						Required: []string{"kind"},
+					},
+				},
+			},
+		},
+		"Nested discriminator with path-based alias renames variant entries": {
+			inputConfig: &config.Resource{
+				SchemaOptions: config.SchemaOptions{
+					Aliases: map[string]string{
+						"nestedObj.innerType": "innerKind",
+					},
+				},
+			},
+			inputResource: &codespec.Resource{
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "nested_obj",
+							TFModelName:              "NestedObj",
+							APIName:                  "nestedObj",
+							ComputedOptionalRequired: codespec.Computed,
+							SingleNested: &codespec.SingleNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Discriminator: &codespec.Discriminator{
+										PropertyName: "inner_type",
+										Mapping: map[string]codespec.DiscriminatorType{
+											"TypeA": {
+												Allowed:  []string{"inner_type", "attr_a"},
+												Required: []string{"inner_type"},
+											},
+										},
+									},
+									Attributes: codespec.Attributes{
+										{
+											TFSchemaName:             "inner_type",
+											TFModelName:              "InnerType",
+											APIName:                  "innerType",
+											ComputedOptionalRequired: codespec.Computed,
+											String:                   &codespec.StringAttribute{},
+											ReqBodyUsage:             codespec.OmitAlways,
+										},
+										{
+											TFSchemaName:             "attr_a",
+											TFModelName:              "AttrA",
+											APIName:                  "attrA",
+											ComputedOptionalRequired: codespec.Computed,
+											String:                   &codespec.StringAttribute{},
+											ReqBodyUsage:             codespec.OmitAlways,
+										},
+									},
+								},
+							},
+							ReqBodyUsage: codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{},
+					Read:   &codespec.APIOperation{},
+				},
+			},
+			expectedAttributes: codespec.Attributes{
+				{
+					TFSchemaName:             "nested_obj",
+					TFModelName:              "NestedObj",
+					APIName:                  "nestedObj",
+					ComputedOptionalRequired: codespec.Computed,
+					SingleNested: &codespec.SingleNestedAttribute{
+						NestedObject: codespec.NestedAttributeObject{
+							Discriminator: &codespec.Discriminator{
+								PropertyName: "inner_kind",
+								Mapping: map[string]codespec.DiscriminatorType{
+									"TypeA": {
+										Allowed:  []string{"attr_a", "inner_kind"},
+										Required: []string{"inner_kind"},
+									},
+								},
+							},
+							Attributes: codespec.Attributes{
+								{
+									TFSchemaName:             "inner_kind",
+									TFModelName:              "InnerKind",
+									APIName:                  "innerType", // preserved
+									ComputedOptionalRequired: codespec.Computed,
+									String:                   &codespec.StringAttribute{},
+									ReqBodyUsage:             codespec.OmitAlways,
+								},
+								{
+									TFSchemaName:             "attr_a",
+									TFModelName:              "AttrA",
+									APIName:                  "attrA",
+									ComputedOptionalRequired: codespec.Computed,
+									String:                   &codespec.StringAttribute{},
+									ReqBodyUsage:             codespec.OmitAlways,
+								},
+							},
+						},
+					},
+					ReqBodyUsage: codespec.OmitAlways,
+				},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := codespec.ApplyTransformationsWithConfigOpts(tc.inputConfig, tc.inputResource)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expectedAttributes, tc.inputResource.Schema.Attributes)
+			if tc.expectedDiscrim != nil {
+				assert.Equal(t, tc.expectedDiscrim, tc.inputResource.Schema.Discriminator)
+			}
+		})
+	}
+}
+
 func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
 	tests := map[string]struct {
 		inputDataSources   *codespec.DataSources

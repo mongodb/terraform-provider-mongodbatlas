@@ -11,8 +11,8 @@ schema:
                     - aws
             Cluster:
                 allowed:
-                    - cluster_group_id
                     - cluster_name
+                    - cluster_project_id
                     - db_role_to_execute
             Https:
                 allowed:
@@ -33,12 +33,12 @@ schema:
                 allowed: []
             SchemaRegistry:
                 allowed:
-                    - provider
                     - schema_registry_authentication
+                    - schema_registry_provider
                     - schema_registry_urls
                 required:
-                    - provider
                     - schema_registry_authentication
+                    - schema_registry_provider
                     - schema_registry_urls
         property_name: type
     attributes:

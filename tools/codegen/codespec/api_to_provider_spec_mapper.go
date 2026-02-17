@@ -204,7 +204,7 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		IDAttributes: resourceConfig.IDAttributes,
 	}
 
-	if err := applyTransformationsWithConfigOpts(resourceConfig, resource); err != nil {
+	if err := ApplyTransformationsWithConfigOpts(resourceConfig, resource); err != nil {
 		return nil, err
 	}
 
