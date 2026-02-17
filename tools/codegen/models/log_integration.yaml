@@ -1,5 +1,59 @@
 schema:
     description: Creates a new log integration configuration identified by a unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+    discriminator:
+        mapping:
+            AZURE_LOG_EXPORT:
+                allowed:
+                    - prefix_path
+                    - service_principal_id
+                    - storage_account_name
+                    - storage_container_name
+                required:
+                    - prefix_path
+                    - service_principal_id
+                    - storage_account_name
+                    - storage_container_name
+            DATADOG_LOG_EXPORT:
+                allowed:
+                    - api_key
+                    - region
+                required:
+                    - api_key
+                    - region
+            GCS_LOG_EXPORT:
+                allowed:
+                    - bucket_name
+                    - prefix_path
+                    - role_id
+                required:
+                    - bucket_name
+                    - prefix_path
+                    - role_id
+            OTEL_LOG_EXPORT:
+                allowed:
+                    - otel_endpoint
+                    - otel_supplied_headers
+                required:
+                    - otel_endpoint
+                    - otel_supplied_headers
+            S3_LOG_EXPORT:
+                allowed:
+                    - bucket_name
+                    - iam_role_id
+                    - kms_key
+                    - prefix_path
+                required:
+                    - bucket_name
+                    - iam_role_id
+                    - prefix_path
+            SPLUNK_LOG_EXPORT:
+                allowed:
+                    - hec_token
+                    - hec_url
+                required:
+                    - hec_token
+                    - hec_url
+        property_name: type
     attributes:
         - string: {}
           description: API key for authentication.
@@ -510,6 +564,60 @@ data_sources:
               request_only_required_on_create: false
             - list_nested:
                 nested_object:
+                    discriminator:
+                        mapping:
+                            AZURE_LOG_EXPORT:
+                                allowed:
+                                    - prefix_path
+                                    - service_principal_id
+                                    - storage_account_name
+                                    - storage_container_name
+                                required:
+                                    - prefix_path
+                                    - service_principal_id
+                                    - storage_account_name
+                                    - storage_container_name
+                            DATADOG_LOG_EXPORT:
+                                allowed:
+                                    - api_key
+                                    - region
+                                required:
+                                    - api_key
+                                    - region
+                            GCS_LOG_EXPORT:
+                                allowed:
+                                    - bucket_name
+                                    - prefix_path
+                                    - role_id
+                                required:
+                                    - bucket_name
+                                    - prefix_path
+                                    - role_id
+                            OTEL_LOG_EXPORT:
+                                allowed:
+                                    - otel_endpoint
+                                    - otel_supplied_headers
+                                required:
+                                    - otel_endpoint
+                                    - otel_supplied_headers
+                            S3_LOG_EXPORT:
+                                allowed:
+                                    - bucket_name
+                                    - iam_role_id
+                                    - kms_key
+                                    - prefix_path
+                                required:
+                                    - bucket_name
+                                    - iam_role_id
+                                    - prefix_path
+                            SPLUNK_LOG_EXPORT:
+                                allowed:
+                                    - hec_token
+                                    - hec_url
+                                required:
+                                    - hec_token
+                                    - hec_url
+                        property_name: type
                     attributes:
                         - string: {}
                           description: API key for authentication.
