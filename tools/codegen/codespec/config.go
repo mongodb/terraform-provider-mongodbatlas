@@ -198,15 +198,10 @@ func applyAliasToAttribute(attr *Attribute, paths *attrPaths, schemaOptions conf
 	// The apiPath is built from APIName values which preserve the original casing (e.g., "MongoDBMajorVersion")
 	// This avoids the lossy conversion from snake to camel case.
 
-	var aliasCamel string
-	var found bool
-
-	// First try path-based lookup for targeted aliasing of nested attributes
-	// apiPath already contains the correct camelCase path built from APIName values
-	if aliasCamel, found = schemaOptions.Aliases[paths.apiPath]; !found {
-		// Fall back to attribute-name only lookup (for path params like groupId: projectId)
-		aliasCamel, found = schemaOptions.Aliases[attr.APIName]
-	}
+	// Lookup by full apiPath only. At root level apiPath equals attr.APIName so non-dotted
+	// aliases like "groupId: projectId" still match. At nested levels only explicitly
+	// path-scoped aliases (e.g., "nestedObj.innerAttr: renamedAttr") apply.
+	aliasCamel, found := schemaOptions.Aliases[paths.apiPath]
 
 	if found {
 		// Change both TFSchemaName and TFModelName to the aliased name.
@@ -463,24 +458,25 @@ func applyAliasesToDiscriminator(disc *Discriminator, aliases map[string]string,
 
 	// Build a rename map: old_snake -> new_snake for aliases at this nesting level.
 	// Aliases use camelCase API names (e.g., "groupId: projectId" or "nestedObject.innerAttr: renamedAttr").
-	// We need to match aliases that apply at this level (either path-based or attribute-name only).
+	// At root level only non-dotted aliases apply; at nested levels only path-scoped aliases
+	// whose prefix matches parentAPIPath apply (and only for the immediate child, not deeper).
 	renameMap := make(map[string]string)
 	for original, alias := range aliases {
 		var apiName string
-		if parentAPIPath != "" {
-			// Check path-based alias (e.g., "nestedObject.innerAttr")
-			prefix := parentAPIPath + "."
-			if strings.HasPrefix(original, prefix) {
-				apiName = strings.TrimPrefix(original, prefix)
-			}
-		}
-		if apiName == "" {
-			// Fall back to attribute-name only (no dot means root-level alias)
+		if parentAPIPath == "" {
+			// At root level, only non-dotted aliases apply
 			if !strings.Contains(original, ".") {
 				apiName = original
-			} else if parentAPIPath == "" {
-				// At root level, also check path-based aliases without parent prefix
-				apiName = original
+			}
+		} else {
+			// At nested levels, only path-scoped aliases with matching prefix apply
+			prefix := parentAPIPath + "."
+			if strings.HasPrefix(original, prefix) {
+				leafName := strings.TrimPrefix(original, prefix)
+				// Only apply if the leaf targets this exact level (no further dots)
+				if !strings.Contains(leafName, ".") {
+					apiName = leafName
+				}
 			}
 		}
 		if apiName != "" {

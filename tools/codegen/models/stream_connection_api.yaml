@@ -379,8 +379,8 @@ schema:
                                 - string: {}
                                   description: Reserved. Will be used by PRIVATE_LINK connection type.
                                   computed_optional_required: optional
-                                  tf_schema_name: connection_name
-                                  tf_model_name: ConnectionName
+                                  tf_schema_name: name
+                                  tf_model_name: Name
                                   api_name: name
                                   req_body_usage: all_request_bodies
                                   sensitive: false
