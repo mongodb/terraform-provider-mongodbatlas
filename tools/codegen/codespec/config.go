@@ -25,7 +25,8 @@ func ApplyTransformationsToResource(resourceConfig *config.Resource, resource *R
 	if err := applyAttributeTransformationsList(resourceConfig.SchemaOptions, &resource.Schema.Attributes, parentPaths, resourceTransformations); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
-	applyCommonAliasTransformations(&resource.Operations, resourceConfig.SchemaOptions.Aliases, resource.Schema.Discriminator, &resource.Schema.Attributes)
+	applyAliasToDiscriminator(resourceConfig.SchemaOptions.Aliases, resource.Schema.Discriminator, &resource.Schema.Attributes)
+	applyAliasToPathParams(&resource.Operations, resourceConfig.SchemaOptions.Aliases)
 	ApplyDeleteOnCreateTimeoutTransformation(resource)
 	ApplyTimeoutTransformation(resource)
 	return nil
@@ -47,25 +48,18 @@ func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSou
 		return fmt.Errorf("failed to apply attribute transformations for plural data source: %w", err)
 	}
 
-	applyCommonAliasTransformations(
-		&ds.Operations,
-		dsConfig.SchemaOptions.Aliases,
-		nil,
-		ds.Schema.SingularDSAttributes,
-		ds.Schema.PluralDSAttributes,
-	)
+	applyAliasToDiscriminator(dsConfig.SchemaOptions.Aliases, nil, ds.Schema.SingularDSAttributes)
+	applyAliasToDiscriminator(dsConfig.SchemaOptions.Aliases, nil, ds.Schema.PluralDSAttributes)
+	applyAliasToPathParams(&ds.Operations, dsConfig.SchemaOptions.Aliases)
 	return nil
 }
 
-func applyCommonAliasTransformations(operations *APIOperations, aliases map[string]string, rootDiscriminator *Discriminator, attributeSets ...*Attributes) {
+func applyAliasToDiscriminator(aliases map[string]string, rootDiscriminator *Discriminator, attributes *Attributes) {
 	applyAliasesToDiscriminator(rootDiscriminator, aliases, "")
-	for _, attributes := range attributeSets {
-		if attributes == nil {
-			continue
-		}
-		applyAliasesToNestedDiscriminators(*attributes, aliases, "")
+	if attributes == nil {
+		return
 	}
-	applyAliasToPathParams(operations, aliases)
+	applyAliasesToNestedDiscriminators(*attributes, aliases, "")
 }
 
 // applyAliasToPathParams replaces path parameter placeholders with their aliased names in all operation paths.
