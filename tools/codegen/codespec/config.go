@@ -191,7 +191,7 @@ func shouldIgnoreAttribute(attrPathName string, ignoredAttrs map[string]bool) bo
 	return ignoredAttrs[attrPathName]
 }
 
-func applyAliasToAttribute(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) {
+func aliasTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
 	// Config uses full camelCase for aliases (e.g., groupId: projectId, nestedObject.innerAttr: renamedAttr)
 	// The apiPath is built from APIName values which preserve the original casing (e.g., "MongoDBMajorVersion")
 	// This avoids the lossy conversion from snake to camel case.
@@ -214,13 +214,6 @@ func applyAliasToAttribute(attr *Attribute, paths *attrPaths, schemaOptions conf
 		// Note: apiPath is not updated because it's only used for alias lookup,
 		// and aliases are defined using original API names
 	}
-}
-
-// Transformations
-func aliasTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
-	// Alias transformation runs first, updating TFSchemaName and paths.schemaPath.
-	// Subsequent overrides should use the aliased snake_case path (e.g., nested_list_array_attr.inner_num_attr_alias)
-	applyAliasToAttribute(attr, paths, schemaOptions)
 	return nil
 }
 
