@@ -5,7 +5,6 @@ package streamprocessorapi
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -98,16 +97,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Pipeline              customtypes.ListValue[jsontypes.Normalized] `tfsdk:"pipeline"`
-	Stats                 customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"stats" autogen:"omitjson"`
 	GroupId               types.String                                `tfsdk:"group_id" autogen:"omitjson"`
 	Name                  types.String                                `tfsdk:"name"`
 	Options               customtypes.ObjectValue[TFOptionsModel]     `tfsdk:"options"`
+	Pipeline              customtypes.ListValue[jsontypes.Normalized] `tfsdk:"pipeline"`
 	State                 types.String                                `tfsdk:"state" autogen:"omitjson"`
+	Stats                 customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"stats" autogen:"omitjson"`
 	TenantName            types.String                                `tfsdk:"tenant_name" autogen:"omitjson"`
 	Tier                  types.String                                `tfsdk:"tier" autogen:"omitjson"`
-	Timeouts              timeouts.Value                              `tfsdk:"timeouts" autogen:"omitjson"`
 	DeleteOnCreateTimeout types.Bool                                  `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
+	Timeouts              timeouts.Value                              `tfsdk:"timeouts" autogen:"omitjson"`
 }
 type TFOptionsModel struct {
 	Dlq                  customtypes.ObjectValue[TFOptionsDlqModel] `tfsdk:"dlq"`
