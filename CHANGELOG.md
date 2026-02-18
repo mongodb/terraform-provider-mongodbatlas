@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.7.0 (February 18, 2026)
+
 FEATURES:
 
 * **New Guide:** Migration Guide: GCP Private Service Connect to Port-Mapped Architecture ([#4103](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4103))
