@@ -18,17 +18,17 @@ import (
 func TestValidateDiscriminator(t *testing.T) {
 	rootObjType := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
-			"type":        tftypes.String,
-			"role_arn":    tftypes.String,
-			"service_url": tftypes.String,
+			"type":           tftypes.String,
+			"aws_specific":   tftypes.String,
+			"azure_specific": tftypes.String,
 		},
 	}
 
 	innerObjType := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
-			"type":        tftypes.String,
-			"role_arn":    tftypes.String,
-			"service_url": tftypes.String,
+			"type":           tftypes.String,
+			"aws_specific":   tftypes.String,
+			"azure_specific": tftypes.String,
 		},
 	}
 
@@ -41,12 +41,12 @@ func TestValidateDiscriminator(t *testing.T) {
 	def := validator.DiscriminatorDefinition{
 		Mapping: map[string]validator.VariantDefinition{
 			"AWS": {
-				Allowed:  []string{"role_arn"},
-				Required: []string{"role_arn"},
+				Allowed:  []string{"aws_specific"},
+				Required: []string{"aws_specific"},
 			},
 			"AZURE": {
-				Allowed:  []string{"service_url"},
-				Required: []string{"service_url"},
+				Allowed:  []string{"azure_specific"},
+				Required: []string{"azure_specific"},
 			},
 		},
 	}
@@ -66,12 +66,12 @@ func TestValidateDiscriminator(t *testing.T) {
 			configValue: types.StringValue("AWS"),
 			configPath:  path.Root("type"),
 			raw: tftypes.NewValue(rootObjType, map[string]tftypes.Value{
-				"type":        tftypes.NewValue(tftypes.String, "AWS"),
-				"role_arn":    tftypes.NewValue(tftypes.String, nil),
-				"service_url": tftypes.NewValue(tftypes.String, nil),
+				"type":           tftypes.NewValue(tftypes.String, "AWS"),
+				"aws_specific":   tftypes.NewValue(tftypes.String, nil),
+				"azure_specific": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectErrors:   1,
-			expectInDetail: []string{`"role_arn" must be set when type is "AWS"`},
+			expectInDetail: []string{`"aws_specific" must be set when type is "AWS"`},
 		},
 		{
 			name:        "disallowed attribute present emits not-allowed diagnostic",
@@ -79,12 +79,12 @@ func TestValidateDiscriminator(t *testing.T) {
 			configValue: types.StringValue("AWS"),
 			configPath:  path.Root("type"),
 			raw: tftypes.NewValue(rootObjType, map[string]tftypes.Value{
-				"type":        tftypes.NewValue(tftypes.String, "AWS"),
-				"role_arn":    tftypes.NewValue(tftypes.String, "some-arn"),
-				"service_url": tftypes.NewValue(tftypes.String, "some-url"),
+				"type":           tftypes.NewValue(tftypes.String, "AWS"),
+				"aws_specific":   tftypes.NewValue(tftypes.String, "some-arn"),
+				"azure_specific": tftypes.NewValue(tftypes.String, "some-url"),
 			}),
 			expectErrors:   1,
-			expectInDetail: []string{`"service_url" is not allowed when type is "AWS"`},
+			expectInDetail: []string{`"azure_specific" is not allowed when type is "AWS"`},
 		},
 		{
 			name:        "unknown discriminator value skips all checks",
@@ -92,9 +92,9 @@ func TestValidateDiscriminator(t *testing.T) {
 			configValue: types.StringValue("GCP"),
 			configPath:  path.Root("type"),
 			raw: tftypes.NewValue(rootObjType, map[string]tftypes.Value{
-				"type":        tftypes.NewValue(tftypes.String, "GCP"),
-				"role_arn":    tftypes.NewValue(tftypes.String, "some-arn"),
-				"service_url": tftypes.NewValue(tftypes.String, "some-url"),
+				"type":           tftypes.NewValue(tftypes.String, "GCP"),
+				"aws_specific":   tftypes.NewValue(tftypes.String, "some-arn"),
+				"azure_specific": tftypes.NewValue(tftypes.String, "some-url"),
 			}),
 			expectErrors: 0,
 		},
@@ -104,9 +104,9 @@ func TestValidateDiscriminator(t *testing.T) {
 			configValue: types.StringNull(),
 			configPath:  path.Root("type"),
 			raw: tftypes.NewValue(rootObjType, map[string]tftypes.Value{
-				"type":        tftypes.NewValue(tftypes.String, nil),
-				"role_arn":    tftypes.NewValue(tftypes.String, nil),
-				"service_url": tftypes.NewValue(tftypes.String, nil),
+				"type":           tftypes.NewValue(tftypes.String, nil),
+				"aws_specific":   tftypes.NewValue(tftypes.String, nil),
+				"azure_specific": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectErrors: 0,
 		},
@@ -116,9 +116,9 @@ func TestValidateDiscriminator(t *testing.T) {
 			configValue: types.StringUnknown(),
 			configPath:  path.Root("type"),
 			raw: tftypes.NewValue(rootObjType, map[string]tftypes.Value{
-				"type":        tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-				"role_arn":    tftypes.NewValue(tftypes.String, nil),
-				"service_url": tftypes.NewValue(tftypes.String, nil),
+				"type":           tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				"aws_specific":   tftypes.NewValue(tftypes.String, nil),
+				"azure_specific": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectErrors: 0,
 		},
@@ -128,9 +128,9 @@ func TestValidateDiscriminator(t *testing.T) {
 			configValue: types.StringValue("AWS"),
 			configPath:  path.Root("type"),
 			raw: tftypes.NewValue(rootObjType, map[string]tftypes.Value{
-				"type":        tftypes.NewValue(tftypes.String, "AWS"),
-				"role_arn":    tftypes.NewValue(tftypes.String, "arn:aws:iam::role"),
-				"service_url": tftypes.NewValue(tftypes.String, nil),
+				"type":           tftypes.NewValue(tftypes.String, "AWS"),
+				"aws_specific":   tftypes.NewValue(tftypes.String, "arn:aws:iam::role"),
+				"azure_specific": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectErrors: 0,
 		},
@@ -141,13 +141,13 @@ func TestValidateDiscriminator(t *testing.T) {
 			configPath:  path.Root("nested").AtName("type"),
 			raw: tftypes.NewValue(nestedObjType, map[string]tftypes.Value{
 				"nested": tftypes.NewValue(innerObjType, map[string]tftypes.Value{
-					"type":        tftypes.NewValue(tftypes.String, "AWS"),
-					"role_arn":    tftypes.NewValue(tftypes.String, nil),
-					"service_url": tftypes.NewValue(tftypes.String, nil),
+					"type":           tftypes.NewValue(tftypes.String, "AWS"),
+					"aws_specific":   tftypes.NewValue(tftypes.String, nil),
+					"azure_specific": tftypes.NewValue(tftypes.String, nil),
 				}),
 			}),
 			expectErrors:   1,
-			expectInDetail: []string{`"role_arn" must be set when type is "AWS"`},
+			expectInDetail: []string{`"aws_specific" must be set when type is "AWS"`},
 		},
 		{
 			name:        "unrelated sibling with unknown value emits no diagnostics",
@@ -156,16 +156,16 @@ func TestValidateDiscriminator(t *testing.T) {
 			configPath:  path.Root("type"),
 			raw: tftypes.NewValue(tftypes.Object{
 				AttributeTypes: map[string]tftypes.Type{
-					"type":        tftypes.String,
-					"role_arn":    tftypes.String,
-					"service_url": tftypes.String,
-					"name":        tftypes.String,
+					"type":           tftypes.String,
+					"aws_specific":   tftypes.String,
+					"azure_specific": tftypes.String,
+					"name":           tftypes.String,
 				},
 			}, map[string]tftypes.Value{
-				"type":        tftypes.NewValue(tftypes.String, "AWS"),
-				"role_arn":    tftypes.NewValue(tftypes.String, "arn:aws:iam::role"),
-				"service_url": tftypes.NewValue(tftypes.String, nil),
-				"name":        tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				"type":           tftypes.NewValue(tftypes.String, "AWS"),
+				"aws_specific":   tftypes.NewValue(tftypes.String, "arn:aws:iam::role"),
+				"azure_specific": tftypes.NewValue(tftypes.String, nil),
+				"name":           tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			}),
 			expectErrors: 0,
 		},
@@ -175,9 +175,9 @@ func TestValidateDiscriminator(t *testing.T) {
 			configValue: types.StringValue("AWS"),
 			configPath:  path.Root("type"),
 			raw: tftypes.NewValue(rootObjType, map[string]tftypes.Value{
-				"type":        tftypes.NewValue(tftypes.String, "AWS"),
-				"role_arn":    tftypes.NewValue(tftypes.String, "arn:aws:iam::role"),
-				"service_url": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				"type":           tftypes.NewValue(tftypes.String, "AWS"),
+				"aws_specific":   tftypes.NewValue(tftypes.String, "arn:aws:iam::role"),
+				"azure_specific": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			}),
 			expectErrors: 0,
 		},
@@ -187,12 +187,12 @@ func TestValidateDiscriminator(t *testing.T) {
 			configValue: types.StringValue("AWS"),
 			configPath:  path.Root("type"),
 			raw: tftypes.NewValue(rootObjType, map[string]tftypes.Value{
-				"type":        tftypes.NewValue(tftypes.String, "AWS"),
-				"role_arn":    tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
-				"service_url": tftypes.NewValue(tftypes.String, nil),
+				"type":           tftypes.NewValue(tftypes.String, "AWS"),
+				"aws_specific":   tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+				"azure_specific": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectErrors:   1,
-			expectInDetail: []string{`"role_arn" must be set when type is "AWS"`},
+			expectInDetail: []string{`"aws_specific" must be set when type is "AWS"`},
 		},
 		{
 			name:        "both required missing and disallowed present emit multiple diagnostics",
@@ -200,14 +200,14 @@ func TestValidateDiscriminator(t *testing.T) {
 			configValue: types.StringValue("AZURE"),
 			configPath:  path.Root("type"),
 			raw: tftypes.NewValue(rootObjType, map[string]tftypes.Value{
-				"type":        tftypes.NewValue(tftypes.String, "AZURE"),
-				"role_arn":    tftypes.NewValue(tftypes.String, "some-arn"),
-				"service_url": tftypes.NewValue(tftypes.String, nil),
+				"type":           tftypes.NewValue(tftypes.String, "AZURE"),
+				"aws_specific":   tftypes.NewValue(tftypes.String, "some-arn"),
+				"azure_specific": tftypes.NewValue(tftypes.String, nil),
 			}),
 			expectErrors: 2,
 			expectInDetail: []string{
-				`"service_url" must be set when type is "AZURE"`,
-				`"role_arn" is not allowed when type is "AZURE"`,
+				`"azure_specific" must be set when type is "AZURE"`,
+				`"aws_specific" is not allowed when type is "AZURE"`,
 			},
 		},
 	}
