@@ -197,9 +197,7 @@ func applyAliasToAttribute(attr *Attribute, paths *attrPaths, schemaOptions conf
 	// The apiPath is built from APIName values which preserve the original casing (e.g., "MongoDBMajorVersion")
 	// This avoids the lossy conversion from snake to camel case.
 
-	// Lookup by full apiPath only. At root level apiPath equals attr.APIName so non-dotted
-	// aliases like "groupId: projectId" still match. At nested levels only explicitly
-	// path-scoped aliases (e.g., "nestedObj.innerAttr: renamedAttr") apply.
+	// Lookup by full apiPath only. We do not want to implicitly apply aliases to nested-level attributes.
 	aliasCamel, found := schemaOptions.Aliases[paths.apiPath]
 
 	if found {
