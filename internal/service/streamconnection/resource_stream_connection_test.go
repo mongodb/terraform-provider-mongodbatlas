@@ -272,7 +272,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 				),
 			},
 			{
-				Config:      networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-ssl-2", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
+				Config:      networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
 				ExpectError: regexp.MustCompile("STREAM_NETWORKING_CANNOT_BE_MODIFIED"),
 			},
 			{
