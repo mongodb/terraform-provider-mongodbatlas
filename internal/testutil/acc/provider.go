@@ -8,6 +8,7 @@ import (
 )
 
 const AwsProviderVersion = "5.1.0"
+const azurermProviderVersion = "4.60.0"
 const azapiProviderVersion = "1.15.0"
 const confluentProviderVersion = "2.12.0"
 
@@ -43,6 +44,12 @@ func ExternalProvidersOnlyAzapi() map[string]resource.ExternalProvider {
 	}
 }
 
+func ExternalProvidersOnlyAzurerm() map[string]resource.ExternalProvider {
+	return map[string]resource.ExternalProvider{
+		"azurerm": *providerAzurerm(),
+	}
+}
+
 func ExternalProvidersOnlyConfluent() map[string]resource.ExternalProvider {
 	return map[string]resource.ExternalProvider{
 		"confluent": *providerConfluent(),
@@ -67,6 +74,13 @@ func providerAzapi() *resource.ExternalProvider {
 	return &resource.ExternalProvider{
 		VersionConstraint: azapiProviderVersion,
 		Source:            "Azure/azapi",
+	}
+}
+
+func providerAzurerm() *resource.ExternalProvider {
+	return &resource.ExternalProvider{
+		VersionConstraint: azurermProviderVersion,
+		Source:            "hashicorp/azurerm",
 	}
 }
 
@@ -105,13 +119,25 @@ func ConfigOrgMemberProvider() string {
 // This will authorize the provider for a client
 func ConfigAzapiProvider(subscriptionID, clientID, clientSecret, tenantID string) string {
 	return fmt.Sprintf(`
-provider "azapi" {
-	subscription_id = %[1]q
-    client_id       = %[2]q
-    client_secret   = %[3]q
-    tenant_id       = %[4]q
+		provider "azapi" {
+			subscription_id = %[1]q
+			client_id       = %[2]q
+			client_secret   = %[3]q
+			tenant_id       = %[4]q
+		}
+	`, subscriptionID, clientID, clientSecret, tenantID)
 }
-`, subscriptionID, clientID, clientSecret, tenantID)
+
+func ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID string) string {
+	return fmt.Sprintf(`
+		provider "azurerm" {
+			features {}
+			subscription_id = %[1]q
+			client_id       = %[2]q
+			client_secret   = %[3]q
+			tenant_id       = %[4]q
+		}
+	`, subscriptionID, clientID, clientSecret, tenantID)
 }
 
 func ConfigConfluentProvider() string {
