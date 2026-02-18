@@ -148,7 +148,7 @@ func PreCheckPublicKey2(tb testing.TB) {
 	}
 }
 
-func PreCheckGCPEnv(tb testing.TB) {
+func PreCheckEncryptionAtRestEnvGCP(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("GCP_SERVICE_ACCOUNT_KEY") == "" || os.Getenv("GCP_KEY_VERSION_RESOURCE_ID") == "" {
 		tb.Fatal("`GCP_SERVICE_ACCOUNT_KEY` and `GCP_KEY_VERSION_RESOURCE_ID` must be set for acceptance testing")
@@ -219,6 +219,13 @@ func PreCheckEncryptionAtRestEnvAzureWithUpdate(tb testing.TB) {
 		'AZURE_RESOURCE_GROUP_NAME', 'AZURE_APP_SECRET',
 		, 'AZURE_KEY_VAULT_NAME', 'AZURE_KEY_IDENTIFIER', 'AZURE_KEY_VAULT_NAME_UPDATED',
 		'AZURE_KEY_IDENTIFIER_UPDATED', and 'AZURE_TENANT_ID' must be set for Encryption At Rest acceptance testing`)
+	}
+}
+
+func PreCheckGCPEnvBasic(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("GCP_PROJECT_ID") == "" {
+		tb.Fatal(`'GCP_PROJECT_ID' must be set for acceptance testing`)
 	}
 }
 

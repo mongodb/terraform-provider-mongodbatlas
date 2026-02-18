@@ -176,7 +176,7 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckGCPEnv(t) },
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckEncryptionAtRestEnvGCP(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.EARDestroy,
 		Steps: []resource.TestStep{
