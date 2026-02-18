@@ -65,14 +65,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	AutoDeferOnceEnabled types.Bool                                     `tfsdk:"auto_defer_once_enabled"`
-	DayOfWeek            types.Int64                                    `tfsdk:"day_of_week"`
 	GroupId              types.String                                   `tfsdk:"group_id" autogen:"omitjson"`
+	ProtectedHours       customtypes.ObjectValue[TFProtectedHoursModel] `tfsdk:"protected_hours"`
+	TimeZoneId           types.String                                   `tfsdk:"time_zone_id" autogen:"omitjson"`
+	DayOfWeek            types.Int64                                    `tfsdk:"day_of_week"`
 	HourOfDay            types.Int64                                    `tfsdk:"hour_of_day"`
 	NumberOfDeferrals    types.Int64                                    `tfsdk:"number_of_deferrals" autogen:"omitjson"`
-	ProtectedHours       customtypes.ObjectValue[TFProtectedHoursModel] `tfsdk:"protected_hours"`
+	AutoDeferOnceEnabled types.Bool                                     `tfsdk:"auto_defer_once_enabled"`
 	StartASAP            types.Bool                                     `tfsdk:"start_asap"`
-	TimeZoneId           types.String                                   `tfsdk:"time_zone_id" autogen:"omitjson"`
 }
 type TFProtectedHoursModel struct {
 	EndHourOfDay   types.Int64 `tfsdk:"end_hour_of_day"`
