@@ -98,13 +98,14 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 			OrgId:    orgID,
 			Username: &username,
 		}
-		usersResp, _, err := connV2.MongoDBCloudUsersApi.ListOrgUsersWithParams(ctx, params).Execute()
-		if err == nil && usersResp != nil && usersResp.Results != nil {
-			if len(*usersResp.Results) == 0 {
+		var usersResp *admin.PaginatedOrgUser
+		usersResp, _, err = connV2.MongoDBCloudUsersApi.ListOrgUsersWithParams(ctx, params).Execute()
+		if err == nil {
+			if len(usersResp.GetResults()) == 0 {
 				resp.State.RemoveResource(ctx)
 				return
 			}
-			userResp = &(*usersResp.Results)[0]
+			userResp = &usersResp.GetResults()[0]
 		}
 	}
 
