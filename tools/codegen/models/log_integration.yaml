@@ -4,12 +4,19 @@ schema:
         mapping:
             S3_LOG_EXPORT:
                 allowed:
-                    - bucket_name
-                    - iam_role_id
-                    - kms_key
-                    - log_types
-                    - prefix_path
-        property_name: type
+                    - api_name: bucketName
+                      tf_schema_name: bucket_name
+                    - api_name: iamRoleId
+                      tf_schema_name: iam_role_id
+                    - api_name: kmsKey
+                      tf_schema_name: kms_key
+                    - api_name: logTypes
+                      tf_schema_name: log_types
+                    - api_name: prefixPath
+                      tf_schema_name: prefix_path
+        property_name:
+            api_name: type
+            tf_schema_name: type
     attributes:
         - string: {}
           description: Human-readable label that identifies the S3 bucket name for storing log files.
@@ -246,16 +253,26 @@ data_sources:
                         mapping:
                             S3_LOG_EXPORT:
                                 allowed:
-                                    - bucket_name
-                                    - iam_role_id
-                                    - kms_key
-                                    - log_types
-                                    - prefix_path
+                                    - api_name: bucketName
+                                      tf_schema_name: bucket_name
+                                    - api_name: iamRoleId
+                                      tf_schema_name: iam_role_id
+                                    - api_name: kmsKey
+                                      tf_schema_name: kms_key
+                                    - api_name: logTypes
+                                      tf_schema_name: log_types
+                                    - api_name: prefixPath
+                                      tf_schema_name: prefix_path
                                 required:
-                                    - bucket_name
-                                    - iam_role_id
-                                    - prefix_path
-                        property_name: type
+                                    - api_name: bucketName
+                                      tf_schema_name: bucket_name
+                                    - api_name: iamRoleId
+                                      tf_schema_name: iam_role_id
+                                    - api_name: prefixPath
+                                      tf_schema_name: prefix_path
+                        property_name:
+                            api_name: type
+                            tf_schema_name: type
                     attributes:
                         - string: {}
                           description: Human-readable label that identifies the S3 bucket name for storing log files.

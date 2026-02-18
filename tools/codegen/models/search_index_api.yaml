@@ -4,11 +4,15 @@ schema:
         mapping:
             search:
                 allowed:
-                    - synonym_mapping_status
-                    - synonym_mapping_status_detail
+                    - api_name: synonymMappingStatus
+                      tf_schema_name: synonym_mapping_status
+                    - api_name: synonymMappingStatusDetail
+                      tf_schema_name: synonym_mapping_status_detail
             vectorSearch:
                 allowed: []
-        property_name: type
+        property_name:
+            api_name: type
+            tf_schema_name: type
     attributes:
         - string: {}
           description: Name of the cluster that contains the collection on which to create an Atlas Search index.

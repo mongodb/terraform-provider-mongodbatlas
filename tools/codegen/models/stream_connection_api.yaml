@@ -4,43 +4,66 @@ schema:
         mapping:
             AWSKinesisDataStreams:
                 allowed:
-                    - aws
-                    - networking
+                    - api_name: aws
+                      tf_schema_name: aws
+                    - api_name: networking
+                      tf_schema_name: networking
             AWSLambda:
                 allowed:
-                    - aws
+                    - api_name: aws
+                      tf_schema_name: aws
             Cluster:
                 allowed:
-                    - cluster_group_id
-                    - cluster_name
-                    - db_role_to_execute
+                    - api_name: clusterName
+                      tf_schema_name: cluster_name
+                    - api_name: clusterGroupId
+                      tf_schema_name: cluster_project_id
+                    - api_name: dbRoleToExecute
+                      tf_schema_name: db_role_to_execute
             Https:
                 allowed:
-                    - headers
-                    - url
+                    - api_name: headers
+                      tf_schema_name: headers
+                    - api_name: url
+                      tf_schema_name: url
             Kafka:
                 allowed:
-                    - authentication
-                    - bootstrap_servers
-                    - config
-                    - networking
-                    - security
+                    - api_name: authentication
+                      tf_schema_name: authentication
+                    - api_name: bootstrapServers
+                      tf_schema_name: bootstrap_servers
+                    - api_name: config
+                      tf_schema_name: config
+                    - api_name: networking
+                      tf_schema_name: networking
+                    - api_name: security
+                      tf_schema_name: security
             S3:
                 allowed:
-                    - aws
-                    - networking
+                    - api_name: aws
+                      tf_schema_name: aws
+                    - api_name: networking
+                      tf_schema_name: networking
             Sample:
                 allowed: []
             SchemaRegistry:
                 allowed:
-                    - provider
-                    - schema_registry_authentication
-                    - schema_registry_urls
+                    - api_name: schemaRegistryAuthentication
+                      tf_schema_name: schema_registry_authentication
+                    - api_name: provider
+                      tf_schema_name: schema_registry_provider
+                    - api_name: schemaRegistryUrls
+                      tf_schema_name: schema_registry_urls
                 required:
-                    - provider
-                    - schema_registry_authentication
-                    - schema_registry_urls
-        property_name: type
+                    - api_name: schemaRegistryAuthentication
+                      tf_schema_name: schema_registry_authentication
+                    - api_name: provider
+                      tf_schema_name: schema_registry_provider
+                    - api_name: schemaRegistryUrls
+                      tf_schema_name: schema_registry_urls
+        property_name:
+            api_name: type
+            tf_schema_name: type
     attributes:
         - single_nested:
             nested_object:
@@ -379,8 +402,8 @@ schema:
                                 - string: {}
                                   description: Reserved. Will be used by PRIVATE_LINK connection type.
                                   computed_optional_required: optional
-                                  tf_schema_name: connection_name
-                                  tf_model_name: ConnectionName
+                                  tf_schema_name: name
+                                  tf_model_name: Name
                                   api_name: name
                                   req_body_usage: all_request_bodies
                                   sensitive: false
@@ -458,12 +481,18 @@ schema:
                             allowed: []
                         USER_INFO:
                             allowed:
-                                - password
-                                - username
+                                - api_name: password
+                                  tf_schema_name: password
+                                - api_name: username
+                                  tf_schema_name: username
                             required:
-                                - password
-                                - username
-                    property_name: type
+                                - api_name: password
+                                  tf_schema_name: password
+                                - api_name: username
+                                  tf_schema_name: username
+                    property_name:
+                        api_name: type
+                        tf_schema_name: type
                 attributes:
                     - string: {}
                       description: Password or Private Key for authentication.

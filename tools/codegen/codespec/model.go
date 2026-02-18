@@ -100,16 +100,23 @@ type Schema struct {
 	Attributes Attributes `yaml:"attributes"`
 }
 
+// DiscriminatorAttrName pairs the original API property name with the Terraform schema name.
+// TFSchemaName will have aliasing configurations applied.
+type DiscriminatorAttrName struct {
+	APIName      string `yaml:"api_name"`
+	TFSchemaName string `yaml:"tf_schema_name"`
+}
+
 type Discriminator struct {
 	Mapping      map[string]DiscriminatorType `yaml:"mapping"`
-	PropertyName string                       `yaml:"property_name"`
+	PropertyName DiscriminatorAttrName        `yaml:"property_name"`
 }
 
 type DiscriminatorType struct {
 	// Allowed enumerates every sub-type specific attributes valid for this discriminator value.
-	Allowed []string `yaml:"allowed"`
+	Allowed []DiscriminatorAttrName `yaml:"allowed"`
 	// Required is a subset of Allowed that the user must explicitly set in their configuration.
-	Required []string `yaml:"required,omitempty"`
+	Required []DiscriminatorAttrName `yaml:"required,omitempty"`
 }
 
 type Attributes []Attribute
