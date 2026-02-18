@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_advanced_cluster: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_cluster: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_clusters: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute
+```
