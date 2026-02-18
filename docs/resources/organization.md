@@ -47,9 +47,9 @@ output "service_account_secret" {
 ~> **NOTE:** When a `service_account` block is defined, a Service Account is created instead of a Programmatic API Key. The `public_key` and `private_key` attributes will not be populated in this case.
 
 ### Further Examples
-- [Organization setup - step 1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.6.0/examples/mongodbatlas_organization/organization-step-1)
-- [Organization setup - step 2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.6.0/examples/mongodbatlas_organization/organization-step-2)
-- [Organization import](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.6.0/examples/mongodbatlas_organization/organization-import)
+- [Organization setup - step 1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_organization/organization-step-1)
+- [Organization setup - step 2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_organization/organization-step-2)
+- [Organization import](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_organization/organization-import)
 
 ## Argument Reference
 
