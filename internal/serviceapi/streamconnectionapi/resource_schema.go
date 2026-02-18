@@ -118,7 +118,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"type": schema.StringAttribute{
 						Required:            true,
-						MarkdownDescription: "Type of the DB role. Can be either BuiltIn or Custom.",
+						MarkdownDescription: "Type of the DB role. Can be either Built In or Custom.",
 					},
 				},
 			},
@@ -149,19 +149,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Attributes: map[string]schema.Attribute{
 							"connection_id": schema.StringAttribute{
 								Optional:            true,
-								MarkdownDescription: "Reserved. Will be used by PRIVATE_LINK connection type.",
+								MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type.",
 							},
 							"connection_name": schema.StringAttribute{
 								Optional:            true,
-								MarkdownDescription: "Reserved. Will be used by PRIVATE_LINK connection type.",
+								MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type.",
 							},
 							"tgw_route_id": schema.StringAttribute{
 								Optional:            true,
-								MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
+								MarkdownDescription: "Reserved. Will be used by `TRANSIT_GATEWAY` connection type.",
 							},
 							"type": schema.StringAttribute{
 								Required:            true,
-								MarkdownDescription: "Selected networking type. Either PUBLIC, VPC, PRIVATE_LINK, or TRANSIT_GATEWAY. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. TRANSIT_GATEWAY support is coming soon.",
+								MarkdownDescription: "Selected networking type. Either `PUBLIC`, `VPC`, `PRIVATE_LINK`, or `TRANSIT_GATEWAY`. Defaults to `PUBLIC`. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. `TRANSIT_GATEWAY` support is coming soon.",
 							},
 						},
 					},
@@ -170,6 +170,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"schema_registry_provider": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The Schema Registry provider.",
+			},
+			"region": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The connection's region.",
 			},
 			"schema_registry_authentication": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -208,7 +212,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"protocol": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "Describes the transport type. Can be either SASL_PLAINTEXT, SASL_SSL, or SSL.",
+						MarkdownDescription: "Describes the transport type. Can be either `SASL_PLAINTEXT`, `SASL_SSL`, or `SSL`.",
 					},
 				},
 			},
@@ -227,7 +231,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"url": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The url to be used for the request.",
+				MarkdownDescription: "The URL to be used for the request.",
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed:            true,
@@ -249,7 +253,7 @@ type TFModel struct {
 	Config                       customtypes.MapValue[types.String]                           `tfsdk:"config"`
 	Headers                      customtypes.MapValue[types.String]                           `tfsdk:"headers"`
 	Networking                   customtypes.ObjectValue[TFNetworkingModel]                   `tfsdk:"networking"`
-	SchemaRegistryAuthentication customtypes.ObjectValue[TFSchemaRegistryAuthenticationModel] `tfsdk:"schema_registry_authentication"`
+	Region                       types.String                                                 `tfsdk:"region" autogen:"omitjson"`
 	ClusterProjectId             types.String                                                 `tfsdk:"cluster_project_id" apiname:"clusterGroupId"`
 	DbRoleToExecute              customtypes.ObjectValue[TFDbRoleToExecuteModel]              `tfsdk:"db_role_to_execute"`
 	ProjectId                    types.String                                                 `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
@@ -258,6 +262,7 @@ type TFModel struct {
 	Authentication               customtypes.ObjectValue[TFAuthenticationModel]               `tfsdk:"authentication"`
 	SchemaRegistryProvider       types.String                                                 `tfsdk:"schema_registry_provider" apiname:"provider"`
 	ClusterName                  types.String                                                 `tfsdk:"cluster_name"`
+	SchemaRegistryAuthentication customtypes.ObjectValue[TFSchemaRegistryAuthenticationModel] `tfsdk:"schema_registry_authentication"`
 	Aws                          customtypes.ObjectValue[TFAwsModel]                          `tfsdk:"aws"`
 	Security                     customtypes.ObjectValue[TFSecurityModel]                     `tfsdk:"security"`
 	State                        types.String                                                 `tfsdk:"state" autogen:"omitjson"`
