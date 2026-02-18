@@ -16,7 +16,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 		Attributes: map[string]dsschema.Attribute{
 			"integration_type": dsschema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Optional filter by integration type (e.g., 'S3_LOG_EXPORT').",
+				MarkdownDescription: "Optional filter by integration type (e.g., `S3_LOG_EXPORT`).",
 			},
 			"project_id": dsschema.StringAttribute{
 				Required:            true,
@@ -46,7 +46,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 						},
 						"log_types": dsschema.SetAttribute{
 							Computed:            true,
-							MarkdownDescription: "Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.",
+							MarkdownDescription: "Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.",
 							CustomType:          customtypes.NewSetType[types.String](ctx),
 							ElementType:         types.StringType,
 						},
