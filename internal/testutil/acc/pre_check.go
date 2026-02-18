@@ -173,6 +173,18 @@ func PreCheckPeeringEnvAWS(tb testing.TB) {
 	PreCheckBasic(tb)
 }
 
+func PreCheckLogIntegrationEnvAzure(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("AZURE_CLIENT_ID") == "" ||
+		os.Getenv("AZURE_APP_SECRET") == "" ||
+		os.Getenv("AZURE_TENANT_ID") == "" ||
+		os.Getenv("AZURE_SUBSCRIPTION_ID") == "" ||
+		os.Getenv("AZURE_ATLAS_APP_ID") == "" ||
+		os.Getenv("AZURE_SERVICE_PRINCIPAL_ID") == "" {
+		tb.Fatal(`'AZURE_CLIENT_ID', 'AZURE_APP_SECRET', 'AZURE_TENANT_ID', 'AZURE_SUBSCRIPTION_ID', 'AZURE_ATLAS_APP_ID' and 'AZURE_SERVICE_PRINCIPAL_ID' must be set for acceptance testing`)
+	}
+}
+
 func PreCheckPeeringEnvAzure(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("AZURE_DIRECTORY_ID") == "" ||
