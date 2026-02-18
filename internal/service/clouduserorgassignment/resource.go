@@ -109,7 +109,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from OrgID(%s):", userErrorDisplay, orgID), err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from OrgID(%s)", userErrorDisplay, orgID), err.Error())
 		return
 	}
 
