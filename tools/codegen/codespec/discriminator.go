@@ -9,10 +9,10 @@ import (
 	"github.com/pb33f/libopenapi/orderedmap"
 )
 
-// NewAttributeName creates an AttributeName from a camelCase API property name,
+// NewDiscriminatorAttrName creates a DiscriminatorAttrName from a camelCase API property name,
 // deriving the TF schema name via snake_case conversion.
-func NewAttributeName(apiName string) AttributeName {
-	return AttributeName{
+func NewDiscriminatorAttrName(apiName string) DiscriminatorAttrName {
+	return DiscriminatorAttrName{
 		APIName:      apiName,
 		TFSchemaName: stringcase.ToSnakeCase(apiName),
 	}
@@ -38,18 +38,18 @@ func extractDiscriminator(schema *APISpecSchema) *Discriminator {
 		return nil
 	}
 
-	propertyName := NewAttributeName(xGenDisc.PropertyName)
+	propertyName := NewDiscriminatorAttrName(xGenDisc.PropertyName)
 
 	mapping := make(map[string]DiscriminatorType, len(xGenDisc.Mapping))
 	for discriminatorValue, variantType := range xGenDisc.Mapping {
-		var allowed []AttributeName
-		var required []AttributeName
+		var allowed []DiscriminatorAttrName
+		var required []DiscriminatorAttrName
 
 		for _, prop := range variantType.Properties {
 			if prop == xGenDisc.PropertyName {
 				continue
 			}
-			allowed = append(allowed, NewAttributeName(prop))
+			allowed = append(allowed, NewDiscriminatorAttrName(prop))
 		}
 
 		for _, prop := range variantType.Required {
@@ -59,11 +59,11 @@ func extractDiscriminator(schema *APISpecSchema) *Discriminator {
 			if isReadOnlyProperty(schema, prop) {
 				continue
 			}
-			required = append(required, NewAttributeName(prop))
+			required = append(required, NewDiscriminatorAttrName(prop))
 		}
 
-		sortAttributeNames(allowed)
-		sortAttributeNames(required)
+		sortDiscriminatorAttrNames(allowed)
+		sortDiscriminatorAttrNames(required)
 
 		mapping[discriminatorValue] = DiscriminatorType{
 			Allowed:  allowed,
@@ -113,11 +113,11 @@ func MergeDiscriminators(existing, incoming *Discriminator, incomingIsFromRespon
 
 	for key, incomingVariant := range incoming.Mapping {
 		if existingVariant, found := merged.Mapping[key]; found {
-			mergedAllowed := unionAttributeNames(existingVariant.Allowed, incomingVariant.Allowed)
+			mergedAllowed := unionDiscriminatorAttrNames(existingVariant.Allowed, incomingVariant.Allowed)
 
 			mergedRequired := existingVariant.Required
 			if !incomingIsFromResponse {
-				mergedRequired = unionAttributeNames(existingVariant.Required, incomingVariant.Required)
+				mergedRequired = unionDiscriminatorAttrNames(existingVariant.Required, incomingVariant.Required)
 			}
 
 			merged.Mapping[key] = DiscriminatorType{
@@ -184,24 +184,24 @@ func AllVariantsEmpty(mapping map[string]DiscriminatorType) bool {
 	return true
 }
 
-// unionAttributeNames returns the sorted union of two AttributeName slices, deduplicating by APIName.
-func unionAttributeNames(a, b []AttributeName) []AttributeName {
-	seen := make(map[string]AttributeName, len(a)+len(b))
+// unionDiscriminatorAttrNames returns the sorted union of two DiscriminatorAttrName slices, deduplicating by APIName.
+func unionDiscriminatorAttrNames(a, b []DiscriminatorAttrName) []DiscriminatorAttrName {
+	seen := make(map[string]DiscriminatorAttrName, len(a)+len(b))
 	for _, n := range a {
 		seen[n.APIName] = n
 	}
 	for _, n := range b {
 		seen[n.APIName] = n
 	}
-	result := make([]AttributeName, 0, len(seen))
+	result := make([]DiscriminatorAttrName, 0, len(seen))
 	for _, n := range seen {
 		result = append(result, n)
 	}
-	sortAttributeNames(result)
+	sortDiscriminatorAttrNames(result)
 	return result
 }
 
-func sortAttributeNames(names []AttributeName) {
+func sortDiscriminatorAttrNames(names []DiscriminatorAttrName) {
 	sort.Slice(names, func(i, j int) bool {
 		return names[i].TFSchemaName < names[j].TFSchemaName
 	})

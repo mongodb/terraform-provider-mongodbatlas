@@ -426,23 +426,23 @@ func applyAliasesToNestedDiscriminators(attributes Attributes, aliases map[strin
 }
 
 // applyAliasesToDiscriminator reconciles discriminator property names and variant attribute names
-// when aliases have been applied. It looks up each AttributeName.APIName in the aliases map
+// when aliases have been applied. It looks up each DiscriminatorAttrName.APIName in the aliases map
 // and updates the corresponding TFSchemaName when a match is found.
 func applyAliasesToDiscriminator(disc *Discriminator, aliases map[string]string, parentAPIPath string) {
 	if disc == nil || len(aliases) == 0 {
 		return
 	}
 
-	applyAliasToAttributeName(&disc.PropertyName, aliases, parentAPIPath)
+	applyAliasToDiscriminatorAttrName(&disc.PropertyName, aliases, parentAPIPath)
 
 	for key, variant := range disc.Mapping {
-		applyAliasToAttributeNames(variant.Allowed, aliases, parentAPIPath)
-		applyAliasToAttributeNames(variant.Required, aliases, parentAPIPath)
+		applyAliasToDiscriminatorAttrNames(variant.Allowed, aliases, parentAPIPath)
+		applyAliasToDiscriminatorAttrNames(variant.Required, aliases, parentAPIPath)
 		disc.Mapping[key] = variant
 	}
 }
 
-func applyAliasToAttributeName(name *AttributeName, aliases map[string]string, parentAPIPath string) {
+func applyAliasToDiscriminatorAttrName(name *DiscriminatorAttrName, aliases map[string]string, parentAPIPath string) {
 	fullPath := name.APIName
 	if parentAPIPath != "" {
 		fullPath = parentAPIPath + "." + name.APIName
@@ -452,11 +452,11 @@ func applyAliasToAttributeName(name *AttributeName, aliases map[string]string, p
 	}
 }
 
-func applyAliasToAttributeNames(names []AttributeName, aliases map[string]string, parentAPIPath string) {
+func applyAliasToDiscriminatorAttrNames(names []DiscriminatorAttrName, aliases map[string]string, parentAPIPath string) {
 	for i := range names {
-		applyAliasToAttributeName(&names[i], aliases, parentAPIPath)
+		applyAliasToDiscriminatorAttrName(&names[i], aliases, parentAPIPath)
 	}
-	sortAttributeNames(names)
+	sortDiscriminatorAttrNames(names)
 }
 
 // tagsAndLabelsAsMapTypeTransformation transforms attributes that represent collections of key/value pairs (tags and labels) from a nested list of objects into a Map type.
