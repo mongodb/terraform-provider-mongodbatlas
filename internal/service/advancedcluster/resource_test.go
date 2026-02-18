@@ -36,7 +36,6 @@ const (
 		depends_on = [mongodbatlas_advanced_cluster.test]
 	}`
 	freeInstanceSize            = "M0"
-	sharedInstanceSize          = "M2"
 	errDefaultMaxTimeMinVersion = "`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"
 )
 
@@ -2981,4 +2980,66 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 
 func isOptionalTrue(arg ...bool) bool {
 	return len(arg) > 0 && arg[0]
+}
+
+func TestAccAdvancedCluster_useAwsTimeBasedSnapshotCopy(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configUseAwsTimeBasedSnapshotCopy(projectID, clusterName, true, "AWS", "US_EAST_1"),
+				Check:  checkUseAwsTimeBasedSnapshotCopy(true),
+			},
+			{
+				Config: configUseAwsTimeBasedSnapshotCopy(projectID, clusterName, false, "AWS", "US_EAST_1"),
+				Check:  checkUseAwsTimeBasedSnapshotCopy(false),
+			},
+			{
+				Config: configUseAwsTimeBasedSnapshotCopy(projectID, clusterName, true, "AWS", "US_EAST_1"),
+				Check:  checkUseAwsTimeBasedSnapshotCopy(true),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
+func configUseAwsTimeBasedSnapshotCopy(projectID, name string, value bool, providerName, regionName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id = %[1]q
+			name = %[2]q
+			cluster_type = "REPLICASET"
+			use_aws_time_based_snapshot_copy_for_fast_initial_sync = %[3]t
+
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+						disk_size_gb  = 10
+					}
+					provider_name = %[4]q
+					priority      = 7
+					region_name   = %[5]q
+				}]
+			}]
+		}
+	`, projectID, name, value, providerName, regionName) + dataSourcesConfig
+}
+
+func checkUseAwsTimeBasedSnapshotCopy(value bool) resource.TestCheckFunc {
+	attrName := "use_aws_time_based_snapshot_copy_for_fast_initial_sync"
+	valueStr := strconv.FormatBool(value)
+	return resource.ComposeAggregateTestCheckFunc(
+		acc.CheckExistsCluster(resourceName),
+		resource.TestCheckResourceAttr(resourceName, attrName, valueStr),
+		resource.TestCheckResourceAttr(dataSourceName, attrName, valueStr),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0."+attrName),
+	)
 }
