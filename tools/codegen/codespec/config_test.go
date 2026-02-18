@@ -461,15 +461,15 @@ func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *test
 			inputResource: &codespec.Resource{
 				Schema: &codespec.Schema{
 					Discriminator: &codespec.Discriminator{
-						PropertyName: "type_field",
+						PropertyName: codespec.NewAttributeName("typeField"),
 						Mapping: map[string]codespec.DiscriminatorType{
 							"VariantA": {
-								Allowed:  []string{"type_field", "variant_a_attr"},
-								Required: []string{"type_field"},
+								Allowed:  []codespec.AttributeName{codespec.NewAttributeName("typeField"), codespec.NewAttributeName("variantAAttr")},
+								Required: []codespec.AttributeName{codespec.NewAttributeName("typeField")},
 							},
 							"VariantB": {
-								Allowed:  []string{"type_field", "variant_b_attr"},
-								Required: []string{"type_field"},
+								Allowed:  []codespec.AttributeName{codespec.NewAttributeName("typeField"), codespec.NewAttributeName("variantBAttr")},
+								Required: []codespec.AttributeName{codespec.NewAttributeName("typeField")},
 							},
 						},
 					},
@@ -516,15 +516,15 @@ func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *test
 				},
 			},
 			expectedDiscrim: &codespec.Discriminator{
-				PropertyName: "kind",
+				PropertyName: codespec.AttributeName{APIName: "typeField", TFSchemaName: "kind"},
 				Mapping: map[string]codespec.DiscriminatorType{
 					"VariantA": {
-						Allowed:  []string{"kind", "variant_a_attr"},
-						Required: []string{"kind"},
+						Allowed:  []codespec.AttributeName{{APIName: "typeField", TFSchemaName: "kind"}, {APIName: "variantAAttr", TFSchemaName: "variant_a_attr"}},
+						Required: []codespec.AttributeName{{APIName: "typeField", TFSchemaName: "kind"}},
 					},
 					"VariantB": {
-						Allowed:  []string{"kind", "variant_b_attr"},
-						Required: []string{"kind"},
+						Allowed:  []codespec.AttributeName{{APIName: "typeField", TFSchemaName: "kind"}, {APIName: "variantBAttr", TFSchemaName: "variant_b_attr"}},
+						Required: []codespec.AttributeName{{APIName: "typeField", TFSchemaName: "kind"}},
 					},
 				},
 			},
@@ -548,11 +548,11 @@ func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *test
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Discriminator: &codespec.Discriminator{
-										PropertyName: "inner_type",
+										PropertyName: codespec.NewAttributeName("innerType"),
 										Mapping: map[string]codespec.DiscriminatorType{
 											"TypeA": {
-												Allowed:  []string{"inner_type", "attr_a"},
-												Required: []string{"inner_type"},
+												Allowed:  []codespec.AttributeName{codespec.NewAttributeName("attrA"), codespec.NewAttributeName("innerType")},
+												Required: []codespec.AttributeName{codespec.NewAttributeName("innerType")},
 											},
 										},
 									},
@@ -594,11 +594,11 @@ func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *test
 					SingleNested: &codespec.SingleNestedAttribute{
 						NestedObject: codespec.NestedAttributeObject{
 							Discriminator: &codespec.Discriminator{
-								PropertyName: "inner_kind",
+								PropertyName: codespec.AttributeName{APIName: "innerType", TFSchemaName: "inner_kind"},
 								Mapping: map[string]codespec.DiscriminatorType{
 									"TypeA": {
-										Allowed:  []string{"attr_a", "inner_kind"},
-										Required: []string{"inner_kind"},
+										Allowed:  []codespec.AttributeName{{APIName: "attrA", TFSchemaName: "attr_a"}, {APIName: "innerType", TFSchemaName: "inner_kind"}},
+										Required: []codespec.AttributeName{{APIName: "innerType", TFSchemaName: "inner_kind"}},
 									},
 								},
 							},
@@ -637,11 +637,11 @@ func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *test
 			inputResource: &codespec.Resource{
 				Schema: &codespec.Schema{
 					Discriminator: &codespec.Discriminator{
-						PropertyName: "type_field",
+						PropertyName: codespec.NewAttributeName("typeField"),
 						Mapping: map[string]codespec.DiscriminatorType{
 							"VariantA": {
-								Allowed:  []string{"type_field", "root_attr"},
-								Required: []string{"type_field"},
+								Allowed:  []codespec.AttributeName{codespec.NewAttributeName("rootAttr"), codespec.NewAttributeName("typeField")},
+								Required: []codespec.AttributeName{codespec.NewAttributeName("typeField")},
 							},
 						},
 					},
@@ -662,11 +662,11 @@ func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *test
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Discriminator: &codespec.Discriminator{
-										PropertyName: "type_field",
+										PropertyName: codespec.NewAttributeName("typeField"),
 										Mapping: map[string]codespec.DiscriminatorType{
 											"InnerA": {
-												Allowed:  []string{"inner_attr", "type_field"},
-												Required: []string{"type_field"},
+												Allowed:  []codespec.AttributeName{codespec.NewAttributeName("innerAttr"), codespec.NewAttributeName("typeField")},
+												Required: []codespec.AttributeName{codespec.NewAttributeName("typeField")},
 											},
 										},
 									},
@@ -700,11 +700,11 @@ func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *test
 				},
 			},
 			expectedDiscrim: &codespec.Discriminator{
-				PropertyName: "kind",
+				PropertyName: codespec.AttributeName{APIName: "typeField", TFSchemaName: "kind"},
 				Mapping: map[string]codespec.DiscriminatorType{
 					"VariantA": {
-						Allowed:  []string{"kind", "root_attr"},
-						Required: []string{"kind"},
+						Allowed:  []codespec.AttributeName{{APIName: "typeField", TFSchemaName: "kind"}, {APIName: "rootAttr", TFSchemaName: "root_attr"}},
+						Required: []codespec.AttributeName{{APIName: "typeField", TFSchemaName: "kind"}},
 					},
 				},
 			},
@@ -726,11 +726,11 @@ func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *test
 						NestedObject: codespec.NestedAttributeObject{
 							Discriminator: &codespec.Discriminator{
 								// NOT renamed - non-dotted alias only applies at root level
-								PropertyName: "type_field",
+								PropertyName: codespec.NewAttributeName("typeField"),
 								Mapping: map[string]codespec.DiscriminatorType{
 									"InnerA": {
-										Allowed:  []string{"inner_attr", "type_field"},
-										Required: []string{"type_field"},
+										Allowed:  []codespec.AttributeName{codespec.NewAttributeName("innerAttr"), codespec.NewAttributeName("typeField")},
+										Required: []codespec.AttributeName{codespec.NewAttributeName("typeField")},
 									},
 								},
 							},

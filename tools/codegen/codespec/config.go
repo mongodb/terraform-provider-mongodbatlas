@@ -2,7 +2,6 @@ package codespec
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
@@ -427,77 +426,44 @@ func applyAliasesToNestedDiscriminators(attributes Attributes, aliases map[strin
 }
 
 // applyAliasesToDiscriminator reconciles discriminator property names and variant attribute names
-// when aliases have been applied. It renames PropertyName and all entries in Allowed/Required lists
-// according to the aliases applicable at this nesting level.
+// when aliases have been applied. It looks up each AttributeName.APIName in the aliases map
+// and updates the corresponding TFSchemaName when a match is found.
 func applyAliasesToDiscriminator(disc *Discriminator, aliases map[string]string, parentAPIPath string) {
 	if disc == nil || len(aliases) == 0 {
 		return
 	}
 
-	// Build a rename map: old_snake -> new_snake for aliases at this nesting level.
-	// Aliases use camelCase API names (e.g., "groupId: projectId" or "nestedObject.innerAttr: renamedAttr").
-	// At root level only non-dotted aliases apply; at nested levels only path-scoped aliases
-	// whose prefix matches parentAPIPath apply (and only for the immediate child, not deeper).
-	renameMap := make(map[string]string)
-	for original, alias := range aliases {
-		var apiName string
-		if parentAPIPath == "" {
-			// At root level, only non-dotted aliases apply
-			if !strings.Contains(original, ".") {
-				apiName = original
-			}
-		} else {
-			// At nested levels, only path-scoped aliases with matching prefix apply
-			prefix := parentAPIPath + "."
-			if strings.HasPrefix(original, prefix) {
-				leafName := strings.TrimPrefix(original, prefix)
-				// Only apply if the leaf targets this exact level (no further dots)
-				if !strings.Contains(leafName, ".") {
-					apiName = leafName
-				}
-			}
-		}
-		if apiName != "" {
-			oldSnake := stringcase.ToSnakeCase(apiName)
-			newSnake := stringcase.ToSnakeCase(alias)
-			if oldSnake != newSnake {
-				renameMap[oldSnake] = newSnake
-			}
-		}
-	}
+	applyAliasToAttributeName(&disc.PropertyName, aliases, parentAPIPath)
 
-	if len(renameMap) == 0 {
-		return
-	}
-
-	// Rename PropertyName if aliased
-	if newName, found := renameMap[disc.PropertyName]; found {
-		disc.PropertyName = newName
-	}
-
-	// Rename entries in Allowed and Required lists
 	for key, variant := range disc.Mapping {
-		variant.Allowed = renameStringSlice(variant.Allowed, renameMap)
-		variant.Required = renameStringSlice(variant.Required, renameMap)
+		applyAliasToAttributeNames(variant.Allowed, aliases, parentAPIPath)
+		applyAliasToAttributeNames(variant.Required, aliases, parentAPIPath)
 		disc.Mapping[key] = variant
 	}
 }
 
-// renameStringSlice applies renames from the map to a string slice, returning a new sorted slice.
-func renameStringSlice(items []string, renameMap map[string]string) []string {
-	if len(items) == 0 {
-		return items
+// resolveAliasAtLevel constructs the full alias key from an API name and the parent path,
+// then performs a direct lookup in the aliases map.
+func resolveAliasAtLevel(apiName string, aliases map[string]string, parentAPIPath string) (string, bool) {
+	fullPath := apiName
+	if parentAPIPath != "" {
+		fullPath = parentAPIPath + "." + apiName
 	}
-	result := make([]string, len(items))
-	for i, item := range items {
-		if newName, found := renameMap[item]; found {
-			result[i] = newName
-		} else {
-			result[i] = item
-		}
+	alias, ok := aliases[fullPath]
+	return alias, ok
+}
+
+func applyAliasToAttributeName(name *AttributeName, aliases map[string]string, parentAPIPath string) {
+	if alias, ok := resolveAliasAtLevel(name.APIName, aliases, parentAPIPath); ok {
+		name.TFSchemaName = stringcase.ToSnakeCase(alias)
 	}
-	sort.Strings(result)
-	return result
+}
+
+func applyAliasToAttributeNames(names []AttributeName, aliases map[string]string, parentAPIPath string) {
+	for i := range names {
+		applyAliasToAttributeName(&names[i], aliases, parentAPIPath)
+	}
+	sortAttributeNames(names)
 }
 
 // tagsAndLabelsAsMapTypeTransformation transforms attributes that represent collections of key/value pairs (tags and labels) from a nested list of objects into a Map type.

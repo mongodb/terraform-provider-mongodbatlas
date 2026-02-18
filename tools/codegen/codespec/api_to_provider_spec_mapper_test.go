@@ -1580,39 +1580,40 @@ func TestConvertToProviderSpec_polymorphicResource(t *testing.T) {
 	// Verify root-level discriminator is populated
 	disc := schema.Discriminator
 	require.NotNil(t, disc, "Root discriminator should be populated")
-	assert.Equal(t, "type", disc.PropertyName, "Discriminator property name should be snake_case")
+	assert.Equal(t, "type", disc.PropertyName.TFSchemaName, "Discriminator property name should be snake_case")
+	assert.Equal(t, "type", disc.PropertyName.APIName, "Discriminator API property name should be preserved")
 
 	// Verify TypeA mapping
 	typeA, ok := disc.Mapping["TypeA"]
 	require.True(t, ok, "TypeA variant should exist in mapping")
 	// type_a_only_attr, type_a_optional_attr, computed_type_a_attr from request
 	// response adds response_only_attr and response_required_attr
-	assert.Contains(t, typeA.Allowed, "type_a_only_attr")
-	assert.Contains(t, typeA.Allowed, "type_a_optional_attr")
-	assert.Contains(t, typeA.Allowed, "computed_type_a_attr")
-	assert.Contains(t, typeA.Allowed, "response_only_attr", "Response-only attribute should be in allowed via merge")
-	assert.Contains(t, typeA.Allowed, "response_required_attr", "Response-only required attribute should be in allowed via merge")
+	assert.Contains(t, typeA.Allowed, codespec.NewAttributeName("typeAOnlyAttr"))
+	assert.Contains(t, typeA.Allowed, codespec.NewAttributeName("typeAOptionalAttr"))
+	assert.Contains(t, typeA.Allowed, codespec.NewAttributeName("computedTypeAAttr"))
+	assert.Contains(t, typeA.Allowed, codespec.NewAttributeName("responseOnlyAttr"), "Response-only attribute should be in allowed via merge")
+	assert.Contains(t, typeA.Allowed, codespec.NewAttributeName("responseRequiredAttr"), "Response-only required attribute should be in allowed via merge")
 	// type is excluded from variant mappings (it's the discriminator property itself)
-	assert.NotContains(t, typeA.Allowed, "type", "Discriminator property itself should be excluded from allowed")
+	assert.NotContains(t, typeA.Allowed, codespec.NewAttributeName("type"), "Discriminator property itself should be excluded from allowed")
 
 	// Required: type_a_only_attr from request; computed_type_a_attr is readOnly so excluded from required.
 	// response_required_attr is required in the response discriminator but response-only properties
 	// should not contribute to required (required is driven by the request discriminator only).
-	assert.Contains(t, typeA.Required, "type_a_only_attr", "Non-readOnly required should be in required")
-	assert.NotContains(t, typeA.Required, "computed_type_a_attr", "ReadOnly required should be excluded from required")
-	assert.NotContains(t, typeA.Required, "response_required_attr", "Response-only required should not appear in merged required")
+	assert.Contains(t, typeA.Required, codespec.NewAttributeName("typeAOnlyAttr"), "Non-readOnly required should be in required")
+	assert.NotContains(t, typeA.Required, codespec.NewAttributeName("computedTypeAAttr"), "ReadOnly required should be excluded from required")
+	assert.NotContains(t, typeA.Required, codespec.NewAttributeName("responseRequiredAttr"), "Response-only required should not appear in merged required")
 
 	// Verify TypeB mapping
 	typeB, ok := disc.Mapping["TypeB"]
 	require.True(t, ok, "TypeB variant should exist in mapping")
-	assert.Contains(t, typeB.Allowed, "type_b_only_attr")
-	assert.NotContains(t, typeB.Allowed, "type", "Discriminator property itself should be excluded from allowed")
-	assert.Contains(t, typeB.Required, "type_b_only_attr")
+	assert.Contains(t, typeB.Allowed, codespec.NewAttributeName("typeBOnlyAttr"))
+	assert.NotContains(t, typeB.Allowed, codespec.NewAttributeName("type"), "Discriminator property itself should be excluded from allowed")
+	assert.Contains(t, typeB.Required, codespec.NewAttributeName("typeBOnlyAttr"))
 
 	// Verify common attributes are NOT in any variant's allowed list
 	// commonAttr is a base property, not type-specific
 	for _, variant := range disc.Mapping {
-		assert.NotContains(t, variant.Allowed, "common_attr", "Common attributes should not appear in variant allowed lists")
+		assert.NotContains(t, variant.Allowed, codespec.NewAttributeName("commonAttr"), "Common attributes should not appear in variant allowed lists")
 	}
 
 	// Verify response-only attributes are present as computed attributes in the schema
@@ -1661,20 +1662,20 @@ func TestConvertToProviderSpec_nestedPolymorphicResource(t *testing.T) {
 	// Verify nested discriminator is populated
 	nestedDisc := nestedPolyAttr.SingleNested.NestedObject.Discriminator
 	require.NotNil(t, nestedDisc, "Nested discriminator should be populated")
-	assert.Equal(t, "type", nestedDisc.PropertyName)
+	assert.Equal(t, codespec.NewAttributeName("type"), nestedDisc.PropertyName)
 
 	// Verify TypeA mapping at nested level
 	typeA, ok := nestedDisc.Mapping["TypeA"]
 	require.True(t, ok, "TypeA variant should exist in nested mapping")
-	assert.Contains(t, typeA.Allowed, "type_a_only_attr")
-	assert.Contains(t, typeA.Allowed, "type_a_optional_attr")
-	assert.Contains(t, typeA.Allowed, "computed_type_a_attr")
-	assert.NotContains(t, typeA.Allowed, "type")
+	assert.Contains(t, typeA.Allowed, codespec.NewAttributeName("typeAOnlyAttr"))
+	assert.Contains(t, typeA.Allowed, codespec.NewAttributeName("typeAOptionalAttr"))
+	assert.Contains(t, typeA.Allowed, codespec.NewAttributeName("computedTypeAAttr"))
+	assert.NotContains(t, typeA.Allowed, codespec.NewAttributeName("type"))
 
 	// Verify TypeB mapping at nested level
 	typeB, ok := nestedDisc.Mapping["TypeB"]
 	require.True(t, ok, "TypeB variant should exist in nested mapping")
-	assert.Contains(t, typeB.Allowed, "type_b_only_attr")
+	assert.Contains(t, typeB.Allowed, codespec.NewAttributeName("typeBOnlyAttr"))
 }
 
 func TestConvertToProviderSpec_ignoreSchemaAndIdAttributes(t *testing.T) {
