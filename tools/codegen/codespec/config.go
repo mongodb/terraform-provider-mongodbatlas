@@ -442,19 +442,12 @@ func applyAliasesToDiscriminator(disc *Discriminator, aliases map[string]string,
 	}
 }
 
-// resolveAliasAtLevel constructs the full alias key from an API name and the parent path,
-// then performs a direct lookup in the aliases map.
-func resolveAliasAtLevel(apiName string, aliases map[string]string, parentAPIPath string) (string, bool) {
-	fullPath := apiName
-	if parentAPIPath != "" {
-		fullPath = parentAPIPath + "." + apiName
-	}
-	alias, ok := aliases[fullPath]
-	return alias, ok
-}
-
 func applyAliasToAttributeName(name *AttributeName, aliases map[string]string, parentAPIPath string) {
-	if alias, ok := resolveAliasAtLevel(name.APIName, aliases, parentAPIPath); ok {
+	fullPath := name.APIName
+	if parentAPIPath != "" {
+		fullPath = parentAPIPath + "." + name.APIName
+	}
+	if alias, ok := aliases[fullPath]; ok {
 		name.TFSchemaName = stringcase.ToSnakeCase(alias)
 	}
 }
