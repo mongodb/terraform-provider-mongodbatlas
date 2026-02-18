@@ -56,10 +56,9 @@ func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSou
 
 func applyAliasToDiscriminator(aliases map[string]string, rootDiscriminator *Discriminator, attributes *Attributes) {
 	applyAliasesToDiscriminator(rootDiscriminator, aliases, "")
-	if attributes == nil {
-		return
+	if attributes != nil {
+		applyAliasesToNestedDiscriminators(*attributes, aliases, "")
 	}
-	applyAliasesToNestedDiscriminators(*attributes, aliases, "")
 }
 
 // applyAliasToPathParams replaces path parameter placeholders with their aliased names in all operation paths.
