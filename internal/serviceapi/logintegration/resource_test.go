@@ -167,7 +167,7 @@ func awsIAMRoleAuthAndS3Config(projectID string, config *s3Config) string {
 		}
 
 		resource "aws_iam_role" "test_role" {
-		    name = %[1]q
+		    name = %[3]q
 		    max_session_duration = 43200
 
 		    assume_role_policy = <<-EOF
@@ -242,7 +242,7 @@ func awsIAMRoleAuthAndS3Config(projectID string, config *s3Config) string {
 				}
 				EOF
 		}
-	`, projectID, config.bucketName, config.iamRoleName, config.iamRolePolicyName, config.bucketName)
+	`, projectID, config.bucketName, config.iamRoleName, config.iamRolePolicyName, config.bucketPolicyName)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
