@@ -498,10 +498,10 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	})
 }
 
-func TestAccStreamRSStreamConnection_instanceName(t *testing.T) {
+func TestAccStreamRSStreamConnection_workspaceName(t *testing.T) {
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		connectionName          = acc.RandomName()
+		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName           = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -510,22 +510,29 @@ func TestAccStreamRSStreamConnection_instanceName(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: configureKafkaWithInstanceName(projectID, instanceName, connectionName, "user", "password", "localhost:9092"),
+				Config: configureKafka(
+					fmt.Sprintf("%q", projectID),
+					workspaceName,
+					connectionName,
+					getKafkaAuthenticationConfig("PLAIN", "user", "password", "", "", "", "", "", ""),
+					"localhost:9092",
+					"earliest",
+					"",
+					false,
+				),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkStreamConnectionExists(),
-					resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 					resource.TestCheckResourceAttr(resourceName, "type", "Kafka"),
-					resource.TestCheckNoResourceAttr(resourceName, "workspace_name"),
+					resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName),
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-				// When the new resource is imported, it will contain workspace_name instead of instance_name. This is expected so we will ignore it
-				ImportStateVerifyIgnore: []string{"authentication.password", "instance_name", "workspace_name"},
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"authentication.password"},
 			},
 		},
 	})
@@ -772,30 +779,6 @@ func configureSampleStream(projectID, workspaceName, sampleName string) string {
 		 	type = "Sample"
 		}
 	`, streamInstanceConfig, sampleName)
-}
-
-// configureKafkaWithInstanceName tests that the deprecated isntance_name field is still functional
-func configureKafkaWithInstanceName(projectID, instanceName, connectionName, username, password, bootstrapServers string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_stream_connection" "test" {
-		    project_id = %[1]q
-			instance_name = %[2]q
-		 	connection_name = %[3]q
-		 	type = "Kafka"
-		 	authentication = {
-		    	mechanism = "PLAIN"
-		    	username = %[4]q
-		    	password = %[5]q
-		    }
-		    bootstrap_servers = %[6]q
-		    config = {
-		    	"auto.offset.reset": "earliest"
-		    }
-		    security = {
-				protocol = "SASL_PLAINTEXT"
-			}
-		}
-	`, projectID, instanceName, connectionName, username, password, bootstrapServers)
 }
 
 func configureKafkaWithInstanceAndWorkspaceName(projectID, instanceName, connectionName, username, password, bootstrapServers string) string {
