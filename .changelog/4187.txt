@@ -5,3 +5,6 @@ resource/mongodbatlas_encryption_at_rest: Supports `role_id` in `azure_key_vault
 ```release-note:enhancement
 data-source/mongodbatlas_encryption_at_rest: Supports `role_id` in `azure_key_vault_config`
 ```
+```release-note:new-guide
+Migration Guide: Encryption at Rest (Azure) Client Credentials to Role-based Auth
+```
