@@ -19,7 +19,7 @@ const (
 // It splits the request ID string by "/" delimiter and maps each part to the corresponding attribute specified in idAttributes.
 // If a resource implements PreImportHook, the ID is normalized first.
 // Example usage:
-//   - HandleImport(ctx, []string{"project_id", "name"}, req, resp)
+//   - HandleImport(ctx, []string{"project_id", "name"}, req, resp, r)
 //   - example import ID would be "5c9d0a239ccf643e6a35ddasdf/myCluster"
 func HandleImport(ctx context.Context, idAttrs []string, req resource.ImportStateRequest, resp *resource.ImportStateResponse, hook any) {
 	d := &resp.Diagnostics
