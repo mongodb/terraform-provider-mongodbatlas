@@ -668,35 +668,59 @@ schema:
                                 mapping:
                                     AWS:
                                         allowed:
-                                            - analytics_auto_scaling
-                                            - analytics_specs
-                                            - auto_scaling
-                                            - effective_analytics_specs
-                                            - effective_electable_specs
-                                            - effective_read_only_specs
-                                            - read_only_specs
+                                            - api_name: analyticsAutoScaling
+                                              tf_schema_name: analytics_auto_scaling
+                                            - api_name: analyticsSpecs
+                                              tf_schema_name: analytics_specs
+                                            - api_name: autoScaling
+                                              tf_schema_name: auto_scaling
+                                            - api_name: effectiveAnalyticsSpecs
+                                              tf_schema_name: effective_analytics_specs
+                                            - api_name: effectiveElectableSpecs
+                                              tf_schema_name: effective_electable_specs
+                                            - api_name: effectiveReadOnlySpecs
+                                              tf_schema_name: effective_read_only_specs
+                                            - api_name: readOnlySpecs
+                                              tf_schema_name: read_only_specs
                                     AZURE:
                                         allowed:
-                                            - analytics_auto_scaling
-                                            - analytics_specs
-                                            - auto_scaling
-                                            - effective_analytics_specs
-                                            - effective_electable_specs
-                                            - effective_read_only_specs
-                                            - read_only_specs
+                                            - api_name: analyticsAutoScaling
+                                              tf_schema_name: analytics_auto_scaling
+                                            - api_name: analyticsSpecs
+                                              tf_schema_name: analytics_specs
+                                            - api_name: autoScaling
+                                              tf_schema_name: auto_scaling
+                                            - api_name: effectiveAnalyticsSpecs
+                                              tf_schema_name: effective_analytics_specs
+                                            - api_name: effectiveElectableSpecs
+                                              tf_schema_name: effective_electable_specs
+                                            - api_name: effectiveReadOnlySpecs
+                                              tf_schema_name: effective_read_only_specs
+                                            - api_name: readOnlySpecs
+                                              tf_schema_name: read_only_specs
                                     GCP:
                                         allowed:
-                                            - analytics_auto_scaling
-                                            - analytics_specs
-                                            - auto_scaling
-                                            - effective_analytics_specs
-                                            - effective_electable_specs
-                                            - effective_read_only_specs
-                                            - read_only_specs
+                                            - api_name: analyticsAutoScaling
+                                              tf_schema_name: analytics_auto_scaling
+                                            - api_name: analyticsSpecs
+                                              tf_schema_name: analytics_specs
+                                            - api_name: autoScaling
+                                              tf_schema_name: auto_scaling
+                                            - api_name: effectiveAnalyticsSpecs
+                                              tf_schema_name: effective_analytics_specs
+                                            - api_name: effectiveElectableSpecs
+                                              tf_schema_name: effective_electable_specs
+                                            - api_name: effectiveReadOnlySpecs
+                                              tf_schema_name: effective_read_only_specs
+                                            - api_name: readOnlySpecs
+                                              tf_schema_name: read_only_specs
                                     TENANT:
                                         allowed:
-                                            - backing_provider_name
-                                property_name: provider_name
+                                            - api_name: backingProviderName
+                                              tf_schema_name: backing_provider_name
+                                property_name:
+                                    api_name: providerName
+                                    tf_schema_name: provider_name
                             attributes:
                                 - single_nested:
                                     nested_object:

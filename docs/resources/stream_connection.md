@@ -24,7 +24,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```
 
 ### Further Examples
-- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.6.0/examples/mongodbatlas_stream_connection)
+- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_stream_connection)
 
 ### Example Cross Project Cluster Connection
 

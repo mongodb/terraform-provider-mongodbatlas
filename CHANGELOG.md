@@ -1,5 +1,13 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_advanced_cluster: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
+* data-source/mongodbatlas_advanced_clusters: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
+* resource/mongodbatlas_advanced_cluster: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
+
+## 2.7.0 (February 18, 2026)
+
 FEATURES:
 
 * **New Guide:** Migration Guide: GCP Private Service Connect to Port-Mapped Architecture ([#4103](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4103))
