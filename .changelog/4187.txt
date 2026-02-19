@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/mongodbatlas_encryption_at_rest: Supports `role_id` in `azure_key_vault_config`
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_encryption_at_rest: Supports `role_id` in `azure_key_vault_config`
+```
