@@ -149,6 +149,8 @@ func TestValidateDiscriminator(t *testing.T) {
 			expectErrors:   1,
 			expectInDetail: []string{`"aws_specific" must be set when type is "AWS"`},
 		},
+		// Unknown values in config mean the practitioner set the attribute to an expression whose value is not yet resolved.
+		// Unset Optional+Computed attributes are null (not unknown) during validation, they only become unknown later during PlanResourceChange.
 		{
 			name:        "unrelated sibling with unknown value emits no diagnostics",
 			def:         def,
@@ -170,7 +172,7 @@ func TestValidateDiscriminator(t *testing.T) {
 			expectErrors: 0,
 		},
 		{
-			name:        "unknown disallowed sibling skips not-allowed check",
+			name:        "unknown disallowed sibling emits not-allowed diagnostic",
 			def:         def,
 			configValue: types.StringValue("AWS"),
 			configPath:  path.Root("type"),
@@ -179,10 +181,11 @@ func TestValidateDiscriminator(t *testing.T) {
 				"aws_specific":   tftypes.NewValue(tftypes.String, "arn:aws:iam::role"),
 				"azure_specific": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 			}),
-			expectErrors: 0,
+			expectErrors:   1,
+			expectInDetail: []string{`"azure_specific" is not allowed when type is "AWS"`},
 		},
 		{
-			name:        "unknown required sibling emits must-be-set diagnostic",
+			name:        "unknown required sibling is accepted as set by user",
 			def:         def,
 			configValue: types.StringValue("AWS"),
 			configPath:  path.Root("type"),
@@ -191,8 +194,7 @@ func TestValidateDiscriminator(t *testing.T) {
 				"aws_specific":   tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
 				"azure_specific": tftypes.NewValue(tftypes.String, nil),
 			}),
-			expectErrors:   1,
-			expectInDetail: []string{`"aws_specific" must be set when type is "AWS"`},
+			expectErrors: 0,
 		},
 		{
 			name:        "both required missing and disallowed present emit multiple diagnostics",

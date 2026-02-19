@@ -21,11 +21,12 @@ type DiscriminatorDefinition struct {
 	Mapping map[string]VariantDefinition
 }
 
-// ValidateDiscriminator returns a plan-phase string validator that checks sibling
+// ValidateDiscriminator returns a config-phase string validator that checks sibling
 // attribute presence/absence based on the active discriminator value.
 //   - If the discriminator value is unknown, null, or not found in Mapping all checks are skipped.
-//   - Required attributes for the active variant must be non-null.
+//   - Required attributes for the active variant must be non-null (unknown is accepted as "set").
 //   - Type-specific attributes from other variants must be null.
+//   - Note: Unset Optional+Computed attributes are null in the config, they only become unknown later duringPlanResourceChange
 func ValidateDiscriminator(def DiscriminatorDefinition) schemavalidator.String {
 	return discriminatorValidator{def: def}
 }
@@ -61,7 +62,7 @@ func (v discriminatorValidator) ValidateString(_ context.Context, req schemavali
 
 	for _, name := range variant.Required {
 		siblingPath := parentPath.AtName(name)
-		if isNullOrUnknownInConfig(req.Config, siblingPath) {
+		if isNullInConfig(req.Config, siblingPath) {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
 				"Missing Required Attribute",
@@ -75,7 +76,7 @@ func (v discriminatorValidator) ValidateString(_ context.Context, req schemavali
 			continue
 		}
 		siblingPath := parentPath.AtName(name)
-		if !isNullOrUnknownInConfig(req.Config, siblingPath) {
+		if !isNullInConfig(req.Config, siblingPath) {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
 				"Invalid Attribute Combination",
@@ -114,17 +115,22 @@ func lastPathStepName(p path.Path) string {
 	return ""
 }
 
-func isNullOrUnknownInConfig(config tfsdk.Config, attrPath path.Path) bool {
-	tfPath := pathToTFTypesPath(attrPath)
-	rawVal, remaining, err := tftypes.WalkAttributePath(config.Raw, tfPath)
-	if err != nil || len(remaining.Steps()) > 0 {
-		return true
-	}
-	val, ok := rawVal.(tftypes.Value)
+func isNullInConfig(config tfsdk.Config, attrPath path.Path) bool {
+	val, ok := resolveConfigValue(config, attrPath)
 	if !ok {
 		return true
 	}
-	return val.IsNull() || !val.IsKnown()
+	return val.IsNull()
+}
+
+func resolveConfigValue(config tfsdk.Config, attrPath path.Path) (tftypes.Value, bool) {
+	tfPath := pathToTFTypesPath(attrPath)
+	rawVal, remaining, err := tftypes.WalkAttributePath(config.Raw, tfPath)
+	if err != nil || len(remaining.Steps()) > 0 {
+		return tftypes.Value{}, false
+	}
+	val, ok := rawVal.(tftypes.Value)
+	return val, ok
 }
 
 func pathToTFTypesPath(p path.Path) *tftypes.AttributePath {
