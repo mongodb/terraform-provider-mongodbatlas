@@ -658,6 +658,7 @@ type TFModel struct {
 type TFModelDS struct {
 	Labels                                        types.Map    `tfsdk:"labels"`
 	ReplicationSpecs                              types.List   `tfsdk:"replication_specs"`
+	EffectiveReplicationSpecs                     types.List   `tfsdk:"effective_replication_specs"`
 	Tags                                          types.Map    `tfsdk:"tags"`
 	ReplicaSetScalingStrategy                     types.String `tfsdk:"replica_set_scaling_strategy"`
 	Name                                          types.String `tfsdk:"name"`

@@ -93,9 +93,9 @@ func newTFModelDS(ctx context.Context, input *admin.ClusterDescription20240805, 
 		RootCertType:                     types.StringPointerValue(input.RootCertType),
 		StateName:                        types.StringPointerValue(input.StateName),
 		Tags:                             tags,
-		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
-		UseAwsTimeBasedSnapshotCopyForFastInitialSync: types.BoolValue(conversion.SafeValue(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync)),
-		VersionReleaseSystem:                          types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
+		TerminationProtectionEnabled:     types.BoolPointerValue(input.TerminationProtectionEnabled),
+		UseAwsTimeBasedSnapshotCopyForFastInitialSync: types.BoolPointerValue(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync),
+		VersionReleaseSystem:                          types.StringPointerValue(input.VersionReleaseSystem),
 		PinnedFCV:                                     pinnedFCV,
 	}
 }
