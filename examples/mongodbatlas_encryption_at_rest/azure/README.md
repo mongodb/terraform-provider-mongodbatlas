@@ -22,7 +22,7 @@ Note: It is possible to configure Atlas Encryption at Rest to communicate with A
     - `azure_key_identifier`: Web address with a unique key that identifies for your Azure Key Vault
     - `azure_role_id`: Azure ID that identifies the Azure Service Principal that Atlas uses to access the Azure Key Vault.
 
-**NOTE**: The Azure application (associated to `azure_role_id`) must have the following permissions associated to the Azure Key Vault (`azure_key_vault_name`):
+**NOTE**: The Atlas-managed Azure service principal associated with this Cloud Provider Access role (`azure_role_id`) must have the following permissions associated to the Azure Key Vault (`azure_key_vault_name`):
     - GET (Key Management Operation), ENCRYPT (Cryptographic Operation) and DECRYPT (Cryptographic Operation) policy permissions.
     - A `Key Vault Reader` role.
 
