@@ -1,5 +1,13 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_advanced_cluster: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
+* data-source/mongodbatlas_advanced_clusters: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
+* resource/mongodbatlas_advanced_cluster: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
+
+## 2.7.0 (February 18, 2026)
+
 FEATURES:
 
 * **New Guide:** Migration Guide: GCP Private Service Connect to Port-Mapped Architecture ([#4103](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4103))
@@ -8,6 +16,9 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_privatelink_endpoint: Adds `port_mapping_enabled` attribute to enable the new port-mapped architecture for GCP Private Service Connect ([#4017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4017))
 * data-source/mongodbatlas_privatelink_endpoint_service: Adds `port_mapping_enabled` attribute to enable the new port-mapped architecture for GCP Private Service Connect ([#4017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4017))
+* resource/mongodbatlas_organization: Adds `service_account.client_id` computed attribute with the Service Account Client ID ([#4150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4150))
+* resource/mongodbatlas_organization: Adds `service_account.secrets` computed attribute with the Service Account secrets list ([#4150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4150))
+* resource/mongodbatlas_organization: Adds optional `service_account` block to create a Service Account instead of a Programmatic API Key on organization creation ([#4150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4150))
 * resource/mongodbatlas_privatelink_endpoint: Adds `port_mapping_enabled` attribute to enable the new port-mapped architecture for GCP Private Service Connect ([#4017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4017))
 * resource/mongodbatlas_privatelink_endpoint_service: Adds `port_mapping_enabled` attribute to enable the new port-mapped architecture for GCP Private Service Connect ([#4017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4017))
 * resource/mongodbatlas_stream_connection: Adds connection state polling to improve reliability of create and update operations ([#4122](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4122))

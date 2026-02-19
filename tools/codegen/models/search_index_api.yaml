@@ -1,5 +1,18 @@
 schema:
     description: Creates one Atlas Search index on the specified collection. Atlas Search indexes define the fields on which to create the index and the analyzers to use when creating the index. Only clusters running MongoDB v4.2 or later can use Atlas Search. To use this resource, the requesting Service Account or API Key must have the Project Data Access Admin role.
+    discriminator:
+        mapping:
+            search:
+                allowed:
+                    - api_name: synonymMappingStatus
+                      tf_schema_name: synonym_mapping_status
+                    - api_name: synonymMappingStatusDetail
+                      tf_schema_name: synonym_mapping_status_detail
+            vectorSearch:
+                allowed: []
+        property_name:
+            api_name: type
+            tf_schema_name: type
     attributes:
         - string: {}
           description: Name of the cluster that contains the collection on which to create an Atlas Search index.

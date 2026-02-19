@@ -1509,6 +1509,63 @@ schema:
                       request_only_required_on_create: false
                     - list_nested:
                         nested_object:
+                            discriminator:
+                                mapping:
+                                    AWS:
+                                        allowed:
+                                            - api_name: analyticsAutoScaling
+                                              tf_schema_name: analytics_auto_scaling
+                                            - api_name: analyticsSpecs
+                                              tf_schema_name: analytics_specs
+                                            - api_name: autoScaling
+                                              tf_schema_name: auto_scaling
+                                            - api_name: effectiveAnalyticsSpecs
+                                              tf_schema_name: effective_analytics_specs
+                                            - api_name: effectiveElectableSpecs
+                                              tf_schema_name: effective_electable_specs
+                                            - api_name: effectiveReadOnlySpecs
+                                              tf_schema_name: effective_read_only_specs
+                                            - api_name: readOnlySpecs
+                                              tf_schema_name: read_only_specs
+                                    AZURE:
+                                        allowed:
+                                            - api_name: analyticsAutoScaling
+                                              tf_schema_name: analytics_auto_scaling
+                                            - api_name: analyticsSpecs
+                                              tf_schema_name: analytics_specs
+                                            - api_name: autoScaling
+                                              tf_schema_name: auto_scaling
+                                            - api_name: effectiveAnalyticsSpecs
+                                              tf_schema_name: effective_analytics_specs
+                                            - api_name: effectiveElectableSpecs
+                                              tf_schema_name: effective_electable_specs
+                                            - api_name: effectiveReadOnlySpecs
+                                              tf_schema_name: effective_read_only_specs
+                                            - api_name: readOnlySpecs
+                                              tf_schema_name: read_only_specs
+                                    GCP:
+                                        allowed:
+                                            - api_name: analyticsAutoScaling
+                                              tf_schema_name: analytics_auto_scaling
+                                            - api_name: analyticsSpecs
+                                              tf_schema_name: analytics_specs
+                                            - api_name: autoScaling
+                                              tf_schema_name: auto_scaling
+                                            - api_name: effectiveAnalyticsSpecs
+                                              tf_schema_name: effective_analytics_specs
+                                            - api_name: effectiveElectableSpecs
+                                              tf_schema_name: effective_electable_specs
+                                            - api_name: effectiveReadOnlySpecs
+                                              tf_schema_name: effective_read_only_specs
+                                            - api_name: readOnlySpecs
+                                              tf_schema_name: read_only_specs
+                                    TENANT:
+                                        allowed:
+                                            - api_name: backingProviderName
+                                              tf_schema_name: backing_provider_name
+                                property_name:
+                                    api_name: providerName
+                                    tf_schema_name: provider_name
                             attributes:
                                 - single_nested:
                                     nested_object:

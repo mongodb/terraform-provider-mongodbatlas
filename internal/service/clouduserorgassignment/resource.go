@@ -81,9 +81,11 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	var userResp *admin.OrgUserResponse
 	var httpResp *http.Response
 	var err error
+	var userErrorDisplay string
 
 	if !state.UserId.IsNull() && state.UserId.ValueString() != "" {
 		userID := state.UserId.ValueString()
+		userErrorDisplay = userID
 		userResp, httpResp, err = connV2.MongoDBCloudUsersApi.GetOrgUser(ctx, orgID, userID).Execute()
 		if validate.StatusNotFound(httpResp) {
 			resp.State.RemoveResource(ctx)
@@ -91,22 +93,24 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		}
 	} else if !state.Username.IsNull() && state.Username.ValueString() != "" { // required for import
 		username := state.Username.ValueString()
+		userErrorDisplay = username
 		params := &admin.ListOrgUsersApiParams{
 			OrgId:    orgID,
 			Username: &username,
 		}
-		usersResp, _, err := connV2.MongoDBCloudUsersApi.ListOrgUsersWithParams(ctx, params).Execute()
-		if err == nil && usersResp != nil && usersResp.Results != nil {
-			if len(*usersResp.Results) == 0 {
+		var usersResp *admin.PaginatedOrgUser
+		usersResp, _, err = connV2.MongoDBCloudUsersApi.ListOrgUsersWithParams(ctx, params).Execute()
+		if err == nil {
+			if len(usersResp.GetResults()) == 0 {
 				resp.State.RemoveResource(ctx)
 				return
 			}
-			userResp = &(*usersResp.Results)[0]
+			userResp = &usersResp.GetResults()[0]
 		}
 	}
 
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from OrgID(%s):", userResp.Username, orgID), err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from OrgID(%s)", userErrorDisplay, orgID), err.Error())
 		return
 	}
 

@@ -151,7 +151,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								Optional:            true,
 								MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type.",
 							},
-							"connection_name": schema.StringAttribute{
+							"name": schema.StringAttribute{
 								Optional:            true,
 								MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type.",
 							},
@@ -298,10 +298,10 @@ type TFNetworkingModel struct {
 	Access customtypes.ObjectValue[TFNetworkingAccessModel] `tfsdk:"access"`
 }
 type TFNetworkingAccessModel struct {
-	ConnectionId   types.String `tfsdk:"connection_id"`
-	ConnectionName types.String `tfsdk:"connection_name" apiname:"name"`
-	TgwRouteId     types.String `tfsdk:"tgw_route_id"`
-	Type           types.String `tfsdk:"type"`
+	ConnectionId types.String `tfsdk:"connection_id"`
+	Name         types.String `tfsdk:"name"`
+	TgwRouteId   types.String `tfsdk:"tgw_route_id"`
+	Type         types.String `tfsdk:"type"`
 }
 type TFSchemaRegistryAuthenticationModel struct {
 	Password types.String `tfsdk:"password" autogen:"sensitive"`

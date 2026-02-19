@@ -1285,6 +1285,7 @@ resources:
           groupId: projectId
           alertConfigId: integrationId
           id: integrationId
+          results.id: integrationId 
         overrides:
           project_id:
             description: *project_id_description
