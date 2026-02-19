@@ -104,6 +104,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	resp.Diagnostics.AddWarning("Delete operation is a no-op", "This resource does no perform API calls during the delete operation. Terraform only removes the resource from state.")
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
