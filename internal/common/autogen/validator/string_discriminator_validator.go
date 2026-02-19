@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	schemavalidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // VariantDefinition describes which sibling attributes are allowed and required when a particular discriminator value is active.
@@ -43,7 +43,7 @@ func (v discriminatorValidator) MarkdownDescription(ctx context.Context) string 
 	return v.Description(ctx)
 }
 
-func (v discriminatorValidator) ValidateString(_ context.Context, req schemavalidator.StringRequest, resp *schemavalidator.StringResponse) {
+func (v discriminatorValidator) ValidateString(ctx context.Context, req schemavalidator.StringRequest, resp *schemavalidator.StringResponse) {
 	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
 		return
 	}
@@ -51,18 +51,26 @@ func (v discriminatorValidator) ValidateString(_ context.Context, req schemavali
 	discriminatorValue := req.ConfigValue.ValueString()
 	variant, ok := v.def.Mapping[discriminatorValue]
 	if !ok {
+		tflog.Warn(ctx, "Discriminator validation skipped: no mapping found for discriminator value",
+			map[string]any{"path": req.Path.String(), "value": discriminatorValue})
 		return
 	}
 
-	parentPath := req.Path.ParentPath()
 	discriminatorName := lastPathStepName(req.Path)
+
+	siblingAttrs, ok := parentObjectAttrs(ctx, req.Config.Raw, req.Path)
+	if !ok {
+		tflog.Warn(ctx, "Discriminator validation skipped: unable to resolve parent object attributes",
+			map[string]any{"path": req.Path.String()})
+		return
+	}
 
 	allTypeSpecific := allTypeSpecificAttrs(v.def)
 	activeAllowed := toSet(variant.Allowed)
 
 	for _, name := range variant.Required {
-		siblingPath := parentPath.AtName(name)
-		if isNullInConfig(req.Config, siblingPath) {
+		val, exists := siblingAttrs[name]
+		if !exists || val.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
 				"Missing Required Attribute",
@@ -75,8 +83,8 @@ func (v discriminatorValidator) ValidateString(_ context.Context, req schemavali
 		if activeAllowed[name] {
 			continue
 		}
-		siblingPath := parentPath.AtName(name)
-		if !isNullInConfig(req.Config, siblingPath) {
+		val, exists := siblingAttrs[name]
+		if exists && !val.IsNull() {
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
 				"Invalid Attribute Combination",
@@ -115,35 +123,48 @@ func lastPathStepName(p path.Path) string {
 	return ""
 }
 
-func isNullInConfig(config tfsdk.Config, attrPath path.Path) bool {
-	val, ok := resolveConfigValue(config, attrPath)
-	if !ok {
-		return true
-	}
-	return val.IsNull()
-}
-
-func resolveConfigValue(config tfsdk.Config, attrPath path.Path) (tftypes.Value, bool) {
-	tfPath := pathToTFTypesPath(attrPath)
-	rawVal, remaining, err := tftypes.WalkAttributePath(config.Raw, tfPath)
-	if err != nil || len(remaining.Steps()) > 0 {
-		return tftypes.Value{}, false
-	}
-	val, ok := rawVal.(tftypes.Value)
-	return val, ok
-}
-
-func pathToTFTypesPath(p path.Path) *tftypes.AttributePath {
-	result := tftypes.NewAttributePath()
-	for _, step := range p.Steps() {
-		switch s := step.(type) {
-		case path.PathStepAttributeName:
-			result = result.WithAttributeName(string(s))
-		case path.PathStepElementKeyInt:
-			result = result.WithElementKeyInt(int(s))
-		case path.PathStepElementKeyString:
-			result = result.WithElementKeyString(string(s))
+// parentObjectAttrs walks raw to the parent of attrPath using ApplyTerraform5AttributePathStep
+// and returns the parent object's attributes as a map keyed by attribute name.
+// If any step in the path cannot be resolved, it returns nil, false.
+func parentObjectAttrs(ctx context.Context, raw tftypes.Value, attrPath path.Path) (map[string]tftypes.Value, bool) {
+	current := raw
+	for _, step := range attrPath.ParentPath().Steps() {
+		tfStep, ok := toTFTypesStep(ctx, step)
+		if !ok {
+			return nil, false
 		}
+		rawVal, err := current.ApplyTerraform5AttributePathStep(tfStep)
+		if err != nil {
+			return nil, false
+		}
+		val, ok := rawVal.(tftypes.Value)
+		if !ok {
+			return nil, false
+		}
+		current = val
 	}
-	return result
+	var attrs map[string]tftypes.Value
+	if err := current.As(&attrs); err != nil {
+		return nil, false
+	}
+	return attrs, true
+}
+
+func toTFTypesStep(ctx context.Context, step path.PathStep) (tftypes.AttributePathStep, bool) {
+	switch s := step.(type) {
+	case path.PathStepAttributeName:
+		return tftypes.AttributeName(string(s)), true
+	case path.PathStepElementKeyInt:
+		return tftypes.ElementKeyInt(int64(s)), true
+	case path.PathStepElementKeyString:
+		return tftypes.ElementKeyString(string(s)), true
+	case path.PathStepElementKeyValue:
+		tfVal, err := s.ToTerraformValue(ctx)
+		if err != nil {
+			return nil, false
+		}
+		return tftypes.ElementKeyValue(tfVal), true
+	default:
+		return nil, false
+	}
 }

@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	schemavalidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -35,6 +36,24 @@ func TestValidateDiscriminator(t *testing.T) {
 	nestedObjType := tftypes.Object{
 		AttributeTypes: map[string]tftypes.Type{
 			"nested": innerObjType,
+		},
+	}
+
+	listNestedType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"items": tftypes.List{ElementType: innerObjType},
+		},
+	}
+
+	mapNestedType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"items": tftypes.Map{ElementType: innerObjType},
+		},
+	}
+
+	setNestedType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"items": tftypes.Set{ElementType: innerObjType},
 		},
 	}
 
@@ -134,21 +153,6 @@ func TestValidateDiscriminator(t *testing.T) {
 			}),
 			expectErrors: 0,
 		},
-		{
-			name:        "nested path sibling resolution works",
-			def:         def,
-			configValue: types.StringValue("AWS"),
-			configPath:  path.Root("nested").AtName("type"),
-			raw: tftypes.NewValue(nestedObjType, map[string]tftypes.Value{
-				"nested": tftypes.NewValue(innerObjType, map[string]tftypes.Value{
-					"type":           tftypes.NewValue(tftypes.String, "AWS"),
-					"aws_specific":   tftypes.NewValue(tftypes.String, nil),
-					"azure_specific": tftypes.NewValue(tftypes.String, nil),
-				}),
-			}),
-			expectErrors:   1,
-			expectInDetail: []string{`"aws_specific" must be set when type is "AWS"`},
-		},
 		// Unknown values in config mean the practitioner set the attribute to an expression whose value is not yet resolved.
 		// Unset Optional+Computed attributes are null (not unknown) during validation, they only become unknown later during PlanResourceChange.
 		{
@@ -211,6 +215,82 @@ func TestValidateDiscriminator(t *testing.T) {
 				`"azure_specific" must be set when type is "AZURE"`,
 				`"aws_specific" is not allowed when type is "AZURE"`,
 			},
+		},
+		{
+			name:        "discriminator nested inside object element",
+			def:         def,
+			configValue: types.StringValue("AWS"),
+			configPath:  path.Root("nested").AtName("type"),
+			raw: tftypes.NewValue(nestedObjType, map[string]tftypes.Value{
+				"nested": tftypes.NewValue(innerObjType, map[string]tftypes.Value{
+					"type":           tftypes.NewValue(tftypes.String, "AWS"),
+					"aws_specific":   tftypes.NewValue(tftypes.String, nil),
+					"azure_specific": tftypes.NewValue(tftypes.String, nil),
+				}),
+			}),
+			expectErrors:   1,
+			expectInDetail: []string{`"aws_specific" must be set when type is "AWS"`},
+		},
+		{
+			name:        "discriminator nested inside list element emits error",
+			def:         def,
+			configValue: types.StringValue("AWS"),
+			configPath:  path.Root("items").AtListIndex(0).AtName("type"),
+			raw: tftypes.NewValue(listNestedType, map[string]tftypes.Value{
+				"items": tftypes.NewValue(tftypes.List{ElementType: innerObjType}, []tftypes.Value{
+					tftypes.NewValue(innerObjType, map[string]tftypes.Value{
+						"type":           tftypes.NewValue(tftypes.String, "AWS"),
+						"aws_specific":   tftypes.NewValue(tftypes.String, nil),
+						"azure_specific": tftypes.NewValue(tftypes.String, nil),
+					}),
+				}),
+			}),
+			expectErrors:   1,
+			expectInDetail: []string{`"aws_specific" must be set when type is "AWS"`},
+		},
+		{
+			name:        "discriminator nested inside map element emits error",
+			def:         def,
+			configValue: types.StringValue("AWS"),
+			configPath:  path.Root("items").AtMapKey("conn1").AtName("type"),
+			raw: tftypes.NewValue(mapNestedType, map[string]tftypes.Value{
+				"items": tftypes.NewValue(tftypes.Map{ElementType: innerObjType}, map[string]tftypes.Value{
+					"conn1": tftypes.NewValue(innerObjType, map[string]tftypes.Value{
+						"type":           tftypes.NewValue(tftypes.String, "AWS"),
+						"aws_specific":   tftypes.NewValue(tftypes.String, nil),
+						"azure_specific": tftypes.NewValue(tftypes.String, nil),
+					}),
+				}),
+			}),
+			expectErrors:   1,
+			expectInDetail: []string{`"aws_specific" must be set when type is "AWS"`},
+		},
+		{
+			name:        "discriminator nested inside set element emits error",
+			def:         def,
+			configValue: types.StringValue("AWS"),
+			configPath: path.Root("items").AtSetValue(
+				types.ObjectValueMust(map[string]attr.Type{
+					"type":           types.StringType,
+					"aws_specific":   types.StringType,
+					"azure_specific": types.StringType,
+				}, map[string]attr.Value{
+					"type":           types.StringValue("AWS"),
+					"aws_specific":   types.StringNull(),
+					"azure_specific": types.StringNull(),
+				}),
+			).AtName("type"),
+			raw: tftypes.NewValue(setNestedType, map[string]tftypes.Value{
+				"items": tftypes.NewValue(tftypes.Set{ElementType: innerObjType}, []tftypes.Value{
+					tftypes.NewValue(innerObjType, map[string]tftypes.Value{
+						"type":           tftypes.NewValue(tftypes.String, "AWS"),
+						"aws_specific":   tftypes.NewValue(tftypes.String, nil),
+						"azure_specific": tftypes.NewValue(tftypes.String, nil),
+					}),
+				}),
+			}),
+			expectErrors:   1,
+			expectInDetail: []string{`"aws_specific" must be set when type is "AWS"`},
 		},
 	}
 
