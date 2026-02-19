@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// VariantDefinition describes which sibling attributes are allowed and required
-// when a particular discriminator value is active.
+// VariantDefinition describes which sibling attributes are allowed and required when a particular discriminator value is active.
+// Required attributes must also be present in the Allowed list.
 type VariantDefinition struct {
 	Allowed  []string
 	Required []string
