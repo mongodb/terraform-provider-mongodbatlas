@@ -26,7 +26,7 @@ type DiscriminatorDefinition struct {
 //   - If the discriminator value is unknown, null, or not found in Mapping all checks are skipped.
 //   - Required attributes for the active variant must be non-null (unknown is accepted as "set").
 //   - Type-specific attributes from other variants must be null.
-//   - Note: Unset Optional+Computed attributes are null in the config, they only become unknown later duringPlanResourceChange
+//   - Note: Unset Optional+Computed attributes are null in the config, they only become unknown later during PlanResourceChange
 func ValidateDiscriminator(def DiscriminatorDefinition) schemavalidator.String {
 	return discriminatorValidator{def: def}
 }
