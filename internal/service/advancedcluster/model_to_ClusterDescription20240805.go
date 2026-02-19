@@ -45,8 +45,9 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		ReplicationSpecs:                 newReplicationSpec(ctx, input.ReplicationSpecs, diags),
 		Tags:                             newResourceTag(ctx, diags, input.Tags),
 		TerminationProtectionEnabled:     conversion.NilForUnknown(input.TerminationProtectionEnabled, input.TerminationProtectionEnabled.ValueBoolPointer()),
-		VersionReleaseSystem:             conversion.NilForUnknown(input.VersionReleaseSystem, input.VersionReleaseSystem.ValueStringPointer()),
-		AdvancedConfiguration:            newClusterAdvancedConfiguration(ctx, &input.AdvancedConfiguration, diags),
+		UseAwsTimeBasedSnapshotCopyForFastInitialSync: conversion.NilForUnknown(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync, input.UseAwsTimeBasedSnapshotCopyForFastInitialSync.ValueBoolPointer()),
+		VersionReleaseSystem:                          conversion.NilForUnknown(input.VersionReleaseSystem, input.VersionReleaseSystem.ValueStringPointer()),
+		AdvancedConfiguration:                         newClusterAdvancedConfiguration(ctx, &input.AdvancedConfiguration, diags),
 	}
 }
 

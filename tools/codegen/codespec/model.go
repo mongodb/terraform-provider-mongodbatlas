@@ -93,10 +93,30 @@ type MoveState struct {
 }
 
 type Schema struct {
-	Description        *string `yaml:"description,omitempty"`
-	DeprecationMessage *string `yaml:"deprecation_message,omitempty"`
+	Description        *string        `yaml:"description,omitempty"`
+	DeprecationMessage *string        `yaml:"deprecation_message,omitempty"`
+	Discriminator      *Discriminator `yaml:"discriminator,omitempty"`
 
 	Attributes Attributes `yaml:"attributes"`
+}
+
+// DiscriminatorAttrName pairs the original API property name with the Terraform schema name.
+// TFSchemaName will have aliasing configurations applied.
+type DiscriminatorAttrName struct {
+	APIName      string `yaml:"api_name"`
+	TFSchemaName string `yaml:"tf_schema_name"`
+}
+
+type Discriminator struct {
+	Mapping      map[string]DiscriminatorType `yaml:"mapping"`
+	PropertyName DiscriminatorAttrName        `yaml:"property_name"`
+}
+
+type DiscriminatorType struct {
+	// Allowed enumerates every sub-type specific attributes valid for this discriminator value.
+	Allowed []DiscriminatorAttrName `yaml:"allowed"`
+	// Required is a subset of Allowed that the user must explicitly set in their configuration.
+	Required []DiscriminatorAttrName `yaml:"required,omitempty"`
 }
 
 type Attributes []Attribute
@@ -195,7 +215,8 @@ type ListNestedAttribute struct {
 	NestedObject NestedAttributeObject `yaml:"nested_object"`
 }
 type NestedAttributeObject struct {
-	Attributes Attributes `yaml:"attributes"`
+	Discriminator *Discriminator `yaml:"discriminator,omitempty"`
+	Attributes    Attributes     `yaml:"attributes"`
 }
 
 type TimeoutsAttribute struct {

@@ -1,5 +1,22 @@
 schema:
     description: Creates a new log integration configuration identified by a unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+    discriminator:
+        mapping:
+            S3_LOG_EXPORT:
+                allowed:
+                    - api_name: bucketName
+                      tf_schema_name: bucket_name
+                    - api_name: iamRoleId
+                      tf_schema_name: iam_role_id
+                    - api_name: kmsKey
+                      tf_schema_name: kms_key
+                    - api_name: logTypes
+                      tf_schema_name: log_types
+                    - api_name: prefixPath
+                      tf_schema_name: prefix_path
+        property_name:
+            api_name: type
+            tf_schema_name: type
     attributes:
         - string: {}
           description: Human-readable label that identifies the S3 bucket name for storing log files.
@@ -232,6 +249,30 @@ data_sources:
               request_only_required_on_create: false
             - list_nested:
                 nested_object:
+                    discriminator:
+                        mapping:
+                            S3_LOG_EXPORT:
+                                allowed:
+                                    - api_name: bucketName
+                                      tf_schema_name: bucket_name
+                                    - api_name: iamRoleId
+                                      tf_schema_name: iam_role_id
+                                    - api_name: kmsKey
+                                      tf_schema_name: kms_key
+                                    - api_name: logTypes
+                                      tf_schema_name: log_types
+                                    - api_name: prefixPath
+                                      tf_schema_name: prefix_path
+                                required:
+                                    - api_name: bucketName
+                                      tf_schema_name: bucket_name
+                                    - api_name: iamRoleId
+                                      tf_schema_name: iam_role_id
+                                    - api_name: prefixPath
+                                      tf_schema_name: prefix_path
+                        property_name:
+                            api_name: type
+                            tf_schema_name: type
                     attributes:
                         - string: {}
                           description: Human-readable label that identifies the S3 bucket name for storing log files.

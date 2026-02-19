@@ -289,8 +289,14 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"termination_protection_enabled": schema.BoolAttribute{
+				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster. This attribute is Optional only - if not specified, it will not appear in state.",
+				MarkdownDescription: "Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster.",
+			},
+			"use_aws_time_based_snapshot_copy_for_fast_initial_sync": schema.BoolAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether time-based snapshot copies will be used instead of slower standard snapshot copies during fast Atlas cross-region initial syncs. This flag is only relevant for clusters containing AWS nodes.",
 			},
 			"version_release_system": schema.StringAttribute{
 				Optional:            true,
@@ -613,69 +619,72 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 }
 
 type TFModel struct {
-	Labels                                    types.Map      `tfsdk:"labels"`
-	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
-	Tags                                      types.Map      `tfsdk:"tags"`
-	StateName                                 types.String   `tfsdk:"state_name"`
-	ConnectionStrings                         types.Object   `tfsdk:"connection_strings"`
-	CreateDate                                types.String   `tfsdk:"create_date"`
-	AcceptDataRisksAndForceReplicaSetReconfig types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
-	EncryptionAtRestProvider                  types.String   `tfsdk:"encryption_at_rest_provider"`
-	Timeouts                                  timeouts.Value `tfsdk:"timeouts"`
-	ProjectID                                 types.String   `tfsdk:"project_id"`
-	ClusterID                                 types.String   `tfsdk:"cluster_id"`
-	ConfigServerManagementMode                types.String   `tfsdk:"config_server_management_mode"`
-	MongoDBMajorVersion                       types.String   `tfsdk:"mongo_db_major_version"`
-	MongoDBVersion                            types.String   `tfsdk:"mongo_db_version"`
-	Name                                      types.String   `tfsdk:"name"`
-	VersionReleaseSystem                      types.String   `tfsdk:"version_release_system"`
-	BiConnectorConfig                         types.Object   `tfsdk:"bi_connector_config"`
-	ConfigServerType                          types.String   `tfsdk:"config_server_type"`
-	ReplicaSetScalingStrategy                 types.String   `tfsdk:"replica_set_scaling_strategy"`
-	ClusterType                               types.String   `tfsdk:"cluster_type"`
-	RootCertType                              types.String   `tfsdk:"root_cert_type"`
-	AdvancedConfiguration                     types.Object   `tfsdk:"advanced_configuration"`
-	PinnedFCV                                 types.Object   `tfsdk:"pinned_fcv"`
-	TerminationProtectionEnabled              types.Bool     `tfsdk:"termination_protection_enabled"`
-	Paused                                    types.Bool     `tfsdk:"paused"`
-	RetainBackupsEnabled                      types.Bool     `tfsdk:"retain_backups_enabled"`
-	BackupEnabled                             types.Bool     `tfsdk:"backup_enabled"`
-	GlobalClusterSelfManagedSharding          types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
-	RedactClientLogData                       types.Bool     `tfsdk:"redact_client_log_data"`
-	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
-	DeleteOnCreateTimeout                     types.Bool     `tfsdk:"delete_on_create_timeout"`
+	Labels                                        types.Map      `tfsdk:"labels"`
+	ReplicationSpecs                              types.List     `tfsdk:"replication_specs"`
+	Tags                                          types.Map      `tfsdk:"tags"`
+	StateName                                     types.String   `tfsdk:"state_name"`
+	ConnectionStrings                             types.Object   `tfsdk:"connection_strings"`
+	CreateDate                                    types.String   `tfsdk:"create_date"`
+	AcceptDataRisksAndForceReplicaSetReconfig     types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
+	EncryptionAtRestProvider                      types.String   `tfsdk:"encryption_at_rest_provider"`
+	Timeouts                                      timeouts.Value `tfsdk:"timeouts"`
+	ProjectID                                     types.String   `tfsdk:"project_id"`
+	ClusterID                                     types.String   `tfsdk:"cluster_id"`
+	ConfigServerManagementMode                    types.String   `tfsdk:"config_server_management_mode"`
+	MongoDBMajorVersion                           types.String   `tfsdk:"mongo_db_major_version"`
+	MongoDBVersion                                types.String   `tfsdk:"mongo_db_version"`
+	Name                                          types.String   `tfsdk:"name"`
+	VersionReleaseSystem                          types.String   `tfsdk:"version_release_system"`
+	BiConnectorConfig                             types.Object   `tfsdk:"bi_connector_config"`
+	ConfigServerType                              types.String   `tfsdk:"config_server_type"`
+	ReplicaSetScalingStrategy                     types.String   `tfsdk:"replica_set_scaling_strategy"`
+	ClusterType                                   types.String   `tfsdk:"cluster_type"`
+	RootCertType                                  types.String   `tfsdk:"root_cert_type"`
+	AdvancedConfiguration                         types.Object   `tfsdk:"advanced_configuration"`
+	PinnedFCV                                     types.Object   `tfsdk:"pinned_fcv"`
+	TerminationProtectionEnabled                  types.Bool     `tfsdk:"termination_protection_enabled"`
+	Paused                                        types.Bool     `tfsdk:"paused"`
+	RetainBackupsEnabled                          types.Bool     `tfsdk:"retain_backups_enabled"`
+	BackupEnabled                                 types.Bool     `tfsdk:"backup_enabled"`
+	GlobalClusterSelfManagedSharding              types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
+	RedactClientLogData                           types.Bool     `tfsdk:"redact_client_log_data"`
+	PitEnabled                                    types.Bool     `tfsdk:"pit_enabled"`
+	UseAwsTimeBasedSnapshotCopyForFastInitialSync types.Bool     `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
+	DeleteOnCreateTimeout                         types.Bool     `tfsdk:"delete_on_create_timeout"`
+	UseEffectiveFields                            types.Bool     `tfsdk:"use_effective_fields"`
 }
 
 // TFModelDS differs from TFModel: removes resource-only fields like timeouts, accept_data_risks_and_force_replica_set_reconfig, retain_backups_enabled
 type TFModelDS struct {
-	Labels                           types.Map    `tfsdk:"labels"`
-	ReplicationSpecs                 types.List   `tfsdk:"replication_specs"`
-	EffectiveReplicationSpecs        types.List   `tfsdk:"effective_replication_specs"`
-	Tags                             types.Map    `tfsdk:"tags"`
-	ReplicaSetScalingStrategy        types.String `tfsdk:"replica_set_scaling_strategy"`
-	Name                             types.String `tfsdk:"name"`
-	AdvancedConfiguration            types.Object `tfsdk:"advanced_configuration"`
-	BiConnectorConfig                types.Object `tfsdk:"bi_connector_config"`
-	RootCertType                     types.String `tfsdk:"root_cert_type"`
-	ClusterType                      types.String `tfsdk:"cluster_type"`
-	MongoDBMajorVersion              types.String `tfsdk:"mongo_db_major_version"`
-	ConfigServerType                 types.String `tfsdk:"config_server_type"`
-	VersionReleaseSystem             types.String `tfsdk:"version_release_system"`
-	ConnectionStrings                types.Object `tfsdk:"connection_strings"`
-	StateName                        types.String `tfsdk:"state_name"`
-	MongoDBVersion                   types.String `tfsdk:"mongo_db_version"`
-	CreateDate                       types.String `tfsdk:"create_date"`
-	EncryptionAtRestProvider         types.String `tfsdk:"encryption_at_rest_provider"`
-	ProjectID                        types.String `tfsdk:"project_id"`
-	ClusterID                        types.String `tfsdk:"cluster_id"`
-	ConfigServerManagementMode       types.String `tfsdk:"config_server_management_mode"`
-	PinnedFCV                        types.Object `tfsdk:"pinned_fcv"`
-	RedactClientLogData              types.Bool   `tfsdk:"redact_client_log_data"`
-	GlobalClusterSelfManagedSharding types.Bool   `tfsdk:"global_cluster_self_managed_sharding"`
-	BackupEnabled                    types.Bool   `tfsdk:"backup_enabled"`
-	Paused                           types.Bool   `tfsdk:"paused"`
-	TerminationProtectionEnabled     types.Bool   `tfsdk:"termination_protection_enabled"`
-	PitEnabled                       types.Bool   `tfsdk:"pit_enabled"`
+	Labels                                        types.Map    `tfsdk:"labels"`
+	ReplicationSpecs                              types.List   `tfsdk:"replication_specs"`
+	Tags                                          types.Map    `tfsdk:"tags"`
+	ReplicaSetScalingStrategy                     types.String `tfsdk:"replica_set_scaling_strategy"`
+	Name                                          types.String `tfsdk:"name"`
+	AdvancedConfiguration                         types.Object `tfsdk:"advanced_configuration"`
+	BiConnectorConfig                             types.Object `tfsdk:"bi_connector_config"`
+	RootCertType                                  types.String `tfsdk:"root_cert_type"`
+	ClusterType                                   types.String `tfsdk:"cluster_type"`
+	MongoDBMajorVersion                           types.String `tfsdk:"mongo_db_major_version"`
+	ConfigServerType                              types.String `tfsdk:"config_server_type"`
+	VersionReleaseSystem                          types.String `tfsdk:"version_release_system"`
+	ConnectionStrings                             types.Object `tfsdk:"connection_strings"`
+	StateName                                     types.String `tfsdk:"state_name"`
+	MongoDBVersion                                types.String `tfsdk:"mongo_db_version"`
+	CreateDate                                    types.String `tfsdk:"create_date"`
+	EncryptionAtRestProvider                      types.String `tfsdk:"encryption_at_rest_provider"`
+	ProjectID                                     types.String `tfsdk:"project_id"`
+	ClusterID                                     types.String `tfsdk:"cluster_id"`
+	ConfigServerManagementMode                    types.String `tfsdk:"config_server_management_mode"`
+	PinnedFCV                                     types.Object `tfsdk:"pinned_fcv"`
+	RedactClientLogData                           types.Bool   `tfsdk:"redact_client_log_data"`
+	GlobalClusterSelfManagedSharding              types.Bool   `tfsdk:"global_cluster_self_managed_sharding"`
+	BackupEnabled                                 types.Bool   `tfsdk:"backup_enabled"`
+	Paused                                        types.Bool   `tfsdk:"paused"`
+	TerminationProtectionEnabled                  types.Bool   `tfsdk:"termination_protection_enabled"`
+	PitEnabled                                    types.Bool   `tfsdk:"pit_enabled"`
+	UseAwsTimeBasedSnapshotCopyForFastInitialSync types.Bool   `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
+	UseEffectiveFields                            types.Bool   `tfsdk:"use_effective_fields"`
 }
 
 type TFModelPluralDS struct {

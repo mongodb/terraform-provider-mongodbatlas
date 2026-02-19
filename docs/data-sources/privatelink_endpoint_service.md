@@ -22,8 +22,8 @@ data "mongodbatlas_privatelink_endpoint_service" "this" {
 See [`mongodbatlas_privatelink_endpoint_service` resource](../resources/privatelink_endpoint_service.md) for complete examples with each cloud provider.
 
 ### Available complete examples
-- [Setup private connection to a MongoDB Atlas Cluster with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.6.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
-- [GCP Private Service Connect Endpoint and Service (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.6.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
+- [Setup private connection to a MongoDB Atlas Cluster with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+- [GCP Private Service Connect Endpoint and Service (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
 
 ## Argument Reference
 
