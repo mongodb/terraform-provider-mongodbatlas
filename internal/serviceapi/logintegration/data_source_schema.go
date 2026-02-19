@@ -87,11 +87,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"role_id": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the GCP service account role.",
-			},
-			"service_principal_id": dsschema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the Service Principal.",
+				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.",
 			},
 			"storage_account_name": dsschema.StringAttribute{
 				Computed:            true,
@@ -103,7 +99,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"type": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type.",
+				MarkdownDescription: "Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.",
 			},
 		},
 	}
@@ -124,7 +120,6 @@ type TFDSModel struct {
 	ProjectId            types.String                                              `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	Region               types.String                                              `tfsdk:"region" autogen:"omitjson"`
 	RoleId               types.String                                              `tfsdk:"role_id" autogen:"omitjson"`
-	ServicePrincipalId   types.String                                              `tfsdk:"service_principal_id" autogen:"omitjson"`
 	StorageAccountName   types.String                                              `tfsdk:"storage_account_name" autogen:"omitjson"`
 	StorageContainerName types.String                                              `tfsdk:"storage_container_name" autogen:"omitjson"`
 	Type                 types.String                                              `tfsdk:"type" autogen:"omitjson"`
