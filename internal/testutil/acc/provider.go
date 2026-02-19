@@ -11,6 +11,7 @@ const AwsProviderVersion = "5.1.0"
 const azurermProviderVersion = "4.60.0"
 const azapiProviderVersion = "1.15.0"
 const confluentProviderVersion = "2.12.0"
+const googleProviderVersion = "7.0.0"
 
 func ExternalProviders(versionAtlasProvider string) map[string]resource.ExternalProvider {
 	return map[string]resource.ExternalProvider{
@@ -56,6 +57,12 @@ func ExternalProvidersOnlyConfluent() map[string]resource.ExternalProvider {
 	}
 }
 
+func ExternalProvidersOnlyGoogle() map[string]resource.ExternalProvider {
+	return map[string]resource.ExternalProvider{
+		"google": *providerGoogle(),
+	}
+}
+
 func providerAtlas(versionAtlasProvider string) *resource.ExternalProvider {
 	return &resource.ExternalProvider{
 		VersionConstraint: versionAtlasProvider,
@@ -88,6 +95,13 @@ func providerConfluent() *resource.ExternalProvider {
 	return &resource.ExternalProvider{
 		VersionConstraint: confluentProviderVersion,
 		Source:            "confluentinc/confluent",
+	}
+}
+
+func providerGoogle() *resource.ExternalProvider {
+	return &resource.ExternalProvider{
+		VersionConstraint: googleProviderVersion,
+		Source:            "hashicorp/google",
 	}
 }
 
@@ -142,4 +156,12 @@ func ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID stri
 
 func ConfigConfluentProvider() string {
 	return `provider "confluent" {}`
+}
+
+func ConfigGoogleProvider(projectID string) string {
+	return fmt.Sprintf(`
+		provider "google" {
+			project = %[1]q
+		}
+	`, projectID)
 }

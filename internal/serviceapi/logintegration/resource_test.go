@@ -62,6 +62,12 @@ type azureConfig struct {
 	prefixPath           string
 }
 
+type gcsConfig struct {
+	gcpProjectID string
+	bucketName   string
+	prefixPath   string
+}
+
 func TestAccLogIntegration_basicS3(t *testing.T) {
 	var (
 		projectID            = acc.ProjectIDExecution(t)
@@ -147,6 +153,43 @@ func TestAccLogIntegration_basicAzure(t *testing.T) {
 	})
 }
 
+func TestAccLogIntegration_basicGCS(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		config    = gcsConfig{
+			gcpProjectID: os.Getenv("GCP_PROJECT_ID"),
+			bucketName:   acc.RandomBucketName(),
+			prefixPath:   prefixPath,
+		}
+		withDS = true
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckGCPEnvBasic(t) },
+		ExternalProviders:        acc.ExternalProvidersOnlyGoogle(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasicGCS(projectID, logTypesMongoS, &config, withDS),
+				Check:  checkBasicGCS(logTypesMongoS, &config, withDS),
+			},
+			{
+				Config: configBasicGCS(projectID, logTypesMongoD, &config, !withDS),
+				Check:  checkBasicGCS(logTypesMongoD, &config, !withDS),
+			},
+			{
+				Config:                               configBasicGCS(projectID, logTypesMongoD, &config, !withDS),
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "integration_id",
+			},
+		},
+	})
+}
+
 func configBasicS3(projectID string, logTypes []string, config *s3Config, withDS bool) string {
 	logTypesStr := fmt.Sprintf("[%s]", `"`+strings.Join(logTypes, `", "`)+`"`)
 	kmsKeyHCL := ""
@@ -222,6 +265,45 @@ func checkBasicAzure(logTypes []string, config *azureConfig, withDS bool) resour
 		"type":                   "AZURE_LOG_EXPORT",
 		"log_types.#":            strconv.Itoa(len(logTypes)),
 		"log_types.0":            logTypes[0],
+	}
+	return commonCheck(setChecks, mapChecks, withDS)
+}
+
+func configBasicGCS(projectID string, logTypes []string, config *gcsConfig, withDS bool) string {
+	logTypesStr := fmt.Sprintf("[%s]", `"`+strings.Join(logTypes, `", "`)+`"`)
+	dsConfig := ""
+	if withDS {
+		dsConfig = datasourcesConfig
+	}
+	return fmt.Sprintf(`
+		%[1]s
+		%[2]s
+
+		resource "mongodbatlas_log_integration" "test" {
+			project_id  = %[3]q
+			type        = "GCS_LOG_EXPORT"
+			log_types   = %[4]s
+			role_id     = mongodbatlas_cloud_provider_access_authorization.gcp_auth.role_id
+			bucket_name = google_storage_bucket.log_bucket.name
+			prefix_path = %[5]q
+		}
+
+		%[6]s
+	`,
+		acc.ConfigGoogleProvider(config.gcpProjectID),
+		gcsStorageBucketConfig(projectID, config),
+		projectID, logTypesStr, config.prefixPath, dsConfig,
+	)
+}
+
+func checkBasicGCS(logTypes []string, config *gcsConfig, withDS bool) resource.TestCheckFunc {
+	setChecks := []string{"integration_id", "role_id"}
+	mapChecks := map[string]string{
+		"bucket_name": config.bucketName,
+		"prefix_path": config.prefixPath,
+		"type":        "GCS_LOG_EXPORT",
+		"log_types.#": strconv.Itoa(len(logTypes)),
+		"log_types.0": logTypes[0],
 	}
 	return commonCheck(setChecks, mapChecks, withDS)
 }
@@ -444,4 +526,30 @@ func azureStorageContainerConfig(projectID string, config *azureConfig) string {
 			storage_account_id    = azurerm_storage_account.log_storage.id
 		}
 	`, projectID, config.atlasAzureAppID, config.servicePrincipalID, config.tenantID, config.resourceGroupName, config.storageAccountName, config.storageContainerName)
+}
+
+func gcsStorageBucketConfig(projectID string, config *gcsConfig) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
+			project_id    = %[1]q
+			provider_name = "GCP"
+		}
+
+		resource "mongodbatlas_cloud_provider_access_authorization" "gcp_auth" {
+			project_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.project_id
+			role_id    = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
+		}
+
+		resource "google_storage_bucket" "log_bucket" {
+			name          = %[2]q
+			location      = "US"
+			force_destroy = true
+		}
+
+		resource "google_storage_bucket_iam_member" "bucket_permission" {
+			bucket = google_storage_bucket.log_bucket.name
+			role   = "roles/storage.objectAdmin"
+			member = "serviceAccount:${mongodbatlas_cloud_provider_access_authorization.gcp_auth.gcp[0].service_account_for_atlas}"
+		}
+	`, projectID, config.bucketName)
 }
