@@ -90,11 +90,10 @@ Read-Only:
 - `otel_supplied_headers` (Attributes List, Sensitive) HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB. (see [below for nested schema](#nestedatt--results--otel_supplied_headers))
 - `prefix_path` (String) Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
 - `region` (String) Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.
-- `role_id` (String) Unique 24-character hexadecimal string that identifies the GCP service account role.
-- `service_principal_id` (String) Unique 24-character hexadecimal string that identifies the Service Principal.
+- `role_id` (String) Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
 - `storage_account_name` (String) Storage account name where logs will be stored.
 - `storage_container_name` (String) Storage container name for log files.
-- `type` (String) Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type.
+- `type` (String) Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.
 
 <a id="nestedatt--results--otel_supplied_headers"></a>
 ### Nested Schema for `results.otel_supplied_headers`
