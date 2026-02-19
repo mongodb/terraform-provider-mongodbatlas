@@ -91,11 +91,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"role_id": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the GCP service account role.",
-			},
-			"service_principal_id": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the Service Principal.",
+				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.",
 			},
 			"storage_account_name": schema.StringAttribute{
 				Optional:            true,
@@ -107,7 +103,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"type": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type.",
+				MarkdownDescription: "Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.",
 			},
 		},
 	}
@@ -128,7 +124,6 @@ type TFModel struct {
 	PrefixPath           types.String                                            `tfsdk:"prefix_path"`
 	Region               types.String                                            `tfsdk:"region"`
 	RoleId               types.String                                            `tfsdk:"role_id"`
-	ServicePrincipalId   types.String                                            `tfsdk:"service_principal_id"`
 	StorageAccountName   types.String                                            `tfsdk:"storage_account_name"`
 	StorageContainerName types.String                                            `tfsdk:"storage_container_name"`
 	Type                 types.String                                            `tfsdk:"type"`

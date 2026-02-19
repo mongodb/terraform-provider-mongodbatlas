@@ -4,56 +4,91 @@ schema:
         mapping:
             AZURE_LOG_EXPORT:
                 allowed:
-                    - prefix_path
-                    - service_principal_id
-                    - storage_account_name
-                    - storage_container_name
+                    - api_name: prefixPath
+                      tf_schema_name: prefix_path
+                    - api_name: roleId
+                      tf_schema_name: role_id
+                    - api_name: storageAccountName
+                      tf_schema_name: storage_account_name
+                    - api_name: storageContainerName
+                      tf_schema_name: storage_container_name
                 required:
-                    - prefix_path
-                    - service_principal_id
-                    - storage_account_name
-                    - storage_container_name
+                    - api_name: prefixPath
+                      tf_schema_name: prefix_path
+                    - api_name: roleId
+                      tf_schema_name: role_id
+                    - api_name: storageAccountName
+                      tf_schema_name: storage_account_name
+                    - api_name: storageContainerName
+                      tf_schema_name: storage_container_name
             DATADOG_LOG_EXPORT:
                 allowed:
-                    - api_key
-                    - region
+                    - api_name: apiKey
+                      tf_schema_name: api_key
+                    - api_name: region
+                      tf_schema_name: region
                 required:
-                    - api_key
-                    - region
+                    - api_name: apiKey
+                      tf_schema_name: api_key
+                    - api_name: region
+                      tf_schema_name: region
             GCS_LOG_EXPORT:
                 allowed:
-                    - bucket_name
-                    - prefix_path
-                    - role_id
+                    - api_name: bucketName
+                      tf_schema_name: bucket_name
+                    - api_name: prefixPath
+                      tf_schema_name: prefix_path
+                    - api_name: roleId
+                      tf_schema_name: role_id
                 required:
-                    - bucket_name
-                    - prefix_path
-                    - role_id
+                    - api_name: bucketName
+                      tf_schema_name: bucket_name
+                    - api_name: prefixPath
+                      tf_schema_name: prefix_path
+                    - api_name: roleId
+                      tf_schema_name: role_id
             OTEL_LOG_EXPORT:
                 allowed:
-                    - otel_endpoint
-                    - otel_supplied_headers
+                    - api_name: otelEndpoint
+                      tf_schema_name: otel_endpoint
+                    - api_name: otelSuppliedHeaders
+                      tf_schema_name: otel_supplied_headers
                 required:
-                    - otel_endpoint
-                    - otel_supplied_headers
+                    - api_name: otelEndpoint
+                      tf_schema_name: otel_endpoint
+                    - api_name: otelSuppliedHeaders
+                      tf_schema_name: otel_supplied_headers
             S3_LOG_EXPORT:
                 allowed:
-                    - bucket_name
-                    - iam_role_id
-                    - kms_key
-                    - prefix_path
+                    - api_name: bucketName
+                      tf_schema_name: bucket_name
+                    - api_name: iamRoleId
+                      tf_schema_name: iam_role_id
+                    - api_name: kmsKey
+                      tf_schema_name: kms_key
+                    - api_name: prefixPath
+                      tf_schema_name: prefix_path
                 required:
-                    - bucket_name
-                    - iam_role_id
-                    - prefix_path
+                    - api_name: bucketName
+                      tf_schema_name: bucket_name
+                    - api_name: iamRoleId
+                      tf_schema_name: iam_role_id
+                    - api_name: prefixPath
+                      tf_schema_name: prefix_path
             SPLUNK_LOG_EXPORT:
                 allowed:
-                    - hec_token
-                    - hec_url
+                    - api_name: hecToken
+                      tf_schema_name: hec_token
+                    - api_name: hecUrl
+                      tf_schema_name: hec_url
                 required:
-                    - hec_token
-                    - hec_url
-        property_name: type
+                    - api_name: hecToken
+                      tf_schema_name: hec_token
+                    - api_name: hecUrl
+                      tf_schema_name: hec_url
+        property_name:
+            api_name: type
+            tf_schema_name: type
     attributes:
         - string: {}
           description: API key for authentication.
@@ -234,22 +269,11 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Unique 24-character hexadecimal string that identifies the GCP service account role.
+          description: Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
           computed_optional_required: optional
           tf_schema_name: role_id
           tf_model_name: RoleId
           api_name: roleId
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
-          description: Unique 24-character hexadecimal string that identifies the Service Principal.
-          computed_optional_required: optional
-          tf_schema_name: service_principal_id
-          tf_model_name: ServicePrincipalId
-          api_name: servicePrincipalId
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -278,7 +302,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type.
+          description: Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.
           computed_optional_required: required
           tf_schema_name: type
           tf_model_name: Type
@@ -484,22 +508,11 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Unique 24-character hexadecimal string that identifies the GCP service account role.
+              description: Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
               computed_optional_required: computed
               tf_schema_name: role_id
               tf_model_name: RoleId
               api_name: roleId
-              req_body_usage: omit_always
-              sensitive: false
-              create_only: false
-              present_in_any_response: false
-              request_only_required_on_create: false
-            - string: {}
-              description: Unique 24-character hexadecimal string that identifies the Service Principal.
-              computed_optional_required: computed
-              tf_schema_name: service_principal_id
-              tf_model_name: ServicePrincipalId
-              api_name: servicePrincipalId
               req_body_usage: omit_always
               sensitive: false
               create_only: false
@@ -528,7 +541,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type.
+              description: Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.
               computed_optional_required: computed
               tf_schema_name: type
               tf_model_name: Type
@@ -568,56 +581,91 @@ data_sources:
                         mapping:
                             AZURE_LOG_EXPORT:
                                 allowed:
-                                    - prefix_path
-                                    - service_principal_id
-                                    - storage_account_name
-                                    - storage_container_name
+                                    - api_name: prefixPath
+                                      tf_schema_name: prefix_path
+                                    - api_name: roleId
+                                      tf_schema_name: role_id
+                                    - api_name: storageAccountName
+                                      tf_schema_name: storage_account_name
+                                    - api_name: storageContainerName
+                                      tf_schema_name: storage_container_name
                                 required:
-                                    - prefix_path
-                                    - service_principal_id
-                                    - storage_account_name
-                                    - storage_container_name
+                                    - api_name: prefixPath
+                                      tf_schema_name: prefix_path
+                                    - api_name: roleId
+                                      tf_schema_name: role_id
+                                    - api_name: storageAccountName
+                                      tf_schema_name: storage_account_name
+                                    - api_name: storageContainerName
+                                      tf_schema_name: storage_container_name
                             DATADOG_LOG_EXPORT:
                                 allowed:
-                                    - api_key
-                                    - region
+                                    - api_name: apiKey
+                                      tf_schema_name: api_key
+                                    - api_name: region
+                                      tf_schema_name: region
                                 required:
-                                    - api_key
-                                    - region
+                                    - api_name: apiKey
+                                      tf_schema_name: api_key
+                                    - api_name: region
+                                      tf_schema_name: region
                             GCS_LOG_EXPORT:
                                 allowed:
-                                    - bucket_name
-                                    - prefix_path
-                                    - role_id
+                                    - api_name: bucketName
+                                      tf_schema_name: bucket_name
+                                    - api_name: prefixPath
+                                      tf_schema_name: prefix_path
+                                    - api_name: roleId
+                                      tf_schema_name: role_id
                                 required:
-                                    - bucket_name
-                                    - prefix_path
-                                    - role_id
+                                    - api_name: bucketName
+                                      tf_schema_name: bucket_name
+                                    - api_name: prefixPath
+                                      tf_schema_name: prefix_path
+                                    - api_name: roleId
+                                      tf_schema_name: role_id
                             OTEL_LOG_EXPORT:
                                 allowed:
-                                    - otel_endpoint
-                                    - otel_supplied_headers
+                                    - api_name: otelEndpoint
+                                      tf_schema_name: otel_endpoint
+                                    - api_name: otelSuppliedHeaders
+                                      tf_schema_name: otel_supplied_headers
                                 required:
-                                    - otel_endpoint
-                                    - otel_supplied_headers
+                                    - api_name: otelEndpoint
+                                      tf_schema_name: otel_endpoint
+                                    - api_name: otelSuppliedHeaders
+                                      tf_schema_name: otel_supplied_headers
                             S3_LOG_EXPORT:
                                 allowed:
-                                    - bucket_name
-                                    - iam_role_id
-                                    - kms_key
-                                    - prefix_path
+                                    - api_name: bucketName
+                                      tf_schema_name: bucket_name
+                                    - api_name: iamRoleId
+                                      tf_schema_name: iam_role_id
+                                    - api_name: kmsKey
+                                      tf_schema_name: kms_key
+                                    - api_name: prefixPath
+                                      tf_schema_name: prefix_path
                                 required:
-                                    - bucket_name
-                                    - iam_role_id
-                                    - prefix_path
+                                    - api_name: bucketName
+                                      tf_schema_name: bucket_name
+                                    - api_name: iamRoleId
+                                      tf_schema_name: iam_role_id
+                                    - api_name: prefixPath
+                                      tf_schema_name: prefix_path
                             SPLUNK_LOG_EXPORT:
                                 allowed:
-                                    - hec_token
-                                    - hec_url
+                                    - api_name: hecToken
+                                      tf_schema_name: hec_token
+                                    - api_name: hecUrl
+                                      tf_schema_name: hec_url
                                 required:
-                                    - hec_token
-                                    - hec_url
-                        property_name: type
+                                    - api_name: hecToken
+                                      tf_schema_name: hec_token
+                                    - api_name: hecUrl
+                                      tf_schema_name: hec_url
+                        property_name:
+                            api_name: type
+                            tf_schema_name: type
                     attributes:
                         - string: {}
                           description: API key for authentication.
@@ -786,22 +834,11 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Unique 24-character hexadecimal string that identifies the GCP service account role.
+                          description: Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
                           computed_optional_required: computed
                           tf_schema_name: role_id
                           tf_model_name: RoleId
                           api_name: roleId
-                          req_body_usage: omit_always
-                          sensitive: false
-                          create_only: false
-                          present_in_any_response: false
-                          request_only_required_on_create: false
-                        - string: {}
-                          description: Unique 24-character hexadecimal string that identifies the Service Principal.
-                          computed_optional_required: computed
-                          tf_schema_name: service_principal_id
-                          tf_model_name: ServicePrincipalId
-                          api_name: servicePrincipalId
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
@@ -830,7 +867,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type.
+                          description: Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.
                           computed_optional_required: computed
                           tf_schema_name: type
                           tf_model_name: Type

@@ -240,13 +240,13 @@ func configBasicAzure(projectID string, logTypes []string, config *azureConfig, 
 		%[2]s
 
 		resource "mongodbatlas_log_integration" "test" {
-			project_id  = %[3]q
-		    type        = "AZURE_LOG_EXPORT"
-			log_types   = %[4]s
-		    service_principal_id   = mongodbatlas_cloud_provider_access_authorization.azure_auth.role_id
+			project_id             = %[3]q
+		    type                   = "AZURE_LOG_EXPORT"
+			log_types              = %[4]s
+		    role_id                = mongodbatlas_cloud_provider_access_authorization.azure_auth.role_id
 		    storage_account_name   = azurerm_storage_account.log_storage.name
 		    storage_container_name = azurerm_storage_container.log_container.name
-			prefix_path = %[5]q
+			prefix_path            = %[5]q
 		}
 
 		%[6]s
@@ -258,7 +258,7 @@ func configBasicAzure(projectID string, logTypes []string, config *azureConfig, 
 }
 
 func checkBasicAzure(logTypes []string, config *azureConfig, withDS bool) resource.TestCheckFunc {
-	setChecks := []string{"integration_id", "service_principal_id", "storage_account_name"}
+	setChecks := []string{"integration_id", "role_id", "storage_account_name"}
 	mapChecks := map[string]string{
 		"storage_container_name": config.storageContainerName,
 		"prefix_path":            config.prefixPath,
