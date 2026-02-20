@@ -779,7 +779,7 @@ resources:
     # All defined configuration is for trying to reach backwards compatibility with curated resource
     schema:
       crafted_attributes:
-        - tf_schema_name: id
+        id:
           type: string
           description: Terraform-only ID composed of workspace_name, project_id, and connection_name.
           computability:
