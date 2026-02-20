@@ -64,6 +64,17 @@ schema:
         property_name:
             api_name: type
             tf_schema_name: type
+    crafted_attributes:
+        - string: {}
+          description: Terraform-only ID composed of workspace_name, project_id, and connection_name.
+          computed_optional_required: computed
+          tf_schema_name: id
+          tf_model_name: Id
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
     attributes:
         - single_nested:
             nested_object:

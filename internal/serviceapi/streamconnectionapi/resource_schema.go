@@ -240,6 +240,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Update: true,
 				Delete: true,
 			}),
+			"id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Terraform-only ID composed of workspace_name, project_id, and connection_name.",
+			},
 		},
 	}
 }
@@ -264,6 +268,7 @@ type TFModel struct {
 	WorkspaceName                types.String                                                 `tfsdk:"workspace_name" apiname:"tenantName" autogen:"omitjson"`
 	Type                         types.String                                                 `tfsdk:"type"`
 	Url                          types.String                                                 `tfsdk:"url"`
+	Id                           types.String                                                 `tfsdk:"id" autogen:"omitjson"`
 	Timeouts                     timeouts.Value                                               `tfsdk:"timeouts" autogen:"omitjson"`
 	DeleteOnCreateTimeout        types.Bool                                                   `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
 }
