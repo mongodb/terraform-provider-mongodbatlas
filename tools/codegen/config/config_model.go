@@ -46,9 +46,18 @@ type MoveState struct {
 }
 
 type SchemaOptions struct {
-	Aliases   map[string]string   `yaml:"aliases"` // keys and values use camelCase (e.g., groupId: projectId, nestedObject.innerAttr: renamedAttr). Supports path params and request/response body fields via APIName preservation and apiname tag generation
-	Overrides map[string]Override `yaml:"overrides"`
-	Ignores   []string            `yaml:"ignores"`
+	CraftedAttributes map[string]CraftedAttribute `yaml:"crafted_attributes"`
+	Aliases           map[string]string           `yaml:"aliases"` // keys and values use camelCase (e.g., groupId: projectId, nestedObject.innerAttr: renamedAttr). Supports path params and request/response body fields via APIName preservation and apiname tag generation
+	Overrides         map[string]Override         `yaml:"overrides"`
+	Ignores           []string                    `yaml:"ignores"`
+}
+
+type CraftedAttribute struct {
+	Type          string         `yaml:"type"`
+	Description   string         `yaml:"description"`
+	Computability Computability  `yaml:"computability"`
+	ReqBodyUsage  ReqBodyUsage   `yaml:"req_body_usage"`
+	PlanModifiers []PlanModifier `yaml:"plan_modifiers"`
 }
 
 type Override struct {

@@ -778,6 +778,17 @@ resources:
     version_header: application/vnd.atlas.2023-02-01+json
     # All defined configuration is for trying to reach backwards compatibility with curated resource
     schema:
+      crafted_attributes:
+        - tf_schema_name: id
+          type: string
+          description: Terraform-only ID composed of workspace_name, project_id, and connection_name.
+          computability:
+            computed: true
+          req_body_usage: omit_always
+          plan_modifiers:
+            - definition: stringplanmodifier.UseStateForUnknown()
+              imports:
+                - github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier
       ignores:
         [
           # Hide noisy subresource link blocks (curated resource doesn't expose them)

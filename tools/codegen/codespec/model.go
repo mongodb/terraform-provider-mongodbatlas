@@ -96,6 +96,7 @@ type Schema struct {
 	Description        *string        `yaml:"description,omitempty"`
 	DeprecationMessage *string        `yaml:"deprecation_message,omitempty"`
 	Discriminator      *Discriminator `yaml:"discriminator,omitempty"`
+	CraftedAttributes  Attributes     `yaml:"crafted_attributes,omitempty"`
 
 	Attributes Attributes `yaml:"attributes"`
 }

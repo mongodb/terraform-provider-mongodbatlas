@@ -28,6 +28,7 @@ func ApplyTransformationsToResource(resourceConfig *config.Resource, resource *R
 	applyAliasToPathParams(&resource.Operations, resourceConfig.SchemaOptions.Aliases)
 	ApplyDeleteOnCreateTimeoutTransformation(resource)
 	ApplyTimeoutTransformation(resource)
+	resource.Schema.CraftedAttributes = mapCraftedAttributesToAttributes(resourceConfig.SchemaOptions.CraftedAttributes)
 	return nil
 }
 
@@ -366,6 +367,32 @@ func ApplyTimeoutTransformation(resource *Resource) {
 			ReqBodyUsage: OmitAlways,
 		})
 	}
+}
+
+func mapCraftedAttributesToAttributes(craftedAttributes map[string]config.CraftedAttribute) Attributes {
+	if len(craftedAttributes) == 0 {
+		return nil
+	}
+
+	result := make(Attributes, 0, len(craftedAttributes))
+	for name, crafted := range craftedAttributes {
+
+		attr := Attribute{
+			TFSchemaName:             name,
+			TFModelName:              stringcase.Capitalize(name),
+			ComputedOptionalRequired: getComputabilityFromConfig(crafted.Computability),
+			ReqBodyUsage:             OmitAlways,
+			String:                   &StringAttribute{},
+		}
+
+		if crafted.Description != "" {
+			attr.Description = &crafted.Description
+		}
+
+		result = append(result, attr)
+	}
+
+	return result
 }
 
 // ApplyDeleteOnCreateTimeoutTransformation adds a delete_on_create_timeout attribute to the resource schema

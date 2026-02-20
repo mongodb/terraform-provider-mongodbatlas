@@ -9,11 +9,13 @@ import (
 )
 
 func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
-	schemaAttrs, err := GenerateSchemaAttributes(input.Schema.Attributes)
+	allSchemaAttrs := append(append(codespec.Attributes{}, input.Schema.Attributes...), input.Schema.CraftedAttributes...)
+
+	schemaAttrs, err := GenerateSchemaAttributes(allSchemaAttrs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate schema attributes: %w", err)
 	}
-	models := GenerateTypedModels(input.Schema.Attributes)
+	models := GenerateTypedModels(allSchemaAttrs)
 
 	imports := []string{"github.com/hashicorp/terraform-plugin-framework/resource/schema"}
 	imports = append(imports, schemaAttrs.Imports...)
