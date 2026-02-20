@@ -6,12 +6,12 @@ import (
 	"os"
 	"regexp"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
@@ -155,8 +155,7 @@ func configBasic(orgID, name string, entries []testEntry) string {
 		`, i, orgID, entry.hclStr())
 		resourceNames = append(resourceNames, fmt.Sprintf("%s_%d", resourceName, i))
 	}
-
-	resourceNamesStr := fmt.Sprintf("[%s]", `"`+strings.Join(resourceNames, `", "`)+`"`)
+	resourceNamesStr := hcl.StringSliceToHCL(resourceNames)
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_service_account" "test" {

@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/atlas-sdk-go/admin"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -190,8 +190,116 @@ func TestAccLogIntegration_basicGCS(t *testing.T) {
 	})
 }
 
+func TestAccLogIntegration_basicDatadog(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		apiKey0   = "test-dd-api-key-0" //nolint:gosec // Test data
+		apiKey1   = "test-dd-api-key-1" //nolint:gosec // Test data
+		region0   = "US1"
+		region1   = "US3"
+		withDS    = true
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasicDatadog(projectID, logTypesAll, apiKey0, region0, withDS),
+				Check:  checkBasicDatadog(logTypesAll, region0, withDS),
+			},
+			{
+				Config: configBasicDatadog(projectID, logTypesMongoD, apiKey1, region1, !withDS),
+				Check:  checkBasicDatadog(logTypesMongoD, region1, !withDS),
+			},
+			{
+				Config:                               configBasicDatadog(projectID, logTypesMongoD, apiKey1, region1, false),
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "integration_id",
+				ImportStateVerifyIgnore:              []string{"api_key"}, // api_key is redacted on GET
+			},
+		},
+	})
+}
+
+func TestAccLogIntegration_basicOTel(t *testing.T) {
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		endpoint0   = "https://test-otel-url-0.com:1234/v1/logs"
+		endpoint1   = "https://test-otel-url-1.com:5678/v1/logs"
+		headersHCL0 = `otel_supplied_headers = [{name = "header-0", value = "val-0"}]`
+		headersHCL1 = `otel_supplied_headers = [{name = "header-0", value = "val-0-updated"},{name = "header-1", value = "val-1"}]`
+		withDS      = true
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasicOTel(projectID, logTypesMongoD, endpoint0, headersHCL0, withDS),
+				Check:  checkBasicOTel(logTypesMongoD, endpoint0, withDS),
+			},
+			{
+				Config: configBasicOTel(projectID, logTypesAll, endpoint1, headersHCL1, !withDS),
+				Check:  checkBasicOTel(logTypesAll, endpoint1, !withDS),
+			},
+			{
+				Config:                               configBasicOTel(projectID, logTypesAll, endpoint1, headersHCL1, false),
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "integration_id",
+				ImportStateVerifyIgnore:              []string{"otel_supplied_headers"}, // otel_supplied_headers values are redacted on GET
+			},
+		},
+	})
+}
+
+func TestAccLogIntegration_basicSplunk(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		hecURL0   = "https://test-hec-url-0.com:1234"
+		hecURL1   = "https://test-hec-url-1.com:5678"
+		hecToken0 = "test-hec-token-0" //nolint:gosec // Test data
+		hecToken1 = "test-hec-token-1" //nolint:gosec // Test data
+		withDS    = true
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasicSplunk(projectID, logTypesAll, hecURL0, hecToken0, withDS),
+				Check:  checkBasicSplunk(logTypesAll, hecURL0, withDS),
+			},
+			{
+				Config: configBasicSplunk(projectID, logTypesMongoD, hecURL1, hecToken1, !withDS),
+				Check:  checkBasicSplunk(logTypesMongoD, hecURL1, !withDS),
+			},
+			{
+				Config:                               configBasicSplunk(projectID, logTypesMongoD, hecURL1, hecToken1, false),
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "integration_id",
+				ImportStateVerifyIgnore:              []string{"hec_token"}, // hec_token is redacted on GET
+			},
+		},
+	})
+}
+
 func configBasicS3(projectID string, logTypes []string, config *s3Config, withDS bool) string {
-	logTypesStr := fmt.Sprintf("[%s]", `"`+strings.Join(logTypes, `", "`)+`"`)
+	logTypesStr := hcl.StringSliceToHCL(logTypes)
 	kmsKeyHCL := ""
 	if config.kmsKey != nil {
 		kmsKeyHCL = fmt.Sprintf("kms_key = %q", *config.kmsKey)
@@ -230,7 +338,7 @@ func checkBasicS3(logTypes []string, bucketName, prefixPath string, withDS bool)
 }
 
 func configBasicAzure(projectID string, logTypes []string, config *azureConfig, withDS bool) string {
-	logTypesStr := fmt.Sprintf("[%s]", `"`+strings.Join(logTypes, `", "`)+`"`)
+	logTypesStr := hcl.StringSliceToHCL(logTypes)
 	dsConfig := ""
 	if withDS {
 		dsConfig = datasourcesConfig
@@ -270,7 +378,7 @@ func checkBasicAzure(logTypes []string, config *azureConfig, withDS bool) resour
 }
 
 func configBasicGCS(projectID string, logTypes []string, config *gcsConfig, withDS bool) string {
-	logTypesStr := fmt.Sprintf("[%s]", `"`+strings.Join(logTypes, `", "`)+`"`)
+	logTypesStr := hcl.StringSliceToHCL(logTypes)
 	dsConfig := ""
 	if withDS {
 		dsConfig = datasourcesConfig
@@ -308,7 +416,103 @@ func checkBasicGCS(logTypes []string, config *gcsConfig, withDS bool) resource.T
 	return commonCheck(setChecks, mapChecks, withDS)
 }
 
-func commonCheck(setChecks []string, mapChecks map[string]string, withDS bool) resource.TestCheckFunc {
+func configBasicDatadog(projectID string, logTypes []string, apiKey, region string, withDS bool) string {
+	logTypesStr := hcl.StringSliceToHCL(logTypes)
+	dsConfig := ""
+	if withDS {
+		dsConfig = datasourcesConfig
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_log_integration" "test" {
+			project_id = %[1]q
+			type       = "DATADOG_LOG_EXPORT"
+			log_types  = %[2]s
+			api_key    = %[3]q
+			region     = %[4]q
+		}
+
+		%[5]s
+	`, projectID, logTypesStr, apiKey, region, dsConfig)
+}
+
+func checkBasicDatadog(logTypes []string, region string, withDS bool) resource.TestCheckFunc {
+	setChecks := []string{"integration_id", "api_key"}
+	mapChecks := map[string]string{
+		"type":        "DATADOG_LOG_EXPORT",
+		"region":      region,
+		"log_types.#": strconv.Itoa(len(logTypes)),
+		"log_types.0": logTypes[0],
+	}
+	return commonCheck(setChecks, mapChecks, withDS)
+}
+
+func configBasicOTel(projectID string, logTypes []string, endpoint, headersHCL string, withDS bool) string {
+	logTypesStr := hcl.StringSliceToHCL(logTypes)
+	dsConfig := ""
+	if withDS {
+		dsConfig = datasourcesConfig
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_log_integration" "test" {
+			project_id    = %[1]q
+			type          = "OTEL_LOG_EXPORT"
+			log_types     = %[2]s
+			otel_endpoint = %[3]q
+			%[4]s
+		}
+
+		%[5]s
+	`, projectID, logTypesStr, endpoint, headersHCL, dsConfig)
+}
+
+func checkBasicOTel(logTypes []string, endpoint string, withDS bool) resource.TestCheckFunc {
+	setChecks := []string{"integration_id"}
+	mapChecks := map[string]string{
+		"type":          "OTEL_LOG_EXPORT",
+		"otel_endpoint": endpoint,
+		"log_types.#":   strconv.Itoa(len(logTypes)),
+		"log_types.0":   logTypes[0],
+	}
+	headerChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttrWith(resourceName, "otel_supplied_headers.#", acc.IntGreatThan(0)),
+	}
+	if withDS {
+		headerChecks = append(headerChecks, resource.TestCheckResourceAttrWith(dataSourceName, "otel_supplied_headers.#", acc.IntGreatThan(0)))
+	}
+	return commonCheck(setChecks, mapChecks, withDS, headerChecks...)
+}
+
+func configBasicSplunk(projectID string, logTypes []string, hecURL, hecToken string, withDS bool) string {
+	logTypesStr := hcl.StringSliceToHCL(logTypes)
+	dsConfig := ""
+	if withDS {
+		dsConfig = datasourcesConfig
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_log_integration" "test" {
+			project_id = %[1]q
+			type       = "SPLUNK_LOG_EXPORT"
+			log_types  = %[2]s
+			hec_token  = %[3]q
+			hec_url    = %[4]q
+		}
+
+		%[5]s
+	`, projectID, logTypesStr, hecToken, hecURL, dsConfig)
+}
+
+func checkBasicSplunk(logTypes []string, hecURL string, withDS bool) resource.TestCheckFunc {
+	setChecks := []string{"integration_id", "hec_token"}
+	mapChecks := map[string]string{
+		"type":        "SPLUNK_LOG_EXPORT",
+		"hec_url":     hecURL,
+		"log_types.#": strconv.Itoa(len(logTypes)),
+		"log_types.0": logTypes[0],
+	}
+	return commonCheck(setChecks, mapChecks, withDS)
+}
+
+func commonCheck(setChecks []string, mapChecks map[string]string, withDS bool, extraChecks ...resource.TestCheckFunc) resource.TestCheckFunc {
 	var checks []resource.TestCheckFunc
 	var dsName *string
 	if withDS {
@@ -316,6 +520,7 @@ func commonCheck(setChecks []string, mapChecks map[string]string, withDS bool) r
 		checks = append(checks, resource.TestCheckResourceAttrWith(pluralDataSourceName, "results.#", acc.IntGreatThan(0)))
 	}
 	checks = append(checks, acc.CheckRSAndDS(resourceName, dsName, nil, setChecks, mapChecks, checkExists(resourceName)))
+	checks = append(checks, extraChecks...)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
