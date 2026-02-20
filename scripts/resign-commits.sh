@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 # Rebase commits on the current branch (that are ahead of master) and re-sign them with GPG.
 # Usage: ./scripts/resign-commits.sh [base-branch]
