@@ -44,7 +44,3 @@ type PostUpdateAPICallHook interface {
 type SchemaExtensionHook interface {
 	ExtendSchema(ctx context.Context, baseSchema schema.Schema) schema.Schema
 }
-
-type ImportStateFallbackHook interface {
-	ParseLegacyImportID(id string) (map[string]string, error)
-}

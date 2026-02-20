@@ -22,22 +22,12 @@ const (
 //   - HandleImport(ctx, []string{"project_id", "name"}, req, resp, r)
 //   - HandleImport(ctx, []string{"project_id", "name"}, req, resp, nil)
 //   - example import ID would be "5c9d0a239ccf643e6a35ddasdf/myCluster"
-func HandleImport(ctx context.Context, idAttrs []string, req resource.ImportStateRequest, resp *resource.ImportStateResponse, hook any) {
+func HandleImport(ctx context.Context, idAttrs []string, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	d := &resp.Diagnostics
-	idAttrsWithValue, defaultErr := ProcessImportID(req.ID, idAttrs)
-	if defaultErr != nil {
-		if fallbackHook, ok := hook.(ImportStateFallbackHook); ok {
-			legacyValues, fallbackErr := fallbackHook.ParseLegacyImportID(req.ID)
-			if fallbackErr == nil {
-				idAttrsWithValue = legacyValues
-			} else {
-				addError(d, opImport, errProcessingImportID, fmt.Errorf("%v; fallback parse failed: %w", defaultErr, fallbackErr))
-				return
-			}
-		} else {
-			addError(d, opImport, errProcessingImportID, defaultErr)
-			return
-		}
+	idAttrsWithValue, err := ProcessImportID(req.ID, idAttrs)
+	if err != nil {
+		addError(d, opImport, errProcessingImportID, err)
+		return
 	}
 	for attrName, value := range idAttrsWithValue {
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(attrName), value)...)
