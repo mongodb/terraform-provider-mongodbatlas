@@ -1,3 +1,3 @@
 {
-    "install": "make tools && make link-git-hooks"
+    "install": "make tools link-git-hooks"
 }
