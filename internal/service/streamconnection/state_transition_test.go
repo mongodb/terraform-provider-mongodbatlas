@@ -24,14 +24,23 @@ func TestStreamConnectionDeletion(t *testing.T) {
 			ErrorCode: "STREAM_KAFKA_CONNECTION_IS_DEPLOYING",
 			Error:     409,
 		}
-		genericErr = admin.GenericOpenAPIError{}
+		genericErr  = admin.GenericOpenAPIError{}
+		notFoundErr = admin.GenericOpenAPIError{}
 	)
 	genericErr.SetError("error")
 	genericErr.SetModel(errDeleteInProgress)
+	notFoundErr.SetError("not found")
+
+	// Delete retries until success
 	m.EXPECT().DeleteStreamConnection(mock.Anything, projectID, instanceName, connectionName).Return(admin.DeleteStreamConnectionApiRequest{ApiService: m}).Times(3)
 	m.EXPECT().DeleteStreamConnectionExecute(mock.Anything).Once().Return(nil, &genericErr)
 	m.EXPECT().DeleteStreamConnectionExecute(mock.Anything).Once().Return(nil, &genericErr)
 	m.EXPECT().DeleteStreamConnectionExecute(mock.Anything).Once().Return(nil, nil)
+
+	// After delete succeeds, wait for resource to be deleted (404 response)
+	m.EXPECT().GetStreamConnection(mock.Anything, projectID, instanceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Once()
+	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(nil, &http.Response{StatusCode: http.StatusNotFound}, &notFoundErr)
+
 	err := streamconnection.DeleteStreamConnection(t.Context(), m, projectID, instanceName, connectionName, time.Minute)
 	assert.NoError(t, err)
 }
@@ -42,11 +51,80 @@ func TestStreamConnectionDeletion404(t *testing.T) {
 		projectID      = "projectID"
 		instanceName   = "instanceName"
 		connectionName = "connectionName"
+		notFoundErr    = admin.GenericOpenAPIError{}
 	)
+	notFoundErr.SetError("not found")
+
+	// Delete returns 404 immediately (resource doesn't exist)
 	m.EXPECT().DeleteStreamConnection(mock.Anything, projectID, instanceName, connectionName).Return(admin.DeleteStreamConnectionApiRequest{ApiService: m}).Once()
 	m.EXPECT().DeleteStreamConnectionExecute(mock.Anything).Once().Return(&http.Response{StatusCode: http.StatusNotFound}, nil)
+
+	// Wait for delete still checks, gets 404 confirming resource is gone
+	m.EXPECT().GetStreamConnection(mock.Anything, projectID, instanceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Once()
+	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(nil, &http.Response{StatusCode: http.StatusNotFound}, &notFoundErr)
+
 	err := streamconnection.DeleteStreamConnection(t.Context(), m, projectID, instanceName, connectionName, time.Minute)
 	assert.NoError(t, err)
+}
+
+// TestStreamConnectionDeletionWithDeletingState tests the async delete case where the
+// connection goes through a DELETING state before being fully removed.
+func TestStreamConnectionDeletionWithDeletingState(t *testing.T) {
+	var (
+		m              = mockadmin.NewStreamsApi(t)
+		projectID      = "projectID"
+		instanceName   = "instanceName"
+		connectionName = "connectionName"
+		notFoundErr    = admin.GenericOpenAPIError{}
+	)
+	notFoundErr.SetError("not found")
+
+	deletingConnection := &admin.StreamsConnection{
+		Name:  admin.PtrString(connectionName),
+		Type:  admin.PtrString("Kafka"),
+		State: admin.PtrString("DELETING"),
+	}
+
+	// Delete call succeeds immediately
+	m.EXPECT().DeleteStreamConnection(mock.Anything, projectID, instanceName, connectionName).Return(admin.DeleteStreamConnectionApiRequest{ApiService: m}).Once()
+	m.EXPECT().DeleteStreamConnectionExecute(mock.Anything).Once().Return(nil, nil)
+
+	// Wait for delete polls: first returns DELETING, second returns 404
+	m.EXPECT().GetStreamConnection(mock.Anything, projectID, instanceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Times(2)
+	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(deletingConnection, nil, nil)
+	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(nil, &http.Response{StatusCode: http.StatusNotFound}, &notFoundErr)
+
+	err := streamconnection.DeleteStreamConnection(t.Context(), m, projectID, instanceName, connectionName, time.Minute)
+	assert.NoError(t, err)
+}
+
+// TestStreamConnectionDeletionFailed tests that deletion returns an error when the connection
+// transitions to FAILED state during deletion.
+func TestStreamConnectionDeletionFailed(t *testing.T) {
+	var (
+		m              = mockadmin.NewStreamsApi(t)
+		projectID      = "projectID"
+		instanceName   = "instanceName"
+		connectionName = "connectionName"
+	)
+
+	failedConnection := &admin.StreamsConnection{
+		Name:  admin.PtrString(connectionName),
+		Type:  admin.PtrString("Kafka"),
+		State: admin.PtrString("FAILED"),
+	}
+
+	// Delete call succeeds immediately
+	m.EXPECT().DeleteStreamConnection(mock.Anything, projectID, instanceName, connectionName).Return(admin.DeleteStreamConnectionApiRequest{ApiService: m}).Once()
+	m.EXPECT().DeleteStreamConnectionExecute(mock.Anything).Once().Return(nil, nil)
+
+	// Wait for delete polls: returns FAILED state
+	m.EXPECT().GetStreamConnection(mock.Anything, projectID, instanceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Once()
+	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(failedConnection, nil, nil)
+
+	err := streamconnection.DeleteStreamConnection(t.Context(), m, projectID, instanceName, connectionName, time.Minute)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "deletion failed")
 }
 
 func TestWaitStateTransitionSuccess(t *testing.T) {
