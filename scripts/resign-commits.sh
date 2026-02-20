@@ -8,7 +8,7 @@ set -euo pipefail
 BASE_BRANCH="${1:-master}"
 
 echo "==> Checking for uncommitted changes..."
-if ! git diff-index --quiet HEAD --; then
+if [ -n "$(git status --porcelain)" ]; then
   echo "Error: You have uncommitted changes. Please commit or stash them first."
   exit 1
 fi
