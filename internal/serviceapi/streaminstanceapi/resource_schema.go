@@ -122,7 +122,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								},
 								"type": schema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "Type of the DB role. Can be either BuiltIn or Custom.",
+									MarkdownDescription: "Type of the DB role. Can be either Built In or Custom.",
 								},
 							},
 						},
@@ -148,19 +148,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									Attributes: map[string]schema.Attribute{
 										"connection_id": schema.StringAttribute{
 											Computed:            true,
-											MarkdownDescription: "Reserved. Will be used by PRIVATE_LINK connection type.",
+											MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type.",
 										},
 										"name": schema.StringAttribute{
 											Computed:            true,
-											MarkdownDescription: "Reserved. Will be used by PRIVATE_LINK connection type.",
+											MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type.",
 										},
 										"tgw_route_id": schema.StringAttribute{
 											Computed:            true,
-											MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
+											MarkdownDescription: "Reserved. Will be used by `TRANSIT_GATEWAY` connection type.",
 										},
 										"type": schema.StringAttribute{
 											Computed:            true,
-											MarkdownDescription: "Selected networking type. Either PUBLIC, VPC, PRIVATE_LINK, or TRANSIT_GATEWAY. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. TRANSIT_GATEWAY support is coming soon.",
+											MarkdownDescription: "Selected networking type. Either `PUBLIC`, `VPC`, `PRIVATE_LINK`, or `TRANSIT_GATEWAY`. Defaults to `PUBLIC`. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. `TRANSIT_GATEWAY` support is coming soon.",
 										},
 									},
 								},
@@ -169,6 +169,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"provider": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "The Schema Registry provider.",
+						},
+						"region": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The connection's region.",
 						},
 						"schema_registry_authentication": schema.SingleNestedAttribute{
 							Computed:            true,
@@ -206,7 +210,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								},
 								"protocol": schema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "Describes the transport type. Can be either SASL_PLAINTEXT, SASL_SSL, or SSL.",
+									MarkdownDescription: "Describes the transport type. Can be either `SASL_PLAINTEXT`, `SASL_SSL`, or `SSL`.",
 								},
 							},
 						},
@@ -220,7 +224,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"url": schema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The url to be used for the request.",
+							MarkdownDescription: "The URL to be used for the request.",
 						},
 					},
 				},
@@ -266,7 +270,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"solar": schema.BoolAttribute{
 						Computed:            true,
 						Optional:            true,
-						MarkdownDescription: "Flag that indicates whether to add a 'sample_stream_solar' connection.",
+						MarkdownDescription: "Flag that indicates whether to add a `sample_stream_solar` connection.",
 					},
 				},
 			},
@@ -274,7 +278,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Configuration options for an Atlas Stream Processing Workspace.",
 				CustomType:          customtypes.NewObjectType[TFStreamConfigModel](ctx),
-				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
 				Attributes: map[string]schema.Attribute{
 					"max_tier_size": schema.StringAttribute{
 						Optional:            true,
@@ -297,7 +300,7 @@ type TFModel struct {
 	Hostnames         customtypes.ListValue[types.String]               `tfsdk:"hostnames" autogen:"omitjson"`
 	Name              types.String                                      `tfsdk:"name" autogen:"omitjsonupdate"`
 	SampleConnections customtypes.ObjectValue[TFSampleConnectionsModel] `tfsdk:"sample_connections" autogen:"omitjsonupdate"`
-	StreamConfig      customtypes.ObjectValue[TFStreamConfigModel]      `tfsdk:"stream_config" autogen:"omitjsonupdate"`
+	StreamConfig      customtypes.ObjectValue[TFStreamConfigModel]      `tfsdk:"stream_config"`
 }
 type TFConnectionsModel struct {
 	Authentication               customtypes.ObjectValue[TFConnectionsAuthenticationModel]               `tfsdk:"authentication" autogen:"omitjson"`
@@ -311,6 +314,7 @@ type TFConnectionsModel struct {
 	Name                         types.String                                                            `tfsdk:"name" autogen:"omitjson"`
 	Networking                   customtypes.ObjectValue[TFConnectionsNetworkingModel]                   `tfsdk:"networking" autogen:"omitjson"`
 	Provider                     types.String                                                            `tfsdk:"provider" autogen:"omitjson"`
+	Region                       types.String                                                            `tfsdk:"region" autogen:"omitjson"`
 	SchemaRegistryAuthentication customtypes.ObjectValue[TFConnectionsSchemaRegistryAuthenticationModel] `tfsdk:"schema_registry_authentication" autogen:"omitjson"`
 	SchemaRegistryUrls           customtypes.SetValue[types.String]                                      `tfsdk:"schema_registry_urls" autogen:"omitjson"`
 	Security                     customtypes.ObjectValue[TFConnectionsSecurityModel]                     `tfsdk:"security" autogen:"omitjson"`

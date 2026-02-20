@@ -53,7 +53,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"value": schema.StringAttribute{
 							Required:            true,
-							MarkdownDescription: "Value to match or exceed using the specified **matchers.operator**.",
+							MarkdownDescription: "Value to match or exceed using the specified `matchers.operator`.",
 						},
 					},
 				},
@@ -65,7 +65,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"metric_name": schema.StringAttribute{
 						Required:            true,
-						MarkdownDescription: "Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.",
+						MarkdownDescription: "Human-readable label that identifies the metric against which MongoDB Cloud checks the configured `metricThreshold.threshold`.",
 					},
 					"mode": schema.StringAttribute{
 						Optional:            true,
@@ -150,17 +150,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"notifier_id": schema.StringAttribute{
 							Computed:            true,
 							Optional:            true,
-							MarkdownDescription: "The notifierId is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.",
+							MarkdownDescription: "The `notifierId` is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.",
 						},
 						"ops_genie_api_key": schema.StringAttribute{
 							Optional:            true,
-							MarkdownDescription: "API Key that MongoDB Cloud needs to send this notification via Opsgenie. The resource requires this parameter when `\"notifications.[n].typeName\" : \"OPS_GENIE\"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.\n\n**NOTE**: After you create a notification which requires an API or integration key, the key appears partially redacted when you:\n\n* View or edit the alert through the Atlas UI.\n\n* Query the alert for the notification through the Atlas Administration API.",
+							MarkdownDescription: "API Key that MongoDB Cloud needs to send this notification via OpsGenie. The resource requires this parameter when `\"notifications.[n].typeName\" : \"OPS_GENIE\"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.\n\n**NOTE**: After you create a notification which requires an API or integration key, the key appears partially redacted when you:\n\n* View or edit the alert through the Atlas UI.\n\n* Query the alert for the notification through the Atlas Administration API.",
 							Sensitive:           true,
 						},
 						"ops_genie_region": schema.StringAttribute{
 							Computed:            true,
 							Optional:            true,
-							MarkdownDescription: "Opsgenie region that indicates which API Uniform Resource Locator (URL) to use.",
+							MarkdownDescription: "OpsGenie region that indicates which API Uniform Resource Locator (URL) to use.",
 						},
 						"region": schema.StringAttribute{
 							Computed:            true,
@@ -213,12 +213,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"webhook_secret": schema.StringAttribute{
 							Optional:            true,
-							MarkdownDescription: "Authentication secret for a webhook-based alert.\n\nAtlas returns this value if you set `\"notifications.[n].typeName\" :\"WEBHOOK\"` and either:\n* You set `notification.[n].webhookSecret` to a non-empty string\n* You set a default webhookSecret either on the Integrations page, or with the Integrations API\n\n**NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.",
+							MarkdownDescription: "Authentication secret for a webhook-based alert.\n\nAtlas returns this value if you set `notifications.[n].typeName` :`WEBHOOK` and either:\n* You set `notification.[n].webhookSecret` to a non-empty string\n* You set a default webhook secret either on the Integrations page, or with the Integrations API\n\n**NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.",
 							Sensitive:           true,
 						},
 						"webhook_url": schema.StringAttribute{
 							Optional:            true,
-							MarkdownDescription: "Target URL for a webhook-based alert.\n\nAtlas returns this value if you set `\"notifications.[n].typeName\" :\"WEBHOOK\"` and either:\n* You set `notification.[n].webhookURL` to a non-empty string\n* You set a default webhookUrl either on the Integrations page, or with the Integrations API\n\n**NOTE**: When you view or edit the alert for a Webhook URL notification, the URL appears partially redacted.",
+							MarkdownDescription: "Target URL for a webhook-based alert.\n\nAtlas returns this value if you set `\"notifications.[n].typeName\" :\"WEBHOOK\"` and either:\n* You set `notification.[n].webhookURL` to a non-empty string\n* You set a default webhook URL either on the Integrations page, or with the Integrations API\n\n**NOTE**: When you view or edit the alert for a Webhook URL notification, the URL appears partially redacted.",
 							Sensitive:           true,
 						},
 					},
@@ -235,7 +235,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"metric_name": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.",
+						MarkdownDescription: "Human-readable label that identifies the metric against which MongoDB Cloud checks the configured `metricThreshold.threshold`.",
 					},
 					"mode": schema.StringAttribute{
 						Optional:            true,

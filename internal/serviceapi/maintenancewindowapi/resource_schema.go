@@ -18,7 +18,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"auto_defer_once_enabled": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether MongoDB Cloud should defer all maintenance windows for one week after you enable them.",
+				MarkdownDescription: "Flag that indicates whether MongoDB Cloud should defer all maintenance windows for one week after you enable them. This setting controls the same underlying auto-deferral feature as the `/maintenanceWindow/autoDefer` endpoint. Use either this field (to set a specific value) or that endpoint (to toggle the current value). For most use cases, this field in the PATCH request is preferred because it allows setting an explicit value rather than toggling.",
 			},
 			"day_of_week": schema.Int64Attribute{
 				Required:            true,
