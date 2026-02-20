@@ -37,3 +37,7 @@ type PreUpdateAPICallHook interface {
 type PostUpdateAPICallHook interface {
 	PostUpdateAPICall(APICallResult) APICallResult
 }
+
+type PreImportHook interface {
+	PreImport(id string) (string, error)
+}
