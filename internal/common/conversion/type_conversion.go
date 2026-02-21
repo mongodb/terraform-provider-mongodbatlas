@@ -7,14 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func SafeValue[T any](v *T) T {
-	if v != nil {
-		return *v
-	}
-	var emptyValue T
-	return emptyValue
-}
-
 func SafeString(s *string) string {
 	if s != nil {
 		return *s

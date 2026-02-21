@@ -18,7 +18,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotexportjob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshotrestorejob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudprovideraccess"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clusteroutagesimulation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdbrole"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdnsconfigurationclusteraws"
@@ -173,27 +172,25 @@ func assumeRoleSchema() *schema.Schema {
 
 func getDataSourcesMap() map[string]*schema.Resource {
 	dataSourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_custom_db_role":                    customdbrole.DataSource(),
-		"mongodbatlas_custom_db_roles":                   customdbrole.PluralDataSource(),
-		"mongodbatlas_api_key":                           apikey.DataSource(),
-		"mongodbatlas_api_keys":                          apikey.PluralDataSource(),
-		"mongodbatlas_access_list_api_key":               accesslistapikey.DataSource(),
-		"mongodbatlas_access_list_api_keys":              accesslistapikey.PluralDataSource(),
-		"mongodbatlas_project_api_key":                   projectapikey.DataSource(),
-		"mongodbatlas_project_api_keys":                  projectapikey.PluralDataSource(),
-		"mongodbatlas_roles_org_id":                      rolesorgid.DataSource(),
-		"mongodbatlas_cluster":                           cluster.DataSource(),
-		"mongodbatlas_clusters":                          cluster.PluralDataSource(),
-		"mongodbatlas_network_container":                 networkcontainer.DataSource(),
-		"mongodbatlas_network_containers":                networkcontainer.PluralDataSource(),
-		"mongodbatlas_network_peering":                   networkpeering.DataSource(),
-		"mongodbatlas_network_peerings":                  networkpeering.PluralDataSource(),
-		"mongodbatlas_maintenance_window":                maintenancewindow.DataSource(),
-		"mongodbatlas_auditing":                          auditing.DataSource(),
-		"mongodbatlas_team":                              team.DataSource(),
-		"mongodbatlas_global_cluster_config":             globalclusterconfig.DataSource(),
-		"mongodbatlas_x509_authentication_database_user": x509authenticationdatabaseuser.DataSource(),
-		"mongodbatlas_private_endpoint_regional_mode":    privateendpointregionalmode.DataSource(),
+		"mongodbatlas_custom_db_role":                                               customdbrole.DataSource(),
+		"mongodbatlas_custom_db_roles":                                              customdbrole.PluralDataSource(),
+		"mongodbatlas_api_key":                                                      apikey.DataSource(),
+		"mongodbatlas_api_keys":                                                     apikey.PluralDataSource(),
+		"mongodbatlas_access_list_api_key":                                          accesslistapikey.DataSource(),
+		"mongodbatlas_access_list_api_keys":                                         accesslistapikey.PluralDataSource(),
+		"mongodbatlas_project_api_key":                                              projectapikey.DataSource(),
+		"mongodbatlas_project_api_keys":                                             projectapikey.PluralDataSource(),
+		"mongodbatlas_roles_org_id":                                                 rolesorgid.DataSource(),
+		"mongodbatlas_network_container":                                            networkcontainer.DataSource(),
+		"mongodbatlas_network_containers":                                           networkcontainer.PluralDataSource(),
+		"mongodbatlas_network_peering":                                              networkpeering.DataSource(),
+		"mongodbatlas_network_peerings":                                             networkpeering.PluralDataSource(),
+		"mongodbatlas_maintenance_window":                                           maintenancewindow.DataSource(),
+		"mongodbatlas_auditing":                                                     auditing.DataSource(),
+		"mongodbatlas_team":                                                         team.DataSource(),
+		"mongodbatlas_global_cluster_config":                                        globalclusterconfig.DataSource(),
+		"mongodbatlas_x509_authentication_database_user":                            x509authenticationdatabaseuser.DataSource(),
+		"mongodbatlas_private_endpoint_regional_mode":                               privateendpointregionalmode.DataSource(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive":  privatelinkendpointservicedatafederationonlinearchive.DataSource(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archives": privatelinkendpointservicedatafederationonlinearchive.PluralDataSource(),
 		"mongodbatlas_privatelink_endpoint":                                         privatelinkendpoint.DataSource(),
@@ -256,7 +253,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_access_list_api_key":                                         accesslistapikey.Resource(),
 		"mongodbatlas_project_api_key":                                             projectapikey.Resource(),
 		"mongodbatlas_custom_db_role":                                              customdbrole.Resource(),
-		"mongodbatlas_cluster":                                                     cluster.Resource(),
 		"mongodbatlas_network_container":                                           networkcontainer.Resource(),
 		"mongodbatlas_network_peering":                                             networkpeering.Resource(),
 		"mongodbatlas_maintenance_window":                                          maintenancewindow.Resource(),

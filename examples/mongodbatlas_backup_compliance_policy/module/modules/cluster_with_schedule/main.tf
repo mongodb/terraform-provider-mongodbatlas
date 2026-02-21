@@ -31,6 +31,11 @@ resource "mongodbatlas_advanced_cluster" "this" {
     }
   ]
 }
+data "mongodbatlas_advanced_cluster" "this" {
+  project_id = mongodbatlas_advanced_cluster.this.project_id
+  name       = mongodbatlas_advanced_cluster.this.name
+}
+
 resource "mongodbatlas_cloud_backup_schedule" "this" {
   count                    = var.add_schedule ? 1 : 0
   project_id               = var.project_id
@@ -52,7 +57,7 @@ resource "mongodbatlas_cloud_backup_schedule" "this" {
       "YEARLY",
     "ON_DEMAND"]
     region_name        = "US_EAST_2"
-    zone_id            = mongodbatlas_advanced_cluster.this.replication_specs[0].zone_id
+    zone_id            = data.mongodbatlas_advanced_cluster.this.effective_replication_specs[0].zone_id
     should_copy_oplogs = false
   }
 }

@@ -27,6 +27,11 @@ resource "mongodbatlas_advanced_cluster" "cluster-atlas" {
   }]
 }
 
+data "mongodbatlas_advanced_cluster" "cluster-atlas" {
+  project_id = mongodbatlas_advanced_cluster.cluster-atlas.project_id
+  name       = mongodbatlas_advanced_cluster.cluster-atlas.name
+}
+
 resource "mongodbatlas_database_user" "db-user" {
   username           = var.atlas_dbuser
   password           = var.atlas_dbpassword
@@ -42,7 +47,7 @@ resource "mongodbatlas_database_user" "db-user" {
 resource "mongodbatlas_network_peering" "aws-atlas" {
   accepter_region_name     = var.aws_region
   project_id               = mongodbatlas_project.aws_atlas.id
-  container_id             = one(values(mongodbatlas_advanced_cluster.cluster-atlas.replication_specs[0].container_id))
+  container_id             = one(values(data.mongodbatlas_advanced_cluster.cluster-atlas.effective_replication_specs[0].container_id))
   provider_name            = "AWS"
   route_table_cidr_block   = aws_vpc.primary.cidr_block
   vpc_id                   = aws_vpc.primary.id

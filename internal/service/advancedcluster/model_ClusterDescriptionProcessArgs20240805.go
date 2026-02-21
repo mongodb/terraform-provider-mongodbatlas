@@ -26,17 +26,17 @@ func buildAdvancedConfigObjType(ctx context.Context, input *ProcessArgs, diags *
 
 		advancedConfig = TFAdvancedConfigurationModel{
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(changeStreamOptionsPreAndPostImagesExpireAfterSeconds)),
-			DefaultWriteConcern:              types.StringValue(conversion.SafeValue(input.ArgsDefault.DefaultWriteConcern)),
-			JavascriptEnabled:                types.BoolValue(conversion.SafeValue(input.ArgsDefault.JavascriptEnabled)),
-			NoTableScan:                      types.BoolValue(conversion.SafeValue(input.ArgsDefault.NoTableScan)),
-			OplogMinRetentionHours:           types.Float64Value(conversion.SafeValue(input.ArgsDefault.OplogMinRetentionHours)),
-			OplogSizeMb:                      types.Int64Value(conversion.SafeValue(conversion.IntPtrToInt64Ptr(input.ArgsDefault.OplogSizeMB))),
-			SampleSizeBiconnector:            types.Int64Value(conversion.SafeValue(conversion.IntPtrToInt64Ptr(input.ArgsDefault.SampleSizeBIConnector))),
-			SampleRefreshIntervalBiconnector: types.Int64Value(conversion.SafeValue(conversion.IntPtrToInt64Ptr(input.ArgsDefault.SampleRefreshIntervalBIConnector))),
-			TransactionLifetimeLimitSeconds:  types.Int64Value(conversion.SafeValue(input.ArgsDefault.TransactionLifetimeLimitSeconds)),
+			DefaultWriteConcern:              types.StringPointerValue(input.ArgsDefault.DefaultWriteConcern),
+			JavascriptEnabled:                types.BoolPointerValue(input.ArgsDefault.JavascriptEnabled),
+			NoTableScan:                      types.BoolPointerValue(input.ArgsDefault.NoTableScan),
+			OplogMinRetentionHours:           types.Float64PointerValue(input.ArgsDefault.OplogMinRetentionHours),
+			OplogSizeMb:                      types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.ArgsDefault.OplogSizeMB)),
+			SampleSizeBiconnector:            types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.ArgsDefault.SampleSizeBIConnector)),
+			SampleRefreshIntervalBiconnector: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.ArgsDefault.SampleRefreshIntervalBIConnector)),
+			TransactionLifetimeLimitSeconds:  types.Int64PointerValue(input.ArgsDefault.TransactionLifetimeLimitSeconds),
 			DefaultMaxTimeMS:                 types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.ArgsDefault.DefaultMaxTimeMS)),
-			MinimumEnabledTlsProtocol:        types.StringValue(conversion.SafeValue(input.ArgsDefault.MinimumEnabledTlsProtocol)),
-			TlsCipherConfigMode:              types.StringValue(conversion.SafeValue(input.ArgsDefault.TlsCipherConfigMode)),
+			MinimumEnabledTlsProtocol:        types.StringPointerValue(input.ArgsDefault.MinimumEnabledTlsProtocol),
+			TlsCipherConfigMode:              types.StringPointerValue(input.ArgsDefault.TlsCipherConfigMode),
 		}
 		customCipherConfigTLS12 = input.ArgsDefault.CustomOpensslCipherConfigTls12
 		customCipherConfigTLS13 = input.ArgsDefault.CustomOpensslCipherConfigTls13
@@ -55,8 +55,8 @@ func overrideTLSIfClusterAdvancedConfigPresent(ctx context.Context, diags *diag.
 	if conf == nil {
 		return
 	}
-	tfAdvConfig.MinimumEnabledTlsProtocol = types.StringValue(conversion.SafeValue(conf.MinimumEnabledTlsProtocol))
-	tfAdvConfig.TlsCipherConfigMode = types.StringValue(conversion.SafeValue(conf.TlsCipherConfigMode))
+	tfAdvConfig.MinimumEnabledTlsProtocol = types.StringPointerValue(conf.MinimumEnabledTlsProtocol)
+	tfAdvConfig.TlsCipherConfigMode = types.StringPointerValue(conf.TlsCipherConfigMode)
 	tfAdvConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfig(ctx, diags, conf.CustomOpensslCipherConfigTls12)
 	tfAdvConfig.CustomOpensslCipherConfigTls13 = customOpensslCipherConfig(ctx, diags, conf.CustomOpensslCipherConfigTls13)
 }
