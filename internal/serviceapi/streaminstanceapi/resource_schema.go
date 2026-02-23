@@ -7,8 +7,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customvalidator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -182,6 +184,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"type": schema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry.",
+									Validators: []validator.String{
+										customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
+											Mapping: map[string]customvalidator.VariantDefinition{
+												"SASL_INHERIT": {},
+												"USER_INFO": {
+													Allowed:  []string{"password", "username"},
+													Required: []string{"password", "username"},
+												},
+											},
+										}),
+									},
 								},
 								"username": schema.StringAttribute{
 									Computed:            true,
@@ -217,6 +230,35 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"type": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Type of the connection.",
+							Validators: []validator.String{
+								customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
+									Mapping: map[string]customvalidator.VariantDefinition{
+										"AWSKinesisDataStreams": {
+											Allowed: []string{"aws", "networking"},
+										},
+										"AWSLambda": {
+											Allowed: []string{"aws"},
+										},
+										"Cluster": {
+											Allowed: []string{"cluster_group_id", "cluster_name", "db_role_to_execute"},
+										},
+										"Https": {
+											Allowed: []string{"headers", "url"},
+										},
+										"Kafka": {
+											Allowed: []string{"authentication", "bootstrap_servers", "config", "networking", "security"},
+										},
+										"S3": {
+											Allowed: []string{"aws", "networking"},
+										},
+										"Sample": {},
+										"SchemaRegistry": {
+											Allowed:  []string{"provider", "schema_registry_authentication", "schema_registry_urls"},
+											Required: []string{"provider", "schema_registry_authentication", "schema_registry_urls"},
+										},
+									},
+								}),
+							},
 						},
 						"url": schema.StringAttribute{
 							Computed:            true,

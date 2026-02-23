@@ -9,8 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customvalidator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -480,6 +482,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Type of the index. The default type is search.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+				Validators: []validator.String{
+					customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
+						Mapping: map[string]customvalidator.VariantDefinition{
+							"search": {
+								Allowed: []string{"synonym_mapping_status", "synonym_mapping_status_detail"},
+							},
+							"vectorSearch": {},
+						},
+					}),
+				},
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed:            true,

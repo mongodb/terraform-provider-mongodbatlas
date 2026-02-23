@@ -7,8 +7,10 @@ import (
 
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customvalidator"
 )
 
 func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
@@ -57,6 +59,16 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 						"type": dsschema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.",
+							Validators: []validator.String{
+								customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
+									Mapping: map[string]customvalidator.VariantDefinition{
+										"S3_LOG_EXPORT": {
+											Allowed:  []string{"bucket_name", "iam_role_id", "kms_key", "log_types", "prefix_path"},
+											Required: []string{"bucket_name", "iam_role_id", "prefix_path"},
+										},
+									},
+								}),
+							},
 						},
 					},
 				},
