@@ -210,7 +210,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	apiResp, err = WaitStateTransitionWithTimeout(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, createTimeout)
+	apiResp, err = WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, createTimeout, []string{StatePending}, []string{StateReady, StateFailed})
 	if err != nil {
 		resp.Diagnostics.AddError("error waiting for stream connection to be ready", err.Error())
 		return
@@ -294,7 +294,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	apiResp, err := WaitStateTransitionWithTimeout(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, updateTimeout)
+	apiResp, err := WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, updateTimeout, []string{StatePending}, []string{StateReady, StateFailed})
 	if err != nil {
 		resp.Diagnostics.AddError("error waiting for stream connection to be ready", err.Error())
 		return
