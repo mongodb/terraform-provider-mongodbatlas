@@ -718,7 +718,7 @@ resources:
         # discriminator is nested in an attribute that fully computed, follow up in CLOUDP-383599 so this filtering is done automatically
         connections.type:
           ignore_validators: [polymorphic]
-        connections.authentication.type:
+        connections.schema_registry_authentication.type:
           ignore_validators: [polymorphic]
 
   # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.

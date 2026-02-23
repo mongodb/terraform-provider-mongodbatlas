@@ -486,6 +486,7 @@ schema:
                                 property_name:
                                     api_name: type
                                     tf_schema_name: type
+                                skip_validation: true
                             attributes:
                                 - string: {}
                                   description: Password or Private Key for authentication.
