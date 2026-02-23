@@ -1,0 +1,3 @@
+{
+    "install": "make tools link-git-hooks"
+}

@@ -131,6 +131,10 @@ tflint: fmtcheck ## Linter for Terraform files in examples/ dir (avoid `internal
 tf-validate: fmtcheck ## Validate Terraform files
 	scripts/tf-validate.sh
 
+.PHONY: resign-commits
+resign-commits: ## Rebase commits ahead of master and re-sign them with GPG. Usage: make resign-commits [base=master]
+	./scripts/resign-commits.sh $(or $(base),master)
+
 .PHONY: link-git-hooks
 link-git-hooks: ## Install Git hooks
 	@echo "==> Installing all git hooks..."
