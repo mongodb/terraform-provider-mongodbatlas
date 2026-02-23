@@ -318,9 +318,9 @@ func Resource() *schema.Resource {
 				Set: func(v any) int {
 					var buf bytes.Buffer
 					m := v.(map[string]any)
-					buf.WriteString(fmt.Sprintf("%d", m["num_shards"].(int)))
+					fmt.Fprintf(&buf, "%d", m["num_shards"].(int))
 					buf.WriteString(m["zone_name"].(string))
-					buf.WriteString(fmt.Sprintf("%+v", m["regions_config"].(*schema.Set)))
+					fmt.Fprintf(&buf, "%+v", m["regions_config"].(*schema.Set))
 					return hashCodeString(buf.String())
 				},
 			},
