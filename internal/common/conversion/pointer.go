@@ -1,7 +1,8 @@
 package conversion
 
+//go:fix inline
 func Pointer[T any](x T) *T {
-	return &x
+	return new(x)
 }
 
 func IntPtr(v int) *int {

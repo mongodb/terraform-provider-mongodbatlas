@@ -172,7 +172,7 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 				expectedAttr := codespec.Attribute{
 					TFSchemaName:             "delete_on_create_timeout",
 					TFModelName:              "DeleteOnCreateTimeout",
-					Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(true)},
+					Bool:                     &codespec.BoolAttribute{Default: new(true)},
 					Description:              &description,
 					ReqBodyUsage:             codespec.OmitAlways,
 					CreateOnly:               true,
