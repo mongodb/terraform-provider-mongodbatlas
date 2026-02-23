@@ -1182,7 +1182,7 @@ resources:
             description: *project_id_description
           integration_id:
             immutable_computed: true
-          # no need for discriminator as there is currently only a single type, keep prod code exactly as it
+          # no need for discriminator as there is currently only a single type, keep prod code exactly as is
           type:
             ignore_validators: [discriminator]
     datasources:
