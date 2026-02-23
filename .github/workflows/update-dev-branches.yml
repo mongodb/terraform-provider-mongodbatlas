@@ -5,7 +5,7 @@ on:
     inputs:
       branches:
         description: 'Dev branch names to update from master'
-        default: '["CLOUDP-371552-dev-voyage", "CLOUDP-379436-dev-log-streaming-via-iac", "CLOUDP-376263_poc_effective_rep_specs"]'
+        default: '["CLOUDP-371552-dev-voyage", "CLOUDP-379436-dev-log-streaming-via-iac", "CLOUDP-376263_poc_effective_rep_specs", "dev/Improved-Auth-Azure-Key-Vault"]'
   schedule:
     - cron: "0 5 * * 1,4" # workflow runs every Monday and Thursday at 5 AM UTC
 concurrency:
@@ -18,7 +18,7 @@ jobs:
       max-parallel: 10
       fail-fast: false
       matrix:
-        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-371552-dev-voyage", "CLOUDP-379436-dev-log-streaming-via-iac", "CLOUDP-376263_poc_effective_rep_specs"]') }} # scheduled branches go here
+        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-371552-dev-voyage", "CLOUDP-379436-dev-log-streaming-via-iac", "CLOUDP-376263_poc_effective_rep_specs", "dev/Improved-Auth-Azure-Key-Vault"]') }} # scheduled branches go here
     name: ${{ matrix.branch }}
     runs-on: ubuntu-latest
     permissions:
