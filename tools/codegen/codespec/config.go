@@ -477,7 +477,7 @@ func applyIgnoreValidatorsToDiscriminator(disc *Discriminator, schemaOptions con
 		return
 	}
 	for _, v := range override.IgnoreValidators {
-		if v == "polymorphic" {
+		if v == "discriminator" {
 			disc.SkipValidation = true
 		}
 	}
