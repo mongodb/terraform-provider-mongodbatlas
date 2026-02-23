@@ -13,6 +13,8 @@ type readAPIResponse struct {
 	Secrets []map[string]any
 }
 
+const errImportFormat = "use one of the formats: {project_id}/{workspace_name}/{connection_name} or {workspace_name}-{project_id}-{connection_name}"
+
 // PostReadAPICall Reads the secret from the API response Service Account secrets list and returns a new APICallResult with it.
 func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
 	id := req.State.(*TFModel).SecretId.ValueString()
