@@ -12,7 +12,7 @@ done
 
 if [[ -n "${STAGED_GO_FILES}" ]]; then
     set -o errexit
-    GOFLAGS= go fix ./...
+    GOFLAGS='' go fix ./...
     if ! git diff --exit-code --quiet; then
         echo "ERROR: 'go fix ./...' produced changes. Please review and stage the updated files before committing."
         git diff --stat

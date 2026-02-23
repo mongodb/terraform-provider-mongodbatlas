@@ -245,27 +245,27 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	SchemaRegistryUrls           customtypes.ListValue[types.String]                          `tfsdk:"schema_registry_urls"`
-	Config                       customtypes.MapValue[types.String]                           `tfsdk:"config"`
-	Headers                      customtypes.MapValue[types.String]                           `tfsdk:"headers"`
-	Networking                   customtypes.ObjectValue[TFNetworkingModel]                   `tfsdk:"networking"`
-	SchemaRegistryAuthentication customtypes.ObjectValue[TFSchemaRegistryAuthenticationModel] `tfsdk:"schema_registry_authentication"`
+	Authentication               customtypes.ObjectValue[TFAuthenticationModel]               `tfsdk:"authentication"`
+	Aws                          customtypes.ObjectValue[TFAwsModel]                          `tfsdk:"aws"`
+	BootstrapServers             types.String                                                 `tfsdk:"bootstrap_servers"`
 	ClusterProjectId             types.String                                                 `tfsdk:"cluster_project_id" apiname:"clusterGroupId"`
+	ClusterName                  types.String                                                 `tfsdk:"cluster_name"`
+	Config                       customtypes.MapValue[types.String]                           `tfsdk:"config"`
 	DbRoleToExecute              customtypes.ObjectValue[TFDbRoleToExecuteModel]              `tfsdk:"db_role_to_execute"`
 	ProjectId                    types.String                                                 `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	BootstrapServers             types.String                                                 `tfsdk:"bootstrap_servers"`
+	Headers                      customtypes.MapValue[types.String]                           `tfsdk:"headers"`
 	ConnectionName               types.String                                                 `tfsdk:"connection_name" apiname:"name"`
-	Authentication               customtypes.ObjectValue[TFAuthenticationModel]               `tfsdk:"authentication"`
+	Networking                   customtypes.ObjectValue[TFNetworkingModel]                   `tfsdk:"networking"`
 	SchemaRegistryProvider       types.String                                                 `tfsdk:"schema_registry_provider" apiname:"provider"`
-	ClusterName                  types.String                                                 `tfsdk:"cluster_name"`
-	Aws                          customtypes.ObjectValue[TFAwsModel]                          `tfsdk:"aws"`
+	SchemaRegistryAuthentication customtypes.ObjectValue[TFSchemaRegistryAuthenticationModel] `tfsdk:"schema_registry_authentication"`
+	SchemaRegistryUrls           customtypes.ListValue[types.String]                          `tfsdk:"schema_registry_urls"`
 	Security                     customtypes.ObjectValue[TFSecurityModel]                     `tfsdk:"security"`
 	State                        types.String                                                 `tfsdk:"state" autogen:"omitjson"`
 	WorkspaceName                types.String                                                 `tfsdk:"workspace_name" apiname:"tenantName" autogen:"omitjson"`
 	Type                         types.String                                                 `tfsdk:"type"`
 	Url                          types.String                                                 `tfsdk:"url"`
-	Timeouts                     timeouts.Value                                               `tfsdk:"timeouts" autogen:"omitjson"`
 	DeleteOnCreateTimeout        types.Bool                                                   `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
+	Timeouts                     timeouts.Value                                               `tfsdk:"timeouts" autogen:"omitjson"`
 }
 type TFAuthenticationModel struct {
 	ClientId                  types.String `tfsdk:"client_id"`
