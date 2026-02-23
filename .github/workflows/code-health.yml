@@ -87,7 +87,7 @@ jobs:
           echo "::error::Files were changed during build (see build log). If this was triggered from a fork, you will need to update your branch."
           cat doc.repo.patch
           exit 1
-  check-go-files:
+  verify:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -95,23 +95,10 @@ jobs:
       - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
         with:
           go-version-file: 'go.mod'
-      - name: Run go mod tidy and go fix
-        run: |
-          go mod tidy
-          go fix ./...
-      - name: Find mutations
-        id: self_mutation
-        run: |-
-          git add .
-          git diff --staged --patch --exit-code > go.repo.patch || echo "self_mutation_happened=true" >> "${GITHUB_OUTPUT}"
-      - name: Fail build on mutation
-        if: steps.self_mutation.outputs.self_mutation_happened
-        run: |-
-          echo "::error::Files were changed by 'go mod tidy' and/or 'go fix ./...' (see build log). If this was triggered from a fork, you will need to update your branch."
-          cat go.repo.patch
-          exit 1
+      - name: Verify
+        run: make tools verify
   call-acceptance-tests-workflow:
-    needs: [build, lint, shellcheck, unit-test, generate-doc-check, check-go-files]
+    needs: [build, lint, shellcheck, unit-test, generate-doc-check, verify]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
