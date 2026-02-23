@@ -22,7 +22,7 @@
 - Enter the provider directory
 - Run `make tools` to install the needed tools for the provider
 - Run `make link-git-hooks` to install githooks 
-- Run `make build` to build the binary in the `./bin` directory: 
+- Run `make fix` to format, lint, and build the binary in the `./bin` directory:
 - Use the local provider binary in the `./bin` folder:
   - Create the following `dev.trfc` file inside your directory 
   ```terraform
