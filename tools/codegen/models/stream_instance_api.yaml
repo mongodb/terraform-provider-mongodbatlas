@@ -67,6 +67,7 @@ schema:
                     property_name:
                         api_name: type
                         tf_schema_name: type
+                    skip_validation: true
                 attributes:
                     - single_nested:
                         nested_object:

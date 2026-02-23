@@ -61,6 +61,7 @@ type Override struct {
 	Description        string         `yaml:"description"`
 	PlanModifiers      []PlanModifier `yaml:"plan_modifiers"`
 	Validators         []Validator    `yaml:"validators"`
+	IgnoreValidators   []string       `yaml:"ignore_validators"`
 }
 
 type PlanModifier struct {
