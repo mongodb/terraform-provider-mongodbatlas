@@ -94,7 +94,7 @@ func TestHandleImportWithCustomHook(t *testing.T) {
 			},
 		},
 		{
-			name:         "default format passes unchanged",
+			name:         "Default format passes unchanged",
 			importID:     "507f1f77bcf86cd799439011/myWorkspace/myConnection",
 			idAttributes: []string{"project_id", "workspace_name", "connection_name"},
 			expectedAttrs: map[string]string{
@@ -104,7 +104,7 @@ func TestHandleImportWithCustomHook(t *testing.T) {
 			},
 		},
 		{
-			name:          "invalid format returns error",
+			name:          "Invalid format returns error",
 			importID:      "bad-format",
 			idAttributes:  []string{"project_id", "workspace_name", "connection_name"},
 			expectedError: conversion.StringPtr("use one of the formats: {project_id}/{workspace_name}/{connection_name} or {workspace_name}-{project_id}-{connection_name}"),
