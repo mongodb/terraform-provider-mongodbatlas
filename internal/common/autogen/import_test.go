@@ -78,17 +78,50 @@ func TestHandleImportWithCustomHook(t *testing.T) {
 		},
 	}
 
-	normalizedID, err := hook.PreImport("myWorkspace-507f1f77bcf86cd799439011-myConnection")
-	require.NoError(t, err)
-	assert.Equal(t, "507f1f77bcf86cd799439011/myWorkspace/myConnection", normalizedID)
+	type TFModel struct {
+		ProjectID      types.String `tfsdk:"project_id"`
+		WorkspaceName  types.String `tfsdk:"workspace_name"`
+		ConnectionName types.String `tfsdk:"connection_name"`
+	}
 
-	req := resource.ImportStateRequest{ID: "bad-format"}
-	resp := &resource.ImportStateResponse{}
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"project_id":      schema.StringAttribute{},
+			"workspace_name":  schema.StringAttribute{},
+			"connection_name": schema.StringAttribute{},
+		},
+	}
+
+	testType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"project_id":      tftypes.String,
+			"workspace_name":  tftypes.String,
+			"connection_name": tftypes.String,
+		},
+	}
+
+	emptyStateValue := tftypes.NewValue(testType, map[string]tftypes.Value{
+		"project_id":      tftypes.NewValue(tftypes.String, nil),
+		"workspace_name":  tftypes.NewValue(tftypes.String, nil),
+		"connection_name": tftypes.NewValue(tftypes.String, nil),
+	})
+
+	req := resource.ImportStateRequest{ID: "myWorkspace-507f1f77bcf86cd799439011-myConnection"}
+
+	resp := &resource.ImportStateResponse{
+		State: tfsdk.State{
+			Raw:    emptyStateValue,
+			Schema: testSchema,
+		},
+	}
 	autogen.HandleImport(context.Background(), []string{"project_id", "workspace_name", "connection_name"}, req, resp, hook)
-	require.True(t, resp.Diagnostics.HasError())
+	require.False(t, resp.Diagnostics.HasError(), "unexpected diagnostics: %#v", resp.Diagnostics.Errors())
 
-	_, err = hook.PreImport("bad-format")
-	require.Error(t, err)
+	var state TFModel
+	resp.State.Get(context.Background(), &state)
+	assert.Equal(t, "507f1f77bcf86cd799439011", state.ProjectID.ValueString())
+	assert.Equal(t, "myWorkspace", state.WorkspaceName.ValueString())
+	assert.Equal(t, "myConnection", state.ConnectionName.ValueString())
 }
 
 type testPreImportHook struct {
