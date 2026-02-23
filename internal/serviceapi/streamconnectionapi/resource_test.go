@@ -143,6 +143,6 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 			return "", fmt.Errorf("import, attributes not found for: %s", resourceName)
 		}
 
-		return fmt.Sprintf("%s/%s/%s", projectID, workspaceName, connectionName), nil
+		return fmt.Sprintf("%s-%s-%s", workspaceName, projectID, connectionName), nil
 	}
 }

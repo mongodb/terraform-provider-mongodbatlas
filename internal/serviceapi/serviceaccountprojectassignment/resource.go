@@ -118,7 +118,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idAttributes := []string{"project_id", "client_id"}
-	autogen.HandleImport(ctx, idAttributes, req, resp)
+	autogen.HandleImport(ctx, idAttributes, req, resp, r)
 }
 
 func readAPICallParams(model any) *config.APICallParams {
