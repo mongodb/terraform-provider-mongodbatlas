@@ -1,11 +1,11 @@
-# MongoDB Atlas Log Integration with S3 Bucket Example
+# MongoDB Atlas Log Integration with Microsoft Azure Blob Example
 
-This example demonstrates how to configure a log integration to export MongoDB Atlas logs to an Amazon S3 bucket.
+This example demonstrates how to configure a log integration to export MongoDB Atlas logs to a Microsoft Azure Blob storage.
 
 ## Prerequisites
 
 - MongoDB Atlas account with Organization Owner or Project Owner role.
-- AWS account with permissions to create S3 buckets and IAM roles.
+- Microsoft Azure account with permissions to create Blobs and IAM roles.
 - Terraform >= `1.0`.
 
 ## Resources Created
@@ -17,14 +17,15 @@ This example creates the following resources:
 - Cloud Provider Access Setup and Authorization.
 - Log Integration configuration.
 
-### AWS
-- S3 bucket for storing logs.
+### Azure
+- Azure Blob for storing logs.
 - IAM role for Atlas to assume.
-- IAM policy for S3 access.
+- IAM policy for Blob access.
+
 
 ## Usage
 
-**1\. Ensure your AWS and MongoDB Atlas credentials are set up.**
+**1\. Ensure your Azure and MongoDB Atlas credentials are set up.**
 
 This can be done using environment variables:
 
@@ -34,17 +35,17 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ```bash
-export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
-export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
+export AZURE_ACCESS_KEY_ID='<AZURE_ACCESS_KEY_ID>'
+export AZURE_SECRET_ACCESS_KEY='<AZURE_SECRET_ACCESS_KEY>'
 ```
 
-... or the `~/.aws/credentials` file.
+... or the `~/.azure/credentials` file.
 
 ```
-$ cat ~/.aws/credentials
+$ cat ~/.azure/credentials
 [default]
-aws_access_key_id = <AWS_ACCESS_KEY_ID>
-aws_secret_access_key = <AWS_SECRET_ACCESS_KEY>
+azure_access_key_id = <azure_ACCESS_KEY_ID>
+azure_secret_access_key = <azure_SECRET_ACCESS_KEY>
 ```
 
 ... or follow as in the `~/.azure/variables.tf` file and create **terraform.tfvars** file with all the variable values:
@@ -53,8 +54,8 @@ aws_secret_access_key = <AWS_SECRET_ACCESS_KEY>
 atlas_org_id        = "your-org-id"
 atlas_client_id     = "your-service-account-client-id"
 atlas_client_secret = "your-service-account-client-secret"
-access_key          = "your-aws-access-key"
-secret_key          = "your-aws-secret-key"
+access_key          = "your-azure-access-key"
+secret_key          = "your-azure-secret-key"
 ```
 
 **2\. Review the Terraform plan.**
@@ -93,4 +94,3 @@ The `log_types` attribute supports the following values:
 
 - The requesting Service Account or API Key must have the Organization Owner or Project Owner role.
 - MongoDB Cloud will add sub-directories based on the log type under the specified `prefix_path`.
-- Optional: Use `kms_key` to specify an AWS KMS key ID or ARN for server-side encryption.
