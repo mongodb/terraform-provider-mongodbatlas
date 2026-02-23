@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -16,84 +19,8 @@ const (
 	resourceName         = "mongodbatlas_log_integration.test"
 	dataSourceName       = "data.mongodbatlas_log_integration.test"
 	pluralDataSourceName = "data.mongodbatlas_log_integrations.test"
-	nonEmptyPrefixPath   = "push-log-prefix-v3"
-)
-
-func TestAccLogIntegration_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
-}
-
-func basicTestCase(tb testing.TB) *resource.TestCase {
-	tb.Helper()
-
-	var (
-		projectID            = acc.ProjectIDExecution(tb)
-		s3BucketName         = acc.RandomS3BucketName()
-		s3BucketPolicyName   = fmt.Sprintf("%s-s3-policy", s3BucketName)
-		awsIAMRoleName       = acc.RandomIAMRole()
-		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
-		kmsKey               = os.Getenv("AWS_KMS_KEY_ID")
-	)
-
-	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb); acc.PreCheckAwsEnvBasic(tb) },
-		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithDataSource(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					append(append(commonChecks(s3BucketName, nonEmptyPrefixPath), dataSourceChecks(s3BucketName, nonEmptyPrefixPath)...), pluralDataSourceChecks(s3BucketName, nonEmptyPrefixPath)...)...,
-				),
-			},
-			{
-				Config: configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, true, kmsKey),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName, nonEmptyPrefixPath)...),
-			},
-			{
-				Config: configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, false, ""),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName, nonEmptyPrefixPath)...),
-			},
-			{
-				Config:                               configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, false, ""),
-				ResourceName:                         resourceName,
-				ImportStateIdFunc:                    importStateIDFunc(resourceName),
-				ImportState:                          true,
-				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: "integration_id",
-			},
-		},
-	}
-}
-
-func dataSourceChecks(s3BucketName, prefixPath string) []resource.TestCheckFunc {
-	mapChecks := map[string]string{
-		"bucket_name": s3BucketName,
-		"prefix_path": prefixPath,
-		"type":        "S3_LOG_EXPORT",
-		"log_types.#": "1",
-	}
-	checks := acc.AddAttrChecks(dataSourceName, nil, mapChecks)
-	return acc.AddAttrSetChecks(dataSourceName, checks, "project_id", "iam_role_id", "integration_id")
-}
-
-func pluralDataSourceChecks(s3BucketName, prefixPath string) []resource.TestCheckFunc {
-	mapChecks := map[string]string{
-		"results.#":             "1",
-		"results.0.bucket_name": s3BucketName,
-		"results.0.prefix_path": prefixPath,
-		"results.0.type":        "S3_LOG_EXPORT",
-		"results.0.log_types.#": "1",
-	}
-	checks := acc.AddAttrChecks(pluralDataSourceName, nil, mapChecks)
-	return acc.AddAttrSetChecks(pluralDataSourceName, checks, "project_id", "results.0.iam_role_id", "results.0.integration_id")
-}
-
-func configWithDataSource(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string) string {
-	return fmt.Sprintf(`
-		%s
-
+	prefixPath           = "prefix-path"
+	datasourcesConfig    = `
 		data "mongodbatlas_log_integration" "test" {
 			project_id     = mongodbatlas_log_integration.test.project_id
 			integration_id = mongodbatlas_log_integration.test.integration_id
@@ -101,173 +28,241 @@ func configWithDataSource(projectID, s3BucketName, s3BucketPolicyName, awsIAMRol
 
 		data "mongodbatlas_log_integrations" "test" {
 			project_id = mongodbatlas_log_integration.test.project_id
+			depends_on = [mongodbatlas_log_integration.test]
 		}
-	`, configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath, true, false, ""))
+	`
+)
+
+var (
+	logTypesMongoD = []string{"MONGOD"}
+	logTypesMongoS = []string{"MONGOS"}
+	logTypesAll    = []string{"MONGOD", "MONGOS", "MONGOD_AUDIT", "MONGOS_AUDIT"}
+)
+
+type s3Config struct {
+	kmsKey            *string
+	bucketName        string
+	bucketPolicyName  string
+	iamRoleName       string
+	iamRolePolicyName string
+	prefixPath        string
 }
 
-func commonChecks(s3BucketName, prefixPath string) []resource.TestCheckFunc {
+func TestAccLogIntegration_basicS3(t *testing.T) {
+	var (
+		projectID            = acc.ProjectIDExecution(t)
+		s3BucketName         = acc.RandomS3BucketName()
+		s3BucketPolicyName   = fmt.Sprintf("%s-s3-policy", s3BucketName)
+		awsIAMRoleName       = acc.RandomIAMRole()
+		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
+		kmsKey               = os.Getenv("AWS_KMS_KEY_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAwsEnvBasic(t) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasicS3(projectID, logTypesMongoD, &s3Config{nil, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, true),
+				Check:  checkBasicS3(logTypesMongoD, s3BucketName, prefixPath, true),
+			},
+			{
+				Config: configBasicS3(projectID, logTypesAll, &s3Config{&kmsKey, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, false),
+				Check:  checkBasicS3(logTypesAll, s3BucketName, prefixPath, false),
+			},
+			{
+				Config: configBasicS3(projectID, logTypesMongoS, &s3Config{nil, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, false),
+				Check:  checkBasicS3(logTypesMongoS, s3BucketName, prefixPath, false),
+			},
+			{
+				Config:                               configBasicS3(projectID, logTypesMongoS, &s3Config{&kmsKey, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, false),
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "integration_id",
+			},
+		},
+	})
+}
+
+func checkBasicS3(logTypes []string, bucketName, prefixPath string, withDS bool) resource.TestCheckFunc {
+	setChecks := []string{"iam_role_id", "integration_id"}
 	mapChecks := map[string]string{
-		"bucket_name": s3BucketName,
+		"bucket_name": bucketName,
 		"prefix_path": prefixPath,
 		"type":        "S3_LOG_EXPORT",
-		"log_types.#": "1",
-		"log_types.0": "MONGOD_AUDIT",
+		"log_types.#": strconv.Itoa(len(logTypes)),
+		"log_types.0": logTypes[0],
 	}
-	checks := acc.AddAttrChecks(resourceName, nil, mapChecks)
-	return acc.AddAttrSetChecks(resourceName, checks, "project_id", "iam_role_id", "integration_id")
+	checks := []resource.TestCheckFunc{}
+	var dsName *string
+	if withDS {
+		dsName = admin.PtrString(dataSourceName)
+		checks = append(checks, resource.TestCheckResourceAttrWith(pluralDataSourceName, "results.#", acc.IntGreatThan(0)))
+	}
+	checks = append(checks, acc.CheckRSAndDS(resourceName, dsName, nil, setChecks, mapChecks, checkExists(resourceName)))
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath, useKmsKey bool, kmsKey string) string {
+func configBasicS3(projectID string, logTypes []string, config *s3Config, withDS bool) string {
+	logTypesStr := fmt.Sprintf("[%s]", `"`+strings.Join(logTypes, `", "`)+`"`)
+	kmsKeyHCL := ""
+	if config.kmsKey != nil {
+		kmsKeyHCL = fmt.Sprintf("kms_key = %q", *config.kmsKey)
+	}
+	dsConfig := ""
+	if withDS {
+		dsConfig = datasourcesConfig
+	}
 	return fmt.Sprintf(`
-	 	locals {
-				project_id = %[1]q
-		 		s3_bucket_name = %[2]q
-		 		s3_bucket_policy_name = %[3]q
-		 		aws_iam_role_policy_name = %[4]q
-		 		aws_iam_role_name = %[5]q
-		 	  }
-
-			   %[6]s
-
-			   %[7]s		
-	`, projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
-		awsIAMroleAuthAndS3Config(s3BucketName), logIntegrationConfig(usePrefixPath, useKmsKey, prefixPath, kmsKey))
-}
-
-// logIntegrationConfig returns config for mongodbatlas_log_integration resource.
-// This method uses the project and S3 bucket created in awsIAMroleAuthAndS3Config()
-func logIntegrationConfig(usePrefixPath, useKmsKey bool, prefixPath, kmsKey string) string {
-	prefixPathAttr := ""
-	if usePrefixPath {
-		prefixPathAttr = fmt.Sprintf("prefix_path   = %[1]q", prefixPath)
-	}
-	kmsKeyAttr := ""
-	if useKmsKey {
-		kmsKeyAttr = fmt.Sprintf("kms_key   = %[1]q", kmsKey)
-	}
-
-	return fmt.Sprintf(`resource "mongodbatlas_log_integration" "test" {
-		project_id  = local.project_id
-		bucket_name = aws_s3_bucket.log_bucket.bucket
-		iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-		type        = "S3_LOG_EXPORT"
-		log_types   = ["MONGOD_AUDIT"]
 		%[1]s
-		%[2]s
-	}
-	`, prefixPathAttr, kmsKeyAttr)
+
+		resource "mongodbatlas_log_integration" "test" {
+			project_id  = %[2]q
+			bucket_name = aws_s3_bucket.log_bucket.bucket
+			iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+			type        = "S3_LOG_EXPORT"
+			log_types   = %[3]s
+			prefix_path = %[4]q
+			%[5]s
+		}
+
+		%[6]s
+	`, awsIAMRoleAuthAndS3Config(projectID, config), projectID, logTypesStr, config.prefixPath, kmsKeyHCL, dsConfig)
 }
 
-// awsIAMroleAuthAndS3Config returns config for required IAM roles and authorizes them (sets up cloud provider access) with a mongodbatlas_project
-// This method also creates two S3 buckets and sets up required access policy for them
-func awsIAMroleAuthAndS3Config(bucketName string) string {
-	bucketResourceName := "arn:aws:s3:::" + bucketName
+func awsIAMRoleAuthAndS3Config(projectID string, config *s3Config) string {
 	return fmt.Sprintf(`
 		// Create IAM role & policy to authorize with Atlas
-resource "aws_iam_role_policy" "test_policy" {
-  name = local.aws_iam_role_policy_name
-  role = aws_iam_role.test_role.id
+		resource "aws_iam_role_policy" "test_policy" {
+		    name = %[4]q
+		    role = aws_iam_role.test_role.id
 
-  policy = <<-EOF
-  {
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Action": [
-          "s3:GetObject",
-          "s3:ListBucket",
-          "s3:GetObjectVersion"
-        ],
-        "Resource": "*"
-      },
-      {
-       "Effect": "Allow",
-        "Action": "s3:*",
-        "Resource": [
-          %[1]q
-        ]
-      }
-    ]
-  }
-  EOF
+		    policy = <<-EOF
+				{
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Action": [
+								"s3:GetObject",
+								"s3:ListBucket",
+								"s3:GetObjectVersion"
+							],
+							"Resource": "*"
+						},
+						{
+						 "Effect": "Allow",
+							"Action": "s3:*",
+							"Resource": [
+								"arn:aws:s3:::%[2]s"
+							]
+						}
+					]
+				}
+				EOF
+		}
+
+		resource "aws_iam_role" "test_role" {
+		    name = %[3]q
+		    max_session_duration = 43200
+
+		    assume_role_policy = <<-EOF
+				{
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_aws_account_arn}"
+							},
+							"Action": "sts:AssumeRole",
+							"Condition": {
+								"StringEquals": {
+									"sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_assumed_role_external_id}"
+								}
+							}
+						}
+					]
+				}
+				EOF
+		}
+
+		// Set up cloud provider access in Atlas for a project using the created IAM role
+		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+		    project_id    = %[1]q
+		    provider_name = "AWS"
+		}
+
+		resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+		    project_id = %[1]q
+		    role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+
+		    aws {
+		        iam_assumed_role_arn = aws_iam_role.test_role.arn
+		    }
+		}
+
+		// Create S3 buckets
+		resource "aws_s3_bucket" "log_bucket" {
+		    bucket        = %[2]q
+		    force_destroy = true  // required as atlas creates a test folder in the bucket when push-based log export is set up 
+
+			lifecycle {
+				ignore_changes = [tags, tags_all]
+			}
+		}
+
+		// Add authorization policy to existing IAM role
+		resource "aws_iam_role_policy" "s3_bucket_policy" {
+		    name   = %[5]q
+		    role   = aws_iam_role.test_role.id
+
+		    policy = <<-EOF
+				{
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Action": [
+								"s3:ListBucket",
+								"s3:PutObject",
+								"s3:GetObject",
+								"s3:GetBucketLocation"
+							],
+							"Resource": [
+								"${aws_s3_bucket.log_bucket.arn}",
+								"${aws_s3_bucket.log_bucket.arn}/*"
+							]
+						}
+					]
+				}
+				EOF
+		}
+	`, projectID, config.bucketName, config.iamRoleName, config.iamRolePolicyName, config.bucketPolicyName)
 }
 
+func checkExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
 
-
-resource "aws_iam_role" "test_role" {
-  name = local.aws_iam_role_name
-  max_session_duration = 43200
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_aws_account_arn}"
-      },
-      "Action": "sts:AssumeRole",
-      "Condition": {
-        "StringEquals": {
-          "sts:ExternalId": "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_assumed_role_external_id}"
-        }
-      }
-    }
-  ]
-}
-EOF
-}
-
-// Set up cloud provider access in Atlas for a project using the created IAM role
-resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-  project_id    = local.project_id
-  provider_name = "AWS"
-}
-
-resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-  project_id    = local.project_id
-  role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
-
-  aws {
-    iam_assumed_role_arn = aws_iam_role.test_role.arn
-  }
-}
-
-// Create S3 buckets
-resource "aws_s3_bucket" "log_bucket" {
-  bucket        = local.s3_bucket_name
-  force_destroy = true  // required as atlas creates a test folder in the bucket when push-based log export is set up 
-}
-
-// Add authorization policy to existing IAM role
-resource "aws_iam_role_policy" "s3_bucket_policy" {
-  name   = local.s3_bucket_policy_name
-  role   = aws_iam_role.test_role.id
-
-  policy = <<-EOF
-  {
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Action": [
-          "s3:ListBucket",
-          "s3:PutObject",
-          "s3:GetObject",
-          "s3:GetBucketLocation"
-        ],
-        "Resource": [
-          "${aws_s3_bucket.log_bucket.arn}",
-          "${aws_s3_bucket.log_bucket.arn}/*"
-        ]
-      }
-    ]
-  }
-  EOF
-}
-		`, bucketResourceName)
+		projectID := rs.Primary.Attributes["project_id"]
+		integrationID := rs.Primary.Attributes["integration_id"]
+		if projectID == "" || integrationID == "" {
+			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
+		}
+		_, _, err := acc.ConnV2().PushBasedLogExportApi.GetGroupLogIntegration(context.Background(), projectID, integrationID).Execute()
+		if err == nil {
+			return nil
+		}
+		return fmt.Errorf("log integration for project_id %s with id %s does not exist", projectID, integrationID)
+	}
 }
 
 func checkDestroy(state *terraform.State) error {
@@ -275,9 +270,14 @@ func checkDestroy(state *terraform.State) error {
 		if name != resourceName {
 			continue
 		}
-		_, _, err := acc.ConnV2().PushBasedLogExportApi.GetGroupLogIntegration(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["id"]).Execute()
+		projectID := rs.Primary.Attributes["project_id"]
+		integrationID := rs.Primary.Attributes["integration_id"]
+		if projectID == "" || integrationID == "" {
+			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
+		}
+		_, _, err := acc.ConnV2().PushBasedLogExportApi.GetGroupLogIntegration(context.Background(), projectID, integrationID).Execute()
 		if err == nil {
-			return fmt.Errorf("log integration for project_id %s with id %s still exists", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["id"])
+			return fmt.Errorf("log integration for project_id %s with id %s still exists", projectID, integrationID)
 		}
 		return nil
 	}
@@ -290,6 +290,11 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["integration_id"]), nil
+		projectID := rs.Primary.Attributes["project_id"]
+		integrationID := rs.Primary.Attributes["integration_id"]
+		if projectID == "" || integrationID == "" {
+			return "", fmt.Errorf("import, attributes not found for: %s", resourceName)
+		}
+		return fmt.Sprintf("%s/%s", projectID, integrationID), nil
 	}
 }

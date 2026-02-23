@@ -51,8 +51,9 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 		StateName:                        types.StringValue(conversion.SafeValue(input.StateName)),
 		Tags:                             tags,
 		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
-		VersionReleaseSystem:             types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
-		PinnedFCV:                        pinnedFCV,
+		UseAwsTimeBasedSnapshotCopyForFastInitialSync: types.BoolValue(conversion.SafeValue(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync)),
+		VersionReleaseSystem:                          types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
+		PinnedFCV:                                     pinnedFCV,
 	}
 }
 

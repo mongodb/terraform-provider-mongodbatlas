@@ -185,6 +185,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	}
 	{{- end }}
 	autogen.HandleDelete(ctx, *reqHandle)
+    {{- else }}
+	resp.Diagnostics.AddWarning("Delete operation is a no-op", "This resource does not perform API calls during the delete operation. Terraform only removes the resource from state.")
     {{- end }}
 }
 

@@ -38,7 +38,7 @@ resource "mongodbatlas_cluster_outage_simulation" "outage_simulation" {
 ```
 
 ### Further Examples
-- [Cluster Outage Simulation](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.6.0/examples/mongodbatlas_cluster_outage_simulation)
+- [Cluster Outage Simulation](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_cluster_outage_simulation)
 
 ## Argument Reference
 

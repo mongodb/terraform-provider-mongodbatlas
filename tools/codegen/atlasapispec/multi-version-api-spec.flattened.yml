@@ -427,6 +427,30 @@ components:
         vpcNetworkName:
           description: The name of the VPC network.
           type: string
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          aws:
+            properties:
+              - awsAccountId
+              - cidrBlock
+              - cloudProvider
+              - links
+              - vpcId
+          azure:
+            properties:
+              - azureSubscriptionId
+              - cidrBlock
+              - cloudProvider
+              - links
+              - virtualNetworkName
+          gcp:
+            properties:
+              - cidrBlock
+              - cloudProvider
+              - gcpProjectId
+              - links
+              - vpcNetworkName
     AcknowledgeAlert:
       description: Acknowledging an alert prevents successive notifications. Specify the acknowledgeUntil date and optional comment or unacknowledgeAlert boolean.
       properties:
@@ -1713,6 +1737,54 @@ components:
               default: 255
               description: Maximum number of characters in a single token. Tokens greater than this length are split at this length into multiple tokens.
               type: integer
+          x-xgen-discriminator:
+            propertyName: type
+            mapping:
+              edgeGram:
+                properties:
+                  - maxGram
+                  - minGram
+                  - type
+                required:
+                  - maxGram
+                  - minGram
+              keyword:
+                properties:
+                  - type
+              nGram:
+                properties:
+                  - maxGram
+                  - minGram
+                  - type
+                required:
+                  - maxGram
+                  - minGram
+              regexCaptureGroup:
+                properties:
+                  - group
+                  - pattern
+                  - type
+                required:
+                  - group
+                  - pattern
+              regexSplit:
+                properties:
+                  - pattern
+                  - type
+                required:
+                  - pattern
+              standard:
+                properties:
+                  - maxTokenLength
+                  - type
+              uaxUrlEmail:
+                properties:
+                  - maxTokenLength
+                  - type
+              whitespace:
+                properties:
+                  - maxTokenLength
+                  - type
       required:
         - name
         - tokenizer
@@ -4123,6 +4195,45 @@ components:
       required:
         - containerId
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - accepterRegionName
+              - awsAccountId
+              - connectionId
+              - errorStateName
+              - routeTableCidrBlock
+              - statusName
+              - vpcId
+            required:
+              - accepterRegionName
+              - awsAccountId
+              - routeTableCidrBlock
+              - vpcId
+          AZURE:
+            properties:
+              - azureDirectoryId
+              - azureSubscriptionId
+              - errorState
+              - resourceGroupName
+              - status
+              - vnetName
+            required:
+              - azureDirectoryId
+              - azureSubscriptionId
+              - resourceGroupName
+              - vnetName
+          GCP:
+            properties:
+              - errorMessage
+              - gcpProjectId
+              - networkName
+              - status
+            required:
+              - gcpProjectId
+              - networkName
     BaseStreamsRegion:
       description: Name of the cloud provider region hosting Atlas Stream Processing.
       type: string
@@ -4915,6 +5026,21 @@ components:
         featureId:
           $ref: "#/components/schemas/CloudProviderAccessFeatureUsagePushBasedLogExportFeatureId"
       type: object
+      x-xgen-discriminator:
+        propertyName: featureType
+        mapping:
+          ATLAS_DATA_LAKE:
+            properties:
+              - featureId
+          ENCRYPTION_AT_REST:
+            properties:
+              - featureId
+          EXPORT_SNAPSHOT:
+            properties:
+              - featureId
+          PUSH_BASED_LOG_EXPORT:
+            properties:
+              - featureId
     CloudProviderAccessFeatureUsagePushBasedLogExportFeatureId:
       description: Identifying characteristics about the Amazon Web Services (AWS) Simple Storage Service (S3) export bucket linked to this AWS Identity and Access Management (IAM) role.
       properties:
@@ -5063,6 +5189,34 @@ components:
       required:
         - providerName
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - atlasAWSAccountArn
+              - atlasAssumedRoleExternalId
+              - authorizedDate
+              - createdDate
+              - featureUsages
+              - iamAssumedRoleArn
+              - roleId
+          AZURE:
+            properties:
+              - _id
+              - atlasAzureAppId
+              - createdDate
+              - featureUsages
+              - lastUpdatedDate
+              - servicePrincipalId
+              - tenantId
+          GCP:
+            properties:
+              - createdDate
+              - featureUsages
+              - gcpServiceAccountForAtlas
+              - roleId
+              - status
     CloudProviderAccessRoleRequest:
       description: Cloud provider access role.
       properties:
@@ -5137,6 +5291,32 @@ components:
       required:
         - providerName
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - atlasAWSAccountArn
+              - atlasAssumedRoleExternalId
+              - authorizedDate
+              - createdDate
+              - featureUsages
+              - roleId
+          AZURE:
+            properties:
+              - _id
+              - atlasAzureAppId
+              - createdDate
+              - featureUsages
+              - lastUpdatedDate
+              - servicePrincipalId
+              - tenantId
+          GCP:
+            properties:
+              - createdDate
+              - featureUsages
+              - gcpServiceAccountForAtlas
+              - roleId
     CloudProviderAccessRoleRequestUpdate:
       description: Cloud provider access role.
       properties:
@@ -5213,6 +5393,29 @@ components:
       required:
         - providerName
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - atlasAWSAccountArn
+              - atlasAssumedRoleExternalId
+              - authorizedDate
+              - createdDate
+              - featureUsages
+              - iamAssumedRoleArn
+              - roleId
+          AZURE:
+            properties:
+              - _id
+              - atlasAzureAppId
+              - createdDate
+              - featureUsages
+              - lastUpdatedDate
+              - servicePrincipalId
+              - tenantId
+          GCP:
+            properties: []
     CloudProviderAccessRoles:
       properties:
         awsIamRoles:
@@ -5446,6 +5649,33 @@ components:
           readOnly: true
           type: string
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - atlasCidrBlock
+              - regionName
+              - vpcId
+            required:
+              - regionName
+          AZURE:
+            properties:
+              - atlasCidrBlock
+              - azureSubscriptionId
+              - region
+              - vnetName
+            required:
+              - atlasCidrBlock
+              - region
+          GCP:
+            properties:
+              - atlasCidrBlock
+              - gcpProjectId
+              - networkName
+              - regions
+            required:
+              - atlasCidrBlock
     CloudProviderEndpointServiceRequest:
       properties:
         providerName:
@@ -5667,6 +5897,30 @@ components:
           type: string
       title: Cloud Service Provider Settings for Multi-Cloud Clusters
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - analyticsAutoScaling
+              - analyticsSpecs
+              - autoScaling
+              - readOnlySpecs
+          AZURE:
+            properties:
+              - analyticsAutoScaling
+              - analyticsSpecs
+              - autoScaling
+              - readOnlySpecs
+          GCP:
+            properties:
+              - analyticsAutoScaling
+              - analyticsSpecs
+              - autoScaling
+              - readOnlySpecs
+          TENANT:
+            properties:
+              - backingProviderName
     CloudRegionConfig20240805:
       description: Cloud service provider on which MongoDB Cloud provisions the hosts.
       properties:
@@ -5860,6 +6114,39 @@ components:
           type: string
       title: Cloud Service Provider Settings
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - analyticsAutoScaling
+              - analyticsSpecs
+              - autoScaling
+              - effectiveAnalyticsSpecs
+              - effectiveElectableSpecs
+              - effectiveReadOnlySpecs
+              - readOnlySpecs
+          AZURE:
+            properties:
+              - analyticsAutoScaling
+              - analyticsSpecs
+              - autoScaling
+              - effectiveAnalyticsSpecs
+              - effectiveElectableSpecs
+              - effectiveReadOnlySpecs
+              - readOnlySpecs
+          GCP:
+            properties:
+              - analyticsAutoScaling
+              - analyticsSpecs
+              - autoScaling
+              - effectiveAnalyticsSpecs
+              - effectiveElectableSpecs
+              - effectiveReadOnlySpecs
+              - readOnlySpecs
+          TENANT:
+            properties:
+              - backingProviderName
     CloudSearchMetrics:
       properties:
         groupId:
@@ -6796,6 +7083,40 @@ components:
         - providerName
       title: Cloud Service Provider Settings for a Cluster
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - autoScaling
+              - diskIOPS
+              - encryptEBSVolume
+              - instanceSizeName
+              - regionName
+              - volumeType
+          AZURE:
+            properties:
+              - autoScaling
+              - diskTypeName
+              - instanceSizeName
+              - regionName
+          FLEX:
+            properties:
+              - backingProviderName
+              - instanceSizeName
+              - regionName
+          GCP:
+            properties:
+              - autoScaling
+              - instanceSizeName
+              - regionName
+          TENANT:
+            properties:
+              - autoScaling
+              - backingProviderName
+              - effectiveInstanceSizeName
+              - instanceSizeName
+              - regionName
     ClusterSearchIndex:
       properties:
         collectionName:
@@ -6998,6 +7319,19 @@ components:
         - database
         - name
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          search:
+            properties:
+              - analyzer
+              - analyzers
+              - mappings
+              - searchAnalyzer
+              - synonyms
+          vectorSearch:
+            properties:
+              - fields
     ClusterServerlessBackupOptions:
       description: Group of settings that configure serverless backup.
       properties:
@@ -7504,6 +7838,18 @@ components:
           type: string
       type: object
       writeOnly: true
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          AWS:
+            properties:
+              - region
+          AZURE:
+            properties:
+              - region
+          GCP:
+            properties:
+              - region
     CreateEndpointRequest:
       type: object
       properties:
@@ -7663,6 +8009,19 @@ components:
           format: int32
           type: integer
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          CUSTOM:
+            properties:
+              - query
+            required:
+              - query
+          DATE:
+            properties:
+              - dateField
+              - dateFormat
+              - expireAfterDays
     CustomSessionTimeouts:
       description: Defines the session timeout settings for managing user sessions at the organization level. When set to null, the field's value is unset, and the default timeout settings are applied.
       properties:
@@ -7805,6 +8164,23 @@ components:
         - value
       title: Limits
       type: object
+      x-xgen-discriminator:
+        propertyName: name
+        mapping:
+          atlas.project.deployment.clusters:
+            properties: []
+          atlas.project.deployment.nodesPerPrivateLinkRegion:
+            properties: []
+          atlas.project.deployment.serverlessMTMs:
+            properties: []
+          atlas.project.security.databaseAccess.customRoles:
+            properties: []
+          atlas.project.security.databaseAccess.users:
+            properties: []
+          atlas.project.security.networkAccess.crossRegionEntries:
+            properties: []
+          atlas.project.security.networkAccess.entries:
+            properties: []
     DataFederationTenantQueryLimit:
       description: Details of a tenant-level query limit for Data Federation. Query limit is the limit on the amount of usage during a time period based on cost.
       properties:
@@ -8277,6 +8653,55 @@ components:
       required:
         - provider
       type: object
+      x-xgen-discriminator:
+        propertyName: provider
+        mapping:
+          atlas:
+            properties:
+              - clusterName
+              - projectId
+              - readConcern
+              - readPreference
+          azure:
+            properties:
+              - containerName
+              - delimiter
+              - prefix
+              - public
+              - region
+              - replacementDelimiter
+              - serviceURL
+          dls:aws:
+            properties:
+              - region
+          dls:azure:
+            properties:
+              - region
+          dls:gcp:
+            properties:
+              - region
+          gcs:
+            properties:
+              - bucket
+              - delimiter
+              - prefix
+              - public
+              - region
+              - replacementDelimiter
+          http:
+            properties:
+              - allowInsecure
+              - defaultFormat
+              - urls
+          s3:
+            properties:
+              - additionalStorageClasses
+              - bucket
+              - delimiter
+              - includeTags
+              - prefix
+              - public
+              - region
     DataLakeTenant:
       properties:
         cloudProviderConfig:
@@ -8337,6 +8762,18 @@ components:
           type: string
       readOnly: true
       type: object
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          AWS:
+            properties:
+              - region
+          AZURE:
+            properties:
+              - region
+          GCP:
+            properties:
+              - region
     DataProtectionSettings:
       properties:
         authorizedEmail:
@@ -9655,6 +10092,19 @@ components:
           readOnly: true
           type: array
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          replicaSet:
+            properties:
+              - cloudProvider
+              - copyRegions
+              - replicaSetName
+          shardedCluster:
+            properties:
+              - configServerType
+              - members
+              - snapshotIds
     DiskBackupSnapshotAWSExportBucketRequest:
       allOf:
         - $ref: "#/components/schemas/DiskBackupSnapshotExportBucketRequest"
@@ -9792,6 +10242,33 @@ components:
       required:
         - cloudProvider
       type: object
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          AWS:
+            properties:
+              - bucketName
+              - iamRoleId
+              - requirePrivateNetworking
+            required:
+              - bucketName
+              - iamRoleId
+          AZURE:
+            properties:
+              - bucketName
+              - roleId
+              - serviceUrl
+              - tenantId
+            required:
+              - roleId
+              - serviceUrl
+          GCP:
+            properties:
+              - bucketName
+              - roleId
+            required:
+              - bucketName
+              - roleId
     DiskBackupSnapshotExportBucketResponse:
       description: Disk backup snapshot Export Bucket.
       properties:
@@ -9858,6 +10335,30 @@ components:
         - bucketName
         - cloudProvider
       type: object
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          AWS:
+            properties:
+              - iamRoleId
+              - region
+              - requirePrivateNetworking
+            required:
+              - iamRoleId
+          AZURE:
+            properties:
+              - roleId
+              - serviceUrl
+              - tenantId
+            required:
+              - roleId
+              - serviceUrl
+              - tenantId
+          GCP:
+            properties:
+              - roleId
+            required:
+              - roleId
     DiskBackupSnapshotRestoreJob:
       properties:
         cancelled:
@@ -10317,6 +10818,15 @@ components:
           type: string
       title: Encryption At Rest Private Endpoint
       type: object
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          AWS:
+            properties:
+              - privateEndpointConnectionName
+          AZURE:
+            properties:
+              - privateEndpointConnectionName
     EmployeeAccessGrantView:
       description: MongoDB employee granted access level and expiration for a cluster.
       properties:
@@ -10446,6 +10956,22 @@ components:
       required:
         - cloudProvider
       type: object
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          AWS:
+            properties:
+              - endpointServiceName
+              - interfaceEndpoints
+          AZURE:
+            properties:
+              - privateEndpoints
+              - privateLinkServiceName
+              - privateLinkServiceResourceId
+          GCP:
+            properties:
+              - endpointGroupNames
+              - serviceAttachmentNames
     EventSeverity:
       description: Severity of the event.
       enum:
@@ -12858,6 +13384,39 @@ components:
         - metricName
       title: Flex Cluster Metric Threshold
       type: object
+      x-xgen-discriminator:
+        propertyName: metricName
+        mapping:
+          FLEX_AVG_COMMAND_EXECUTION_TIME:
+            properties: []
+          FLEX_AVG_READ_EXECUTION_TIME:
+            properties: []
+          FLEX_AVG_WRITE_EXECUTION_TIME:
+            properties: []
+          FLEX_CONNECTIONS:
+            properties: []
+          FLEX_CONNECTIONS_PERCENT:
+            properties: []
+          FLEX_DATA_SIZE_TOTAL:
+            properties: []
+          FLEX_NETWORK_BYTES_IN:
+            properties: []
+          FLEX_NETWORK_BYTES_OUT:
+            properties: []
+          FLEX_NETWORK_NUM_REQUESTS:
+            properties: []
+          FLEX_OPCOUNTER_CMD:
+            properties: []
+          FLEX_OPCOUNTER_DELETE:
+            properties: []
+          FLEX_OPCOUNTER_GETMORE:
+            properties: []
+          FLEX_OPCOUNTER_INSERT:
+            properties: []
+          FLEX_OPCOUNTER_QUERY:
+            properties: []
+          FLEX_OPCOUNTER_UPDATE:
+            properties: []
     FlexConnectionStrings20241113:
       description: Collection of Uniform Resource Locators that point to the MongoDB database.
       externalDocs:
@@ -13723,6 +14282,30 @@ components:
         - roles
         - username
       type: object
+      x-xgen-discriminator:
+        propertyName: orgMembershipStatus
+        mapping:
+          ACTIVE:
+            properties:
+              - country
+              - createdAt
+              - firstName
+              - lastAuth
+              - lastName
+              - mobileNumber
+            required:
+              - createdAt
+              - firstName
+              - lastName
+          PENDING:
+            properties:
+              - invitationCreatedAt
+              - invitationExpiresAt
+              - inviterUsername
+            required:
+              - invitationCreatedAt
+              - invitationExpiresAt
+              - inviterUsername
     HardwareSpec:
       description: Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region.
       type: object
@@ -14121,6 +14704,14 @@ components:
           type: array
       title: Ingestion Destination
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          DLS:
+            properties:
+              - metadataProvider
+              - metadataRegion
+              - partitionFields
     IngestionSource:
       description: Ingestion Source of a Data Lake Pipeline.
       properties:
@@ -14152,6 +14743,22 @@ components:
           type: string
       title: Ingestion Source
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          ON_DEMAND_CPS:
+            properties:
+              - clusterName
+              - collectionName
+              - databaseName
+              - groupId
+          PERIODIC_CPS:
+            properties:
+              - clusterName
+              - collectionName
+              - databaseName
+              - groupId
+              - policyItemId
     InvoiceLineItem:
       description: One service included in this invoice.
       properties:
@@ -15342,6 +15949,21 @@ components:
         - type
       title: Log Export Integration Request
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          S3_LOG_EXPORT:
+            properties:
+              - bucketName
+              - iamRoleId
+              - kmsKey
+              - logTypes
+              - prefixPath
+            required:
+              - bucketName
+              - iamRoleId
+              - logTypes
+              - prefixPath
     LogIntegrationResponse:
       description: Response schema for log integration operations.
       properties:
@@ -15393,6 +16015,20 @@ components:
         - type
       title: Log Integration Response
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          S3_LOG_EXPORT:
+            properties:
+              - bucketName
+              - iamRoleId
+              - kmsKey
+              - logTypes
+              - prefixPath
+            required:
+              - bucketName
+              - iamRoleId
+              - prefixPath
     ManagedNamespaces:
       properties:
         collection:
@@ -16162,6 +16798,31 @@ components:
         - type
       title: Online Archive Schedule
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          DAILY:
+            properties:
+              - endHour
+              - endMinute
+              - startHour
+              - startMinute
+          DEFAULT:
+            properties: []
+          MONTHLY:
+            properties:
+              - dayOfMonth
+              - endHour
+              - endMinute
+              - startHour
+              - startMinute
+          WEEKLY:
+            properties:
+              - dayOfWeek
+              - endHour
+              - endMinute
+              - startHour
+              - startMinute
     OrgFederationSettings:
       description: Details that define how to connect one MongoDB Cloud organization to one federated authentication service.
       properties:
@@ -16467,6 +17128,30 @@ components:
         - roles
         - username
       type: object
+      x-xgen-discriminator:
+        propertyName: orgMembershipStatus
+        mapping:
+          ACTIVE:
+            properties:
+              - country
+              - createdAt
+              - firstName
+              - lastAuth
+              - lastName
+              - mobileNumber
+            required:
+              - createdAt
+              - firstName
+              - lastName
+          PENDING:
+            properties:
+              - invitationCreatedAt
+              - invitationExpiresAt
+              - inviterUsername
+            required:
+              - invitationCreatedAt
+              - invitationExpiresAt
+              - inviterUsername
     OrgUserRolesRequest:
       description: Organization and project level roles to assign the MongoDB Cloud user within one organization.
       properties:
@@ -18965,6 +19650,24 @@ components:
       required:
         - cloudProvider
       type: object
+      x-xgen-discriminator:
+        propertyName: cloudProvider
+        mapping:
+          AWS:
+            properties:
+              - connectionStatus
+              - interfaceEndpointId
+          AZURE:
+            properties:
+              - privateEndpointConnectionName
+              - privateEndpointIPAddress
+              - privateEndpointResourceId
+              - status
+          GCP:
+            properties:
+              - endpointGroupName
+              - endpoints
+              - status
     PrivateNetworkEndpointIdEntry:
       properties:
         azureLinkId:
@@ -19670,6 +20373,18 @@ components:
       required:
         - type
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          SASL_INHERIT:
+            properties: []
+          USER_INFO:
+            properties:
+              - password
+              - username
+            required:
+              - password
+              - username
     SearchIndexCreateRequest:
       properties:
         collectionName:
@@ -19694,6 +20409,13 @@ components:
         - database
         - name
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          search:
+            properties: []
+          vectorSearch:
+            properties: []
     SearchIndexDefinitionVersion:
       description: Object which includes the version number of the index definition and the time that the index definition was created.
       properties:
@@ -19776,6 +20498,15 @@ components:
           type: array
       title: Search Index Response
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          search:
+            properties:
+              - synonymMappingStatus
+              - synonymMappingStatusDetail
+          vectorSearch:
+            properties: []
     SearchIndexUpdateRequest:
       properties:
         definition:
@@ -20548,6 +21279,16 @@ components:
       required:
         - providerName
       type: object
+      x-xgen-discriminator:
+        propertyName: providerName
+        mapping:
+          AWS:
+            properties:
+              - cloudProviderEndpointId
+          AZURE:
+            properties:
+              - cloudProviderEndpointId
+              - privateEndpointIpAddress
     ServiceAccountGroup:
       properties:
         groupId:
@@ -20814,6 +21555,17 @@ components:
           $ref: "#/components/schemas/RawMetricUnits"
       title: Stream Processor Metric Threshold
       type: object
+      x-xgen-discriminator:
+        propertyName: metricName
+        mapping:
+          STREAM_PROCESSOR_CHANGE_STREAM_LAG:
+            properties: []
+          STREAM_PROCESSOR_DLQ_MESSAGE_COUNT:
+            properties: []
+          STREAM_PROCESSOR_KAFKA_LAG:
+            properties: []
+          STREAM_PROCESSOR_OUTPUT_MESSAGE_COUNT:
+            properties: []
     StreamsAWSConnectionConfig:
       description: AWS configurations for AWS-based connection types.
       properties:
@@ -20924,6 +21676,47 @@ components:
           uniqueItems: true
       readOnly: true
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          AWSKinesisDataStreams:
+            properties:
+              - aws
+              - networking
+          AWSLambda:
+            properties:
+              - aws
+          Cluster:
+            properties:
+              - clusterGroupId
+              - clusterName
+              - dbRoleToExecute
+          Https:
+            properties:
+              - headers
+              - url
+          Kafka:
+            properties:
+              - authentication
+              - bootstrapServers
+              - config
+              - networking
+              - security
+          S3:
+            properties:
+              - aws
+              - networking
+          Sample:
+            properties: []
+          SchemaRegistry:
+            properties:
+              - provider
+              - schemaRegistryAuthentication
+              - schemaRegistryUrls
+            required:
+              - provider
+              - schemaRegistryAuthentication
+              - schemaRegistryUrls
     StreamsDLQ:
       description: Dead letter queue for the stream processor.
       externalDocs:
@@ -21929,6 +22722,78 @@ components:
           type: string
       title: Third-Party Integration
       type: object
+      x-xgen-discriminator:
+        propertyName: type
+        mapping:
+          DATADOG:
+            properties:
+              - apiKey
+              - region
+              - sendCollectionLatencyMetrics
+              - sendDatabaseMetrics
+              - sendQueryStatsMetrics
+              - sendUserProvidedResourceTags
+            required:
+              - apiKey
+          MICROSOFT_TEAMS:
+            properties:
+              - microsoftTeamsWebhookUrl
+            required:
+              - microsoftTeamsWebhookUrl
+          NEW_RELIC:
+            properties:
+              - accountId
+              - licenseKey
+              - readToken
+              - writeToken
+            required:
+              - accountId
+              - licenseKey
+              - readToken
+              - writeToken
+          OPS_GENIE:
+            properties:
+              - apiKey
+              - region
+            required:
+              - apiKey
+          PAGER_DUTY:
+            properties:
+              - region
+              - serviceKey
+            required:
+              - serviceKey
+          PROMETHEUS:
+            properties:
+              - enabled
+              - password
+              - sendUserProvidedResourceTagsEnabled
+              - serviceDiscovery
+              - username
+            required:
+              - enabled
+              - serviceDiscovery
+              - username
+          SLACK:
+            properties:
+              - apiToken
+              - channelName
+              - teamName
+            required:
+              - apiToken
+              - channelName
+          VICTOR_OPS:
+            properties:
+              - apiKey
+              - routingKey
+            required:
+              - apiKey
+          WEBHOOK:
+            properties:
+              - secret
+              - url
+            required:
+              - url
     TimeMetricUnits:
       default: HOURS
       description: Element used to express the quantity. This can be an element of time, storage capacity, and the like.
