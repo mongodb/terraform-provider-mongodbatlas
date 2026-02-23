@@ -5,7 +5,6 @@ run:
 linters:
   default: none
   enable:
-    - copyloopvar
     - dogsled
     - errcheck
     - exhaustive
@@ -24,7 +23,6 @@ linters:
     - noctx
     - nolintlint
     - revive
-    - rowserrcheck
     - staticcheck
     - testifylint
     - testpackage
@@ -40,6 +38,9 @@ linters:
       forbid:
         - pattern: 'context\.Background'
           msg: 'Use of context.Background() is discouraged; use the ctx parameter instead to preserve analytics tracking'
+    gosec:
+      excludes:
+        - G117 # Credential struct fields legitimately hold secret values in this Terraform provider.
     funlen:
       lines: 360
       statements: 120
@@ -68,8 +69,6 @@ linters:
         - case
         - operation
         - return
-    nestif:
-      min-complexity: 7
     revive:
       severity: warning
       rules:
@@ -92,8 +91,6 @@ linters:
         - name: receiver-naming
         - name: time-naming
         - name: unexported-return
-        - name: indent-error-flow
-        - name: errorf
         - name: empty-block
         - name: superfluous-else
         - name: struct-tag
@@ -118,6 +115,18 @@ linters:
         path: '(_test\.go$|tools/|internal/(config|common|provider|testutil)/)'
       - path: schema\.go # exclude rules for schema files as it's auto-generated from OpenAPI spec
         text: var-naming|exceeds the maximum|regexpSimplify
+      - linters:
+          - gosec
+        text: "G602:" # Slice bounds in alertconfiguration are safe; state and API slices are same length.
+        path: internal/service/alertconfiguration/
+      - linters:
+          - gosec
+        text: "G70[3456]:" # Taint analysis false positives in test utilities, tools, and config.
+        path: '(tools/|internal/(testutil|config)/)'
+      - linters:
+          - revive
+        text: "avoid package names that conflict with Go standard library"
+        path: '(internal/common/constant/|version/)'
       - path: (.+)\.go$
         text: declaration of ".*" shadows declaration at line .*
 formatters:

@@ -377,7 +377,7 @@ func ApplyDeleteOnCreateTimeoutTransformation(resource *Resource) {
 	resource.Schema.Attributes = append(resource.Schema.Attributes, Attribute{
 		TFSchemaName:             "delete_on_create_timeout",
 		TFModelName:              "DeleteOnCreateTimeout",
-		Bool:                     &BoolAttribute{Default: conversion.Pointer(true)},
+		Bool:                     &BoolAttribute{Default: new(true)},
 		Description:              conversion.StringPtr(DeleteOnCreateTimeoutDescription),
 		ReqBodyUsage:             OmitAlways,
 		CreateOnly:               true,

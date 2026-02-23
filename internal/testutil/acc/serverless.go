@@ -2,27 +2,28 @@ package acc
 
 import (
 	"fmt"
+	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 func ConfigServerlessInstance(projectID, name string, ignoreConnectionStrings bool, autoIndexing *bool, tags []admin.ResourceTag) string {
-	var extra string
+	var extra strings.Builder
 
 	if ignoreConnectionStrings {
-		extra += `
+		extra.WriteString(`
 			lifecycle {
 				ignore_changes = [connection_strings_private_endpoint_srv]
 			}
-		`
+		`)
 	}
 	if autoIndexing != nil {
-		extra += fmt.Sprintf(`
+		fmt.Fprintf(&extra, `
 			auto_indexing = %t
 		`, *autoIndexing)
 	}
 	for _, label := range tags {
-		extra += fmt.Sprintf(`
+		fmt.Fprintf(&extra, `
 			tags {
 				key   = %q
 				value = %q
@@ -30,7 +31,7 @@ func ConfigServerlessInstance(projectID, name string, ignoreConnectionStrings bo
 		`, label.GetKey(), label.GetValue())
 	}
 
-	return fmt.Sprintf(serverlessConfig, projectID, name, extra)
+	return fmt.Sprintf(serverlessConfig, projectID, name, extra.String())
 }
 
 const serverlessConfig = `

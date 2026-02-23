@@ -36,7 +36,7 @@ var (
 		StandardSrv: &standardSrvConnectionString,
 	})
 	backupSettingsObject, _ = flexcluster.ConvertBackupSettingsToTF(context.Background(), &admin.FlexBackupSettings20241113{
-		Enabled: conversion.Pointer(true),
+		Enabled: new(true),
 	})
 	providerSettingsObject, _ = flexcluster.ConvertProviderSettingsToTF(context.Background(), admin.FlexProviderSettings20241113{
 		ProviderName:        &providerName,
@@ -119,7 +119,7 @@ func TestNewTFModel(t *testing.T) {
 				StateName:            &stateName,
 				VersionReleaseSystem: &versionReleaseSystem,
 				BackupSettings: &admin.FlexBackupSettings20241113{
-					Enabled: conversion.Pointer(true),
+					Enabled: new(true),
 				},
 				TerminationProtectionEnabled: &terminationProtectionEnabled,
 			},
@@ -238,7 +238,7 @@ func TestNewTFModelDSP(t *testing.T) {
 					StateName:            &stateName,
 					VersionReleaseSystem: &versionReleaseSystem,
 					BackupSettings: &admin.FlexBackupSettings20241113{
-						Enabled: conversion.Pointer(true),
+						Enabled: new(true),
 					},
 					TerminationProtectionEnabled: &terminationProtectionEnabled,
 				},
@@ -268,7 +268,7 @@ func TestNewTFModelDSP(t *testing.T) {
 					StateName:            &stateName,
 					VersionReleaseSystem: &versionReleaseSystem,
 					BackupSettings: &admin.FlexBackupSettings20241113{
-						Enabled: conversion.Pointer(true),
+						Enabled: new(true),
 					},
 					TerminationProtectionEnabled: &terminationProtectionEnabled,
 				},

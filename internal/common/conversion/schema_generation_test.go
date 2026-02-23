@@ -776,19 +776,19 @@ func TestUpdateSchemaDescription(t *testing.T) {
 func TestUpdateAttrPanic(t *testing.T) {
 	testCases := map[string]any{
 		"not ptr, please fix caller":    "no ptr",
-		"not struct, please fix caller": conversion.Pointer("no struct"),
-		"invalid desc fields, please fix caller": conversion.Pointer(struct {
+		"not struct, please fix caller": new("no struct"),
+		"invalid desc fields, please fix caller": new(struct {
 			Description         int
 			MarkdownDescription int
 		}{}),
-		"both descriptions exist, please fix caller: description": conversion.Pointer(struct {
+		"both descriptions exist, please fix caller: description": new(struct {
 			Description         string
 			MarkdownDescription string
 		}{
 			Description:         "description",
 			MarkdownDescription: "markdown description",
 		}),
-		"not map, please fix caller: Attributes": conversion.Pointer(struct {
+		"not map, please fix caller: Attributes": new(struct {
 			Attributes string
 		}{}),
 	}

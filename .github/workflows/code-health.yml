@@ -56,7 +56,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20
         with:
-          version: v2.8.0 # Also update GOLANGCI_VERSION variable in Makefile when updating this version
+          version: v2.10.0 # Also update GOLANGCI_VERSION variable in Makefile when updating this version
       - name: actionlint
         run: |
           make tools
@@ -87,8 +87,31 @@ jobs:
           echo "::error::Files were changed during build (see build log). If this was triggered from a fork, you will need to update your branch."
           cat doc.repo.patch
           exit 1
+  check-go-files:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+        with:
+          go-version-file: 'go.mod'
+      - name: Run go mod tidy and go fix
+        run: |
+          go mod tidy
+          go fix ./...
+      - name: Find mutations
+        id: self_mutation
+        run: |-
+          git add .
+          git diff --staged --patch --exit-code > go.repo.patch || echo "self_mutation_happened=true" >> "${GITHUB_OUTPUT}"
+      - name: Fail build on mutation
+        if: steps.self_mutation.outputs.self_mutation_happened
+        run: |-
+          echo "::error::Files were changed by 'go mod tidy' and/or 'go fix ./...' (see build log). If this was triggered from a fork, you will need to update your branch."
+          cat go.repo.patch
+          exit 1
   call-acceptance-tests-workflow:
-    needs: [build, lint, shellcheck, unit-test, generate-doc-check]
+    needs: [build, lint, shellcheck, unit-test, generate-doc-check, check-go-files]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:

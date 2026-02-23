@@ -318,9 +318,9 @@ func Resource() *schema.Resource {
 				Set: func(v any) int {
 					var buf bytes.Buffer
 					m := v.(map[string]any)
-					buf.WriteString(fmt.Sprintf("%d", m["num_shards"].(int)))
+					fmt.Fprintf(&buf, "%d", m["num_shards"].(int))
 					buf.WriteString(m["zone_name"].(string))
-					buf.WriteString(fmt.Sprintf("%+v", m["regions_config"].(*schema.Set)))
+					fmt.Fprintf(&buf, "%+v", m["regions_config"].(*schema.Set))
 					return hashCodeString(buf.String())
 				},
 			},
@@ -620,7 +620,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	autoScaling := &matlas.AutoScaling{
-		DiskGBEnabled: conversion.Pointer(d.Get("auto_scaling_disk_gb_enabled").(bool)),
+		DiskGBEnabled: new(d.Get("auto_scaling_disk_gb_enabled").(bool)),
 		Compute: &matlas.Compute{
 			Enabled:          &computeEnabled,
 			ScaleDownEnabled: &scaleDownEnabled,
@@ -656,7 +656,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	tenantDisksize := conversion.Pointer[float64](0.0)
+	tenantDisksize := new(0.0)
 	if providerName == "TENANT" {
 		autoScaling = nil
 
@@ -706,15 +706,15 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Name:                     clusterName,
 		EncryptionAtRestProvider: d.Get("encryption_at_rest_provider").(string),
 		ClusterType:              clusterType,
-		BackupEnabled:            conversion.Pointer(d.Get("backup_enabled").(bool)),
-		PitEnabled:               conversion.Pointer(d.Get("pit_enabled").(bool)),
+		BackupEnabled:            new(d.Get("backup_enabled").(bool)),
+		PitEnabled:               new(d.Get("pit_enabled").(bool)),
 		AutoScaling:              autoScaling,
 		ProviderSettings:         providerSettings,
 		ReplicationSpecs:         replicationSpecs,
 		AdvancedConfiguration:    expandClusterAdvancedConfiguration(d),
 	}
 	if v, ok := d.GetOk("cloud_backup"); ok {
-		clusterRequest.ProviderBackupEnabled = conversion.Pointer(v.(bool))
+		clusterRequest.ProviderBackupEnabled = new(v.(bool))
 	}
 
 	if _, ok := d.GetOk("bi_connector_config"); ok {
@@ -737,7 +737,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if v, ok := d.GetOk("disk_size_gb"); ok {
-		clusterRequest.DiskSizeGB = conversion.Pointer(v.(float64))
+		clusterRequest.DiskSizeGB = new(v.(float64))
 	}
 	if cast.ToFloat64(tenantDisksize) != 0 {
 		clusterRequest.DiskSizeGB = tenantDisksize
@@ -747,15 +747,15 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if r, ok := d.GetOk("replication_factor"); ok {
-		clusterRequest.ReplicationFactor = conversion.Pointer(cast.ToInt64(r))
+		clusterRequest.ReplicationFactor = new(cast.ToInt64(r))
 	}
 
 	if n, ok := d.GetOk("num_shards"); ok {
-		clusterRequest.NumShards = conversion.Pointer(cast.ToInt64(n))
+		clusterRequest.NumShards = new(cast.ToInt64(n))
 	}
 
 	if v, ok := d.GetOk("termination_protection_enabled"); ok {
-		clusterRequest.TerminationProtectionEnabled = conversion.Pointer(v.(bool))
+		clusterRequest.TerminationProtectionEnabled = new(v.(bool))
 	}
 
 	if v, ok := d.GetOk("version_release_system"); ok {
@@ -796,7 +796,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// To pause a cluster
 	if v := d.Get("paused").(bool); v {
 		clusterRequest = &matlas.Cluster{
-			Paused: conversion.Pointer(v),
+			Paused: new(v),
 		}
 		_, _, err = updateCluster(ctx, conn, connV2, clusterRequest, projectID, clusterName, timeout)
 		if err != nil {
@@ -1112,15 +1112,15 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	cluster.AutoScaling = &matlas.AutoScaling{Compute: &matlas.Compute{}}
 
 	if d.HasChange("auto_scaling_disk_gb_enabled") {
-		cluster.AutoScaling.DiskGBEnabled = conversion.Pointer(d.Get("auto_scaling_disk_gb_enabled").(bool))
+		cluster.AutoScaling.DiskGBEnabled = new(d.Get("auto_scaling_disk_gb_enabled").(bool))
 	}
 
 	if d.HasChange("auto_scaling_compute_enabled") {
-		cluster.AutoScaling.Compute.Enabled = conversion.Pointer(d.Get("auto_scaling_compute_enabled").(bool))
+		cluster.AutoScaling.Compute.Enabled = new(d.Get("auto_scaling_compute_enabled").(bool))
 	}
 
 	if d.HasChange("auto_scaling_compute_scale_down_enabled") {
-		cluster.AutoScaling.Compute.ScaleDownEnabled = conversion.Pointer(d.Get("auto_scaling_compute_scale_down_enabled").(bool))
+		cluster.AutoScaling.Compute.ScaleDownEnabled = new(d.Get("auto_scaling_compute_scale_down_enabled").(bool))
 	}
 
 	if d.HasChange("encryption_at_rest_provider") {
@@ -1136,27 +1136,27 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("backup_enabled") {
-		cluster.BackupEnabled = conversion.Pointer(d.Get("backup_enabled").(bool))
+		cluster.BackupEnabled = new(d.Get("backup_enabled").(bool))
 	}
 
 	if d.HasChange("disk_size_gb") {
-		cluster.DiskSizeGB = conversion.Pointer(d.Get("disk_size_gb").(float64))
+		cluster.DiskSizeGB = new(d.Get("disk_size_gb").(float64))
 	}
 
 	if d.HasChange("cloud_backup") {
-		cluster.ProviderBackupEnabled = conversion.Pointer(d.Get("cloud_backup").(bool))
+		cluster.ProviderBackupEnabled = new(d.Get("cloud_backup").(bool))
 	}
 
 	if d.HasChange("pit_enabled") {
-		cluster.PitEnabled = conversion.Pointer(d.Get("pit_enabled").(bool))
+		cluster.PitEnabled = new(d.Get("pit_enabled").(bool))
 	}
 
 	if d.HasChange("replication_factor") {
-		cluster.ReplicationFactor = conversion.Pointer(cast.ToInt64(d.Get("replication_factor")))
+		cluster.ReplicationFactor = new(cast.ToInt64(d.Get("replication_factor")))
 	}
 
 	if d.HasChange("num_shards") {
-		cluster.NumShards = conversion.Pointer(cast.ToInt64(d.Get("num_shards")))
+		cluster.NumShards = new(cast.ToInt64(d.Get("num_shards")))
 	}
 
 	if d.HasChange("version_release_system") {
@@ -1168,7 +1168,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("termination_protection_enabled") {
-		cluster.TerminationProtectionEnabled = conversion.Pointer(d.Get("termination_protection_enabled").(bool))
+		cluster.TerminationProtectionEnabled = new(d.Get("termination_protection_enabled").(bool))
 	}
 
 	if d.HasChange("labels") {
@@ -1187,12 +1187,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// when Provider instance type changes this argument must be passed explicitly in patch request
 	if d.HasChange("provider_instance_size_name") {
 		if _, ok := d.GetOk("cloud_backup"); ok {
-			cluster.ProviderBackupEnabled = conversion.Pointer(d.Get("cloud_backup").(bool))
+			cluster.ProviderBackupEnabled = new(d.Get("cloud_backup").(bool))
 		}
 	}
 
 	if d.HasChange("paused") && !d.Get("paused").(bool) {
-		cluster.Paused = conversion.Pointer(d.Get("paused").(bool))
+		cluster.Paused = new(d.Get("paused").(bool))
 	}
 
 	/*
@@ -1245,7 +1245,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 			if didErrOnPausedCluster(err) {
 				clusterRequest := &matlas.Cluster{
-					Paused: conversion.Pointer(false),
+					Paused: new(false),
 				}
 
 				_, _, err = updateCluster(ctx, conn, connV2, clusterRequest, projectID, clusterName, timeout)
@@ -1265,7 +1265,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.Get("paused").(bool) && !isSharedTier(d.Get("provider_instance_size_name").(string)) {
 		clusterRequest := &matlas.Cluster{
-			Paused: conversion.Pointer(true),
+			Paused: new(true),
 		}
 
 		_, _, err := updateCluster(ctx, conn, connV2, clusterRequest, projectID, clusterName, timeout)
@@ -1325,7 +1325,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	var options *matlas.DeleteAdvanceClusterOptions
 	if v, ok := d.GetOkExists("retain_backups_enabled"); ok {
 		options = &matlas.DeleteAdvanceClusterOptions{
-			RetainBackups: conversion.Pointer(v.(bool)),
+			RetainBackups: new(v.(bool)),
 		}
 	}
 

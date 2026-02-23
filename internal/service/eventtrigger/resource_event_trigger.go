@@ -224,7 +224,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 	}
 
 	if v, ok := d.GetOk("disabled"); ok {
-		eventTriggerReq.Disabled = conversion.Pointer(v.(bool))
+		eventTriggerReq.Disabled = new(v.(bool))
 	}
 
 	eventTriggerConfig := &realm.EventTriggerConfig{}
@@ -278,10 +278,10 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 		eventTriggerConfig.Project = cast.ToStringMap(v)
 	}
 	if v, ok := d.GetOk("config_full_document"); ok {
-		eventTriggerConfig.FullDocument = conversion.Pointer(v.(bool))
+		eventTriggerConfig.FullDocument = new(v.(bool))
 	}
 	if v, ok := d.GetOk("config_full_document_before"); ok {
-		eventTriggerConfig.FullDocumentBeforeChange = conversion.Pointer(v.(bool))
+		eventTriggerConfig.FullDocumentBeforeChange = new(v.(bool))
 	}
 	if oksch {
 		eventTriggerConfig.Schedule = sche.(string)
@@ -292,7 +292,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 	}
 
 	if v, ok := d.GetOk("unordered"); ok {
-		eventTriggerConfig.Unordered = conversion.Pointer(v.(bool))
+		eventTriggerConfig.Unordered = new(v.(bool))
 	}
 
 	eventTriggerReq.Config = eventTriggerConfig
@@ -417,7 +417,7 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 		Name:       d.Get("name").(string),
 		Type:       typeTrigger,
 		FunctionID: d.Get("function_id").(string),
-		Disabled:   conversion.Pointer(d.Get("disabled").(bool)),
+		Disabled:   new(d.Get("disabled").(bool)),
 	}
 	eventTriggerConfig := &realm.EventTriggerConfig{}
 
@@ -428,9 +428,9 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 		eventTriggerConfig.ServiceID = d.Get("config_service_id").(string)
 		eventTriggerConfig.Match = cast.ToStringMap(d.Get("config_match").(string))
 		eventTriggerConfig.Project = cast.ToStringMap(d.Get("config_project").(string))
-		eventTriggerConfig.FullDocument = conversion.Pointer(d.Get("config_full_document").(bool))
-		eventTriggerConfig.FullDocumentBeforeChange = conversion.Pointer(d.Get("config_full_document_before").(bool))
-		eventTriggerConfig.Unordered = conversion.Pointer(d.Get("unordered").(bool))
+		eventTriggerConfig.FullDocument = new(d.Get("config_full_document").(bool))
+		eventTriggerConfig.FullDocumentBeforeChange = new(d.Get("config_full_document_before").(bool))
+		eventTriggerConfig.Unordered = new(d.Get("unordered").(bool))
 	}
 	if typeTrigger == "AUTHENTICATION" {
 		eventTriggerConfig.OperationType = d.Get("config_operation_type").(string)

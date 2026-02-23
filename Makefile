@@ -16,7 +16,7 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v2.8.0 # Also update golangci-lint GH action in code-health.yml when updating this version
+GOLANGCI_VERSION=v2.10.0 # Also update golangci-lint GH action in code-health.yml when updating this version
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -96,7 +96,6 @@ fmtcheck: ## Currently required by tf-deploy compile
 .PHONY: lint-fix
 lint-fix: ## Fix Go linter issues
 	@echo "==> Fixing linters errors..."
-	fieldalignment -json -fix ./...
 	golangci-lint run --fix
 
 .PHONY: lint
@@ -104,14 +103,27 @@ lint:
 	@echo "==> Checking source code against linters..."
 	golangci-lint run
 
+.PHONY: gofix-check
+gofix-check: ## Fail if go mod tidy or go fix ./... produce uncommitted changes
+	@echo "==> Checking that go mod tidy and go fix produce no changes..."
+	GOFLAGS= go mod tidy
+	GOFLAGS= go fix ./...
+	@if ! git diff --exit-code --quiet; then \
+		echo "ERROR: 'go mod tidy' and/or 'go fix ./...' produced changes. Please commit the updated files."; \
+		git diff --stat; \
+		exit 1; \
+	fi
+
+.PHONY: check
+check: build lint gofix-check ## Run build, linter, and go fix check
+
 .PHONY: tools
 tools:  ## Install the dev tools (dependencies)
 	@echo "==> Installing dependencies..."
 	go telemetry off # disable sending telemetry data, more info: https://go.dev/doc/telemetry
 	go install github.com/icholy/gomajor@latest
-	go install github.com/terraform-linters/tflint@v0.52.0
+	go install github.com/terraform-linters/tflint@v0.61.0
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
-	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.38.0 # Pinning version since v0.39.0 fails to fix files with large structs. See versions at https://pkg.go.dev/golang.org/x/tools/go/analysis/passes/fieldalignment?tab=versions
 	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
 	go install github.com/hashicorp/go-changelog/cmd/changelog-build@latest
 	go install github.com/hashicorp/go-changelog/cmd/changelog-entry@latest

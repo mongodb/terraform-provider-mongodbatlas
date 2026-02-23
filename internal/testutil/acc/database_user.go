@@ -2,6 +2,7 @@ package acc
 
 import (
 	"fmt"
+	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
@@ -49,9 +50,9 @@ func ConfigDatabaseUserWithX509Type(projectID, username, x509Type, roleName, key
 }
 
 func ConfigDatabaseUserWithLabels(projectID, username, roleName, description string, labels []admin.ComponentLabel) string {
-	var labelsConf string
+	var labelsConf strings.Builder
 	for _, label := range labels {
-		labelsConf += fmt.Sprintf(`
+		fmt.Fprintf(&labelsConf, `
 			labels {
 				key   = %q
 				value = %q
@@ -78,11 +79,11 @@ func ConfigDatabaseUserWithLabels(projectID, username, roleName, description str
 			%[4]s
 			%[5]s
 		}
-	`, projectID, username, roleName, labelsConf, descriptionConf)
+	`, projectID, username, roleName, labelsConf.String(), descriptionConf)
 }
 
 func ConfigDatabaseUserWithRoles(projectID, username, password string, rolesArr []*admin.DatabaseUserRole) string {
-	var roles string
+	var roles strings.Builder
 	for _, role := range rolesArr {
 		var roleName, databaseName, collection string
 		if role.RoleName != "" {
@@ -94,7 +95,7 @@ func ConfigDatabaseUserWithRoles(projectID, username, password string, rolesArr 
 		if role.GetCollectionName() != "" {
 			collection = fmt.Sprintf(`collection_name = %q`, role.GetCollectionName())
 		}
-		roles += fmt.Sprintf(`
+		fmt.Fprintf(&roles, `
 			roles {
 				%s
 				%s
@@ -112,7 +113,7 @@ func ConfigDatabaseUserWithRoles(projectID, username, password string, rolesArr 
 
 			%[4]s
 		}
-	`, projectID, username, password, roles)
+	`, projectID, username, password, roles.String())
 }
 
 func ConfigDatabaseUserWithAWSIAMType(projectID, username, roleName, keyLabel, valueLabel string) string {
@@ -137,9 +138,9 @@ func ConfigDatabaseUserWithAWSIAMType(projectID, username, roleName, keyLabel, v
 }
 
 func ConfigDatabaseUserWithScopes(projectID, username, password, roleName string, scopesArr []*admin.UserScope) string {
-	var scopes string
+	var scopes strings.Builder
 	for _, scope := range scopesArr {
-		scopes += fmt.Sprintf(`
+		fmt.Fprintf(&scopes, `
 			scopes {
 				name = %q
 				type = %q
@@ -161,7 +162,7 @@ func ConfigDatabaseUserWithScopes(projectID, username, password, roleName string
 
 			%[5]s
 		}
-	`, projectID, username, password, roleName, scopes)
+	`, projectID, username, password, roleName, scopes.String())
 }
 
 func ConfigDatabaseUserWithLDAPAuthType(projectID, username, roleName, keyLabel, valueLabel string) string {

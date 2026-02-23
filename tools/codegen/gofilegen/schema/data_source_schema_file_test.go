@@ -3,8 +3,6 @@ package schema_test
 import (
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20240530005/admin"
-
 	"github.com/sebdah/goldie/v2"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
@@ -29,35 +27,35 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 								TFSchemaName:             "string_attr",
 								TFModelName:              "StringAttr",
 								String:                   &codespec.StringAttribute{},
-								Description:              admin.PtrString("string description"),
+								Description:              new("string description"),
 								ComputedOptionalRequired: codespec.Computed,
 							},
 							{
 								TFSchemaName:             "bool_attr",
 								TFModelName:              "BoolAttr",
 								Bool:                     &codespec.BoolAttribute{},
-								Description:              admin.PtrString("bool description"),
+								Description:              new("bool description"),
 								ComputedOptionalRequired: codespec.Computed,
 							},
 							{
 								TFSchemaName:             "int_attr",
 								TFModelName:              "IntAttr",
 								Int64:                    &codespec.Int64Attribute{},
-								Description:              admin.PtrString("int description"),
+								Description:              new("int description"),
 								ComputedOptionalRequired: codespec.Computed,
 							},
 							{
 								TFSchemaName:             "float_attr",
 								TFModelName:              "FloatAttr",
 								Float64:                  &codespec.Float64Attribute{},
-								Description:              admin.PtrString("float description"),
+								Description:              new("float description"),
 								ComputedOptionalRequired: codespec.Computed,
 							},
 							{
 								TFSchemaName:             "number_attr",
 								TFModelName:              "NumberAttr",
 								Number:                   &codespec.NumberAttribute{},
-								Description:              admin.PtrString("number description"),
+								Description:              new("number description"),
 								ComputedOptionalRequired: codespec.Computed,
 							},
 						},
@@ -76,7 +74,7 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 							{
 								TFSchemaName:             "nested_object_attr",
 								TFModelName:              "NestedObjectAttr",
-								Description:              admin.PtrString("nested object attribute"),
+								Description:              new("nested object attribute"),
 								ComputedOptionalRequired: codespec.Computed,
 								CustomType:               codespec.NewCustomObjectType("NestedObjectAttr"),
 								SingleNested: &codespec.SingleNestedAttribute{
@@ -86,7 +84,7 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 												TFSchemaName:             "string_attr",
 												TFModelName:              "StringAttr",
 												String:                   &codespec.StringAttribute{},
-												Description:              admin.PtrString("string attribute"),
+												Description:              new("string attribute"),
 												ComputedOptionalRequired: codespec.Computed,
 											},
 										},
@@ -96,7 +94,7 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 							{
 								TFSchemaName:             "string_list_attr",
 								TFModelName:              "StringListAttr",
-								Description:              admin.PtrString("string list attribute"),
+								Description:              new("string list attribute"),
 								ComputedOptionalRequired: codespec.Computed,
 								CustomType:               codespec.NewCustomListType(codespec.String),
 								List:                     &codespec.ListAttribute{ElementType: codespec.String},
@@ -104,7 +102,7 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 							{
 								TFSchemaName:             "nested_list_attr",
 								TFModelName:              "NestedListAttr",
-								Description:              admin.PtrString("nested list attribute"),
+								Description:              new("nested list attribute"),
 								ComputedOptionalRequired: codespec.Computed,
 								CustomType:               codespec.NewCustomNestedListType("NestedListAttr"),
 								ListNested: &codespec.ListNestedAttribute{
@@ -114,7 +112,7 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 												TFSchemaName:             "int_attr",
 												TFModelName:              "IntAttr",
 												Int64:                    &codespec.Int64Attribute{},
-												Description:              admin.PtrString("int attribute"),
+												Description:              new("int attribute"),
 												ComputedOptionalRequired: codespec.Computed,
 											},
 										},
@@ -133,13 +131,13 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 				PackageName: "testname",
 				DataSources: &codespec.DataSources{
 					Schema: &codespec.DataSourceSchema{
-						DeprecationMessage: admin.PtrString("This data source is deprecated. Please use the test_name_new data source instead."),
+						DeprecationMessage: new("This data source is deprecated. Please use the test_name_new data source instead."),
 						SingularDSAttributes: &codespec.Attributes{
 							{
 								TFSchemaName:             "string_attr",
 								TFModelName:              "StringAttr",
 								String:                   &codespec.StringAttribute{},
-								Description:              admin.PtrString("string description"),
+								Description:              new("string description"),
 								ComputedOptionalRequired: codespec.Computed,
 							},
 						},
@@ -159,14 +157,14 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 								TFSchemaName:             "project_id",
 								TFModelName:              "ProjectId",
 								String:                   &codespec.StringAttribute{},
-								Description:              admin.PtrString("project identifier"),
+								Description:              new("project identifier"),
 								ComputedOptionalRequired: codespec.Required,
 							},
 							{
 								TFSchemaName:             "name",
 								TFModelName:              "Name",
 								String:                   &codespec.StringAttribute{},
-								Description:              admin.PtrString("resource name"),
+								Description:              new("resource name"),
 								ComputedOptionalRequired: codespec.Computed,
 							},
 						},

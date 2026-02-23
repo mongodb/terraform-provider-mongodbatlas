@@ -19,7 +19,7 @@ type StatusText struct {
 	DuplicateResponses int    `yaml:"duplicate_responses"`
 }
 
-func (s StatusText) MarshalYAML() (interface{}, error) {
+func (s StatusText) MarshalYAML() (any, error) {
 	childNodes := []*yaml.Node{
 		{Kind: yaml.ScalarNode, Value: "response_index"},
 		{Kind: yaml.ScalarNode, Value: fmt.Sprintf("%d", s.ResponseIndex)},

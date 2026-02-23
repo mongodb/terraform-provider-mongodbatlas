@@ -32,9 +32,9 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configNoPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule20240805{
-					ReferenceHourOfDay:    conversion.Pointer(3),
-					ReferenceMinuteOfHour: conversion.Pointer(45),
-					RestoreWindowDays:     conversion.Pointer(4),
+					ReferenceHourOfDay:    new(3),
+					ReferenceMinuteOfHour: new(45),
+					RestoreWindowDays:     new(4),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -60,9 +60,9 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 			},
 			{
 				Config: configNewPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule20240805{
-					ReferenceHourOfDay:    conversion.Pointer(0),
-					ReferenceMinuteOfHour: conversion.Pointer(0),
-					RestoreWindowDays:     conversion.Pointer(7),
+					ReferenceHourOfDay:    new(0),
+					ReferenceMinuteOfHour: new(0),
+					RestoreWindowDays:     new(7),
 				}, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -103,9 +103,9 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 			},
 			{
 				Config: configAdvancedPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule20240805{
-					ReferenceHourOfDay:    conversion.Pointer(0),
-					ReferenceMinuteOfHour: conversion.Pointer(0),
-					RestoreWindowDays:     conversion.Pointer(7),
+					ReferenceHourOfDay:    new(0),
+					ReferenceMinuteOfHour: new(0),
+					RestoreWindowDays:     new(7),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -204,9 +204,9 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDefault(&clusterInfo, &admin.DiskBackupSnapshotSchedule20240805{
-					ReferenceHourOfDay:    conversion.Pointer(3),
-					ReferenceMinuteOfHour: conversion.Pointer(45),
-					RestoreWindowDays:     conversion.Pointer(4),
+					ReferenceHourOfDay:    new(3),
+					ReferenceMinuteOfHour: new(45),
+					RestoreWindowDays:     new(4),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -238,9 +238,9 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 			},
 			{
 				Config: configOnePolicy(&clusterInfo, &admin.DiskBackupSnapshotSchedule20240805{
-					ReferenceHourOfDay:    conversion.Pointer(0),
-					ReferenceMinuteOfHour: conversion.Pointer(0),
-					RestoreWindowDays:     conversion.Pointer(7),
+					ReferenceHourOfDay:    new(0),
+					ReferenceMinuteOfHour: new(0),
+					RestoreWindowDays:     new(7),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -329,17 +329,17 @@ func TestAccBackupRSCloudBackupSchedule_copySettings_zoneId(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configCopySettings(terraformStr, projectID, clusterResourceName, false, false, &admin.DiskBackupSnapshotSchedule20240805{
-					ReferenceHourOfDay:    conversion.Pointer(3),
-					ReferenceMinuteOfHour: conversion.Pointer(45),
-					RestoreWindowDays:     conversion.Pointer(1),
+					ReferenceHourOfDay:    new(3),
+					ReferenceMinuteOfHour: new(45),
+					RestoreWindowDays:     new(1),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(checksCreateAll...),
 			},
 			{
 				Config: configCopySettings(terraformStr, projectID, clusterResourceName, true, false, &admin.DiskBackupSnapshotSchedule20240805{
-					ReferenceHourOfDay:    conversion.Pointer(3),
-					ReferenceMinuteOfHour: conversion.Pointer(45),
-					RestoreWindowDays:     conversion.Pointer(1),
+					ReferenceHourOfDay:    new(3),
+					ReferenceMinuteOfHour: new(45),
+					RestoreWindowDays:     new(1),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(checksUpdate...),
 			},
@@ -359,9 +359,9 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDefault(&clusterInfo, &admin.DiskBackupSnapshotSchedule20240805{
-					ReferenceHourOfDay:    conversion.Pointer(3),
-					ReferenceMinuteOfHour: conversion.Pointer(45),
-					RestoreWindowDays:     conversion.Pointer(4),
+					ReferenceHourOfDay:    new(3),
+					ReferenceMinuteOfHour: new(45),
+					RestoreWindowDays:     new(4),
 				}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),

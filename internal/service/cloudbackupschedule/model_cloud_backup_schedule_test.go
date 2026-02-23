@@ -100,14 +100,14 @@ func TestFlattenCopySettings(t *testing.T) {
 					Frequencies:      &[]string{"daily", "weekly"},
 					RegionName:       conversion.StringPtr("US_WEST_1"),
 					ZoneId:           "12345",
-					ShouldCopyOplogs: conversion.Pointer(true),
+					ShouldCopyOplogs: new(true),
 				},
 				{
 					CloudProvider:    conversion.StringPtr("Azure"),
 					Frequencies:      &[]string{"monthly"},
 					RegionName:       conversion.StringPtr("EAST_US"),
 					ZoneId:           "67895",
-					ShouldCopyOplogs: conversion.Pointer(false),
+					ShouldCopyOplogs: new(false),
 				},
 			},
 			expected: []map[string]any{
