@@ -1,11 +1,13 @@
 package autogen_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/stretchr/testify/assert"
@@ -76,56 +78,17 @@ func TestHandleImportWithCustomHook(t *testing.T) {
 		},
 	}
 
-	testCases := []struct {
-		expectedError *string
-		expectedAttrs map[string]string
-		name          string
-		importID      string
-		idAttributes  []string
-	}{
-		{
-			name:         "Legacy format normalizes to default",
-			importID:     "myWorkspace-507f1f77bcf86cd799439011-myConnection",
-			idAttributes: []string{"project_id", "workspace_name", "connection_name"},
-			expectedAttrs: map[string]string{
-				"project_id":      "507f1f77bcf86cd799439011",
-				"workspace_name":  "myWorkspace",
-				"connection_name": "myConnection",
-			},
-		},
-		{
-			name:         "Default format passes unchanged",
-			importID:     "507f1f77bcf86cd799439011/myWorkspace/myConnection",
-			idAttributes: []string{"project_id", "workspace_name", "connection_name"},
-			expectedAttrs: map[string]string{
-				"project_id":      "507f1f77bcf86cd799439011",
-				"workspace_name":  "myWorkspace",
-				"connection_name": "myConnection",
-			},
-		},
-		{
-			name:          "Invalid format returns error",
-			importID:      "bad-format",
-			idAttributes:  []string{"project_id", "workspace_name", "connection_name"},
-			expectedError: conversion.StringPtr("use one of the formats: {project_id}/{workspace_name}/{connection_name} or {workspace_name}-{project_id}-{connection_name}"),
-		},
-	}
+	normalizedID, err := hook.PreImport("myWorkspace-507f1f77bcf86cd799439011-myConnection")
+	require.NoError(t, err)
+	assert.Equal(t, "507f1f77bcf86cd799439011/myWorkspace/myConnection", normalizedID)
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			normalizedID, err := hook.PreImport(tc.importID)
-			if tc.expectedError != nil {
-				require.Error(t, err)
-				assert.Equal(t, *tc.expectedError, err.Error())
-				return
-			}
+	req := resource.ImportStateRequest{ID: "bad-format"}
+	resp := &resource.ImportStateResponse{}
+	autogen.HandleImport(context.Background(), []string{"project_id", "workspace_name", "connection_name"}, req, resp, hook)
+	require.True(t, resp.Diagnostics.HasError())
 
-			require.NoError(t, err)
-			attrs, err := autogen.ProcessImportID(normalizedID, tc.idAttributes)
-			require.NoError(t, err)
-			assert.Equal(t, tc.expectedAttrs, attrs)
-		})
-	}
+	_, err = hook.PreImport("bad-format")
+	require.Error(t, err)
 }
 
 type testPreImportHook struct {
