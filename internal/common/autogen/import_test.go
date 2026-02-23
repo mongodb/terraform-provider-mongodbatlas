@@ -2,6 +2,8 @@ package autogen_test
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
@@ -56,4 +58,80 @@ func TestHandleImport(t *testing.T) {
 			assert.Equal(t, tc.expectedAttrs, attrValues)
 		})
 	}
+}
+
+func TestHandleImportWithCustomHook(t *testing.T) {
+	hook := &testPreImportHook{
+		preImportFunc: func(id string) (string, error) {
+			if strings.Contains(id, "/") {
+				return id, nil
+			}
+
+			re := regexp.MustCompile(`^(.*)-([0-9a-fA-F]{24})-(.*)$`)
+			matches := re.FindStringSubmatch(id)
+			if len(matches) != 4 || matches[1] == "" || matches[3] == "" {
+				return "", fmt.Errorf("use one of the formats: {project_id}/{workspace_name}/{connection_name} or {workspace_name}-{project_id}-{connection_name}")
+			}
+			return fmt.Sprintf("%s/%s/%s", matches[2], matches[1], matches[3]), nil
+		},
+	}
+
+	testCases := []struct {
+		expectedError *string
+		expectedAttrs map[string]string
+		name          string
+		importID      string
+		idAttributes  []string
+	}{
+		{
+			name:         "Legacy format normalizes to default",
+			importID:     "myWorkspace-507f1f77bcf86cd799439011-myConnection",
+			idAttributes: []string{"project_id", "workspace_name", "connection_name"},
+			expectedAttrs: map[string]string{
+				"project_id":      "507f1f77bcf86cd799439011",
+				"workspace_name":  "myWorkspace",
+				"connection_name": "myConnection",
+			},
+		},
+		{
+			name:         "default format passes unchanged",
+			importID:     "507f1f77bcf86cd799439011/myWorkspace/myConnection",
+			idAttributes: []string{"project_id", "workspace_name", "connection_name"},
+			expectedAttrs: map[string]string{
+				"project_id":      "507f1f77bcf86cd799439011",
+				"workspace_name":  "myWorkspace",
+				"connection_name": "myConnection",
+			},
+		},
+		{
+			name:          "invalid format returns error",
+			importID:      "bad-format",
+			idAttributes:  []string{"project_id", "workspace_name", "connection_name"},
+			expectedError: conversion.StringPtr("use one of the formats: {project_id}/{workspace_name}/{connection_name} or {workspace_name}-{project_id}-{connection_name}"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			normalizedID, err := hook.PreImport(tc.importID)
+			if tc.expectedError != nil {
+				require.Error(t, err)
+				assert.Equal(t, *tc.expectedError, err.Error())
+				return
+			}
+
+			require.NoError(t, err)
+			attrs, err := autogen.ProcessImportID(normalizedID, tc.idAttributes)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expectedAttrs, attrs)
+		})
+	}
+}
+
+type testPreImportHook struct {
+	preImportFunc func(string) (string, error)
+}
+
+func (h *testPreImportHook) PreImport(id string) (string, error) {
+	return h.preImportFunc(id)
 }
