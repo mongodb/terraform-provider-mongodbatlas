@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-const errImportFormats = "use one of the formats: {project_id}/{workspace_name}/{connection_name} or {workspace_name}-{project_id}-{connection_name}"
-
 func (r *rs) PreImport(id string) (string, error) {
 	if strings.Contains(id, "/") {
 		return id, nil
@@ -18,14 +16,14 @@ func (r *rs) PreImport(id string) (string, error) {
 		return normalizedID, nil
 	}
 
-	return "", fmt.Errorf(errImportFormats)
+	return "", fmt.Errorf("use one of the formats: {project_id}/{workspace_name}/{connection_name} or {workspace_name}-{project_id}-{connection_name}")
 }
 
 func parseLegacyImportID(id string) (string, error) {
 	re := regexp.MustCompile(`^(.*)-([0-9a-fA-F]{24})-(.*)$`)
 	m := re.FindStringSubmatch(id)
 	if len(m) != 4 || m[1] == "" || m[3] == "" {
-		return "", fmt.Errorf("Invalid legacy import format")
+		return "", fmt.Errorf("invalid legacy import format")
 	}
 
 	workspaceName := m[1]
