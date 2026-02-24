@@ -18,7 +18,7 @@ var _ autogen.PostReadAPICallHook = (*rs)(nil)
 var _ autogen.ResourceSchemaHook = (*rs)(nil)
 
 type TFExpandedModel struct {
-	Id types.String `tfsdk:"id" autogen:"omitjson"`
+	ID types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
 }
 
 func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schema.Schema {
