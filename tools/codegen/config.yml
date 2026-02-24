@@ -715,7 +715,7 @@ resources:
       aliases:
         tenantName: name # path param name does not match the API request property
       overrides:
-        # discriminator is nested in an attribute that fully computed, follow up in CLOUDP-383599 so this filtering is done automatically
+        # discriminator is nested in an attribute that is fully computed, follow up in CLOUDP-383599 so this filtering is done automatically
         connections.type:
           ignore_validators: [discriminator]
         connections.schema_registry_authentication.type:
