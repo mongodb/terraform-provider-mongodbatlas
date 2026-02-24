@@ -139,16 +139,16 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 		"two zones with same amount of available ids and replication specs to populate": {
 			ReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
-					ZoneName: admin.PtrString("Zone 1"),
+					ZoneName: new("Zone 1"),
 				},
 				{
-					ZoneName: admin.PtrString("Zone 2"),
+					ZoneName: new("Zone 2"),
 				},
 				{
-					ZoneName: admin.PtrString("Zone 1"),
+					ZoneName: new("Zone 1"),
 				},
 				{
-					ZoneName: admin.PtrString("Zone 2"),
+					ZoneName: new("Zone 2"),
 				},
 			},
 			ZoneToReplicationSpecsIDs: map[string][]string{
@@ -157,36 +157,36 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 			},
 			ExpectedReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
-					ZoneName: admin.PtrString("Zone 1"),
-					Id:       admin.PtrString("zone1-id1"),
+					ZoneName: new("Zone 1"),
+					Id:       new("zone1-id1"),
 				},
 				{
-					ZoneName: admin.PtrString("Zone 2"),
-					Id:       admin.PtrString("zone2-id1"),
+					ZoneName: new("Zone 2"),
+					Id:       new("zone2-id1"),
 				},
 				{
-					ZoneName: admin.PtrString("Zone 1"),
-					Id:       admin.PtrString("zone1-id2"),
+					ZoneName: new("Zone 1"),
+					Id:       new("zone1-id2"),
 				},
 				{
-					ZoneName: admin.PtrString("Zone 2"),
-					Id:       admin.PtrString("zone2-id2"),
+					ZoneName: new("Zone 2"),
+					Id:       new("zone2-id2"),
 				},
 			},
 		},
 		"less available ids than replication specs to populate": {
 			ReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
-					ZoneName: admin.PtrString("Zone 1"),
+					ZoneName: new("Zone 1"),
 				},
 				{
-					ZoneName: admin.PtrString("Zone 1"),
+					ZoneName: new("Zone 1"),
 				},
 				{
-					ZoneName: admin.PtrString("Zone 1"),
+					ZoneName: new("Zone 1"),
 				},
 				{
-					ZoneName: admin.PtrString("Zone 2"),
+					ZoneName: new("Zone 2"),
 				},
 			},
 			ZoneToReplicationSpecsIDs: map[string][]string{
@@ -195,30 +195,30 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 			},
 			ExpectedReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
-					ZoneName: admin.PtrString("Zone 1"),
-					Id:       admin.PtrString("zone1-id1"),
+					ZoneName: new("Zone 1"),
+					Id:       new("zone1-id1"),
 				},
 				{
-					ZoneName: admin.PtrString("Zone 1"),
+					ZoneName: new("Zone 1"),
 					Id:       nil,
 				},
 				{
-					ZoneName: admin.PtrString("Zone 1"),
+					ZoneName: new("Zone 1"),
 					Id:       nil,
 				},
 				{
-					ZoneName: admin.PtrString("Zone 2"),
-					Id:       admin.PtrString("zone2-id1"),
+					ZoneName: new("Zone 2"),
+					Id:       new("zone2-id1"),
 				},
 			},
 		},
 		"more available ids than replication specs to populate": {
 			ReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
-					ZoneName: admin.PtrString("Zone 1"),
+					ZoneName: new("Zone 1"),
 				},
 				{
-					ZoneName: admin.PtrString("Zone 2"),
+					ZoneName: new("Zone 2"),
 				},
 			},
 			ZoneToReplicationSpecsIDs: map[string][]string{
@@ -227,12 +227,12 @@ func TestAddIDsToReplicationSpecs(t *testing.T) {
 			},
 			ExpectedReplicationSpecs: []admin.ReplicationSpec20240805{
 				{
-					ZoneName: admin.PtrString("Zone 1"),
-					Id:       admin.PtrString("zone1-id1"),
+					ZoneName: new("Zone 1"),
+					Id:       new("zone1-id1"),
 				},
 				{
-					ZoneName: admin.PtrString("Zone 2"),
-					Id:       admin.PtrString("zone2-id1"),
+					ZoneName: new("Zone 2"),
+					Id:       new("zone2-id1"),
 				},
 			},
 		},

@@ -175,8 +175,8 @@ func canonicalizeJSONString(s string) string {
 	return string(by)
 }
 
-func hashTypeSetElement(v interface{}) int {
-	m := v.(map[string]interface{})
+func hashTypeSetElement(v any) int {
+	m := v.(map[string]any)
 	name := ""
 	if nv, ok := m["name"].(string); ok {
 		name = nv

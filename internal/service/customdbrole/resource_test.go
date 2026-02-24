@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -769,16 +770,16 @@ func configWithInheritedRoles(orgID, projectName string, inheritedRole []admin.U
 func configWithMultiple(orgID, projectName string, inheritedRole, testRole *admin.UserCustomDBRole) string {
 	getCustomRoleFields := func(customRole *admin.UserCustomDBRole) map[string]string {
 		var (
-			actions        string
-			inheritedRoles string
+			actions        strings.Builder
+			inheritedRoles strings.Builder
 		)
 
 		for _, a := range customRole.GetActions() {
-			var resources string
+			var resources strings.Builder
 
 			// get the resources
 			for _, r := range a.GetResources() {
-				resources += fmt.Sprintf(`
+				fmt.Fprintf(&resources, `
 					resources {
 						collection_name = ""
 						database_name   = "%s"
@@ -787,16 +788,16 @@ func configWithMultiple(orgID, projectName string, inheritedRole, testRole *admi
 			}
 
 			// get the actions and set the resources
-			actions += fmt.Sprintf(`
+			fmt.Fprintf(&actions, `
 				actions {
 					action = "%s"
 					%s
 				}
-			`, a.Action, resources)
+			`, a.Action, resources.String())
 		}
 
 		for _, in := range customRole.GetInheritedRoles() {
-			inheritedRoles += fmt.Sprintf(`
+			fmt.Fprintf(&inheritedRoles, `
 				inherited_roles {
 					role_name     = "%s"
 					database_name = "%s"
@@ -805,8 +806,8 @@ func configWithMultiple(orgID, projectName string, inheritedRole, testRole *admi
 		}
 
 		return map[string]string{
-			"actions":         actions,
-			"inherited_roles": inheritedRoles,
+			"actions":         actions.String(),
+			"inherited_roles": inheritedRoles.String(),
 		}
 	}
 

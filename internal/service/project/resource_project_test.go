@@ -1287,10 +1287,10 @@ func configWithDefaultAlertSettings(orgID, projectName, projectOwnerID string, w
 }
 
 func configWithLimits(orgID, projectName string, limits []*admin.DataFederationLimit) string {
-	var limitsString string
+	var limitsString strings.Builder
 
 	for _, limit := range limits {
-		limitsString += fmt.Sprintf(`
+		fmt.Fprintf(&limitsString, `
 		limits {
 			name = %[1]q
 			value = %[2]d
@@ -1309,7 +1309,7 @@ func configWithLimits(orgID, projectName string, limits []*admin.DataFederationL
 		data "mongodbatlas_project" "test" {
 			project_id = mongodbatlas_project.test.id
 		}
-	`, orgID, projectName, limitsString)
+	`, orgID, projectName, limitsString.String())
 }
 
 func configWithUpdatedRole(orgID, projectName, teamID, roleName string) string {
