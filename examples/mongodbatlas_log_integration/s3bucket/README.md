@@ -92,5 +92,5 @@ The `log_types` attribute supports the following values:
 ## Notes
 
 - The requesting Service Account or API Key must have the Organization Owner or Project Owner role.
-- MongoDB Cloud will add sub-directories based on the log type under the specified `prefix_path`.
+- MongoDB Atlas will add sub-directories based on the log type under the specified `prefix_path`.
 - Optional: Use `kms_key` to specify an AWS KMS key ID or ARN for server-side encryption.

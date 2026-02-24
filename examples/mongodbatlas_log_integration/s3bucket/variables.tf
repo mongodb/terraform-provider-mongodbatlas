@@ -50,3 +50,13 @@ variable "aws_iam_role_name" {
   default     = "atlas-log-integration-role"
   type        = string
 }
+
+variable "log_types" {
+  description = "The MongoDB log type to create"
+  type        = string array
+}
+
+variable "prefix_path" {
+  description = "The prefix to be added to the S3 Bucket path"
+  type        = string
+}

@@ -1,11 +1,11 @@
-# MongoDB Atlas Log Integration with Microsoft Azure Blob Example
+# MongoDB Atlas Log Integration with Datadog
 
-This example demonstrates how to configure a log integration to export MongoDB Atlas logs to a Microsoft Azure Blob storage.
+This example demonstrates how to configure a log integration to export MongoDB Atlas logs to a Datadog integration.
 
 ## Prerequisites
 
 - MongoDB Atlas account with Organization Owner or Project Owner role.
-- Microsoft Azure account with permissions to create Blobs and IAM roles.
+- Datadog account with permissions and API Keys.
 - Terraform >= `1.0`.
 
 ## Resources Created
@@ -13,19 +13,15 @@ This example demonstrates how to configure a log integration to export MongoDB A
 This example creates the following resources:
 
 ### MongoDB Atlas
-- Project.
-- Cloud Provider Access Setup and Authorization.
+- Project
+- Datadog Access Setup and Authorization.
 - Log Integration configuration.
 
-### Azure
-- Azure Blob for storing logs.
-- IAM role for Atlas to assume.
-- IAM policy for Blob access.
 
 
 ## Usage
 
-**1\. Ensure your Azure and MongoDB Atlas credentials are set up.**
+**1\. Ensure your Datadog and MongoDB Atlas credentials are set up.**
 
 This can be done using environment variables:
 
@@ -35,27 +31,19 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ```bash
-export AZURE_ACCESS_KEY_ID='<AZURE_ACCESS_KEY_ID>'
-export AZURE_SECRET_ACCESS_KEY='<AZURE_SECRET_ACCESS_KEY>'
+export API_KEY='<DATADOG_API_KEY>'
+export REGION='<DATDOG_REGION>'
 ```
 
-... or the `~/.azure/credentials` file.
-
-```
-$ cat ~/.azure/credentials
-[default]
-azure_access_key_id = <azure_ACCESS_KEY_ID>
-azure_secret_access_key = <azure_SECRET_ACCESS_KEY>
-```
 
 ... or follow as in the `~/.azure/variables.tf` file and create **terraform.tfvars** file with all the variable values:
 
 ```hcl
-atlas_org_id        = "your-org-id"
-atlas_client_id     = "your-service-account-client-id"
-atlas_client_secret = "your-service-account-client-secret"
-access_key          = "your-azure-access-key"
-secret_key          = "your-azure-secret-key"
+project_id       = "your-mongodb-project-id"
+type    = "DATADOG_LOG_EXPORT"
+log_types = "[your-log-export-types]"
+api_key          = "your-datadog-api-key"
+region          = "your-datadog-integration-region"
 ```
 
 **2\. Review the Terraform plan.**
