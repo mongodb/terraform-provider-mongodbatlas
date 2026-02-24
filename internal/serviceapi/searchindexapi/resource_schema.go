@@ -86,12 +86,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Attributes: map[string]schema.Attribute{
 							"dynamic": schema.StringAttribute{
 								Optional:            true,
-								MarkdownDescription: "Indicates whether the index uses static, default dynamic, or configurable dynamic mappings. Set to **true** to enable dynamic mapping with default type set or define object to specify the name of the configured type sets for dynamic mapping. If you specify configurable dynamic mappings, you must define the referred type sets in the **typeSets** field. Set to **false** to use only static mappings through **mappings.fields**.",
+								MarkdownDescription: "Indicates whether the index uses static, default dynamic, or configurable dynamic mappings. Set to `true` to enable dynamic mapping with default type set or define object to specify the name of the configured type sets for dynamic mapping. If you specify configurable dynamic mappings, you must define the referred type sets in the `typeSets` field. Set to `false` to use only static mappings through `mappings.fields`.",
 								CustomType:          jsontypes.NormalizedType{},
 							},
 							"fields": schema.MapAttribute{
 								Optional:            true,
-								MarkdownDescription: "One or more field specifications for the Atlas Search index. Required if **mappings.dynamic** is omitted or set to **false**.",
+								MarkdownDescription: "One or more field specifications for the Atlas Search index. Required if `mappings.dynamic` is omitted or set to `false`.",
 								CustomType:          customtypes.NewMapType[jsontypes.Normalized](ctx),
 								ElementType:         jsontypes.NormalizedType{},
 							},
@@ -109,7 +109,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"sort": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "Sort definition for the index. When defined, the index will be pre-sorted on thespecified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options.The 'order' field is required (1=ascending, -1=descending).The 'noData' field is optional and controls how missing values are sorted(default: \"lowest\").",
+						MarkdownDescription: "Sort definition for the index. When defined, the index will be pre-sorted on the specified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options. The `order` field is required (1=ascending, -1=descending).The `noData` field is optional and controls how missing values are sorted(default: \"lowest\").",
 						CustomType:          jsontypes.NormalizedType{},
 					},
 					"stored_source": schema.StringAttribute{
@@ -129,7 +129,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								},
 								"name": schema.StringAttribute{
 									Required:            true,
-									MarkdownDescription: "Label that identifies the synonym definition. Each **synonym.name** must be unique within the same index definition.",
+									MarkdownDescription: "Label that identifies the synonym definition. Each `synonym.name` must be unique within the same index definition.",
 								},
 								"source": schema.SingleNestedAttribute{
 									Required:            true,
@@ -153,11 +153,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Attributes: map[string]schema.Attribute{
 								"name": schema.StringAttribute{
 									Required:            true,
-									MarkdownDescription: "Label that identifies the type set name. Each **typeSets.name** must be unique within the same index definition.",
+									MarkdownDescription: "Label that identifies the type set name. Each `typeSets.name` must be unique within the same index definition.",
 								},
 								"types": schema.ListAttribute{
 									Optional:            true,
-									MarkdownDescription: "List of types associated with the type set. Each type definition must include a \"type\" field specifying the search field type (\"autocomplete\", \"boolean\", \"date\", \"geo\", \"number\", \"objectId\", \"string\", \"token\", or \"uuid\") and may include additional configuration properties specific to that type.",
+									MarkdownDescription: "List of types associated with the type set. Each type definition must include a `type` field specifying the search field type (`autocomplete`, `boolean`, `date`, `geo`, `number`, `objectId`, `string`, `token`, or `uuid`) and may include additional configuration properties specific to that type.",
 									CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 									ElementType:         jsontypes.NormalizedType{},
 								},
@@ -227,12 +227,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Attributes: map[string]schema.Attribute{
 							"dynamic": schema.StringAttribute{
 								Computed:            true,
-								MarkdownDescription: "Indicates whether the index uses static, default dynamic, or configurable dynamic mappings. Set to **true** to enable dynamic mapping with default type set or define object to specify the name of the configured type sets for dynamic mapping. If you specify configurable dynamic mappings, you must define the referred type sets in the **typeSets** field. Set to **false** to use only static mappings through **mappings.fields**.",
+								MarkdownDescription: "Indicates whether the index uses static, default dynamic, or configurable dynamic mappings. Set to `true` to enable dynamic mapping with default type set or define object to specify the name of the configured type sets for dynamic mapping. If you specify configurable dynamic mappings, you must define the referred type sets in the `typeSets` field. Set to `false` to use only static mappings through `mappings.fields`.",
 								CustomType:          jsontypes.NormalizedType{},
 							},
 							"fields": schema.MapAttribute{
 								Computed:            true,
-								MarkdownDescription: "One or more field specifications for the Atlas Search index. Required if **mappings.dynamic** is omitted or set to **false**.",
+								MarkdownDescription: "One or more field specifications for the Atlas Search index. Required if `mappings.dynamic` is omitted or set to `false`.",
 								CustomType:          customtypes.NewMapType[jsontypes.Normalized](ctx),
 								ElementType:         jsontypes.NormalizedType{},
 							},
@@ -248,7 +248,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"sort": schema.StringAttribute{
 						Computed:            true,
-						MarkdownDescription: "Sort definition for the index. When defined, the index will be pre-sorted on thespecified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options.The 'order' field is required (1=ascending, -1=descending).The 'noData' field is optional and controls how missing values are sorted(default: \"lowest\").",
+						MarkdownDescription: "Sort definition for the index. When defined, the index will be pre-sorted on the specified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options. The `order` field is required (1=ascending, -1=descending).The `noData` field is optional and controls how missing values are sorted(default: \"lowest\").",
 						CustomType:          jsontypes.NormalizedType{},
 					},
 					"stored_source": schema.StringAttribute{
@@ -268,7 +268,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								},
 								"name": schema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "Label that identifies the synonym definition. Each **synonym.name** must be unique within the same index definition.",
+									MarkdownDescription: "Label that identifies the synonym definition. Each `synonym.name` must be unique within the same index definition.",
 								},
 								"source": schema.SingleNestedAttribute{
 									Computed:            true,
@@ -292,11 +292,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Attributes: map[string]schema.Attribute{
 								"name": schema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "Label that identifies the type set name. Each **typeSets.name** must be unique within the same index definition.",
+									MarkdownDescription: "Label that identifies the type set name. Each `typeSets.name` must be unique within the same index definition.",
 								},
 								"types": schema.ListAttribute{
 									Computed:            true,
-									MarkdownDescription: "List of types associated with the type set. Each type definition must include a \"type\" field specifying the search field type (\"autocomplete\", \"boolean\", \"date\", \"geo\", \"number\", \"objectId\", \"string\", \"token\", or \"uuid\") and may include additional configuration properties specific to that type.",
+									MarkdownDescription: "List of types associated with the type set. Each type definition must include a `type` field specifying the search field type (`autocomplete`, `boolean`, `date`, `geo`, `number`, `objectId`, `string`, `token`, or `uuid`) and may include additional configuration properties specific to that type.",
 									CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 									ElementType:         jsontypes.NormalizedType{},
 								},
