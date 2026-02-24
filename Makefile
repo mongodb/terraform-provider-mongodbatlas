@@ -31,6 +31,7 @@ fix: ## Fix, format, and build Go code (default target)
 	gofmt -s -w .
 	golangci-lint run --fix
 	go mod tidy
+	go fix ./...
 	go build -ldflags "$(LINKER_FLAGS)" -o $(DESTINATION)
 
 .PHONY: verify
@@ -39,9 +40,11 @@ verify: ## Verify Go code without modifying files. Usage: make verify [files="fi
 	if [ -n "$$bad_fmt" ]; then echo "ERROR: gofmt issues:"; echo "$$bad_fmt"; exit 1; fi
 ifdef files
 	golangci-lint run $(addsuffix ...,$(sort $(dir $(files))))
+	go fix -diff $(addsuffix ...,$(sort $(dir $(files))))
 else
 	golangci-lint run
 	go mod tidy -diff
+	go fix -diff ./...
 endif
 
 .PHONY: build
