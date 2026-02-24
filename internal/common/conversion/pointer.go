@@ -13,10 +13,3 @@ func StringPtr(v string) *string {
 	}
 	return nil
 }
-
-func SliceFromPtr[T any](slicePtr *[]T) []T {
-	if slicePtr == nil {
-		return []T{}
-	}
-	return *slicePtr
-}

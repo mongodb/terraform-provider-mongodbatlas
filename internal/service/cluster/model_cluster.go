@@ -96,7 +96,7 @@ func flattenProcessArgs(p *ProcessArgs) []map[string]any {
 			"transaction_lifetime_limit_seconds":   p.argsDefault.TransactionLifetimeLimitSeconds,
 			"minimum_enabled_tls_protocol":         p.argsDefault.MinimumEnabledTlsProtocol,
 			"tls_cipher_config_mode":               p.argsDefault.TlsCipherConfigMode,
-			"custom_openssl_cipher_config_tls12":   conversion.SliceFromPtr(p.argsDefault.CustomOpensslCipherConfigTls12),
+			"custom_openssl_cipher_config_tls12":   sliceFromStringPtr(p.argsDefault.CustomOpensslCipherConfigTls12),
 		},
 	}
 
@@ -109,10 +109,17 @@ func flattenProcessArgs(p *ProcessArgs) []map[string]any {
 	if p.clusterAdvancedConfig != nil { // For TENANT cluster type, advancedConfiguration field may not be returned from cluster APIs
 		flattenedProcessArgs[0]["minimum_enabled_tls_protocol"] = p.clusterAdvancedConfig.MinimumEnabledTLSProtocol
 		flattenedProcessArgs[0]["tls_cipher_config_mode"] = p.clusterAdvancedConfig.TLSCipherConfigMode
-		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = conversion.SliceFromPtr(p.clusterAdvancedConfig.CustomOpensslCipherConfigTLS12)
+		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = sliceFromStringPtr(p.clusterAdvancedConfig.CustomOpensslCipherConfigTLS12)
 	}
 
 	return flattenedProcessArgs
+}
+
+func sliceFromStringPtr(p *[]string) []string {
+	if p == nil {
+		return []string{}
+	}
+	return *p
 }
 
 func flattenLabels(l []matlas.Label) []map[string]any {
