@@ -31,19 +31,19 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ```bash
-export API_KEY='<DATADOG_API_KEY>'
-export REGION='<DATDOG_REGION>'
+export DATADOG_API_KEY='<DATADOG_API_KEY>'
+export DATADOG_REGION='<DATDOG_REGION>'
 ```
 
 
 ... or follow as in the `~/.azure/variables.tf` file and create **terraform.tfvars** file with all the variable values:
 
 ```hcl
-project_id       = "your-mongodb-project-id"
-type    = "DATADOG_LOG_EXPORT"
-log_types = "[your-log-export-types]"
-api_key          = "your-datadog-api-key"
-region          = "your-datadog-integration-region"
+project_id        = "your-mongodb-project-id"
+type              = "DATADOG_LOG_EXPORT"
+log_types         = var.datadog_log_types
+api_key           = var.datadog_api_key
+region            = var.datadog_region
 ```
 
 **2\. Review the Terraform plan.**

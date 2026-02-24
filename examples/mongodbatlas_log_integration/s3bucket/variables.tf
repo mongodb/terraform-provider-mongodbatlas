@@ -1,11 +1,11 @@
 variable "atlas_client_id" {
-  description = "MongoDB Atlas Service Account Client ID"
+  description = "The MongoDB Atlas Service Account Client ID"
   type        = string
   default     = ""
 }
 
 variable "atlas_client_secret" {
-  description = "MongoDB Atlas Service Account Client Secret"
+  description = "The MongoDB Atlas Service Account Client Secret"
   type        = string
   sensitive   = true
   default     = ""
@@ -23,18 +23,18 @@ variable "secret_key" {
 }
 
 variable "aws_region" {
-  description = "AWS Region"
+  description = "The AWS Region"
   default     = "us-east-1"
   type        = string
 }
 
 variable "atlas_org_id" {
-  description = "Atlas Organization ID"
+  description = "The Atlas Organization ID"
   type        = string
 }
 
 variable "atlas_project_name" {
-  description = "Name of the Atlas project"
+  description = "The Name of the Atlas project"
   default     = "tf-log-integration"
   type        = string
 }

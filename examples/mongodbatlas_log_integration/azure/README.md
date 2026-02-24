@@ -5,7 +5,7 @@ This example demonstrates how to configure a log integration to export MongoDB A
 ## Prerequisites
 
 - MongoDB Atlas account with Organization Owner or Project Owner role.
-- Microsoft Azure account with permissions to create Blobs and IAM roles.
+- Microsoft Azure account with permissions to create Blobs.
 - Terraform >= `1.0`.
 
 ## Resources Created
@@ -35,6 +35,7 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ```bash
+export AZURE_REGION = '<AZURE_REGION>'
 export AZURE_ACCESS_KEY_ID='<AZURE_ACCESS_KEY_ID>'
 export AZURE_SECRET_ACCESS_KEY='<AZURE_SECRET_ACCESS_KEY>'
 ```
@@ -44,18 +45,21 @@ export AZURE_SECRET_ACCESS_KEY='<AZURE_SECRET_ACCESS_KEY>'
 ```
 $ cat ~/.azure/credentials
 [default]
-azure_access_key_id = <azure_ACCESS_KEY_ID>
-azure_secret_access_key = <azure_SECRET_ACCESS_KEY>
+region     = var.azure_region
+access_key = var.access_key
+secret_key = var.secret_key
 ```
 
 ... or follow as in the `~/.azure/variables.tf` file and create **terraform.tfvars** file with all the variable values:
 
 ```hcl
-atlas_org_id        = "your-org-id"
-atlas_client_id     = "your-service-account-client-id"
-atlas_client_secret = "your-service-account-client-secret"
-access_key          = "your-azure-access-key"
-secret_key          = "your-azure-secret-key"
+project_id  = var.project_id
+type        = "AZURE_LOG_EXPORT"
+log_types   = ["MONGOS_AUDIT"]
+prefix_path            = "logs/mongodb/"
+service_principal_id   = mongodbatlas_cloud_provider_access_authorization.azure_auth.role_id
+storage_account_name   = azurerm_storage_account.log_storage.name
+storage_container_name = azurerm_storage_container.log_container.name
 ```
 
 **2\. Review the Terraform plan.**

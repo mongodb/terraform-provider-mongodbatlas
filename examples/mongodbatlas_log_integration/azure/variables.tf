@@ -56,3 +56,8 @@ variable "azure_storage_container_name" {
   description = "The Name of the Azure storage container"
   type        = string
 }
+
+variable "azure_region" {
+  description = "The name of the Azure container region"
+  type        = string
+}

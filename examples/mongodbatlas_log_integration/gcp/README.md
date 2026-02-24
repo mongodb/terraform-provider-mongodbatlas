@@ -35,6 +35,7 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ```bash
+export GCP_REGION = '<GCP_REGION>'
 export GCP_ACCESS_KEY_ID='<GCP_ACCESS_KEY_ID>'
 export GCP_SECRET_ACCESS_KEY='<GCP_SECRET_ACCESS_KEY>'
 ```
@@ -44,18 +45,20 @@ export GCP_SECRET_ACCESS_KEY='<GCP_SECRET_ACCESS_KEY>'
 ```
 $ cat ~/.gcp/credentials
 [default]
-gcp_access_key_id = <GCP_ACCESS_KEY_ID>
-gcp_secret_access_key = <GCP_SECRET_ACCESS_KEY>
+region     = var.gcp_region
+access_key = var.access_key
+secret_key = var.secret_key
 ```
 
 ... or follow as in the `~/.gcp/variables.tf` file and create **terraform.tfvars** file with all the variable values:
 
 ```hcl
-atlas_org_id        = "your-org-id"
-atlas_client_id     = "your-service-account-client-id"
-atlas_client_secret = "your-service-account-client-secret"
-access_key          = "your-gcp-access-key"
-secret_key          = "your-gcp-secret-key"
+project_id  = var.project_id
+type        = "GCS_LOG_EXPORT"
+log_types   = var.gcs_log_types
+prefix_path = var.gcs_prefix_path
+role_id     = mongodbatlas_cloud_provider_access_authorization.gcp_auth.role_id
+bucket_name = google_storage_bucket.log_bucket.name
 ```
 
 **2\. Review the Terraform plan.**

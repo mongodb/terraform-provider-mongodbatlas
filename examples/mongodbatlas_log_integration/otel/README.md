@@ -41,12 +41,9 @@ export OTEL-SUPPLIED-HEADERS='<OTEL-ENDPOINT-HEADERS>'
 ```hcl
 project_id            = "your-mongodb-project-id"
 type                  = "DATADOG_LOG_EXPORT"
-log_types             = "[your-log-export-types]"
-otel_endpoint         = "your-otel-endpoint-url"
-otel_supplied_headers = {
-    name  = "your-otel-endpoint-header-name"
-    value = "your-otel-endpoint-header-value"
-}
+log_types             = var.otel_log_types
+otel_endpoint         = var.otel_endpoint
+otel_supplied_headers = var.otel_supplied_headers
 ```
 
 **2\. Review the Terraform plan.**

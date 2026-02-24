@@ -1,6 +1,6 @@
 
 variable "project_id" {
-  description = "MongoDB Project ID"
+  description = "The MongoDB Project ID"
   type        = string
 }
 
