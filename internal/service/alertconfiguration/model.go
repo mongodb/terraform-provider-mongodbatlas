@@ -129,7 +129,7 @@ func NewTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currSt
 		return notifications
 	}
 
-	for i := range n {
+	for i := 0; i < len(n) && i < len(currStateNotifications); i++ {
 		value := n[i]
 		currState := currStateNotifications[i]
 		newState := TfNotificationModel{
@@ -256,7 +256,8 @@ func NewTFMatcherModelList(m []admin.StreamsMatcher, currStateSlice []TfMatcherM
 		}
 		return matchers
 	}
-	for i, matcher := range m {
+	for i := 0; i < len(m) && i < len(currStateSlice); i++ {
+		matcher := m[i]
 		currState := currStateSlice[i]
 		newState := TfMatcherModel{}
 		if !currState.FieldName.IsNull() {

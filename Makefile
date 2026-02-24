@@ -11,24 +11,41 @@ PARALLEL_GO_TEST?=50
 BINARY_NAME=terraform-provider-mongodbatlas
 DESTINATION=./bin/$(BINARY_NAME)
 
-GOFLAGS=-mod=vendor
 GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v2.8.0 # Also update golangci-lint GH action in code-health.yml when updating this version
+GOLANGCI_VERSION=v2.10.0 # Also update golangci-lint GH action in code-health.yml when updating this version
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
 
-default: build
+default: fix
 
 .PHONY: help
 help:
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' | sort
 
+.PHONY: fix
+fix: ## Fix, format, and build Go code (default target)
+	gofmt -s -w .
+	golangci-lint run --fix
+	go mod tidy
+	go build -ldflags "$(LINKER_FLAGS)" -o $(DESTINATION)
+
+.PHONY: verify
+verify: ## Verify Go code without modifying files. Usage: make verify [files="file1.go file2.go"]
+	@bad_fmt=$$(gofmt -l -s $(or $(files),.)); \
+	if [ -n "$$bad_fmt" ]; then echo "ERROR: gofmt issues:"; echo "$$bad_fmt"; exit 1; fi
+ifdef files
+	golangci-lint run $(addsuffix ...,$(sort $(dir $(files))))
+else
+	golangci-lint run
+	go mod tidy -diff
+endif
+
 .PHONY: build
-build: fmt fmtcheck ## Generate the binary in ./bin
+build: ## Compile the provider binary
 	go build -ldflags "$(LINKER_FLAGS)" -o $(DESTINATION)
 
 .PHONY: clean-atlas-org
@@ -38,7 +55,7 @@ clean-atlas-org: ## Run a test to clean all projects and pending resources in an
 	go test -count=1 'github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/clean' -timeout 3600s -parallel=250 -run 'TestCleanProjectAndClusters' -v -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: test
-test: fmtcheck ## Run unit tests
+test: ## Run unit tests
 	@$(eval export HTTP_MOCKER_REPLAY?=true)
 	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
@@ -76,46 +93,27 @@ testmact-capture: ## Capture HTTP traffic for MacT tests
 	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testacc
-testacc: fmtcheck ## Run acc & mig tests (acceptance & migration tests)
+testacc: ## Run acc & mig tests (acceptance & migration tests)
 	@$(eval export ACCTEST_REGEX_RUN?=^TestAcc)
 	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testaccgov
-testaccgov: fmtcheck ## Run Government cloud-provider acc & mig tests
+testaccgov: ## Run Government cloud-provider acc & mig tests
 	TF_ACC=1 go test ./... -run 'TestAccProjectRSGovProject_CreateWithProjectOwner' -v -parallel 1 "$(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags=$(LINKER_FLAGS) "
 
-.PHONY: fmt
-fmt: ## Format Go code
-	@echo "==> Fixing source code with gofmt..."
-	gofmt -s -w .
-
-.PHONY: fmtcheck
-fmtcheck: ## Currently required by tf-deploy compile
-	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
-
-.PHONY: lint-fix
-lint-fix: ## Fix Go linter issues
-	@echo "==> Fixing linters errors..."
-	fieldalignment -json -fix ./...
-	golangci-lint run --fix
-
-.PHONY: lint
-lint:
-	@echo "==> Checking source code against linters..."
-	golangci-lint run
 
 .PHONY: tools
 tools:  ## Install the dev tools (dependencies)
 	@echo "==> Installing dependencies..."
 	go telemetry off # disable sending telemetry data, more info: https://go.dev/doc/telemetry
 	go install github.com/icholy/gomajor@latest
-	go install github.com/terraform-linters/tflint@v0.52.0
+	go install github.com/terraform-linters/tflint@v0.61.0
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
-	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.38.0 # Pinning version since v0.39.0 fails to fix files with large structs. See versions at https://pkg.go.dev/golang.org/x/tools/go/analysis/passes/fieldalignment?tab=versions
 	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
 	go install github.com/hashicorp/go-changelog/cmd/changelog-build@latest
 	go install github.com/hashicorp/go-changelog/cmd/changelog-entry@latest
 	go install golang.org/x/tools/cmd/goimports@latest
+	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
 
 .PHONY: docs
@@ -124,11 +122,11 @@ docs: ## Give URL to test Terraform documentation
 
 
 .PHONY: tflint
-tflint: fmtcheck ## Linter for Terraform files in examples/ dir (avoid `internal/**/testdata/main*.tf`), disable terraform_required_providers rule as we intentionally omit the provider version
+tflint: ## Linter for Terraform files in examples/ dir (avoid `internal/**/testdata/main*.tf`), disable terraform_required_providers rule as we intentionally omit the provider version
 	tflint --chdir=examples/ -f compact --recursive --minimum-failure-severity=warning --disable-rule=terraform_required_providers
 
 .PHONY: tf-validate
-tf-validate: fmtcheck ## Validate Terraform files
+tf-validate: ## Validate Terraform files
 	scripts/tf-validate.sh
 
 .PHONY: resign-commits
