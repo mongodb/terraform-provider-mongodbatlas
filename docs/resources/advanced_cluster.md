@@ -6,23 +6,20 @@ subcategory: "Clusters"
 
 `mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters.
 
-We recommend all new MongoDB Atlas Terraform users start with the [`mongodbatlas_advanced_cluster`](advanced_cluster) resource.  Key differences between [`mongodbatlas_cluster`](cluster) and [`mongodbatlas_advanced_cluster`](advanced_cluster) include support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), and [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers). To migrate from an existing [`mongodbatlas_cluster`](cluster) resource, see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
+We recommend all new MongoDB Atlas Terraform users start with the [`mongodbatlas_advanced_cluster`](advanced_cluster) resource instead of the [`mongodbatlas_cluster`](cluster) resource. Key differences include support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), and [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers). To migrate from an existing [`mongodbatlas_cluster`](cluster) resource, see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
-~> **IMPORTANT:** If you are upgrading to our Terraform Provider v2.0.0
-or later from v1.x.x, you must update your existing `mongodbatlas_advanced_cluster` resource configuration according to [this
-guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-advanced-cluster-2.0).
-
-~> **NOTE:** When modifying cluster configurations, you might see `(known after apply)` markers in your Terraform plan output, even for attributes you haven't modified. This is expected behavior. See the ["known after apply" verbosity](#known-after-apply-verbosity) section below for details.
-
-~> **NOTE:** When configuring auto-scaling, you can now use `use_effective_fields` to simplify your Terraform workflow. See the [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) section below for details.
-
--> **NOTE:** A network container is created for each provider/region combination on the advanced cluster. This can be referenced via a computed attribute for use with other resources. Refer to the `replication_specs[#].container_id` attribute in the [Attributes Reference](#attributes_reference) for more information.
-
--> **NOTE:** To enable Cluster Extended Storage Sizes use the `is_extended_storage_sizes_enabled` parameter in the [mongodbatlas_project resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project).
+~> **IMPORTANT:** If you are upgrading to our Terraform Provider v2.0.0 or later from v1.x.x, you must update your existing `mongodbatlas_advanced_cluster` resource configuration according to [this guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-advanced-cluster-2.0).
 
 -> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
 
--> **NOTE:** This resource supports Flex clusters. Additionally, you can upgrade [M0 clusters to Flex](#example-tenant-cluster-upgrade-to-flex) and [Flex clusters to Dedicated](#Example-Flex-Cluster-Upgrade). When creating a Flex cluster, make sure to set the priority value to 7.
+-> **NOTE:** This resource supports creating Flex clusters, upgrading [M0 clusters to Flex](#example-tenant-cluster-upgrade-to-flex), and upgrading [Flex clusters to Dedicated](#Example-Flex-Cluster-Upgrade). When creating a Flex cluster, you must set the `replication_specs[#].region_configs[#].priority` value to 7.
+
+~> **NOTE:** When you modify cluster configurations, your Terraform plan output 
+might include `(known after apply)` markers for attributes you didin't modify. This is expected behavior. For more information, see the ["known after apply" verbosity](#known-after-apply-verbosity) section below.
+
+~> **NOTE:** When configuring auto-scaling, you can use `use_effective_fields` to simplify your Terraform workflow. For more information, see the [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) section below.
+
+-> **NOTE:** This resource creates a network container for each provider/region combination specified in the advanced cluster configuration. Each network container can be referenced via its computed `replication_specs[#]container_id` attribute.
 
 ## Example Usage
 
@@ -720,9 +717,10 @@ replication_specs = [
 ~> **NOTE:**  We recommend reviewing our [Best Practices](#remove-or-disable-functionality) before disabling or removing any elements of region_configs.
 
 -> **NOTE:** Cluster tier names in the
-`region_configs[m].electable_specs.instance_size` attribute are
-prepended with `R` instead of `M` if they run a low-CPU version of the
-cluster, for example `R40`. For complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
+`region_configs[#].electable_specs.instance_size` attribute are
+prepended with `R` instead of `M` if they run a low-CPU version of the cluster, for example `R40`. For complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
+
+-> **NOTE:** To enable extended storage sizes on certain M40+ dedicated clusters, use the `is_extended_storage_sizes_enabled` parameter in the [mongodbatlas_project resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project). This setting should only be used for temporary relief from disk size limits; consider sharding if more storage is required.
 
 * `analytics_specs` - (Optional) Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. Analytics nodes handle analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only and can never become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary). If you don't specify this parameter, no analytics nodes deploy to this region. See [below](#specs).
 * `auto_scaling` - (Optional) Configuration for the collection of settings that configures auto-scaling information for the cluster. The values for the `auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#auto_scaling).
