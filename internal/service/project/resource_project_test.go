@@ -16,6 +16,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/mock"
 
@@ -543,6 +545,11 @@ func TestAccProject_basic(t *testing.T) {
 		"users.#": "1",
 	}
 
+	pluralDSChecks := map[string]knownvalue.Check{
+		"users":                                  knownvalue.ListSizeExact(1),
+		"is_slow_operation_thresholding_enabled": knownvalue.NotNull(),
+	}
+
 	checks := acc.AddAttrChecks(resourceName, nil, commonChecks)
 	checks = acc.AddAttrChecks(dataSourceNameByID, checks, commonChecks)
 	checks = acc.AddAttrChecks(dataSourceNameByName, checks, commonChecks)
@@ -552,8 +559,7 @@ func TestAccProject_basic(t *testing.T) {
 	checks = acc.AddAttrSetChecks(dataSourceNameByID, checks, commonSetChecks...)
 	checks = acc.AddAttrSetChecks(dataSourceNameByName, checks, commonSetChecks...)
 	checks = append(checks, checkExists(resourceName), checkExists(dataSourceNameByID), checkExists(dataSourceNameByName))
-	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "total_count", "results.#", "results.0.is_slow_operation_thresholding_enabled")
-	checks = append(checks, resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.0.users.#", acc.IntGreatThan(0)))
+	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "total_count", "results.#")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 3) },
@@ -575,6 +581,9 @@ func TestAccProject_basic(t *testing.T) {
 					conversion.Pointer(true),
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(checks...),
+				ConfigStateChecks: []statecheck.StateCheck{
+					acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(projectName), pluralDSChecks),
+				},
 			},
 			{
 				Config: configBasic(orgID, projectName, projectOwnerID, false,
@@ -1230,7 +1239,8 @@ func configBasic(orgID, projectName, projectOwnerID string, includeDataSource bo
 			data "mongodbatlas_project" "test2" {
 				name = mongodbatlas_project.test.name
 			}
-			 data "mongodbatlas_projects" "test" {
+			data "mongodbatlas_projects" "test" {
+				depends_on = [mongodbatlas_project.test]
 			}
 		`
 	}
