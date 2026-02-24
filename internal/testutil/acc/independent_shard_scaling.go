@@ -36,6 +36,5 @@ func decode(body io.ReadCloser) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := string(buf)
-	return &result, nil
+	return new(string(buf)), nil
 }

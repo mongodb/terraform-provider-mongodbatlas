@@ -290,7 +290,7 @@ func validateIntegrationType() schema.SchemaValidateDiagFunc {
 	return func(v any, p cty.Path) diag.Diagnostics {
 		value := v.(string)
 		var diags diag.Diagnostics
-		if !isElementExist(integrationTypes, value) {
+		if !slices.Contains(integrationTypes, value) {
 			diagError := diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  "Invalid Third Party Integration type",
@@ -300,8 +300,4 @@ func validateIntegrationType() schema.SchemaValidateDiagFunc {
 		}
 		return diags
 	}
-}
-
-func isElementExist(s []string, str string) bool {
-	return slices.Contains(s, str)
 }

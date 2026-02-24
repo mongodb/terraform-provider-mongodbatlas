@@ -202,7 +202,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	connectionName := conversion.SafeString(apiResp.Name)
+	connectionName := conversion.SafeValue(apiResp.Name)
 
 	// Wait for the connection to reach a ready state before returning
 	// This ensures the connection is fully provisioned and available for use with stream processors

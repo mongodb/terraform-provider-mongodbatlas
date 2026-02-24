@@ -19,8 +19,8 @@ jobs:
           go-version-file: 'go.mod'
       - name: Update files
         env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run:  make tools update-atlas-sdk
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: make tools update-atlas-sdk
       - name: Create PR
         uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0
         with:
