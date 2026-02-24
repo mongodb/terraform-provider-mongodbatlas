@@ -768,3 +768,31 @@ func TestMarshalPanic(t *testing.T) {
 		})
 	}
 }
+
+func TestMarshalEmbeddedExpandedModel(t *testing.T) {
+	type modelExpandedFields struct {
+		Id types.String `tfsdk:"id" autogen:"omitjson"`
+	}
+	type modelExpanded struct {
+		modelExpandedFields
+		ConnectionName types.String `tfsdk:"connection_name" apiname:"name"`
+		Type           types.String `tfsdk:"type"`
+	}
+	model := modelExpanded{
+		modelExpandedFields: modelExpandedFields{
+			Id: types.StringValue("ws-123-conn"),
+		},
+		ConnectionName: types.StringValue("conn"),
+		Type:           types.StringValue("Sample"),
+	}
+	const expectedJSON = `
+	{
+		"name": "conn",
+		"type": "Sample"
+	}
+	`
+
+	raw, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedJSON, string(raw))
+}
