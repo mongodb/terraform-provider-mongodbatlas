@@ -175,6 +175,7 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	var schema *Schema
 	if createOp != nil || readOp != nil || updateOp != nil {
 		schema = &Schema{
+			ExpandedModel:      resourceConfig.SchemaOptions.ExpandedModel,
 			Description:        oasResource.Description,
 			DeprecationMessage: resourceConfig.DeprecationMessage,
 			Discriminator:      rootDiscriminator,
@@ -196,13 +197,12 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	}
 
 	resource := &Resource{
-		Name:          name,
-		PackageName:   strings.ReplaceAll(name, "_", ""),
-		Schema:        schema,
-		MoveState:     moveState,
-		Operations:    operations,
-		IDAttributes:  resourceConfig.IDAttributes,
-		ExpandedModel: resourceConfig.SchemaOptions.ExpandedModel,
+		Name:         name,
+		PackageName:  strings.ReplaceAll(name, "_", ""),
+		Schema:       schema,
+		MoveState:    moveState,
+		Operations:   operations,
+		IDAttributes: resourceConfig.IDAttributes,
 	}
 
 	if err := ApplyTransformationsToResource(resourceConfig, resource); err != nil {
