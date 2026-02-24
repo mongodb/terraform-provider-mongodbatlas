@@ -209,7 +209,9 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	apiResp, err = WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, createTimeout, []string{StatePending}, []string{StateReady, StateFailed})
+	// StateNotFound is a pending state for create - handles eventual consistency where
+	// the resource may briefly return 404 after creation before becoming visible.
+	apiResp, err = WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, createTimeout, []string{StatePending, StateNotFound}, []string{StateReady, StateFailed})
 	if err != nil {
 		resp.Diagnostics.AddError("error waiting for stream connection to be ready", err.Error())
 		return

@@ -17,7 +17,7 @@ const (
 	StateReady    = "READY"
 	StateDeleting = "DELETING"
 	StateFailed   = "FAILED"
-	StateDeleted  = "DELETED" // Virtual state used when resource is not found (404)
+	StateNotFound = "NOT_FOUND" // Virtual state used when resource is not found (404)
 )
 
 func DeleteStreamConnection(ctx context.Context, api admin.StreamsApi, projectID, workspaceName, connectionName string, timeout time.Duration) error {
@@ -39,9 +39,10 @@ func DeleteStreamConnection(ctx context.Context, api admin.StreamsApi, projectID
 	}
 
 	// Wait for delete to complete - some connections (e.g., Kafka VPC) are deleted asynchronously
-	// and go through a DELETING state before being fully removed
+	// and go through a DELETING state before being fully removed.
+	// StateNotFound is a target state here - 404 means the resource is successfully deleted.
 	pendingStates := []string{StateDeleting}
-	targetStates := []string{StateDeleted, StateFailed}
+	targetStates := []string{StateNotFound, StateFailed}
 	model, err := WaitStateTransition(ctx, projectID, workspaceName, connectionName, api, timeout, pendingStates, targetStates)
 	if err != nil {
 		return err
@@ -72,7 +73,7 @@ func WaitStateTransition(ctx context.Context, projectID, workspaceName, connecti
 }
 
 // refreshFunc returns a function that polls the stream connection state.
-// Returns StateDeleted when resource is not found (404).
+// Returns StateNotFound when resource is not found (404).
 func refreshFunc(ctx context.Context, projectID, workspaceName, connectionName string, client admin.StreamsApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		model, resp, err := client.GetStreamConnection(ctx, projectID, workspaceName, connectionName).Execute()
@@ -81,7 +82,7 @@ func refreshFunc(ctx context.Context, projectID, workspaceName, connectionName s
 		}
 		if err != nil {
 			if validate.StatusNotFound(resp) {
-				return &admin.StreamsConnection{}, StateDeleted, nil
+				return &admin.StreamsConnection{}, StateNotFound, nil
 			}
 			return nil, "", err
 		}

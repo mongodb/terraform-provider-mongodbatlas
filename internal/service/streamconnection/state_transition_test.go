@@ -119,13 +119,15 @@ func TestStreamConnectionDeletionFailed(t *testing.T) {
 	assert.Contains(t, err.Error(), "stream connection deletion failed for connection 'connectionName' in workspace 'workspaceName' (project: projectID)")
 }
 
-func TestWaitStateTransition(t *testing.T) {
+func TestWaitStateTransitionCreate(t *testing.T) {
 	var (
 		m              = mockadmin.NewStreamsApi(t)
 		projectID      = "projectID"
 		workspaceName  = "workspaceName"
 		connectionName = "connectionName"
+		notFoundErr    = admin.GenericOpenAPIError{}
 	)
+	notFoundErr.SetError("not found")
 
 	pendingConnection := &admin.StreamsConnection{
 		Name:  admin.PtrString(connectionName),
@@ -138,11 +140,14 @@ func TestWaitStateTransition(t *testing.T) {
 		State: admin.PtrString("READY"),
 	}
 
-	m.EXPECT().GetStreamConnection(mock.Anything, projectID, workspaceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Times(2)
+	// Simulates create flow with eventual consistency: 404 -> PENDING -> READY
+	m.EXPECT().GetStreamConnection(mock.Anything, projectID, workspaceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Times(3)
+	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(nil, &http.Response{StatusCode: http.StatusNotFound}, &notFoundErr)
 	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(pendingConnection, nil, nil)
 	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(readyConnection, nil, nil)
 
-	pendingStates := []string{streamconnection.StatePending}
+	// NOT_FOUND as pending state handles eventual consistency after creation
+	pendingStates := []string{streamconnection.StatePending, streamconnection.StateNotFound}
 	targetStates := []string{streamconnection.StateReady, streamconnection.StateFailed}
 	result, err := streamconnection.WaitStateTransition(t.Context(), projectID, workspaceName, connectionName, m, 30*time.Second, pendingStates, targetStates)
 	require.NoError(t, err)
