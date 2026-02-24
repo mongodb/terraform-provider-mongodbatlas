@@ -25,11 +25,11 @@ func discriminatorValidatorProperty(disc *codespec.Discriminator) CodeStatement 
 	}
 
 	mappingCode := strings.Join(mappingEntries, "\n")
-	code := fmt.Sprintf(`%s.ValidateDiscriminator(%s.DiscriminatorDefinition{
-			Mapping: map[string]%s.VariantDefinition{
-				%s
+	code := fmt.Sprintf(`%[1]s.ValidateDiscriminator(%[1]s.DiscriminatorDefinition{
+			Mapping: map[string]%[1]s.VariantDefinition{
+				%[2]s
 			},
-		})`, customValidatorPkgName, customValidatorPkgName, customValidatorPkgName, mappingCode)
+		})`, customValidatorPkgName, mappingCode)
 
 	return CodeStatement{
 		Code:    code,
@@ -38,19 +38,18 @@ func discriminatorValidatorProperty(disc *codespec.Discriminator) CodeStatement 
 }
 
 func variantDefinitionCode(key string, variant codespec.DiscriminatorType) string {
-	allowed := sortedTFSchemaNames(variant.Allowed)
-	required := sortedTFSchemaNames(variant.Required)
-
-	if len(allowed) == 0 && len(required) == 0 {
+	if len(variant.Allowed) == 0 && len(variant.Required) == 0 {
 		return fmt.Sprintf(`%q: {},`, key)
 	}
 
+	allowed := tfSchemaNames(variant.Allowed)
+	required := tfSchemaNames(variant.Required)
 	var fields []string
 	if len(allowed) > 0 {
-		fields = append(fields, fmt.Sprintf("Allowed: []string{%s}", quotedStringList(allowed)))
+		fields = append(fields, fmt.Sprintf("Allowed: []string{%s}", `"`+strings.Join(allowed, `", "`)+`"`))
 	}
 	if len(required) > 0 {
-		fields = append(fields, fmt.Sprintf("Required: []string{%s}", quotedStringList(required)))
+		fields = append(fields, fmt.Sprintf("Required: []string{%s}", `"`+strings.Join(required, `", "`)+`"`))
 	}
 
 	return fmt.Sprintf("%q: {\n%s,\n},", key, strings.Join(fields, ",\n"))
@@ -65,19 +64,10 @@ func sortedDiscriminatorKeys(mapping map[string]codespec.DiscriminatorType) []st
 	return keys
 }
 
-func sortedTFSchemaNames(names []codespec.DiscriminatorAttrName) []string {
+func tfSchemaNames(names []codespec.DiscriminatorAttrName) []string {
 	result := make([]string, len(names))
 	for i, n := range names {
 		result[i] = n.TFSchemaName
 	}
-	sort.Strings(result)
 	return result
-}
-
-func quotedStringList(names []string) string {
-	quoted := make([]string, len(names))
-	for i, n := range names {
-		quoted[i] = fmt.Sprintf("%q", n)
-	}
-	return strings.Join(quoted, ", ")
 }
