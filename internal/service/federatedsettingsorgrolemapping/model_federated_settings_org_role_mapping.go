@@ -1,36 +1,26 @@
 package federatedsettingsorgrolemapping
 
 import (
-	"sort"
-	"strings"
+	"cmp"
+	"slices"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
-type mRoleAssignment []admin.ConnectedOrgConfigRoleAssignment
-
-func (ra mRoleAssignment) Len() int      { return len(ra) }
-func (ra mRoleAssignment) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
-func (ra mRoleAssignment) Less(i, j int) bool {
-	compareVal := strings.Compare(ra[i].GetOrgId(), ra[j].GetOrgId())
-
-	if compareVal != 0 {
-		return compareVal < 0
+func compareRoleAssignment(a, b admin.ConnectedOrgConfigRoleAssignment) int {
+	if c := cmp.Compare(a.GetOrgId(), b.GetOrgId()); c != 0 {
+		return c
 	}
-
-	compareVal = strings.Compare(ra[i].GetGroupId(), ra[j].GetGroupId())
-
-	if compareVal != 0 {
-		return compareVal < 0
+	if c := cmp.Compare(a.GetGroupId(), b.GetGroupId()); c != 0 {
+		return c
 	}
-
-	return ra[i].GetRole() < ra[j].GetRole()
+	return cmp.Compare(a.GetRole(), b.GetRole())
 }
 
 func FlattenRoleAssignments(roleAssignments []admin.ConnectedOrgConfigRoleAssignment) []map[string]any {
-	sort.Sort(mRoleAssignment(roleAssignments))
+	slices.SortFunc(roleAssignments, compareRoleAssignment)
 
 	var roleAssignmentsMap []map[string]any
 
@@ -69,7 +59,7 @@ func expandRoleAssignments(d *schema.ResourceData) *[]admin.ConnectedOrgConfigRo
 		}
 	}
 
-	sort.Sort(mRoleAssignment(roleAssignments))
+	slices.SortFunc(roleAssignments, compareRoleAssignment)
 	return &roleAssignments
 }
 
@@ -77,7 +67,7 @@ func flattenRoleAssignmentsResource(roleAssignments []admin.ConnectedOrgConfigRo
 	if len(roleAssignments) == 0 {
 		return nil
 	}
-	sort.Sort(mRoleAssignment(roleAssignments))
+	slices.SortFunc(roleAssignments, compareRoleAssignment)
 	var flattenedRoleAssignments []map[string]any
 	var roleAssignment = map[string]any{
 		"group_id": roleAssignments[0].GetGroupId(),

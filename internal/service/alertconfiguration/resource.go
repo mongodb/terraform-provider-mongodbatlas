@@ -413,7 +413,7 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	encodedID := conversion.EncodeStateID(map[string]string{
-		EncodedIDKeyAlertID:   conversion.SafeString(apiResp.Id),
+		EncodedIDKeyAlertID:   conversion.SafeValue(apiResp.Id),
 		EncodedIDKeyProjectID: projectID,
 	})
 	alertConfigPlan.ID = types.StringValue(encodedID)

@@ -146,7 +146,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func newProtectedHours(d *schema.ResourceData) *admin.ProtectedHours {
-	if protectedHours, ok := d.Get("protected_hours").([]any); ok && conversion.HasElementsSliceOrMap(protectedHours) {
+	if protectedHours, ok := d.Get("protected_hours").([]any); ok && len(protectedHours) > 0 {
 		item := protectedHours[0].(map[string]any)
 
 		return &admin.ProtectedHours{

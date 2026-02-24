@@ -627,8 +627,8 @@ func policyItemID(policyState map[string]any) *string {
 }
 
 func isCopySettingsNonEmptyOrChanged(d *schema.ResourceData) bool {
-	copySettings := d.Get("copy_settings")
-	return copySettings != nil && (conversion.HasElementsSliceOrMap(copySettings) || d.HasChange("copy_settings"))
+	copySettings, _ := d.Get("copy_settings").([]any)
+	return len(copySettings) > 0 || d.HasChange("copy_settings")
 }
 
 func getRequestPolicies(policiesItem []admin.DiskBackupApiPolicyItem, respPolicies []admin.AdvancedDiskBackupSnapshotSchedulePolicy) *[]admin.AdvancedDiskBackupSnapshotSchedulePolicy {

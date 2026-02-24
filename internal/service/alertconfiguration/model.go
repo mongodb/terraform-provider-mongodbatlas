@@ -88,8 +88,8 @@ func NewTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currSt
 	return TfAlertConfigurationRSModel{
 		ID:                    currState.ID,
 		ProjectID:             currState.ProjectID,
-		AlertConfigurationID:  types.StringValue(conversion.SafeString(apiRespConfig.Id)),
-		EventType:             types.StringValue(conversion.SafeString(apiRespConfig.EventTypeName)),
+		AlertConfigurationID:  types.StringValue(conversion.SafeValue(apiRespConfig.Id)),
+		EventType:             types.StringValue(conversion.SafeValue(apiRespConfig.EventTypeName)),
 		Created:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Created)),
 		Updated:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Updated)),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),

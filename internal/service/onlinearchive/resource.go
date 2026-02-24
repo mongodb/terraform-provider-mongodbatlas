@@ -298,7 +298,7 @@ func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, arch
 			log.Printf("[DEBUG] status for MongoDB archive_id: %s: %s", archiveID, *c.State)
 		}
 
-		return c, conversion.SafeString(c.State), nil
+		return c, conversion.SafeValue(c.State), nil
 	}
 }
 
@@ -386,8 +386,8 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"archive_id":   conversion.SafeString(outOnlineArchive.Id),
-		"cluster_name": conversion.SafeString(outOnlineArchive.ClusterName),
+		"archive_id":   conversion.SafeValue(outOnlineArchive.Id),
+		"cluster_name": conversion.SafeValue(outOnlineArchive.ClusterName),
 		"project_id":   projectID,
 	}))
 
