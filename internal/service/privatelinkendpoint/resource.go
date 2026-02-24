@@ -149,8 +149,20 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.CreatePrivateEndpointService(ctx, projectID, request).Execute()
-	if err != nil {
+	const maxRetries = 5
+	const retrySleep = 10 * time.Second
+	var privateEndpoint *admin.EndpointService
+	for attempt := range maxRetries {
+		var err error
+		privateEndpoint, _, err = connV2.PrivateEndpointServicesApi.CreatePrivateEndpointService(ctx, projectID, request).Execute()
+		if err == nil {
+			break
+		}
+		if admin.IsErrorCode(err, "ATLAS_GENERAL_ERROR") && strings.Contains(err.Error(), "No Capacity") && attempt < maxRetries-1 {
+			log.Printf("[DEBUG] Attempt %d/%d: GCP private endpoint creation returned 'No Capacity', retrying in %s...", attempt+1, maxRetries, retrySleep)
+			time.Sleep(retrySleep)
+			continue
+		}
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, err))
 	}
 
