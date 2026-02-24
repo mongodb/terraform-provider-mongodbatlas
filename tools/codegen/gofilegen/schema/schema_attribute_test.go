@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/schema"
 	"github.com/stretchr/testify/assert"
@@ -50,7 +49,7 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_bool",
 				TFModelName:              "TestBool",
-				Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(true)},
+				Bool:                     &codespec.BoolAttribute{Default: new(true)},
 				ComputedOptionalRequired: codespec.ComputedOptional,
 				CreateOnly:               true,
 			},
@@ -60,7 +59,7 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_bool",
 				TFModelName:              "TestBool",
-				Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(false)},
+				Bool:                     &codespec.BoolAttribute{Default: new(false)},
 				ComputedOptionalRequired: codespec.ComputedOptional,
 				CreateOnly:               true,
 			},
