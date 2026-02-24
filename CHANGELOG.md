@@ -6,6 +6,10 @@ ENHANCEMENTS:
 * data-source/mongodbatlas_advanced_clusters: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
 * resource/mongodbatlas_advanced_cluster: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
 
+BUG FIXES:
+
+* data-source/mongodbatlas_search_indexes: Fixes `mappings_fields` attribute always being empty ([#4224](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4224))
+
 ## 2.7.0 (February 18, 2026)
 
 FEATURES:
