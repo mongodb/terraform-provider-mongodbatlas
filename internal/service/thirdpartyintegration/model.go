@@ -227,6 +227,6 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *admin.Thir
 	}
 
 	if d.HasChange("send_user_provided_resource_tags") {
-		integration.SendUserProvidedResourceTags = new(d.Get("send_user_provided_resource_tags").(bool))
+		integration.SendUserProvidedResourceTags = new(bool(d.Get("send_user_provided_resource_tags").(bool)))
 	}
 }
