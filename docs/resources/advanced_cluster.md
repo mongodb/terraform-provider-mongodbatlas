@@ -12,17 +12,13 @@ We recommend all new MongoDB Atlas Terraform users start with the [`mongodbatlas
 or later from v1.x.x, you must update your existing `mongodbatlas_advanced_cluster` resource configuration according to [this
 guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-advanced-cluster-2.0).
 
-~> **NOTE:** When modifying cluster configurations, you may see `(known after apply)` markers in your Terraform plan output, even for attributes you haven't modified. This is expected behavior. See the ["known after apply" verbosity](#known-after-apply-verbosity) section below for details.
+~> **NOTE:** When modifying cluster configurations, you might see `(known after apply)` markers in your Terraform plan output, even for attributes you haven't modified. This is expected behavior. See the ["known after apply" verbosity](#known-after-apply-verbosity) section below for details.
 
 ~> **NOTE:** When configuring auto-scaling, you can now use `use_effective_fields` to simplify your Terraform workflow. See the [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) section below for details.
-
--> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
 -> **NOTE:** A network container is created for each provider/region combination on the advanced cluster. This can be referenced via a computed attribute for use with other resources. Refer to the `replication_specs[#].container_id` attribute in the [Attributes Reference](#attributes_reference) for more information.
 
 -> **NOTE:** To enable Cluster Extended Storage Sizes use the `is_extended_storage_sizes_enabled` parameter in the [mongodbatlas_project resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project).
-
--> **NOTE:** The Low-CPU instance clusters are prefixed with `R`, for example `R40`. For complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
 
 -> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
 
@@ -722,6 +718,11 @@ replication_specs = [
 ### region_configs
 
 ~> **NOTE:**  We recommend reviewing our [Best Practices](#remove-or-disable-functionality) before disabling or removing any elements of region_configs.
+
+-> **NOTE:** Cluster tier names in the
+`region_configs[m].electable_specs.instance_size` attribute are
+prepended with `R` instead of `M` if they run a low-CPU version of the
+cluster, for example `R40`. For complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
 
 * `analytics_specs` - (Optional) Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. Analytics nodes handle analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only and can never become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary). If you don't specify this parameter, no analytics nodes deploy to this region. See [below](#specs).
 * `auto_scaling` - (Optional) Configuration for the collection of settings that configures auto-scaling information for the cluster. The values for the `auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#auto_scaling).
