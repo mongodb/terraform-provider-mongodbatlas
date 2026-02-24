@@ -248,12 +248,12 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		processArgsCommon      = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("1"),
-			JavascriptEnabled:                conversion.Pointer(true),
+			JavascriptEnabled:                new(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer(1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-			SampleSizeBIConnector:            conversion.Pointer(110),
+			NoTableScan:                      new(false),
+			OplogSizeMB:                      new(1000),
+			SampleRefreshIntervalBIConnector: new(310),
+			SampleSizeBIConnector:            new(110),
 			TransactionLifetimeLimitSeconds:  new(int64(300)),
 		}
 	)
@@ -288,24 +288,24 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		clusterNameUpdated     = acc.RandomClusterName()
 		processArgs            = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("1"),
-			JavascriptEnabled:                conversion.Pointer(true),
+			JavascriptEnabled:                new(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer(1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-			SampleSizeBIConnector:            conversion.Pointer(110),
+			NoTableScan:                      new(false),
+			OplogSizeMB:                      new(1000),
+			SampleRefreshIntervalBIConnector: new(310),
+			SampleSizeBIConnector:            new(110),
 			TransactionLifetimeLimitSeconds:  new(int64(300)),
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
 			TlsCipherConfigMode: conversion.StringPtr("DEFAULT"),
 		}
 		processArgsUpdated = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("0"),
-			JavascriptEnabled:                conversion.Pointer(true),
+			JavascriptEnabled:                new(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer(1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-			SampleSizeBIConnector:            conversion.Pointer(110),
+			NoTableScan:                      new(false),
+			OplogSizeMB:                      new(1000),
+			SampleRefreshIntervalBIConnector: new(310),
+			SampleSizeBIConnector:            new(110),
 			TransactionLifetimeLimitSeconds:  new(int64(300)),
 			DefaultMaxTimeMS:                 conversion.IntPtr(65),
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(100),
@@ -347,21 +347,21 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		clusterNameUpdated     = acc.RandomClusterName()
 		processArgs            = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("1"),
-			JavascriptEnabled:                conversion.Pointer(true),
+			JavascriptEnabled:                new(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer(1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-			SampleSizeBIConnector:            conversion.Pointer(110),
+			NoTableScan:                      new(false),
+			OplogSizeMB:                      new(1000),
+			SampleRefreshIntervalBIConnector: new(310),
+			SampleSizeBIConnector:            new(110),
 		}
 		processArgsUpdated = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("majority"),
-			JavascriptEnabled:                conversion.Pointer(true),
+			JavascriptEnabled:                new(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer(1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-			SampleSizeBIConnector:            conversion.Pointer(110),
+			NoTableScan:                      new(false),
+			OplogSizeMB:                      new(1000),
+			SampleRefreshIntervalBIConnector: new(310),
+			SampleSizeBIConnector:            new(110),
 			TransactionLifetimeLimitSeconds:  new(int64(300)),
 		}
 	)
@@ -388,12 +388,12 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		autoScaling            = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+			Compute: &admin.AdvancedComputeAutoScaling{Enabled: new(false), MaxInstanceSize: conversion.StringPtr("")},
+			DiskGB:  &admin.DiskGBAutoScaling{Enabled: new(true)},
 		}
 		autoScalingUpdated = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(true), MaxInstanceSize: conversion.StringPtr("M20")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+			Compute: &admin.AdvancedComputeAutoScaling{Enabled: new(true), MaxInstanceSize: conversion.StringPtr("M20")},
+			DiskGB:  &admin.DiskGBAutoScaling{Enabled: new(true)},
 		}
 	)
 
@@ -447,12 +447,12 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		clusterNameUpdated     = acc.RandomClusterName()
 		autoScaling            = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+			Compute: &admin.AdvancedComputeAutoScaling{Enabled: new(false), MaxInstanceSize: conversion.StringPtr("")},
+			DiskGB:  &admin.DiskGBAutoScaling{Enabled: new(true)},
 		}
 		autoScalingUpdated = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(true), MaxInstanceSize: conversion.StringPtr("M20")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+			Compute: &admin.AdvancedComputeAutoScaling{Enabled: new(true), MaxInstanceSize: conversion.StringPtr("M20")},
+			DiskGB:  &admin.DiskGBAutoScaling{Enabled: new(true)},
 		}
 	)
 
@@ -2052,7 +2052,7 @@ func TestAccAdvancedCluster_tls13CustomCiphers(t *testing.T) {
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		processArgs            = &admin.ClusterDescriptionProcessArgs20240805{
 			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
-			CustomOpensslCipherConfigTls13: conversion.Pointer([]string{"TLS_AES_128_GCM_SHA256"}),
+			CustomOpensslCipherConfigTls13: new([]string{"TLS_AES_128_GCM_SHA256"}),
 			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_3"),
 		}
 	)

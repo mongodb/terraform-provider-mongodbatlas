@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
@@ -77,7 +76,7 @@ func (d *pluralDS) getBasicClusters(ctx context.Context, diags *diag.Diagnostics
 	api := d.Client.AtlasV2.ClustersApi
 	params := admin.ListClustersApiParams{
 		GroupId:                    projectID,
-		UseEffectiveInstanceFields: conversion.Pointer(useEffectiveFields.ValueBool()),
+		UseEffectiveInstanceFields: new(useEffectiveFields.ValueBool()),
 	}
 	list, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.ClusterDescription20240805], *http.Response, error) {
 		return api.ListClustersWithParams(ctx, &params).PageNum(pageNum).Execute()

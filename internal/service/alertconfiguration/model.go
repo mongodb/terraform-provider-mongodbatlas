@@ -20,7 +20,7 @@ func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificatio
 			ChannelName:              n.ChannelName.ValueStringPointer(),
 			DatadogApiKey:            n.DatadogAPIKey.ValueStringPointer(),
 			DatadogRegion:            n.DatadogRegion.ValueStringPointer(),
-			DelayMin:                 conversion.Pointer(int(n.DelayMin.ValueInt64())),
+			DelayMin:                 new(int(n.DelayMin.ValueInt64())),
 			EmailAddress:             n.EmailAddress.ValueStringPointer(),
 			EmailEnabled:             n.EmailEnabled.ValueBoolPointer(),
 			IntervalMin:              conversion.Int64PtrToIntPtr(n.IntervalMin.ValueInt64Pointer()),
@@ -54,7 +54,7 @@ func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.Stream
 	return &admin.StreamProcessorMetricThreshold{
 		Operator:  v.Operator.ValueStringPointer(),
 		Units:     v.Units.ValueStringPointer(),
-		Threshold: conversion.Pointer(v.Threshold.ValueFloat64()),
+		Threshold: new(v.Threshold.ValueFloat64()),
 	}
 }
 

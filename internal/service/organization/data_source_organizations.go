@@ -106,7 +106,7 @@ func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any)
 	organizationOptions := &admin.ListOrgsApiParams{
 		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
 		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
-		Name:         conversion.Pointer(d.Get("name").(string)),
+		Name:         new(d.Get("name").(string)),
 	}
 
 	organizations, _, err := conn.OrganizationsApi.ListOrgsWithParams(ctx, organizationOptions).Execute()

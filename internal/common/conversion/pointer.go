@@ -1,10 +1,5 @@
 package conversion
 
-//go:fix inline
-func Pointer[T any](x T) *T {
-	return new(x)
-}
-
 func IntPtr(v int) *int {
 	if v != 0 {
 		return &v

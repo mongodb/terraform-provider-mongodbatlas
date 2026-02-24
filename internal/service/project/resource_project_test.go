@@ -572,7 +572,7 @@ func TestAccProject_basic(t *testing.T) {
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
-					conversion.Pointer(true),
+					new(true),
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(checks...),
 			},
@@ -592,7 +592,7 @@ func TestAccProject_basic(t *testing.T) {
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
-					conversion.Pointer(false),
+					new(false),
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -1113,7 +1113,7 @@ func TestAccProject_slowOperationReadOnly(t *testing.T) {
 	var (
 		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName            = acc.RandomProjectName()
-		config                 = configBasic(orgID, projectName, "", false, nil, conversion.Pointer(false))
+		config                 = configBasic(orgID, projectName, "", false, nil, new(false))
 		providerConfigReadOnly = acc.ConfigOrgMemberProvider()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -1136,7 +1136,7 @@ func TestAccProject_slowOperationReadOnly(t *testing.T) {
 			},
 			// Validate the API Key has a different role
 			{
-				Config:      providerConfigReadOnly + configBasic(orgID, projectName, "", false, nil, conversion.Pointer(true)),
+				Config:      providerConfigReadOnly + configBasic(orgID, projectName, "", false, nil, new(true)),
 				ExpectError: regexp.MustCompile("error in project settings update"),
 			},
 			// read back again to ensure no changes, and allow deletion to work

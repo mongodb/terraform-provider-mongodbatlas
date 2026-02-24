@@ -494,7 +494,7 @@ func checkAttrs(projectID, name string, extraAttrs map[string]string, extra ...r
 	}
 
 	maps.Copy(attrsMap, extraAttrs)
-	check := acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil, nil, attrsMap, extra...)
+	check := acc.CheckRSAndDS(resourceName, new(dataSourceName), nil, nil, attrsMap, extra...)
 	return check
 }
 
