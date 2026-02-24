@@ -39,13 +39,13 @@ type Model struct {
 }
 
 type Resource struct {
-	Schema        *Schema       `yaml:"schema,omitempty"`
-	Operations    APIOperations `yaml:"operations"`
-	MoveState     *MoveState    `yaml:"move_state,omitempty"`
-	DataSources   *DataSources  `yaml:"data_sources,omitempty"`
-	Name          string        `yaml:"name"`
-	PackageName   string        `yaml:"packageName"`
-	IDAttributes  []string      `yaml:"id_attributes,omitempty"`
+	Schema       *Schema       `yaml:"schema,omitempty"`
+	Operations   APIOperations `yaml:"operations"`
+	MoveState    *MoveState    `yaml:"move_state,omitempty"`
+	DataSources  *DataSources  `yaml:"data_sources,omitempty"`
+	Name         string        `yaml:"name"`
+	PackageName  string        `yaml:"packageName"`
+	IDAttributes []string      `yaml:"id_attributes,omitempty"`
 }
 
 // DataSources holds the data source configuration within a resource
@@ -93,7 +93,6 @@ type MoveState struct {
 }
 
 type Schema struct {
-	ExpandedModel      bool           `yaml:"expanded_model"`
 	Description        *string        `yaml:"description,omitempty"`
 	DeprecationMessage *string        `yaml:"deprecation_message,omitempty"`
 	Discriminator      *Discriminator `yaml:"discriminator,omitempty"`
