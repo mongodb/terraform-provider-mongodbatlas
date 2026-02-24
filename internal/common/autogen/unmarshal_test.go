@@ -909,7 +909,7 @@ func TestUnmarshalUnsupportedModel(t *testing.T) {
 
 func TestUnmarshalEmbeddedExpandedModel(t *testing.T) {
 	type ModelExpandedFields struct {
-		Id types.String `tfsdk:"id" autogen:"omitjson"`
+		ID types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
 	}
 	type ModelExpanded struct {
 		ModelExpandedFields
@@ -918,7 +918,7 @@ func TestUnmarshalEmbeddedExpandedModel(t *testing.T) {
 	}
 	model := ModelExpanded{
 		ModelExpandedFields: ModelExpandedFields{
-			Id: types.StringUnknown(),
+			ID: types.StringUnknown(),
 		},
 		ConnectionName: types.StringUnknown(),
 		Type:           types.StringUnknown(),
@@ -933,7 +933,7 @@ func TestUnmarshalEmbeddedExpandedModel(t *testing.T) {
 	err := autogen.Unmarshal(responseJSON, &model)
 	require.NoError(t, err)
 
-	assert.Equal(t, "ws-123-conn", model.Id.ValueString())
+	assert.Equal(t, "ws-123-conn", model.ID.ValueString())
 	assert.Equal(t, "conn", model.ConnectionName.ValueString())
 	assert.Equal(t, "Sample", model.Type.ValueString())
 }

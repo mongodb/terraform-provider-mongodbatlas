@@ -771,7 +771,7 @@ func TestMarshalPanic(t *testing.T) {
 
 func TestMarshalEmbeddedExpandedModel(t *testing.T) {
 	type modelExpandedFields struct {
-		Id types.String `tfsdk:"id" autogen:"omitjson"`
+		ID types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
 	}
 	type modelExpanded struct {
 		modelExpandedFields
@@ -780,7 +780,7 @@ func TestMarshalEmbeddedExpandedModel(t *testing.T) {
 	}
 	model := modelExpanded{
 		modelExpandedFields: modelExpandedFields{
-			Id: types.StringValue("ws-123-conn"),
+			ID: types.StringValue("ws-123-conn"),
 		},
 		ConnectionName: types.StringValue("conn"),
 		Type:           types.StringValue("Sample"),
