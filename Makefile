@@ -31,6 +31,7 @@ fix: ## Fix, format, and build Go code (default target)
 	gofmt -s -w .
 	golangci-lint run --fix
 	go mod tidy
+	go fix ./...
 	go build -ldflags "$(LINKER_FLAGS)" -o $(DESTINATION)
 
 .PHONY: verify
@@ -42,6 +43,7 @@ ifdef files
 else
 	golangci-lint run
 	go mod tidy -diff
+	go fix -diff ./...
 endif
 
 .PHONY: build
