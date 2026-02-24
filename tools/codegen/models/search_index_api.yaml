@@ -179,7 +179,7 @@ schema:
                         nested_object:
                             attributes:
                                 - string: {}
-                                  description: Indicates whether the index uses static, default dynamic, or configurable dynamic mappings. Set to **true** to enable dynamic mapping with default type set or define object to specify the name of the configured type sets for dynamic mapping. If you specify configurable dynamic mappings, you must define the referred type sets in the **typeSets** field. Set to **false** to use only static mappings through **mappings.fields**.
+                                  description: Indicates whether the index uses static, default dynamic, or configurable dynamic mappings. Set to `true` to enable dynamic mapping with default type set or define object to specify the name of the configured type sets for dynamic mapping. If you specify configurable dynamic mappings, you must define the referred type sets in the `typeSets` field. Set to `false` to use only static mappings through `mappings.fields`.
                                   custom_type:
                                     package: jsontypes
                                     model: jsontypes.Normalized
@@ -195,7 +195,7 @@ schema:
                                   request_only_required_on_create: false
                                 - map:
                                     element_type: 5
-                                  description: One or more field specifications for the Atlas Search index. Required if **mappings.dynamic** is omitted or set to **false**.
+                                  description: One or more field specifications for the Atlas Search index. Required if `mappings.dynamic` is omitted or set to `false`.
                                   custom_type:
                                     package: customtypes
                                     model: customtypes.MapValue[jsontypes.Normalized]
@@ -249,7 +249,7 @@ schema:
                       present_in_any_response: false
                       request_only_required_on_create: false
                     - string: {}
-                      description: 'Sort definition for the index. When defined, the index will be pre-sorted on thespecified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options.The ''order'' field is required (1=ascending, -1=descending).The ''noData'' field is optional and controls how missing values are sorted(default: "lowest").'
+                      description: 'Sort definition for the index. When defined, the index will be pre-sorted on the specified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options. The `order` field is required (1=ascending, -1=descending).The `noData` field is optional and controls how missing values are sorted(default: "lowest").'
                       custom_type:
                         package: jsontypes
                         model: jsontypes.Normalized
@@ -293,7 +293,7 @@ schema:
                                   present_in_any_response: false
                                   request_only_required_on_create: false
                                 - string: {}
-                                  description: Label that identifies the synonym definition. Each **synonym.name** must be unique within the same index definition.
+                                  description: Label that identifies the synonym definition. Each `synonym.name` must be unique within the same index definition.
                                   computed_optional_required: required
                                   tf_schema_name: name
                                   tf_model_name: Name
@@ -351,7 +351,7 @@ schema:
                         nested_object:
                             attributes:
                                 - string: {}
-                                  description: Label that identifies the type set name. Each **typeSets.name** must be unique within the same index definition.
+                                  description: Label that identifies the type set name. Each `typeSets.name` must be unique within the same index definition.
                                   computed_optional_required: required
                                   tf_schema_name: name
                                   tf_model_name: Name
@@ -363,7 +363,7 @@ schema:
                                   request_only_required_on_create: false
                                 - list:
                                     element_type: 5
-                                  description: List of types associated with the type set. Each type definition must include a "type" field specifying the search field type ("autocomplete", "boolean", "date", "geo", "number", "objectId", "string", "token", or "uuid") and may include additional configuration properties specific to that type.
+                                  description: List of types associated with the type set. Each type definition must include a `type` field specifying the search field type (`autocomplete`, `boolean`, `date`, `geo`, `number`, `objectId`, `string`, `token`, or `uuid`) and may include additional configuration properties specific to that type.
                                   custom_type:
                                     package: customtypes
                                     model: customtypes.ListValue[jsontypes.Normalized]
@@ -563,7 +563,7 @@ schema:
                         nested_object:
                             attributes:
                                 - string: {}
-                                  description: Indicates whether the index uses static, default dynamic, or configurable dynamic mappings. Set to **true** to enable dynamic mapping with default type set or define object to specify the name of the configured type sets for dynamic mapping. If you specify configurable dynamic mappings, you must define the referred type sets in the **typeSets** field. Set to **false** to use only static mappings through **mappings.fields**.
+                                  description: Indicates whether the index uses static, default dynamic, or configurable dynamic mappings. Set to `true` to enable dynamic mapping with default type set or define object to specify the name of the configured type sets for dynamic mapping. If you specify configurable dynamic mappings, you must define the referred type sets in the `typeSets` field. Set to `false` to use only static mappings through `mappings.fields`.
                                   custom_type:
                                     package: jsontypes
                                     model: jsontypes.Normalized
@@ -579,7 +579,7 @@ schema:
                                   request_only_required_on_create: false
                                 - map:
                                     element_type: 5
-                                  description: One or more field specifications for the Atlas Search index. Required if **mappings.dynamic** is omitted or set to **false**.
+                                  description: One or more field specifications for the Atlas Search index. Required if `mappings.dynamic` is omitted or set to `false`.
                                   custom_type:
                                     package: customtypes
                                     model: customtypes.MapValue[jsontypes.Normalized]
@@ -633,7 +633,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: 'Sort definition for the index. When defined, the index will be pre-sorted on thespecified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options.The ''order'' field is required (1=ascending, -1=descending).The ''noData'' field is optional and controls how missing values are sorted(default: "lowest").'
+                      description: 'Sort definition for the index. When defined, the index will be pre-sorted on the specified fields, which improves query sort performance for those fields. Supports two formats: simple format with field name and direction, or complex format with additional options. The `order` field is required (1=ascending, -1=descending).The `noData` field is optional and controls how missing values are sorted(default: "lowest").'
                       custom_type:
                         package: jsontypes
                         model: jsontypes.Normalized
@@ -677,7 +677,7 @@ schema:
                                   present_in_any_response: true
                                   request_only_required_on_create: false
                                 - string: {}
-                                  description: Label that identifies the synonym definition. Each **synonym.name** must be unique within the same index definition.
+                                  description: Label that identifies the synonym definition. Each `synonym.name` must be unique within the same index definition.
                                   computed_optional_required: computed
                                   tf_schema_name: name
                                   tf_model_name: Name
@@ -735,7 +735,7 @@ schema:
                         nested_object:
                             attributes:
                                 - string: {}
-                                  description: Label that identifies the type set name. Each **typeSets.name** must be unique within the same index definition.
+                                  description: Label that identifies the type set name. Each `typeSets.name` must be unique within the same index definition.
                                   computed_optional_required: computed
                                   tf_schema_name: name
                                   tf_model_name: Name
@@ -747,7 +747,7 @@ schema:
                                   request_only_required_on_create: false
                                 - list:
                                     element_type: 5
-                                  description: List of types associated with the type set. Each type definition must include a "type" field specifying the search field type ("autocomplete", "boolean", "date", "geo", "number", "objectId", "string", "token", or "uuid") and may include additional configuration properties specific to that type.
+                                  description: List of types associated with the type set. Each type definition must include a `type` field specifying the search field type (`autocomplete`, `boolean`, `date`, `geo`, `number`, `objectId`, `string`, `token`, or `uuid`) and may include additional configuration properties specific to that type.
                                   custom_type:
                                     package: customtypes
                                     model: customtypes.ListValue[jsontypes.Normalized]
