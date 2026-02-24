@@ -6,6 +6,7 @@ subcategory: "Clusters"
 
 `mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters.
 
+
 We recommend all new MongoDB Atlas Terraform users start with the [`mongodbatlas_advanced_cluster`](advanced_cluster) resource instead of the [`mongodbatlas_cluster`](cluster) resource. Key differences include support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), and [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers). To migrate from an existing [`mongodbatlas_cluster`](cluster) resource, see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
 ~> **IMPORTANT:** If you are upgrading to our Terraform Provider v2.0.0 or later from v1.x.x, you must update your existing `mongodbatlas_advanced_cluster` resource configuration according to [this guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-advanced-cluster-2.0).
@@ -14,10 +15,7 @@ We recommend all new MongoDB Atlas Terraform users start with the [`mongodbatlas
 
 -> **NOTE:** This resource supports creating Flex clusters, upgrading [M0 clusters to Flex](#example-tenant-cluster-upgrade-to-flex), and upgrading [Flex clusters to Dedicated](#Example-Flex-Cluster-Upgrade). When creating a Flex cluster, you must set the `replication_specs[#].region_configs[#].priority` value to 7.
 
-~> **NOTE:** When you modify cluster configurations, your Terraform plan output 
-might include `(known after apply)` markers for attributes you didin't modify. This is expected behavior. For more information, see the ["known after apply" verbosity](#known-after-apply-verbosity) section below.
-
-~> **NOTE:** When configuring auto-scaling, you can use `use_effective_fields` to simplify your Terraform workflow. For more information, see the [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) section below.
+~> **NOTE:** When you modify cluster configurations, your Terraform plan output might include `(known after apply)` markers for attributes you didin't modify. This is expected behavior. For more information, see the ["known after apply" verbosity](#known-after-apply-verbosity) section below.
 
 -> **NOTE:** This resource creates a network container for each provider/region combination specified in the advanced cluster configuration. Each network container can be referenced via its computed `replication_specs[#]container_id` attribute.
 
@@ -53,6 +51,13 @@ resource "mongodbatlas_advanced_cluster" "this" {
 ```
 
 ### Example using effective fields with auto-scaling
+
+~> **NOTE:** When configuring auto-scaling, you can use the
+`use_effective_fields` attribute to simplify your Terraform workflow by
+eliminating the need for `lifecycle.ignore_changes` blocks and providing
+visibility into Atlas-managed changes. For more information, see the
+[Auto-Scaling with Effective
+Fields](#auto-scaling-with-effective-fields) section below.
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
