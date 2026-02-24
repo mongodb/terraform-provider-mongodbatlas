@@ -420,7 +420,7 @@ func mapToArchivePayload(d *schema.ResourceData) admin.BackupOnlineArchiveCreate
 				}
 				if dbType, ok := item["field_type"]; ok && dbType != nil {
 					if dbType.(string) != "" {
-						query.FieldType = admin.PtrString(dbType.(string))
+						query.FieldType = new(dbType.(string))
 					}
 				}
 				partitionList = append(partitionList, query)
@@ -488,7 +488,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if collType := d.Get("collection_type").(string); collectionTypeHasChange && collType != "" {
-		request.CollectionType = admin.PtrString(collType)
+		request.CollectionType = new(collType)
 	}
 
 	_, _, err := connV2.OnlineArchiveApi.UpdateOnlineArchive(ctx, projectID, atlasID, clusterName, &request).Execute()
@@ -628,25 +628,25 @@ func mapCriteria(d *schema.ResourceData) admin.Criteria {
 	criteria := criteriaList[0].(map[string]any)
 
 	criteriaInput := admin.Criteria{
-		Type: admin.PtrString(criteria["type"].(string)),
+		Type: new(criteria["type"].(string)),
 	}
 
 	if criteriaInput.Type != nil && *criteriaInput.Type == "DATE" {
 		if dateField := criteria["date_field"].(string); dateField != "" {
-			criteriaInput.DateField = admin.PtrString(dateField)
+			criteriaInput.DateField = new(dateField)
 		}
 
 		criteriaInput.ExpireAfterDays = conversion.Pointer(criteria["expire_after_days"].(int))
 
 		// optional
 		if dformat, ok := criteria["date_format"]; ok && dformat.(string) != "" {
-			criteriaInput.DateFormat = admin.PtrString(dformat.(string))
+			criteriaInput.DateFormat = new(dformat.(string))
 		}
 	}
 
 	if criteriaInput.Type != nil && *criteriaInput.Type == "CUSTOM" {
 		if query := criteria["query"].(string); query != "" {
-			criteriaInput.Query = admin.PtrString(query)
+			criteriaInput.Query = new(query)
 		}
 	}
 

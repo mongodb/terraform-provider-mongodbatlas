@@ -656,7 +656,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	tenantDisksize := conversion.Pointer[float64](0.0)
+	tenantDisksize := new(float64(0.0))
 	if providerName == "TENANT" {
 		autoScaling = nil
 

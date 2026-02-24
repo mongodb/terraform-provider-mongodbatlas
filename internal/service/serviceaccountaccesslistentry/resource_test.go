@@ -136,10 +136,10 @@ func TestAccServiceAccountSecret_errors(t *testing.T) {
 }
 
 func configBasic(orgID, name string, entries []testEntry) string {
-	entriesStr := ""
+	var entriesStr strings.Builder
 	resourceNames := []string{}
 	for i, entry := range entries {
-		entriesStr += fmt.Sprintf(`
+		entriesStr.WriteString(fmt.Sprintf(`
 			resource "mongodbatlas_service_account_access_list_entry" "test_%[1]d" {
 				org_id    = %[2]q
 				client_id = mongodbatlas_service_account.test.client_id
@@ -152,7 +152,7 @@ func configBasic(orgID, name string, entries []testEntry) string {
 				%[3]s
 				depends_on = [mongodbatlas_service_account_access_list_entry.test_%[1]d]
 			}
-		`, i, orgID, entry.hclStr())
+		`, i, orgID, entry.hclStr()))
 		resourceNames = append(resourceNames, fmt.Sprintf("%s_%d", resourceName, i))
 	}
 
@@ -174,7 +174,7 @@ func configBasic(orgID, name string, entries []testEntry) string {
 			client_id = mongodbatlas_service_account.test.client_id
 			depends_on = %[4]s
 		}
-	`, orgID, name, entriesStr, resourceNamesStr)
+	`, orgID, name, entriesStr.String(), resourceNamesStr)
 }
 
 func configError(entry testEntry) string {
@@ -191,7 +191,7 @@ func checkBasic(entries []testEntry) resource.TestCheckFunc {
 	// Check plural DS first result only when there is 1 entry
 	var pluralDSName *string
 	if len(entries) == 1 {
-		pluralDSName = admin.PtrString(dataSourcePluralName)
+		pluralDSName = new(dataSourcePluralName)
 	}
 
 	attrsSet := []string{"client_id", "created_at", "request_count"}
@@ -200,7 +200,7 @@ func checkBasic(entries []testEntry) resource.TestCheckFunc {
 		resourceName := fmt.Sprintf("%s_%d", resourceName, i)
 		dataSourceName := fmt.Sprintf("%s_%d", dataSourceName, i)
 		checks = append(checks, acc.CheckRSAndDS(
-			resourceName, admin.PtrString(dataSourceName), pluralDSName,
+			resourceName, new(dataSourceName), pluralDSName,
 			attrsSet, entry.attrMap(),
 			checkExists(resourceName),
 		))

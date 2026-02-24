@@ -374,7 +374,7 @@ func configChangingProject(orgID, projectID1, projectName2, description, roleNam
 
 func getRoleNames(roleNames string) []string {
 	var ret []string
-	for _, role := range strings.Split(roleNames, ",") {
+	for role := range strings.SplitSeq(roleNames, ",") {
 		ret = append(ret, strings.TrimSpace(role))
 	}
 	return ret
@@ -382,7 +382,7 @@ func getRoleNames(roleNames string) []string {
 
 func getRoleNamesStr(roleNames string) string {
 	var quoted []string
-	for _, role := range strings.Split(roleNames, ",") {
+	for role := range strings.SplitSeq(roleNames, ",") {
 		quoted = append(quoted, fmt.Sprintf("%q", strings.TrimSpace(role)))
 	}
 	return fmt.Sprintf("[%s]", strings.Join(quoted, ", "))

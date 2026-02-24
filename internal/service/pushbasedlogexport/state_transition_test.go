@@ -156,10 +156,10 @@ func responseWithState(state *string) *admin.PushBasedLogExportProject {
 		return nil
 	}
 	return &admin.PushBasedLogExportProject{
-		BucketName: admin.PtrString(testBucketName),
-		CreateDate: admin.PtrTime(currentTime),
-		IamRoleId:  admin.PtrString(testIAMRoleID),
-		PrefixPath: admin.PtrString(testPrefixPath),
+		BucketName: new(testBucketName),
+		CreateDate: new(currentTime),
+		IamRoleId:  new(testIAMRoleID),
+		PrefixPath: new(testPrefixPath),
 		State:      state,
 	}
 }

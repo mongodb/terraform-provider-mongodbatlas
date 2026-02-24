@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -101,7 +102,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 						OplogSizeMB:                      conversion.Pointer(1000),
 						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
 						SampleSizeBIConnector:            conversion.Pointer(110),
-						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+						TransactionLifetimeLimitSeconds:  new(int64(300)),
 						TlsCipherConfigMode:              conversion.StringPtr("CUSTOM"),
 						CustomOpensslCipherConfigTls12:   &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
 					}),
@@ -176,7 +177,7 @@ func basicDefaultWriteReadAdvancedConfTestCase(tb testing.TB) *resource.TestCase
 						OplogSizeMB:                      conversion.Pointer(1000),
 						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
 						SampleSizeBIConnector:            conversion.Pointer(110),
-						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+						TransactionLifetimeLimitSeconds:  new(int64(300)),
 						ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.Pointer(113),
 					}),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -242,7 +243,7 @@ func TestAccCluster_emptyAdvancedConf(t *testing.T) {
 						OplogSizeMB:                      conversion.Pointer(1000),
 						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
 						SampleSizeBIConnector:            conversion.Pointer(110),
-						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+						TransactionLifetimeLimitSeconds:  new(int64(300)),
 					}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
@@ -278,7 +279,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 						OplogSizeMB:                      conversion.Pointer(1000),
 						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
 						SampleSizeBIConnector:            conversion.Pointer(110),
-						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+						TransactionLifetimeLimitSeconds:  new(int64(300)),
 					}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
@@ -305,7 +306,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 						OplogSizeMB:                      conversion.Pointer(990),
 						SampleRefreshIntervalBIConnector: conversion.Pointer(0),
 						SampleSizeBIConnector:            conversion.Pointer(0),
-						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](60),
+						TransactionLifetimeLimitSeconds:  new(int64(60)),
 						TlsCipherConfigMode:              conversion.StringPtr("CUSTOM"),
 						CustomOpensslCipherConfigTls12:   &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"},
 					}),
@@ -1424,7 +1425,7 @@ func checkFCVPinningConfig(resourceName, dataSourceName, pluralDataSourceName st
 
 	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", acc.MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))
 
-	return acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
+	return acc.CheckRSAndDS(resourceName, new(dataSourceName), new(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
 }
 
 func configAWS(projectID, name string, backupEnabled, autoDiskGBEnabled bool) string {
@@ -1887,14 +1888,14 @@ func configRedactClientLogData(orgID, projectName, clusterName string, redactCli
 }
 
 func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabled, tier, region string, labels []matlas.Label) string {
-	var labelsConf string
+	var labelsConf strings.Builder
 	for _, label := range labels {
-		labelsConf += fmt.Sprintf(`
+		labelsConf.WriteString(fmt.Sprintf(`
 			labels {
 				key   = %q
 				value = %q
 			}
-		`, label.Key, label.Value)
+		`, label.Key, label.Value))
 	}
 
 	return fmt.Sprintf(`
@@ -1921,18 +1922,18 @@ func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabl
 		  	}
 			%[6]s
 		}
-	`, projectID, name, backupEnabled, tier, region, labelsConf)
+	`, projectID, name, backupEnabled, tier, region, labelsConf.String())
 }
 
 func configWithTags(orgID, projectName, name, backupEnabled, tier, region string, tags []matlas.Tag) string {
-	var tagsConf string
+	var tagsConf strings.Builder
 	for _, label := range tags {
-		tagsConf += fmt.Sprintf(`
+		tagsConf.WriteString(fmt.Sprintf(`
 			tags {
 				key   = "%s"
 				value = "%s"
 			}
-		`, label.Key, label.Value)
+		`, label.Key, label.Value))
 	}
 
 	return fmt.Sprintf(`
@@ -1974,7 +1975,7 @@ func configWithTags(orgID, projectName, name, backupEnabled, tier, region string
 			project_id = mongodbatlas_cluster.test.project_id
 		}
 
-	`, orgID, projectName, name, backupEnabled, tier, region, tagsConf)
+	`, orgID, projectName, name, backupEnabled, tier, region, tagsConf.String())
 }
 
 func configWithPrivateEndpointLink(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, clusterName string) string {
