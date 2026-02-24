@@ -117,10 +117,6 @@ linters:
         text: var-naming|exceeds the maximum|regexpSimplify
       - linters:
           - gosec
-        text: "G602:" # Slice bounds in alertconfiguration are safe; state and API slices are same length.
-        path: internal/service/alertconfiguration/
-      - linters:
-          - gosec
         text: "G70[3456]:" # Taint analysis false positives in test utilities, tools, and config.
         path: '(tools/|internal/(testutil|config)/)'
       - linters:

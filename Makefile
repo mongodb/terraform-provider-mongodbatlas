@@ -37,8 +37,10 @@ fix: ## Fix, format, and build Go code (default target)
 verify: ## Verify Go code without modifying files. Usage: make verify [files="file1.go file2.go"]
 	@bad_fmt=$$(gofmt -l -s $(or $(files),.)); \
 	if [ -n "$$bad_fmt" ]; then echo "ERROR: gofmt issues:"; echo "$$bad_fmt"; exit 1; fi
-	golangci-lint run $(files)
-ifndef files
+ifdef files
+	golangci-lint run $(addsuffix ...,$(sort $(dir $(files))))
+else
+	golangci-lint run
 	go mod tidy -diff
 endif
 
