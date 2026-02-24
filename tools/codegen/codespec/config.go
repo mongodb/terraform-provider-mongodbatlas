@@ -25,6 +25,7 @@ func ApplyTransformationsToResource(resourceConfig *config.Resource, resource *R
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
 	applyAliasToDiscriminator(resourceConfig.SchemaOptions.Aliases, resource.Schema.Discriminator, &resource.Schema.Attributes)
+	applyIgnoreValidatorsToDiscriminators(resource.Schema.Discriminator, resource.Schema.Attributes, resourceConfig.SchemaOptions)
 	applyAliasToPathParams(&resource.Operations, resourceConfig.SchemaOptions.Aliases)
 	ApplyDeleteOnCreateTimeoutTransformation(resource)
 	ApplyTimeoutTransformation(resource)
@@ -49,6 +50,8 @@ func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSou
 
 	applyAliasToDiscriminator(dsConfig.SchemaOptions.Aliases, nil, ds.Schema.SingularDSAttributes)
 	applyAliasToDiscriminator(dsConfig.SchemaOptions.Aliases, nil, ds.Schema.PluralDSAttributes)
+	skipValidationForAllNestedDiscriminators(ds.Schema.SingularDSAttributes)
+	skipValidationForAllNestedDiscriminators(ds.Schema.PluralDSAttributes)
 	applyAliasToPathParams(&ds.Operations, dsConfig.SchemaOptions.Aliases)
 	return nil
 }
@@ -457,6 +460,80 @@ func applyAliasToDiscriminatorAttrNames(names []DiscriminatorAttrName, aliases m
 		applyAliasToDiscriminatorAttrName(&names[i], aliases, parentAPIPath)
 	}
 	sortDiscriminatorAttrNames(names)
+}
+
+func applyIgnoreValidatorsToDiscriminators(rootDisc *Discriminator, attrs Attributes, schemaOptions config.SchemaOptions) {
+	applyIgnoreValidatorsToDiscriminator(rootDisc, schemaOptions, "")
+	applyIgnoreValidatorsToNestedDiscriminators(attrs, schemaOptions, "")
+}
+
+func applyIgnoreValidatorsToDiscriminator(disc *Discriminator, schemaOptions config.SchemaOptions, parentSchemaPath string) {
+	if disc == nil {
+		return
+	}
+	overridePath := attrPathForOverrides(buildPath(parentSchemaPath, disc.PropertyName.TFSchemaName))
+	override, ok := schemaOptions.Overrides[overridePath]
+	if !ok {
+		return
+	}
+	for _, v := range override.IgnoreValidators {
+		if v == "discriminator" {
+			disc.SkipValidation = true
+		}
+	}
+}
+
+func applyIgnoreValidatorsToNestedDiscriminators(attributes Attributes, schemaOptions config.SchemaOptions, parentSchemaPath string) {
+	for i := range attributes {
+		attr := &attributes[i]
+		schemaPath := buildPath(parentSchemaPath, attr.TFSchemaName)
+
+		switch {
+		case attr.ListNested != nil:
+			applyIgnoreValidatorsToDiscriminator(attr.ListNested.NestedObject.Discriminator, schemaOptions, schemaPath)
+			applyIgnoreValidatorsToNestedDiscriminators(attr.ListNested.NestedObject.Attributes, schemaOptions, schemaPath)
+		case attr.SingleNested != nil:
+			applyIgnoreValidatorsToDiscriminator(attr.SingleNested.NestedObject.Discriminator, schemaOptions, schemaPath)
+			applyIgnoreValidatorsToNestedDiscriminators(attr.SingleNested.NestedObject.Attributes, schemaOptions, schemaPath)
+		case attr.SetNested != nil:
+			applyIgnoreValidatorsToDiscriminator(attr.SetNested.NestedObject.Discriminator, schemaOptions, schemaPath)
+			applyIgnoreValidatorsToNestedDiscriminators(attr.SetNested.NestedObject.Attributes, schemaOptions, schemaPath)
+		case attr.MapNested != nil:
+			applyIgnoreValidatorsToDiscriminator(attr.MapNested.NestedObject.Discriminator, schemaOptions, schemaPath)
+			applyIgnoreValidatorsToNestedDiscriminators(attr.MapNested.NestedObject.Attributes, schemaOptions, schemaPath)
+		}
+	}
+}
+
+// skipValidationForAllNestedDiscriminators unconditionally sets SkipValidation on every
+// discriminator found in the attribute tree. Used for data sources where validators are never emitted.
+func skipValidationForAllNestedDiscriminators(attributes *Attributes) {
+	if attributes == nil {
+		return
+	}
+	for i := range *attributes {
+		attr := &(*attributes)[i]
+		switch {
+		case attr.ListNested != nil:
+			skipDiscriminator(attr.ListNested.NestedObject.Discriminator)
+			skipValidationForAllNestedDiscriminators(&attr.ListNested.NestedObject.Attributes)
+		case attr.SingleNested != nil:
+			skipDiscriminator(attr.SingleNested.NestedObject.Discriminator)
+			skipValidationForAllNestedDiscriminators(&attr.SingleNested.NestedObject.Attributes)
+		case attr.SetNested != nil:
+			skipDiscriminator(attr.SetNested.NestedObject.Discriminator)
+			skipValidationForAllNestedDiscriminators(&attr.SetNested.NestedObject.Attributes)
+		case attr.MapNested != nil:
+			skipDiscriminator(attr.MapNested.NestedObject.Discriminator)
+			skipValidationForAllNestedDiscriminators(&attr.MapNested.NestedObject.Attributes)
+		}
+	}
+}
+
+func skipDiscriminator(disc *Discriminator) {
+	if disc != nil {
+		disc.SkipValidation = true
+	}
 }
 
 // tagsAndLabelsAsMapTypeTransformation transforms attributes that represent collections of key/value pairs (tags and labels) from a nested list of objects into a Map type.
