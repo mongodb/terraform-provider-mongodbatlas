@@ -25,7 +25,6 @@ jobs:
       - name: Setup, build and verify
         run: make tools build verify
   unit-test:
-    needs: build
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # Needed by sticky-pull-request-comment
@@ -48,13 +47,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - name: Run ShellCheck
-        uses: bewuethr/shellcheck-action@80bac2daa9fcf95d648200a793d00060857e6dc4
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+        with:
+          go-version-file: 'go.mod'
       - name: actionlint
         run: |
           make tools
           echo "::add-matcher::.github/actionlint-matcher.json"
           actionlint -color
+      - name: Run ShellCheck
+        uses: bewuethr/shellcheck-action@80bac2daa9fcf95d648200a793d00060857e6dc4
   generate-doc-check:
     runs-on: ubuntu-latest
     permissions: {}
