@@ -1,5 +1,6 @@
 package conversion
 
+//go:fix inline
 func Pointer[T any](x T) *T {
 	return new(x)
 }
