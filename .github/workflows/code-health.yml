@@ -18,12 +18,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-    - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
-      with:
-        go-version-file: 'go.mod'
-    - name: Build
-      run: make build
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+        with:
+          go-version-file: 'go.mod'
+      - name: Setup, build and verify
+        run: make tools build verify
   unit-test:
     needs: build
     runs-on: ubuntu-latest
@@ -42,34 +42,19 @@ jobs:
           go-version-file: 'go.mod'
       - name: Unit Test
         run: make test
-  lint:
+  github-linters:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - name: Install Go
-        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
-        with:
-          go-version-file: 'go.mod'
-          cache: false # see https://github.com/golangci/golangci-lint-action/issues/807
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20
-        with:
-          version: v2.10.0 # Also update GOLANGCI_VERSION variable in Makefile when updating this version
+      - name: Run ShellCheck
+        uses: bewuethr/shellcheck-action@80bac2daa9fcf95d648200a793d00060857e6dc4
       - name: actionlint
         run: |
           make tools
           echo "::add-matcher::.github/actionlint-matcher.json"
           actionlint -color
-        shell: bash  
-  shellcheck:
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - name: Run ShellCheck
-        uses: bewuethr/shellcheck-action@80bac2daa9fcf95d648200a793d00060857e6dc4
   generate-doc-check:
     runs-on: ubuntu-latest
     permissions: {}
@@ -87,18 +72,8 @@ jobs:
           echo "::error::Files were changed during build (see build log). If this was triggered from a fork, you will need to update your branch."
           cat doc.repo.patch
           exit 1
-  verify:
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
-        with:
-          go-version-file: 'go.mod'
-      - name: Verify
-        run: make tools verify
   call-acceptance-tests-workflow:
-    needs: [build, lint, shellcheck, unit-test, generate-doc-check, verify]
+    needs: [build, github-linters, unit-test, generate-doc-check]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
