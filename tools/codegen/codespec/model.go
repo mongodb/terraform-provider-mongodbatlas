@@ -109,8 +109,9 @@ type DiscriminatorAttrName struct {
 }
 
 type Discriminator struct {
-	Mapping      map[string]DiscriminatorType `yaml:"mapping"`
-	PropertyName DiscriminatorAttrName        `yaml:"property_name"`
+	Mapping        map[string]DiscriminatorType `yaml:"mapping"`
+	PropertyName   DiscriminatorAttrName        `yaml:"property_name"`
+	SkipValidation bool                         `yaml:"skip_validation,omitempty"`
 }
 
 type DiscriminatorType struct {

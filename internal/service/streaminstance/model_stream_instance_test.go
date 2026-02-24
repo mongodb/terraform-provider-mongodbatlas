@@ -32,17 +32,17 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 		{
 			name: "Complete SDK response",
 			SDKResp: &admin.StreamsTenant{
-				Id: admin.PtrString(dummyStreamInstanceID),
+				Id: new(dummyStreamInstanceID),
 				DataProcessRegion: &admin.StreamsDataProcessRegion{
 					CloudProvider: cloudProvider,
 					Region:        region,
 				},
 				StreamConfig: &admin.StreamConfig{
-					Tier: admin.PtrString(tier),
+					Tier: new(tier),
 				},
-				GroupId:   admin.PtrString(dummyProjectID),
+				GroupId:   new(dummyProjectID),
 				Hostnames: hostnames,
-				Name:      admin.PtrString(instanceName),
+				Name:      new(instanceName),
 			},
 			expectedTFModel: &streaminstance.TFStreamInstanceModel{
 				ID:                types.StringValue(dummyStreamInstanceID),
@@ -56,9 +56,9 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 		{
 			name: "Empty hostnames, streamConfig and dataProcessRegion in response", // should never happen, but verifying it is handled gracefully
 			SDKResp: &admin.StreamsTenant{
-				Id:      admin.PtrString(dummyStreamInstanceID),
-				GroupId: admin.PtrString(dummyProjectID),
-				Name:    admin.PtrString(instanceName),
+				Id:      new(dummyStreamInstanceID),
+				GroupId: new(dummyProjectID),
+				Name:    new(instanceName),
 			},
 			expectedTFModel: &streaminstance.TFStreamInstanceModel{
 				ID:                types.StringValue(dummyStreamInstanceID),
@@ -98,20 +98,20 @@ func TestStreamInstancesSDKToTFModel(t *testing.T) {
 			SDKResp: &admin.PaginatedApiStreamsTenant{
 				Results: &[]admin.StreamsTenant{
 					{
-						Id: admin.PtrString(dummyStreamInstanceID),
+						Id: new(dummyStreamInstanceID),
 						DataProcessRegion: &admin.StreamsDataProcessRegion{
 							CloudProvider: cloudProvider,
 							Region:        region,
 						},
-						GroupId:   admin.PtrString(dummyProjectID),
+						GroupId:   new(dummyProjectID),
 						Hostnames: hostnames,
-						Name:      admin.PtrString(instanceName),
+						Name:      new(instanceName),
 						StreamConfig: &admin.StreamConfig{
-							Tier: admin.PtrString(tier),
+							Tier: new(tier),
 						},
 					},
 				},
-				TotalCount: admin.PtrInt(1),
+				TotalCount: new(1),
 			},
 			providedConfig: &streaminstance.TFStreamInstancesModel{
 				ProjectID:    types.StringValue(dummyProjectID),
@@ -139,7 +139,7 @@ func TestStreamInstancesSDKToTFModel(t *testing.T) {
 			name: "Without defining page options",
 			SDKResp: &admin.PaginatedApiStreamsTenant{
 				Results:    &[]admin.StreamsTenant{},
-				TotalCount: admin.PtrInt(0),
+				TotalCount: new(0),
 			},
 			providedConfig: &streaminstance.TFStreamInstancesModel{
 				ProjectID: types.StringValue(dummyProjectID),
@@ -189,10 +189,10 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 					CloudProvider: cloudProvider,
 					Region:        region,
 				},
-				GroupId: admin.PtrString(dummyProjectID),
-				Name:    admin.PtrString(instanceName),
+				GroupId: new(dummyProjectID),
+				Name:    new(instanceName),
 				StreamConfig: &admin.StreamConfig{
-					Tier: admin.PtrString(tier),
+					Tier: new(tier),
 				},
 			},
 		},
@@ -208,8 +208,8 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 					CloudProvider: cloudProvider,
 					Region:        region,
 				},
-				GroupId: admin.PtrString(dummyProjectID),
-				Name:    admin.PtrString(instanceName),
+				GroupId: new(dummyProjectID),
+				Name:    new(instanceName),
 			},
 		},
 	}

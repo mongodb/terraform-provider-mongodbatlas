@@ -19,7 +19,7 @@ Link to any related issue(s):
 - [ ] I have checked that this change does not generate any credentials and that **they are NOT accidentally logged anywhere**.
 - [ ] I have added tests that prove my fix is effective or that my feature works per HashiCorp requirements
 - [ ] I have added any necessary documentation (if appropriate)
-- [ ] I have run make fmt and formatted my code
+- [ ] I have run make fix and verified my code
 - [ ] If changes include deprecations or removals I have added appropriate changelog entries.
 - [ ] If changes include removal or addition of 3rd party GitHub actions, I updated our internal document. Reach out to the APIx Integration slack channel to get access to the internal document.
 

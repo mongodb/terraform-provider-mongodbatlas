@@ -31,7 +31,7 @@ func Unmarshal(raw []byte, model any) error {
 
 func unmarshalAttrs(objJSON map[string]any, model any) error {
 	valModel := reflect.ValueOf(model)
-	if valModel.Kind() != reflect.Ptr {
+	if valModel.Kind() != reflect.Pointer {
 		panic("model must be pointer")
 	}
 	valModel = valModel.Elem()

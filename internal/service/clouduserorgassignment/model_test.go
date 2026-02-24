@@ -77,13 +77,13 @@ func TestNewTFModel_SDKToTFModel(t *testing.T) {
 	fullResp := &admin.OrgUserResponse{
 		Id:                  testUserID,
 		Username:            testUsername,
-		FirstName:           admin.PtrString(testFirstName),
-		LastName:            admin.PtrString(testLastName),
-		Country:             admin.PtrString(testCountry),
-		MobileNumber:        admin.PtrString(testMobile),
+		FirstName:           new(testFirstName),
+		LastName:            new(testLastName),
+		Country:             new(testCountry),
+		MobileNumber:        new(testMobile),
 		OrgMembershipStatus: testOrgMembershipStatus,
-		CreatedAt:           admin.PtrTime(when),
-		LastAuth:            admin.PtrTime(when.Add(-2 * time.Hour)),
+		CreatedAt:           new(when),
+		LastAuth:            new(when.Add(-2 * time.Hour)),
 		TeamIds:             &testTeamIDs,
 		Roles: admin.OrgUserRolesResponse{
 			OrgRoles: &testOrgRoles,
@@ -236,7 +236,7 @@ func TestNewTFRoles(t *testing.T) {
 				OrgRoles: &testOrgRolesMultiple,
 				GroupRoleAssignments: &[]admin.GroupRoleAssignment{
 					{
-						GroupId:    admin.PtrString(testProjectID1),
+						GroupId:    new(testProjectID1),
 						GroupRoles: &testProjectRolesSingle,
 					},
 				},

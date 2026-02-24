@@ -11,7 +11,7 @@ func CopyModel[T any](src any) *T {
 	dest := new(T)
 	valSrc := reflect.ValueOf(src)
 	valDest := reflect.ValueOf(dest)
-	if valSrc.Kind() != reflect.Ptr || valDest.Kind() != reflect.Ptr {
+	if valSrc.Kind() != reflect.Pointer || valDest.Kind() != reflect.Pointer {
 		panic("params must be pointers")
 	}
 	valSrc = valSrc.Elem()

@@ -237,14 +237,14 @@ func TestCheckErrorMessageAndStatus(t *testing.T) {
 		},
 		"FAILED status with error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
-				ErrorMessage: admin.PtrString("test err message"),
+				ErrorMessage: new("test err message"),
 				Status:       admin.PtrString(retrystrategy.RetryStrategyFailedState),
 			},
 			diags: append(defaultDiags, diag.NewErrorDiagnostic(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary, "test err message")),
 		},
 		"non-empty error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
-				ErrorMessage: admin.PtrString("private endpoint was rejected"),
+				ErrorMessage: new("private endpoint was rejected"),
 				Status:       admin.PtrString(retrystrategy.RetryStrategyPendingRecreationState),
 			},
 			diags: append(defaultDiags, diag.NewWarningDiagnostic(encryptionatrestprivateendpoint.NonEmptyErrorMessageFieldSummary, "private endpoint was rejected")),
@@ -258,14 +258,14 @@ func TestCheckErrorMessageAndStatus(t *testing.T) {
 		},
 		"empty error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
-				ErrorMessage: admin.PtrString(""),
+				ErrorMessage: new(""),
 				Status:       admin.PtrString(retrystrategy.RetryStrategyActiveState),
 			},
 			diags: defaultDiags,
 		},
 		"pending acceptance status": {
 			SDKResp: &admin.EARPrivateEndpoint{
-				ErrorMessage: admin.PtrString(""),
+				ErrorMessage: new(""),
 				Status:       admin.PtrString(retrystrategy.RetryStrategyPendingAcceptanceState),
 			},
 			diags: append(defaultDiags, diag.NewWarningDiagnostic(encryptionatrestprivateendpoint.PendingAcceptanceWarnMsgSummary, encryptionatrestprivateendpoint.PendingAcceptanceWarnMsg)),
@@ -345,8 +345,8 @@ func checkBasic(projectID, cloudProvider, region string, expectApproved bool) re
 
 	return acc.CheckRSAndDS(
 		resourceName,
-		admin.PtrString(dataSourceName),
-		admin.PtrString(pluralDataSourceName),
+		new(dataSourceName),
+		new(pluralDataSourceName),
 		attrsSet,
 		map[string]string{
 			"project_id":     projectID,

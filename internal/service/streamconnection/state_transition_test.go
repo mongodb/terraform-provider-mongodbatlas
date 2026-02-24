@@ -57,9 +57,9 @@ func TestWaitStateTransitionSuccess(t *testing.T) {
 		connectionName = "connectionName"
 	)
 	expectedConnection := &admin.StreamsConnection{
-		Name:  admin.PtrString(connectionName),
-		Type:  admin.PtrString("Kafka"),
-		State: admin.PtrString("READY"),
+		Name:  new(connectionName),
+		Type:  new("Kafka"),
+		State: new("READY"),
 	}
 	m.EXPECT().GetStreamConnection(mock.Anything, projectID, workspaceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Once()
 	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(expectedConnection, nil, nil)
@@ -78,14 +78,14 @@ func TestWaitStateTransitionPendingToReady(t *testing.T) {
 		connectionName = "connectionName"
 	)
 	pendingConnection := &admin.StreamsConnection{
-		Name:  admin.PtrString(connectionName),
-		Type:  admin.PtrString("Kafka"),
-		State: admin.PtrString("PENDING"),
+		Name:  new(connectionName),
+		Type:  new("Kafka"),
+		State: new("PENDING"),
 	}
 	readyConnection := &admin.StreamsConnection{
-		Name:  admin.PtrString(connectionName),
-		Type:  admin.PtrString("Kafka"),
-		State: admin.PtrString("READY"),
+		Name:  new(connectionName),
+		Type:  new("Kafka"),
+		State: new("READY"),
 	}
 	// First call returns PENDING, second call returns READY
 	m.EXPECT().GetStreamConnection(mock.Anything, projectID, workspaceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Times(2)
@@ -108,9 +108,9 @@ func TestWaitStateTransition404ThenReady(t *testing.T) {
 	)
 	genericErr.SetError("not found")
 	readyConnection := &admin.StreamsConnection{
-		Name:  admin.PtrString(connectionName),
-		Type:  admin.PtrString("Kafka"),
-		State: admin.PtrString("READY"),
+		Name:  new(connectionName),
+		Type:  new("Kafka"),
+		State: new("READY"),
 	}
 	// First call returns 404 (eventual consistency), second call returns READY
 	m.EXPECT().GetStreamConnection(mock.Anything, projectID, workspaceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Times(2)
@@ -154,9 +154,9 @@ func TestWaitStateTransitionFailed(t *testing.T) {
 		connectionName = "connectionName"
 	)
 	failedConnection := &admin.StreamsConnection{
-		Name:  admin.PtrString(connectionName),
-		Type:  admin.PtrString("Kafka"),
-		State: admin.PtrString("FAILED"),
+		Name:  new(connectionName),
+		Type:  new("Kafka"),
+		State: new("FAILED"),
 	}
 	m.EXPECT().GetStreamConnection(mock.Anything, projectID, workspaceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Once()
 	m.EXPECT().GetStreamConnectionExecute(mock.Anything).Once().Return(failedConnection, nil, nil)
@@ -179,8 +179,8 @@ func TestWaitStateTransitionEmptyStateAssumesReady(t *testing.T) {
 	)
 	// Connection without State field (backward compatibility with older API versions)
 	connectionWithoutState := &admin.StreamsConnection{
-		Name: admin.PtrString(connectionName),
-		Type: admin.PtrString("Kafka"),
+		Name: new(connectionName),
+		Type: new("Kafka"),
 		// State is not set
 	}
 	m.EXPECT().GetStreamConnection(mock.Anything, projectID, workspaceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Once()

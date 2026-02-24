@@ -422,7 +422,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if _, _, err := connV2.DataFederationApi.UpdateDataFederationWithParams(ctx, &admin.UpdateDataFederationApiParams{
 		GroupId:            projectID,
 		TenantName:         name,
-		SkipRoleValidation: admin.PtrBool(false),
+		SkipRoleValidation: new(false),
 		DataLakeTenant:     tenant,
 	}).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceUpdate, name, err))
@@ -584,11 +584,11 @@ func newTagSets(readPreferenceFromConfMap map[string]any) *[][]admin.DataLakeAtl
 		return new([][]admin.DataLakeAtlasStoreReadPreferenceTag)
 	}
 	var res [][]admin.DataLakeAtlasStoreReadPreferenceTag
-	for ts := 0; ts < len(tagSetsFromConf); ts++ {
+	for ts := range tagSetsFromConf {
 		tagSetFromConfMap := tagSetsFromConf[ts].(map[string]any)
 		tagsFromConfigMap := tagSetFromConfMap["tags"].([]any)
 		var atlastags []admin.DataLakeAtlasStoreReadPreferenceTag
-		for t := 0; t < len(tagsFromConfigMap); t++ {
+		for t := range tagsFromConfigMap {
 			tagFromConfMap := tagsFromConfigMap[t].(map[string]any)
 			atlastags = append(atlastags, admin.DataLakeAtlasStoreReadPreferenceTag{
 				Name:  conversion.StringPtr(tagFromConfMap["name"].(string)),

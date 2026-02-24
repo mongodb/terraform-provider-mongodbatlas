@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
@@ -376,10 +377,8 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 }
 
 func ValidateAPIKeyIsOrgOwner(roles []string) error {
-	for _, role := range roles {
-		if role == constant.OrgOwner {
-			return nil
-		}
+	if slices.Contains(roles, constant.OrgOwner) {
+		return nil
 	}
 
 	return fmt.Errorf("`role_names` for new API Key must have the ORG_OWNER role to use this resource")
