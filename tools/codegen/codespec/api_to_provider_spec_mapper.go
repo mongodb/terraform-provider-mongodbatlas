@@ -196,12 +196,13 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	}
 
 	resource := &Resource{
-		Name:         name,
-		PackageName:  strings.ReplaceAll(name, "_", ""),
-		Schema:       schema,
-		MoveState:    moveState,
-		Operations:   operations,
-		IDAttributes: resourceConfig.IDAttributes,
+		Name:          name,
+		PackageName:   strings.ReplaceAll(name, "_", ""),
+		Schema:        schema,
+		MoveState:     moveState,
+		Operations:    operations,
+		IDAttributes:  resourceConfig.IDAttributes,
+		ExpandedModel: resourceConfig.SchemaOptions.ExpandedModel,
 	}
 
 	if err := ApplyTransformationsToResource(resourceConfig, resource); err != nil {
