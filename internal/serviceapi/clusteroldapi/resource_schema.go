@@ -8,8 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customvalidator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -439,6 +441,24 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"provider_name": schema.StringAttribute{
 										Optional:            true,
 										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisions the hosts. Set dedicated clusters to `AWS`, `GCP`, `AZURE` or `TENANT`.",
+										Validators: []validator.String{
+											customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
+												Mapping: map[string]customvalidator.VariantDefinition{
+													"AWS": {
+														Allowed: []string{"analytics_auto_scaling", "analytics_specs", "auto_scaling", "read_only_specs"},
+													},
+													"AZURE": {
+														Allowed: []string{"analytics_auto_scaling", "analytics_specs", "auto_scaling", "read_only_specs"},
+													},
+													"GCP": {
+														Allowed: []string{"analytics_auto_scaling", "analytics_specs", "auto_scaling", "read_only_specs"},
+													},
+													"TENANT": {
+														Allowed: []string{"backing_provider_name"},
+													},
+												},
+											}),
+										},
 									},
 									"read_only_specs": schema.SingleNestedAttribute{
 										Computed:            true,
