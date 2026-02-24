@@ -26,7 +26,7 @@ import (
 //   - `sendnullasemptyonupdate`: Attribute is marshaled as empty value (`[]` or `{}`) if isUpdate is true (collections only).
 func Marshal(model any, isUpdate bool) ([]byte, error) {
 	valModel := reflect.ValueOf(model)
-	if valModel.Kind() != reflect.Ptr {
+	if valModel.Kind() != reflect.Pointer {
 		panic("model must be pointer")
 	}
 	valModel = valModel.Elem()

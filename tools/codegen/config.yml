@@ -675,7 +675,7 @@ resources:
           request_body_usage: "send_null_as_null_on_update" # on update if an empty array is sent the index definition is rejected with error Invalid definition: "typeSets" cannot be empty.
         # discriminator in this schema is not helpful as polymorphism is within a nested property `definition`, violating ipa/125
         type:
-          ignore_validators: [polymorphic]
+          ignore_validators: [discriminator]
 
   # Update doesn't work because API defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
   # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
@@ -715,11 +715,11 @@ resources:
       aliases:
         tenantName: name # path param name does not match the API request property
       overrides:
-        # discriminator is nested in an attribute that fully computed, follow up in CLOUDP-383599 so this filtering is done automatically
+        # discriminator is nested in an attribute that is fully computed, follow up in CLOUDP-383599 so this filtering is done automatically
         connections.type:
-          ignore_validators: [polymorphic]
+          ignore_validators: [discriminator]
         connections.schema_registry_authentication.type:
-          ignore_validators: [polymorphic]
+          ignore_validators: [discriminator]
 
   # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
   # Custom methods :startWith and :stop are not called so state attribute is not supported as Optional like in the curated resource, only as Computed.
@@ -1182,9 +1182,9 @@ resources:
             description: *project_id_description
           integration_id:
             immutable_computed: true
-          # no need for discriminator as there is currently only a single type, keep prod code exactly as it
+          # no need for discriminator as there is currently only a single type, keep prod code exactly as is
           type:
-            ignore_validators: [polymorphic]
+            ignore_validators: [discriminator]
     datasources:
       read:
         path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}

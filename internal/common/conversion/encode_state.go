@@ -49,9 +49,9 @@ func DecodeStateID(stateID string) map[string]string {
 		return string(decodedString)
 	}
 	decodedValues := make(map[string]string)
-	encodedValues := strings.Split(stateID, "-")
+	encodedValues := strings.SplitSeq(stateID, "-")
 
-	for _, value := range encodedValues {
+	for value := range encodedValues {
 		keyValue := strings.Split(value, ":")
 		if len(keyValue) > 1 {
 			decodedValues[decode(keyValue[0])] = decode(keyValue[1])

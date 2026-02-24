@@ -172,7 +172,7 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 				expectedAttr := codespec.Attribute{
 					TFSchemaName:             "delete_on_create_timeout",
 					TFModelName:              "DeleteOnCreateTimeout",
-					Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(true)},
+					Bool:                     &codespec.BoolAttribute{Default: new(true)},
 					Description:              &description,
 					ReqBodyUsage:             codespec.OmitAlways,
 					CreateOnly:               true,
@@ -781,12 +781,12 @@ func TestApplyTransformationsToResource_IgnoreValidatorsTransformation(t *testin
 		expectedNested  *codespec.Discriminator
 		nestedAttrName  string
 	}{
-		"Root discriminator SkipValidation set when override has polymorphic": {
+		"Root discriminator SkipValidation set when override has discriminator": {
 			inputConfig: &config.Resource{
 				SchemaOptions: config.SchemaOptions{
 					Overrides: map[string]config.Override{
 						"type": {
-							IgnoreValidators: []string{"polymorphic"},
+							IgnoreValidators: []string{"discriminator"},
 						},
 					},
 				},
@@ -828,7 +828,7 @@ func TestApplyTransformationsToResource_IgnoreValidatorsTransformation(t *testin
 				SchemaOptions: config.SchemaOptions{
 					Overrides: map[string]config.Override{
 						"nested_obj.type": {
-							IgnoreValidators: []string{"polymorphic"},
+							IgnoreValidators: []string{"discriminator"},
 						},
 					},
 				},

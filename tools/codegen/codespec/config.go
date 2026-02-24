@@ -380,7 +380,7 @@ func ApplyDeleteOnCreateTimeoutTransformation(resource *Resource) {
 	resource.Schema.Attributes = append(resource.Schema.Attributes, Attribute{
 		TFSchemaName:             "delete_on_create_timeout",
 		TFModelName:              "DeleteOnCreateTimeout",
-		Bool:                     &BoolAttribute{Default: conversion.Pointer(true)},
+		Bool:                     &BoolAttribute{Default: new(true)},
 		Description:              conversion.StringPtr(DeleteOnCreateTimeoutDescription),
 		ReqBodyUsage:             OmitAlways,
 		CreateOnly:               true,
@@ -477,7 +477,7 @@ func applyIgnoreValidatorsToDiscriminator(disc *Discriminator, schemaOptions con
 		return
 	}
 	for _, v := range override.IgnoreValidators {
-		if v == "polymorphic" {
+		if v == "discriminator" {
 			disc.SkipValidation = true
 		}
 	}
