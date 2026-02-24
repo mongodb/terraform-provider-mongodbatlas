@@ -139,7 +139,7 @@ func configBasic(projectID, name string, entries []testEntry) string {
 	var entriesStr strings.Builder
 	resourceNames := []string{}
 	for i, entry := range entries {
-		entriesStr.WriteString(fmt.Sprintf(`
+		fmt.Fprintf(&entriesStr, `
 			resource "mongodbatlas_project_service_account_access_list_entry" "test_%[1]d" {
 				project_id = %[2]q
 				client_id  = mongodbatlas_project_service_account.test.client_id
@@ -152,7 +152,7 @@ func configBasic(projectID, name string, entries []testEntry) string {
 				%[3]s
 				depends_on = [mongodbatlas_project_service_account_access_list_entry.test_%[1]d]
 			}
-		`, i, projectID, entry.hclStr()))
+		`, i, projectID, entry.hclStr())
 		resourceNames = append(resourceNames, fmt.Sprintf("%s_%d", resourceName, i))
 	}
 

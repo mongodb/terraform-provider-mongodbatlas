@@ -1890,12 +1890,12 @@ func configRedactClientLogData(orgID, projectName, clusterName string, redactCli
 func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabled, tier, region string, labels []matlas.Label) string {
 	var labelsConf strings.Builder
 	for _, label := range labels {
-		labelsConf.WriteString(fmt.Sprintf(`
+		fmt.Fprintf(&labelsConf, `
 			labels {
 				key   = %q
 				value = %q
 			}
-		`, label.Key, label.Value))
+		`, label.Key, label.Value)
 	}
 
 	return fmt.Sprintf(`
@@ -1928,12 +1928,12 @@ func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabl
 func configWithTags(orgID, projectName, name, backupEnabled, tier, region string, tags []matlas.Tag) string {
 	var tagsConf strings.Builder
 	for _, label := range tags {
-		tagsConf.WriteString(fmt.Sprintf(`
+		fmt.Fprintf(&tagsConf, `
 			tags {
 				key   = "%s"
 				value = "%s"
 			}
-		`, label.Key, label.Value))
+		`, label.Key, label.Value)
 	}
 
 	return fmt.Sprintf(`

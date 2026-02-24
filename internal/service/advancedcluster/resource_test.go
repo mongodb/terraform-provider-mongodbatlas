@@ -1393,8 +1393,8 @@ func configWithKeyValueBlocks(t *testing.T, orgID, projectName, clusterName, blo
 	if len(blocks) > 0 {
 		var keyValuePairs strings.Builder
 		for _, block := range blocks {
-			keyValuePairs.WriteString(fmt.Sprintf(`
-				%[1]q = %[2]q`, block["key"], block["value"]))
+			fmt.Fprintf(&keyValuePairs, `
+				%[1]q = %[2]q`, block["key"], block["value"])
 		}
 		extraConfig = fmt.Sprintf(`
 			%[1]s = {

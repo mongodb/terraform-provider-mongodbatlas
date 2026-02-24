@@ -779,30 +779,30 @@ func configWithMultiple(orgID, projectName string, inheritedRole, testRole *admi
 
 			// get the resources
 			for _, r := range a.GetResources() {
-				resources.WriteString(fmt.Sprintf(`
+				fmt.Fprintf(&resources, `
 					resources {
 						collection_name = ""
 						database_name   = "%s"
 					}
-			`, r.Db))
+			`, r.Db)
 			}
 
 			// get the actions and set the resources
-			actions.WriteString(fmt.Sprintf(`
+			fmt.Fprintf(&actions, `
 				actions {
 					action = "%s"
 					%s
 				}
-			`, a.Action, resources.String()))
+			`, a.Action, resources.String())
 		}
 
 		for _, in := range customRole.GetInheritedRoles() {
-			inheritedRoles.WriteString(fmt.Sprintf(`
+			fmt.Fprintf(&inheritedRoles, `
 				inherited_roles {
 					role_name     = "%s"
 					database_name = "%s"
 				}
-			`, in.Role, in.Db))
+			`, in.Role, in.Db)
 		}
 
 		return map[string]string{

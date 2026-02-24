@@ -505,7 +505,7 @@ func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON string, t
 		if i > 0 {
 			typesStr.WriteString(",")
 		}
-		typesStr.WriteString(fmt.Sprintf("jsonencode(%s)", t))
+		fmt.Fprintf(&typesStr, "jsonencode(%s)", t)
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index_api" "test" {

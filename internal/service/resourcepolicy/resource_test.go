@@ -198,13 +198,13 @@ func configWithPolicyBodies(orgID, policyName string, description *string, bodie
 
 	var policies strings.Builder
 	for _, body := range bodies {
-		policies.WriteString(fmt.Sprintf(`
+		fmt.Fprintf(&policies, `
 		{
 			body = <<EOF
 			%s
 			EOF
 		},
-		`, body))
+		`, body)
 	}
 	return fmt.Sprintf(`
 resource "mongodbatlas_resource_policy" "test" {

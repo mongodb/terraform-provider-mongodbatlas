@@ -86,7 +86,7 @@ func configBasic(orgID string, projectIDs, roles []string) string {
 	var assignmentsStr strings.Builder
 	resourceNames := []string{}
 	for i, projectID := range projectIDs {
-		assignmentsStr.WriteString(fmt.Sprintf(`
+		fmt.Fprintf(&assignmentsStr, `
 			resource "mongodbatlas_service_account_project_assignment" "test_%[1]d" {
 				client_id  = mongodbatlas_service_account.test.client_id
 				project_id = %[2]q
@@ -98,7 +98,7 @@ func configBasic(orgID string, projectIDs, roles []string) string {
 			  project_id = %[2]q
 			  depends_on = [mongodbatlas_service_account_project_assignment.test_%[1]d]
 			}
-		`, i, projectID, rolesStr))
+		`, i, projectID, rolesStr)
 		resourceNames = append(resourceNames, fmt.Sprintf("%s_%d", resourceName, i))
 	}
 

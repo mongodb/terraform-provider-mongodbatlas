@@ -1290,12 +1290,12 @@ func configWithLimits(orgID, projectName string, limits []*admin.DataFederationL
 	var limitsString strings.Builder
 
 	for _, limit := range limits {
-		limitsString.WriteString(fmt.Sprintf(`
+		fmt.Fprintf(&limitsString, `
 		limits {
 			name = %[1]q
 			value = %[2]d
 		}
-		`, limit.Name, limit.Value))
+		`, limit.Name, limit.Value)
 	}
 
 	return fmt.Sprintf(`

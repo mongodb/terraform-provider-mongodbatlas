@@ -119,11 +119,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			}
 
 			if isCustomShardKeyHashed, okCustomShard := mn["is_custom_shard_key_hashed"]; okCustomShard {
-				req.IsCustomShardKeyHashed = new(bool(isCustomShardKeyHashed.(bool)))
+				req.IsCustomShardKeyHashed = new(isCustomShardKeyHashed.(bool))
 			}
 
 			if isShardKeyUnique, okShard := mn["is_shard_key_unique"]; okShard {
-				req.IsShardKeyUnique = new(bool(isShardKeyUnique.(bool)))
+				req.IsShardKeyUnique = new(isShardKeyUnique.(bool))
 			}
 
 			err := retry.RetryContext(ctx, 2*time.Minute, func() *retry.RetryError {
@@ -366,10 +366,10 @@ func addManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, add []an
 			CustomShardKey: mn["custom_shard_key"].(string),
 		}
 		if isCustomShardKeyHashed, okCustomShard := mn["is_custom_shard_key_hashed"]; okCustomShard {
-			addManagedNamespace.IsCustomShardKeyHashed = new(bool(isCustomShardKeyHashed.(bool)))
+			addManagedNamespace.IsCustomShardKeyHashed = new(isCustomShardKeyHashed.(bool))
 		}
 		if isShardKeyUnique, okShard := mn["is_shard_key_unique"]; okShard {
-			addManagedNamespace.IsShardKeyUnique = new(bool(isShardKeyUnique.(bool)))
+			addManagedNamespace.IsShardKeyUnique = new(isShardKeyUnique.(bool))
 		}
 		_, _, err := connV2.GlobalClustersApi.CreateManagedNamespace(ctx, projectID, clusterName, addManagedNamespace).Execute()
 		if err != nil {
