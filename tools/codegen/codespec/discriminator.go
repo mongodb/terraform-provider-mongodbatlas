@@ -1,9 +1,9 @@
 package codespec
 
 import (
-	"cmp"
 	"context"
 	"slices"
+	"sort"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/pb33f/libopenapi/orderedmap"
@@ -202,7 +202,7 @@ func unionDiscriminatorAttrNames(a, b []DiscriminatorAttrName) []DiscriminatorAt
 }
 
 func sortDiscriminatorAttrNames(names []DiscriminatorAttrName) {
-	slices.SortFunc(names, func(a, b DiscriminatorAttrName) int {
-		return cmp.Compare(a.TFSchemaName, b.TFSchemaName)
+	sort.Slice(names, func(i, j int) bool {
+		return names[i].TFSchemaName < names[j].TFSchemaName
 	})
 }

@@ -130,10 +130,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.BindPassword = v.(string)
 	}
 	if v, ok := d.GetOk("ca_certificate"); ok {
-		params.CaCertificate = new(v.(string))
+		params.CaCertificate = conversion.Pointer(v.(string))
 	}
 	if v, ok := d.GetOk("authz_query_template"); ok {
-		params.AuthzQueryTemplate = new(v.(string))
+		params.AuthzQueryTemplate = conversion.Pointer(v.(string))
 	}
 
 	ldap, _, err := connV2.LDAPConfigurationApi.VerifyUserSecurityLdap(ctx, projectID, params).Execute()

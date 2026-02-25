@@ -1,8 +1,7 @@
 package codespec
 
 import (
-	"cmp"
-	"slices"
+	"sort"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 )
@@ -200,8 +199,8 @@ func updateNestedComputabilityAndReqBodyUsage(attrs *Attributes, parentIsCompute
 }
 
 func sortAttributes(attrs Attributes) {
-	slices.SortFunc(attrs, func(a, b Attribute) int {
-		return cmp.Compare(a.TFSchemaName, b.TFSchemaName)
+	sort.Slice(attrs, func(i, j int) bool {
+		return attrs[i].TFSchemaName < attrs[j].TFSchemaName
 	})
 }
 

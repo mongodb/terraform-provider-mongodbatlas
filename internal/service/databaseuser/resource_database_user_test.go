@@ -492,7 +492,7 @@ func checkAttrs(projectID, username, authDBName string, extraAttrs map[string]st
 		"auth_database_name": authDBName,
 	}
 	maps.Copy(attrsMap, extraAttrs)
-	check := acc.CheckRSAndDS(resourceName, new(dataSourceName), nil, nil, attrsMap, extra...)
+	check := acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil, nil, attrsMap, extra...)
 	checks := slices.Concat(extra, []resource.TestCheckFunc{check, checkExists(resourceName)})
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }

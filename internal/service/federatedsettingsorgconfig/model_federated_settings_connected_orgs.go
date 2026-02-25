@@ -1,28 +1,23 @@
 package federatedsettingsorgconfig
 
 import (
-	"cmp"
-	"slices"
+	"sort"
+	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
-func compareRoleMappingsByGroupName(a, b admin.AuthFederationRoleMapping) int {
-	return cmp.Compare(a.ExternalGroupName, b.ExternalGroupName)
-}
+type roleMappingsByGroupName []admin.AuthFederationRoleMapping
 
-func compareRoleAssignment(a, b admin.ConnectedOrgConfigRoleAssignment) int {
-	if c := cmp.Compare(a.GetOrgId(), b.GetOrgId()); c != 0 {
-		return c
-	}
-	if c := cmp.Compare(a.GetGroupId(), b.GetGroupId()); c != 0 {
-		return c
-	}
-	return cmp.Compare(a.GetRole(), b.GetRole())
+func (ra roleMappingsByGroupName) Len() int      { return len(ra) }
+func (ra roleMappingsByGroupName) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
+
+func (ra roleMappingsByGroupName) Less(i, j int) bool {
+	return ra[i].ExternalGroupName < ra[j].ExternalGroupName
 }
 
 func FlattenRoleMappings(roleMappings []admin.AuthFederationRoleMapping) []map[string]any {
-	slices.SortFunc(roleMappings, compareRoleMappingsByGroupName)
+	sort.Sort(roleMappingsByGroupName(roleMappings))
 
 	var roleMappingsMap []map[string]any
 
@@ -41,8 +36,28 @@ func FlattenRoleMappings(roleMappings []admin.AuthFederationRoleMapping) []map[s
 	return roleMappingsMap
 }
 
+type mRoleAssignment []admin.ConnectedOrgConfigRoleAssignment
+
+func (ra mRoleAssignment) Len() int      { return len(ra) }
+func (ra mRoleAssignment) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
+func (ra mRoleAssignment) Less(i, j int) bool {
+	compareVal := strings.Compare(ra[i].GetOrgId(), ra[j].GetOrgId())
+
+	if compareVal != 0 {
+		return compareVal < 0
+	}
+
+	compareVal = strings.Compare(ra[i].GetGroupId(), ra[j].GetGroupId())
+
+	if compareVal != 0 {
+		return compareVal < 0
+	}
+
+	return ra[i].GetRole() < ra[j].GetRole()
+}
+
 func FlattenRoleAssignments(roleAssignments []admin.ConnectedOrgConfigRoleAssignment) []map[string]any {
-	slices.SortFunc(roleAssignments, compareRoleAssignment)
+	sort.Sort(mRoleAssignment(roleAssignments))
 
 	var roleAssignmentsMap []map[string]any
 

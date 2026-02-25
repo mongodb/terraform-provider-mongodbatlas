@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -28,14 +29,14 @@ func TestV1xMigBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 		clusterResourceName             = clusterInfo.ResourceName
 		projectID                       = clusterInfo.ProjectID
 		copySettingsConfigWithRepSpecID = configCopySettings(terraformStr, projectID, clusterResourceName, false, true, &admin.DiskBackupSnapshotSchedule20240805{
-			ReferenceHourOfDay:    new(3),
-			ReferenceMinuteOfHour: new(45),
-			RestoreWindowDays:     new(1),
+			ReferenceHourOfDay:    conversion.Pointer(3),
+			ReferenceMinuteOfHour: conversion.Pointer(45),
+			RestoreWindowDays:     conversion.Pointer(1),
 		})
 		copySettingsConfigWithZoneID = configCopySettings(terraformStr, projectID, clusterResourceName, false, false, &admin.DiskBackupSnapshotSchedule20240805{
-			ReferenceHourOfDay:    new(3),
-			ReferenceMinuteOfHour: new(45),
-			RestoreWindowDays:     new(1),
+			ReferenceHourOfDay:    conversion.Pointer(3),
+			ReferenceMinuteOfHour: conversion.Pointer(45),
+			RestoreWindowDays:     conversion.Pointer(1),
 		})
 		checkMap = map[string]string{
 			"cluster_name":                             clusterName,

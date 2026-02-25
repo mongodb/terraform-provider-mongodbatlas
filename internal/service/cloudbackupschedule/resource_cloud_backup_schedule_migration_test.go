@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -18,9 +19,9 @@ func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 		useYearly   = mig.IsProviderVersionAtLeast("1.16.0") // attribute introduced in this version
 		config      = configNewPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule20240805{
-			ReferenceHourOfDay:    new(0),
-			ReferenceMinuteOfHour: new(0),
-			RestoreWindowDays:     new(7),
+			ReferenceHourOfDay:    conversion.Pointer(0),
+			ReferenceMinuteOfHour: conversion.Pointer(0),
+			RestoreWindowDays:     conversion.Pointer(7),
 		}, useYearly)
 	)
 

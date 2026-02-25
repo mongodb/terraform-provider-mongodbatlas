@@ -20,7 +20,7 @@ func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificatio
 			ChannelName:              n.ChannelName.ValueStringPointer(),
 			DatadogApiKey:            n.DatadogAPIKey.ValueStringPointer(),
 			DatadogRegion:            n.DatadogRegion.ValueStringPointer(),
-			DelayMin:                 new(int(n.DelayMin.ValueInt64())),
+			DelayMin:                 conversion.Pointer(int(n.DelayMin.ValueInt64())),
 			EmailAddress:             n.EmailAddress.ValueStringPointer(),
 			EmailEnabled:             n.EmailEnabled.ValueBoolPointer(),
 			IntervalMin:              conversion.Int64PtrToIntPtr(n.IntervalMin.ValueInt64Pointer()),
@@ -54,7 +54,7 @@ func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.Stream
 	return &admin.StreamProcessorMetricThreshold{
 		Operator:  v.Operator.ValueStringPointer(),
 		Units:     v.Units.ValueStringPointer(),
-		Threshold: new(v.Threshold.ValueFloat64()),
+		Threshold: conversion.Pointer(v.Threshold.ValueFloat64()),
 	}
 }
 
@@ -88,8 +88,8 @@ func NewTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currSt
 	return TfAlertConfigurationRSModel{
 		ID:                    currState.ID,
 		ProjectID:             currState.ProjectID,
-		AlertConfigurationID:  types.StringValue(conversion.SafeValue(apiRespConfig.Id)),
-		EventType:             types.StringValue(conversion.SafeValue(apiRespConfig.EventTypeName)),
+		AlertConfigurationID:  types.StringValue(conversion.SafeString(apiRespConfig.Id)),
+		EventType:             types.StringValue(conversion.SafeString(apiRespConfig.EventTypeName)),
 		Created:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Created)),
 		Updated:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Updated)),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),

@@ -155,7 +155,7 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 		streamWorkspaceName = instanceName
 	}
 
-	rID := fmt.Sprintf("%s-%s-%s", streamWorkspaceName, projID, conversion.SafeValue(apiResp.Name))
+	rID := fmt.Sprintf("%s-%s-%s", streamWorkspaceName, projID, conversion.SafeString(apiResp.Name))
 
 	connectionModel := TFStreamConnectionModel{
 		TFStreamConnectionCommonModel: TFStreamConnectionCommonModel{
@@ -318,7 +318,8 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 		}
 		return &resultObject, nil
 	}
-	return new(types.ObjectNull(ConnectionAuthenticationObjectType.AttrTypes)), nil
+	nullValue := types.ObjectNull(ConnectionAuthenticationObjectType.AttrTypes)
+	return &nullValue, nil
 }
 
 func newTFSchemaRegistryAuthentication(ctx context.Context, currAuthConfig *types.Object, authResp *admin.SchemaRegistryAuthentication) (*types.Object, diag.Diagnostics) {
@@ -342,7 +343,8 @@ func newTFSchemaRegistryAuthentication(ctx context.Context, currAuthConfig *type
 		}
 		return &resultObject, nil
 	}
-	return new(types.ObjectNull(SchemaRegistryAuthenticationObjectType.AttrTypes)), nil
+	nullValue := types.ObjectNull(SchemaRegistryAuthenticationObjectType.AttrTypes)
+	return &nullValue, nil
 }
 
 func NewTFStreamConnectionsDS(ctx context.Context,

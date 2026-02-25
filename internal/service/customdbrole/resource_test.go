@@ -126,7 +126,7 @@ func basicTestCaseWithTwoActions(t *testing.T) *resource.TestCase {
 func checkAttrs(projectID, roleName, action, databaseName string) resource.TestCheckFunc {
 	return acc.CheckRSAndDS(
 		resourceName,
-		new(dataSourceName),
+		conversion.Pointer(dataSourceName),
 		nil,
 		nil,
 		map[string]string{

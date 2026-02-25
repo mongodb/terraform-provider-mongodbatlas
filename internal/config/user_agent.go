@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"maps"
-	"slices"
+	"sort"
 	"strings"
 )
 
@@ -104,7 +104,11 @@ func (e UserAgentExtra) ToHeaderValue(ctx context.Context, oldHeader string) str
 	if partsLen == 0 {
 		return oldHeader
 	}
-	sortedKeys := slices.Sorted(maps.Keys(parts))
+	sortedKeys := make([]string, 0, partsLen)
+	for k := range parts {
+		sortedKeys = append(sortedKeys, k)
+	}
+	sort.Strings(sortedKeys)
 	newStrings := make([]string, partsLen)
 	for i, k := range sortedKeys {
 		newStrings[i] = fmt.Sprintf("%s/%s", k, parts[k])

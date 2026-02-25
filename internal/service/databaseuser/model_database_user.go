@@ -52,7 +52,7 @@ func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescri
 	if plan.Description.IsNull() && !stateDescriptionValue.Equal(plan.Description) {
 		// description is an optional attribute (i.e. null by default), if it is removed from the config during an update
 		// (i.e. user wants to remove the existing description from the database user), we send an empty string ("") as the value in API request for update (dumping null is not supported in the SDK)
-		result.Description = new("")
+		result.Description = conversion.Pointer("")
 	}
 	return &result, nil
 }

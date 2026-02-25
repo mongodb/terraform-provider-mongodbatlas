@@ -117,7 +117,7 @@ func getProjectIDNameFromStateObj(diags *diag.Diagnostics, stateObj map[string]t
 	name = schemafunc.GetAttrFromStateObj[string](stateObj, "name")
 	if !conversion.IsStringPresent(projectID) || !conversion.IsStringPresent(name) {
 		diags.AddError("Unable to read project_id or name from state", fmt.Sprintf("project_id: %s, name: %s",
-			conversion.SafeValue(projectID), conversion.SafeValue(name)))
+			conversion.SafeString(projectID), conversion.SafeString(name)))
 		return
 	}
 	return projectID, name

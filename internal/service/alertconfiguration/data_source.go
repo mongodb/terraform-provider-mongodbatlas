@@ -3,8 +3,7 @@ package alertconfiguration
 import (
 	"context"
 	"fmt"
-	"maps"
-	"slices"
+	"sort"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -473,10 +472,18 @@ func appendBlockWithCtyValues(body *hclwrite.Body, name string, labels []string,
 		return
 	}
 
+	keys := make([]string, 0, len(values))
+
+	for key := range values {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
 	body.AppendNewline()
 	block := body.AppendNewBlock(name, labels).Body()
 
-	for _, k := range slices.Sorted(maps.Keys(values)) {
+	for _, k := range keys {
 		block.SetAttributeValue(k, values[k])
 	}
 }

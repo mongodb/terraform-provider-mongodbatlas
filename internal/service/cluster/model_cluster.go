@@ -96,7 +96,7 @@ func flattenProcessArgs(p *ProcessArgs) []map[string]any {
 			"transaction_lifetime_limit_seconds":   p.argsDefault.TransactionLifetimeLimitSeconds,
 			"minimum_enabled_tls_protocol":         p.argsDefault.MinimumEnabledTlsProtocol,
 			"tls_cipher_config_mode":               p.argsDefault.TlsCipherConfigMode,
-			"custom_openssl_cipher_config_tls12":   sliceFromStringPtr(p.argsDefault.CustomOpensslCipherConfigTls12),
+			"custom_openssl_cipher_config_tls12":   conversion.SliceFromPtr(p.argsDefault.CustomOpensslCipherConfigTls12),
 		},
 	}
 
@@ -109,17 +109,10 @@ func flattenProcessArgs(p *ProcessArgs) []map[string]any {
 	if p.clusterAdvancedConfig != nil { // For TENANT cluster type, advancedConfiguration field may not be returned from cluster APIs
 		flattenedProcessArgs[0]["minimum_enabled_tls_protocol"] = p.clusterAdvancedConfig.MinimumEnabledTLSProtocol
 		flattenedProcessArgs[0]["tls_cipher_config_mode"] = p.clusterAdvancedConfig.TLSCipherConfigMode
-		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = sliceFromStringPtr(p.clusterAdvancedConfig.CustomOpensslCipherConfigTLS12)
+		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = conversion.SliceFromPtr(p.clusterAdvancedConfig.CustomOpensslCipherConfigTLS12)
 	}
 
 	return flattenedProcessArgs
-}
-
-func sliceFromStringPtr(p *[]string) []string {
-	if p == nil {
-		return []string{}
-	}
-	return *p
 }
 
 func flattenLabels(l []matlas.Label) []map[string]any {
@@ -280,7 +273,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		res20240530.DefaultReadConcern = conversion.StringPtr(cast.ToString(p["default_read_concern"]))
 	}
 	if _, ok := d.GetOkExists("advanced_configuration.0.fail_index_key_too_long"); ok {
-		res20240530.FailIndexKeyTooLong = new(cast.ToBool(p["fail_index_key_too_long"]))
+		res20240530.FailIndexKeyTooLong = conversion.Pointer(cast.ToBool(p["fail_index_key_too_long"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.default_write_concern"); ok {
@@ -288,41 +281,41 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.javascript_enabled"); ok {
-		res.JavascriptEnabled = new(cast.ToBool(p["javascript_enabled"]))
+		res.JavascriptEnabled = conversion.Pointer(cast.ToBool(p["javascript_enabled"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.no_table_scan"); ok {
-		res.NoTableScan = new(cast.ToBool(p["no_table_scan"]))
+		res.NoTableScan = conversion.Pointer(cast.ToBool(p["no_table_scan"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.sample_size_bi_connector"); ok {
-		res.SampleSizeBIConnector = new(cast.ToInt(p["sample_size_bi_connector"]))
+		res.SampleSizeBIConnector = conversion.Pointer(cast.ToInt(p["sample_size_bi_connector"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.sample_refresh_interval_bi_connector"); ok {
-		res.SampleRefreshIntervalBIConnector = new(cast.ToInt(p["sample_refresh_interval_bi_connector"]))
+		res.SampleRefreshIntervalBIConnector = conversion.Pointer(cast.ToInt(p["sample_refresh_interval_bi_connector"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
 		if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
-			res.OplogSizeMB = new(cast.ToInt(p["oplog_size_mb"]))
+			res.OplogSizeMB = conversion.Pointer(cast.ToInt(p["oplog_size_mb"]))
 		}
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_min_retention_hours"); ok {
 		if minRetentionHours := cast.ToFloat64(p["oplog_min_retention_hours"]); minRetentionHours >= 0 {
-			res.OplogMinRetentionHours = new(cast.ToFloat64(p["oplog_min_retention_hours"]))
+			res.OplogMinRetentionHours = conversion.Pointer(cast.ToFloat64(p["oplog_min_retention_hours"]))
 		}
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.transaction_lifetime_limit_seconds"); ok {
 		if transactionLifetimeLimitSeconds := cast.ToInt64(p["transaction_lifetime_limit_seconds"]); transactionLifetimeLimitSeconds > 0 {
-			res.TransactionLifetimeLimitSeconds = new(cast.ToInt64(p["transaction_lifetime_limit_seconds"]))
+			res.TransactionLifetimeLimitSeconds = conversion.Pointer(cast.ToInt64(p["transaction_lifetime_limit_seconds"]))
 		}
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && IsChangeStreamOptionsMinRequiredMajorVersion(mongodbMajorVersion) {
-		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = new(cast.ToInt(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
+		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(cast.ToInt(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
 	}
 
 	return res20240530, res
@@ -389,7 +382,7 @@ func expandReplicationSpecs(d *schema.ResourceData) ([]matlas.ReplicationSpec, e
 
 			rSpec := matlas.ReplicationSpec{
 				ID:            id,
-				NumShards:     new(cast.ToInt64(spec["num_shards"])),
+				NumShards:     conversion.Pointer(cast.ToInt64(spec["num_shards"])),
 				ZoneName:      cast.ToString(spec["zone_name"]),
 				RegionsConfig: regionsConfig,
 			}
@@ -435,10 +428,10 @@ func expandRegionsConfig(regions []any, originalRegion, replaceRegion string) (m
 		}
 
 		regionsConfig[r] = matlas.RegionsConfig{
-			AnalyticsNodes: new(cast.ToInt64(region["analytics_nodes"])),
-			ElectableNodes: new(cast.ToInt64(region["electable_nodes"])),
-			Priority:       new(cast.ToInt64(region["priority"])),
-			ReadOnlyNodes:  new(cast.ToInt64(region["read_only_nodes"])),
+			AnalyticsNodes: conversion.Pointer(cast.ToInt64(region["analytics_nodes"])),
+			ElectableNodes: conversion.Pointer(cast.ToInt64(region["electable_nodes"])),
+			Priority:       conversion.Pointer(cast.ToInt64(region["priority"])),
+			ReadOnlyNodes:  conversion.Pointer(cast.ToInt64(region["read_only_nodes"])),
 		}
 	}
 
@@ -512,9 +505,9 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		// Check if the Provider Disk IOS sets in the Terraform configuration and if the instance size name is not NVME.
 		// If it didn't, the MongoDB Atlas server would set it to the default for the amount of storage.
 		if v, ok := d.GetOk("provider_disk_iops"); ok && !strings.Contains(providerSettings.InstanceSizeName, "NVME") {
-			providerSettings.DiskIOPS = new(cast.ToInt64(v))
+			providerSettings.DiskIOPS = conversion.Pointer(cast.ToInt64(v))
 		}
-		providerSettings.EncryptEBSVolume = new(true)
+		providerSettings.EncryptEBSVolume = conversion.Pointer(true)
 	}
 	return providerSettings, nil
 }

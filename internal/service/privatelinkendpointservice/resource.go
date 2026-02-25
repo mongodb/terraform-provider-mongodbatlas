@@ -175,7 +175,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(errors.New("`private_endpoint_ip_address` must be set when `provider_name` is `AZURE`"))
 		}
 		createEndpointRequest.Id = &endpointServiceID
-		createEndpointRequest.PrivateEndpointIPAddress = new(privateEndpointIP.(string))
+		createEndpointRequest.PrivateEndpointIPAddress = conversion.Pointer(privateEndpointIP.(string))
 	case constant.GCP:
 		if !hasGCPProjectID {
 			return diag.FromErr(errors.New("`gcp_project_id` must be set for GCP"))
@@ -183,12 +183,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if hasPrivateEndpointIP == hasEndpoints {
 			return diag.FromErr(errors.New("for GCP, you must provide exactly one of: `private_endpoint_ip_address` (port-mapped architecture) or `endpoints` (GCP legacy private endpoint architecture)"))
 		}
-		createEndpointRequest.GcpProjectId = new(gcpProjectID.(string))
+		createEndpointRequest.GcpProjectId = conversion.Pointer(gcpProjectID.(string))
 		createEndpointRequest.EndpointGroupName = &endpointServiceID
 		if hasPrivateEndpointIP { // Port-mapped architecture.
 			createEndpointRequest.Endpoints = &[]admin.CreateGCPForwardingRuleRequest{
 				{
-					IpAddress:    new(privateEndpointIP.(string)),
+					IpAddress:    conversion.Pointer(privateEndpointIP.(string)),
 					EndpointName: &endpointServiceID,
 				},
 			}
@@ -454,10 +454,10 @@ func expandGCPEndpoint(tfMap map[string]any) admin.CreateGCPForwardingRuleReques
 	apiObject := admin.CreateGCPForwardingRuleRequest{}
 
 	if v, ok := tfMap["endpoint_name"]; ok {
-		apiObject.EndpointName = new(v.(string))
+		apiObject.EndpointName = conversion.Pointer(v.(string))
 	}
 	if v, ok := tfMap["ip_address"]; ok {
-		apiObject.IpAddress = new(v.(string))
+		apiObject.IpAddress = conversion.Pointer(v.(string))
 	}
 
 	return apiObject

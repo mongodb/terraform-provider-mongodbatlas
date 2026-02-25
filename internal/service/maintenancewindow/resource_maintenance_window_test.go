@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -19,12 +20,12 @@ const resourceName = "mongodbatlas_maintenance_window.test"
 
 var (
 	defaultProtectedHours = &admin.ProtectedHours{
-		StartHourOfDay: new(9),
-		EndHourOfDay:   new(17),
+		StartHourOfDay: conversion.Pointer(9),
+		EndHourOfDay:   conversion.Pointer(17),
 	}
 	updatedProtectedHours = &admin.ProtectedHours{
-		StartHourOfDay: new(10),
-		EndHourOfDay:   new(15),
+		StartHourOfDay: conversion.Pointer(10),
+		EndHourOfDay:   conversion.Pointer(15),
 	}
 )
 

@@ -2,6 +2,7 @@ package advancedcluster
 
 import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
@@ -27,7 +28,7 @@ func getUpgradeTenantRequest(state, patch *admin.ClusterDescription20240805) *ad
 	}
 	if patch.GetBackupEnabled() {
 		// ProviderBackupEnabled must be used instead of BackupEnabled for tenant upgrade request, details in CLOUDP-327109
-		req.ProviderBackupEnabled = new(true)
+		req.ProviderBackupEnabled = conversion.Pointer(true)
 	}
 	return &req
 }
@@ -53,7 +54,7 @@ func getUpgradeFlexToDedicatedRequest(state, patch *admin.ClusterDescription2024
 
 	// checking for state value as a flex cluster can already have backup enabled
 	if state.GetBackupEnabled() || patch.GetBackupEnabled() {
-		req.BackupEnabled = new(true)
+		req.BackupEnabled = conversion.Pointer(true)
 	}
 	return &req
 }

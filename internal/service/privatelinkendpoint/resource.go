@@ -143,7 +143,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if portMappingEnabled, ok := d.GetOk("port_mapping_enabled"); ok {
-		request.PortMappingEnabled = new(portMappingEnabled.(bool))
+		request.PortMappingEnabled = conversion.Pointer(portMappingEnabled.(bool))
 		if request.GetPortMappingEnabled() && providerName != constant.GCP {
 			return diag.FromErr(errors.New("port_mapping_enabled is only supported for GCP provider"))
 		}

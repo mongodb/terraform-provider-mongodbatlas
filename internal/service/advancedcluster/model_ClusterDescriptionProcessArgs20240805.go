@@ -21,7 +21,7 @@ func buildAdvancedConfigObjType(ctx context.Context, input *ProcessArgs, diags *
 		changeStreamOptionsPreAndPostImagesExpireAfterSeconds := input.ArgsDefault.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
 		if changeStreamOptionsPreAndPostImagesExpireAfterSeconds == nil {
 			// special behavior using -1 when it is unset by the user
-			changeStreamOptionsPreAndPostImagesExpireAfterSeconds = new(-1)
+			changeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(-1)
 		}
 
 		advancedConfig = TFAdvancedConfigurationModel{

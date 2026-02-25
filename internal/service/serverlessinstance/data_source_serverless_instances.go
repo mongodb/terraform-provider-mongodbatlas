@@ -42,7 +42,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	projectID := projectIDValue.(string)
 	options := &admin.ListServerlessInstancesApiParams{
 		ItemsPerPage: conversion.IntPtr(500),
-		IncludeCount: new(true),
+		IncludeCount: conversion.Pointer(true),
 		GroupId:      projectID,
 	}
 

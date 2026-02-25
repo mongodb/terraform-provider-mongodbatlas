@@ -155,7 +155,7 @@ func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID,
 		if err != nil {
 			return nil, "ERROR", err
 		}
-		status := conversion.SafeValue(searchIndex.Status)
+		status := conversion.SafeString(searchIndex.Status)
 		return searchIndex, status, nil
 	}
 }

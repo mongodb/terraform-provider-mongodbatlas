@@ -3,8 +3,6 @@ package acc
 import (
 	"errors"
 	"fmt"
-	"maps"
-	"slices"
 	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
@@ -102,7 +100,7 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 
 	if len(req.Tags) > 0 {
 		tagMap := make(map[string]cty.Value, len(req.Tags))
-		for _, key := range slices.Sorted(maps.Keys(req.Tags)) {
+		for _, key := range SortStringMapKeys(req.Tags) {
 			tagMap[key] = cty.StringVal(req.Tags[key])
 		}
 		cluster.SetAttributeValue("tags", cty.ObjectVal(tagMap))

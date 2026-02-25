@@ -141,14 +141,14 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	serverlessBackupOptions := &admin.ClusterServerlessBackupOptions{
-		ServerlessContinuousBackupEnabled: new(d.Get("continuous_backup_enabled").(bool)),
+		ServerlessContinuousBackupEnabled: conversion.Pointer(d.Get("continuous_backup_enabled").(bool)),
 	}
 
 	params := &admin.ServerlessInstanceDescriptionCreate{
 		Name:                         name,
 		ProviderSettings:             serverlessProviderSettings,
 		ServerlessBackupOptions:      serverlessBackupOptions,
-		TerminationProtectionEnabled: new(d.Get("termination_protection_enabled").(bool)),
+		TerminationProtectionEnabled: conversion.Pointer(d.Get("termination_protection_enabled").(bool)),
 	}
 
 	if _, ok := d.GetOk("tags"); ok {
@@ -178,7 +178,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params := &admin.SetServerlessAutoIndexingApiParams{
 			GroupId:     projectID,
 			ClusterName: name,
-			Enable:      new(d.Get("auto_indexing").(bool)),
+			Enable:      conversion.Pointer(d.Get("auto_indexing").(bool)),
 		}
 		_, err := connV2.PerformanceAdvisorApi.SetServerlessAutoIndexingWithParams(ctx, params).Execute()
 		if err != nil {
@@ -281,12 +281,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("termination_protection_enabled") || d.HasChange("continuous_backup_enabled") || d.HasChange("tags") {
 		serverlessBackupOptions := &admin.ClusterServerlessBackupOptions{
-			ServerlessContinuousBackupEnabled: new(d.Get("continuous_backup_enabled").(bool)),
+			ServerlessContinuousBackupEnabled: conversion.Pointer(d.Get("continuous_backup_enabled").(bool)),
 		}
 
 		params := &admin.ServerlessInstanceDescriptionUpdate{
 			ServerlessBackupOptions:      serverlessBackupOptions,
-			TerminationProtectionEnabled: new(d.Get("termination_protection_enabled").(bool)),
+			TerminationProtectionEnabled: conversion.Pointer(d.Get("termination_protection_enabled").(bool)),
 		}
 
 		if d.HasChange("tags") {
@@ -317,7 +317,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params := &admin.SetServerlessAutoIndexingApiParams{
 			GroupId:     projectID,
 			ClusterName: name,
-			Enable:      new(d.Get("auto_indexing").(bool)),
+			Enable:      conversion.Pointer(d.Get("auto_indexing").(bool)),
 		}
 		_, err := connV2.PerformanceAdvisorApi.SetServerlessAutoIndexingWithParams(ctx, params).Execute()
 		if err != nil {

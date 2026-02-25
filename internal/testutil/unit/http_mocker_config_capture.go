@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"slices"
+	"sort"
 	"strings"
 	"sync"
 	"testing"
@@ -46,7 +46,7 @@ func configureQueryVars(config *MockHTTPDataConfig) []string {
 		return nil
 	}
 	vars := config.QueryVars
-	slices.Sort(vars)
+	sort.Strings(vars)
 	return vars
 }
 

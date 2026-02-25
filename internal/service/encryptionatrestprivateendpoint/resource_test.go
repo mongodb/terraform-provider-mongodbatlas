@@ -61,10 +61,10 @@ func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *t
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 
 		awsKms = admin.AWSKMSConfiguration{
-			Enabled:                  new(true),
+			Enabled:                  conversion.Pointer(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RequirePrivateNetworking: new(true),
+			RequirePrivateNetworking: conversion.Pointer(true),
 		}
 	)
 
@@ -87,8 +87,8 @@ func basicTestCaseAzure(tb testing.TB) *resource.TestCase {
 		projectID = acc.ProjectIDExecution(tb)
 
 		azureKeyVault = &admin.AzureKeyVault{
-			Enabled:                  new(true),
-			RequirePrivateNetworking: new(true),
+			Enabled:                  conversion.Pointer(true),
+			RequirePrivateNetworking: conversion.Pointer(true),
 			AzureEnvironment:         conversion.StringPtr("AZURE"),
 			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
 			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
@@ -132,8 +132,8 @@ func TestAccEncryptionAtRestPrivateEndpoint_approveEndpointWithAzureProvider(t *
 		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
 		keyVaultName      = os.Getenv("AZURE_KEY_VAULT_NAME")
 		azureKeyVault     = &admin.AzureKeyVault{
-			Enabled:                  new(true),
-			RequirePrivateNetworking: new(true),
+			Enabled:                  conversion.Pointer(true),
+			RequirePrivateNetworking: conversion.Pointer(true),
 			AzureEnvironment:         conversion.StringPtr("AZURE"),
 			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
 			SubscriptionID:           conversion.StringPtr(subscriptionID),
@@ -183,16 +183,16 @@ func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 
 		awsKms = admin.AWSKMSConfiguration{
-			Enabled:                  new(true),
+			Enabled:                  conversion.Pointer(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RequirePrivateNetworking: new(false),
+			RequirePrivateNetworking: conversion.Pointer(false),
 		}
 		awsKmsPrivateNetworking = admin.AWSKMSConfiguration{
-			Enabled:                  new(true),
+			Enabled:                  conversion.Pointer(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RequirePrivateNetworking: new(true),
+			RequirePrivateNetworking: conversion.Pointer(true),
 		}
 		region = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
 	)

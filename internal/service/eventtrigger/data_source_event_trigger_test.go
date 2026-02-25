@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/realm/realm"
 
@@ -23,14 +24,14 @@ func TestAccEventTriggerDS_basic(t *testing.T) {
 		Name:       acc.RandomName(),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   new(false),
+		Disabled:   conversion.Pointer(false),
 		Config: &realm.EventTriggerConfig{
 			OperationTypes: []string{"INSERT", "UPDATE"},
 			Database:       "sample_airbnb",
 			Collection:     "listingsAndReviews",
 			ServiceID:      os.Getenv("MONGODB_REALM_SERVICE_ID"),
-			FullDocument:   new(false),
-			Unordered:      new(true),
+			FullDocument:   conversion.Pointer(false),
+			Unordered:      conversion.Pointer(true),
 		},
 	}
 

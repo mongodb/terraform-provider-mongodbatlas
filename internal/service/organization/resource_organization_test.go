@@ -27,10 +27,10 @@ var (
 	datasourceName = "data.mongodbatlas_organization.test"
 
 	defaultSettings = &admin.OrganizationSettings{
-		ApiAccessListRequired:   new(false),
-		MultiFactorAuthRequired: new(false),
-		RestrictEmployeeAccess:  new(false),
-		GenAIFeaturesEnabled:    new(true),
+		ApiAccessListRequired:   conversion.Pointer(false),
+		MultiFactorAuthRequired: conversion.Pointer(false),
+		RestrictEmployeeAccess:  conversion.Pointer(false),
+		GenAIFeaturesEnabled:    conversion.Pointer(true),
 	}
 )
 
@@ -56,12 +56,12 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "true")),
 			},
 			{
-				Config: configBasic(orgOwnerID, updatedName, description, roleName, true, new(false)),
+				Config: configBasic(orgOwnerID, updatedName, description, roleName, true, conversion.Pointer(false)),
 				Check: checkAggr(orgOwnerID, updatedName, description, defaultSettings,
 					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "false")),
 			},
 			{
-				Config: configBasic(orgOwnerID, updatedName, description, roleName, true, new(true)),
+				Config: configBasic(orgOwnerID, updatedName, description, roleName, true, conversion.Pointer(true)),
 				Check: checkAggr(orgOwnerID, updatedName, description, defaultSettings,
 					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "true")),
 			},
@@ -90,7 +90,7 @@ func TestAccConfigRSOrganization_BasicAccess(t *testing.T) {
 				ExpectError: regexp.MustCompile("API Key must have the ORG_OWNER role"),
 			},
 			{
-				Config: configBasic(orgOwnerID, name, description, roleNameCorrectAccess, true, new(false)),
+				Config: configBasic(orgOwnerID, name, description, roleNameCorrectAccess, true, conversion.Pointer(false)),
 				Check: checkAggr(orgOwnerID, name, description, defaultSettings,
 					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "false")),
 			},
@@ -109,17 +109,17 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 		roleName    = "ORG_OWNER"
 
 		settingsConfig = &admin.OrganizationSettings{
-			ApiAccessListRequired:   new(false),
-			MultiFactorAuthRequired: new(true),
-			GenAIFeaturesEnabled:    new(false),
+			ApiAccessListRequired:   conversion.Pointer(false),
+			MultiFactorAuthRequired: conversion.Pointer(true),
+			GenAIFeaturesEnabled:    conversion.Pointer(false),
 			SecurityContact:         conversion.StringPtr("test@mongodb.com"),
 		}
 
 		settingsConfigUpdated = &admin.OrganizationSettings{
-			ApiAccessListRequired:   new(false),
-			MultiFactorAuthRequired: new(true),
-			RestrictEmployeeAccess:  new(false),
-			GenAIFeaturesEnabled:    new(true),
+			ApiAccessListRequired:   conversion.Pointer(false),
+			MultiFactorAuthRequired: conversion.Pointer(true),
+			RestrictEmployeeAccess:  conversion.Pointer(false),
+			GenAIFeaturesEnabled:    conversion.Pointer(true),
 		}
 	)
 

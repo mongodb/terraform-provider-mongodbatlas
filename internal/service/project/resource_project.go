@@ -1,12 +1,11 @@
 package project
 
 import (
-	"cmp"
 	"context"
 	"fmt"
 	"log"
 	"reflect"
-	"slices"
+	"sort"
 	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
@@ -597,21 +596,21 @@ func UpdateProjectTeams(ctx context.Context, teamsAPI admin.TeamsApi, projectSta
 }
 
 func hasTeamsChanged(planTeams, stateTeams []TFTeamModel) bool {
-	slices.SortFunc(planTeams, func(a, b TFTeamModel) int {
-		return cmp.Compare(a.TeamID.ValueString(), b.TeamID.ValueString())
+	sort.Slice(planTeams, func(i, j int) bool {
+		return planTeams[i].TeamID.ValueString() < planTeams[j].TeamID.ValueString()
 	})
-	slices.SortFunc(stateTeams, func(a, b TFTeamModel) int {
-		return cmp.Compare(a.TeamID.ValueString(), b.TeamID.ValueString())
+	sort.Slice(stateTeams, func(i, j int) bool {
+		return stateTeams[i].TeamID.ValueString() < stateTeams[j].TeamID.ValueString()
 	})
 	return !reflect.DeepEqual(planTeams, stateTeams)
 }
 
 func hasLimitsChanged(planLimits, stateLimits []TFLimitModel) bool {
-	slices.SortFunc(planLimits, func(a, b TFLimitModel) int {
-		return cmp.Compare(a.Name.ValueString(), b.Name.ValueString())
+	sort.Slice(planLimits, func(i, j int) bool {
+		return planLimits[i].Name.ValueString() < planLimits[j].Name.ValueString()
 	})
-	slices.SortFunc(stateLimits, func(a, b TFLimitModel) int {
-		return cmp.Compare(a.Name.ValueString(), b.Name.ValueString())
+	sort.Slice(stateLimits, func(i, j int) bool {
+		return stateLimits[i].Name.ValueString() < stateLimits[j].Name.ValueString()
 	})
 	return !reflect.DeepEqual(planLimits, stateLimits)
 }

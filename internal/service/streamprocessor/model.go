@@ -175,7 +175,8 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName, w
 
 func ConvertOptionsToTF(ctx context.Context, options *admin.StreamsOptions) (*types.Object, diag.Diagnostics) {
 	if options == nil || !options.HasDlq() {
-		return new(types.ObjectNull(OptionsObjectType.AttributeTypes())), nil
+		optionsTF := types.ObjectNull(OptionsObjectType.AttributeTypes())
+		return &optionsTF, nil
 	}
 	dlqTF, diags := convertDlqToTF(ctx, options.Dlq)
 	if diags.HasError() {
@@ -193,7 +194,8 @@ func ConvertOptionsToTF(ctx context.Context, options *admin.StreamsOptions) (*ty
 
 func convertDlqToTF(ctx context.Context, dlq *admin.StreamsDLQ) (*types.Object, diag.Diagnostics) {
 	if dlq == nil {
-		return new(types.ObjectNull(DlqObjectType.AttributeTypes())), nil
+		dlqTF := types.ObjectNull(DlqObjectType.AttributeTypes())
+		return &dlqTF, nil
 	}
 	dlqModel := TFDlqModel{
 		Coll:           types.StringPointerValue(dlq.Coll),

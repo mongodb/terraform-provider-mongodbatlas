@@ -298,7 +298,7 @@ func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, arch
 			log.Printf("[DEBUG] status for MongoDB archive_id: %s: %s", archiveID, *c.State)
 		}
 
-		return c, conversion.SafeValue(c.State), nil
+		return c, conversion.SafeString(c.State), nil
 	}
 }
 
@@ -386,8 +386,8 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"archive_id":   conversion.SafeValue(outOnlineArchive.Id),
-		"cluster_name": conversion.SafeValue(outOnlineArchive.ClusterName),
+		"archive_id":   conversion.SafeString(outOnlineArchive.Id),
+		"cluster_name": conversion.SafeString(outOnlineArchive.ClusterName),
 		"project_id":   projectID,
 	}))
 
@@ -465,7 +465,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	// reading current value
 	if pausedHasChange {
-		request.Paused = new(d.Get("paused").(bool))
+		request.Paused = conversion.Pointer(d.Get("paused").(bool))
 	}
 
 	if criteriaHasChange {
@@ -600,7 +600,7 @@ func mapDataExpirationRule(d *schema.ResourceData) *admin.DataExpirationRule {
 		dataExpireRule := dataExpireRules.([]any)[0].(map[string]any)
 		result := admin.DataExpirationRule{}
 		if expireAfterDays, ok := dataExpireRule["expire_after_days"]; ok {
-			result.ExpireAfterDays = new(expireAfterDays.(int))
+			result.ExpireAfterDays = conversion.Pointer(expireAfterDays.(int))
 		}
 		return &result
 	}
@@ -612,10 +612,10 @@ func mapDataProcessRegion(d *schema.ResourceData) *admin.CreateDataProcessRegion
 		dataProcessRegion := dataProcessRegions.([]any)[0].(map[string]any)
 		result := admin.CreateDataProcessRegion{}
 		if cloudProvider, ok := dataProcessRegion["cloud_provider"]; ok {
-			result.CloudProvider = new(cloudProvider.(string))
+			result.CloudProvider = conversion.Pointer(cloudProvider.(string))
 		}
 		if region, ok := dataProcessRegion["region"]; ok {
-			result.Region = new(region.(string))
+			result.Region = conversion.Pointer(region.(string))
 		}
 		return &result
 	}
@@ -636,7 +636,7 @@ func mapCriteria(d *schema.ResourceData) admin.Criteria {
 			criteriaInput.DateField = new(dateField)
 		}
 
-		criteriaInput.ExpireAfterDays = new(criteria["expire_after_days"].(int))
+		criteriaInput.ExpireAfterDays = conversion.Pointer(criteria["expire_after_days"].(int))
 
 		// optional
 		if dformat, ok := criteria["date_format"]; ok && dformat.(string) != "" {
@@ -680,27 +680,27 @@ func mapSchedule(d *schema.ResourceData) *admin.OnlineArchiveSchedule {
 	}
 
 	if endHour, ok := scheduleTFConfig["end_hour"].(int); ok {
-		scheduleInput.EndHour = new(endHour)
+		scheduleInput.EndHour = conversion.Pointer(endHour)
 	}
 
 	if endMinute, ok := scheduleTFConfig["end_minute"].(int); ok {
-		scheduleInput.EndMinute = new(endMinute)
+		scheduleInput.EndMinute = conversion.Pointer(endMinute)
 	}
 
 	if startHour, ok := scheduleTFConfig["start_hour"].(int); ok {
-		scheduleInput.StartHour = new(startHour)
+		scheduleInput.StartHour = conversion.Pointer(startHour)
 	}
 
 	if startMinute, ok := scheduleTFConfig["start_minute"].(int); ok {
-		scheduleInput.StartMinute = new(startMinute)
+		scheduleInput.StartMinute = conversion.Pointer(startMinute)
 	}
 
 	if dayOfWeek, ok := scheduleTFConfig["day_of_week"].(int); ok && dayOfWeek != 0 { // needed to verify attribute is actually defined
-		scheduleInput.DayOfWeek = new(dayOfWeek)
+		scheduleInput.DayOfWeek = conversion.Pointer(dayOfWeek)
 	}
 
 	if dayOfMonth, ok := scheduleTFConfig["day_of_month"].(int); ok && dayOfMonth != 0 {
-		scheduleInput.DayOfMonth = new(dayOfMonth)
+		scheduleInput.DayOfMonth = conversion.Pointer(dayOfMonth)
 	}
 
 	return scheduleInput

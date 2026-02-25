@@ -221,7 +221,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 
 	for _, orgInvitation := range orgInvitations {
-		if conversion.SafeValue(orgInvitation.Username) != username {
+		if conversion.SafeString(orgInvitation.Username) != username {
 			continue
 		}
 

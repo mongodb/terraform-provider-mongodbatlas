@@ -64,7 +64,7 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 
 	if !conversion.IsStringPresent(projectID) || !conversion.IsStringPresent(instanceName) {
 		resp.Diagnostics.AddError("Unable to read project_id or instance_name from state",
-			fmt.Sprintf("project_id: %s, instance_name: %s", conversion.SafeValue(projectID), conversion.SafeValue(instanceName)))
+			fmt.Sprintf("project_id: %s, instance_name: %s", conversion.SafeString(projectID), conversion.SafeString(instanceName)))
 		return
 	}
 

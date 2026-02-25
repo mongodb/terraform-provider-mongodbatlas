@@ -2,8 +2,7 @@ package schema
 
 import (
 	"fmt"
-	"maps"
-	"slices"
+	"sort"
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
@@ -57,7 +56,12 @@ func variantDefinitionCode(key string, variant codespec.DiscriminatorType) strin
 }
 
 func sortedDiscriminatorKeys(mapping map[string]codespec.DiscriminatorType) []string {
-	return slices.Sorted(maps.Keys(mapping))
+	keys := make([]string, 0, len(mapping))
+	for k := range mapping {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 func tfSchemaNames(names []codespec.DiscriminatorAttrName) []string {

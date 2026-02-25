@@ -65,8 +65,8 @@ func newClusterAdvancedConfiguration(ctx context.Context, objInput *types.Object
 	return &admin.ApiAtlasClusterAdvancedConfiguration{
 		MinimumEnabledTlsProtocol:      conversion.NilForUnknown(inputAdvConfig.MinimumEnabledTlsProtocol, inputAdvConfig.MinimumEnabledTlsProtocol.ValueStringPointer()),
 		TlsCipherConfigMode:            conversion.NilForUnknown(inputAdvConfig.TlsCipherConfigMode, inputAdvConfig.TlsCipherConfigMode.ValueStringPointer()),
-		CustomOpensslCipherConfigTls12: new(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls12)),
-		CustomOpensslCipherConfigTls13: new(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls13)),
+		CustomOpensslCipherConfigTls12: conversion.Pointer(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls12)),
+		CustomOpensslCipherConfigTls13: conversion.Pointer(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls13)),
 	}
 }
 

@@ -65,7 +65,7 @@ var (
 		GroupId:      projectID,
 		DatabaseName: authDatabaseName,
 		Username:     username,
-		Description:  new(""),
+		Description:  conversion.Pointer(""),
 		Password:     &password,
 		X509Type:     &x509Type,
 		OidcAuthType: &oidCAuthType,
@@ -78,7 +78,7 @@ var (
 	cloudDatabaseUserWithoutPassword = &admin.CloudDatabaseUser{
 		GroupId:      projectID,
 		DatabaseName: authDatabaseName,
-		Description:  new(""),
+		Description:  conversion.Pointer(""),
 		Username:     username,
 		X509Type:     &x509Type,
 		OidcAuthType: &oidCAuthType,

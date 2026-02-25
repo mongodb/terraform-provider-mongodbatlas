@@ -124,7 +124,7 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
 					checkKafkaAttributesAcceptance(dataSourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, false),
-					streamConnectionsAttributeChecksAcceptance(pluralDataSourceName, new(2), new(1)),
+					streamConnectionsAttributeChecksAcceptance(pluralDataSourceName, conversion.Pointer(2), conversion.Pointer(1)),
 				),
 			},
 			{
@@ -162,7 +162,7 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributesMigration(resourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
 					checkKafkaAttributesMigration(dataSourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, false),
-					streamConnectionsAttributeChecksMigration(pluralDataSourceName, new(2), new(1)),
+					streamConnectionsAttributeChecksMigration(pluralDataSourceName, conversion.Pointer(2), conversion.Pointer(1)),
 				),
 			},
 			{
@@ -201,7 +201,7 @@ func TestAccStreamRSStreamConnection_kafkaOAuthBearer(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaOAuthAttributes(resourceName, connectionName, tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, method, "localhost:9093", "latest", networkingTypePublic, false, true),
 					checkKafkaOAuthAttributes(dataSourceName, connectionName, tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, method, "localhost:9093", "latest", networkingTypePublic, false, false),
-					streamConnectionsAttributeChecks(pluralDataSourceName, new(2), new(1)),
+					streamConnectionsAttributeChecks(pluralDataSourceName, conversion.Pointer(2), conversion.Pointer(1)),
 				),
 			},
 			{

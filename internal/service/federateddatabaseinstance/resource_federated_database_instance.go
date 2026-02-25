@@ -546,7 +546,7 @@ func newStores(d *schema.ResourceData) *[]admin.DataLakeStoreSettings {
 			ClusterName:              conversion.StringPtr(storeFromConfMap["cluster_name"].(string)),
 			Prefix:                   conversion.StringPtr(storeFromConfMap["prefix"].(string)),
 			Delimiter:                conversion.StringPtr(storeFromConfMap["delimiter"].(string)),
-			IncludeTags:              new(storeFromConfMap["include_tags"].(bool)),
+			IncludeTags:              conversion.Pointer(storeFromConfMap["include_tags"].(bool)),
 			AdditionalStorageClasses: newAdditionalStorageClasses(storeFromConfMap["additional_storage_classes"].([]any)),
 			ReadPreference:           newReadPreference(storeFromConfMap),
 		}
@@ -641,7 +641,7 @@ func newDataFederationDataSource(collectionFromConf map[string]any) *[]admin.Dat
 	for i, dataSourceFromConf := range dataSourcesFromConf {
 		dataSourceFromConfMap := dataSourceFromConf.(map[string]any)
 		dataSources[i] = admin.DataLakeDatabaseDataSourceSettings{
-			AllowInsecure:       new(dataSourceFromConfMap["allow_insecure"].(bool)),
+			AllowInsecure:       conversion.Pointer(dataSourceFromConfMap["allow_insecure"].(bool)),
 			Database:            conversion.StringPtr(dataSourceFromConfMap["database"].(string)),
 			Collection:          conversion.StringPtr(dataSourceFromConfMap["collection"].(string)),
 			CollectionRegex:     conversion.StringPtr(dataSourceFromConfMap["collection_regex"].(string)),

@@ -1,8 +1,8 @@
 package federatedsettingsidentityprovider
 
 import (
-	"cmp"
-	"slices"
+	"sort"
+	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 
@@ -144,18 +144,28 @@ func FlattenAssociatedOrgs(associatedOrgs []admin.ConnectedOrgConfig) []map[stri
 	return associatedOrgsMap
 }
 
-func compareRoleAssignment(a, b admin.ConnectedOrgConfigRoleAssignment) int {
-	if c := cmp.Compare(a.GetOrgId(), b.GetOrgId()); c != 0 {
-		return c
+type mRoleAssignmentV2 []admin.ConnectedOrgConfigRoleAssignment
+
+func (ra mRoleAssignmentV2) Len() int      { return len(ra) }
+func (ra mRoleAssignmentV2) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
+func (ra mRoleAssignmentV2) Less(i, j int) bool {
+	compareVal := strings.Compare(ra[i].GetOrgId(), ra[j].GetOrgId())
+
+	if compareVal != 0 {
+		return compareVal < 0
 	}
-	if c := cmp.Compare(a.GetGroupId(), b.GetGroupId()); c != 0 {
-		return c
+
+	compareVal = strings.Compare(ra[i].GetGroupId(), ra[j].GetGroupId())
+
+	if compareVal != 0 {
+		return compareVal < 0
 	}
-	return cmp.Compare(a.GetRole(), b.GetRole())
+
+	return *ra[i].Role < *ra[j].Role
 }
 
 func FlattenRoleAssignments(roleAssignments []admin.ConnectedOrgConfigRoleAssignment) []map[string]any {
-	slices.SortFunc(roleAssignments, compareRoleAssignment)
+	sort.Sort(mRoleAssignmentV2(roleAssignments))
 
 	var roleAssignmentsMap []map[string]any
 
@@ -195,12 +205,17 @@ func FlattenFederatedUser(federatedUsers []admin.FederatedUser) []map[string]any
 	return userConflictsMap
 }
 
-func compareRoleMappingsByGroupName(a, b admin.AuthFederationRoleMapping) int {
-	return cmp.Compare(a.ExternalGroupName, b.ExternalGroupName)
+type authFederationoleMappingsByGroupName []admin.AuthFederationRoleMapping
+
+func (ra authFederationoleMappingsByGroupName) Len() int      { return len(ra) }
+func (ra authFederationoleMappingsByGroupName) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
+
+func (ra authFederationoleMappingsByGroupName) Less(i, j int) bool {
+	return ra[i].ExternalGroupName < ra[j].ExternalGroupName
 }
 
 func FlattenAuthFederationRoleMapping(roleMappings []admin.AuthFederationRoleMapping) []map[string]any {
-	slices.SortFunc(roleMappings, compareRoleMappingsByGroupName)
+	sort.Sort(authFederationoleMappingsByGroupName(roleMappings))
 
 	var roleMappingsMap []map[string]any
 

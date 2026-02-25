@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
-	"slices"
+	"sort"
 	"strings"
 	"testing"
 
@@ -329,7 +329,7 @@ func (m *MockHTTPData) UpdateVariables(t *testing.T, variables map[string]string
 		}
 	}
 	if len(missingValue) > 0 {
-		slices.Sort(missingValue)
+		sort.Strings(missingValue)
 		return fmt.Errorf("missing values for variables: %v", missingValue)
 	}
 	changes := []VariableChange{}

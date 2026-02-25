@@ -413,7 +413,7 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	encodedID := conversion.EncodeStateID(map[string]string{
-		EncodedIDKeyAlertID:   conversion.SafeValue(apiResp.Id),
+		EncodedIDKeyAlertID:   conversion.SafeString(apiResp.Id),
 		EncodedIDKeyProjectID: projectID,
 	})
 	alertConfigPlan.ID = types.StringValue(encodedID)
@@ -514,8 +514,8 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 	var updatedAlertConfigResp *admin.GroupAlertsConfig
 
 	// Cannot enable/disable ONLY via update (if only send enable as changed field server returns a 500 error) so have to use different method to change enabled.
-	if reflect.DeepEqual(apiReq, &admin.GroupAlertsConfig{Enabled: new(true)}) ||
-		reflect.DeepEqual(apiReq, &admin.GroupAlertsConfig{Enabled: new(false)}) {
+	if reflect.DeepEqual(apiReq, &admin.GroupAlertsConfig{Enabled: conversion.Pointer(true)}) ||
+		reflect.DeepEqual(apiReq, &admin.GroupAlertsConfig{Enabled: conversion.Pointer(false)}) {
 		// this code seems unreachable, as notifications are always being set
 		updatedAlertConfigResp, _, err = connV2.AlertConfigurationsApi.ToggleAlertConfig(
 			ctx, ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID], &admin.AlertsToggle{Enabled: apiReq.Enabled}).Execute()
