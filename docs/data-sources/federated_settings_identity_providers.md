@@ -21,8 +21,6 @@ resource "mongodbatlas_federated_settings_identity_provider" "identity_provider"
 
 data "mongodbatlas_federated_settings_identity_providers" "identitty_provider" {
   federation_settings_id = mongodbatlas_federated_settings_identity_provider.identity_provider.id
-  page_num = 1
-  items_per_page = 5
 }
 
 ```
@@ -38,7 +36,6 @@ data "mongodbatlas_federated_settings_identity_providers" "identitty_provider" {
 In addition to all arguments above, the following attributes are exported:
 
 * `results` - Includes cloudProviderSnapshot object for each item detailed in the results array section.
-* `totalCount` - Count of the total number of items in the result set. It may be greater than the number of objects in the results array if the entire result set is paginated.
 
 ### FederatedSettingsIdentityProvider
 

@@ -39,7 +39,6 @@ data "mongodbatlas_federated_settings_org_role_mappings" "role_mappings" {
 In addition to all arguments above, the following attributes are exported:
 
 * `results` - Includes cloudProviderSnapshot object for each item detailed in the results array section.
-* `totalCount` - Count of the total number of items in the result set. It may be greater than the number of objects in the results array if the entire result set is paginated.
 
 ### FederatedSettingsOrgRoleMappings
 

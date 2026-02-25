@@ -30,7 +30,7 @@ data "mongodbatlas_shared_tier_restore_jobs" "test" {
 In addition to all arguments above, the following attributes are exported:
 
 * `results` - Includes shared tier snapshot restore job for each item detailed in the results array section.
-* `totalCount` - Count of the total number of items in the result set. It may be greater than the number of objects in the results array if the entire result set is paginated.
+* `total_count` - Count of the total number of items in the result set. It may be greater than the number of objects in the results array if the entire result set is paginated.
 
 ### Shared Tier Snapshot Restore Job
 

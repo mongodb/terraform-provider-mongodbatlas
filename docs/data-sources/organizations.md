@@ -45,7 +45,7 @@ data "mongodbatlas_organizations" "test" {
 * `id` - Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.
 * `org_membership_status` - String enum that indicates whether the MongoDB Cloud user has a pending invitation to join the organization or they are already active in the organization.
 * `roles` - Organization- and project-level roles assigned to one MongoDB Cloud user within one organization.
-* `teamIds` - List of unique 24-hexadecimal digit strings that identifies the teams to which this MongoDB Cloud user belongs.
+* `team_ids` - List of unique 24-hexadecimal digit strings that identifies the teams to which this MongoDB Cloud user belongs.
 * `username` - Email address that represents the username of the MongoDB Cloud user.
 * `country` - Two-character alphabetical string that identifies the MongoDB Cloud user's geographic location. This parameter uses the ISO 3166-1a2 code format.
 * `invitation_created_at` - Date and time when MongoDB Cloud sent the invitation. MongoDB Cloud represents this timestamp in ISO 8601 format in UTC.

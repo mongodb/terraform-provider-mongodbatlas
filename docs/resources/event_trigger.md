@@ -135,6 +135,8 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Terraform's unique identifier used internally for state management.
 * `trigger_id` - The unique ID of the trigger.
 * `function_name` - The name of the function associated with the trigger.
+* `config_full_document_before` - If true, indicates that `UPDATE` change events should include the previous revision of the modified document in the fullDocumentBeforeChange field.
+* `config_schedule_type` - The type of the scheduled trigger.
 
 ## Import
 

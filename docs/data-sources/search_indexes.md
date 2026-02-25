@@ -15,7 +15,7 @@ subcategory: "Atlas Search"
 data "mongodbatlas_search_indexes" "test" {
   project_id = "<PROJECT_ID>"
   cluster_name = "<CLUSTER_NAME>"
-  database_name ="<DATABASE_NAME>"
+  database ="<DATABASE_NAME>"
   collection_name = "<COLLECTION_NAME>"
 }
 ```
@@ -24,7 +24,7 @@ data "mongodbatlas_search_indexes" "test" {
 
 * `project_id` - (Required) Unique identifier for the [project](https://docs.atlas.mongodb.com/organizations-projects/#std-label-projects) that contains the specified cluster.
 * `cluster_name` - (Required) Name of the cluster containing the collection with one or more Atlas Search indexes.
-* `database_name` - (Required) Name of the database containing the collection with one or more Atlas Search indexes.
+* `database` - (Required) Name of the database containing the collection with one or more Atlas Search indexes.
 * `collection_name` - (Required) Name of the collection with one or more Atlas Search indexes.
 
 ## Attributes Reference
@@ -35,6 +35,7 @@ data "mongodbatlas_search_indexes" "test" {
 
 * `index_id` - The unique identifier of the Atlas Search index.
 * `name` - Name of the index.
+* `type` - Type of the index. Can be `search` or `vectorSearch`.
 * `status` - Current status of the index.
 * `analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when creating the index.
 * `analyzers` - [Custom analyzers](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/custom/#std-label-custom-analyzers) to use in this index (this is an array of objects).
@@ -48,6 +49,7 @@ data "mongodbatlas_search_indexes" "test" {
 * `synonyms.#.name` - Name of the [synonym mapping definition](https://docs.atlas.mongodb.com/reference/atlas-search/synonyms/#std-label-synonyms-ref).
 * `synonyms.#.source_collection` - Name of the source MongoDB collection for the synonyms.
 * `synonyms.#.analyzer` - Name of the [analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use with this synonym mapping.
+* `fields` - JSON string containing the index field definitions for vector search indexes.
 * `stored_source` - String that can be "true" (store all fields), "false" (default, don't store any field), or a JSON string that contains the list of fields to store (include) or not store (exclude) on Atlas Search. To learn more, see [Stored Source Fields](https://www.mongodb.com/docs/atlas/atlas-search/stored-source-definition/).
 * `type_sets` - Set of type set definitions (when present). Each item includes:
   * `name` - Type set name.

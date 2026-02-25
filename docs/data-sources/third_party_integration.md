@@ -66,7 +66,6 @@ Additional values based on Type
   * `microsoft_teams_webhook_url` -  Your Microsoft Teams incoming webhook URL.
 * `PROMETHEUS`
   * `user_name` - Your Prometheus username.
-  * `password` - Your Prometheus password.
   * `service_discovery` - Indicates which service discovery method is used, either file or http.
   * `enabled` - Whether your cluster has Prometheus enabled.
 

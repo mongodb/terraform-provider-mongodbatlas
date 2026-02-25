@@ -33,7 +33,7 @@ data "mongodbatlas_serverless_instances" "data_serverless" {
 
 * `name` - (Required) Human-readable label that identifies your serverless instance.
 * `connection_strings_standard_srv` - Public `mongodb+srv://` connection string that you can use to connect to this serverless instance.
-* `created_date` - Timestamp that indicates when MongoDB Cloud created the serverless instance. The timestamp displays in the ISO 8601 date and time format in UTC.
+* `create_date` - Timestamp that indicates when MongoDB Cloud created the serverless instance. The timestamp displays in the ISO 8601 date and time format in UTC.
 * `id` - Unique 24-hexadecimal digit string that identifies the serverless instance.
 * `mongo_db_version` - Version of MongoDB that the serverless instance runs, in `<major version>`.`<minor version>` format.
 * `provider_settings_backing_provider_name` - Cloud service provider on which MongoDB Cloud provisioned the serverless instance.

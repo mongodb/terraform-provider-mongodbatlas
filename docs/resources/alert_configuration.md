@@ -271,7 +271,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - Unique identifier used for terraform for internal manages and can be used to import.
 * `alert_configuration_id` - Unique identifier for the alert configuration.
-* `group_id` - Unique identifier of the project that owns this alert configuration.
 * `created` - Timestamp in ISO 8601 date and time format in UTC when this alert configuration was created.
 * `updated` - Timestamp in ISO 8601 date and time format in UTC when this alert configuration was last updated.
 
