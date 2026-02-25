@@ -57,6 +57,10 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 				maps.Copy(objJSON, embeddedJSON)
 				continue
 			}
+
+			return nil, fmt.Errorf(
+				"marshal unsupported anonymous field %q of kind %s (expected struct)",
+				attrTypeModel.Name, attrValModel.Kind())
 		}
 
 		tags := GetPropertyTags(&attrTypeModel)

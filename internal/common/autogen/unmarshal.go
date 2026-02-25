@@ -58,6 +58,10 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 				}
 				continue
 			}
+
+			return fmt.Errorf(
+				"unmarshal unsupported anonymous field %q of kind %s (expected struct)",
+				field.Name, fieldModel.Kind())
 		}
 
 		tags := GetPropertyTags(&field)
