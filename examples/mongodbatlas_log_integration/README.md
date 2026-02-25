@@ -1,6 +1,6 @@
 # MongoDB Atlas Log Integration Examples
 
-This directory contains examples demonstrating how to configure log integrations to export MongoDB Atlas logs to AWS S3.
+This directory contains examples demonstrating how to configure log integrations to export MongoDB Atlas logs to AWS S3, Microsoft Azure, Google Cloud Platform (GCP), OTel, Datadog and Splunk.
 
 ## Available Examples
 
@@ -22,6 +22,56 @@ An advanced example that exports logs to an S3 Multi-Region Access Point (MRAP) 
 - S3 buckets in multiple AWS regions
 - S3 Multi-Region Access Point (MRAP)
 - IAM role and policy with MRAP permissions
+- MongoDB Atlas Cloud Provider Access
+- MongoDB Atlas Log Integration
+
+### [Azure Blob](./azure/)
+
+A basic example that exports logs to a single Azure Blob. This is the simplest setup and is suitable for most use cases.
+
+**Resources created:**
+- Azure Blob
+- IAM role and policy
+- MongoDB Atlas Cloud Provider Access
+- MongoDB Atlas Log Integration
+
+### [GCP Container](./gcp/)
+
+A basic example that exports logs to a single Google Cloud Platform Container. This is the simplest setup and is suitable for most use cases.
+
+**Resources created:**
+- Google Cloud Platform Container
+- IAM role and policy
+- MongoDB Atlas Cloud Provider Access
+- MongoDB Atlas Log Integration
+
+### [Datadog Datastores](./datadog/)
+
+A basic example that exports logs to a single Datadog Datastore. This is the simplest setup and is suitable for most use cases.
+
+**Resources created:**
+- Datadog Datastore
+- IAM role and policy
+- MongoDB Atlas Cloud Provider Access
+- MongoDB Atlas Log Integration
+
+### [OTel Collector](./otel/)
+
+A basic example that exports logs to a single OpenTelemtry Collector. This is the simplest setup and is suitable for most use cases.
+
+**Resources created:**
+- OpenTelemtry Collector
+- IAM role and policy
+- MongoDB Atlas Cloud Provider Access
+- MongoDB Atlas Log Integration
+
+### [Splunk Storage](./splunk/)
+
+A basic example that exports logs to a single Splunk Storage. This is the simplest setup and is suitable for most use cases.
+
+**Resources created:**
+- Splunk Storage
+- IAM role and policy
 - MongoDB Atlas Cloud Provider Access
 - MongoDB Atlas Log Integration
 

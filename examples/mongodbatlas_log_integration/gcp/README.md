@@ -1,11 +1,11 @@
-# MongoDB Atlas Log Integration with S3 Bucket Example
+# MongoDB Atlas Log Integration with Google Cloud Platform Example
 
-This example demonstrates how to configure a log integration to export MongoDB Atlas logs to an Amazon S3 bucket.
+This example demonstrates how to configure a log integration to export MongoDB Atlas logs to a Microsoft Azure Blob storage.
 
 ## Prerequisites
 
 - MongoDB Atlas account with Organization Owner or Project Owner role.
-- AWS account with permissions to create S3 buckets and IAM roles.
+- Google Cloud Platform account with permissions to create Containers and IAM roles.
 - Terraform >= `1.0`.
 
 ## Resources Created
@@ -17,14 +17,15 @@ This example creates the following resources:
 - Cloud Provider Access Setup and Authorization.
 - Log Integration configuration.
 
-### AWS
-- S3 bucket for storing logs.
+### Google CLoud Platform
+- GCP Container for storing logs.
 - IAM role for Atlas to assume.
-- IAM policy for S3 access.
+- IAM policy for Container access.
+
 
 ## Usage
 
-**1\. Ensure your AWS and MongoDB Atlas credentials are set up.**
+**1\. Ensure your Google Cloud Platform and MongoDB Atlas credentials are set up.**
 
 This can be done using environment variables:
 
@@ -34,27 +35,30 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ```bash
-export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
-export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
+export GCP_REGION = '<GCP_REGION>'
+export GCP_ACCESS_KEY_ID='<GCP_ACCESS_KEY_ID>'
+export GCP_SECRET_ACCESS_KEY='<GCP_SECRET_ACCESS_KEY>'
 ```
 
-... or the `~/.aws/credentials` file.
+... or the `~/.gcp/credentials` file.
 
 ```
-$ cat ~/.aws/credentials
+$ cat ~/.gcp/credentials
 [default]
-aws_access_key_id = <AWS_ACCESS_KEY_ID>
-aws_secret_access_key = <AWS_SECRET_ACCESS_KEY>
+region     = var.gcp_region
+access_key = var.access_key
+secret_key = var.secret_key
 ```
 
-... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values:
+... or follow as in the `~/.gcp/variables.tf` file and create **terraform.tfvars** file with all the variable values:
 
 ```hcl
-atlas_org_id        = "your-org-id"
-atlas_client_id     = "your-service-account-client-id"
-atlas_client_secret = "your-service-account-client-secret"
-access_key          = "your-aws-access-key"
-secret_key          = "your-aws-secret-key"
+project_id  = var.project_id
+type        = "GCS_LOG_EXPORT"
+log_types   = var.gcs_log_types
+prefix_path = var.gcs_prefix_path
+role_id     = mongodbatlas_cloud_provider_access_authorization.gcp_auth.role_id
+bucket_name = google_storage_bucket.log_bucket.name
 ```
 
 **2\. Review the Terraform plan.**
@@ -93,4 +97,3 @@ The `log_types` attribute supports the following values:
 
 - The requesting Service Account or API Key must have the Organization Owner or Project Owner role.
 - MongoDB Atlas will add sub-directories based on the log type under the specified `prefix_path`.
-- Optional: Use `kms_key` to specify an AWS KMS key ID or ARN for server-side encryption.
