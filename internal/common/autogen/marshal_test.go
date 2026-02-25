@@ -796,3 +796,35 @@ func TestMarshalEmbeddedExpandedModel(t *testing.T) {
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
 }
+
+func TestMarshalEmbeddedExpandedModel_WithSendableExpandedField(t *testing.T) {
+	type modelExpandedFields struct {
+		ID           types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
+		ExpandedAttr types.String `tfsdk:"expanded_attr"`
+	}
+	type modelExpanded struct {
+		modelExpandedFields
+		ConnectionName types.String `tfsdk:"connection_name" apiname:"name"`
+		Type           types.String `tfsdk:"type"`
+	}
+	model := modelExpanded{
+		modelExpandedFields: modelExpandedFields{
+			ID:           types.StringValue("ws-123-proj-conn"),
+			ExpandedAttr: types.StringValue("expanded-attr"),
+		},
+		ConnectionName: types.StringValue("conn"),
+		Type:           types.StringValue("Kafka"),
+	}
+
+	const expectedJSON = `
+	{
+		"expandedAttr": "expanded-attr",
+		"name": "conn",
+		"type": "Kafka"
+	}
+	`
+
+	raw, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedJSON, string(raw))
+}
