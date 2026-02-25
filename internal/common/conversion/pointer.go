@@ -1,10 +1,5 @@
 package conversion
 
-//go:fix inline
-func Pointer[T any](x T) *T {
-	return new(x)
-}
-
 func IntPtr(v int) *int {
 	if v != 0 {
 		return &v
@@ -17,11 +12,4 @@ func StringPtr(v string) *string {
 		return &v
 	}
 	return nil
-}
-
-func SliceFromPtr[T any](slicePtr *[]T) []T {
-	if slicePtr == nil {
-		return []T{}
-	}
-	return *slicePtr
 }

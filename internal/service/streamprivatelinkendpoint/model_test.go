@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
@@ -43,7 +42,7 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				Id:                    &id,
 				Arn:                   &arn,
 				DnsDomain:             &dnsDomain,
-				DnsSubDomain:          conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
+				DnsSubDomain:          new([]string{dnsSubDomain, dnsSubDomain}),
 				InterfaceEndpointId:   &interfaceEndpointID,
 				InterfaceEndpointName: &interfaceEndpointName,
 				Provider:              constant.AWS,
@@ -106,7 +105,7 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 			SDKResp: &admin.StreamsPrivateLinkConnection{
 				Id:                  &id,
 				DnsDomain:           &dnsDomain,
-				DnsSubDomain:        conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
+				DnsSubDomain:        new([]string{dnsSubDomain, dnsSubDomain}),
 				InterfaceEndpointId: &interfaceEndpointID,
 				Provider:            constant.AWS,
 				Region:              &region,
@@ -154,8 +153,8 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 			SDKResp: &admin.StreamsPrivateLinkConnection{
 				Id:                       &id,
 				DnsDomain:                &dnsDomain,
-				DnsSubDomain:             conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
-				GcpServiceAttachmentUris: conversion.Pointer([]string{"projects/test-project/regions/us-west1/serviceAttachments/test-attachment-1", "projects/test-project/regions/us-west1/serviceAttachments/test-attachment-2"}),
+				DnsSubDomain:             new([]string{dnsSubDomain, dnsSubDomain}),
+				GcpServiceAttachmentUris: new([]string{"projects/test-project/regions/us-west1/serviceAttachments/test-attachment-1", "projects/test-project/regions/us-west1/serviceAttachments/test-attachment-2"}),
 				Provider:                 constant.GCP,
 				Region:                   &region,
 				State:                    &state,
@@ -232,7 +231,7 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
 				Arn:               &arn,
 				DnsDomain:         &dnsDomain,
-				DnsSubDomain:      conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
+				DnsSubDomain:      new([]string{dnsSubDomain, dnsSubDomain}),
 				Provider:          constant.AWS,
 				Region:            &region,
 				ServiceEndpointId: &serviceEndpointID,
@@ -285,7 +284,7 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 			},
 			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
 				DnsDomain:         &dnsDomain,
-				DnsSubDomain:      conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
+				DnsSubDomain:      new([]string{dnsSubDomain, dnsSubDomain}),
 				Provider:          constant.AWS,
 				Region:            &region,
 				ServiceEndpointId: &serviceEndpointID,
@@ -328,8 +327,8 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 			},
 			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
 				DnsDomain:                &dnsDomain,
-				DnsSubDomain:             conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
-				GcpServiceAttachmentUris: conversion.Pointer([]string{"projects/test-project/regions/us-west1/serviceAttachments/test-attachment-1", "projects/test-project/regions/us-west1/serviceAttachments/test-attachment-2"}),
+				DnsSubDomain:             new([]string{dnsSubDomain, dnsSubDomain}),
+				GcpServiceAttachmentUris: new([]string{"projects/test-project/regions/us-west1/serviceAttachments/test-attachment-1", "projects/test-project/regions/us-west1/serviceAttachments/test-attachment-2"}),
 				Provider:                 constant.GCP,
 				Region:                   &region,
 				State:                    &state,

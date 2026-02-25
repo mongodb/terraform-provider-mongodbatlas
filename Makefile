@@ -15,7 +15,7 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v2.10.0 # Also update golangci-lint GH action in code-health.yml when updating this version
+GOLANGCI_VERSION=v2.10.1
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -29,6 +29,7 @@ help:
 .PHONY: fix
 fix: ## Fix, format, and build Go code (default target)
 	gofmt -s -w .
+	goimports -w .
 	golangci-lint run --fix
 	go mod tidy
 	go fix ./...
@@ -38,9 +39,11 @@ fix: ## Fix, format, and build Go code (default target)
 verify: ## Verify Go code without modifying files. Usage: make verify [files="file1.go file2.go"]
 	@bad_fmt=$$(gofmt -l -s $(or $(files),.)); \
 	if [ -n "$$bad_fmt" ]; then echo "ERROR: gofmt issues:"; echo "$$bad_fmt"; exit 1; fi
+	@bad_imports=$$(goimports -l $(or $(files),.)); \
+	if [ -n "$$bad_imports" ]; then echo "ERROR: goimports issues:"; echo "$$bad_imports"; exit 1; fi
 ifdef files
 	golangci-lint run $(addsuffix ...,$(sort $(dir $(files))))
-	go fix -diff $(addsuffix ...,$(sort $(dir $(files))))
+	go fix -diff $(addprefix ./,$(addsuffix ...,$(sort $(dir $(files)))))
 else
 	golangci-lint run
 	go mod tidy -diff

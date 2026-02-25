@@ -89,8 +89,7 @@ func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.FlexClusterDe
 
 func ConvertBackupSettingsToTF(ctx context.Context, backupSettings *admin.FlexBackupSettings20241113) (*types.Object, diag.Diagnostics) {
 	if backupSettings == nil {
-		backupSettingsTF := types.ObjectNull(BackupSettingsType.AttributeTypes())
-		return &backupSettingsTF, nil
+		return new(types.ObjectNull(BackupSettingsType.AttributeTypes())), nil
 	}
 
 	backupSettingsTF := &TFBackupSettings{
@@ -105,8 +104,7 @@ func ConvertBackupSettingsToTF(ctx context.Context, backupSettings *admin.FlexBa
 
 func ConvertConnectionStringsToTF(ctx context.Context, connectionStrings *admin.FlexConnectionStrings20241113) (*types.Object, diag.Diagnostics) {
 	if connectionStrings == nil {
-		connectionStringsTF := types.ObjectNull(ConnectionStringsType.AttributeTypes())
-		return &connectionStringsTF, nil
+		return new(types.ObjectNull(ConnectionStringsType.AttributeTypes())), nil
 	}
 
 	connectionStringsTF := &TFConnectionStrings{

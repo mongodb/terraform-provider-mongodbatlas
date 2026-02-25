@@ -514,7 +514,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 	}
 
 	if d.HasChange("auto_export_enabled") {
-		req.AutoExportEnabled = conversion.Pointer(d.Get("auto_export_enabled").(bool))
+		req.AutoExportEnabled = new(d.Get("auto_export_enabled").(bool))
 	}
 
 	if v, ok := d.GetOk("export"); ok {
@@ -522,20 +522,20 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 	}
 
 	if d.HasChange("use_org_and_group_names_in_export_prefix") {
-		req.UseOrgAndGroupNamesInExportPrefix = conversion.Pointer(d.Get("use_org_and_group_names_in_export_prefix").(bool))
+		req.UseOrgAndGroupNamesInExportPrefix = new(d.Get("use_org_and_group_names_in_export_prefix").(bool))
 	}
 
 	if v, ok := d.GetOkExists("reference_hour_of_day"); ok {
-		req.ReferenceHourOfDay = conversion.Pointer(v.(int))
+		req.ReferenceHourOfDay = new(v.(int))
 	}
 	if v, ok := d.GetOkExists("reference_minute_of_hour"); ok {
-		req.ReferenceMinuteOfHour = conversion.Pointer(v.(int))
+		req.ReferenceMinuteOfHour = new(v.(int))
 	}
 	if v, ok := d.GetOkExists("restore_window_days"); ok {
-		req.RestoreWindowDays = conversion.Pointer(v.(int))
+		req.RestoreWindowDays = new(v.(int))
 	}
 
-	value := conversion.Pointer(d.Get("update_snapshots").(bool))
+	value := new(d.Get("update_snapshots").(bool))
 	if *value {
 		req.UpdateSnapshots = value
 	}
@@ -565,11 +565,11 @@ func ExpandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting2024080
 
 	frequencies := conversion.ExpandStringList(tfMap["frequencies"].(*schema.Set).List())
 	copySetting := &admin.DiskBackupCopySetting20240805{
-		CloudProvider:    conversion.Pointer(tfMap["cloud_provider"].(string)),
+		CloudProvider:    new(tfMap["cloud_provider"].(string)),
 		Frequencies:      &frequencies,
-		RegionName:       conversion.Pointer(tfMap["region_name"].(string)),
+		RegionName:       new(tfMap["region_name"].(string)),
 		ZoneId:           tfMap["zone_id"].(string),
-		ShouldCopyOplogs: conversion.Pointer(tfMap["should_copy_oplogs"].(bool)),
+		ShouldCopyOplogs: new(tfMap["should_copy_oplogs"].(bool)),
 	}
 	return copySetting
 }
@@ -627,8 +627,8 @@ func policyItemID(policyState map[string]any) *string {
 }
 
 func isCopySettingsNonEmptyOrChanged(d *schema.ResourceData) bool {
-	copySettings := d.Get("copy_settings")
-	return copySettings != nil && (conversion.HasElementsSliceOrMap(copySettings) || d.HasChange("copy_settings"))
+	copySettings, _ := d.Get("copy_settings").([]any)
+	return len(copySettings) > 0 || d.HasChange("copy_settings")
 }
 
 func getRequestPolicies(policiesItem []admin.DiskBackupApiPolicyItem, respPolicies []admin.AdvancedDiskBackupSnapshotSchedulePolicy) *[]admin.AdvancedDiskBackupSnapshotSchedulePolicy {

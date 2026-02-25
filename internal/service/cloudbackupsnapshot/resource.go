@@ -147,7 +147,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	params := &admin.DiskBackupOnDemandSnapshotRequest{
 		Description:     conversion.StringPtr(d.Get("description").(string)),
-		RetentionInDays: conversion.Pointer(d.Get("retention_in_days").(int)),
+		RetentionInDays: new(d.Get("retention_in_days").(int)),
 	}
 	snapshot, _, err := connV2.CloudBackupsApi.TakeSnapshots(ctx, groupID, clusterName, params).Execute()
 	if err != nil {

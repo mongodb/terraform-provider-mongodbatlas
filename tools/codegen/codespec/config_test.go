@@ -1511,10 +1511,10 @@ func TestApplyTransformationsToDataSources_TypeOverride(t *testing.T) {
 	inputConfig := &config.DataSources{
 		SchemaOptions: config.SchemaOptions{
 			Overrides: map[string]config.Override{
-				"list_attr":        {Type: conversion.Pointer(config.Set)},
-				"set_attr":         {Type: conversion.Pointer(config.List)},
-				"nested_list_attr": {Type: conversion.Pointer(config.Set)},
-				"nested_set_attr":  {Type: conversion.Pointer(config.List)},
+				"list_attr":        {Type: new(config.Set)},
+				"set_attr":         {Type: new(config.List)},
+				"nested_list_attr": {Type: new(config.Set)},
+				"nested_set_attr":  {Type: new(config.List)},
 			},
 		},
 	}
