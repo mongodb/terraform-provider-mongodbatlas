@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_federated_settings_identity_provider: Fixes crash when role assignments have no role defined
+```
