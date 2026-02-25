@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_third_party_integration: Adds `send_query_stats_metrics` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_third_party_integration: Adds `send_query_stats_metrics` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_third_party_integrations: Adds `send_query_stats_metrics` attribute
+```

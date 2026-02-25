@@ -75,6 +75,7 @@ func integrationToSchema(d *schema.ResourceData, integration *admin.ThirdPartyIn
 		"send_collection_latency_metrics":  integration.SendCollectionLatencyMetrics,
 		"send_database_metrics":            integration.SendDatabaseMetrics,
 		"send_user_provided_resource_tags": integration.SendUserProvidedResourceTags,
+		"send_query_stats_metrics":         integration.SendQueryStatsMetrics,
 	}
 
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
@@ -164,6 +165,10 @@ func schemaToIntegration(in *schema.ResourceData) (out *admin.ThirdPartyIntegrat
 		out.SendUserProvidedResourceTags = new(sendUserProvidedResourceTags.(bool))
 	}
 
+	if sendQueryStatsMetrics, ok := in.GetOk("send_query_stats_metrics"); ok {
+		out.SendQueryStatsMetrics = new(sendQueryStatsMetrics.(bool))
+	}
+
 	return out
 }
 
@@ -228,5 +233,9 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *admin.Thir
 
 	if d.HasChange("send_user_provided_resource_tags") {
 		integration.SendUserProvidedResourceTags = new(d.Get("send_user_provided_resource_tags").(bool))
+	}
+
+	if d.HasChange("send_query_stats_metrics") {
+		integration.SendQueryStatsMetrics = new(d.Get("send_query_stats_metrics").(bool))
 	}
 }

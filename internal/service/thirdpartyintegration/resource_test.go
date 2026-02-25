@@ -12,14 +12,29 @@ import (
 )
 
 // dummy keys used for credential values in third party notifications
-const dummy32CharKey = "11111111111111111111111111111111"
-const dummy32CharKeyUpdated = "11111111111111111111111111111112"
-const dummy36CharKey = "11111111-1111-1111-1111-111111111111"
-const dummy36CharKeyUpdated = "11111111-1111-1111-1111-111111111112"
+const (
+	dummy32CharKey        = "11111111111111111111111111111111"
+	dummy32CharKeyUpdated = "11111111111111111111111111111112"
+	dummy36CharKey        = "11111111-1111-1111-1111-111111111111"
+	dummy36CharKeyUpdated = "11111111-1111-1111-1111-111111111112"
 
-const resourceName = "mongodbatlas_third_party_integration.test"
-const dataSourceName = "data." + resourceName
-const dataSourcePluralName = "data.mongodbatlas_third_party_integrations.test"
+	resourceName         = "mongodbatlas_third_party_integration.test"
+	dataSourceName       = "data." + resourceName
+	dataSourcePluralName = "data.mongodbatlas_third_party_integrations.test"
+
+	singularDataStr = `
+		data "mongodbatlas_third_party_integration" "test" {
+			project_id = mongodbatlas_third_party_integration.test.project_id
+			type = mongodbatlas_third_party_integration.test.type
+		}
+	`
+	pluralDataStr = `
+		data "mongodbatlas_third_party_integrations" "test" {
+			project_id = mongodbatlas_third_party_integration.test.project_id
+			depends_on = [mongodbatlas_third_party_integration.test]
+		}
+	`
+)
 
 func TestAccThirdPartyIntegration_basicPagerDuty(t *testing.T) {
 	// basic test also include testing of plural data source which is why it cannot run in parallel
@@ -179,7 +194,7 @@ func datadogTest(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configDatadog(projectID, apiKey, "US", false, false, false, false),
+				Config: configDatadog(projectID, apiKey, "US", false, false, false, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
@@ -187,15 +202,18 @@ func datadogTest(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 					resource.TestCheckResourceAttr(resourceName, "send_collection_latency_metrics", "false"),
 					resource.TestCheckResourceAttr(resourceName, "send_database_metrics", "false"),
+					resource.TestCheckResourceAttr(resourceName, "send_user_provided_resource_tags", "false"),
+					resource.TestCheckResourceAttr(resourceName, "send_query_stats_metrics", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
 					resource.TestCheckResourceAttr(dataSourceName, "region", region),
 					resource.TestCheckResourceAttr(dataSourceName, "send_collection_latency_metrics", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "send_database_metrics", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "send_user_provided_resource_tags", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "send_query_stats_metrics", "false"),
 				),
 			},
 			{
-				Config: configDatadog(projectID, apiKey, "US", true, true, false, false),
+				Config: configDatadog(projectID, apiKey, "US", true, true, false, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
@@ -203,15 +221,18 @@ func datadogTest(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 					resource.TestCheckResourceAttr(resourceName, "send_collection_latency_metrics", "true"),
 					resource.TestCheckResourceAttr(resourceName, "send_database_metrics", "false"),
+					resource.TestCheckResourceAttr(resourceName, "send_user_provided_resource_tags", "false"),
+					resource.TestCheckResourceAttr(resourceName, "send_query_stats_metrics", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
 					resource.TestCheckResourceAttr(dataSourceName, "region", region),
 					resource.TestCheckResourceAttr(dataSourceName, "send_collection_latency_metrics", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "send_database_metrics", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "send_user_provided_resource_tags", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "send_query_stats_metrics", "false"),
 				),
 			},
 			{
-				Config: configDatadog(projectID, updatedAPIKey, "US", true, false, true, false),
+				Config: configDatadog(projectID, updatedAPIKey, "US", true, false, true, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
@@ -220,10 +241,11 @@ func datadogTest(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "send_collection_latency_metrics", "false"),
 					resource.TestCheckResourceAttr(resourceName, "send_database_metrics", "true"),
 					resource.TestCheckResourceAttr(resourceName, "send_user_provided_resource_tags", "false"),
+					resource.TestCheckResourceAttr(resourceName, "send_query_stats_metrics", "false"),
 				),
 			},
 			{
-				Config: configDatadog(projectID, updatedAPIKey, "US", true, true, true, true),
+				Config: configDatadog(projectID, updatedAPIKey, "US", true, true, true, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
@@ -231,9 +253,12 @@ func datadogTest(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 					resource.TestCheckResourceAttr(resourceName, "send_collection_latency_metrics", "true"),
 					resource.TestCheckResourceAttr(resourceName, "send_database_metrics", "true"),
+					resource.TestCheckResourceAttr(resourceName, "send_user_provided_resource_tags", "true"),
+					resource.TestCheckResourceAttr(resourceName, "send_query_stats_metrics", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "send_collection_latency_metrics", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "send_database_metrics", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "send_user_provided_resource_tags", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "send_query_stats_metrics", "true"),
 				),
 			},
 			importStep(resourceName),
@@ -406,125 +431,90 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-var singularDataStr = `
-data "mongodbatlas_third_party_integration" "test" {
-	project_id = mongodbatlas_third_party_integration.test.project_id
-	type = mongodbatlas_third_party_integration.test.type
-}
-
-`
-
-var pluralDataStr = `
-data "mongodbatlas_third_party_integrations" "test" {
-	project_id = mongodbatlas_third_party_integration.test.project_id
-}`
-
 func configOpsGenie(projectID, apiKey string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_third_party_integration" "test" {
-		project_id = "%[1]s"
-		type = "%[2]s"
-		api_key = "%[3]s"
-		region  = "%[4]s"
-	}`,
-		projectID,
-		"OPS_GENIE",
-		apiKey,
-		"US",
-	) + singularDataStr
+		resource "mongodbatlas_third_party_integration" "test" {
+			project_id = "%[1]s"
+			type = "%[2]s"
+			api_key = "%[3]s"
+			region  = "%[4]s"
+		}
+	`, projectID, "OPS_GENIE", apiKey, "US") + singularDataStr
 }
 
 func configBasicPagerDuty(projectID, serviceKey string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_third_party_integration" "test" {
-		project_id = "%[1]s"
-		type = "%[2]s"
-		service_key = "%[3]s"
-	}
-	`,
-		projectID,
-		"PAGER_DUTY",
-		serviceKey,
-	) + singularDataStr + pluralDataStr
+		resource "mongodbatlas_third_party_integration" "test" {
+			project_id = "%[1]s"
+			type = "%[2]s"
+			service_key = "%[3]s"
+		}
+	`, projectID, "PAGER_DUTY", serviceKey) + singularDataStr + pluralDataStr
 }
 
 func configVictorOps(projectID, apiKey string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_third_party_integration" "test" {
-		project_id = "%[1]s"
-		type = "%[2]s"
-		api_key = "%[3]s"
-		routing_key = "testing"
-	}
-	`,
-		projectID,
-		"VICTOR_OPS",
-		apiKey,
-	) + singularDataStr
+		resource "mongodbatlas_third_party_integration" "test" {
+			project_id = "%[1]s"
+			type = "%[2]s"
+			api_key = "%[3]s"
+			routing_key = "testing"
+		}
+	`, projectID, "VICTOR_OPS", apiKey) + singularDataStr
 }
 
-func configDatadog(projectID, apiKey, region string, useOptionalAttr, sendCollectionLatencyMetrics, sendDatabaseMetrics, sendUserProvidedResourceTags bool) string {
+func configDatadog(projectID, apiKey, region string, useOptionalAttr, sendCollectionLatencyMetrics, sendDatabaseMetrics, sendUserProvidedResourceTags, sendQueryStatsMetrics bool) string {
 	optionalConfigAttrs := ""
 	if useOptionalAttr {
-		optionalConfigAttrs = fmt.Sprintf(
-			`send_collection_latency_metrics = %[1]t
-		send_database_metrics = %[2]t
-		send_user_provided_resource_tags = %[3]t`, sendCollectionLatencyMetrics, sendDatabaseMetrics, sendUserProvidedResourceTags)
+		optionalConfigAttrs = fmt.Sprintf(`
+			send_collection_latency_metrics = %[1]t
+			send_database_metrics = %[2]t
+			send_user_provided_resource_tags = %[3]t
+			send_query_stats_metrics = %[4]t
+		`, sendCollectionLatencyMetrics, sendDatabaseMetrics, sendUserProvidedResourceTags, sendQueryStatsMetrics)
 	}
 	return fmt.Sprintf(`
-	resource "mongodbatlas_third_party_integration" "test" {
-		project_id = "%[1]s"
-		type = "%[2]s"
-		api_key = "%[3]s"
-		region  ="%[4]s"
-		
-		%[5]s
-	}
-	`,
-		projectID,
-		"DATADOG",
-		apiKey,
-		region,
-		optionalConfigAttrs,
-	) + singularDataStr
+		resource "mongodbatlas_third_party_integration" "test" {
+			project_id = "%[1]s"
+			type = "%[2]s"
+			api_key = "%[3]s"
+			region  ="%[4]s"
+			
+			%[5]s
+		}
+	`, projectID, "DATADOG", apiKey, region, optionalConfigAttrs) + singularDataStr
 }
 
 func configPrometheus(projectID, username, password, serviceDiscovery string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_third_party_integration" "test" {
-		project_id = "%[1]s"
-		type = "%[2]s"
-		user_name = "%[3]s"	
-		password  = "%[4]s"
-		service_discovery = "%[5]s" 
-		enabled = true
-	}
-	`,
-		projectID,
-		"PROMETHEUS",
-		username,
-		password,
-		serviceDiscovery,
-	) + singularDataStr
+		resource "mongodbatlas_third_party_integration" "test" {
+			project_id = "%[1]s"
+			type = "%[2]s"
+			user_name = "%[3]s"	
+			password  = "%[4]s"
+			service_discovery = "%[5]s" 
+			enabled = true
+		}
+	`, projectID, "PROMETHEUS", username, password, serviceDiscovery) + singularDataStr
 }
 
 func configMicrosoftTeams(projectID, url string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_third_party_integration" "test" {
-		project_id = "%[1]s"
-		type = "MICROSOFT_TEAMS"
-		microsoft_teams_webhook_url = "%[2]s"	
-	}
+		resource "mongodbatlas_third_party_integration" "test" {
+			project_id = "%[1]s"
+			type = "MICROSOFT_TEAMS"
+			microsoft_teams_webhook_url = "%[2]s"	
+		}
 	`, projectID, url) + singularDataStr
 }
 
 func configWebhook(projectID, url string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_third_party_integration" "test" {
-		project_id = "%[1]s"
-		type = "WEBHOOK"
-		url = "%[2]s"	
-	}
+		resource "mongodbatlas_third_party_integration" "test" {
+			project_id = "%[1]s"
+			type = "WEBHOOK"
+			url = "%[2]s"	
+		}
 	`, projectID, url) + singularDataStr
 }
 
