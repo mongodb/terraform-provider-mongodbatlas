@@ -7,15 +7,15 @@ subcategory: "Clusters"
 `mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters.
 
 
-We recommend all new MongoDB Atlas Terraform users start with the [`mongodbatlas_advanced_cluster`](advanced_cluster) resource instead of the [`mongodbatlas_cluster`](cluster) resource. Key differences include support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), and [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers). To migrate from an existing [`mongodbatlas_cluster`](cluster) resource, see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
+We recommend all new MongoDB Atlas Terraform users start with the `mongodbatlas_advanced_cluster` resource instead of the [`mongodbatlas_cluster`](mongodbatlas_cluster.md) resource. Key differences include support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), and [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers). To migrate from an existing [`mongodbatlas_cluster`](cluster.md) resource, see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
 ~> **IMPORTANT:** If you are upgrading to our Terraform Provider v2.0.0 or later from v1.x.x, you must update your existing `mongodbatlas_advanced_cluster` resource configuration according to [this guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-advanced-cluster-2.0).
 
--> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
+~> **IMPORTANT:** Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
 
 -> **NOTE:** This resource supports creating Flex clusters, upgrading [M0 clusters to Flex](#example-tenant-cluster-upgrade-to-flex), and upgrading [Flex clusters to Dedicated](#Example-Flex-Cluster-Upgrade). When creating a Flex cluster, you must set the `replication_specs[#].region_configs[#].priority` value to 7.
 
-~> **NOTE:** When you modify cluster configurations, your Terraform plan output might include `(known after apply)` markers for attributes you didin't modify. This is expected behavior. For more information, see the ["known after apply" verbosity](#known-after-apply-verbosity) section below.
+-> **NOTE:** When you modify cluster configurations, your Terraform plan output might include `(known after apply)` markers for attributes you didin't modify. This is expected behavior. For more information, see the ["known after apply" verbosity](#known-after-apply-verbosity) section below.
 
 -> **NOTE:** This resource creates a network container for each provider/region combination specified in the advanced cluster configuration. Each network container can be referenced via its computed `replication_specs[#]container_id` attribute.
 
@@ -52,12 +52,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 ### Example using effective fields with auto-scaling
 
-~> **NOTE:** When configuring auto-scaling, you can use the
-`use_effective_fields` attribute to simplify your Terraform workflow by
-eliminating the need for `lifecycle.ignore_changes` blocks and providing
-visibility into Atlas-managed changes. For more information, see the
-[Auto-Scaling with Effective
-Fields](#auto-scaling-with-effective-fields) section below.
+-> **NOTE:** When configuring auto-scaling, you can use the `use_effective_fields` attribute to simplify your Terraform workflow by eliminating the need for `lifecycle.ignore_changes` blocks and providing visibility into Atlas-managed changes. For more information, see the [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) section below.
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
@@ -529,20 +524,23 @@ Refer to the following for full privatelink endpoint connection string examples:
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique ID for the project to create the cluster.
+* `project_id` - (Required) Unique ID for the project to create the cluster. 
+
+-> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
+
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed. **WARNING** Changing the name will result in destruction of the existing cluster and the creation of a new cluster.
 
 * `backup_enabled` - (Optional) Flag that indicates whether the cluster can perform backups.
   If `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters.
 
   Backup uses:
-  [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/#std-label-backup-cloud-provider) for dedicated clusters.
-  [Flex Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/) for flex clusters.
+  [Cloud Backup](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/#std-label-backup-cloud-provider) for dedicated clusters.
+  [Flex Cluster Backup](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/) for flex clusters.
   If "`backup_enabled`"  is `false` (default), the cluster doesn't use Atlas backups.
 
-  -> **NOTE:** If you have a [Backup Compliance Policy](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy) enabled for the project, you can't disable Cloud Backup without assistance from [MongoDB Support](https://www.mongodb.com/docs/atlas/support/#request-support).
+-> **NOTE:** If you have a [Backup Compliance Policy](backup_compliance_policy.md) enabled for the project, you can't disable Cloud Backup without assistance from [MongoDB Support](https://www.mongodb.com/docs/atlas/support/#request-support).
 
-- `retain_backups_enabled` - (Optional) Set to true to retain backup snapshots for the deleted cluster. This parameter applies to the Delete operation and only affects M10 and above clusters. If you encounter the `CANNOT_DELETE_SNAPSHOT_WITH_BACKUP_COMPLIANCE_POLICY` error code, see [how to delete a cluster with Backup Compliance Policy](../guides/delete-cluster-with-backup-compliance-policy.md).
+- `retain_backups_enabled` - (Optional) Set to true to retain backup snapshots for the deleted cluster. This parameter applies to the Delete operation and only affects M10 and above clusters. To delete an Atlas cluster that has an associated [`mongodbatlas_cloud_backup_schedule`](cloud_backup_schedule.md) resource and an enabled [Backup Compliance Policy](backup_compliance_policy.md), see [Delete a Cluster with a Backup Compliance Policy](../guides/delete-cluster-with-backup-compliance-policy.md).
 
 -> **NOTE** Prior version of provider had parameter as `bi_connector` state will migrate it to new value you only need to update parameter in your terraform file
 
@@ -677,7 +675,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 ### replication_specs
 
-~> **NOTE:**  We recommend reviewing our [Best Practices](#remove-or-disable-functionality) before disabling or removing any elements of replication_specs.
+-> **NOTE:**  We recommend reviewing our [Best Practices](#remove-or-disable-functionality) before disabling or removing any elements of replication_specs.
 
 ```terraform
 # Example Multicloud
@@ -719,10 +717,9 @@ replication_specs = [
 
 ### region_configs
 
-~> **NOTE:**  We recommend reviewing our [Best Practices](#remove-or-disable-functionality) before disabling or removing any elements of region_configs.
+-> **NOTE:**  We recommend reviewing our [Best Practices](#remove-or-disable-functionality) before disabling or removing any elements of region_configs.
 
--> **NOTE:** Cluster tier names in the
-`region_configs[#].electable_specs.instance_size` attribute are
+-> **NOTE:** Cluster tier names in the `region_configs[#].electable_specs.instance_size` attribute are
 prepended with `R` instead of `M` if they run a low-CPU version of the cluster, for example `R40`. For complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
 
 -> **NOTE:** To enable extended storage sizes on certain M40+ dedicated clusters, use the `is_extended_storage_sizes_enabled` parameter in the [mongodbatlas_project resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project). This setting should only be used for temporary relief from disk size limits; consider sharding if more storage is required.
