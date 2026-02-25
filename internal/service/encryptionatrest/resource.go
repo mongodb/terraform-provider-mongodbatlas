@@ -179,7 +179,7 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 							PlanModifiers: []planmodifier.Bool{
 								boolplanmodifier.UseStateForUnknown(),
 							},
-						MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified  project. Setting this field to `false` might lead to an inconsistent Terraform state. To disable encryption at rest, remove the `mongodbatlas_encryption_at_rest` resource and reapply your configuration.",
+							MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified  project. Setting this field to `false` might lead to an inconsistent Terraform state. To disable encryption at rest, remove the `mongodbatlas_encryption_at_rest` resource and reapply your configuration.",
 						},
 						"client_id": schema.StringAttribute{
 							Optional:            true,
