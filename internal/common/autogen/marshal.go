@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
@@ -53,9 +54,7 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 				if err != nil {
 					return nil, err
 				}
-				for k, v := range embeddedJSON {
-					objJSON[k] = v
-				}
+				maps.Copy(objJSON, embeddedJSON)
 				continue
 			}
 		}
