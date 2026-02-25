@@ -787,6 +787,7 @@ resources:
     version_header: application/vnd.atlas.2023-02-01+json
     # All defined configuration is for trying to reach backwards compatibility with curated resource
     schema:
+      expanded_model: true
       ignores:
         [
           # Hide noisy subresource link blocks (curated resource doesn't expose them)

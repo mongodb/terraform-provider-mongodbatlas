@@ -291,6 +291,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
+	TFExpandedModel
 	Authentication               customtypes.ObjectValue[TFAuthenticationModel]               `tfsdk:"authentication"`
 	Aws                          customtypes.ObjectValue[TFAwsModel]                          `tfsdk:"aws"`
 	BootstrapServers             types.String                                                 `tfsdk:"bootstrap_servers"`
