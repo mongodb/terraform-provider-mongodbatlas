@@ -828,3 +828,23 @@ func TestMarshalEmbeddedExpandedModel_WithSendableExpandedField(t *testing.T) {
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
 }
+
+func TestMarshalAnonymousNonStruct(t *testing.T) {
+	type EmbeddedInt int
+
+	type Model struct {
+		Name types.String `tfsdk:"name"`
+		EmbeddedInt
+	}
+
+	model := Model{
+		Name:        types.StringValue("abc"),
+		EmbeddedInt: EmbeddedInt(1),
+	}
+
+	raw, err := autogen.Marshal(&model, false)
+	require.Error(t, err)
+	assert.Nil(t, raw)
+	require.ErrorContains(t, err, "marshal unsupported anonymous field")
+	require.ErrorContains(t, err, "expected struct")
+}

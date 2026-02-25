@@ -937,3 +937,21 @@ func TestUnmarshalEmbeddedExpandedModel(t *testing.T) {
 	assert.Equal(t, "conn", model.ConnectionName.ValueString())
 	assert.Equal(t, "Sample", model.Type.ValueString())
 }
+
+func TestUnmarshalAnonymousNonStruct(t *testing.T) {
+	type EmbeddedInt int
+
+	type Model struct {
+		Name types.String `tfsdk:"name"`
+		EmbeddedInt
+	}
+
+	model := Model{
+		Name: types.StringUnknown(),
+	}
+
+	err := autogen.Unmarshal([]byte(`{"name":"abc"}`), &model)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "unmarshal unsupported anonymous field")
+	assert.ErrorContains(t, err, "expected struct")
+}
