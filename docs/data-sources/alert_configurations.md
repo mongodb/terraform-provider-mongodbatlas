@@ -63,7 +63,7 @@ In addition to all arguments above, the following attributes are exported:
 * `matcher` - Rules to apply when matching an object against this alert configuration. See [matchers](#matchers).
 * `metric_threshold_config` - The threshold that causes an alert to be triggered. Required if `event_type_name` : `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`. See [metric threshold config](#metric-threshold-config).
 * `threshold_config` - 	 Threshold that triggers an alert. Required if `event_type_name` is any value other than `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`. See [threshold config](#threshold-config).
-* `notifications` - List of notifications to send when an alert condition is detected. See [notifications](#notifications).
+* `notification` - List of notifications to send when an alert condition is detected. See [notification](#notification).
 * `severity_override` - Severity of the event.
 * `output` - Requested output string format for the alert configuration
 

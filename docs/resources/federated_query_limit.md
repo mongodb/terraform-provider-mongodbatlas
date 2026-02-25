@@ -30,10 +30,10 @@ resource "mongodbatlas_federated_query_limit" "test" {
 * `project_id` - (Required) The unique ID for the project to create a Federated Database Instance.
 * `tenant_name` - (Required) Name of the Atlas Federated Database Instance.
 * `limit_name` - (Required) String enum that indicates whether the identity provider is active or not. Accepted values are:
-    * `bytesProcessed.query`: Limit on the number of bytes processed during a single data federation query.
-    * `bytesProcessed.daily`: Limit on the number of bytes processed for the data federation instance for the current day.
-    * `bytesProcessed.weekly`: Limit on the number of bytes processed for the data federation instance for the current week.
-    * `bytesProcessed.monthly`: Limit on the number of bytes processed for the data federation instance for the current month.
+    * "bytesProcessed.query": Limit on the number of bytes processed during a single data federation query.
+    * "bytesProcessed.daily": Limit on the number of bytes processed for the data federation instance for the current day.
+    * "bytesProcessed.weekly": Limit on the number of bytes processed for the data federation instance for the current week.
+    * "bytesProcessed.monthly": Limit on the number of bytes processed for the data federation instance for the current month.
 * `overrun_policy` - (Required) String enum that identifies action to take when the usage limit is exceeded. If limit span is set to QUERY, this is ignored because MongoDB Cloud stops the query when it exceeds the usage limit. Accepted values are "BLOCK" OR "BLOCK_AND_KILL"
 * `value` - (Required) Amount to set the limit to.
 
@@ -44,9 +44,8 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The Terraform's unique identifier used internally for state management.
 * `current_usage` - Amount that indicates the current usage of the limit.
 * `default_limit` - Default value of the limit.
-* `lastModifiedDate` - Only used for Data Federation limits. Timestamp that indicates when this usage limit was last modified. This field uses the ISO 8601 timestamp format in UTC.
-* `maximumLimit` - Maximum value of the limit.
-* `name` - Name that identifies the user-managed limit to modify.
+* `last_modified_date` - Only used for Data Federation limits. Timestamp that indicates when this usage limit was last modified. This field uses the ISO 8601 timestamp format in UTC.
+* `maximum_limit` - Maximum value of the limit.
 
 ## Import
 

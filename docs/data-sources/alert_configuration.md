@@ -106,9 +106,6 @@ data "mongodbatlas_alert_configuration" "test" {
 * `project_id` - (Required) The ID of the project where the alert configuration will create.
 * `alert_configuration_id` - (Required) Unique identifier for the alert configuration.
 * `output` - (Optional) List of formatted output requested for this alert configuration
-* `output.#.type` - (Required) If the output is requested, you must specify its type. The format is computed as `output.#.value`, the following are the supported types:
-- `resource_hcl`: This string is used to define the resource as it exists in MongoDB Atlas.
-- `resource_import`: This string is used to import the existing resource into the state file.
 
 ## Attributes Reference
 
@@ -120,7 +117,7 @@ In addition to all arguments above, the following attributes are exported:
 * `matcher` - Rules to apply when matching an object against this alert configuration. See [matchers](#matchers).
 * `metric_threshold_config` - The threshold that causes an alert to be triggered. Required if `event_type_name` : `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`. See [metric threshold config](#metric-threshold-config).
 * `threshold_config` - 	 Threshold that triggers an alert. Required if `event_type_name` is any value other than `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`. See [threshold config](#threshold-config).
-* `notifications` - List of notifications to send when an alert condition is detected. See [notifications](#notifications).
+* `notification` - List of notifications to send when an alert condition is detected. See [notification](#notification).
 * `severity_override` - Severity of the event.
 
   -> ***IMPORTANT:*** Event Type has many possible values. Details for both conditional and metric based alerts can be found by selecting the tabs on the [alert config page](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createalertconfiguration) and checking the latest eventTypeName options.

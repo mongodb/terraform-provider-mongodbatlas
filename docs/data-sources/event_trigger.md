@@ -50,7 +50,6 @@ In addition to all arguments above, the following attributes are exported:
 * `type` - The type of the trigger.
 * `function_id` - The ID of the function associated with the trigger.
 * `function_name` - The name of the function associated with the trigger.
-* `function_id` - The ID of the function associated with the trigger.
 * `disabled` - Status of a trigger.
 * `config_operation_types` - The [database event operation types](https://docs.mongodb.com/realm/triggers/database-triggers/#std-label-database-events) to listen for.
 * `config_operation_type` - The [authentication operation type](https://docs.mongodb.com/realm/triggers/authentication-triggers/#std-label-authentication-event-operation-types) to listen for.
@@ -61,6 +60,8 @@ In addition to all arguments above, the following attributes are exported:
 * `config_match` - A [$match](https://docs.mongodb.com/manual/reference/operator/aggregation/match/) expression document that MongoDB Realm includes in the underlying change stream pipeline for the trigger. 
 * `config_project` - A [$project](https://docs.mongodb.com/manual/reference/operator/aggregation/project/) expression document that Realm uses to filter the fields that appear in change event objects. 
 * `config_full_document` - If true, indicates that `UPDATE` change events should include the most current [majority-committed](https://docs.mongodb.com/manual/reference/read-concern-majority/) version of the modified document in the fullDocument field.
+* `config_full_document_before` - If true, indicates that `UPDATE` change events should include the previous revision of the modified document in the fullDocumentBeforeChange field.
+* `config_schedule_type` - The type of the scheduled trigger.
 * `unordered` - Only Available for Database Triggers. If true, event ordering is disabled and this trigger can process events in parallel. If false, event ordering is enabled and the trigger executes serially.
 * `config_schedule` - A [cron expression](https://docs.mongodb.com/realm/triggers/cron-expressions/) that defines the trigger schedule.
 * `event_processors` - An object where each field name is an event processor ID and each value is an object that configures its corresponding event processor.

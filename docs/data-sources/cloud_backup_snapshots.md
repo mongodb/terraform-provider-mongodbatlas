@@ -12,14 +12,14 @@ subcategory: "Cloud Backups"
 
 ```terraform
 resource "mongodbatlas_cloud_backup_snapshots" "test" {
-  group_id          = "5d0f1f73cf09a29120e173cf"
+  project_id        = "5d0f1f73cf09a29120e173cf"
   cluster_name      = "MyClusterTest"
   description       = "SomeDescription"
   retention_in_days = 1
 }
 
 data "mongodbatlas_cloud_backup_snapshots" "test" {
-  group_id     = mongodbatlas_cloud_backup_snapshots.test.group_id
+  project_id   = mongodbatlas_cloud_backup_snapshots.test.project_id
   cluster_name = mongodbatlas_cloud_backup_snapshots.test.cluster_name
   page_num = 1
   items_per_page = 5
@@ -29,7 +29,7 @@ data "mongodbatlas_cloud_backup_snapshots" "test" {
 ## Argument Reference
 
 * `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshot you want to retrieve.
-* `group_id` - (Required) The unique identifier of the project for the Atlas cluster.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
 * `page_num` - (Optional)  	The page to return. Defaults to `1`.
 * `items_per_page` - (Optional) Number of items to return per page, up to a maximum of 500. Defaults to `100`.
 
@@ -38,7 +38,7 @@ data "mongodbatlas_cloud_backup_snapshots" "test" {
 In addition to all arguments above, the following attributes are exported:
 
 * `results` - Includes cloudProviderSnapshot object for each item detailed in the results array section.
-* `totalCount` - Count of the total number of items in the result set. It may be greater than the number of objects in the results array if the entire result set is paginated.
+* `total_count` - Count of the total number of items in the result set. It may be greater than the number of objects in the results array if the entire result set is paginated.
 
 ### CloudProviderSnapshot
 

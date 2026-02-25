@@ -77,7 +77,6 @@ Additional values based on Type
   * `url` - Your webhook URL.
   * `secret` - An optional field for your webhook secret.
 * `MICROSOFT_TEAMS`
-  * `name` - Your Microsoft Teams incoming webhook name.
   * `microsoft_teams_webhook_url` -  Your Microsoft Teams incoming webhook URL.
 * `PROMETHEUS`
   * `user_name` - Your Prometheus username.

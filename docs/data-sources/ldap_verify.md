@@ -63,9 +63,6 @@ In addition to all arguments above, the following attributes are exported:
 * `hostname` - (Required) The hostname or IP address of the LDAP server.
 * `port` - LDAP ConfigurationThe port to which the LDAP server listens for client connections.
 * `bind_username` - The user DN that Atlas uses to connect to the LDAP server.
-* `bind_password` - The password used to authenticate the `bind_username`.
-* `ca_certificate` - LDAP ConfigurationCA certificate used to verify the identify of the LDAP server.
-* `authz_query_template` - LDAP ConfigurationAn LDAP query template that Atlas executes to obtain the LDAP groups to which the authenticated user belongs.
 * `request_id` - The unique identifier for the request to verify the LDAP over TLS/SSL configuration.
 * `status` - The current status of the LDAP over TLS/SSL configuration.
 * `links` - One or more links to sub-resources. The relations in the URLs are explained in the Web Linking Specification.
