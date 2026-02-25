@@ -61,10 +61,10 @@ func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *t
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 
 		awsKms = admin.AWSKMSConfiguration{
-			Enabled:                  conversion.Pointer(true),
+			Enabled:                  new(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RequirePrivateNetworking: conversion.Pointer(true),
+			RequirePrivateNetworking: new(true),
 		}
 	)
 
@@ -87,8 +87,8 @@ func basicTestCaseAzure(tb testing.TB) *resource.TestCase {
 		projectID = acc.ProjectIDExecution(tb)
 
 		azureKeyVault = &admin.AzureKeyVault{
-			Enabled:                  conversion.Pointer(true),
-			RequirePrivateNetworking: conversion.Pointer(true),
+			Enabled:                  new(true),
+			RequirePrivateNetworking: new(true),
 			AzureEnvironment:         conversion.StringPtr("AZURE"),
 			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
 			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
@@ -132,8 +132,8 @@ func TestAccEncryptionAtRestPrivateEndpoint_approveEndpointWithAzureProvider(t *
 		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
 		keyVaultName      = os.Getenv("AZURE_KEY_VAULT_NAME")
 		azureKeyVault     = &admin.AzureKeyVault{
-			Enabled:                  conversion.Pointer(true),
-			RequirePrivateNetworking: conversion.Pointer(true),
+			Enabled:                  new(true),
+			RequirePrivateNetworking: new(true),
 			AzureEnvironment:         conversion.StringPtr("AZURE"),
 			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
 			SubscriptionID:           conversion.StringPtr(subscriptionID),
@@ -183,16 +183,16 @@ func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 
 		awsKms = admin.AWSKMSConfiguration{
-			Enabled:                  conversion.Pointer(true),
+			Enabled:                  new(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RequirePrivateNetworking: conversion.Pointer(false),
+			RequirePrivateNetworking: new(false),
 		}
 		awsKmsPrivateNetworking = admin.AWSKMSConfiguration{
-			Enabled:                  conversion.Pointer(true),
+			Enabled:                  new(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RequirePrivateNetworking: conversion.Pointer(true),
+			RequirePrivateNetworking: new(true),
 		}
 		region = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
 	)
@@ -237,14 +237,14 @@ func TestCheckErrorMessageAndStatus(t *testing.T) {
 		},
 		"FAILED status with error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
-				ErrorMessage: admin.PtrString("test err message"),
+				ErrorMessage: new("test err message"),
 				Status:       admin.PtrString(retrystrategy.RetryStrategyFailedState),
 			},
 			diags: append(defaultDiags, diag.NewErrorDiagnostic(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary, "test err message")),
 		},
 		"non-empty error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
-				ErrorMessage: admin.PtrString("private endpoint was rejected"),
+				ErrorMessage: new("private endpoint was rejected"),
 				Status:       admin.PtrString(retrystrategy.RetryStrategyPendingRecreationState),
 			},
 			diags: append(defaultDiags, diag.NewWarningDiagnostic(encryptionatrestprivateendpoint.NonEmptyErrorMessageFieldSummary, "private endpoint was rejected")),
@@ -258,14 +258,14 @@ func TestCheckErrorMessageAndStatus(t *testing.T) {
 		},
 		"empty error_message": {
 			SDKResp: &admin.EARPrivateEndpoint{
-				ErrorMessage: admin.PtrString(""),
+				ErrorMessage: new(""),
 				Status:       admin.PtrString(retrystrategy.RetryStrategyActiveState),
 			},
 			diags: defaultDiags,
 		},
 		"pending acceptance status": {
 			SDKResp: &admin.EARPrivateEndpoint{
-				ErrorMessage: admin.PtrString(""),
+				ErrorMessage: new(""),
 				Status:       admin.PtrString(retrystrategy.RetryStrategyPendingAcceptanceState),
 			},
 			diags: append(defaultDiags, diag.NewWarningDiagnostic(encryptionatrestprivateendpoint.PendingAcceptanceWarnMsgSummary, encryptionatrestprivateendpoint.PendingAcceptanceWarnMsg)),
@@ -345,8 +345,8 @@ func checkBasic(projectID, cloudProvider, region string, expectApproved bool) re
 
 	return acc.CheckRSAndDS(
 		resourceName,
-		admin.PtrString(dataSourceName),
-		admin.PtrString(pluralDataSourceName),
+		new(dataSourceName),
+		new(pluralDataSourceName),
 		attrsSet,
 		map[string]string{
 			"project_id":     projectID,

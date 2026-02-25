@@ -8,8 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customvalidator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -118,7 +120,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"type": schema.StringAttribute{
 						Required:            true,
-						MarkdownDescription: "Type of the DB role. Can be either BuiltIn or Custom.",
+						MarkdownDescription: "Type of the DB role. Can be either Built In or Custom.",
 					},
 				},
 			},
@@ -149,19 +151,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Attributes: map[string]schema.Attribute{
 							"connection_id": schema.StringAttribute{
 								Optional:            true,
-								MarkdownDescription: "Reserved. Will be used by PRIVATE_LINK connection type.",
+								MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type.",
 							},
 							"name": schema.StringAttribute{
 								Optional:            true,
-								MarkdownDescription: "Reserved. Will be used by PRIVATE_LINK connection type.",
+								MarkdownDescription: "Reserved. Will be used by `PRIVATE_LINK` connection type.",
 							},
 							"tgw_route_id": schema.StringAttribute{
 								Optional:            true,
-								MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
+								MarkdownDescription: "Reserved. Will be used by `TRANSIT_GATEWAY` connection type.",
 							},
 							"type": schema.StringAttribute{
 								Required:            true,
-								MarkdownDescription: "Selected networking type. Either PUBLIC, VPC, PRIVATE_LINK, or TRANSIT_GATEWAY. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. TRANSIT_GATEWAY support is coming soon.",
+								MarkdownDescription: "Selected networking type. Either `PUBLIC`, `VPC`, `PRIVATE_LINK`, or `TRANSIT_GATEWAY`. Defaults to `PUBLIC`. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. `TRANSIT_GATEWAY` support is coming soon.",
 							},
 						},
 					},
@@ -170,6 +172,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"schema_registry_provider": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "The Schema Registry provider.",
+			},
+			"region": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The connection's region.",
 			},
 			"schema_registry_authentication": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -184,6 +190,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"type": schema.StringAttribute{
 						Required:            true,
 						MarkdownDescription: "Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry.",
+						Validators: []validator.String{
+							customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
+								Mapping: map[string]customvalidator.VariantDefinition{
+									"SASL_INHERIT": {},
+									"USER_INFO": {
+										Allowed:  []string{"password", "username"},
+										Required: []string{"password", "username"},
+									},
+								},
+							}),
+						},
 					},
 					"username": schema.StringAttribute{
 						Optional:            true,
@@ -208,7 +225,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"protocol": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "Describes the transport type. Can be either SASL_PLAINTEXT, SASL_SSL, or SSL.",
+						MarkdownDescription: "Describes the transport type. Can be either `SASL_PLAINTEXT`, `SASL_SSL`, or `SSL`.",
 					},
 				},
 			},
@@ -224,10 +241,39 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"type": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Type of the connection.",
+				Validators: []validator.String{
+					customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
+						Mapping: map[string]customvalidator.VariantDefinition{
+							"AWSKinesisDataStreams": {
+								Allowed: []string{"aws", "networking"},
+							},
+							"AWSLambda": {
+								Allowed: []string{"aws"},
+							},
+							"Cluster": {
+								Allowed: []string{"cluster_name", "cluster_project_id", "db_role_to_execute"},
+							},
+							"Https": {
+								Allowed: []string{"headers", "url"},
+							},
+							"Kafka": {
+								Allowed: []string{"authentication", "bootstrap_servers", "config", "networking", "security"},
+							},
+							"S3": {
+								Allowed: []string{"aws", "networking"},
+							},
+							"Sample": {},
+							"SchemaRegistry": {
+								Allowed:  []string{"schema_registry_authentication", "schema_registry_provider", "schema_registry_urls"},
+								Required: []string{"schema_registry_authentication", "schema_registry_provider", "schema_registry_urls"},
+							},
+						},
+					}),
+				},
 			},
 			"url": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The url to be used for the request.",
+				MarkdownDescription: "The URL to be used for the request.",
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed:            true,
@@ -245,27 +291,28 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	SchemaRegistryUrls           customtypes.ListValue[types.String]                          `tfsdk:"schema_registry_urls"`
-	Config                       customtypes.MapValue[types.String]                           `tfsdk:"config"`
-	Headers                      customtypes.MapValue[types.String]                           `tfsdk:"headers"`
-	Networking                   customtypes.ObjectValue[TFNetworkingModel]                   `tfsdk:"networking"`
-	SchemaRegistryAuthentication customtypes.ObjectValue[TFSchemaRegistryAuthenticationModel] `tfsdk:"schema_registry_authentication"`
+	Authentication               customtypes.ObjectValue[TFAuthenticationModel]               `tfsdk:"authentication"`
+	Aws                          customtypes.ObjectValue[TFAwsModel]                          `tfsdk:"aws"`
+	BootstrapServers             types.String                                                 `tfsdk:"bootstrap_servers"`
 	ClusterProjectId             types.String                                                 `tfsdk:"cluster_project_id" apiname:"clusterGroupId"`
+	ClusterName                  types.String                                                 `tfsdk:"cluster_name"`
+	Config                       customtypes.MapValue[types.String]                           `tfsdk:"config"`
 	DbRoleToExecute              customtypes.ObjectValue[TFDbRoleToExecuteModel]              `tfsdk:"db_role_to_execute"`
 	ProjectId                    types.String                                                 `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	BootstrapServers             types.String                                                 `tfsdk:"bootstrap_servers"`
+	Headers                      customtypes.MapValue[types.String]                           `tfsdk:"headers"`
 	ConnectionName               types.String                                                 `tfsdk:"connection_name" apiname:"name"`
-	Authentication               customtypes.ObjectValue[TFAuthenticationModel]               `tfsdk:"authentication"`
+	Networking                   customtypes.ObjectValue[TFNetworkingModel]                   `tfsdk:"networking"`
 	SchemaRegistryProvider       types.String                                                 `tfsdk:"schema_registry_provider" apiname:"provider"`
-	ClusterName                  types.String                                                 `tfsdk:"cluster_name"`
-	Aws                          customtypes.ObjectValue[TFAwsModel]                          `tfsdk:"aws"`
+	Region                       types.String                                                 `tfsdk:"region" autogen:"omitjson"`
+	SchemaRegistryAuthentication customtypes.ObjectValue[TFSchemaRegistryAuthenticationModel] `tfsdk:"schema_registry_authentication"`
+	SchemaRegistryUrls           customtypes.ListValue[types.String]                          `tfsdk:"schema_registry_urls"`
 	Security                     customtypes.ObjectValue[TFSecurityModel]                     `tfsdk:"security"`
 	State                        types.String                                                 `tfsdk:"state" autogen:"omitjson"`
 	WorkspaceName                types.String                                                 `tfsdk:"workspace_name" apiname:"tenantName" autogen:"omitjson"`
 	Type                         types.String                                                 `tfsdk:"type"`
 	Url                          types.String                                                 `tfsdk:"url"`
-	Timeouts                     timeouts.Value                                               `tfsdk:"timeouts" autogen:"omitjson"`
 	DeleteOnCreateTimeout        types.Bool                                                   `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
+	Timeouts                     timeouts.Value                                               `tfsdk:"timeouts" autogen:"omitjson"`
 }
 type TFAuthenticationModel struct {
 	ClientId                  types.String `tfsdk:"client_id"`

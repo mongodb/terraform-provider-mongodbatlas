@@ -30,12 +30,12 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 	testCases := map[string]sdkToTFModelTestCase{
 		"Complete SDK response": {
 			SDKResp: admin.EARPrivateEndpoint{
-				CloudProvider:                 admin.PtrString(testCloudProvider),
-				ErrorMessage:                  admin.PtrString(""),
-				Id:                            admin.PtrString(testID),
-				RegionName:                    admin.PtrString(testRegionName),
-				Status:                        admin.PtrString(testStatus),
-				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+				CloudProvider:                 new(testCloudProvider),
+				ErrorMessage:                  new(""),
+				Id:                            new(testID),
+				RegionName:                    new(testRegionName),
+				Status:                        new(testStatus),
+				PrivateEndpointConnectionName: new(testPEConnectionName),
 			},
 			expectedTFModel: encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
 				CloudProvider:                 types.StringValue(testCloudProvider),
@@ -49,12 +49,12 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 		},
 		"Complete SDK response with error message": {
 			SDKResp: admin.EARPrivateEndpoint{
-				CloudProvider:                 admin.PtrString(testCloudProvider),
-				ErrorMessage:                  admin.PtrString(testErrMsg),
-				Id:                            admin.PtrString(testID),
-				RegionName:                    admin.PtrString(testRegionName),
-				Status:                        admin.PtrString(testStatus),
-				PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+				CloudProvider:                 new(testCloudProvider),
+				ErrorMessage:                  new(testErrMsg),
+				Id:                            new(testID),
+				RegionName:                    new(testRegionName),
+				Status:                        new(testStatus),
+				PrivateEndpointConnectionName: new(testPEConnectionName),
 			},
 			expectedTFModel: encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
 				CloudProvider:                 types.StringValue(testCloudProvider),
@@ -69,11 +69,11 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 		// PrivateEndpointConnectionName is not returned for AWS
 		"nil PrivateEndpointConnectionName": {
 			SDKResp: admin.EARPrivateEndpoint{
-				CloudProvider: admin.PtrString(testCloudProvider),
-				ErrorMessage:  admin.PtrString(""),
-				Id:            admin.PtrString(testID),
-				RegionName:    admin.PtrString(testRegionName),
-				Status:        admin.PtrString(testStatus),
+				CloudProvider: new(testCloudProvider),
+				ErrorMessage:  new(""),
+				Id:            new(testID),
+				RegionName:    new(testRegionName),
+				Status:        new(testStatus),
 			},
 			expectedTFModel: encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
 				CloudProvider:                 types.StringValue(testCloudProvider),
@@ -87,12 +87,12 @@ func TestEncryptionAtRestPrivateEndpointSDKToTFModel(t *testing.T) {
 		},
 		"empty PrivateEndpointConnectionName": {
 			SDKResp: admin.EARPrivateEndpoint{
-				CloudProvider:                 admin.PtrString(testCloudProvider),
-				ErrorMessage:                  admin.PtrString(""),
-				Id:                            admin.PtrString(testID),
-				RegionName:                    admin.PtrString(testRegionName),
-				Status:                        admin.PtrString(testStatus),
-				PrivateEndpointConnectionName: admin.PtrString(""),
+				CloudProvider:                 new(testCloudProvider),
+				ErrorMessage:                  new(""),
+				Id:                            new(testID),
+				RegionName:                    new(testRegionName),
+				Status:                        new(testStatus),
+				PrivateEndpointConnectionName: new(""),
 			},
 			expectedTFModel: encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
 				CloudProvider:                 types.StringValue(testCloudProvider),
@@ -130,8 +130,8 @@ func TestEncryptionAtRestPrivateEndpointTFModelToSDK(t *testing.T) {
 				Status:                        types.StringValue(testStatus),
 				PrivateEndpointConnectionName: types.StringValue(testPEConnectionName)},
 			expectedSDKReq: &admin.EARPrivateEndpoint{
-				CloudProvider: admin.PtrString(testCloudProvider),
-				RegionName:    admin.PtrString(testRegionName),
+				CloudProvider: new(testCloudProvider),
+				RegionName:    new(testRegionName),
 			},
 		},
 	}
@@ -154,20 +154,20 @@ func TestEncryptionAtRestPrivateEndpointPluralDSSDKToTFModel(t *testing.T) {
 		"Complete SDK response": {
 			SDKResp: []admin.EARPrivateEndpoint{
 				{
-					CloudProvider:                 admin.PtrString(testCloudProvider),
-					ErrorMessage:                  admin.PtrString(""),
-					Id:                            admin.PtrString(testID),
-					RegionName:                    admin.PtrString(testRegionName),
-					Status:                        admin.PtrString(testStatus),
-					PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+					CloudProvider:                 new(testCloudProvider),
+					ErrorMessage:                  new(""),
+					Id:                            new(testID),
+					RegionName:                    new(testRegionName),
+					Status:                        new(testStatus),
+					PrivateEndpointConnectionName: new(testPEConnectionName),
 				},
 				{
-					CloudProvider:                 admin.PtrString(testCloudProvider),
-					ErrorMessage:                  admin.PtrString(testErrMsg),
-					Id:                            admin.PtrString(testID),
-					RegionName:                    admin.PtrString(testRegionName),
-					Status:                        admin.PtrString(testStatus),
-					PrivateEndpointConnectionName: admin.PtrString(testPEConnectionName),
+					CloudProvider:                 new(testCloudProvider),
+					ErrorMessage:                  new(testErrMsg),
+					Id:                            new(testID),
+					RegionName:                    new(testRegionName),
+					Status:                        new(testStatus),
+					PrivateEndpointConnectionName: new(testPEConnectionName),
 				},
 			},
 			expectedTFModel: &encryptionatrestprivateendpoint.TFEncryptionAtRestPrivateEndpointsDSModel{

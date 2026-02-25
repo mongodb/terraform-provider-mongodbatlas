@@ -98,8 +98,7 @@ func fetchTeamUser(ctx context.Context, connV2 *admin.APIClient, orgID, teamID s
 	if userListResp == nil || len(userListResp.GetResults()) == 0 {
 		return nil, nil
 	}
-	userResp := userListResp.GetResults()[0]
-	return &userResp, nil
+	return new(userListResp.GetResults()[0]), nil
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {

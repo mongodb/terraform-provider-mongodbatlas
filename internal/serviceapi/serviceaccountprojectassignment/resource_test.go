@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
-
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -85,10 +84,10 @@ func TestAccServiceAccountProjectAssignment_multipleAssignments(t *testing.T) {
 func configBasic(orgID string, projectIDs, roles []string) string {
 	rolesStr := hcl.StringSliceToHCL(roles)
 
-	assignmentsStr := ""
+	var assignmentsStr strings.Builder
 	resourceNames := []string{}
 	for i, projectID := range projectIDs {
-		assignmentsStr += fmt.Sprintf(`
+		fmt.Fprintf(&assignmentsStr, `
 			resource "mongodbatlas_service_account_project_assignment" "test_%[1]d" {
 				client_id  = mongodbatlas_service_account.test.client_id
 				project_id = %[2]q
@@ -121,7 +120,7 @@ func configBasic(orgID string, projectIDs, roles []string) string {
 		  client_id = mongodbatlas_service_account.test.client_id
 		  depends_on = %[3]s
 		}
-	`, orgID, assignmentsStr, resourceNamesStr)
+	`, orgID, assignmentsStr.String(), resourceNamesStr)
 }
 
 func checkBasic(projectIDs []string) resource.TestCheckFunc {
@@ -132,7 +131,7 @@ func checkBasic(projectIDs []string) resource.TestCheckFunc {
 		resourceName := fmt.Sprintf("%s_%d", resourceName, i)
 		dataSourceName := fmt.Sprintf("%s_%d", dataSourceName, i)
 		checks = append(checks, acc.CheckRSAndDS(
-			resourceName, admin.PtrString(dataSourceName), nil,
+			resourceName, new(dataSourceName), nil,
 			attrsSet, attrsMap,
 			checkExists(resourceName),
 		))
