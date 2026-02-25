@@ -117,7 +117,6 @@ In addition to all arguments above, the following attributes are exported:
 * `mongo_db_major_version` - Indicates the version of the cluster to deploy.
 * `pinned_fcv` - The pinned Feature Compatibility Version (FCV) with its associated expiration date. See [below](#pinned-fcv).
 * `num_shards` - Indicates whether the cluster is a replica set or a sharded cluster.
-* `cloud_backup` - Flag indicating if the cluster uses Cloud Backup Snapshots for backups.
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
 * `provider_instance_size_name` - Atlas provides different instance sizes, each with a default storage capacity and RAM size.
 * `provider_name` - Indicates the cloud service provider on which the servers are provisioned.

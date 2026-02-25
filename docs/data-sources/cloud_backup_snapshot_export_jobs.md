@@ -66,11 +66,11 @@ In addition to all arguments above, the following attributes are exported:
 * `export_job_id` - Unique identifier of the export job.
 * `prefix ` - Full path on the cloud provider bucket to the folder where the snapshot is exported. The path is in the following format:`/exported_snapshots/{ORG-NAME}/{PROJECT-NAME}/{CLUSTER-NAME}/{SNAPSHOT-INITIATION-DATE}/{TIMESTAMP}`
 * `state` - Status of the export job. Value can be one of the following:
-    * `Queued` - indicates that the export job is queued
-    * `InProgress` - indicates that the snapshot is being exported
-    * `Successful` - indicates that the export job has completed successfully
-    * `Failed` - indicates that the export job has failed
-    * `Cancelled` - indicates that the export job has cancelled
+  * "Queued" - indicates that the export job is queued
+  * "InProgress" - indicates that the snapshot is being exported
+  * "Successful" - indicates that the export job has completed successfully
+  * "Failed" - indicates that the export job has failed
+  * "Cancelled" - indicates that the export job has cancelled
 
 #### Custom Data
 * `key` - Custom data specified as key in the key and value pair.

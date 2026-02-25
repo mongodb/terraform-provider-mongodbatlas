@@ -154,7 +154,7 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 * `delivery_type_config` - (Required) Type of restore job to create. Possible configurations are: **download**, **automated**, or **pointInTime** only one must be set it in ``true``.
 * `delivery_type_config.automated` - Set to `true` to use the automated configuration.
 * `delivery_type_config.download` - Set to `true` to use the download configuration.
-* `delivery_type_config.pointInTime` - Set to `true` to use the pointInTime configuration. If using pointInTime configuration, you must also specify either `oplog_ts` and `oplog_inc`, or `point_in_time_utc_seconds`.
+* `delivery_type_config.point_in_time` - Set to `true` to use the pointInTime configuration. If using pointInTime configuration, you must also specify either `oplog_ts` and `oplog_inc`, or `point_in_time_utc_seconds`.
 * `delivery_type_config.target_cluster_name` - Name of the target Atlas cluster to which the restore job restores the snapshot. Required for **automated** and **pointInTime**.
 * `delivery_type_config.target_project_id` - Name of the target Atlas cluster to which the restore job restores the snapshot. Required for **automated** and **pointInTime**.
 * `delivery_type_config.oplog_ts` - Optional setting for **pointInTime** configuration. Timestamp in the number of seconds that have elapsed since the UNIX epoch from which to you want to restore this snapshot. This is the first part of an Oplog timestamp.
@@ -176,7 +176,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `snapshot_restore_job_id` - The unique identifier of the restore job.
 * `cancelled` -	Indicates whether the restore job was canceled.
-* `created_at` -	UTC ISO 8601 formatted point in time when Atlas created the restore job.
 * `delivery_type_config` - Type of restore job to create. Possible values are: automated and download.
 * `delivery_url` -	One or more URLs for the compressed snapshot files for manual download. Only visible if deliveryType is download.
 * `expired` -	Indicates whether the restore job expired.
@@ -184,25 +183,24 @@ In addition to all arguments above, the following attributes are exported:
 * `failed` -     Indicates whether the restore job failed.
 * `finished_at` -	UTC ISO 8601 formatted point in time when the restore job completed.
 * `id` -	The Terraform's unique identifier used internally for state management.
-* `links` -	One or more links to sub-resources and/or related resources. The relations between URLs are explained in the Web Linking Specification.
 * `snapshot_id` -	Unique identifier of the source snapshot ID of the restore job.
 * `target_project_id` -	Name of the target Atlas project of the restore job. Only visible if deliveryType is automated.
 * `target_cluster_name` -	Name of the target Atlas cluster to which the restore job restores the snapshot. Only visible if deliveryType is automated.
 * `timestamp` - Timestamp in ISO 8601 date and time format in UTC when the snapshot associated to snapshotId was taken.
-* `oplogTs` - Timestamp in the number of seconds that have elapsed since the UNIX epoch from which to you want to restore this snapshot.
+* `oplog_ts` - Timestamp in the number of seconds that have elapsed since the UNIX epoch from which to you want to restore this snapshot.
     Three conditions apply to this parameter:
     * Enable Continuous Cloud Backup on your cluster.
-    * Specify oplogInc.
-    * Specify either oplogTs and oplogInc or pointInTimeUTCSeconds, but not both.
-* `oplogInc` - Oplog operation number from which to you want to restore this snapshot. This is the second part of an Oplog timestamp.
+    * Specify oplog_inc.
+    * Specify either oplog_ts and oplog_inc or point_in_time_utc_seconds, but not both.
+* `oplog_inc` - Oplog operation number from which to you want to restore this snapshot. This is the second part of an Oplog timestamp.
     Three conditions apply to this parameter:
     * Enable Continuous Cloud Backup on your cluster.
-    * Specify oplogTs.
-    * Specify either oplogTs and oplogInc or pointInTimeUTCSeconds, but not both.
-* `pointInTimeUTCSeconds` - Timestamp in the number of seconds that have elapsed since the UNIX epoch from which you want to restore this snapshot.
+    * Specify oplog_ts.
+    * Specify either oplog_ts and oplog_inc or point_in_time_utc_seconds, but not both.
+* `point_in_time_utc_seconds` - Timestamp in the number of seconds that have elapsed since the UNIX epoch from which you want to restore this snapshot.
     Two conditions apply to this parameter:
     * Enable Continuous Cloud Backup on your cluster.
-    * Specify either pointInTimeUTCSeconds or oplogTs and oplogInc, but not both.
+    * Specify either point_in_time_utc_seconds or oplog_ts and oplog_inc, but not both.
 
 ## Import
 
