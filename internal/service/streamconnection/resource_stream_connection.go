@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"regexp"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -202,7 +201,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	connectionName := conversion.SafeString(apiResp.Name)
+	connectionName := conversion.SafeValue(apiResp.Name)
 
 	// Wait for the connection to reach a ready state before returning
 	// This ensures the connection is fully provisioned and available for use with stream processors
@@ -210,7 +209,9 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	apiResp, err = WaitStateTransitionWithTimeout(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, createTimeout)
+	// StateNotFound is a pending state for create - handles eventual consistency where
+	// the resource may briefly return 404 after creation before becoming visible.
+	apiResp, err = WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, createTimeout, []string{StatePending, StateNotFound}, []string{StateReady, StateFailed})
 	if err != nil {
 		resp.Diagnostics.AddError("error waiting for stream connection to be ready", err.Error())
 		return
@@ -294,7 +295,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	apiResp, err := WaitStateTransitionWithTimeout(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, updateTimeout)
+	apiResp, err := WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, updateTimeout, []string{StatePending}, []string{StateReady, StateFailed})
 	if err != nil {
 		resp.Diagnostics.AddError("error waiting for stream connection to be ready", err.Error())
 		return
@@ -325,7 +326,12 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 	connectionName := streamConnectionState.ConnectionName.ValueString()
-	if err := DeleteStreamConnection(ctx, connV2.StreamsApi, projectID, instanceName, connectionName, 10*time.Minute); err != nil {
+
+	deleteTimeout := cleanup.ResolveTimeout(ctx, &streamConnectionState.Timeouts, cleanup.OperationDelete, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if err := DeleteStreamConnection(ctx, connV2.StreamsApi, projectID, instanceName, connectionName, deleteTimeout); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

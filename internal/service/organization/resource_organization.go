@@ -287,7 +287,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		d.HasChange("skip_default_alerts_settings") {
 		updateRequest := &admin.AtlasOrganization{
 			Name:                      d.Get("name").(string),
-			SkipDefaultAlertsSettings: conversion.Pointer(d.Get("skip_default_alerts_settings").(bool)),
+			SkipDefaultAlertsSettings: new(d.Get("skip_default_alerts_settings").(bool)),
 		}
 		if _, _, err := conn.OrganizationsApi.UpdateOrg(ctx, orgID, updateRequest).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization name: %s", err))
@@ -336,8 +336,8 @@ func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizat
 
 	createRequest := &admin.CreateOrganizationRequest{
 		Name:                      d.Get("name").(string),
-		OrgOwnerId:                conversion.Pointer(d.Get("org_owner_id").(string)),
-		SkipDefaultAlertsSettings: conversion.Pointer(skipDefaultAlertsSettings),
+		OrgOwnerId:                new(d.Get("org_owner_id").(string)),
+		SkipDefaultAlertsSettings: new(skipDefaultAlertsSettings),
 	}
 
 	if federationSettingsID, ok := d.Get("federation_settings_id").(string); ok && federationSettingsID != "" {
@@ -368,11 +368,11 @@ func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizat
 
 func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings {
 	return &admin.OrganizationSettings{
-		ApiAccessListRequired:   conversion.Pointer(d.Get("api_access_list_required").(bool)),
-		MultiFactorAuthRequired: conversion.Pointer(d.Get("multi_factor_auth_required").(bool)),
-		RestrictEmployeeAccess:  conversion.Pointer(d.Get("restrict_employee_access").(bool)),
-		GenAIFeaturesEnabled:    conversion.Pointer(d.Get("gen_ai_features_enabled").(bool)),
-		SecurityContact:         conversion.Pointer(d.Get("security_contact").(string)),
+		ApiAccessListRequired:   new(d.Get("api_access_list_required").(bool)),
+		MultiFactorAuthRequired: new(d.Get("multi_factor_auth_required").(bool)),
+		RestrictEmployeeAccess:  new(d.Get("restrict_employee_access").(bool)),
+		GenAIFeaturesEnabled:    new(d.Get("gen_ai_features_enabled").(bool)),
+		SecurityContact:         new(d.Get("security_contact").(string)),
 	}
 }
 

@@ -108,35 +108,35 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ldap := new(admin.LDAPSecuritySettings)
 
 	if v, ok := d.GetOk("authentication_enabled"); ok {
-		ldap.AuthenticationEnabled = conversion.Pointer(v.(bool))
+		ldap.AuthenticationEnabled = new(v.(bool))
 	}
 
 	if v, ok := d.GetOk("authorization_enabled"); ok {
-		ldap.AuthorizationEnabled = conversion.Pointer(v.(bool))
+		ldap.AuthorizationEnabled = new(v.(bool))
 	}
 
 	if v, ok := d.GetOk("hostname"); ok {
-		ldap.Hostname = conversion.Pointer(v.(string))
+		ldap.Hostname = new(v.(string))
 	}
 
 	if v, ok := d.GetOk("port"); ok {
-		ldap.Port = conversion.Pointer(v.(int))
+		ldap.Port = new(v.(int))
 	}
 
 	if v, ok := d.GetOk("bind_username"); ok {
-		ldap.BindUsername = conversion.Pointer(v.(string))
+		ldap.BindUsername = new(v.(string))
 	}
 
 	if v, ok := d.GetOk("bind_password"); ok {
-		ldap.BindPassword = conversion.Pointer(v.(string))
+		ldap.BindPassword = new(v.(string))
 	}
 
 	if v, ok := d.GetOk("ca_certificate"); ok {
-		ldap.CaCertificate = conversion.Pointer(v.(string))
+		ldap.CaCertificate = new(v.(string))
 	}
 
 	if v, ok := d.GetOk("authz_query_template"); ok {
-		ldap.AuthzQueryTemplate = conversion.Pointer(v.(string))
+		ldap.AuthzQueryTemplate = new(v.(string))
 	}
 
 	if v, ok := d.GetOk("user_to_dn_mapping"); ok {
@@ -197,35 +197,35 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ldap := new(admin.LDAPSecuritySettings)
 
 	if d.HasChange("authentication_enabled") {
-		ldap.AuthenticationEnabled = conversion.Pointer(d.Get("authentication_enabled").(bool))
+		ldap.AuthenticationEnabled = new(d.Get("authentication_enabled").(bool))
 	}
 
 	if d.HasChange("authorization_enabled") {
-		ldap.AuthorizationEnabled = conversion.Pointer(d.Get("authorization_enabled").(bool))
+		ldap.AuthorizationEnabled = new(d.Get("authorization_enabled").(bool))
 	}
 
 	if d.HasChange("hostname") {
-		ldap.Hostname = conversion.Pointer(d.Get("hostname").(string))
+		ldap.Hostname = new(d.Get("hostname").(string))
 	}
 
 	if d.HasChange("port") {
-		ldap.Port = conversion.Pointer(d.Get("port").(int))
+		ldap.Port = new(d.Get("port").(int))
 	}
 
 	if d.HasChange("bind_username") {
-		ldap.BindUsername = conversion.Pointer(d.Get("bind_username").(string))
+		ldap.BindUsername = new(d.Get("bind_username").(string))
 	}
 
 	if d.HasChange("bind_password") {
-		ldap.BindPassword = conversion.Pointer(d.Get("bind_password").(string))
+		ldap.BindPassword = new(d.Get("bind_password").(string))
 	}
 
 	if d.HasChange("ca_certificate") {
-		ldap.CaCertificate = conversion.Pointer(d.Get("ca_certificate").(string))
+		ldap.CaCertificate = new(d.Get("ca_certificate").(string))
 	}
 
 	if d.HasChange("authz_query_template") {
-		ldap.AuthzQueryTemplate = conversion.Pointer(d.Get("authz_query_template").(string))
+		ldap.AuthzQueryTemplate = new(d.Get("authz_query_template").(string))
 	}
 
 	if d.HasChange("user_to_dn_mapping") {
@@ -246,8 +246,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	params := &admin.UserSecurity{
 		Ldap: &admin.LDAPSecuritySettings{
-			AuthenticationEnabled: conversion.Pointer(false),
-			AuthorizationEnabled:  conversion.Pointer(false),
+			AuthenticationEnabled: new(false),
+			AuthorizationEnabled:  new(false),
 		},
 	}
 	_, _, err := connV2.LDAPConfigurationApi.UpdateUserSecurity(ctx, d.Id(), params).Execute()
