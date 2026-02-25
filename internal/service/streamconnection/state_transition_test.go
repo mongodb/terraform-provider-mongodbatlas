@@ -56,9 +56,9 @@ func TestStreamConnectionDeletionWithDeletingState(t *testing.T) {
 	notFoundErr.SetError("not found")
 
 	deletingConnection := &admin.StreamsConnection{
-		Name:  admin.PtrString(connectionName),
-		Type:  admin.PtrString("Kafka"),
-		State: admin.PtrString("DELETING"),
+		Name:  new(connectionName),
+		Type:  new("Kafka"),
+		State: new("DELETING"),
 	}
 
 	// Delete call succeeds immediately
@@ -101,9 +101,9 @@ func TestStreamConnectionDeletionFailed(t *testing.T) {
 	)
 
 	failedConnection := &admin.StreamsConnection{
-		Name:  admin.PtrString(connectionName),
-		Type:  admin.PtrString("Kafka"),
-		State: admin.PtrString("FAILED"),
+		Name:  new(connectionName),
+		Type:  new("Kafka"),
+		State: new("FAILED"),
 	}
 
 	// Delete call succeeds immediately
@@ -130,14 +130,14 @@ func TestWaitStateTransitionCreate(t *testing.T) {
 	notFoundErr.SetError("not found")
 
 	pendingConnection := &admin.StreamsConnection{
-		Name:  admin.PtrString(connectionName),
-		Type:  admin.PtrString("Kafka"),
-		State: admin.PtrString("PENDING"),
+		Name:  new(connectionName),
+		Type:  new("Kafka"),
+		State: new("PENDING"),
 	}
 	readyConnection := &admin.StreamsConnection{
-		Name:  admin.PtrString(connectionName),
-		Type:  admin.PtrString("Kafka"),
-		State: admin.PtrString("READY"),
+		Name:  new(connectionName),
+		Type:  new("Kafka"),
+		State: new("READY"),
 	}
 
 	// Simulates create flow with eventual consistency: 404 -> PENDING -> READY
@@ -163,9 +163,9 @@ func TestWaitStateTransitionFailed(t *testing.T) {
 	)
 
 	failedConnection := &admin.StreamsConnection{
-		Name:  admin.PtrString(connectionName),
-		Type:  admin.PtrString("Kafka"),
-		State: admin.PtrString("FAILED"),
+		Name:  new(connectionName),
+		Type:  new("Kafka"),
+		State: new("FAILED"),
 	}
 
 	m.EXPECT().GetStreamConnection(mock.Anything, projectID, workspaceName, connectionName).Return(admin.GetStreamConnectionApiRequest{ApiService: m}).Once()
