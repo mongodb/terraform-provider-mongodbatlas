@@ -129,7 +129,7 @@ func sortClusterTagsAndLabels(cluster *admin.ClusterDescription20240805) {
 	}
 	if cluster.Labels != nil {
 		sort.Slice(*cluster.Labels, func(i, j int) bool {
-			return conversion.SafeString((*cluster.Labels)[i].Key) < conversion.SafeString((*cluster.Labels)[j].Key)
+			return conversion.SafeValue((*cluster.Labels)[i].Key) < conversion.SafeValue((*cluster.Labels)[j].Key)
 		})
 	}
 }

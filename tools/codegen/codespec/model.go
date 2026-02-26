@@ -97,7 +97,8 @@ type Schema struct {
 	DeprecationMessage *string        `yaml:"deprecation_message,omitempty"`
 	Discriminator      *Discriminator `yaml:"discriminator,omitempty"`
 
-	Attributes Attributes `yaml:"attributes"`
+	Attributes    Attributes `yaml:"attributes"`
+	ExpandedModel bool       `yaml:"expanded_model,omitempty"`
 }
 
 // DiscriminatorAttrName pairs the original API property name with the Terraform schema name.
@@ -108,8 +109,9 @@ type DiscriminatorAttrName struct {
 }
 
 type Discriminator struct {
-	Mapping      map[string]DiscriminatorType `yaml:"mapping"`
-	PropertyName DiscriminatorAttrName        `yaml:"property_name"`
+	Mapping        map[string]DiscriminatorType `yaml:"mapping"`
+	PropertyName   DiscriminatorAttrName        `yaml:"property_name"`
+	SkipValidation bool                         `yaml:"skip_validation,omitempty"`
 }
 
 type DiscriminatorType struct {

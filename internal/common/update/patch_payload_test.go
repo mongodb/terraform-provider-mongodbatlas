@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -49,7 +48,7 @@ func TestPatchReplicationSpecs(t *testing.T) {
 		}
 		planNameDifferentAndEnableBackup = admin.ClusterDescription20240805{
 			Name:          &rootNameUpdated,
-			BackupEnabled: conversion.Pointer(true),
+			BackupEnabled: new(true),
 		}
 		planNoChanges = admin.ClusterDescription20240805{
 			ReplicationSpecs: &[]admin.ReplicationSpec20240805{
@@ -72,7 +71,7 @@ func TestPatchReplicationSpecs(t *testing.T) {
 						{
 							Id:       &rp1ID,
 							ZoneId:   &rp1ZoneID,
-							ZoneName: conversion.Pointer("newName"),
+							ZoneName: new("newName"),
 						},
 					},
 				},
@@ -84,7 +83,7 @@ func TestPatchReplicationSpecs(t *testing.T) {
 					ReplicationSpecs: &[]admin.ReplicationSpec20240805{
 						rp1,
 						{
-							ZoneName: conversion.Pointer("zone2"),
+							ZoneName: new("zone2"),
 						},
 					},
 				},
@@ -126,7 +125,7 @@ func TestPatchReplicationSpecs(t *testing.T) {
 							Id: &rp1ID,
 							RegionConfigs: &[]admin.CloudRegionConfig20240805{
 								{
-									Priority: conversion.Pointer(1),
+									Priority: new(1),
 								},
 							},
 						},
@@ -138,10 +137,10 @@ func TestPatchReplicationSpecs(t *testing.T) {
 							Id: &rp1ID,
 							RegionConfigs: &[]admin.CloudRegionConfig20240805{
 								{
-									Priority: conversion.Pointer(1),
+									Priority: new(1),
 								},
 								{
-									Priority: conversion.Pointer(2),
+									Priority: new(2),
 								},
 							},
 						},
@@ -153,10 +152,10 @@ func TestPatchReplicationSpecs(t *testing.T) {
 							Id: &rp1ID,
 							RegionConfigs: &[]admin.CloudRegionConfig20240805{
 								{
-									Priority: conversion.Pointer(1),
+									Priority: new(1),
 								},
 								{
-									Priority: conversion.Pointer(2),
+									Priority: new(2),
 								},
 							},
 						},
@@ -168,7 +167,7 @@ func TestPatchReplicationSpecs(t *testing.T) {
 				plan:  &planNameDifferentAndEnableBackup,
 				patchExpected: &admin.ClusterDescription20240805{
 					Name:          &rootNameUpdated,
-					BackupEnabled: conversion.Pointer(true),
+					BackupEnabled: new(true),
 				},
 			},
 			"No Changes when only computed attributes are not in plan": {
@@ -206,9 +205,9 @@ func TestPatchReplicationSpecs(t *testing.T) {
 				patchExpected: nil,
 			},
 			"diskSizeGb ignored in state": {
-				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0, conversion.Pointer(3500)),
+				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, new(50.0), 0, new(3500)),
 				plan:          clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, nil),
-				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, conversion.Pointer(3500)),
+				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, new(3500)),
 				options: []update.PatchOptions{
 					{
 						IgnoreInStateSuffix: []string{"diskSizeGB"},
@@ -216,9 +215,9 @@ func TestPatchReplicationSpecs(t *testing.T) {
 				},
 			},
 			"regionConfigs ignored in state but diskIOPS included": {
-				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, conversion.Pointer(50.0), 0, conversion.Pointer(3500)),
+				state:         clusterDescriptionDiskSizeNodeCount(50.0, 3, new(50.0), 0, new(3500)),
 				plan:          clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, nil),
-				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, conversion.Pointer(3500)),
+				patchExpected: clusterDescriptionDiskSizeNodeCount(55.0, 3, nil, 0, new(3500)),
 				options: []update.PatchOptions{
 					{
 						IgnoreInStatePrefix:  []string{"regionConfigs"},
@@ -240,7 +239,7 @@ func TestPatchReplicationSpecs(t *testing.T) {
 func TestPatchAdvancedConfig(t *testing.T) {
 	var (
 		state = admin.ClusterDescriptionProcessArgs20240805{
-			JavascriptEnabled: conversion.Pointer(true),
+			JavascriptEnabled: new(true),
 		}
 		testCases = map[string]struct {
 			state         *admin.ClusterDescriptionProcessArgs20240805
@@ -251,10 +250,10 @@ func TestPatchAdvancedConfig(t *testing.T) {
 			"JavascriptEnabled is set to false": {
 				state: &state,
 				plan: &admin.ClusterDescriptionProcessArgs20240805{
-					JavascriptEnabled: conversion.Pointer(false),
+					JavascriptEnabled: new(false),
 				},
 				patchExpected: &admin.ClusterDescriptionProcessArgs20240805{
-					JavascriptEnabled: conversion.Pointer(false),
+					JavascriptEnabled: new(false),
 				},
 			},
 			"JavascriptEnabled is set to null leads to no changes": {
@@ -270,10 +269,10 @@ func TestPatchAdvancedConfig(t *testing.T) {
 			"Adding NoTableScan changes the plan payload and but doesn't include old value of JavascriptEnabled": {
 				state: &state,
 				plan: &admin.ClusterDescriptionProcessArgs20240805{
-					NoTableScan: conversion.Pointer(true),
+					NoTableScan: new(true),
 				},
 				patchExpected: &admin.ClusterDescriptionProcessArgs20240805{
-					NoTableScan: conversion.Pointer(true),
+					NoTableScan: new(true),
 				},
 			},
 			"Nil plan should return no changes": {
@@ -296,7 +295,7 @@ func TestIsEmpty(t *testing.T) {
 	assert.True(t, update.IsZeroValues(&admin.ClusterDescription20240805{}))
 	var myVar admin.ClusterDescription20240805
 	assert.True(t, update.IsZeroValues(&myVar))
-	assert.False(t, update.IsZeroValues(&admin.ClusterDescription20240805{Name: conversion.Pointer("my-cluster")}))
+	assert.False(t, update.IsZeroValues(&admin.ClusterDescription20240805{Name: new("my-cluster")}))
 }
 
 type replicationSpec struct {

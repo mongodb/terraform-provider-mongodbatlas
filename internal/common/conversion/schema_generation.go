@@ -70,24 +70,24 @@ func UpdateSchemaDescription[T schema.Schema | dsschema.Schema](s *T) {
 }
 
 var convertMappings = map[string]reflect.Type{
-	"StringAttribute":       reflect.TypeOf(dsschema.StringAttribute{}),
-	"BoolAttribute":         reflect.TypeOf(dsschema.BoolAttribute{}),
-	"Int64Attribute":        reflect.TypeOf(dsschema.Int64Attribute{}),
-	"Float64Attribute":      reflect.TypeOf(dsschema.Float64Attribute{}),
-	"MapAttribute":          reflect.TypeOf(dsschema.MapAttribute{}),
-	"ListAttribute":         reflect.TypeOf(dsschema.ListAttribute{}),
-	"SetAttribute":          reflect.TypeOf(dsschema.SetAttribute{}),
-	"SingleNestedAttribute": reflect.TypeOf(dsschema.SingleNestedAttribute{}),
-	"ListNestedAttribute":   reflect.TypeOf(dsschema.ListNestedAttribute{}),
-	"SetNestedAttribute":    reflect.TypeOf(dsschema.SetNestedAttribute{}),
-	"SingleNestedBlock":     reflect.TypeOf(dsschema.SingleNestedAttribute{}),
-	"ListNestedBlock":       reflect.TypeOf(dsschema.ListNestedAttribute{}),
-	"SetNestedBlock":        reflect.TypeOf(dsschema.SetNestedAttribute{}),
+	"StringAttribute":       reflect.TypeFor[dsschema.StringAttribute](),
+	"BoolAttribute":         reflect.TypeFor[dsschema.BoolAttribute](),
+	"Int64Attribute":        reflect.TypeFor[dsschema.Int64Attribute](),
+	"Float64Attribute":      reflect.TypeFor[dsschema.Float64Attribute](),
+	"MapAttribute":          reflect.TypeFor[dsschema.MapAttribute](),
+	"ListAttribute":         reflect.TypeFor[dsschema.ListAttribute](),
+	"SetAttribute":          reflect.TypeFor[dsschema.SetAttribute](),
+	"SingleNestedAttribute": reflect.TypeFor[dsschema.SingleNestedAttribute](),
+	"ListNestedAttribute":   reflect.TypeFor[dsschema.ListNestedAttribute](),
+	"SetNestedAttribute":    reflect.TypeFor[dsschema.SetNestedAttribute](),
+	"SingleNestedBlock":     reflect.TypeFor[dsschema.SingleNestedAttribute](),
+	"ListNestedBlock":       reflect.TypeFor[dsschema.ListNestedAttribute](),
+	"SetNestedBlock":        reflect.TypeFor[dsschema.SetNestedAttribute](),
 }
 
 var convertNestedMappings = map[string]reflect.Type{
-	"NestedAttributeObject": reflect.TypeOf(dsschema.NestedAttributeObject{}),
-	"NestedBlockObject":     reflect.TypeOf(dsschema.NestedBlockObject{}),
+	"NestedAttributeObject": reflect.TypeFor[dsschema.NestedAttributeObject](),
+	"NestedBlockObject":     reflect.TypeFor[dsschema.NestedBlockObject](),
 }
 
 func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields []string) map[string]dsschema.Attribute {
@@ -180,7 +180,7 @@ func overrideFields(attrs, overridenFields map[string]dsschema.Attribute) {
 // UpdateAttr is exported for testing purposes only and should not be used directly.
 func UpdateAttr(attr any) {
 	ptr := reflect.ValueOf(attr)
-	if ptr.Kind() != reflect.Ptr {
+	if ptr.Kind() != reflect.Pointer {
 		panic("not ptr, please fix caller")
 	}
 	v := ptr.Elem()

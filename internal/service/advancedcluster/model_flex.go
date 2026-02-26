@@ -30,7 +30,7 @@ func newFlexCreateReq(clusterName string, terminationProtectionEnabled bool, tag
 			BackingProviderName: regionConfigs.GetBackingProviderName(),
 			RegionName:          regionConfigs.GetRegionName(),
 		},
-		TerminationProtectionEnabled: conversion.Pointer(terminationProtectionEnabled),
+		TerminationProtectionEnabled: new(terminationProtectionEnabled),
 		Tags:                         tags,
 	}
 }
@@ -122,7 +122,7 @@ func flexDescriptionToClusterDescription(flexCluster *admin.FlexClusterDescripti
 
 func newTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int, modelIn *TFModel) *TFModel {
 	if priority == nil {
-		priority = conversion.Pointer(defaultPriority)
+		priority = new(defaultPriority)
 	}
 	modelOut := newTFModel(ctx, flexDescriptionToClusterDescription(flexCluster, priority), diags)
 	if diags.HasError() {

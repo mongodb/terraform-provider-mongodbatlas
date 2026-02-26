@@ -66,12 +66,12 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 		{
 			name: "Cluster connection type SDK response",
 			SDKResp: &admin.StreamsConnection{
-				Name:        admin.PtrString(connectionName),
-				Type:        admin.PtrString("Cluster"),
-				ClusterName: admin.PtrString(clusterName),
+				Name:        new(connectionName),
+				Type:        new("Cluster"),
+				ClusterName: new(clusterName),
 				DbRoleToExecute: &admin.DBRoleToExecute{
-					Role: admin.PtrString(dbRole),
-					Type: admin.PtrString(dbRoleType),
+					Role: new(dbRole),
+					Type: new(dbRoleType),
 				},
 			},
 			providedProjID:       dummyProjectID,
@@ -99,13 +99,13 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 		{
 			name: "Cluster cross project connection type SDK response",
 			SDKResp: &admin.StreamsConnection{
-				Name:           admin.PtrString(connectionName),
-				Type:           admin.PtrString("Cluster"),
-				ClusterName:    admin.PtrString(clusterName),
-				ClusterGroupId: admin.PtrString("foo"),
+				Name:           new(connectionName),
+				Type:           new("Cluster"),
+				ClusterName:    new(clusterName),
+				ClusterGroupId: new("foo"),
 				DbRoleToExecute: &admin.DBRoleToExecute{
-					Role: admin.PtrString(dbRole),
-					Type: admin.PtrString(dbRoleType),
+					Role: new(dbRole),
+					Type: new(dbRoleType),
 				},
 			},
 			providedProjID:       dummyProjectID,
@@ -134,17 +134,17 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 		{
 			name: "Kafka connection type SDK response",
 			SDKResp: &admin.StreamsConnection{
-				Name: admin.PtrString(connectionName),
-				Type: admin.PtrString("Kafka"),
+				Name: new(connectionName),
+				Type: new("Kafka"),
 				Authentication: &admin.StreamsKafkaAuthentication{
-					Mechanism: admin.PtrString(authMechanism),
-					Username:  admin.PtrString(authUsername),
+					Mechanism: new(authMechanism),
+					Username:  new(authUsername),
 				},
-				BootstrapServers: admin.PtrString(bootstrapServers),
+				BootstrapServers: new(bootstrapServers),
 				Config:           &configMap,
 				Security: &admin.StreamsKafkaSecurity{
-					Protocol:                admin.PtrString(securityProtocol),
-					BrokerPublicCertificate: admin.PtrString(DummyCACert),
+					Protocol:                new(securityProtocol),
+					BrokerPublicCertificate: new(DummyCACert),
 				},
 			},
 			providedProjID:       dummyProjectID,
@@ -172,21 +172,21 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 		{
 			name: "Kafka connection type SDK response for OAuthBearer authentication",
 			SDKResp: &admin.StreamsConnection{
-				Name: admin.PtrString(connectionName),
-				Type: admin.PtrString("Kafka"),
+				Name: new(connectionName),
+				Type: new("Kafka"),
 				Authentication: &admin.StreamsKafkaAuthentication{
-					Mechanism:                 admin.PtrString(authMechanism),
-					Method:                    admin.PtrString(method),
-					ClientId:                  admin.PtrString(clientID),
-					TokenEndpointUrl:          admin.PtrString(tokenEndpointURL),
-					Scope:                     admin.PtrString(scope),
-					SaslOauthbearerExtensions: admin.PtrString(saslOauthbearerExtentions),
+					Mechanism:                 new(authMechanism),
+					Method:                    new(method),
+					ClientId:                  new(clientID),
+					TokenEndpointUrl:          new(tokenEndpointURL),
+					Scope:                     new(scope),
+					SaslOauthbearerExtensions: new(saslOauthbearerExtentions),
 				},
-				BootstrapServers: admin.PtrString(bootstrapServers),
+				BootstrapServers: new(bootstrapServers),
 				Config:           &configMap,
 				Security: &admin.StreamsKafkaSecurity{
-					Protocol:                admin.PtrString(securityProtocol),
-					BrokerPublicCertificate: admin.PtrString(DummyCACert),
+					Protocol:                new(securityProtocol),
+					BrokerPublicCertificate: new(DummyCACert),
 				},
 			},
 			providedProjID:       dummyProjectID,
@@ -214,8 +214,8 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 		{
 			name: "Kafka connection type SDK response with no optional values provided",
 			SDKResp: &admin.StreamsConnection{
-				Name: admin.PtrString(connectionName),
-				Type: admin.PtrString("Kafka"),
+				Name: new(connectionName),
+				Type: new("Kafka"),
 			},
 			providedProjID:       dummyProjectID,
 			providedInstanceName: instanceName,
@@ -241,17 +241,17 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 		{
 			name: "Kafka connection type with config that does not have authentication value (case of imports and data sources)",
 			SDKResp: &admin.StreamsConnection{
-				Name: admin.PtrString(connectionName),
-				Type: admin.PtrString("Kafka"),
+				Name: new(connectionName),
+				Type: new("Kafka"),
 				Authentication: &admin.StreamsKafkaAuthentication{
-					Mechanism: admin.PtrString(authMechanism),
-					Username:  admin.PtrString(authUsername),
+					Mechanism: new(authMechanism),
+					Username:  new(authUsername),
 				},
-				BootstrapServers: admin.PtrString(bootstrapServers),
+				BootstrapServers: new(bootstrapServers),
 				Config:           &configMap,
 				Security: &admin.StreamsKafkaSecurity{
-					Protocol:                admin.PtrString(securityProtocol),
-					BrokerPublicCertificate: admin.PtrString(DummyCACert),
+					Protocol:                new(securityProtocol),
+					BrokerPublicCertificate: new(DummyCACert),
 				},
 			},
 			providedProjID:       dummyProjectID,
@@ -279,8 +279,8 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 		{
 			name: "Sample connection type sample_stream_solar sample",
 			SDKResp: &admin.StreamsConnection{
-				Name: admin.PtrString(sampleConnectionName),
-				Type: admin.PtrString("Sample"),
+				Name: new(sampleConnectionName),
+				Type: new("Sample"),
 			},
 			providedProjID:       dummyProjectID,
 			providedInstanceName: instanceName,
@@ -305,9 +305,9 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 		{
 			name: "AWSLambda connection type with roleArn",
 			SDKResp: &admin.StreamsConnection{
-				Name: admin.PtrString(awslambdaConnectionName),
-				Type: admin.PtrString("AWSLambda"),
-				Aws:  &admin.StreamsAWSConnectionConfig{RoleArn: admin.PtrString(sampleRoleArn)},
+				Name: new(awslambdaConnectionName),
+				Type: new("AWSLambda"),
+				Aws:  &admin.StreamsAWSConnectionConfig{RoleArn: new(sampleRoleArn)},
 			},
 			providedProjID:       dummyProjectID,
 			providedInstanceName: instanceName,
@@ -332,17 +332,17 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 		{
 			name: "SchemaRegistry connection type",
 			SDKResp: &admin.StreamsConnection{
-				Name:     admin.PtrString(connectionName),
-				Type:     admin.PtrString("SchemaRegistry"),
-				Provider: admin.PtrString("CONFLUENT"),
+				Name:     new(connectionName),
+				Type:     new("SchemaRegistry"),
+				Provider: new("CONFLUENT"),
 				SchemaRegistryUrls: &[]string{
 					"https://schemaregistry1.com",
 					"https://schemaregistry2.com",
 				},
 				SchemaRegistryAuthentication: &admin.SchemaRegistryAuthentication{
 					Type:     "USER_INFO",
-					Username: admin.PtrString("schemaUser"),
-					Password: admin.PtrString("schemaPass"),
+					Username: new("schemaUser"),
+					Password: new("schemaPass"),
 				},
 			},
 			providedProjID:       dummyProjectID,
@@ -413,8 +413,8 @@ func TestNewTFStreamConnectionCustomTimeoutsOverrideDefault(t *testing.T) {
 	}
 
 	apiResp := &admin.StreamsConnection{
-		Name: admin.PtrString("TestConnection"),
-		Type: admin.PtrString("Cluster"),
+		Name: new("TestConnection"),
+		Type: new("Cluster"),
 	}
 
 	resultModel, diags := streamconnection.NewTFStreamConnection(
@@ -458,66 +458,66 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 			SDKResp: &admin.PaginatedApiStreamsConnection{
 				Results: &[]admin.StreamsConnection{
 					{
-						Name: admin.PtrString(connectionName),
-						Type: admin.PtrString("Kafka"),
+						Name: new(connectionName),
+						Type: new("Kafka"),
 						Authentication: &admin.StreamsKafkaAuthentication{
-							Mechanism: admin.PtrString(authMechanism),
-							Username:  admin.PtrString(authUsername),
+							Mechanism: new(authMechanism),
+							Username:  new(authUsername),
 						},
-						BootstrapServers: admin.PtrString(bootstrapServers),
+						BootstrapServers: new(bootstrapServers),
 						Config:           &configMap,
 						Security: &admin.StreamsKafkaSecurity{
-							Protocol:                admin.PtrString(securityProtocol),
-							BrokerPublicCertificate: admin.PtrString(DummyCACert),
+							Protocol:                new(securityProtocol),
+							BrokerPublicCertificate: new(DummyCACert),
 						},
 						Networking: &admin.StreamsKafkaNetworking{
 							Access: &admin.StreamsKafkaNetworkingAccess{
-								Type: admin.PtrString(networkingType),
+								Type: new(networkingType),
 							},
 						},
 					},
 					{
-						Name:        admin.PtrString(connectionName),
-						Type:        admin.PtrString("Cluster"),
-						ClusterName: admin.PtrString(clusterName),
+						Name:        new(connectionName),
+						Type:        new("Cluster"),
+						ClusterName: new(clusterName),
 						DbRoleToExecute: &admin.DBRoleToExecute{
-							Role: admin.PtrString(dbRole),
-							Type: admin.PtrString(dbRoleType),
+							Role: new(dbRole),
+							Type: new(dbRoleType),
 						},
 					},
 					{
-						Name: admin.PtrString(sampleConnectionName),
-						Type: admin.PtrString("Sample"),
+						Name: new(sampleConnectionName),
+						Type: new("Sample"),
 					},
 					{
-						Name: admin.PtrString(awslambdaConnectionName),
-						Type: admin.PtrString("AWSLambda"),
+						Name: new(awslambdaConnectionName),
+						Type: new("AWSLambda"),
 						Aws: &admin.StreamsAWSConnectionConfig{
-							RoleArn: admin.PtrString(sampleRoleArn),
+							RoleArn: new(sampleRoleArn),
 						},
 					},
 					{
-						Name:    admin.PtrString(connectionName),
-						Type:    admin.PtrString("Https"),
-						Url:     admin.PtrString(httpsURL),
+						Name:    new(connectionName),
+						Type:    new("Https"),
+						Url:     new(httpsURL),
 						Headers: &headersMap,
 					},
 					{
-						Name:     admin.PtrString(connectionName),
-						Type:     admin.PtrString("SchemaRegistry"),
-						Provider: admin.PtrString("CONFLUENT"),
+						Name:     new(connectionName),
+						Type:     new("SchemaRegistry"),
+						Provider: new("CONFLUENT"),
 						SchemaRegistryUrls: &[]string{
 							"https://schemaregistry1.com",
 							"https://schemaregistry2.com",
 						},
 						SchemaRegistryAuthentication: &admin.SchemaRegistryAuthentication{
 							Type:     "USER_INFO",
-							Username: admin.PtrString("schemaUser"),
-							Password: admin.PtrString("schemaPass"),
+							Username: new("schemaUser"),
+							Password: new("schemaPass"),
 						},
 					},
 				},
-				TotalCount: admin.PtrInt(6),
+				TotalCount: new(6),
 			},
 			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
 				ProjectID:    types.StringValue(dummyProjectID),
@@ -658,7 +658,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 			name: "Without defining page options",
 			SDKResp: &admin.PaginatedApiStreamsConnection{
 				Results:    &[]admin.StreamsConnection{},
-				TotalCount: admin.PtrInt(0),
+				TotalCount: new(0),
 			},
 			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
 				ProjectID:    types.StringValue(dummyProjectID),
@@ -677,7 +677,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 			name: "With workspace name and no page options",
 			SDKResp: &admin.PaginatedApiStreamsConnection{
 				Results:    &[]admin.StreamsConnection{},
-				TotalCount: admin.PtrInt(0),
+				TotalCount: new(0),
 			},
 			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
 				ProjectID:     types.StringValue(dummyProjectID),
@@ -729,12 +729,12 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				},
 			},
 			expectedSDKReq: &admin.StreamsConnection{
-				Name:        admin.PtrString(connectionName),
-				Type:        admin.PtrString("Cluster"),
-				ClusterName: admin.PtrString(clusterName),
+				Name:        new(connectionName),
+				Type:        new("Cluster"),
+				ClusterName: new(clusterName),
 				DbRoleToExecute: &admin.DBRoleToExecute{
-					Role: admin.PtrString(dbRole),
-					Type: admin.PtrString(dbRoleType),
+					Role: new(dbRole),
+					Type: new(dbRoleType),
 				},
 			},
 		},
@@ -753,18 +753,18 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				},
 			},
 			expectedSDKReq: &admin.StreamsConnection{
-				Name: admin.PtrString(connectionName),
-				Type: admin.PtrString("Kafka"),
+				Name: new(connectionName),
+				Type: new("Kafka"),
 				Authentication: &admin.StreamsKafkaAuthentication{
-					Mechanism: admin.PtrString(authMechanism),
-					Username:  admin.PtrString(authUsername),
-					Password:  admin.PtrString("raw password"),
+					Mechanism: new(authMechanism),
+					Username:  new(authUsername),
+					Password:  new("raw password"),
 				},
-				BootstrapServers: admin.PtrString(bootstrapServers),
+				BootstrapServers: new(bootstrapServers),
 				Config:           &configMap,
 				Security: &admin.StreamsKafkaSecurity{
-					Protocol:                admin.PtrString(securityProtocol),
-					BrokerPublicCertificate: admin.PtrString(DummyCACert),
+					Protocol:                new(securityProtocol),
+					BrokerPublicCertificate: new(DummyCACert),
 				},
 			},
 		},
@@ -779,8 +779,8 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				},
 			},
 			expectedSDKReq: &admin.StreamsConnection{
-				Name: admin.PtrString(connectionName),
-				Type: admin.PtrString("Kafka"),
+				Name: new(connectionName),
+				Type: new("Kafka"),
 			},
 		},
 		{
@@ -794,8 +794,8 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				},
 			},
 			expectedSDKReq: &admin.StreamsConnection{
-				Name: admin.PtrString(connectionName),
-				Type: admin.PtrString("Sample"),
+				Name: new(connectionName),
+				Type: new("Sample"),
 			},
 		},
 		{
@@ -810,10 +810,10 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				},
 			},
 			expectedSDKReq: &admin.StreamsConnection{
-				Name: admin.PtrString(awslambdaConnectionName),
-				Type: admin.PtrString("AWSLambda"),
+				Name: new(awslambdaConnectionName),
+				Type: new("AWSLambda"),
 				Aws: &admin.StreamsAWSConnectionConfig{
-					RoleArn: admin.PtrString(sampleRoleArn),
+					RoleArn: new(sampleRoleArn),
 				},
 			},
 		},
@@ -830,9 +830,9 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				},
 			},
 			expectedSDKReq: &admin.StreamsConnection{
-				Name:    admin.PtrString(connectionName),
-				Type:    admin.PtrString("Https"),
-				Url:     admin.PtrString(httpsURL),
+				Name:    new(connectionName),
+				Type:    new("Https"),
+				Url:     new(httpsURL),
 				Headers: &headersMap,
 			},
 		},
@@ -853,17 +853,17 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				},
 			},
 			expectedSDKReq: &admin.StreamsConnection{
-				Name:     admin.PtrString(connectionName),
-				Type:     admin.PtrString("SchemaRegistry"),
-				Provider: admin.PtrString("CONFLUENT"),
+				Name:     new(connectionName),
+				Type:     new("SchemaRegistry"),
+				Provider: new("CONFLUENT"),
 				SchemaRegistryUrls: &[]string{
 					"https://schemaregistry1.com",
 					"https://schemaregistry2.com",
 				},
 				SchemaRegistryAuthentication: &admin.SchemaRegistryAuthentication{
 					Type:     "USER_INFO",
-					Username: admin.PtrString("schemaUser"),
-					Password: admin.PtrString("schemaPass"),
+					Username: new("schemaUser"),
+					Password: new("schemaPass"),
 				},
 			},
 		},
@@ -884,9 +884,9 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				},
 			},
 			expectedSDKReq: &admin.StreamsConnection{
-				Name:     admin.PtrString(connectionName),
-				Type:     admin.PtrString("SchemaRegistry"),
-				Provider: admin.PtrString("CONFLUENT"),
+				Name:     new(connectionName),
+				Type:     new("SchemaRegistry"),
+				Provider: new("CONFLUENT"),
 				SchemaRegistryUrls: &[]string{
 					"https://schemaregistry1.com",
 					"https://schemaregistry2.com",

@@ -253,13 +253,13 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		processArgsCommon      = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("1"),
-			JavascriptEnabled:                conversion.Pointer(true),
+			JavascriptEnabled:                new(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer(1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-			SampleSizeBIConnector:            conversion.Pointer(110),
-			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+			NoTableScan:                      new(false),
+			OplogSizeMB:                      new(1000),
+			SampleRefreshIntervalBIConnector: new(310),
+			SampleSizeBIConnector:            new(110),
+			TransactionLifetimeLimitSeconds:  new(int64(300)),
 		}
 	)
 	processArgs := *processArgsCommon
@@ -294,25 +294,25 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		clusterNameUpdated     = acc.RandomClusterName()
 		processArgs            = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("1"),
-			JavascriptEnabled:                conversion.Pointer(true),
+			JavascriptEnabled:                new(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer(1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-			SampleSizeBIConnector:            conversion.Pointer(110),
-			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+			NoTableScan:                      new(false),
+			OplogSizeMB:                      new(1000),
+			SampleRefreshIntervalBIConnector: new(310),
+			SampleSizeBIConnector:            new(110),
+			TransactionLifetimeLimitSeconds:  new(int64(300)),
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
 			TlsCipherConfigMode: conversion.StringPtr("DEFAULT"),
 		}
 		processArgsUpdated = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("0"),
-			JavascriptEnabled:                conversion.Pointer(true),
+			JavascriptEnabled:                new(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer(1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-			SampleSizeBIConnector:            conversion.Pointer(110),
-			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+			NoTableScan:                      new(false),
+			OplogSizeMB:                      new(1000),
+			SampleRefreshIntervalBIConnector: new(310),
+			SampleSizeBIConnector:            new(110),
+			TransactionLifetimeLimitSeconds:  new(int64(300)),
 			DefaultMaxTimeMS:                 conversion.IntPtr(65),
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(100),
 			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
@@ -354,22 +354,22 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		clusterNameUpdated     = acc.RandomClusterName()
 		processArgs            = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("1"),
-			JavascriptEnabled:                conversion.Pointer(true),
+			JavascriptEnabled:                new(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer(1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-			SampleSizeBIConnector:            conversion.Pointer(110),
+			NoTableScan:                      new(false),
+			OplogSizeMB:                      new(1000),
+			SampleRefreshIntervalBIConnector: new(310),
+			SampleSizeBIConnector:            new(110),
 		}
 		processArgsUpdated = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("majority"),
-			JavascriptEnabled:                conversion.Pointer(true),
+			JavascriptEnabled:                new(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-			NoTableScan:                      conversion.Pointer(false),
-			OplogSizeMB:                      conversion.Pointer(1000),
-			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-			SampleSizeBIConnector:            conversion.Pointer(110),
-			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+			NoTableScan:                      new(false),
+			OplogSizeMB:                      new(1000),
+			SampleRefreshIntervalBIConnector: new(310),
+			SampleSizeBIConnector:            new(110),
+			TransactionLifetimeLimitSeconds:  new(int64(300)),
 		}
 	)
 
@@ -396,12 +396,12 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		autoScaling            = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+			Compute: &admin.AdvancedComputeAutoScaling{Enabled: new(false), MaxInstanceSize: conversion.StringPtr("")},
+			DiskGB:  &admin.DiskGBAutoScaling{Enabled: new(true)},
 		}
 		autoScalingUpdated = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(true), MaxInstanceSize: conversion.StringPtr("M20")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+			Compute: &admin.AdvancedComputeAutoScaling{Enabled: new(true), MaxInstanceSize: conversion.StringPtr("M20")},
+			DiskGB:  &admin.DiskGBAutoScaling{Enabled: new(true)},
 		}
 	)
 
@@ -456,12 +456,12 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		clusterNameUpdated     = acc.RandomClusterName()
 		autoScaling            = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+			Compute: &admin.AdvancedComputeAutoScaling{Enabled: new(false), MaxInstanceSize: conversion.StringPtr("")},
+			DiskGB:  &admin.DiskGBAutoScaling{Enabled: new(true)},
 		}
 		autoScalingUpdated = &admin.AdvancedAutoScalingSettings{
-			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(true), MaxInstanceSize: conversion.StringPtr("M20")},
-			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
+			Compute: &admin.AdvancedComputeAutoScaling{Enabled: new(true), MaxInstanceSize: conversion.StringPtr("M20")},
+			DiskGB:  &admin.DiskGBAutoScaling{Enabled: new(true)},
 		}
 	)
 
@@ -706,9 +706,9 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, useSDKv2 ...bool) resource
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(t, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, false, isSDKv2),
+				Config: configShardedNewSchema(t, orgID, projectName, clusterName, 50, "M30", "M40", new(2000), new(2500), false, false, isSDKv2),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkShardedNewSchema(isTPF, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
+					checkShardedNewSchema(isTPF, 50, "M30", "M40", new(2000), new(2500), true, false),
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD")),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -729,7 +729,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchemaInconsistentD
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configShardedNewSchema(t, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, true),
+				Config:      configShardedNewSchema(t, orgID, projectName, clusterName, 50, "M30", "M40", new(2000), new(2500), false, true),
 				ExpectError: regexp.MustCompile("DISK_SIZE_GB_INCONSISTENT"), // API Error when disk size is not consistent across all shards
 			},
 		},
@@ -878,7 +878,7 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 			},
 			{ // pins fcv
 				Config: configFCVPinning(t, orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(firstExpirationDate), admin.PtrInt(7)),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(firstExpirationDate), new(7)),
 			},
 			{ // using incorrect format
 				Config:      configFCVPinning(t, orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
@@ -886,15 +886,15 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 			},
 			{ // updates expiration date of fcv
 				Config: configFCVPinning(t, orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(updatedExpirationDate), new(7)),
 			},
 			{ // upgrade mongodb version with fcv pinned
 				Config: configFCVPinning(t, orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, new(updatedExpirationDate), new(7)),
 			},
 			{ // downgrade mongodb version with fcv pinned
 				Config: configFCVPinning(t, orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, admin.PtrString(updatedExpirationDate), admin.PtrInt(7)),
+				Check:  acc.CheckFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(updatedExpirationDate), new(7)),
 			},
 			{ // unpins fcv
 				Config: configFCVPinning(t, orgID, projectName, clusterName, nil, "7.0"),
@@ -1348,7 +1348,7 @@ func checkBlocks(instanceSize string) resource.TestCheckFunc {
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	extraChecks := extra
 	extraChecks = append(extraChecks, acc.CheckExistsCluster(resourceName))
-	return acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), nil, attrsSet, attrsMap, extraChecks...)
+	return acc.CheckRSAndDS(resourceName, new(dataSourceName), nil, attrsSet, attrsMap, extraChecks...)
 }
 
 func configTenant(t *testing.T, projectID, name, zoneName, instanceSize string) string {
@@ -1412,16 +1412,16 @@ func configWithKeyValueBlocks(t *testing.T, orgID, projectName, clusterName, blo
 	t.Helper()
 	var extraConfig string
 	if len(blocks) > 0 {
-		var keyValuePairs string
+		var keyValuePairs strings.Builder
 		for _, block := range blocks {
-			keyValuePairs += fmt.Sprintf(`
+			fmt.Fprintf(&keyValuePairs, `
 				%[1]q = %[2]q`, block["key"], block["value"])
 		}
 		extraConfig = fmt.Sprintf(`
 			%[1]s = {
 				%[2]s
 			}
-		`, blockName, keyValuePairs)
+		`, blockName, keyValuePairs.String())
 	}
 
 	return fmt.Sprintf(`
@@ -1748,7 +1748,7 @@ func configShardedMultiCloud(t *testing.T, projectID, name string, numShards int
 		`, *configServerManagementMode)
 	}
 
-	for i := 0; i < numShards; i++ {
+	for range numShards {
 		replicationSpecs += fmt.Sprintf(`
 			{
 			region_configs = [{
@@ -2066,7 +2066,7 @@ func TestAccAdvancedCluster_tls13CustomCiphers(t *testing.T) {
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		processArgs            = &admin.ClusterDescriptionProcessArgs20240805{
 			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
-			CustomOpensslCipherConfigTls13: conversion.Pointer([]string{"TLS_AES_128_GCM_SHA256"}),
+			CustomOpensslCipherConfigTls13: new([]string{"TLS_AES_128_GCM_SHA256"}),
 			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_3"),
 		}
 	)
@@ -2236,7 +2236,7 @@ func configGeoSharded(t *testing.T, projectID, name string, numShardsFirstZone, 
 	}
 
 	var replicationSpecs string
-	for i := 0; i < numShardsFirstZone; i++ {
+	for range numShardsFirstZone {
 		replicationSpecs += `
 			{
 				region_configs = [{
@@ -2257,7 +2257,7 @@ func configGeoSharded(t *testing.T, projectID, name string, numShardsFirstZone, 
 				zone_name = "zone n1"
 			},`
 	}
-	for i := 0; i < numShardsSecondZone; i++ {
+	for range numShardsSecondZone {
 		replicationSpecs += `
 			{
 				region_configs = [{
@@ -2301,7 +2301,7 @@ func checkAggrMig(isTPF, useDataSource bool, attrsSet []string, attrsMap map[str
 	extraChecks := extra
 	extraChecks = append(extraChecks, acc.CheckExistsCluster(resourceName))
 	if useDataSource {
-		return acc.CheckRSAndDSMigTPF(isTPF, resourceName, admin.PtrString(dataSourceName), nil, attrsSet, attrsMap, extraChecks...)
+		return acc.CheckRSAndDSMigTPF(isTPF, resourceName, new(dataSourceName), nil, attrsSet, attrsMap, extraChecks...)
 	}
 	return acc.CheckRSAndDSMigTPF(isTPF, resourceName, nil, nil, attrsSet, attrsMap, extraChecks...)
 }

@@ -27,10 +27,10 @@ func TestStreamAccountDetailsSDKToTFModel(t *testing.T) {
 			cloudProvider: "aws",
 			region:        "US_EAST_1",
 			SDKResp: &admin.AccountDetails{
-				AwsAccountId:  admin.PtrString("123456789"),
-				CidrBlock:     admin.PtrString("192.168.0.0/20"),
-				CloudProvider: admin.PtrString("aws"),
-				VpcId:         admin.PtrString("0987654"),
+				AwsAccountId:  new("123456789"),
+				CidrBlock:     new("192.168.0.0/20"),
+				CloudProvider: new("aws"),
+				VpcId:         new("0987654"),
 			},
 			expectedTFModel: &streamaccountdetails.TFStreamAccountDetailsModel{
 				ProjectId:     types.StringValue(dummyProjectID),
@@ -46,10 +46,10 @@ func TestStreamAccountDetailsSDKToTFModel(t *testing.T) {
 			cloudProvider: "azure",
 			region:        "EASTUS",
 			SDKResp: &admin.AccountDetails{
-				CidrBlock:           admin.PtrString("192.168.0.0/20"),
-				CloudProvider:       admin.PtrString("azure"),
-				AzureSubscriptionId: admin.PtrString("234567890"),
-				VirtualNetworkName:  admin.PtrString("876543"),
+				CidrBlock:           new("192.168.0.0/20"),
+				CloudProvider:       new("azure"),
+				AzureSubscriptionId: new("234567890"),
+				VirtualNetworkName:  new("876543"),
 			},
 			expectedTFModel: &streamaccountdetails.TFStreamAccountDetailsModel{
 				ProjectId:           types.StringValue(dummyProjectID),

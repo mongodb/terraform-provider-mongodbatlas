@@ -6,8 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -126,7 +124,7 @@ func CheckFCVPinningConfig(resourceName, dataSourceName, pluralDataSourceName st
 
 	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))
 
-	return CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
+	return CheckRSAndDS(resourceName, new(dataSourceName), new(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
 }
 
 func CheckIndependentShardScalingMode(resourceName, clusterName, expectedMode string) resource.TestCheckFunc {

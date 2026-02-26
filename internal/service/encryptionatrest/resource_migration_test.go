@@ -28,7 +28,7 @@ func TestMigEncryptionAtRest_basicAzure(t *testing.T) {
 		projectID    = acc.ProjectIDExecution(t)
 
 		azureKeyVault = admin.AzureKeyVault{
-			Enabled:           conversion.Pointer(true),
+			Enabled:           new(true),
 			ClientID:          conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
 			AzureEnvironment:  conversion.StringPtr("AZURE"),
 			SubscriptionID:    conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
@@ -79,7 +79,7 @@ func TestMigEncryptionAtRest_basicGCP(t *testing.T) {
 		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		googleCloudKms = admin.GoogleCloudKMS{
-			Enabled:              conversion.Pointer(true),
+			Enabled:              new(true),
 			ServiceAccountKey:    conversion.StringPtr(os.Getenv("GCP_SERVICE_ACCOUNT_KEY")),
 			KeyVersionResourceID: conversion.StringPtr(os.Getenv("GCP_KEY_VERSION_RESOURCE_ID")),
 		}

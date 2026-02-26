@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -195,9 +196,9 @@ func configWithPolicyBodies(orgID, policyName string, description *string, bodie
 		descriptionStr = fmt.Sprintf("description = %q", *description)
 	}
 
-	policies := ""
+	var policies strings.Builder
 	for _, body := range bodies {
-		policies += fmt.Sprintf(`
+		fmt.Fprintf(&policies, `
 		{
 			body = <<EOF
 			%s
@@ -223,7 +224,7 @@ data "mongodbatlas_resource_policy" "test" {
 data "mongodbatlas_resource_policies" "test" {
 	org_id = mongodbatlas_resource_policy.test.org_id
 }
-	`, orgID, policyName, descriptionStr, policies)
+	`, orgID, policyName, descriptionStr, policies.String())
 }
 
 func checkImportStateIDFunc(resourceID string) resource.ImportStateIdFunc {

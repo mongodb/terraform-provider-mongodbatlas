@@ -42,9 +42,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
+	AuditAuthorizationSuccess types.Bool   `tfsdk:"audit_authorization_success"`
 	AuditFilter               types.String `tfsdk:"audit_filter"`
 	ConfigurationType         types.String `tfsdk:"configuration_type" autogen:"omitjson"`
-	GroupId                   types.String `tfsdk:"group_id" autogen:"omitjson"`
-	AuditAuthorizationSuccess types.Bool   `tfsdk:"audit_authorization_success"`
 	Enabled                   types.Bool   `tfsdk:"enabled"`
+	GroupId                   types.String `tfsdk:"group_id" autogen:"omitjson"`
 }

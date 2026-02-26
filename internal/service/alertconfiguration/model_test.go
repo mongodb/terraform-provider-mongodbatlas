@@ -38,15 +38,15 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 		"Complete SDK response": {
 			SDKResp: &[]admin.AlertsNotificationRootForGroup{
 				{
-					TypeName:      admin.PtrString(group),
-					IntervalMin:   admin.PtrInt(intervalMin),
-					DelayMin:      admin.PtrInt(delayMin),
-					SmsEnabled:    admin.PtrBool(disabled),
-					EmailEnabled:  admin.PtrBool(enabled),
-					ChannelName:   admin.PtrString("#channel"),
+					TypeName:      new(group),
+					IntervalMin:   new(intervalMin),
+					DelayMin:      new(delayMin),
+					SmsEnabled:    new(disabled),
+					EmailEnabled:  new(enabled),
+					ChannelName:   new("#channel"),
 					Roles:         &roles,
-					ApiToken:      admin.PtrString("newApiToken"),
-					IntegrationId: admin.PtrString(integrationID),
+					ApiToken:      new("newApiToken"),
+					IntegrationId: new(integrationID),
 				},
 			},
 			currentStateNotifications: []alertconfiguration.TfNotificationModel{
@@ -93,10 +93,10 @@ func TestMetricThresholdSDKToTFModel(t *testing.T) {
 		"Complete SDK response": {
 			SDKResp: &admin.FlexClusterMetricThreshold{
 				MetricName: "ASSERT_REGULAR",
-				Operator:   admin.PtrString(operator),
-				Threshold:  admin.PtrFloat64(threshold),
-				Units:      admin.PtrString(units),
-				Mode:       admin.PtrString(mode),
+				Operator:   new(operator),
+				Threshold:  new(threshold),
+				Units:      new(units),
+				Mode:       new(mode),
 			},
 			currentStateMetricThreshold: []alertconfiguration.TfMetricThresholdConfigModel{
 				{
@@ -135,9 +135,9 @@ func TestThresholdConfigSDKToTFModel(t *testing.T) {
 	}{
 		"Complete SDK response": {
 			SDKResp: &admin.StreamProcessorMetricThreshold{
-				Threshold: admin.PtrFloat64(1.0),
-				Operator:  admin.PtrString("LESS_THAN"),
-				Units:     admin.PtrString("HOURS"),
+				Threshold: new(1.0),
+				Operator:  new("LESS_THAN"),
+				Units:     new("HOURS"),
 			},
 			currentStateThresholdConfig: []alertconfiguration.TfThresholdConfigModel{
 				{
@@ -210,10 +210,10 @@ func TestAlertConfigurationSDKToTFModel(t *testing.T) {
 	}{
 		"Complete SDK response": {
 			SDKResp: &admin.GroupAlertsConfig{
-				Enabled:       admin.PtrBool(true),
-				EventTypeName: admin.PtrString("EventType"),
-				GroupId:       admin.PtrString("projectId"),
-				Id:            admin.PtrString("alertConfigurationId"),
+				Enabled:       new(true),
+				EventTypeName: new("EventType"),
+				GroupId:       new("projectId"),
+				Id:            new("alertConfigurationId"),
 			},
 			currentStateAlertConfiguration: &alertconfiguration.TfAlertConfigurationRSModel{
 				ID:                    types.StringValue("id"),
@@ -240,11 +240,11 @@ func TestAlertConfigurationSDKToTFModel(t *testing.T) {
 		},
 		"Complete SDK response with SeverityOverride": {
 			SDKResp: &admin.GroupAlertsConfig{
-				Enabled:          admin.PtrBool(true),
-				EventTypeName:    admin.PtrString("EventType"),
-				GroupId:          admin.PtrString("projectId"),
-				Id:               admin.PtrString("alertConfigurationId"),
-				SeverityOverride: admin.PtrString("WARNING"),
+				Enabled:          new(true),
+				EventTypeName:    new("EventType"),
+				GroupId:          new("projectId"),
+				Id:               new("alertConfigurationId"),
+				SeverityOverride: new("WARNING"),
 			},
 			currentStateAlertConfiguration: &alertconfiguration.TfAlertConfigurationRSModel{
 				ID:                    types.StringValue("id"),
@@ -300,13 +300,13 @@ func TestNotificationTFModelToSDK(t *testing.T) {
 			},
 			expectedSDKReq: &[]admin.AlertsNotificationRootForGroup{
 				{
-					TypeName:      admin.PtrString(group),
-					IntervalMin:   admin.PtrInt(intervalMin),
-					DelayMin:      admin.PtrInt(delayMin),
-					SmsEnabled:    admin.PtrBool(disabled),
-					EmailEnabled:  admin.PtrBool(enabled),
+					TypeName:      new(group),
+					IntervalMin:   new(intervalMin),
+					DelayMin:      new(delayMin),
+					SmsEnabled:    new(disabled),
+					EmailEnabled:  new(enabled),
 					Roles:         &roles,
-					IntegrationId: admin.PtrString(integrationID),
+					IntegrationId: new(integrationID),
 				},
 			},
 		},
@@ -338,9 +338,9 @@ func TestThresholdTFModelToSDK(t *testing.T) {
 				},
 			},
 			expectedSDKReq: &admin.StreamProcessorMetricThreshold{
-				Threshold: admin.PtrFloat64(1.0),
-				Operator:  admin.PtrString("LESS_THAN"),
-				Units:     admin.PtrString("MINUTES"),
+				Threshold: new(1.0),
+				Operator:  new("LESS_THAN"),
+				Units:     new("MINUTES"),
 			},
 		},
 	}
@@ -374,10 +374,10 @@ func TestMetricThresholdTFModelToSDK(t *testing.T) {
 			},
 			expectedSDKReq: &admin.FlexClusterMetricThreshold{
 				MetricName: "ASSERT_REGULAR",
-				Operator:   admin.PtrString(operator),
-				Threshold:  admin.PtrFloat64(threshold),
-				Units:      admin.PtrString(units),
-				Mode:       admin.PtrString(mode),
+				Operator:   new(operator),
+				Threshold:  new(threshold),
+				Units:      new(units),
+				Mode:       new(mode),
 			},
 		},
 	}
@@ -431,10 +431,10 @@ func TestAlertConfigurationSdkToTFDSModel(t *testing.T) {
 	}{
 		"Complete SDK model": {
 			apiRespConfig: &admin.GroupAlertsConfig{
-				Enabled:       admin.PtrBool(true),
-				EventTypeName: admin.PtrString("EventType"),
-				GroupId:       admin.PtrString("projectId"),
-				Id:            admin.PtrString("alertConfigurationId"),
+				Enabled:       new(true),
+				EventTypeName: new("EventType"),
+				GroupId:       new("projectId"),
+				Id:            new("alertConfigurationId"),
 			},
 			projectID: "123",
 			expectedTFModel: alertconfiguration.TFAlertConfigurationDSModel{
@@ -472,10 +472,10 @@ func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
 		"Complete SDK model": {
 			alerts: []admin.GroupAlertsConfig{
 				{
-					Enabled:       admin.PtrBool(true),
-					EventTypeName: admin.PtrString("EventType"),
-					GroupId:       admin.PtrString("projectId"),
-					Id:            admin.PtrString("alertConfigurationId"),
+					Enabled:       new(true),
+					EventTypeName: new("EventType"),
+					GroupId:       new("projectId"),
+					Id:            new("alertConfigurationId"),
 				},
 			},
 			projectID:      "projectId",
@@ -512,11 +512,11 @@ func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
 		"Complete SDK model with SeverityOverride": {
 			alerts: []admin.GroupAlertsConfig{
 				{
-					Enabled:          admin.PtrBool(true),
-					EventTypeName:    admin.PtrString("EventType"),
-					GroupId:          admin.PtrString("projectId"),
-					Id:               admin.PtrString("alertConfigurationId"),
-					SeverityOverride: admin.PtrString("WARNING"),
+					Enabled:          new(true),
+					EventTypeName:    new("EventType"),
+					GroupId:          new("projectId"),
+					Id:               new("alertConfigurationId"),
+					SeverityOverride: new("WARNING"),
 				},
 			},
 			projectID:      "projectId",

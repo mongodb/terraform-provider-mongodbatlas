@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
@@ -118,8 +117,8 @@ func flattenSearchIndexes(searchIndexes []admin.SearchIndexResponse, projectID, 
 			default:
 			}
 
-			if conversion.HasElementsSliceOrMap(searchIndexes[i].LatestDefinition.Mappings.Fields) {
-				searchIndexMappingFields, err := marshalSearchIndex(searchIndexes[i].LatestDefinition.Mappings.Fields)
+			if fields := searchIndexes[i].LatestDefinition.Mappings.Fields; fields != nil && len(*fields) > 0 {
+				searchIndexMappingFields, err := marshalSearchIndex(fields)
 				if err != nil {
 					return nil, err
 				}
