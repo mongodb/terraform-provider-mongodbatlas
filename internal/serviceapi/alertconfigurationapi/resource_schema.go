@@ -265,17 +265,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Matchers         customtypes.NestedListValue[TFMatchersModel]      `tfsdk:"matchers"`
-	Notifications    customtypes.NestedListValue[TFNotificationsModel] `tfsdk:"notifications"`
 	Created          types.String                                      `tfsdk:"created" autogen:"omitjson"`
+	Enabled          types.Bool                                        `tfsdk:"enabled"`
 	EventTypeName    types.String                                      `tfsdk:"event_type_name"`
 	GroupId          types.String                                      `tfsdk:"group_id" autogen:"omitjson"`
 	Id               types.String                                      `tfsdk:"id" autogen:"omitjson"`
+	Matchers         customtypes.NestedListValue[TFMatchersModel]      `tfsdk:"matchers"`
 	MetricThreshold  customtypes.ObjectValue[TFMetricThresholdModel]   `tfsdk:"metric_threshold"`
+	Notifications    customtypes.NestedListValue[TFNotificationsModel] `tfsdk:"notifications"`
 	SeverityOverride types.String                                      `tfsdk:"severity_override"`
 	Threshold        customtypes.ObjectValue[TFThresholdModel]         `tfsdk:"threshold"`
 	Updated          types.String                                      `tfsdk:"updated" autogen:"omitjson"`
-	Enabled          types.Bool                                        `tfsdk:"enabled"`
 }
 type TFMatchersModel struct {
 	FieldName types.String `tfsdk:"field_name"`
@@ -290,34 +290,34 @@ type TFMetricThresholdModel struct {
 	Units      types.String  `tfsdk:"units"`
 }
 type TFNotificationsModel struct {
-	Roles                    customtypes.ListValue[types.String] `tfsdk:"roles"`
-	OpsGenieRegion           types.String                        `tfsdk:"ops_genie_region"`
-	TeamId                   types.String                        `tfsdk:"team_id"`
-	DatadogRegion            types.String                        `tfsdk:"datadog_region"`
-	WebhookUrl               types.String                        `tfsdk:"webhook_url" autogen:"sensitive"`
-	EmailAddress             types.String                        `tfsdk:"email_address"`
-	WebhookSecret            types.String                        `tfsdk:"webhook_secret" autogen:"sensitive"`
-	IntegrationId            types.String                        `tfsdk:"integration_id"`
 	ApiToken                 types.String                        `tfsdk:"api_token" autogen:"sensitive"`
+	ChannelName              types.String                        `tfsdk:"channel_name"`
+	DatadogApiKey            types.String                        `tfsdk:"datadog_api_key" autogen:"sensitive"`
+	DatadogRegion            types.String                        `tfsdk:"datadog_region"`
+	DelayMin                 types.Int64                         `tfsdk:"delay_min"`
+	EmailAddress             types.String                        `tfsdk:"email_address"`
+	EmailEnabled             types.Bool                          `tfsdk:"email_enabled"`
+	IntegrationId            types.String                        `tfsdk:"integration_id"`
+	IntervalMin              types.Int64                         `tfsdk:"interval_min"`
 	MicrosoftTeamsWebhookUrl types.String                        `tfsdk:"microsoft_teams_webhook_url" autogen:"sensitive"`
 	MobileNumber             types.String                        `tfsdk:"mobile_number"`
 	NotificationToken        types.String                        `tfsdk:"notification_token" autogen:"sensitive"`
-	Region                   types.String                        `tfsdk:"region"`
-	DatadogApiKey            types.String                        `tfsdk:"datadog_api_key" autogen:"sensitive"`
-	VictorOpsRoutingKey      types.String                        `tfsdk:"victor_ops_routing_key"`
 	NotifierId               types.String                        `tfsdk:"notifier_id"`
-	ChannelName              types.String                        `tfsdk:"channel_name"`
+	OpsGenieApiKey           types.String                        `tfsdk:"ops_genie_api_key" autogen:"sensitive"`
+	OpsGenieRegion           types.String                        `tfsdk:"ops_genie_region"`
+	Region                   types.String                        `tfsdk:"region"`
+	Roles                    customtypes.ListValue[types.String] `tfsdk:"roles"`
 	RoomName                 types.String                        `tfsdk:"room_name"`
 	ServiceKey               types.String                        `tfsdk:"service_key" autogen:"sensitive"`
-	VictorOpsApiKey          types.String                        `tfsdk:"victor_ops_api_key" autogen:"sensitive"`
-	OpsGenieApiKey           types.String                        `tfsdk:"ops_genie_api_key" autogen:"sensitive"`
+	SmsEnabled               types.Bool                          `tfsdk:"sms_enabled"`
+	TeamId                   types.String                        `tfsdk:"team_id"`
 	TeamName                 types.String                        `tfsdk:"team_name"`
 	TypeName                 types.String                        `tfsdk:"type_name"`
 	Username                 types.String                        `tfsdk:"username"`
-	IntervalMin              types.Int64                         `tfsdk:"interval_min"`
-	DelayMin                 types.Int64                         `tfsdk:"delay_min"`
-	SmsEnabled               types.Bool                          `tfsdk:"sms_enabled"`
-	EmailEnabled             types.Bool                          `tfsdk:"email_enabled"`
+	VictorOpsApiKey          types.String                        `tfsdk:"victor_ops_api_key" autogen:"sensitive"`
+	VictorOpsRoutingKey      types.String                        `tfsdk:"victor_ops_routing_key"`
+	WebhookSecret            types.String                        `tfsdk:"webhook_secret" autogen:"sensitive"`
+	WebhookUrl               types.String                        `tfsdk:"webhook_url" autogen:"sensitive"`
 }
 type TFThresholdModel struct {
 	MetricName types.String  `tfsdk:"metric_name"`

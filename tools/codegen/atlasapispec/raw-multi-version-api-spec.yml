@@ -10834,6 +10834,8 @@ components:
                             - Flex Consulting
                             - Support
                             - Credits
+                            - DSC Compute
+                            - DSC Storage
                         type: string
                     type: array
                 startDate:
@@ -31546,6 +31548,31 @@ components:
                     readOnly: true
                     type: integer
             type: object
+        PaginatedRateLimitEndpointSets:
+            description: A list of rate limit endpoint sets.
+            properties:
+                links:
+                    description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                    externalDocs:
+                        description: Web Linking Specification (RFC 5988)
+                        url: https://datatracker.ietf.org/doc/html/rfc5988
+                    items:
+                        $ref: '#/components/schemas/Link'
+                    readOnly: true
+                    type: array
+                results:
+                    description: List of returned documents that MongoDB Cloud provides when completing this request.
+                    items:
+                        $ref: '#/components/schemas/RateLimitEndpointSetResponse'
+                    readOnly: true
+                    type: array
+                totalCount:
+                    description: Total number of documents available. MongoDB Cloud omits this value if `includeCount` is set to `false`. The total number is an estimate and may not be exact.
+                    format: int32
+                    minimum: 0
+                    readOnly: true
+                    type: integer
+            type: object
         PaginatedRestoreJobView:
             properties:
                 links:
@@ -32820,6 +32847,90 @@ components:
                     $ref: '#/components/schemas/ServerlessMetricUnits'
             required:
                 - metricName
+            type: object
+        RateLimitEndpointSetCapacity:
+            description: The rate limit capacity for the endpoint set.
+            properties:
+                defaultValue:
+                    description: The default request capacity of the endpoint set. Returned if there is a capacity override set for the requested entity.
+                    format: int64
+                    type: integer
+                value:
+                    description: The applied request capacity of the endpoint set.
+                    format: int64
+                    type: integer
+            type: object
+        RateLimitEndpointSetEndpoint:
+            properties:
+                method:
+                    description: The HTTP method of the endpoint.
+                    enum:
+                        - GET
+                        - POST
+                        - PUT
+                        - DELETE
+                        - PATCH
+                    type: string
+                path:
+                    description: The URL path of the endpoint.
+                    example: /api/atlas/v2/rateLimits
+                    type: string
+            type: object
+        RateLimitEndpointSetRefillDurationSeconds:
+            description: The rate limit refill duration for the endpoint set.
+            properties:
+                defaultValue:
+                    description: The default rate limit refill duration, in seconds, of the endpoint set. Returned if there is a rate limit refill duration override set for the requested entity.
+                    format: int64
+                    type: integer
+                value:
+                    description: The applied rate limit refill duration of the endpoint set.
+                    format: int64
+                    type: integer
+            type: object
+        RateLimitEndpointSetRefillRate:
+            description: The rate limit refill rate for the endpoint set.
+            properties:
+                defaultValue:
+                    description: The default rate limit refill rate of the endpoint set. Returned if there is a rate limit refill rate override set for the requested entity.
+                    format: int64
+                    type: integer
+                value:
+                    description: The applied rate limit refill rate of the endpoint set.
+                    format: int64
+                    type: integer
+            type: object
+        RateLimitEndpointSetResponse:
+            properties:
+                capacity:
+                    $ref: '#/components/schemas/RateLimitEndpointSetCapacity'
+                endpointSetId:
+                    description: The ID of the endpoint set.
+                    example: rateLimitsInspection_group
+                    type: string
+                endpointSetName:
+                    description: The endpoint set name.
+                    example: Rate Limits Inspection
+                    type: string
+                endpoints:
+                    description: A list of endpoints associated with the specified endpoint set.
+                    items:
+                        $ref: '#/components/schemas/RateLimitEndpointSetEndpoint'
+                    maxItems: 100
+                    type: array
+                    uniqueItems: true
+                refillDurationSeconds:
+                    $ref: '#/components/schemas/RateLimitEndpointSetRefillDurationSeconds'
+                refillRate:
+                    $ref: '#/components/schemas/RateLimitEndpointSetRefillRate'
+                scope:
+                    description: The scope of the endpoint set.
+                    enum:
+                        - IP
+                        - GROUP
+                        - ORGANIZATION
+                        - USER
+                    type: string
             type: object
         RawMetricAlertView:
             properties:
@@ -39741,6 +39852,8 @@ components:
                             - Flex Consulting
                             - Support
                             - Credits
+                            - DSC Compute
+                            - DSC Storage
                         type: string
                     type: array
                     uniqueItems: true
@@ -41244,7 +41357,7 @@ info:
     termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
     title: MongoDB Atlas Administration API
     version: "2.0"
-    x-xgen-sha: 8afc7807f1480616ce254bcc9f26e3e54117b2e3
+    x-xgen-sha: 564d84244de3328977048301b9c1520ff0d26b48
 openapi: 3.0.1
 paths:
     /api/atlas/v2:
@@ -42309,7 +42422,7 @@ paths:
                 verb: listEntries
             x-xgen-operation-id-override: listAccessListEntries
         post:
-            description: Adds one or more access list entries to the specified project. MongoDB Cloud only allows client connections to the cluster from entries in the project's IP access list. Write each entry as either one IP address or one CIDR-notated block of IP addresses. To use this resource, the requesting Service Account or API Key must have the Project Owner or Project Charts Admin roles. This resource replaces the whitelist resource. MongoDB Cloud removed whitelists in July 2021. Update your applications to use this new resource. The `/groups/{GROUP-ID}/accessList` endpoint manages the database IP access list. This endpoint is distinct from the `orgs/{ORG-ID}/apiKeys/{API-KEY-ID}/accesslist` endpoint, which manages the access list for MongoDB Cloud organizations. This endpoint doesn't support concurrent `POST` requests. You must submit multiple `POST` requests synchronously.
+            description: Adds one or more access list entries to the specified project. MongoDB Cloud only allows client connections to the cluster from entries in the project's IP access list. Write each entry as either one IP address or one CIDR-notated block of IP addresses. To use this resource, the requesting Service Account or API Key must have the Project Owner role, Project Charts Admin role, or Project Network Access Manager role. This resource replaces the whitelist resource. MongoDB Cloud removed whitelists in July 2021. Update your applications to use this new resource. The `/groups/{GROUP-ID}/accessList` endpoint manages the database IP access list. This endpoint is distinct from the `orgs/{ORG-ID}/apiKeys/{API-KEY-ID}/accesslist` endpoint, which manages the access list for MongoDB Cloud organizations. This endpoint doesn't support concurrent `POST` requests. You must submit multiple `POST` requests synchronously.
             externalDocs:
                 description: IP access list
                 url: https://docs.atlas.mongodb.com/security/ip-access-list/#std-label-access-list
@@ -42358,7 +42471,7 @@ paths:
             x-xgen-operation-id-override: createAccessListEntry
     /api/atlas/v2/groups/{groupId}/accessList/{entryValue}:
         delete:
-            description: Removes one access list entry from the specified project's IP access list. Each entry in the project's IP access list contains one IP address, one CIDR-notated block of IP addresses, or one AWS Security Group ID. MongoDB Cloud only allows client connections to the cluster from entries in the project's IP access list. To use this resource, the requesting Service Account or API Key must have the Project Owner role. This resource replaces the whitelist resource. MongoDB Cloud removed whitelists in July 2021. Update your applications to use this new resource. The `/groups/{GROUP-ID}/accessList` endpoint manages the database IP access list. This endpoint is distinct from the `orgs/{ORG-ID}/apiKeys/{API-KEY-ID}/accesslist` endpoint, which manages the access list for MongoDB Cloud organizations.
+            description: Removes one access list entry from the specified project's IP access list. Each entry in the project's IP access list contains one IP address, one CIDR-notated block of IP addresses, or one AWS Security Group ID. MongoDB Cloud only allows client connections to the cluster from entries in the project's IP access list. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Network Access Manager role. This resource replaces the whitelist resource. MongoDB Cloud removed whitelists in July 2021. Update your applications to use this new resource. The `/groups/{GROUP-ID}/accessList` endpoint manages the database IP access list. This endpoint is distinct from the `orgs/{ORG-ID}/apiKeys/{API-KEY-ID}/accesslist` endpoint, which manages the access list for MongoDB Cloud organizations.
             externalDocs:
                 description: IP access list
                 url: https://docs.atlas.mongodb.com/security/ip-access-list/#std-label-access-list
@@ -42560,7 +42673,7 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Activity-Feed/operation/getGroupActivityFeed
     /api/atlas/v2/groups/{groupId}/aiModelApiKeys:
         get:
-            description: Retrieve AI model API keys for the given group.
+            description: Retrieve AI model API keys for the given group. To use this resource, the requesting Service Account or API Key must have the Project Owner, Project Model Owner, or Project Read Only role.
             operationId: listGroupAiModelApiKeys
             parameters:
                 - $ref: '#/components/parameters/groupId'
@@ -42592,7 +42705,7 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Model-API-Keys/operation/listGroupAiModelApiKeys
             x-xgen-operation-id-override: listGroupModelKeys
         post:
-            description: Create a new AI model API key for the given group.
+            description: Create a new AI model API key for the given group. To use this resource, the requesting Service Account or API Key must have the Project Owner or Project Model Owner role.
             operationId: createGroupAiModelApiKey
             parameters:
                 - $ref: '#/components/parameters/groupId'
@@ -42635,7 +42748,7 @@ paths:
             x-xgen-operation-id-override: createModelApiKey
     /api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}:
         delete:
-            description: Delete an existing AI model API key in the given group.
+            description: Delete an existing AI model API key in the given group. To use this resource, the requesting Service Account or API Key must have the Project Owner or Project Model Owner role.
             operationId: deleteGroupAiModelApiKey
             parameters:
                 - $ref: '#/components/parameters/groupId'
@@ -42671,7 +42784,7 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Model-API-Keys/operation/deleteGroupAiModelApiKey
             x-xgen-operation-id-override: deleteModelApiKey
         get:
-            description: Retrieve a single AI model API key for the given group.
+            description: Retrieve a single AI model API key for the given group. To use this resource, the requesting Service Account or API Key must have the Project Owner, Project Model Owner, or Project Read Only role.
             operationId: getGroupAiModelApiKey
             parameters:
                 - $ref: '#/components/parameters/groupId'
@@ -42707,7 +42820,7 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Model-API-Keys/operation/getGroupAiModelApiKey
             x-xgen-operation-id-override: getGroupModelKey
         patch:
-            description: Update an existing AI model API key in the given group.
+            description: Update an existing AI model API key in the given group. To use this resource, the requesting Service Account or API Key must have the Project Owner or Project Model Owner role.
             operationId: updateGroupAiModelApiKey
             parameters:
                 - $ref: '#/components/parameters/groupId'
@@ -42756,7 +42869,7 @@ paths:
             x-xgen-operation-id-override: updateModelApiKey
     /api/atlas/v2/groups/{groupId}/aiModelRateLimits:
         get:
-            description: Retrieve AI model rate limits for the given group.
+            description: Retrieve AI model rate limits for the given group. To use this resource, the requesting Service Account or API Key must have the Project Owner, Project Model Owner, or Project Read Only role.
             operationId: listGroupAiModelRateLimits
             parameters:
                 - $ref: '#/components/parameters/groupId'
@@ -42789,7 +42902,7 @@ paths:
             x-xgen-operation-id-override: listGroupModelLimits
     /api/atlas/v2/groups/{groupId}/aiModelRateLimits/{modelGroupName}:
         get:
-            description: Retrieve a single AI model rate limit for the given group.
+            description: Retrieve a single AI model rate limit for the given group. To use this resource, the requesting Service Account or API Key must have the Project Owner, Project Model Owner, or Project Read Only role.
             operationId: getGroupAiModelRateLimit
             parameters:
                 - $ref: '#/components/parameters/groupId'
@@ -42825,7 +42938,7 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/AI-Model-Rate-Limits/operation/getGroupAiModelRateLimit
             x-xgen-operation-id-override: getGroupModelLimit
         patch:
-            description: Update an AI model rate limit for the given model group.
+            description: Update an AI model rate limit for the given model group. To use this resource, the requesting Service Account or API Key must have the Project Owner or Project Model Owner role.
             operationId: updateGroupAiModelRateLimit
             parameters:
                 - $ref: '#/components/parameters/groupId'
@@ -43454,7 +43567,7 @@ paths:
                 - Programmatic API Keys
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Programmatic-API-Keys/operation/listGroupApiKeys
         post:
-            description: Creates and assigns the specified organization API key to the specified project. Users with the Project Owner role in the project associated with the API key can use the organization API key to access the resources. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+            description: Creates and assigns the specified organization API key to the specified project. Users with the Project Owner role in the project associated with the API key can use the organization API key to access the resources. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Access Manager role.
             operationId: createGroupApiKey
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -43489,7 +43602,7 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Programmatic-API-Keys/operation/createGroupApiKey
     /api/atlas/v2/groups/{groupId}/apiKeys/{apiUserId}:
         delete:
-            description: Removes one organization API key from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+            description: Removes one organization API key from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Access Manager role.
             externalDocs:
                 description: Programmatic API Keys
                 url: https://docs.atlas.mongodb.com/configure-api-access/#std-label-atlas-prog-api-key
@@ -43529,7 +43642,7 @@ paths:
                 customMethod: "True"
                 verb: remove
         patch:
-            description: Updates the roles of the organization API key that you specify for the project that you specify. You must specify at least one valid role for the project. The application removes any roles that you do not include in this request if they were previously set in the organization API key that you specify for the project.
+            description: Updates the roles of the organization API key that you specify for the project that you specify. You must specify at least one valid role for the project. The application removes any roles that you do not include in this request if they were previously set in the organization API key that you specify for the project. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Access Manager role.
             operationId: updateGroupApiKeyRoles
             parameters:
                 - $ref: '#/components/parameters/groupId'
@@ -44656,7 +44769,7 @@ paths:
             x-xgen-operation-id-override: listClusters
         post:
             description: |-
-                Creates one cluster in the specified project. Clusters contain a group of hosts that maintain the same data set. This resource can create clusters with asymmetrically-sized shards. Each project supports up to 25 database deployments. To use this resource, the requesting Service Account or API Key must have the Project Owner role. This feature is not available for serverless clusters.
+                Creates one cluster in the specified project. Clusters contain a group of hosts that maintain the same data set. This resource can create clusters with asymmetrically-sized shards. Each project supports up to 25 database deployments. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Cluster Creator role. This feature is not available for serverless clusters.
 
                 Please note that using an `instanceSize` of M2 or M5 will create a Flex cluster instead. Support for the `instanceSize` of M2 or M5 will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward.
             externalDocs:
@@ -45015,7 +45128,7 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getGroupCluster
             x-xgen-operation-id-override: getCluster
         patch:
-            description: 'Updates the details for one cluster in the specified project. Clusters contain a group of hosts that maintain the same data set. This resource can update clusters with asymmetrically-sized shards. To update a cluster''s termination protection, the requesting Service Account or API Key must have the Project Owner role. For all other updates, the requesting Service Account or API Key must have the Project Cluster Manager role. You can''t modify a paused cluster (`paused : true`). You must call this endpoint to set `paused : false`. After this endpoint responds with `paused : false`, you can call it again with the changes you want to make to the cluster. This feature is not available for serverless clusters.'
+            description: 'Updates the details for one cluster in the specified project. Clusters contain a group of hosts that maintain the same data set. This resource can update clusters with asymmetrically-sized shards. To update a cluster''s termination protection, the requesting Service Account or API Key must have the Project Owner role. For all other updates, the requesting Service Account or API Key must have the Project Cluster Manager role or the Project Replica Set Manager role. You can''t modify a paused cluster (`paused : true`). You must call this endpoint to set `paused : false`. After this endpoint responds with `paused : false`, you can call it again with the changes you want to make to the cluster. This feature is not available for serverless clusters.'
             operationId: updateGroupCluster
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -45322,7 +45435,7 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Cloud-Backups/operation/listGroupClusterBackupExports
             x-xgen-operation-id-override: listBackupExports
         post:
-            description: Exports one backup Snapshot for dedicated Atlas cluster using Cloud Backups to an Export Bucket. To use this resource, the requesting Service Account or API Key must have the Project Atlas Admin role.
+            description: Exports one backup Snapshot for dedicated Atlas cluster using Cloud Backups to an Export Bucket. To use this resource, the requesting Service Account or API Key must have the Project Backup Export Operator role.
             operationId: createGroupClusterBackupExport
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -45450,9 +45563,9 @@ paths:
             x-xgen-operation-id-override: listBackupRestoreJobs
         post:
             description: |-
-                Restores one snapshot of one cluster from the specified project. Atlas takes on-demand snapshots immediately and scheduled snapshots at regular intervals. If an on-demand snapshot with a status of `queued` or `inProgress` exists, before taking another snapshot, wait until Atlas completes completes processing the previously taken on-demand snapshot.
+                Restores one snapshot of one cluster from the specified project. Atlas takes on-demand snapshots immediately and scheduled snapshots at regular intervals. If an on-demand snapshot with a status of `queued` or `inProgress` exists, before taking another snapshot, wait until Atlas completes processing the previously taken on-demand snapshot.
 
-                 To use this resource, the requesting Service Account or API Key must have the Project Backup Manager role.
+                 To use this resource, the requesting Service Account or API Key must have the Project Backup Manager role, Project Backup Export Operator role, or Project Backup Recovery Operator role.
             operationId: createGroupClusterBackupRestoreJob
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -45499,7 +45612,7 @@ paths:
             x-xgen-operation-id-override: createBackupRestoreJob
     /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs/{restoreJobId}:
         delete:
-            description: Cancels one cloud backup restore job of one cluster from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Backup Manager role.
+            description: Cancels one cloud backup restore job of one cluster from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Backup Manager role, Project Backup Export Operator role, or Project Backup Recovery Operator role.
             operationId: cancelGroupClusterBackupRestoreJob
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -45770,9 +45883,9 @@ paths:
             x-xgen-operation-id-override: listBackupSnapshots
         post:
             description: |-
-                Takes one on-demand snapshot for the specified cluster. Atlas takes on-demand snapshots immediately and scheduled snapshots at regular intervals. If an on-demand snapshot with a status of `queued` or `inProgress` exists, before taking another snapshot, wait until Atlas completes completes processing the previously taken on-demand snapshot.
+                Takes one on-demand snapshot for the specified cluster. Atlas takes on-demand snapshots immediately and scheduled snapshots at regular intervals. If an on-demand snapshot with a status of `queued` or `inProgress` exists, before taking another snapshot, wait until Atlas completes processing the previously taken on-demand snapshot.
 
-                 To use this resource, the requesting Service Account or API Key must have the Project Backup Manager role.
+                 To use this resource, the requesting Service Account or API Key must have the Project Backup Manager role or Project Backup Creator role.
             operationId: takeGroupClusterBackupSnapshots
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -47323,7 +47436,7 @@ paths:
             x-xgen-operation-id-override: createManagedNamespace
     /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/index:
         post:
-            description: Creates an index on the cluster identified by its name in a rolling manner. Creating the index in this way allows index builds on one replica set member as a standalone at a time, starting with the secondary members. Creating indexes in this way requires at least one replica set election. To use this resource, the requesting Service Account or API Key must have the Project Data Access Admin role.
+            description: Creates an index on the cluster identified by its name in a rolling manner. Creating the index in this way allows index builds on one replica set member as a standalone at a time, starting with the secondary members. Creating indexes in this way requires at least one replica set election. To use this resource, the requesting Service Account or API Key must have the Project Data Access Admin role or the Project Index Manager role.
             externalDocs:
                 description: Rolling Index Builds on Replica Sets
                 url: https://docs.mongodb.com/manual/tutorial/build-indexes-on-replica-sets/
@@ -47754,7 +47867,7 @@ paths:
             x-xgen-operation-id-override: downloadQueryLogs
     /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/outageSimulation:
         delete:
-            description: Ends a cluster outage simulation.
+            description: Ends a cluster outage simulation. To use this resource, the requesting Service Account or API Key must have the Project Cluster Manager role, Project Cluster Resilience Tester role, or Project Replica Set Manager role.
             externalDocs:
                 description: Cluster Outage Simulation
                 url: https://dochub.mongodb.org/core/test-regional-outage
@@ -47844,7 +47957,7 @@ paths:
                 verb: get
             x-xgen-operation-id-override: getOutageSimulation
         post:
-            description: Starts a cluster outage simulation.
+            description: Starts a cluster outage simulation. To use this resource, the requesting Service Account or API Key must have the Project Cluster Manager role, Project Cluster Resilience Tester role, or Project Replica Set Manager role.
             externalDocs:
                 description: Cluster Outage Simulation
                 url: https://dochub.mongodb.org/core/test-regional-outage
@@ -48754,7 +48867,7 @@ paths:
                 "200":
                     content:
                         application/vnd.atlas.2023-01-01+json:
-                            x-sunset: "2026-03-01"
+                            x-sunset: "2027-07-01"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "204":
@@ -48799,12 +48912,12 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ApiSearchDeploymentResponseView'
-                            x-sunset: "2026-03-01"
+                            x-sunset: "2027-07-01"
                             x-xgen-version: "2023-01-01"
                         application/vnd.atlas.2024-05-30+json:
                             schema:
                                 $ref: '#/components/schemas/ApiSearchDeploymentResponseView'
-                            x-sunset: "2026-03-12"
+                            x-sunset: "2027-07-01"
                             x-xgen-version: "2024-05-30"
                         application/vnd.atlas.2025-03-12+json:
                             schema:
@@ -48861,7 +48974,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ApiSearchDeploymentResponseView'
-                            x-sunset: "2026-03-01"
+                            x-sunset: "2027-07-01"
                             x-xgen-version: "2023-01-01"
                         application/vnd.atlas.2024-05-30+json:
                             schema:
@@ -48915,7 +49028,7 @@ paths:
                         application/vnd.atlas.2023-01-01+json:
                             schema:
                                 $ref: '#/components/schemas/ApiSearchDeploymentResponseView'
-                            x-sunset: "2026-03-01"
+                            x-sunset: "2027-07-01"
                             x-xgen-version: "2023-01-01"
                     description: OK
                 "201":
@@ -49799,7 +49912,7 @@ paths:
             x-xgen-operation-id-override: getClusterStatus
     /api/atlas/v2/groups/{groupId}/clusters/{clusterName}:grantMongoDBEmployeeAccess:
         post:
-            description: Grants MongoDB employee cluster access for the given duration and at the specified level for one cluster.
+            description: Grants MongoDB employee cluster access for the given duration and at the specified level for one cluster. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Support Access Manager role.
             operationId: grantGroupClusterMongoDbEmployeeAccess
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -49890,7 +50003,7 @@ paths:
             x-xgen-operation-id-override: pinFeatureCompatibilityVersion
     /api/atlas/v2/groups/{groupId}/clusters/{clusterName}:revokeMongoDBEmployeeAccess:
         post:
-            description: Revokes a previously granted MongoDB employee cluster access.
+            description: Revokes a previously granted MongoDB employee cluster access. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Support Access Manager role.
             operationId: revokeGroupClusterMongoDbEmployeeAccess
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -49968,7 +50081,7 @@ paths:
             x-xgen-operation-id-override: unpinFeatureCompatibilityVersion
     /api/atlas/v2/groups/{groupId}/clusters/{hostName}/logs/{logName}.gz:
         get:
-            description: 'Returns a compressed (.gz) log file that contains a range of log messages for the specified host for the specified project. MongoDB updates process and audit logs from the cluster backend infrastructure every five minutes. Logs are stored in chunks approximately five minutes in length, but this duration may vary. If you poll the API for log files, we recommend polling every five minutes even though consecutive polls could contain some overlapping logs. This feature isn''t available for `M0` free clusters, `M2`, `M5`, flex, or serverless clusters. To use this resource, the requesting Service Account or API Key must have the Project Data Access Read Only or higher role. The API does not support direct calls with the json response schema. You must request a gzip response schema using an accept header of the format: `Accept: application/vnd.atlas.YYYY-MM-DD+gzip`.'
+            description: 'Returns a compressed (.gz) log file that contains a range of log messages for the specified host for the specified project. MongoDB updates process and audit logs from the cluster backend infrastructure every five minutes. Logs are stored in chunks approximately five minutes in length, but this duration may vary. If you poll the API for log files, we recommend polling every five minutes even though consecutive polls could contain some overlapping logs. This feature isn''t available for `M0` free clusters, `M2`, `M5`, flex, or serverless clusters. To use this resource, the requesting Service Account or API Key must have the Project Cluster Log Viewer role or Project Data Access Read Only role. The API does not support direct calls with the json response schema. You must request a gzip response schema using an accept header of the format: `Accept: application/vnd.atlas.YYYY-MM-DD+gzip`.'
             operationId: downloadGroupClusterLog
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -51576,7 +51689,7 @@ paths:
             x-xgen-operation-id-override: createDatabaseUserCert
     /api/atlas/v2/groups/{groupId}/dbAccessHistory/clusters/{clusterName}:
         get:
-            description: Returns the access logs of one cluster identified by the cluster's name. Access logs contain a list of authentication requests made against your cluster. You can't use this feature on tenant-tier clusters (M0, M2, M5). To use this resource, the requesting Service Account or API Key must have the Project Monitoring Admin role or the Project Database Access Admin role.
+            description: Returns the access logs of one cluster identified by the cluster's name. Access logs contain a list of authentication requests made against your cluster. You can't use this feature on tenant-tier clusters (M0, M2, M5). To use this resource, the requesting Service Account or API Key must have the Project Monitoring Admin role, the Project Database Access Admin role, or the Project Cluster Log Viewer role.
             externalDocs:
                 description: Database Access History
                 url: https://docs.atlas.mongodb.com/access-tracking/
@@ -51651,7 +51764,7 @@ paths:
             x-xgen-operation-id-override: getAccessHistoryCluster
     /api/atlas/v2/groups/{groupId}/dbAccessHistory/processes/{hostname}:
         get:
-            description: Returns the access logs of one cluster identified by the cluster's hostname. Access logs contain a list of authentication requests made against your clusters. You can't use this feature on tenant-tier clusters (M0, M2, M5). To use this resource, the requesting Service Account or API Key must have the Project Monitoring Admin role or the Project Database Access Admin role.
+            description: Returns the access logs of one cluster identified by the cluster's hostname. Access logs contain a list of authentication requests made against your clusters. You can't use this feature on tenant-tier clusters (M0, M2, M5). To use this resource, the requesting Service Account or API Key must have the Project Monitoring Admin role, the Project Database Access Admin role, or the Project Cluster Log Viewer role.
             externalDocs:
                 description: Database Access History
                 url: https://docs.atlas.mongodb.com/access-tracking/
@@ -52328,7 +52441,7 @@ paths:
             x-xgen-operation-id-override: updateFlexCluster
     /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/download:
         post:
-            description: Requests one snapshot for the specified flex cluster. This resource returns a `snapshotURL` that you can use to download the snapshot. This `snapshotURL` remains active for four hours after you make the request. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+            description: Requests one snapshot for the specified flex cluster. This resource returns a `snapshotURL` that you can use to download the snapshot. This `snapshotURL` remains active for four hours after you make the request. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Backup Export Operator role.
             operationId: downloadGroupFlexClusterBackup
             parameters:
                 - description: Human-readable label that identifies the flex cluster.
@@ -52377,7 +52490,7 @@ paths:
             x-xgen-operation-id-override: downloadFlexBackup
     /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs:
         get:
-            description: Returns all restore jobs for one flex cluster from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+            description: Returns all restore jobs for one flex cluster from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
             operationId: listGroupFlexClusterBackupRestoreJobs
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -52417,7 +52530,7 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Restore-Jobs/operation/listGroupFlexClusterBackupRestoreJobs
             x-xgen-operation-id-override: listFlexRestoreJobs
         post:
-            description: Restores one snapshot of one flex cluster from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+            description: Restores one snapshot of one flex cluster from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Backup Recovery Operator role.
             operationId: createGroupFlexClusterBackupRestoreJob
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -52464,7 +52577,7 @@ paths:
             x-xgen-operation-id-override: createFlexRestoreJob
     /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs/{restoreJobId}:
         get:
-            description: Returns one restore job for one flex cluster from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+            description: Returns one restore job for one flex cluster from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
             operationId: getGroupFlexClusterBackupRestoreJob
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -54405,7 +54518,7 @@ paths:
                 - Network Peering
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Network-Peering/operation/listGroupPeers
         post:
-            description: Creates one new network peering connection in the specified project. Network peering allows multiple cloud-hosted applications to securely connect to the same project. To use this resource, the requesting Service Account or API Key must have the Project Owner role. To learn more about considerations and prerequisites, see the Network Peering Documentation.
+            description: Creates one new network peering connection in the specified project. Network peering allows multiple cloud-hosted applications to securely connect to the same project. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Network Access Manager role. To learn more about considerations and prerequisites, see the Network Peering Documentation.
             externalDocs:
                 description: Azure Network Peering Prerequisites
                 url: https://docs.atlas.mongodb.com/reference/api/vpc-create-peering-connection/#prerequisites
@@ -54447,7 +54560,7 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Network-Peering/operation/createGroupPeer
     /api/atlas/v2/groups/{groupId}/peers/{peerId}:
         delete:
-            description: Removes one network peering connection in the specified project. If you Removes the last network peering connection associated with a project, MongoDB Cloud also removes any AWS security groups from the project IP access list. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+            description: Removes one network peering connection in the specified project. If you remove the last network peering connection associated with a project, MongoDB Cloud also removes any AWS security groups from the project IP access list. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Network Access Manager role.
             operationId: deleteGroupPeer
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -54521,7 +54634,7 @@ paths:
                 - Network Peering
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Network-Peering/operation/getGroupPeer
         patch:
-            description: Updates one specified network peering connection in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+            description: Updates one specified network peering connection in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Network Access Manager role.
             operationId: updateGroupPeer
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -58133,7 +58246,7 @@ paths:
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Service-Accounts/operation/listGroupServiceAccountAccessList
             x-xgen-operation-id-override: listAccessList
         post:
-            description: Add Access List Entries for the specified Service Account for the project. Resources require all API requests to originate from IP addresses on the API access list.
+            description: Add Access List Entries for the specified Service Account for the project. Resources require all API requests to originate from IP addresses on the API access list. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Access Manager role.
             operationId: createGroupServiceAccountAccessList
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -58188,7 +58301,7 @@ paths:
             x-xgen-operation-id-override: createAccessList
     /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}/accessList/{ipAddress}:
         delete:
-            description: Removes the specified access list entry from the specified Service Account for the project. You can't remove the requesting IP address from the access list.
+            description: Removes the specified access list entry from the specified Service Account for the project. You can't remove the requesting IP address from the access list. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Access Manager role.
             operationId: deleteGroupServiceAccountAccessListEntry
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -58983,7 +59096,7 @@ paths:
             x-xgen-operation-id-override: updateStreamWorkspace
     /api/atlas/v2/groups/{groupId}/streams/{tenantName}/auditLogs:
         get:
-            description: 'Downloads the audit logs for the specified Atlas Streams Processing workspace. By default, logs cover periods of 30 days. To use this resource, the requesting Service Account or API Key must have the Project Data Access roles, Project Owner role or Project Stream Processing Owner role. The API does not support direct calls with the json response schema. You must request a gzip response schema using an accept header of the format: `Accept: application/vnd.atlas.YYYY-MM-DD+gzip`.'
+            description: 'Downloads the audit logs for the specified Atlas Streams Processing workspace or stream processor. By default, logs cover periods of 30 days. To use this resource, the requesting Service Account or API Key must have the Project Data Access roles, Project Owner role or Project Stream Processing Owner role. The API does not support direct calls with the json response schema. You must request a gzip response schema using an accept header of the format: `Accept: application/vnd.atlas.YYYY-MM-DD+gzip`.'
             operationId: downloadGroupStreamAuditLogs
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -59004,6 +59117,11 @@ paths:
                     format: int64
                     pattern: "1199145600"
                     type: integer
+                - description: Name of the stream processor to download logs for. An empty string will download logs for all stream processors in the workspace.
+                  in: query
+                  name: spName
+                  schema:
+                    type: string
                 - description: Label that identifies the stream workspace.
                   in: path
                   name: tenantName
@@ -59015,7 +59133,7 @@ paths:
                     content:
                         application/vnd.atlas.2023-02-01+gzip:
                             schema:
-                                description: Compressed archive labeled `auditLogs.gz` downloads
+                                description: Compressed archive containing `[tenantName]_[spName]_[startTime]_[endTime]_audit.log` downloads
                                 format: binary
                                 type: string
                             x-xgen-version: "2023-02-01"
@@ -59610,6 +59728,71 @@ paths:
                 - Streams
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/getGroupStreamProcessors
             x-xgen-operation-id-override: getStreamProcessors
+    /api/atlas/v2/groups/{groupId}/streams/{tenantName}:downloadOperationalLogs:
+        get:
+            description: 'Downloads the operational logs for the specified Atlas Streams Processing workspace or stream processor. By default, logs cover periods of 30 days. To use this resource, the requesting Service Account or API Key must have the Project Data Access roles, Project Owner role or Project Stream Processing Owner role. The API does not support direct calls with the json response schema. You must request a gzip response schema using an accept header of the format: "Accept: application/vnd.atlas.2025-03-12+gzip".'
+            operationId: downloadGroupStreamOperationalLogs
+            parameters:
+                - $ref: '#/components/parameters/envelope'
+                - $ref: '#/components/parameters/groupId'
+                - description: Timestamp that specifies the end point for the range of log messages to download.  MongoDB Cloud expresses this timestamp in the number of seconds that have elapsed since the UNIX epoch.
+                  in: query
+                  name: endDate
+                  schema:
+                    example: 1.636481348e+09
+                    format: int64
+                    pattern: "1199145600"
+                    type: integer
+                - description: Timestamp that specifies the starting point for the range of log messages to download. MongoDB Cloud expresses this timestamp in the number of seconds that have elapsed since the UNIX epoch.
+                  in: query
+                  name: startDate
+                  schema:
+                    example: 1.636466948e+09
+                    format: int64
+                    pattern: "1199145600"
+                    type: integer
+                - description: Name of the stream processor to download logs for. An empty string will download logs for all stream processors in the workspace.
+                  in: query
+                  name: spName
+                  schema:
+                    type: string
+                - description: Label that identifies the stream workspace.
+                  in: path
+                  name: tenantName
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.2025-03-12+gzip:
+                            schema:
+                                description: Compressed archive labeled `[tenantName]_[spName]_[startTime]_[endTime]_queries.gz` downloads
+                                format: binary
+                                readOnly: true
+                                type: string
+                            x-xgen-version: "2025-03-12"
+                    description: OK
+                "400":
+                    $ref: '#/components/responses/badRequest'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "409":
+                    $ref: '#/components/responses/conflict'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Download Operational Logs for One Atlas Stream Processing Workspace
+            tags:
+                - Streams
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/downloadGroupStreamOperationalLogs
+            x-xgen-method-verb-override:
+                customMethod: "True"
+                verb: download
+            x-xgen-operation-id-override: downloadOperationalLogs
     /api/atlas/v2/groups/{groupId}/streams/accountDetails:
         get:
             description: Returns the Account ID, and the VPC ID for the group and region specified.
@@ -60036,7 +60219,7 @@ paths:
                 - Teams
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Teams/operation/listGroupTeams
         post:
-            description: Adds multiple teams to the specified project. All members of a team share the same project access. MongoDB Cloud limits the number of users to a maximum of 100 teams per project and a maximum of 250 teams per organization. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+            description: Adds multiple teams to the specified project. All members of a team share the same project access. MongoDB Cloud limits the number of users to a maximum of 100 teams per project and a maximum of 250 teams per organization. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Access Manager role.
             externalDocs:
                 description: Manage Organization Teams
                 url: https://docs.atlas.mongodb.com/access/manage-teams-in-orgs/#std-label-manage-teams
@@ -60081,7 +60264,7 @@ paths:
                 verb: add
     /api/atlas/v2/groups/{groupId}/teams/{teamId}:
         delete:
-            description: Removes one team specified using its unique 24-hexadecimal digit identifier from the project specified using its unique 24-hexadecimal digit identifier. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+            description: Removes one team specified using its unique 24-hexadecimal digit identifier from the project specified using its unique 24-hexadecimal digit identifier. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Access Manager role.
             externalDocs:
                 description: Manage Organization Teams
                 url: https://docs.atlas.mongodb.com/access/manage-teams-in-orgs/#std-label-manage-teams
@@ -60158,7 +60341,7 @@ paths:
                 - Teams
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Teams/operation/getGroupTeam
         patch:
-            description: Updates the project roles assigned to the specified team. You can grant team roles for specific projects and grant project access roles to users in the team. All members of the team share the same project access. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+            description: Updates the project roles assigned to the specified team. You can grant team roles for specific projects and grant project access roles to users in the team. All members of the team share the same project access. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Access Manager role.
             externalDocs:
                 description: Manage Organization Teams
                 url: https://docs.atlas.mongodb.com/access/manage-teams-in-orgs/#std-label-manage-teams
@@ -60488,7 +60671,7 @@ paths:
                 - MongoDB Cloud Users
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/MongoDB-Cloud-Users/operation/listGroupUsers
         post:
-            description: "Adds one MongoDB Cloud user to one project. To use this resource, the requesting Service Account or API Key must have the Project Owner role. \n- If the user has a pending invitation to join the project's organization, MongoDB Cloud modifies it and grants project access. \n- If the user doesn't have an invitation to join the organization, MongoDB Cloud sends a new invitation that grants the user organization and project access. \n- If the user is already active in the project's organization, MongoDB Cloud grants access to the project. \n"
+            description: "Adds one MongoDB Cloud user to one project. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Access Manager role. \n- If the user has a pending invitation to join the project's organization, MongoDB Cloud modifies it and grants project access. \n- If the user doesn't have an invitation to join the organization, MongoDB Cloud sends a new invitation that grants the user organization and project access. \n- If the user is already active in the project's organization, MongoDB Cloud grants access to the project. \n"
             operationId: addGroupUsers
             parameters:
                 - $ref: '#/components/parameters/envelope'
@@ -60531,7 +60714,7 @@ paths:
     /api/atlas/v2/groups/{groupId}/users/{userId}:
         delete:
             description: |-
-                Removes one MongoDB Cloud user from the specified project. You can remove an active user or a user that has not yet accepted the invitation to join the organization. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+                Removes one MongoDB Cloud user from the specified project. You can remove an active user or a user that has not yet accepted the invitation to join the organization. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Access Manager role.
 
                 **Note**: This resource cannot be used to remove pending users invited via the deprecated Invite One MongoDB Cloud User to Join One Project endpoint.
 
@@ -60667,7 +60850,7 @@ paths:
     /api/atlas/v2/groups/{groupId}/users/{userId}:addRole:
         post:
             description: |-
-                Adds one project-level role to the MongoDB Cloud user. You can add a role to an active user or a user that has been invited to join the project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+                Adds one project-level role to the MongoDB Cloud user. You can add a role to an active user or a user that has been invited to join the project. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Access Manager role.
 
                 **Note**: This resource cannot be used to add a role to users invited using the deprecated Invite One MongoDB Cloud User to Join One Project endpoint.
             externalDocs:
@@ -60719,7 +60902,7 @@ paths:
     /api/atlas/v2/groups/{groupId}/users/{userId}:removeRole:
         post:
             description: |-
-                Removes one project-level role from the MongoDB Cloud user. You can remove a role from an active user or a user that has been invited to join the project. To replace a user's only role, add the new role before removing the old role. A user must have at least one role at all times. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+                Removes one project-level role from the MongoDB Cloud user. You can remove a role from an active user or a user that has been invited to join the project. To replace a user's only role, add the new role before removing the old role. A user must have at least one role at all times. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Access Manager role.
 
                 **Note**: This resource cannot be used to remove a role from users invited using the deprecated Invite One MongoDB Cloud User to Join One Project endpoint.
             externalDocs:
@@ -64599,6 +64782,153 @@ paths:
                 - MongoDB Cloud Users
             x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/MongoDB-Cloud-Users/operation/removeOrgUserRole
             x-xgen-operation-id-override: removeOrgRole
+    /api/atlas/v2/rateLimits:
+        get:
+            description: Get all rate limits for all v2 Atlas Administration API endpoint sets.
+            operationId: listRateLimits
+            parameters:
+                - $ref: '#/components/parameters/itemsPerPage'
+                - $ref: '#/components/parameters/pageNum'
+                - $ref: '#/components/parameters/pretty'
+                - $ref: '#/components/parameters/envelope'
+                - description: Unique 24-hexadecimal digit string that identifies the Atlas Project to request rate limits for. When this parameter is provided, only group scoped endpoint sets are returned and the limits returned are applicable to the specified project. The requesting user must have the Project Read Only role for the specified project.
+                  in: query
+                  name: groupId
+                  schema:
+                    example: 32b6e34b3d91647abb20e7b8
+                    pattern: ^([a-f0-9]{24})$
+                    type: string
+                - description: Unique 24-hexadecimal digit string that identifies the Atlas Organization to request rate limits for. When this parameter is provided, only organization scoped endpoint sets are returned and the limits returned are applicable to the specified organization. The requesting user must have the Organization Read Only role for the specified organization.
+                  in: query
+                  name: orgId
+                  schema:
+                    example: 32b6e34b3d91647abb20e7b8
+                    pattern: ^([a-f0-9]{24})$
+                    type: string
+                - description: A string that identifies the Atlas user to request rate limits for. The ID can for example be the Service Account Client ID or the API Public Key. When this parameter is provided, only user scoped endpoint sets are returned and the limits returned are applicable to the specified user. The requesting user must be the same as the specified user.
+                  in: query
+                  name: userId
+                  schema:
+                    example: mdb_sa_id_1234567890abcdef12345678
+                    type: string
+                - description: An IP address to request rate limits for. When this parameter is provided, only IP scoped endpoint sets are returned and the limits returned are applicable to the specified IP address. The requesting user must have the same IP address as the one provided in the request.
+                  in: query
+                  name: ipAddress
+                  schema:
+                    example: 127.0.0.1
+                    pattern: ^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}|([0-9a-f]{1,4}:){7}[0-9a-f]{1,4}$
+                    type: string
+                - description: Filters the returned endpoint sets by the provided endpoint set name. Multiple names may be provided, for example `/rateLimits?name=Name1&name=Name2`. For names that use spaces, replace the space with its URL-encoded value (`%20`).
+                  in: query
+                  name: name
+                  schema:
+                    example: Rate Limits Inspection
+                    type: string
+                - description: Filters the returned endpoint sets by the provided endpoint path. Multiple paths may be provided, for example `/rateLimits?endpointPath=%2Fapi%2Fatlas%2Fv2%2Fclusters&endpointPath=%2Fapi%2Fatlas%2Fv2%2Fgroups%2F%7BgroupId%7D%2F`. Replace `/`, `{` and `}` with their URL-encoded values (`%2F`, `%7B` and `%7D` respectively).
+                  in: query
+                  name: endpointPath
+                  schema:
+                    example: /api/atlas/v2/clusters
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.2025-03-12+json:
+                            schema:
+                                $ref: '#/components/schemas/PaginatedRateLimitEndpointSets'
+                            x-xgen-version: "2025-03-12"
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/PaginatedRateLimitEndpointSets'
+                            x-sunset: "2026-04-19"
+                            x-xgen-preview:
+                                name: rate-limit
+                                public: "false"
+                            x-xgen-version: preview
+                    description: OK
+                "400":
+                    $ref: '#/components/responses/badRequest'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return All Rate Limits
+            tags:
+                - Rate Limiting
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limiting/operation/listRateLimits
+    /api/atlas/v2/rateLimits/{endpointSetId}:
+        get:
+            description: Get one rate limit endpoint set.
+            operationId: getRateLimit
+            parameters:
+                - description: The ID of the rate limit endpoint set.
+                  in: path
+                  name: endpointSetId
+                  required: true
+                  schema:
+                    example: rateLimitsInspection_group
+                    type: string
+                - $ref: '#/components/parameters/pretty'
+                - $ref: '#/components/parameters/envelope'
+                - description: Unique 24-hexadecimal digit string that identifies the Atlas Project to request rate limits for. When this parameter is provided, the limits returned are applicable to the specified project. The requesting user must have the Project Read Only role for the specified project.
+                  in: query
+                  name: groupId
+                  schema:
+                    example: 32b6e34b3d91647abb20e7b8
+                    pattern: ^([a-f0-9]{24})$
+                    type: string
+                - description: Unique 24-hexadecimal digit string that identifies the Atlas Organization to request rate limits for. When this parameter is provided, the limits returned are applicable to the specified organization. The requesting user must have the Organization Read Only role for the specified organization.
+                  in: query
+                  name: orgId
+                  schema:
+                    example: 32b6e34b3d91647abb20e7b8
+                    pattern: ^([a-f0-9]{24})$
+                    type: string
+                - description: A string that identifies the Atlas user to request rate limits for. The ID can for example be the Service Account Client ID or the API Public Key. When this parameter is provided, the limits returned are applicable to the specified  user. The requesting user must be the same as the specified user.
+                  in: query
+                  name: userId
+                  schema:
+                    example: mdb_sa_id_1234567890abcdef12345678
+                    type: string
+                - description: An IP address to request rate limits for. When this parameter is provided, the limits returned are applicable to the specified IP address. The requesting user must have the same IP address as the one provided in the request.
+                  in: query
+                  name: ipAddress
+                  schema:
+                    example: 127.0.0.1
+                    pattern: ^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}|([0-9a-f]{1,4}:){7}[0-9a-f]{1,4}$
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/vnd.atlas.2025-03-12+json:
+                            schema:
+                                $ref: '#/components/schemas/RateLimitEndpointSetResponse'
+                            x-xgen-version: "2025-03-12"
+                        application/vnd.atlas.preview+json:
+                            schema:
+                                $ref: '#/components/schemas/RateLimitEndpointSetResponse'
+                            x-sunset: "2026-04-19"
+                            x-xgen-preview:
+                                name: rate-limit
+                                public: "false"
+                            x-xgen-version: preview
+                    description: OK
+                "400":
+                    $ref: '#/components/responses/badRequest'
+                "401":
+                    $ref: '#/components/responses/unauthorized'
+                "403":
+                    $ref: '#/components/responses/forbidden'
+                "404":
+                    $ref: '#/components/responses/notFound'
+                "500":
+                    $ref: '#/components/responses/internalServerError'
+            summary: Return One Rate Limit
+            tags:
+                - Rate Limiting
+            x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Rate-Limiting/operation/getRateLimit
     /api/atlas/v2/skus:
         get:
             description: Returns all available SKUs (Stock Keeping Units) that can appear on MongoDB invoices. SKUs represent different products and services offered by MongoDB.
@@ -64899,6 +65229,11 @@ tags:
       name: Projects
     - description: You can continually export mongod, mongos, and audit logs to an AWS S3 bucket. The new `/logIntegrations` API provides 1-minute log export. The existing `/pushBasedLogExport` API provides 5-minute log export and will be deprecated in the future. The log export integrations are managed at the project level.
       name: Push-Based Log Export
+    - description: Returns details about rate limit policies for the Atlas Administration API.
+      externalDocs:
+        description: Atlas API Rate Limits documentation
+        url: http://dochub.mongodb.org/core/atlas-api-rate-limit
+      name: Rate Limiting
     - description: Configure and manage Atlas Resource Policies within your organization.
       name: Resource Policies
     - description: Creates one index to a database deployment in a rolling manner. Rolling indexes build indexes on the applicable nodes sequentially and may reduce the performance impact of an index build if your deployment's average CPU utilization exceeds (N-1)/N-10% where N is the number of CPU threads available to mongod of if the WiredTiger cache fill ratio regularly exceeds 90%. If your deployment does not meet this criteria, use the default index build. You can't create a rolling index on an `M0` free cluster or `M2/M5` shared cluster.

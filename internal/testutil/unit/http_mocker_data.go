@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 	"testing"
 
@@ -19,7 +19,7 @@ type StatusText struct {
 	DuplicateResponses int    `yaml:"duplicate_responses"`
 }
 
-func (s StatusText) MarshalYAML() (interface{}, error) {
+func (s StatusText) MarshalYAML() (any, error) {
 	childNodes := []*yaml.Node{
 		{Kind: yaml.ScalarNode, Value: "response_index"},
 		{Kind: yaml.ScalarNode, Value: fmt.Sprintf("%d", s.ResponseIndex)},
@@ -329,7 +329,7 @@ func (m *MockHTTPData) UpdateVariables(t *testing.T, variables map[string]string
 		}
 	}
 	if len(missingValue) > 0 {
-		sort.Strings(missingValue)
+		slices.Sort(missingValue)
 		return fmt.Errorf("missing values for variables: %v", missingValue)
 	}
 	changes := []VariableChange{}

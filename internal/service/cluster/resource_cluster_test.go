@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -91,17 +92,17 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configAdvancedConf(projectID, clusterName, "false", &admin20240530.ClusterDescriptionProcessArgs{
-					FailIndexKeyTooLong: conversion.Pointer(false),
+					FailIndexKeyTooLong: new(false),
 					DefaultReadConcern:  conversion.StringPtr("available"),
 				},
 					&admin.ClusterDescriptionProcessArgs20240805{
-						JavascriptEnabled:                conversion.Pointer(true),
+						JavascriptEnabled:                new(true),
 						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-						NoTableScan:                      conversion.Pointer(false),
-						OplogSizeMB:                      conversion.Pointer(1000),
-						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-						SampleSizeBIConnector:            conversion.Pointer(110),
-						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+						NoTableScan:                      new(false),
+						OplogSizeMB:                      new(1000),
+						SampleRefreshIntervalBIConnector: new(310),
+						SampleSizeBIConnector:            new(110),
+						TransactionLifetimeLimitSeconds:  new(int64(300)),
 						TlsCipherConfigMode:              conversion.StringPtr("CUSTOM"),
 						CustomOpensslCipherConfigTls12:   &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
 					}),
@@ -165,19 +166,19 @@ func basicDefaultWriteReadAdvancedConfTestCase(tb testing.TB) *resource.TestCase
 			{
 				Config: configAdvancedConfDefaultWriteRead(projectID, clusterName, "false",
 					&admin20240530.ClusterDescriptionProcessArgs{
-						FailIndexKeyTooLong: conversion.Pointer(false),
+						FailIndexKeyTooLong: new(false),
 						DefaultReadConcern:  conversion.StringPtr("available"),
 					},
 					&admin.ClusterDescriptionProcessArgs20240805{
 						DefaultWriteConcern:              conversion.StringPtr("1"),
-						JavascriptEnabled:                conversion.Pointer(true),
+						JavascriptEnabled:                new(true),
 						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-						NoTableScan:                      conversion.Pointer(false),
-						OplogSizeMB:                      conversion.Pointer(1000),
-						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-						SampleSizeBIConnector:            conversion.Pointer(110),
-						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
-						ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.Pointer(113),
+						NoTableScan:                      new(false),
+						OplogSizeMB:                      new(1000),
+						SampleRefreshIntervalBIConnector: new(310),
+						SampleSizeBIConnector:            new(110),
+						TransactionLifetimeLimitSeconds:  new(int64(300)),
+						ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: new(113),
 					}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
@@ -233,16 +234,16 @@ func TestAccCluster_emptyAdvancedConf(t *testing.T) {
 			},
 			{
 				Config: configAdvancedConf(projectID, clusterName, "false", &admin20240530.ClusterDescriptionProcessArgs{
-					FailIndexKeyTooLong: conversion.Pointer(false),
+					FailIndexKeyTooLong: new(false),
 				},
 					&admin.ClusterDescriptionProcessArgs20240805{
-						JavascriptEnabled:                conversion.Pointer(true),
+						JavascriptEnabled:                new(true),
 						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-						NoTableScan:                      conversion.Pointer(false),
-						OplogSizeMB:                      conversion.Pointer(1000),
-						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-						SampleSizeBIConnector:            conversion.Pointer(110),
-						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+						NoTableScan:                      new(false),
+						OplogSizeMB:                      new(1000),
+						SampleRefreshIntervalBIConnector: new(310),
+						SampleSizeBIConnector:            new(110),
+						TransactionLifetimeLimitSeconds:  new(int64(300)),
 					}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
@@ -268,17 +269,17 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configAdvancedConf(projectID, clusterName, "false", &admin20240530.ClusterDescriptionProcessArgs{
-					FailIndexKeyTooLong: conversion.Pointer(false),
+					FailIndexKeyTooLong: new(false),
 					DefaultReadConcern:  conversion.StringPtr("available"),
 				},
 					&admin.ClusterDescriptionProcessArgs20240805{
-						JavascriptEnabled:                conversion.Pointer(true),
+						JavascriptEnabled:                new(true),
 						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-						NoTableScan:                      conversion.Pointer(true),
-						OplogSizeMB:                      conversion.Pointer(1000),
-						SampleRefreshIntervalBIConnector: conversion.Pointer(310),
-						SampleSizeBIConnector:            conversion.Pointer(110),
-						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
+						NoTableScan:                      new(true),
+						OplogSizeMB:                      new(1000),
+						SampleRefreshIntervalBIConnector: new(310),
+						SampleSizeBIConnector:            new(110),
+						TransactionLifetimeLimitSeconds:  new(int64(300)),
 					}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
@@ -296,16 +297,16 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 			},
 			{
 				Config: configAdvancedConf(projectID, clusterName, "false", &admin20240530.ClusterDescriptionProcessArgs{
-					FailIndexKeyTooLong: conversion.Pointer(false),
+					FailIndexKeyTooLong: new(false),
 				},
 					&admin.ClusterDescriptionProcessArgs20240805{
-						JavascriptEnabled:                conversion.Pointer(false),
+						JavascriptEnabled:                new(false),
 						MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
-						NoTableScan:                      conversion.Pointer(false),
-						OplogSizeMB:                      conversion.Pointer(990),
-						SampleRefreshIntervalBIConnector: conversion.Pointer(0),
-						SampleSizeBIConnector:            conversion.Pointer(0),
-						TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](60),
+						NoTableScan:                      new(false),
+						OplogSizeMB:                      new(990),
+						SampleRefreshIntervalBIConnector: new(0),
+						SampleSizeBIConnector:            new(0),
+						TransactionLifetimeLimitSeconds:  new(int64(60)),
 						TlsCipherConfigMode:              conversion.StringPtr("CUSTOM"),
 						CustomOpensslCipherConfigTls12:   &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"},
 					}),
@@ -1307,25 +1308,25 @@ func TestAccCluster_basic_RedactClientLogData(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configRedactClientLogData(orgID, projectName, clusterName, nil),
-				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+				Check: acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "false"},
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 			{
-				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(false)),
-				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+				Config: configRedactClientLogData(orgID, projectName, clusterName, new(false)),
+				Check: acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "false"},
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 			{
-				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(true)),
-				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+				Config: configRedactClientLogData(orgID, projectName, clusterName, new(true)),
+				Check: acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "true"},
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")), // latest PATCH API is called, ensure autoscaling mode is not modified
 			},
 			{
-				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(false)),
-				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+				Config: configRedactClientLogData(orgID, projectName, clusterName, new(false)),
+				Check: acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "false"},
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
@@ -1346,8 +1347,8 @@ func TestAccCluster_create_RedactClientLogData(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configRedactClientLogData(orgID, projectName, clusterName, conversion.Pointer(true)),
-				Check: acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), conversion.Pointer(dataSourcePluralName),
+				Config: configRedactClientLogData(orgID, projectName, clusterName, new(true)),
+				Check: acc.CheckRSAndDS(resourceName, new(dataSourceName), new(dataSourcePluralName),
 					nil, map[string]string{"redact_client_log_data": "true"}),
 			},
 		},
@@ -1381,7 +1382,7 @@ func TestAccCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
 			},
 			{ // pins fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, &firstExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(firstExpirationDate), conversion.Pointer(7)),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(firstExpirationDate), new(7)),
 			},
 			{ // using incorrect format
 				Config:      configFCVPinning(orgID, projectName, clusterName, &invalidDateFormat, "7.0"),
@@ -1389,15 +1390,15 @@ func TestAccCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
 			},
 			{ // updates expiration date of fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(updatedExpirationDate), new(7)),
 			},
 			{ // upgrade mongodb version with fcv pinned
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "8.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 8, new(updatedExpirationDate), new(7)),
 			},
 			{ // downgrade mongodb version with fcv pinned
 				Config: configFCVPinning(orgID, projectName, clusterName, &updatedExpirationDate, "7.0"),
-				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, conversion.Pointer(updatedExpirationDate), conversion.Pointer(7)),
+				Check:  checkFCVPinningConfig(resourceName, dataSourceName, dataSourcePluralName, 7, new(updatedExpirationDate), new(7)),
 			},
 			{ // unpins fcv
 				Config: configFCVPinning(orgID, projectName, clusterName, nil, "7.0"),
@@ -1424,7 +1425,7 @@ func checkFCVPinningConfig(resourceName, dataSourceName, pluralDataSourceName st
 
 	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", acc.MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))
 
-	return acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
+	return acc.CheckRSAndDS(resourceName, new(dataSourceName), new(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
 }
 
 func configAWS(projectID, name string, backupEnabled, autoDiskGBEnabled bool) string {
@@ -1887,9 +1888,9 @@ func configRedactClientLogData(orgID, projectName, clusterName string, redactCli
 }
 
 func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabled, tier, region string, labels []matlas.Label) string {
-	var labelsConf string
+	var labelsConf strings.Builder
 	for _, label := range labels {
-		labelsConf += fmt.Sprintf(`
+		fmt.Fprintf(&labelsConf, `
 			labels {
 				key   = %q
 				value = %q
@@ -1921,13 +1922,13 @@ func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabl
 		  	}
 			%[6]s
 		}
-	`, projectID, name, backupEnabled, tier, region, labelsConf)
+	`, projectID, name, backupEnabled, tier, region, labelsConf.String())
 }
 
 func configWithTags(orgID, projectName, name, backupEnabled, tier, region string, tags []matlas.Tag) string {
-	var tagsConf string
+	var tagsConf strings.Builder
 	for _, label := range tags {
-		tagsConf += fmt.Sprintf(`
+		fmt.Fprintf(&tagsConf, `
 			tags {
 				key   = "%s"
 				value = "%s"
@@ -1974,7 +1975,7 @@ func configWithTags(orgID, projectName, name, backupEnabled, tier, region string
 			project_id = mongodbatlas_cluster.test.project_id
 		}
 
-	`, orgID, projectName, name, backupEnabled, tier, region, tagsConf)
+	`, orgID, projectName, name, backupEnabled, tier, region, tagsConf.String())
 }
 
 func configWithPrivateEndpointLink(awsAccessKey, awsSecretKey, projectID, providerName, region, vpcID, subnetID, securityGroupID, clusterName string) string {

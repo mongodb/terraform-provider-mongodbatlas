@@ -39,11 +39,11 @@ func TestNewTFPushBasedLogExport(t *testing.T) {
 			name:      "Complete API response",
 			projectID: testProjectID,
 			apiResp: &admin.PushBasedLogExportProject{
-				BucketName: admin.PtrString(testBucketName),
-				CreateDate: admin.PtrTime(currentTime),
-				IamRoleId:  admin.PtrString(testIAMRoleID),
-				PrefixPath: admin.PtrString(testPrefixPath),
-				State:      admin.PtrString(activeState),
+				BucketName: new(testBucketName),
+				CreateDate: new(currentTime),
+				IamRoleId:  new(testIAMRoleID),
+				PrefixPath: new(testPrefixPath),
+				State:      new(activeState),
 			},
 			expectedTFModel: &pushbasedlogexport.TFPushBasedLogExportRSModel{
 				TFPushBasedLogExportCommonModel: pushbasedlogexport.TFPushBasedLogExportCommonModel{
@@ -60,11 +60,11 @@ func TestNewTFPushBasedLogExport(t *testing.T) {
 			name:      "Complete API response with empty prefix path",
 			projectID: testProjectID,
 			apiResp: &admin.PushBasedLogExportProject{
-				BucketName: admin.PtrString(testBucketName),
-				CreateDate: admin.PtrTime(currentTime),
-				IamRoleId:  admin.PtrString(testIAMRoleID),
-				PrefixPath: admin.PtrString(prefixPathEmpty),
-				State:      admin.PtrString(activeState),
+				BucketName: new(testBucketName),
+				CreateDate: new(currentTime),
+				IamRoleId:  new(testIAMRoleID),
+				PrefixPath: new(prefixPathEmpty),
+				State:      new(activeState),
 			},
 			expectedTFModel: &pushbasedlogexport.TFPushBasedLogExportRSModel{
 				TFPushBasedLogExportCommonModel: pushbasedlogexport.TFPushBasedLogExportCommonModel{
@@ -113,9 +113,9 @@ func TestNewPushBasedLogExportReq(t *testing.T) {
 				PrefixPath: testPrefixPath,
 			},
 			expectedUpdateReq: &admin.PushBasedLogExportProject{
-				BucketName: admin.PtrString(testBucketName),
-				IamRoleId:  admin.PtrString(testIAMRoleID),
-				PrefixPath: admin.PtrString(testPrefixPath),
+				BucketName: new(testBucketName),
+				IamRoleId:  new(testIAMRoleID),
+				PrefixPath: new(testPrefixPath),
 			},
 		},
 		{
@@ -133,9 +133,9 @@ func TestNewPushBasedLogExportReq(t *testing.T) {
 				PrefixPath: prefixPathEmpty,
 			},
 			expectedUpdateReq: &admin.PushBasedLogExportProject{
-				BucketName: admin.PtrString(testBucketName),
-				IamRoleId:  admin.PtrString(testIAMRoleID),
-				PrefixPath: admin.PtrString(prefixPathEmpty),
+				BucketName: new(testBucketName),
+				IamRoleId:  new(testIAMRoleID),
+				PrefixPath: new(prefixPathEmpty),
 			},
 		},
 	}

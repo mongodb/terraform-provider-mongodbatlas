@@ -13,6 +13,7 @@ schema:
         property_name:
             api_name: type
             tf_schema_name: type
+        skip_validation: true
     attributes:
         - string: {}
           description: Name of the cluster that contains the collection on which to create an Atlas Search index.

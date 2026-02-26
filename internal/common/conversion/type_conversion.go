@@ -15,20 +15,12 @@ func SafeValue[T any](v *T) T {
 	return emptyValue
 }
 
-func SafeString(s *string) string {
-	if s != nil {
-		return *s
-	}
-	return ""
-}
-
 // utility conversions that can potentially be defined in sdk
 func TimePtrToStringPtr(t *time.Time) *string {
 	if t == nil {
 		return nil
 	}
-	res := TimeToString(*t)
-	return &res
+	return new(TimeToString(*t))
 }
 
 // TimeToString returns a RFC3339 date time string format.
@@ -57,18 +49,14 @@ func Int64PtrToIntPtr(i64 *int64) *int {
 	if i64 == nil {
 		return nil
 	}
-
-	i := int(*i64)
-	return &i
+	return new(int(*i64))
 }
 
 func IntPtrToInt64Ptr(i *int) *int64 {
 	if i == nil {
 		return nil
 	}
-
-	i64 := int64(*i)
-	return &i64
+	return new(int64(*i))
 }
 
 // IsStringPresent returns true if the string is non-empty.

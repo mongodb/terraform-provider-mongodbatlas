@@ -175,6 +175,7 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	var schema *Schema
 	if createOp != nil || readOp != nil || updateOp != nil {
 		schema = &Schema{
+			ExpandedModel:      resourceConfig.SchemaOptions.ExpandedModel,
 			Description:        oasResource.Description,
 			DeprecationMessage: resourceConfig.DeprecationMessage,
 			Discriminator:      rootDiscriminator,

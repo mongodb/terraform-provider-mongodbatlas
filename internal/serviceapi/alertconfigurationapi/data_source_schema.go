@@ -246,17 +246,17 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
-	Matchers         customtypes.NestedListValue[TFDSMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
-	Notifications    customtypes.NestedListValue[TFDSNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
 	Created          types.String                                        `tfsdk:"created" autogen:"omitjson"`
+	Enabled          types.Bool                                          `tfsdk:"enabled" autogen:"omitjson"`
 	EventTypeName    types.String                                        `tfsdk:"event_type_name" autogen:"omitjson"`
 	GroupId          types.String                                        `tfsdk:"group_id" autogen:"omitjson"`
 	Id               types.String                                        `tfsdk:"id" apiname:"alertConfigId" autogen:"omitjson"`
+	Matchers         customtypes.NestedListValue[TFDSMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
 	MetricThreshold  customtypes.ObjectValue[TFDSMetricThresholdModel]   `tfsdk:"metric_threshold" autogen:"omitjson"`
+	Notifications    customtypes.NestedListValue[TFDSNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
 	SeverityOverride types.String                                        `tfsdk:"severity_override" autogen:"omitjson"`
 	Threshold        customtypes.ObjectValue[TFDSThresholdModel]         `tfsdk:"threshold" autogen:"omitjson"`
 	Updated          types.String                                        `tfsdk:"updated" autogen:"omitjson"`
-	Enabled          types.Bool                                          `tfsdk:"enabled" autogen:"omitjson"`
 }
 type TFDSMatchersModel struct {
 	FieldName types.String `tfsdk:"field_name" autogen:"omitjson"`
@@ -271,34 +271,34 @@ type TFDSMetricThresholdModel struct {
 	Units      types.String  `tfsdk:"units" autogen:"omitjson"`
 }
 type TFDSNotificationsModel struct {
-	Roles                    customtypes.ListValue[types.String] `tfsdk:"roles" autogen:"omitjson"`
-	OpsGenieRegion           types.String                        `tfsdk:"ops_genie_region" autogen:"omitjson"`
-	TeamId                   types.String                        `tfsdk:"team_id" autogen:"omitjson"`
-	DatadogRegion            types.String                        `tfsdk:"datadog_region" autogen:"omitjson"`
-	WebhookUrl               types.String                        `tfsdk:"webhook_url" autogen:"omitjson"`
-	EmailAddress             types.String                        `tfsdk:"email_address" autogen:"omitjson"`
-	WebhookSecret            types.String                        `tfsdk:"webhook_secret" autogen:"sensitive,omitjson"`
-	IntegrationId            types.String                        `tfsdk:"integration_id" autogen:"omitjson"`
 	ApiToken                 types.String                        `tfsdk:"api_token" autogen:"omitjson"`
+	ChannelName              types.String                        `tfsdk:"channel_name" autogen:"omitjson"`
+	DatadogApiKey            types.String                        `tfsdk:"datadog_api_key" autogen:"omitjson"`
+	DatadogRegion            types.String                        `tfsdk:"datadog_region" autogen:"omitjson"`
+	DelayMin                 types.Int64                         `tfsdk:"delay_min" autogen:"omitjson"`
+	EmailAddress             types.String                        `tfsdk:"email_address" autogen:"omitjson"`
+	EmailEnabled             types.Bool                          `tfsdk:"email_enabled" autogen:"omitjson"`
+	IntegrationId            types.String                        `tfsdk:"integration_id" autogen:"omitjson"`
+	IntervalMin              types.Int64                         `tfsdk:"interval_min" autogen:"omitjson"`
 	MicrosoftTeamsWebhookUrl types.String                        `tfsdk:"microsoft_teams_webhook_url" autogen:"omitjson"`
 	MobileNumber             types.String                        `tfsdk:"mobile_number" autogen:"omitjson"`
 	NotificationToken        types.String                        `tfsdk:"notification_token" autogen:"omitjson"`
-	Region                   types.String                        `tfsdk:"region" autogen:"omitjson"`
-	DatadogApiKey            types.String                        `tfsdk:"datadog_api_key" autogen:"omitjson"`
-	VictorOpsRoutingKey      types.String                        `tfsdk:"victor_ops_routing_key" autogen:"omitjson"`
 	NotifierId               types.String                        `tfsdk:"notifier_id" autogen:"omitjson"`
-	ChannelName              types.String                        `tfsdk:"channel_name" autogen:"omitjson"`
+	OpsGenieApiKey           types.String                        `tfsdk:"ops_genie_api_key" autogen:"omitjson"`
+	OpsGenieRegion           types.String                        `tfsdk:"ops_genie_region" autogen:"omitjson"`
+	Region                   types.String                        `tfsdk:"region" autogen:"omitjson"`
+	Roles                    customtypes.ListValue[types.String] `tfsdk:"roles" autogen:"omitjson"`
 	RoomName                 types.String                        `tfsdk:"room_name" autogen:"omitjson"`
 	ServiceKey               types.String                        `tfsdk:"service_key" autogen:"omitjson"`
-	VictorOpsApiKey          types.String                        `tfsdk:"victor_ops_api_key" autogen:"omitjson"`
-	OpsGenieApiKey           types.String                        `tfsdk:"ops_genie_api_key" autogen:"omitjson"`
+	SmsEnabled               types.Bool                          `tfsdk:"sms_enabled" autogen:"omitjson"`
+	TeamId                   types.String                        `tfsdk:"team_id" autogen:"omitjson"`
 	TeamName                 types.String                        `tfsdk:"team_name" autogen:"omitjson"`
 	TypeName                 types.String                        `tfsdk:"type_name" autogen:"omitjson"`
 	Username                 types.String                        `tfsdk:"username" autogen:"omitjson"`
-	IntervalMin              types.Int64                         `tfsdk:"interval_min" autogen:"omitjson"`
-	DelayMin                 types.Int64                         `tfsdk:"delay_min" autogen:"omitjson"`
-	SmsEnabled               types.Bool                          `tfsdk:"sms_enabled" autogen:"omitjson"`
-	EmailEnabled             types.Bool                          `tfsdk:"email_enabled" autogen:"omitjson"`
+	VictorOpsApiKey          types.String                        `tfsdk:"victor_ops_api_key" autogen:"omitjson"`
+	VictorOpsRoutingKey      types.String                        `tfsdk:"victor_ops_routing_key" autogen:"omitjson"`
+	WebhookSecret            types.String                        `tfsdk:"webhook_secret" autogen:"sensitive,omitjson"`
+	WebhookUrl               types.String                        `tfsdk:"webhook_url" autogen:"omitjson"`
 }
 type TFDSThresholdModel struct {
 	MetricName types.String  `tfsdk:"metric_name" autogen:"omitjson"`

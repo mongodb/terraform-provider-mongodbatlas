@@ -371,31 +371,31 @@ func configWithMultiple(projectID string, accessList []map[string]string, isUpda
 		}
 
 		if cidr, ok := entry["cidr_block"]; ok {
-			config.WriteString(fmt.Sprintf(`
+			fmt.Fprintf(&config, `
 				resource "mongodbatlas_project_ip_access_list" "test_%[1]d" {
 					project_id   = %[2]q
 					cidr_block = %[3]q
 					comment    = %[4]q
 				}
-			`, i, projectID, cidr, comment))
+			`, i, projectID, cidr, comment)
 		} else {
-			config.WriteString(fmt.Sprintf(`
+			fmt.Fprintf(&config, `
 				resource "mongodbatlas_project_ip_access_list" "test_%[1]d" {
 					project_id   = %[2]q
 					ip_address = %[3]q
 					comment    = %[4]q
 				}
-			`, i, projectID, entry["ip_address"], comment))
+			`, i, projectID, entry["ip_address"], comment)
 		}
 		resourceNames = append(resourceNames, fmt.Sprintf("%s_%d", resourceName, i))
 	}
 
-	config.WriteString(fmt.Sprintf(`
+	fmt.Fprintf(&config, `
 		data "mongodbatlas_project_ip_access_lists" "test" {
 			project_id   = %[1]q
 			depends_on = %[2]s
 		}
-	`, projectID, "["+strings.Join(resourceNames, ", ")+"]"))
+	`, projectID, "["+strings.Join(resourceNames, ", ")+"]")
 
 	return config.String()
 }

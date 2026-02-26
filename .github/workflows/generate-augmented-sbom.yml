@@ -27,7 +27,7 @@ jobs:
 
       - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
         with:
-            go-version-file: 'go.mod'
+          go-version-file: 'go.mod'
 
       - name: Generate PURLs from release artifacts
         run: |
@@ -51,9 +51,9 @@ jobs:
 
       - name: Generate SSDLC report
         env:
-            AUTHOR: ${{ github.actor }}
-            VERSION: ${{ inputs.release_version }}
-            AUGMENTED_REPORT: "true"
+          AUTHOR: ${{ github.actor }}
+          VERSION: ${{ inputs.release_version }}
+          AUGMENTED_REPORT: "true"
         run: ./scripts/compliance/gen-ssdlc-report.sh
 
       - name: Upload augmented SBOM as artifact

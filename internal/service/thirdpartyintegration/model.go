@@ -75,6 +75,7 @@ func integrationToSchema(d *schema.ResourceData, integration *admin.ThirdPartyIn
 		"send_collection_latency_metrics":  integration.SendCollectionLatencyMetrics,
 		"send_database_metrics":            integration.SendDatabaseMetrics,
 		"send_user_provided_resource_tags": integration.SendUserProvidedResourceTags,
+		"send_query_stats_metrics":         integration.SendQueryStatsMetrics,
 	}
 
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
@@ -97,71 +98,75 @@ func schemaToIntegration(in *schema.ResourceData) (out *admin.ThirdPartyIntegrat
 	out = &admin.ThirdPartyIntegration{}
 
 	if _type, ok := in.GetOk("type"); ok {
-		out.Type = admin.PtrString(_type.(string))
+		out.Type = new(_type.(string))
 	}
 
 	if apiKey, ok := in.GetOk("api_key"); ok {
-		out.ApiKey = admin.PtrString(apiKey.(string))
+		out.ApiKey = new(apiKey.(string))
 	}
 
 	if region, ok := in.GetOk("region"); ok {
-		out.Region = admin.PtrString(region.(string))
+		out.Region = new(region.(string))
 	}
 
 	if serviceKey, ok := in.GetOk("service_key"); ok {
-		out.ServiceKey = admin.PtrString(serviceKey.(string))
+		out.ServiceKey = new(serviceKey.(string))
 	}
 
 	if teamName, ok := in.GetOk("team_name"); ok {
-		out.TeamName = admin.PtrString(teamName.(string))
+		out.TeamName = new(teamName.(string))
 	}
 
 	if channelName, ok := in.GetOk("channel_name"); ok {
-		out.ChannelName = admin.PtrString(channelName.(string))
+		out.ChannelName = new(channelName.(string))
 	}
 
 	if routingKey, ok := in.GetOk("routing_key"); ok {
-		out.RoutingKey = admin.PtrString(routingKey.(string))
+		out.RoutingKey = new(routingKey.(string))
 	}
 
 	if url, ok := in.GetOk("url"); ok {
-		out.Url = admin.PtrString(url.(string))
+		out.Url = new(url.(string))
 	}
 
 	if secret, ok := in.GetOk("secret"); ok {
-		out.Secret = admin.PtrString(secret.(string))
+		out.Secret = new(secret.(string))
 	}
 
 	if microsoftTeamsWebhookURL, ok := in.GetOk("microsoft_teams_webhook_url"); ok {
-		out.MicrosoftTeamsWebhookUrl = admin.PtrString(microsoftTeamsWebhookURL.(string))
+		out.MicrosoftTeamsWebhookUrl = new(microsoftTeamsWebhookURL.(string))
 	}
 
 	if userName, ok := in.GetOk("user_name"); ok {
-		out.Username = admin.PtrString(userName.(string))
+		out.Username = new(userName.(string))
 	}
 
 	if password, ok := in.GetOk("password"); ok {
-		out.Password = admin.PtrString(password.(string))
+		out.Password = new(password.(string))
 	}
 
 	if serviceDiscovery, ok := in.GetOk("service_discovery"); ok {
-		out.ServiceDiscovery = admin.PtrString(serviceDiscovery.(string))
+		out.ServiceDiscovery = new(serviceDiscovery.(string))
 	}
 
 	if enabled, ok := in.GetOk("enabled"); ok {
-		out.Enabled = admin.PtrBool(enabled.(bool))
+		out.Enabled = new(enabled.(bool))
 	}
 
 	if sendCollectionLatencyMetrics, ok := in.GetOk("send_collection_latency_metrics"); ok {
-		out.SendCollectionLatencyMetrics = admin.PtrBool(sendCollectionLatencyMetrics.(bool))
+		out.SendCollectionLatencyMetrics = new(sendCollectionLatencyMetrics.(bool))
 	}
 
 	if sendDatabaseMetrics, ok := in.GetOk("send_database_metrics"); ok {
-		out.SendDatabaseMetrics = admin.PtrBool(sendDatabaseMetrics.(bool))
+		out.SendDatabaseMetrics = new(sendDatabaseMetrics.(bool))
 	}
 
 	if sendUserProvidedResourceTags, ok := in.GetOk("send_user_provided_resource_tags"); ok {
-		out.SendUserProvidedResourceTags = admin.PtrBool(sendUserProvidedResourceTags.(bool))
+		out.SendUserProvidedResourceTags = new(sendUserProvidedResourceTags.(bool))
+	}
+
+	if sendQueryStatsMetrics, ok := in.GetOk("send_query_stats_metrics"); ok {
+		out.SendQueryStatsMetrics = new(sendQueryStatsMetrics.(bool))
 	}
 
 	return out
@@ -215,18 +220,22 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *admin.Thir
 	}
 
 	if d.HasChange("enabled") {
-		integration.Enabled = admin.PtrBool(d.Get("enabled").(bool))
+		integration.Enabled = new(d.Get("enabled").(bool))
 	}
 
 	if d.HasChange("send_collection_latency_metrics") {
-		integration.SendCollectionLatencyMetrics = admin.PtrBool(d.Get("send_collection_latency_metrics").(bool))
+		integration.SendCollectionLatencyMetrics = new(d.Get("send_collection_latency_metrics").(bool))
 	}
 
 	if d.HasChange("send_database_metrics") {
-		integration.SendDatabaseMetrics = admin.PtrBool(d.Get("send_database_metrics").(bool))
+		integration.SendDatabaseMetrics = new(d.Get("send_database_metrics").(bool))
 	}
 
 	if d.HasChange("send_user_provided_resource_tags") {
-		integration.SendUserProvidedResourceTags = admin.PtrBool(d.Get("send_user_provided_resource_tags").(bool))
+		integration.SendUserProvidedResourceTags = new(d.Get("send_user_provided_resource_tags").(bool))
+	}
+
+	if d.HasChange("send_query_stats_metrics") {
+		integration.SendQueryStatsMetrics = new(d.Get("send_query_stats_metrics").(bool))
 	}
 }

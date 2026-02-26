@@ -65,7 +65,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	auditingReq := &admin.AuditLog{}
 
 	if auditAuth, ok := d.GetOk("audit_authorization_success"); ok {
-		auditingReq.AuditAuthorizationSuccess = conversion.Pointer(auditAuth.(bool))
+		auditingReq.AuditAuthorizationSuccess = new(auditAuth.(bool))
 	}
 
 	if auditFilter, ok := d.GetOk("audit_filter"); ok {
@@ -73,7 +73,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if enabled, ok := d.GetOk("enabled"); ok {
-		auditingReq.Enabled = conversion.Pointer(enabled.(bool))
+		auditingReq.Enabled = new(enabled.(bool))
 	}
 
 	_, _, err := connV2.AuditingApi.UpdateAuditLog(ctx, projectID, auditingReq).Execute()
@@ -121,7 +121,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	auditingReq := &admin.AuditLog{}
 
 	if d.HasChange("audit_authorization_success") {
-		auditingReq.AuditAuthorizationSuccess = conversion.Pointer((d.Get("audit_authorization_success").(bool)))
+		auditingReq.AuditAuthorizationSuccess = new((d.Get("audit_authorization_success").(bool)))
 	}
 
 	if d.HasChange("audit_filter") {
@@ -129,7 +129,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("enabled") {
-		auditingReq.Enabled = conversion.Pointer(d.Get("enabled").(bool))
+		auditingReq.Enabled = new(d.Get("enabled").(bool))
 	}
 
 	_, _, err := connV2.AuditingApi.UpdateAuditLog(ctx, d.Id(), auditingReq).Execute()
@@ -143,7 +143,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	auditingReq := &admin.AuditLog{
-		Enabled: conversion.Pointer(false),
+		Enabled: new(false),
 	}
 	_, _, err := connV2.AuditingApi.UpdateAuditLog(ctx, d.Id(), auditingReq).Execute()
 	if err != nil {

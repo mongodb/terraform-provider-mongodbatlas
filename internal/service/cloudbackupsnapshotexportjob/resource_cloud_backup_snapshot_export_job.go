@@ -271,8 +271,8 @@ func expandExportJobCustomData(d *schema.ResourceData) *[]admin.BackupLabel {
 	for i, val := range customData.List() {
 		v := val.(map[string]any)
 		res[i] = admin.BackupLabel{
-			Key:   conversion.Pointer(v["key"].(string)),
-			Value: conversion.Pointer(v["value"].(string)),
+			Key:   new(v["key"].(string)),
+			Value: new(v["value"].(string)),
 		}
 	}
 

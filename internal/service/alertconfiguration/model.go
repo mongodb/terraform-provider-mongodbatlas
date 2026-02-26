@@ -20,7 +20,7 @@ func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificatio
 			ChannelName:              n.ChannelName.ValueStringPointer(),
 			DatadogApiKey:            n.DatadogAPIKey.ValueStringPointer(),
 			DatadogRegion:            n.DatadogRegion.ValueStringPointer(),
-			DelayMin:                 conversion.Pointer(int(n.DelayMin.ValueInt64())),
+			DelayMin:                 new(int(n.DelayMin.ValueInt64())),
 			EmailAddress:             n.EmailAddress.ValueStringPointer(),
 			EmailEnabled:             n.EmailEnabled.ValueBoolPointer(),
 			IntervalMin:              conversion.Int64PtrToIntPtr(n.IntervalMin.ValueInt64Pointer()),
@@ -54,7 +54,7 @@ func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.Stream
 	return &admin.StreamProcessorMetricThreshold{
 		Operator:  v.Operator.ValueStringPointer(),
 		Units:     v.Units.ValueStringPointer(),
-		Threshold: conversion.Pointer(v.Threshold.ValueFloat64()),
+		Threshold: new(v.Threshold.ValueFloat64()),
 	}
 }
 
@@ -88,8 +88,8 @@ func NewTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currSt
 	return TfAlertConfigurationRSModel{
 		ID:                    currState.ID,
 		ProjectID:             currState.ProjectID,
-		AlertConfigurationID:  types.StringValue(conversion.SafeString(apiRespConfig.Id)),
-		EventType:             types.StringValue(conversion.SafeString(apiRespConfig.EventTypeName)),
+		AlertConfigurationID:  types.StringValue(conversion.SafeValue(apiRespConfig.Id)),
+		EventType:             types.StringValue(conversion.SafeValue(apiRespConfig.EventTypeName)),
 		Created:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Created)),
 		Updated:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Updated)),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
@@ -129,7 +129,7 @@ func NewTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currSt
 		return notifications
 	}
 
-	for i := range n {
+	for i := 0; i < len(n) && i < len(currStateNotifications); i++ {
 		value := n[i]
 		currState := currStateNotifications[i]
 		newState := TfNotificationModel{
@@ -256,7 +256,8 @@ func NewTFMatcherModelList(m []admin.StreamsMatcher, currStateSlice []TfMatcherM
 		}
 		return matchers
 	}
-	for i, matcher := range m {
+	for i := 0; i < len(m) && i < len(currStateSlice); i++ {
+		matcher := m[i]
 		currState := currStateSlice[i]
 		newState := TfMatcherModel{}
 		if !currState.FieldName.IsNull() {

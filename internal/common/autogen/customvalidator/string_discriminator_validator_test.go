@@ -1,4 +1,4 @@
-package validator_test
+package customvalidator_test
 
 import (
 	"strings"
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/validator"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customvalidator"
 )
 
 func TestValidateDiscriminator(t *testing.T) {
@@ -57,8 +57,8 @@ func TestValidateDiscriminator(t *testing.T) {
 		},
 	}
 
-	def := validator.DiscriminatorDefinition{
-		Mapping: map[string]validator.VariantDefinition{
+	def := customvalidator.DiscriminatorDefinition{
+		Mapping: map[string]customvalidator.VariantDefinition{
 			"AWS": {
 				Allowed:  []string{"aws_specific"},
 				Required: []string{"aws_specific"},
@@ -72,7 +72,7 @@ func TestValidateDiscriminator(t *testing.T) {
 
 	tests := []struct {
 		raw            tftypes.Value
-		def            validator.DiscriminatorDefinition
+		def            customvalidator.DiscriminatorDefinition
 		configValue    basetypes.StringValue
 		name           string
 		configPath     path.Path
@@ -298,7 +298,7 @@ func TestValidateDiscriminator(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			v := validator.ValidateDiscriminator(tt.def)
+			v := customvalidator.ValidateDiscriminator(tt.def)
 
 			req := schemavalidator.StringRequest{
 				ConfigValue: tt.configValue,
