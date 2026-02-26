@@ -8,8 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
-
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
@@ -129,7 +127,7 @@ func checkBasic(isCreate bool) resource.TestCheckFunc {
 	commonAttrsSet := []string{"client_id", "created_at", "secrets.0.secret_id", "secrets.0.created_at", "secrets.0.expires_at"}
 	commonAttrsMap := map[string]string{"secrets.#": "1"}
 
-	checks := acc.CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), nil, commonAttrsSet, commonAttrsMap, checkExists(resourceName))
+	checks := acc.CheckRSAndDS(resourceName, new(dataSourceName), nil, commonAttrsSet, commonAttrsMap, checkExists(resourceName))
 
 	additionalChecks := []resource.TestCheckFunc{}
 	if isCreate {

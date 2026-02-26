@@ -10,7 +10,7 @@ subcategory: "Projects"
 
 -> **NOTE:** Slack integrations now use the OAuth2 verification method and must be initially configured, or updated from a legacy integration, through the Atlas third-party service integrations page. Legacy tokens will soon no longer be supported.[Read more about slack setup](https://docs.atlas.mongodb.com/tutorial/third-party-service-integrations/)
 
-~> **IMPORTANT** Each project can only have one configuration per {INTEGRATION-TYPE}.
+~> **IMPORTANT** Each project can only have one configuration per integration `type`.
 
 ~> **IMPORTANT:** All arguments including the secrets will be stored in the raw state as plain-text. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
 
@@ -52,7 +52,8 @@ resource "mongodbatlas_third_party_integration" "test_datadog" {
   * `region` (Required) - Two-letter code that indicates which API URL to use. See the `region` request parameter of [MongoDB API Third-Party Service Integration documentation](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createthirdpartyintegration) for more details.
   * `send_collection_latency_metrics` - Toggle sending collection latency metrics that includes database names and collection names and latency metrics on reads, writes, commands, and transactions. Default: `false`.
   * `send_database_metrics` - Toggle sending database metrics that includes database names and metrics on the number of collections, storage size, and index size. Default: `false`.
-  * `send_user_provided_resource_tags` - Toggle sending user provided group and cluster resource tags with the datadog metrics. Default: `false`.
+  * `send_user_provided_resource_tags` - Toggle sending user provided group and cluster resource tags with the Datadog metrics. Default: `false`.
+  * `send_query_stats_metrics` - Toggle sending query shape metrics that includes query hash and metrics on latency, execution frequency, documents returned, and timestamps. Default: `false`.
 * `OPS_GENIE`
   * `api_key` - Your API Key.
   * `region` (Required) - Two-letter code that indicates which API URL to use. See the `region` request parameter of [MongoDB API Third-Party Service Integration documentation](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createthirdpartyintegration) for more details.

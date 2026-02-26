@@ -121,10 +121,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	params := new(admin.GroupMaintenanceWindow)
 
 	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
-	params.HourOfDay = conversion.Pointer(cast.ToInt(d.Get("hour_of_day")))
+	params.HourOfDay = new(cast.ToInt(d.Get("hour_of_day")))
 
 	if autoDeferOnceEnabled, ok := d.GetOk("auto_defer_once_enabled"); ok {
-		params.AutoDeferOnceEnabled = conversion.Pointer(autoDeferOnceEnabled.(bool))
+		params.AutoDeferOnceEnabled = new(autoDeferOnceEnabled.(bool))
 	}
 
 	params.ProtectedHours = newProtectedHours(d)
@@ -146,7 +146,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func newProtectedHours(d *schema.ResourceData) *admin.ProtectedHours {
-	if protectedHours, ok := d.Get("protected_hours").([]any); ok && conversion.HasElementsSliceOrMap(protectedHours) {
+	if protectedHours, ok := d.Get("protected_hours").([]any); ok && len(protectedHours) > 0 {
 		item := protectedHours[0].(map[string]any)
 
 		return &admin.ProtectedHours{
@@ -232,11 +232,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
 
 	if d.HasChange("hour_of_day") {
-		params.HourOfDay = conversion.Pointer(cast.ToInt(d.Get("hour_of_day")))
+		params.HourOfDay = new(cast.ToInt(d.Get("hour_of_day")))
 	}
 
 	if d.HasChange("auto_defer_once_enabled") {
-		params.AutoDeferOnceEnabled = conversion.Pointer(d.Get("auto_defer_once_enabled").(bool))
+		params.AutoDeferOnceEnabled = new(d.Get("auto_defer_once_enabled").(bool))
 	}
 
 	if oldPAny, newPAny := d.GetChange("protected_hours"); d.HasChange("protected_hours") {

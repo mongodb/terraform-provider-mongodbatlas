@@ -117,12 +117,12 @@ func TestAccAlertConfigurationAPI_withMatchers(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithMatchers(projectID, true, false, true,
-					map[string]interface{}{
+					map[string]any{
 						"fieldName": "TYPE_NAME",
 						"operator":  "EQUALS",
 						"value":     "SECONDARY",
 					},
-					map[string]interface{}{
+					map[string]any{
 						"fieldName": "TYPE_NAME",
 						"operator":  "CONTAINS",
 						"value":     "MONGOS",
@@ -134,12 +134,12 @@ func TestAccAlertConfigurationAPI_withMatchers(t *testing.T) {
 			},
 			{
 				Config: configWithMatchers(projectID, false, true, false,
-					map[string]interface{}{
+					map[string]any{
 						"fieldName": "TYPE_NAME",
 						"operator":  "NOT_EQUALS",
 						"value":     "SECONDARY",
 					},
-					map[string]interface{}{
+					map[string]any{
 						"fieldName": "HOSTNAME",
 						"operator":  "EQUALS",
 						"value":     "PRIMARY",
@@ -502,7 +502,7 @@ func configBasic(projectID string, enabled bool) string {
 	`, projectID, enabled)
 }
 
-func configWithMatchers(projectID string, enabled, smsEnabled, emailEnabled bool, m1, m2 map[string]interface{}) string {
+func configWithMatchers(projectID string, enabled, smsEnabled, emailEnabled bool, m1, m2 map[string]any) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_alert_configuration_api" "test" {
 			group_id   = %[1]q

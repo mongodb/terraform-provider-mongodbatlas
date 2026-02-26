@@ -139,7 +139,7 @@ func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateReques
 		Name: plan.Name.ValueStringPointer(),
 		// description is an optional attribute (i.e. null by default), if it is removed from the config during an update
 		// (i.e. user wants to remove the existing description from resource policy), we send an empty string ("") as the value in API request for update
-		Description: conversion.Pointer(plan.Description.ValueString()),
+		Description: new(plan.Description.ValueString()),
 		Policies:    &policies,
 	}
 	policySDK, _, err := connV2.ResourcePoliciesApi.UpdateOrgResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()

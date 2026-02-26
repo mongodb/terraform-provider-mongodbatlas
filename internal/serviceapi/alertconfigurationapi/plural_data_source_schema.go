@@ -60,7 +60,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 									},
 									"value": dsschema.StringAttribute{
 										Computed:            true,
-										MarkdownDescription: "Value to match or exceed using the specified **matchers.operator**.",
+										MarkdownDescription: "Value to match or exceed using the specified `matchers.operator`.",
 									},
 								},
 							},
@@ -72,7 +72,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							Attributes: map[string]dsschema.Attribute{
 								"metric_name": dsschema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.",
+									MarkdownDescription: "Human-readable label that identifies the metric against which MongoDB Cloud checks the configured `metricThreshold.threshold`.",
 								},
 								"mode": dsschema.StringAttribute{
 									Computed:            true,
@@ -148,15 +148,15 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 									},
 									"notifier_id": dsschema.StringAttribute{
 										Computed:            true,
-										MarkdownDescription: "The notifierId is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.",
+										MarkdownDescription: "The `notifierId` is a system-generated unique identifier assigned to each notification method. This is needed when updating third-party notifications without requiring explicit authentication credentials.",
 									},
 									"ops_genie_api_key": dsschema.StringAttribute{
 										Computed:            true,
-										MarkdownDescription: "API Key that MongoDB Cloud needs to send this notification via Opsgenie. The resource requires this parameter when `\"notifications.[n].typeName\" : \"OPS_GENIE\"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.\n\n**NOTE**: After you create a notification which requires an API or integration key, the key appears partially redacted when you:\n\n* View or edit the alert through the Atlas UI.\n\n* Query the alert for the notification through the Atlas Administration API.",
+										MarkdownDescription: "API Key that MongoDB Cloud needs to send this notification via OpsGenie. The resource requires this parameter when `\"notifications.[n].typeName\" : \"OPS_GENIE\"`. If the key later becomes invalid, MongoDB Cloud sends an email to the project owners. If the key remains invalid, MongoDB Cloud removes it.\n\n**NOTE**: After you create a notification which requires an API or integration key, the key appears partially redacted when you:\n\n* View or edit the alert through the Atlas UI.\n\n* Query the alert for the notification through the Atlas Administration API.",
 									},
 									"ops_genie_region": dsschema.StringAttribute{
 										Computed:            true,
-										MarkdownDescription: "Opsgenie region that indicates which API Uniform Resource Locator (URL) to use.",
+										MarkdownDescription: "OpsGenie region that indicates which API Uniform Resource Locator (URL) to use.",
 									},
 									"region": dsschema.StringAttribute{
 										Computed:            true,
@@ -206,12 +206,12 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 									},
 									"webhook_secret": dsschema.StringAttribute{
 										Computed:            true,
-										MarkdownDescription: "Authentication secret for a webhook-based alert.\n\nAtlas returns this value if you set `\"notifications.[n].typeName\" :\"WEBHOOK\"` and either:\n* You set `notification.[n].webhookSecret` to a non-empty string\n* You set a default webhookSecret either on the Integrations page, or with the Integrations API\n\n**NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.",
+										MarkdownDescription: "Authentication secret for a webhook-based alert.\n\nAtlas returns this value if you set `notifications.[n].typeName` :`WEBHOOK` and either:\n* You set `notification.[n].webhookSecret` to a non-empty string\n* You set a default webhook secret either on the Integrations page, or with the Integrations API\n\n**NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.",
 										Sensitive:           true,
 									},
 									"webhook_url": dsschema.StringAttribute{
 										Computed:            true,
-										MarkdownDescription: "Target URL for a webhook-based alert.\n\nAtlas returns this value if you set `\"notifications.[n].typeName\" :\"WEBHOOK\"` and either:\n* You set `notification.[n].webhookURL` to a non-empty string\n* You set a default webhookUrl either on the Integrations page, or with the Integrations API\n\n**NOTE**: When you view or edit the alert for a Webhook URL notification, the URL appears partially redacted.",
+										MarkdownDescription: "Target URL for a webhook-based alert.\n\nAtlas returns this value if you set `\"notifications.[n].typeName\" :\"WEBHOOK\"` and either:\n* You set `notification.[n].webhookURL` to a non-empty string\n* You set a default webhook URL either on the Integrations page, or with the Integrations API\n\n**NOTE**: When you view or edit the alert for a Webhook URL notification, the URL appears partially redacted.",
 									},
 								},
 							},
@@ -227,7 +227,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							Attributes: map[string]dsschema.Attribute{
 								"metric_name": dsschema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "Human-readable label that identifies the metric against which MongoDB Cloud checks the configured **metricThreshold.threshold**.",
+									MarkdownDescription: "Human-readable label that identifies the metric against which MongoDB Cloud checks the configured `metricThreshold.threshold`.",
 								},
 								"mode": dsschema.StringAttribute{
 									Computed:            true,
@@ -263,17 +263,17 @@ type TFPluralDSModel struct {
 	Results customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
 }
 type TFPluralDSResultsModel struct {
-	Matchers         customtypes.NestedListValue[TFPluralDSResultsMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
-	Notifications    customtypes.NestedListValue[TFPluralDSResultsNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
 	Created          types.String                                                     `tfsdk:"created" autogen:"omitjson"`
+	Enabled          types.Bool                                                       `tfsdk:"enabled" autogen:"omitjson"`
 	EventTypeName    types.String                                                     `tfsdk:"event_type_name" autogen:"omitjson"`
 	GroupId          types.String                                                     `tfsdk:"group_id" autogen:"omitjson"`
 	Id               types.String                                                     `tfsdk:"id" autogen:"omitjson"`
+	Matchers         customtypes.NestedListValue[TFPluralDSResultsMatchersModel]      `tfsdk:"matchers" autogen:"omitjson"`
 	MetricThreshold  customtypes.ObjectValue[TFPluralDSResultsMetricThresholdModel]   `tfsdk:"metric_threshold" autogen:"omitjson"`
+	Notifications    customtypes.NestedListValue[TFPluralDSResultsNotificationsModel] `tfsdk:"notifications" autogen:"omitjson"`
 	SeverityOverride types.String                                                     `tfsdk:"severity_override" autogen:"omitjson"`
 	Threshold        customtypes.ObjectValue[TFPluralDSResultsThresholdModel]         `tfsdk:"threshold" autogen:"omitjson"`
 	Updated          types.String                                                     `tfsdk:"updated" autogen:"omitjson"`
-	Enabled          types.Bool                                                       `tfsdk:"enabled" autogen:"omitjson"`
 }
 type TFPluralDSResultsMatchersModel struct {
 	FieldName types.String `tfsdk:"field_name" autogen:"omitjson"`
@@ -288,34 +288,34 @@ type TFPluralDSResultsMetricThresholdModel struct {
 	Units      types.String  `tfsdk:"units" autogen:"omitjson"`
 }
 type TFPluralDSResultsNotificationsModel struct {
-	Roles                    customtypes.ListValue[types.String] `tfsdk:"roles" autogen:"omitjson"`
-	OpsGenieRegion           types.String                        `tfsdk:"ops_genie_region" autogen:"omitjson"`
-	TeamId                   types.String                        `tfsdk:"team_id" autogen:"omitjson"`
-	DatadogRegion            types.String                        `tfsdk:"datadog_region" autogen:"omitjson"`
-	WebhookUrl               types.String                        `tfsdk:"webhook_url" autogen:"omitjson"`
-	EmailAddress             types.String                        `tfsdk:"email_address" autogen:"omitjson"`
-	WebhookSecret            types.String                        `tfsdk:"webhook_secret" autogen:"sensitive,omitjson"`
-	IntegrationId            types.String                        `tfsdk:"integration_id" autogen:"omitjson"`
 	ApiToken                 types.String                        `tfsdk:"api_token" autogen:"omitjson"`
+	ChannelName              types.String                        `tfsdk:"channel_name" autogen:"omitjson"`
+	DatadogApiKey            types.String                        `tfsdk:"datadog_api_key" autogen:"omitjson"`
+	DatadogRegion            types.String                        `tfsdk:"datadog_region" autogen:"omitjson"`
+	DelayMin                 types.Int64                         `tfsdk:"delay_min" autogen:"omitjson"`
+	EmailAddress             types.String                        `tfsdk:"email_address" autogen:"omitjson"`
+	EmailEnabled             types.Bool                          `tfsdk:"email_enabled" autogen:"omitjson"`
+	IntegrationId            types.String                        `tfsdk:"integration_id" autogen:"omitjson"`
+	IntervalMin              types.Int64                         `tfsdk:"interval_min" autogen:"omitjson"`
 	MicrosoftTeamsWebhookUrl types.String                        `tfsdk:"microsoft_teams_webhook_url" autogen:"omitjson"`
 	MobileNumber             types.String                        `tfsdk:"mobile_number" autogen:"omitjson"`
 	NotificationToken        types.String                        `tfsdk:"notification_token" autogen:"omitjson"`
-	Region                   types.String                        `tfsdk:"region" autogen:"omitjson"`
-	DatadogApiKey            types.String                        `tfsdk:"datadog_api_key" autogen:"omitjson"`
-	VictorOpsRoutingKey      types.String                        `tfsdk:"victor_ops_routing_key" autogen:"omitjson"`
 	NotifierId               types.String                        `tfsdk:"notifier_id" autogen:"omitjson"`
-	ChannelName              types.String                        `tfsdk:"channel_name" autogen:"omitjson"`
+	OpsGenieApiKey           types.String                        `tfsdk:"ops_genie_api_key" autogen:"omitjson"`
+	OpsGenieRegion           types.String                        `tfsdk:"ops_genie_region" autogen:"omitjson"`
+	Region                   types.String                        `tfsdk:"region" autogen:"omitjson"`
+	Roles                    customtypes.ListValue[types.String] `tfsdk:"roles" autogen:"omitjson"`
 	RoomName                 types.String                        `tfsdk:"room_name" autogen:"omitjson"`
 	ServiceKey               types.String                        `tfsdk:"service_key" autogen:"omitjson"`
-	VictorOpsApiKey          types.String                        `tfsdk:"victor_ops_api_key" autogen:"omitjson"`
-	OpsGenieApiKey           types.String                        `tfsdk:"ops_genie_api_key" autogen:"omitjson"`
+	SmsEnabled               types.Bool                          `tfsdk:"sms_enabled" autogen:"omitjson"`
+	TeamId                   types.String                        `tfsdk:"team_id" autogen:"omitjson"`
 	TeamName                 types.String                        `tfsdk:"team_name" autogen:"omitjson"`
 	TypeName                 types.String                        `tfsdk:"type_name" autogen:"omitjson"`
 	Username                 types.String                        `tfsdk:"username" autogen:"omitjson"`
-	IntervalMin              types.Int64                         `tfsdk:"interval_min" autogen:"omitjson"`
-	DelayMin                 types.Int64                         `tfsdk:"delay_min" autogen:"omitjson"`
-	SmsEnabled               types.Bool                          `tfsdk:"sms_enabled" autogen:"omitjson"`
-	EmailEnabled             types.Bool                          `tfsdk:"email_enabled" autogen:"omitjson"`
+	VictorOpsApiKey          types.String                        `tfsdk:"victor_ops_api_key" autogen:"omitjson"`
+	VictorOpsRoutingKey      types.String                        `tfsdk:"victor_ops_routing_key" autogen:"omitjson"`
+	WebhookSecret            types.String                        `tfsdk:"webhook_secret" autogen:"sensitive,omitjson"`
+	WebhookUrl               types.String                        `tfsdk:"webhook_url" autogen:"omitjson"`
 }
 type TFPluralDSResultsThresholdModel struct {
 	MetricName types.String  `tfsdk:"metric_name" autogen:"omitjson"`

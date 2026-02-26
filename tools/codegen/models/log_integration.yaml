@@ -17,6 +17,7 @@ schema:
         property_name:
             api_name: type
             tf_schema_name: type
+        skip_validation: true
     attributes:
         - string: {}
           description: Human-readable label that identifies the S3 bucket name for storing log files.
@@ -273,6 +274,7 @@ data_sources:
                         property_name:
                             api_name: type
                             tf_schema_name: type
+                        skip_validation: true
                     attributes:
                         - string: {}
                           description: Human-readable label that identifies the S3 bucket name for storing log files.

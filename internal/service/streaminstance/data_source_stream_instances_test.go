@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 func TestAccStreamDSStreamInstances_basic(t *testing.T) {
@@ -44,7 +43,7 @@ func TestAccStreamDSStreamInstances_withPageConfig(t *testing.T) {
 		pageNumber     = 1000 // high page number so no results are returned
 	)
 
-	checks := paginatedAttrChecks(dataSourceName, admin.PtrInt(pageNumber), admin.PtrInt(1))
+	checks := paginatedAttrChecks(dataSourceName, new(pageNumber), new(1))
 	checks = append(checks, resource.TestCheckResourceAttr(dataSourceName, "results.#", "0")) // expecting no results
 
 	resource.ParallelTest(t, resource.TestCase{

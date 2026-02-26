@@ -3,16 +3,12 @@ package streamconnection
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
-)
-
-const (
-	defaultCreateUpdateTimeout = 20 * time.Minute // The amount of time to wait before timeout for create/update
-	notFoundChecks             = 3                // Number of consecutive 404s allowed before failing (~1.4s with exponential backoff)
 )
 
 // Connection state constants
@@ -21,11 +17,12 @@ const (
 	StateReady    = "READY"
 	StateDeleting = "DELETING"
 	StateFailed   = "FAILED"
+	StateNotFound = "NOT_FOUND" // Virtual state used when resource is not found (404)
 )
 
-func DeleteStreamConnection(ctx context.Context, api admin.StreamsApi, projectID, instanceName, connectionName string, timeout time.Duration) error {
-	return retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		resp, err := api.DeleteStreamConnection(ctx, projectID, instanceName, connectionName).Execute()
+func DeleteStreamConnection(ctx context.Context, api admin.StreamsApi, projectID, workspaceName, connectionName string, timeout time.Duration) error {
+	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
+		resp, err := api.DeleteStreamConnection(ctx, projectID, workspaceName, connectionName).Execute()
 		if err == nil {
 			return nil
 		}
@@ -37,24 +34,32 @@ func DeleteStreamConnection(ctx context.Context, api admin.StreamsApi, projectID
 		}
 		return retry.NonRetryableError(err)
 	})
+	if err != nil {
+		return err
+	}
+
+	// Wait for delete to complete - some connections (e.g., Kafka VPC) are deleted asynchronously
+	// and go through a DELETING state before being fully removed.
+	// StateNotFound is a target state here - 404 means the resource is successfully deleted.
+	pendingStates := []string{StateDeleting}
+	targetStates := []string{StateNotFound, StateFailed}
+	model, err := WaitStateTransition(ctx, projectID, workspaceName, connectionName, api, timeout, pendingStates, targetStates)
+	if err != nil {
+		return err
+	}
+	if model != nil && model.GetState() == StateFailed {
+		return fmt.Errorf("stream connection deletion failed for connection '%s' in workspace '%s' (project: %s)", connectionName, workspaceName, projectID)
+	}
+	return nil
 }
 
-// WaitStateTransition waits for a stream connection to reach a READY or FAILED state after create or update operations.
-// It polls the GET endpoint until the connection is no longer in a PENDING state.
-// Some connections may be READY immediately, so there is no minimum wait time.
-func WaitStateTransition(ctx context.Context, projectID, workspaceName, connectionName string, client admin.StreamsApi) (*admin.StreamsConnection, error) {
-	return WaitStateTransitionWithTimeout(ctx, projectID, workspaceName, connectionName, client, defaultCreateUpdateTimeout)
-}
-
-// WaitStateTransitionWithTimeout waits for a stream connection to reach a READY or FAILED state with a custom timeout.
-func WaitStateTransitionWithTimeout(ctx context.Context, projectID, workspaceName, connectionName string, client admin.StreamsApi, timeout time.Duration) (*admin.StreamsConnection, error) {
+// WaitStateTransition waits for a stream connection to reach the specified target states.
+func WaitStateTransition(ctx context.Context, projectID, workspaceName, connectionName string, client admin.StreamsApi, timeout time.Duration, pendingStates, targetStates []string) (*admin.StreamsConnection, error) {
 	stateConf := &retry.StateChangeConf{
-		Pending:        []string{StatePending},
-		Target:         []string{StateReady, StateFailed},
-		Refresh:        streamConnectionRefreshFunc(ctx, projectID, workspaceName, connectionName, client),
-		Timeout:        timeout,
-		Delay:          0,
-		NotFoundChecks: notFoundChecks,
+		Pending: pendingStates,
+		Target:  targetStates,
+		Refresh: refreshFunc(ctx, projectID, workspaceName, connectionName, client),
+		Timeout: timeout,
 	}
 
 	result, err := stateConf.WaitForStateContext(ctx)
@@ -67,8 +72,9 @@ func WaitStateTransitionWithTimeout(ctx context.Context, projectID, workspaceNam
 	return nil, errors.New("did not obtain valid result when waiting for stream connection state transition")
 }
 
-// streamConnectionRefreshFunc returns a function that polls the stream connection state.
-func streamConnectionRefreshFunc(ctx context.Context, projectID, workspaceName, connectionName string, client admin.StreamsApi) retry.StateRefreshFunc {
+// refreshFunc returns a function that polls the stream connection state.
+// Returns StateNotFound when resource is not found (404).
+func refreshFunc(ctx context.Context, projectID, workspaceName, connectionName string, client admin.StreamsApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		model, resp, err := client.GetStreamConnection(ctx, projectID, workspaceName, connectionName).Execute()
 		if err != nil && model == nil && resp == nil {
@@ -76,17 +82,11 @@ func streamConnectionRefreshFunc(ctx context.Context, projectID, workspaceName, 
 		}
 		if err != nil {
 			if validate.StatusNotFound(resp) {
-				// Return nil to trigger NotFoundChecks for eventual consistency after creation
-				// After notFoundChecks consecutive 404s (~1.4s), it will fail fast
-				return nil, StatePending, nil
+				return &admin.StreamsConnection{}, StateNotFound, nil
 			}
 			return nil, "", err
 		}
 		state := model.GetState()
-		if state == "" {
-			// If state is not present in the response, assume the connection is ready
-			return model, StateReady, nil
-		}
 		return model, state, nil
 	}
 }

@@ -25,18 +25,18 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 	testCases := map[string]sdkToTFModelTestCase{
 		"Complete SDK response": {
 			SDKResp: &admin.GroupIPAddresses{
-				GroupId: admin.PtrString(dummyProjectID),
+				GroupId: new(dummyProjectID),
 				Services: &admin.GroupService{
 					Clusters: &[]admin.ClusterIPAddresses{
 						{
-							ClusterName:    admin.PtrString("cluster1"),
+							ClusterName:    new("cluster1"),
 							Inbound:        &[]string{"192.168.1.1", "192.168.1.2"},
 							Outbound:       &[]string{"10.0.0.1", "10.0.0.2"},
 							FutureInbound:  &[]string{"192.168.1.1", "192.168.1.2"},
 							FutureOutbound: &[]string{"10.0.0.1", "10.0.0.2"},
 						},
 						{
-							ClusterName:    admin.PtrString("cluster2"),
+							ClusterName:    new("cluster2"),
 							Inbound:        &[]string{"192.168.2.1"},
 							Outbound:       &[]string{"10.0.1.1"},
 							FutureInbound:  &[]string{"192.168.2.1"},
@@ -87,11 +87,11 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 		},
 		"Single Cluster with no IP addresses": { // case when cluster is being created
 			SDKResp: &admin.GroupIPAddresses{
-				GroupId: admin.PtrString(dummyProjectID),
+				GroupId: new(dummyProjectID),
 				Services: &admin.GroupService{
 					Clusters: &[]admin.ClusterIPAddresses{
 						{
-							ClusterName:    admin.PtrString("cluster1"),
+							ClusterName:    new("cluster1"),
 							Inbound:        &[]string{},
 							Outbound:       &[]string{},
 							FutureInbound:  &[]string{},
@@ -115,7 +115,7 @@ func TestProjectIPAddressesSDKToTFModel(t *testing.T) {
 		},
 		"Empty Services": {
 			SDKResp: &admin.GroupIPAddresses{
-				GroupId:  admin.PtrString(dummyProjectID),
+				GroupId:  new(dummyProjectID),
 				Services: &admin.GroupService{},
 			},
 			expectedTFModel: &projectipaddresses.TFProjectIpAddressesModel{

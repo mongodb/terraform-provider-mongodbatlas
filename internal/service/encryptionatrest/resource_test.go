@@ -40,18 +40,18 @@ func basicTestCaseAWS(tb testing.TB, useDatasource, useRequirePrivateNetworking,
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 
 		awsKms = admin.AWSKMSConfiguration{
-			Enabled:                  conversion.Pointer(true),
+			Enabled:                  new(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RequirePrivateNetworking: conversion.Pointer(false),
+			RequirePrivateNetworking: new(false),
 		}
 		awsKmsAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKms)
 
 		awsKmsUpdated = admin.AWSKMSConfiguration{
-			Enabled:                  conversion.Pointer(true),
+			Enabled:                  new(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RequirePrivateNetworking: conversion.Pointer(true),
+			RequirePrivateNetworking: new(true),
 		}
 		awsKmsUpdatedAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKmsUpdated)
 	)
@@ -89,7 +89,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 		projectID = acc.ProjectIDExecution(t)
 
 		azureKeyVault = admin.AzureKeyVault{
-			Enabled:                  conversion.Pointer(true),
+			Enabled:                  new(true),
 			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
 			AzureEnvironment:         conversion.StringPtr("AZURE"),
 			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
@@ -98,13 +98,13 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER")),
 			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
 			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
-			RequirePrivateNetworking: conversion.Pointer(false),
+			RequirePrivateNetworking: new(false),
 		}
 
 		azureKeyVaultAttrMap = acc.ConvertToAzureKeyVaultEARAttrMap(&azureKeyVault)
 
 		azureKeyVaultUpdated = admin.AzureKeyVault{
-			Enabled:                  conversion.Pointer(true),
+			Enabled:                  new(true),
 			ClientID:                 conversion.StringPtr(os.Getenv("AZURE_CLIENT_ID")),
 			AzureEnvironment:         conversion.StringPtr("AZURE"),
 			SubscriptionID:           conversion.StringPtr(os.Getenv("AZURE_SUBSCRIPTION_ID")),
@@ -113,7 +113,7 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 			KeyIdentifier:            conversion.StringPtr(os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED")),
 			Secret:                   conversion.StringPtr(os.Getenv("AZURE_APP_SECRET")),
 			TenantID:                 conversion.StringPtr(os.Getenv("AZURE_TENANT_ID")),
-			RequirePrivateNetworking: conversion.Pointer(false),
+			RequirePrivateNetworking: new(false),
 		}
 
 		azureKeyVaultUpdatedAttrMap = acc.ConvertToAzureKeyVaultEARAttrMap(&azureKeyVaultUpdated)
@@ -185,13 +185,13 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		googleCloudKms = admin.GoogleCloudKMS{
-			Enabled:              conversion.Pointer(true),
+			Enabled:              new(true),
 			ServiceAccountKey:    conversion.StringPtr(os.Getenv("GCP_SERVICE_ACCOUNT_KEY")),
 			KeyVersionResourceID: conversion.StringPtr(os.Getenv("GCP_KEY_VERSION_RESOURCE_ID")),
 		}
 
 		googleCloudKmsUpdated = admin.GoogleCloudKMS{
-			Enabled:              conversion.Pointer(true),
+			Enabled:              new(true),
 			ServiceAccountKey:    conversion.StringPtr(os.Getenv("GCP_SERVICE_ACCOUNT_KEY_UPDATED")),
 			KeyVersionResourceID: conversion.StringPtr(os.Getenv("GCP_KEY_VERSION_RESOURCE_ID_UPDATED")),
 		}
@@ -251,7 +251,7 @@ func TestAccEncryptionAtRest_basicGCPWithRole(t *testing.T) {
 		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 
 		googleCloudKms = admin.GoogleCloudKMS{
-			Enabled:              conversion.Pointer(true),
+			Enabled:              new(true),
 			RoleId:               conversion.StringPtr(os.Getenv("GCP_ROLE_ID")),
 			KeyVersionResourceID: conversion.StringPtr(os.Getenv("GCP_KEY_VERSION_RESOURCE_ID")),
 		}
