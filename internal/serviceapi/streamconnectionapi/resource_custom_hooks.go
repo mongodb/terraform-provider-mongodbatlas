@@ -1,10 +1,66 @@
 package streamconnectionapi
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 )
+
+var _ autogen.PostReadAPICallHook = (*rs)(nil)
+var _ autogen.ResourceSchemaHook = (*rs)(nil)
+
+type TFExpandedModel struct {
+	ID types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
+}
+
+func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schema.Schema {
+	baseSchema.Attributes["id"] = schema.StringAttribute{
+		Computed: true,
+		PlanModifiers: []planmodifier.String{
+			stringplanmodifier.UseStateForUnknown(),
+		},
+	}
+	return baseSchema
+}
+
+func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
+	if result.Err != nil {
+		return result
+	}
+
+	model, ok := req.State.(*TFModel)
+	if !ok || model.WorkspaceName.IsNull() || model.ProjectId.IsNull() || model.ConnectionName.IsNull() {
+		return result
+	}
+
+	craftedID := fmt.Sprintf("%s-%s-%s", model.WorkspaceName.ValueString(), model.ProjectId.ValueString(), model.ConnectionName.ValueString())
+
+	var obj map[string]any
+	if err := json.Unmarshal(result.Body, &obj); err != nil {
+		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
+	}
+
+	obj["id"] = craftedID
+
+	body, err := json.Marshal(obj)
+	if err != nil {
+		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
+	}
+
+	return autogen.APICallResult{
+		Body: body,
+		Err:  nil,
+		Resp: result.Resp,
+	}
+}
 
 func (r *rs) PreImport(id string) (string, error) {
 	if strings.Contains(id, "/") {

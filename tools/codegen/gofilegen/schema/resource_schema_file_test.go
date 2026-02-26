@@ -128,6 +128,32 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "primitive-attributes",
 		},
+		"Expanded model root embed": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Schema: &codespec.Schema{
+					ExpandedModel: true,
+					Attributes: []codespec.Attribute{
+						{
+							TFSchemaName:             "project_id",
+							TFModelName:              "ProjectId",
+							String:                   &codespec.StringAttribute{},
+							Description:              new("project id"),
+							ComputedOptionalRequired: codespec.Required,
+						},
+						{
+							TFSchemaName:             "connection_name",
+							TFModelName:              "ConnectionName",
+							String:                   &codespec.StringAttribute{},
+							Description:              new("connection name"),
+							ComputedOptionalRequired: codespec.Required,
+						},
+					},
+				},
+			},
+			goldenFileName: "expanded-model",
+		},
 		"Custom type attributes": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
