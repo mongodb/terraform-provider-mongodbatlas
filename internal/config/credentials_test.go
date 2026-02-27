@@ -476,6 +476,50 @@ func TestGetCredentials(t *testing.T) {
 			want:         &config.Credentials{},
 			wantErr:      false,
 		},
+		"Provider credentials with keys but no base_url get BaseURL from env": {
+			providerVars: &config.Vars{
+				PublicKey:  "provider-public",
+				PrivateKey: "provider-private",
+			},
+			envVars: &config.Vars{
+				BaseURL:      "https://cloud-dev.mongodb.com",
+				RealmBaseURL: "https://realm-dev.example.com",
+			},
+			want: &config.Credentials{
+				PublicKey:    "provider-public",
+				PrivateKey:   "provider-private",
+				BaseURL:      "https://cloud-dev.mongodb.com",
+				RealmBaseURL: "https://realm-dev.example.com",
+			},
+			wantErr: false,
+		},
+		"Provider base_url is not overwritten by env": {
+			providerVars: &config.Vars{
+				PublicKey: "provider-public",
+				BaseURL:   "https://provider.example.com",
+			},
+			envVars: &config.Vars{
+				BaseURL: "https://env.example.com",
+			},
+			want: &config.Credentials{
+				PublicKey: "provider-public",
+				BaseURL:   "https://provider.example.com",
+			},
+			wantErr: false,
+		},
+		"AWS credentials get BaseURL from env when empty": {
+			providerVars: &config.Vars{
+				AWSAssumeRoleARN: "arn",
+			},
+			envVars: &config.Vars{
+				BaseURL: "https://cloud-dev.mongodb.com",
+			},
+			want: &config.Credentials{
+				AccessToken: "aws-token",
+				BaseURL:     "https://cloud-dev.mongodb.com",
+			},
+			wantErr: false,
+		},
 	}
 
 	for name, tc := range testCases {

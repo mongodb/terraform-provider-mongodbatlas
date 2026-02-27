@@ -20,18 +20,33 @@ type Credentials struct {
 }
 
 // GetCredentials follows the order of AWS Secrets Manager, provider vars and env vars.
+// When the chosen credentials have empty BaseURL or RealmBaseURL, they are filled from env vars
+// so that MONGODB_ATLAS_BASE_URL (or MCLI_OPS_MANAGER_URL) and MONGODB_REALM_BASE_URL apply to all operations.
 func GetCredentials(ctx context.Context, providerVars, envVars *Vars, getAWSCredentials func(context.Context, *AWSVars) (*Credentials, error)) (*Credentials, error) {
 	if awsVars := CoalesceAWSVars(providerVars.GetAWS(), envVars.GetAWS()); awsVars != nil {
 		awsCredentials, err := getAWSCredentials(ctx, awsVars)
 		if err != nil {
 			return nil, err
 		}
+		mergeBaseURLFromEnv(awsCredentials, envVars)
 		return awsCredentials, nil
 	}
 	if c := CoalesceCredentials(providerVars.GetCredentials(), envVars.GetCredentials()); c != nil {
+		mergeBaseURLFromEnv(c, envVars)
 		return c, nil
 	}
 	return &Credentials{}, nil
+}
+
+// mergeBaseURLFromEnv sets c.BaseURL and c.RealmBaseURL from env when empty so that
+// provider blocks without base_url (e.g. alias with only credentials) still use MONGODB_ATLAS_BASE_URL.
+func mergeBaseURLFromEnv(c *Credentials, envVars *Vars) {
+	if c.BaseURL == "" && envVars.BaseURL != "" {
+		c.BaseURL = envVars.BaseURL
+	}
+	if c.RealmBaseURL == "" && envVars.RealmBaseURL != "" {
+		c.RealmBaseURL = envVars.RealmBaseURL
+	}
 }
 
 // AuthMethod follows the order of token, SA and PAK.
