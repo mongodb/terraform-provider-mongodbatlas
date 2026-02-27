@@ -27,7 +27,7 @@ After configuring at least one key management provider for an Atlas project, Pro
 
 Please reference [Enable Customer Key Management for an Atlas Cluster](https://www.mongodb.com/docs/atlas/security-kms-encryption/#enable-customer-key-management-for-an-service-cluster) documentation for additional considerations.
 
-### Disabling Encryption at Rest 
+## Disabling Encryption at Rest 
 
 To fully disable Customer Key Management, you must follow this order:
 
