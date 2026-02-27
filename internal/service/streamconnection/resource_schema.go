@@ -3,6 +3,7 @@ package streamconnection
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -17,8 +18,8 @@ import (
 )
 
 const (
-	defaultCreateUpdateTimeoutDoc = "20m"
-	defaultDeleteTimeoutDoc       = "10m"
+	DefaultConnectionTimeout    = 20 * time.Minute
+	defaultConnectionTimeoutDoc = "20m"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -211,9 +212,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Create:            true,
 				Update:            true,
 				Delete:            true,
-				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate(defaultCreateUpdateTimeoutDoc),
-				UpdateDescription: constant.TimeoutDescriptionCreateReadUpdate(defaultCreateUpdateTimeoutDoc),
-				DeleteDescription: constant.TimeoutDescriptionDelete(defaultDeleteTimeoutDoc),
+				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate(defaultConnectionTimeoutDoc),
+				UpdateDescription: constant.TimeoutDescriptionCreateReadUpdate(defaultConnectionTimeoutDoc),
+				DeleteDescription: constant.TimeoutDescriptionDelete(defaultConnectionTimeoutDoc),
 			}),
 		},
 	}
