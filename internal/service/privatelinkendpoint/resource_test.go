@@ -15,15 +15,16 @@ import (
 )
 
 const (
-	resourceName   = "mongodbatlas_privatelink_endpoint.this"
-	dataSourceName = "data." + resourceName
+	resourceName         = "mongodbatlas_privatelink_endpoint.this"
+	dataSourceName       = "data.mongodbatlas_privatelink_endpoint.this"
+	dataSourcePluralName = "data.mongodbatlas_privatelink_endpoints.this"
 )
 
 func TestAccPrivateLinkEndpoint_basicAWS(t *testing.T) {
-	resource.ParallelTest(t, *basicAWSTestCase(t, "us-east-1"))
+	resource.ParallelTest(t, *basicAWSTestCase(t, "us-east-1", true))
 }
 
-func basicAWSTestCase(tb testing.TB, region string) *resource.TestCase {
+func basicAWSTestCase(tb testing.TB, region string, withPluralDS bool) *resource.TestCase {
 	tb.Helper()
 	var (
 		projectID    = acc.ProjectIDExecution(tb)
@@ -36,8 +37,8 @@ func basicAWSTestCase(tb testing.TB, region string) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, providerName, region, nil),
-				Check:  checkBasic(providerName, region, nil),
+				Config: configBasic(projectID, providerName, region, nil, withPluralDS),
+				Check:  checkBasic(providerName, region, nil, withPluralDS),
 			},
 			{
 				ResourceName:      resourceName,
@@ -54,6 +55,7 @@ func TestAccPrivateLinkEndpoint_basicAzure(t *testing.T) {
 		projectID    = acc.ProjectIDExecution(t)
 		region       = "US_EAST_2"
 		providerName = constant.AZURE
+		withPluralDS = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -62,8 +64,8 @@ func TestAccPrivateLinkEndpoint_basicAzure(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, providerName, region, nil),
-				Check:  checkBasic(providerName, region, nil),
+				Config: configBasic(projectID, providerName, region, nil, withPluralDS),
+				Check:  checkBasic(providerName, region, nil, withPluralDS),
 			},
 			{
 				ResourceName:      resourceName,
@@ -80,6 +82,7 @@ func TestAccPrivateLinkEndpoint_basicGCP(t *testing.T) {
 		projectID    = acc.ProjectIDExecution(t)
 		region       = "us-central1"
 		providerName = constant.GCP
+		withPluralDS = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -88,8 +91,8 @@ func TestAccPrivateLinkEndpoint_basicGCP(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, providerName, region, nil),
-				Check:  checkBasic(providerName, region, nil),
+				Config: configBasic(projectID, providerName, region, nil, withPluralDS),
+				Check:  checkBasic(providerName, region, nil, withPluralDS),
 			},
 			{
 				ResourceName:      resourceName,
@@ -135,6 +138,7 @@ func basicGCPTestCaseWithPortMapping(tb testing.TB, portMappingEnabled bool) *re
 		projectID    = acc.ProjectIDExecution(tb)
 		providerName = constant.GCP
 		region       = "us-west3"
+		withPluralDS = true
 	)
 
 	return &resource.TestCase{
@@ -143,8 +147,8 @@ func basicGCPTestCaseWithPortMapping(tb testing.TB, portMappingEnabled bool) *re
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, providerName, region, new(portMappingEnabled)),
-				Check:  checkBasic(providerName, region, new(portMappingEnabled)),
+				Config: configBasic(projectID, providerName, region, new(portMappingEnabled), withPluralDS),
+				Check:  checkBasic(providerName, region, new(portMappingEnabled), withPluralDS),
 			},
 			{
 				ResourceName:      resourceName,
@@ -187,8 +191,8 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_privatelink_endpoint" {
+	for name, rs := range s.RootModule().Resources {
+		if name != resourceName {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
@@ -217,10 +221,20 @@ func configDeleteOnCreateTimeout(projectID, providerName, region, timeout string
 
 // configBasic is a helper function to create a basic configuration for a private link endpoint.
 // IMPORTANT: Use a different region in each test to avoid project conflicts. Legacy and port-mapped GCP can use the same region.
-func configBasic(projectID, providerName, region string, portMappingEnabled *bool) string {
+func configBasic(projectID, providerName, region string, portMappingEnabled *bool, withPluralDS bool) string {
 	portMappingEnabledStr := ""
 	if portMappingEnabled != nil {
 		portMappingEnabledStr = fmt.Sprintf("port_mapping_enabled = %t", *portMappingEnabled)
+	}
+	pluralDSStr := ""
+	if withPluralDS {
+		pluralDSStr = `
+			data "mongodbatlas_privatelink_endpoints" "this" {
+				project_id      = mongodbatlas_privatelink_endpoint.this.project_id
+				provider_name   = mongodbatlas_privatelink_endpoint.this.provider_name
+				depends_on      = [mongodbatlas_privatelink_endpoint.this]
+			}
+		`
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_privatelink_endpoint" "this" {
@@ -236,10 +250,12 @@ func configBasic(projectID, providerName, region string, portMappingEnabled *boo
 			provider_name   = mongodbatlas_privatelink_endpoint.this.provider_name
 			depends_on      = [mongodbatlas_privatelink_endpoint.this]
 		}
-	`, projectID, providerName, region, portMappingEnabledStr)
+
+		%[5]s
+	`, projectID, providerName, region, portMappingEnabledStr, pluralDSStr)
 }
 
-func checkBasic(providerName, region string, portMappingEnabled *bool) resource.TestCheckFunc {
+func checkBasic(providerName, region string, portMappingEnabled *bool, withPluralDS bool) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -255,6 +271,9 @@ func checkBasic(providerName, region string, portMappingEnabled *bool) resource.
 			resource.TestCheckResourceAttr(resourceName, "port_mapping_enabled", strconv.FormatBool(*portMappingEnabled)),
 			resource.TestCheckResourceAttr(dataSourceName, "port_mapping_enabled", strconv.FormatBool(*portMappingEnabled)),
 		)
+	}
+	if withPluralDS {
+		checks = append(checks, resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)))
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }

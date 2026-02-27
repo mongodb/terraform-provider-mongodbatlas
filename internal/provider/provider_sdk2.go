@@ -197,6 +197,7 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive":  privatelinkendpointservicedatafederationonlinearchive.DataSource(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archives": privatelinkendpointservicedatafederationonlinearchive.PluralDataSource(),
 		"mongodbatlas_privatelink_endpoint":                                         privatelinkendpoint.DataSource(),
+		"mongodbatlas_privatelink_endpoints":                                        privatelinkendpoint.PluralDataSource(),
 		"mongodbatlas_privatelink_endpoint_service":                                 privatelinkendpointservice.DataSource(),
 		"mongodbatlas_third_party_integration":                                      thirdpartyintegration.DataSource(),
 		"mongodbatlas_third_party_integrations":                                     thirdpartyintegration.PluralDataSource(),
