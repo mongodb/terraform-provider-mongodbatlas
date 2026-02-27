@@ -2,142 +2,51 @@ package privatelinkendpoint
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
-func PluralDataSource() *schema.Resource {
-	return &schema.Resource{
-		ReadContext: dataSourcePluralRead,
-		Schema: map[string]*schema.Schema{
-			"project_id": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"provider_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"results": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"private_link_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"endpoint_service_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"error_message": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"interface_endpoints": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"private_endpoints": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"private_link_service_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"private_link_service_resource_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"status": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"endpoint_group_names": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"region_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"service_attachment_names": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"port_mapping_enabled": {
-							Type:        schema.TypeBool,
-							Computed:    true,
-							Description: "Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-mapped architecture. When `false` or unset, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.",
-						},
-					},
-				},
-			},
+var _ datasource.DataSource = &pluralDS{}
+var _ datasource.DataSourceWithConfigure = &pluralDS{}
+
+func PluralDataSource() datasource.DataSource {
+	return &pluralDS{
+		DSCommon: config.DSCommon{
+			DataSourceName: "privatelink_endpoints",
 		},
 	}
 }
 
-func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).AtlasV2
-
-	projectID := d.Get("project_id").(string)
-	providerName := d.Get("provider_name").(string)
-	privateEndpoints, _, err := conn.PrivateEndpointServicesApi.ListPrivateEndpointService(ctx, projectID, providerName).Execute()
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error getting Private Endpoints: %s", err))
-	}
-
-	if err := d.Set("results", flattenPrivateEndpoints(privateEndpoints)); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))
-	}
-
-	d.SetId(id.UniqueId())
-
-	return nil
+type pluralDS struct {
+	config.DSCommon
 }
 
-func flattenPrivateEndpoints(privateEndpoints []admin.EndpointService) []map[string]any {
-	var results []map[string]any
+func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = PluralDataSourceSchema(ctx)
+	conversion.UpdateSchemaDescription(&resp.Schema)
+}
 
-	if len(privateEndpoints) > 0 {
-		results = make([]map[string]any, len(privateEndpoints))
-
-		for k, privateEndpoint := range privateEndpoints {
-			results[k] = map[string]any{
-				"private_link_id":                  privateEndpoint.GetId(),
-				"endpoint_service_name":            privateEndpoint.GetEndpointServiceName(),
-				"error_message":                    privateEndpoint.GetErrorMessage(),
-				"interface_endpoints":              privateEndpoint.GetInterfaceEndpoints(),
-				"private_endpoints":                privateEndpoint.GetPrivateEndpoints(),
-				"private_link_service_name":        privateEndpoint.GetPrivateLinkServiceName(),
-				"private_link_service_resource_id": privateEndpoint.GetPrivateLinkServiceResourceId(),
-				"status":                           privateEndpoint.GetStatus(),
-				"endpoint_group_names":             privateEndpoint.GetEndpointGroupNames(),
-				"region_name":                      privateEndpoint.GetRegionName(),
-				"service_attachment_names":         privateEndpoint.GetServiceAttachmentNames(),
-				"port_mapping_enabled":             privateEndpoint.GetPortMappingEnabled(),
-			}
-		}
+func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var state TFPrivateLinkEndpointsModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	return results
+	privateEndpoints, _, err := d.Client.AtlasV2.PrivateEndpointServicesApi.ListPrivateEndpointService(ctx, state.ProjectID.ValueString(), state.ProviderName.ValueString()).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError("error getting Private Endpoints", err.Error())
+		return
+	}
+
+	results, diags := newTFPrivateLinkEndpointResults(ctx, privateEndpoints)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	state.Results = results
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

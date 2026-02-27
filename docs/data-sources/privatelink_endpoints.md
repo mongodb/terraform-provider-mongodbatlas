@@ -41,7 +41,6 @@ data "mongodbatlas_privatelink_endpoints" "this" {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The Terraform's unique identifier used internally for state management.
 * `results` - A list of Private Endpoints. (see [below for nested schema](#nestedatt--results))
 
 <a id="nestedatt--results"></a>
