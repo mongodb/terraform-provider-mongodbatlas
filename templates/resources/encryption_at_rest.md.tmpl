@@ -34,12 +34,6 @@ To fully disable Customer Key Management, you must follow this order:
 1. **Cluster level**: For every cluster in the project, set [`encryption_at_rest_provider`](advanced_cluster#encryption_at_rest_provider) to `NONE` or remove the attribute from your configuration.
 2. **Project level**: Once no clusters are using the keys, remove the `mongodbatlas_encryption_at_rest` resource from your Terraform configuration.
 
-You can disable encryption at rest at the **cluster** and **project** levels.
-
-**Cluster level**. Set [`encryption_at_rest_provider`](advanced_cluster#encryption_at_rest_provider) as `NONE` or remove the attribute from your configuration.
-
-**Project level**. Remove the `mongodbatlas_encryption_at_rest` resource.
-
 
 ## Example Usages
 
