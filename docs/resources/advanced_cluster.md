@@ -6,25 +6,20 @@ subcategory: "Clusters"
 
 `mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters.
 
-~> **IMPORTANT:** If upgrading from our provider versions 1.x.x to 2.0.0 or later, you will be required to update your `mongodbatlas_advanced_cluster` resource configuration. Please refer [this guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-advanced-cluster-2.0) for details. This new implementation uses the recommended Terraform Plugin Framework, which, in addition to providing a better user experience and other features, adds support for the `moved` block between different resource types.
 
-~> **IMPORTANT:** We recommend all new MongoDB Atlas Terraform users start with the [`mongodbatlas_advanced_cluster`](advanced_cluster) resource.  Key differences between [`mongodbatlas_cluster`](cluster) and [`mongodbatlas_advanced_cluster`](advanced_cluster) include support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), and [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers). For existing [`mongodbatlas_cluster`](cluster) resource users see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
+We recommend all new MongoDB Atlas Terraform users start with the `mongodbatlas_advanced_cluster` resource instead of the [`mongodbatlas_cluster`](cluster.md) resource. Key differences include support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), and [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers). To migrate from an existing `mongodbatlas_cluster` resource, see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
-~> **IMPORTANT:** When modifying cluster configurations, you may see `(known after apply)` markers for many attributes, even those you haven't changed. This is expected behavior. See the ["known after apply" verbosity](#known-after-apply-verbosity) section below for details.
+~> **IMPORTANT:** If you are upgrading to our Terraform Provider v2.0.0 or later from v1.x.x, you must update your existing `mongodbatlas_advanced_cluster` resource configuration according to [this guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-advanced-cluster-2.0).
 
-~> **IMPORTANT:** When configuring auto-scaling, you can now use `use_effective_fields` to simplify your Terraform workflow. See the [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) section below for details.
+~> **IMPORTANT:** Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
 
--> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
+-> **NOTE:** This resource supports creating Flex clusters, upgrading [M0 clusters to Flex](#example-tenant-cluster-upgrade-to-flex), and upgrading [Flex clusters to Dedicated](#Example-Flex-Cluster-Upgrade). When creating a Flex cluster, you must set the `replication_specs[#].region_configs[#].priority` value to 7.
 
--> **NOTE:** A network container is created for each provider/region combination on the advanced cluster. This can be referenced via a computed attribute for use with other resources. Refer to the `replication_specs[#].container_id` attribute in the [Attributes Reference](#attributes_reference) for more information.
+-> **NOTE:** When you modify cluster configurations, your Terraform plan output might include `(known after apply)` markers for attributes you didin't modify. This is expected behavior. For more information, see the ["known after apply" verbosity](#known-after-apply-verbosity) section below.
 
--> **NOTE:** To enable Cluster Extended Storage Sizes use the `is_extended_storage_sizes_enabled` parameter in the [mongodbatlas_project resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project).
+-> **NOTE:** This resource creates a network container for each provider/region combination specified in the advanced cluster configuration. Each network container can be referenced via its computed `replication_specs[#]container_id` attribute.
 
--> **NOTE:** The Low-CPU instance clusters are prefixed with `R`, for example `R40`. For complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
-
--> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
-
--> **NOTE:** This resource supports Flex clusters. Additionally, you can upgrade [M0 clusters to Flex](#example-tenant-cluster-upgrade-to-flex) and [Flex clusters to Dedicated](#Example-Flex-Cluster-Upgrade). When creating a Flex cluster, make sure to set the priority value to 7.
+-> **NOTE:** When configuring auto-scaling, you can use the `use_effective_fields` attribute to simplify your Terraform workflow by eliminating the need for `lifecycle.ignore_changes` blocks and providing visibility into Atlas-managed changes. For more information, see the [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) section below.
 
 ## Example Usage
 
@@ -529,20 +524,25 @@ Refer to the following for full privatelink endpoint connection string examples:
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique ID for the project to create the cluster.
+* `project_id` - (Required) Unique ID for the project to create the cluster. 
+
+  -> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
+
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed. **WARNING** Changing the name will result in destruction of the existing cluster and the creation of a new cluster.
 
 * `backup_enabled` - (Optional) Flag that indicates whether the cluster can perform backups.
   If `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters.
 
   Backup uses:
-  [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/#std-label-backup-cloud-provider) for dedicated clusters.
-  [Flex Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/) for flex clusters.
+  [Cloud Backup](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/#std-label-backup-cloud-provider) for dedicated clusters.
+  [Flex Cluster Backup](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/) for flex clusters.
   If "`backup_enabled`"  is `false` (default), the cluster doesn't use Atlas backups.
 
-- `retain_backups_enabled` - (Optional) Set to true to retain backup snapshots for the deleted cluster. This parameter applies to the Delete operation and only affects M10 and above clusters. If you encounter the `CANNOT_DELETE_SNAPSHOT_WITH_BACKUP_COMPLIANCE_POLICY` error code, see [how to delete a cluster with Backup Compliance Policy](../guides/delete-cluster-with-backup-compliance-policy.md).
+  -> **NOTE:** If you have a [Backup Compliance Policy](backup_compliance_policy.md) enabled for the project, you can't disable Cloud Backup without assistance from [MongoDB Support](https://www.mongodb.com/docs/atlas/support/#request-support).
 
--> **NOTE** Prior version of provider had parameter as `bi_connector` state will migrate it to new value you only need to update parameter in your terraform file
+- `retain_backups_enabled` - (Optional) Set to true to retain backup snapshots for the deleted cluster. This parameter applies to the Delete operation and only affects M10 and above clusters. To delete an Atlas cluster that has an associated [`mongodbatlas_cloud_backup_schedule`](cloud_backup_schedule.md) resource and an enabled [Backup Compliance Policy](backup_compliance_policy.md), see [Delete a Cluster with a Backup Compliance Policy](../guides/delete-cluster-with-backup-compliance-policy.md).
+
+  -> **NOTE** Prior version of provider had parameter as `bi_connector` state will migrate it to new value you only need to update parameter in your terraform file
 
 * `bi_connector_config` - (Optional) Configuration settings applied to BI Connector for Atlas on this cluster. The MongoDB Connector for Business Intelligence for Atlas (BI Connector) is only available for M10 and larger clusters. The BI Connector is a powerful tool which provides users SQL-based access to their MongoDB databases. As a result, the BI Connector performs operations which may be CPU and memory intensive. Given the limited hardware resources on M10 and M20 cluster tiers, you may experience performance degradation of the cluster when enabling the BI Connector. If this occurs, upgrade to an M30 or larger cluster or disable the BI Connector. See [below](#bi_connector_config).
 * `cluster_type` - (Required)Type of the cluster that you want to create.
@@ -605,9 +605,14 @@ bi_connector_config = {
 
 ### Advanced Configuration Options
 
--> **NOTE:** Prior to setting these options please ensure you read https://docs.atlas.mongodb.com/cluster-config/additional-options/.
+-> **NOTE:** Prior to setting these options, read [Configure Additional Settings](https://docs.atlas.mongodb.com/cluster-config/additional-options/).
 
--> **NOTE:** Once you set some `advanced_configuration` attributes, we recommended to explicitly set those attributes to their intended value instead of removing them from the configuration. For example, if you set `javascript_enabled` to `false`, and later you want to go back to the default value (true), you must set it back to `true` instead of removing it.
+-> **NOTE:** To reset an attribute to its original value after you
+explicitly change its value, you must explicitly set the attribute back
+to its original value. For example, if you previously set
+`javascript_enabled` to `false` and want to return to the default value
+(`true`), you must explicitly it back to `true` (not just delete the
+attribute from the configuration).
 
 Include **desired options** within advanced_configuration:
 
@@ -627,7 +632,7 @@ Include **desired options** within advanced_configuration:
 * `no_table_scan` - (Optional) When true, the cluster disables the execution of any query that requires a collection scan to return results. When false, the cluster allows the execution of those operations.
 * `oplog_size_mb` - (Optional) The custom oplog size of the cluster. Without a value that indicates that the cluster uses the default oplog size calculated by Atlas.
 * `oplog_min_retention_hours` - (Optional) Minimum retention window for cluster's oplog expressed in hours. A value of null indicates that the cluster uses the default minimum oplog window that MongoDB Cloud calculates.
-* **Note**  A minimum oplog retention is required when seeking to change a cluster's class to Local NVMe SSD. To learn more and for latest guidance see [`oplogMinRetentionHours`](https://www.mongodb.com/docs/manual/core/replica-set-oplog/#std-label-replica-set-minimum-oplog-size) 
+  -> **NOTE:**  A minimum oplog retention is required when seeking to change a cluster's class to Local NVMe SSD. To learn more and for latest guidance see [`oplogMinRetentionHours`](https://www.mongodb.com/docs/manual/core/replica-set-oplog/#std-label-replica-set-minimum-oplog-size) 
 * `sample_size_bi_connector` - (Optional) Number of documents per database to sample when gathering schema information. Defaults to 100. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `sample_refresh_interval_bi_connector` - (Optional) Interval in seconds at which the mongosqld process re-samples data to create its relational schema. The default value is 300. The specified value must be a positive integer. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `transaction_lifetime_limit_seconds` - (Optional) Lifetime, in seconds, of multi-document transactions. Defaults to 60 seconds.
@@ -675,7 +680,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 ### replication_specs
 
-~> **NOTE:**  We recommend reviewing our [Best Practices](#remove-or-disable-functionality) before disabling or removing any elements of replication_specs.
+-> **NOTE:**  Review our [Best Practices](#remove-or-disable-functionality) before disabling or removing any elements of `replication_specs`.
 
 ```terraform
 # Example Multicloud
@@ -717,13 +722,15 @@ replication_specs = [
 
 ### region_configs
 
-~> **NOTE:**  We recommend reviewing our [Best Practices](#remove-or-disable-functionality) before disabling or removing any elements of region_configs.
+-> **NOTE:** Review our [Best Practices](#remove-or-disable-functionality) before disabling or removing any elements of `region_configs`.
 
-* `analytics_specs` - (Optional) Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. Analytics nodes handle analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only and can never become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary). If you don't specify this parameter, no analytics nodes deploy to this region. See [below](#specs).
+-> **NOTE:** To enable extended storage sizes on certain M40+ dedicated clusters, use the `is_extended_storage_sizes_enabled` parameter in the [mongodbatlas_project resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project). This setting should only be used for temporary relief from disk size limits; consider sharding if more storage is required.
+
+* `analytics_specs` - (Optional) Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. Analytics nodes handle analytic data such as reporting queries from BI Connector for Atlas. Analytics nodes are read-only and can never become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary). If you don't specify this parameter, no analytics nodes deploy to this region. See [below](#analytics_specs).
 * `auto_scaling` - (Optional) Configuration for the collection of settings that configures auto-scaling information for the cluster. The values for the `auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#auto_scaling).
 * `analytics_auto_scaling` - (Optional) Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. The values for the `analytics_auto_scaling` attribute must be the same for all `region_configs` of a cluster. See [below](#analytics_auto_scaling).
 * `backing_provider_name` - (Optional) Cloud service provider on which you provision the host for a multi-tenant cluster. Use this only when the `provider_name` is `TENANT` and `instance_size` is `M0`, or when the `provider_name` is `FLEX`.
-* `electable_specs` - (Optional) Hardware specifications for electable nodes in the region. All `electable_specs` in the `region_configs` of a `replication_specs` must have the same `instance_size`. Electable nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you do not specify this option, no electable nodes are deployed to the region. See [below](#specs).
+* `electable_specs` - (Optional) Hardware specifications for electable nodes in the region. All `electable_specs` in the `region_configs` of a `replication_specs` must have the same `instance_size`. Electable nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you do not specify this option, no electable nodes are deployed to the region. See [below](#electable_specs).
 * `effective_electable_specs` - (Computed) Effective hardware specifications for electable nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. Available in the `mongodbatlas_advanced_cluster` data source. See [below](#specs).
 * `effective_analytics_specs` - (Computed) Effective hardware specifications for analytics nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. Available in the `mongodbatlas_advanced_cluster` data source. See [below](#specs).
 * `effective_read_only_specs` - (Computed) Effective hardware specifications for read-only nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. Available in the `mongodbatlas_advanced_cluster` data source. See [below](#specs).
@@ -737,12 +744,15 @@ replication_specs = [
   - `AZURE` - Microsoft Azure
   - `TENANT` - M0 multi-tenant cluster. Use `replication_specs.[0].region_configs[0].backing_provider_name` to set the cloud service provider.
   - `FLEX` - Flex cluster. Use `replication_specs.[0].region_configs[0].backing_provider_name` to set the cloud service provider.
-* `read_only_specs` - (Optional) Hardware specifications for read-only nodes in the region. All `read_only_specs` in the `region_configs` of a `replication_specs` must have the same `instance_size` as `electable_specs`. Read-only nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region. See [below](#specs).
+* `read_only_specs` - (Optional) Hardware specifications for read-only nodes in the region. All `read_only_specs` in the `region_configs` of a `replication_specs` must have the same `instance_size` as `electable_specs`. Read-only nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region. See [below](#read_only_specs).
 * `region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
 
 ### electable_specs
 
 * `instance_size` - (Required) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
+
+  -> **NOTE:** Cluster tier names in the `instance_size` attribute are prepended with `R` instead of `M` if they run a low-CPU version of the cluster, for example `R40`. For a complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
+
 * `disk_iops` - (Optional) Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Define this attribute only if you selected AWS as your cloud service provider, `instance_size` is set to "M30" or greater (not including "Mxx_NVME" tiers), and `ebs_volume_type` is "PROVISIONED". You can't set this attribute for a multi-cloud cluster.
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
     * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
@@ -754,6 +764,9 @@ replication_specs = [
 ### analytics_specs
 
 * `instance_size` - (Required) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
+
+  -> **NOTE:** Cluster tier names in the `instance_size` attribute are prepended with `R` instead of `M` if they run a low-CPU version of the cluster, for example `R40`. For a complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
+
 * `disk_iops` - (Optional) Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Define this attribute only if you selected AWS as your cloud service provider, `instance_size` is set to "M30" or greater (not including "Mxx_NVME" tiers), and `ebs_volume_type` is "PROVISIONED". You can't set this attribute for a multi-cloud cluster.
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
     * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
@@ -764,6 +777,9 @@ replication_specs = [
 ### read_only_specs
 
 * `instance_size` - (Required) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
+
+  -> **NOTE:** Cluster tier names in the `instance_size` attribute are prepended with `R` instead of `M` if they run a low-CPU version of the cluster, for example `R40`. For a complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
+
 * `disk_iops` - (Optional) Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. Define this attribute only if you selected AWS as your cloud service provider, `instance_size` is set to "M30" or greater (not including "Mxx_NVME" tiers), and `ebs_volume_type` is "PROVISIONED". You can't set this attribute for a multi-cloud cluster. This parameter defaults to the cluster tier's standard IOPS value.
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
     * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
@@ -779,7 +795,7 @@ replication_specs = [
 * `compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale (such as M10). Atlas requires this parameter if `replication_specs[#].region_configs[#].auto_scaling.compute_scale_down_enabled` is true.
 * `compute_max_instance_size` - (Optional) Maximum instance size to which your cluster can automatically scale (such as M40). Atlas requires this parameter if `replication_specs[#].region_configs[#].auto_scaling.compute_enabled` is true.
 
--> **NOTE:** MongoDB recommends enabling both [cluster tier (compute) and storage auto-scaling](https://www.mongodb.com/docs/atlas/cluster-autoscaling/#cluster-tier-and-cluster-storage-might-scale-in-parallel) together for optimal performance and cost efficiency. When only one type of auto-scaling is enabled, Atlas may still adjust both compute and storage resources to maintain optimal cluster performance. See the [Atlas Auto-Scaling documentation](https://www.mongodb.com/docs/atlas/cluster-autoscaling/) and [Scalability Best Practices](https://www.mongodb.com/docs/atlas/architecture/current/scalability/#all-deployment-paradigm-recommendations) for more information.
+  -> **NOTE:** MongoDB recommends enabling both [cluster tier (compute) and storage auto-scaling](https://www.mongodb.com/docs/atlas/cluster-autoscaling/#cluster-tier-and-cluster-storage-might-scale-in-parallel) together for optimal performance and cost efficiency. When only one type of auto-scaling is enabled, Atlas may still adjust both compute and storage resources to maintain optimal cluster performance. See the [Atlas Auto-Scaling documentation](https://www.mongodb.com/docs/atlas/cluster-autoscaling/) and [Scalability Best Practices](https://www.mongodb.com/docs/atlas/architecture/current/scalability/#all-deployment-paradigm-recommendations) for more information.
 
 When auto-scaling is enabled, there are two approaches to manage your cluster configuration with Terraform:
 
