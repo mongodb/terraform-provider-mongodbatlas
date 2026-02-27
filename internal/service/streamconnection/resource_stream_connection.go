@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -205,7 +204,8 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 
 	// Wait for the connection to reach a ready state before returning
 	// This ensures the connection is fully provisioned and available for use with stream processors
-	createTimeout := cleanup.ResolveTimeout(ctx, &streamConnectionPlan.Timeouts, cleanup.OperationCreate, &resp.Diagnostics)
+	createTimeout, diags := streamConnectionPlan.Timeouts.Create(ctx, DefaultConnectionTimeout)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -291,7 +291,8 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 
 	// Wait for the connection to reach a ready state before returning
 	// This ensures the connection is fully provisioned and available for use with stream processors
-	updateTimeout := cleanup.ResolveTimeout(ctx, &streamConnectionPlan.Timeouts, cleanup.OperationUpdate, &resp.Diagnostics)
+	updateTimeout, diags := streamConnectionPlan.Timeouts.Update(ctx, DefaultConnectionTimeout)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -327,7 +328,8 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 	connectionName := streamConnectionState.ConnectionName.ValueString()
 
-	deleteTimeout := cleanup.ResolveTimeout(ctx, &streamConnectionState.Timeouts, cleanup.OperationDelete, &resp.Diagnostics)
+	deleteTimeout, diags := streamConnectionState.Timeouts.Delete(ctx, DefaultConnectionTimeout)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
