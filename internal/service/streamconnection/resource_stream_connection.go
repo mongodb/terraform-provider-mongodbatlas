@@ -202,16 +202,15 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 
 	connectionName := conversion.SafeValue(apiResp.Name)
 
-	// Wait for the connection to reach a ready state before returning
-	// This ensures the connection is fully provisioned and available for use with stream processors
 	createTimeout, diags := streamConnectionPlan.Timeouts.Create(ctx, DefaultConnectionTimeout)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	// StateNotFound is a pending state for create - handles eventual consistency where
-	// the resource may briefly return 404 after creation before becoming visible.
-	apiResp, err = WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, createTimeout, []string{StatePending, StateNotFound}, []string{StateReady, StateFailed})
+
+	// Wait for the connection to reach a ready state before returning
+	// This ensures the connection is fully provisioned and available for use with stream processors
+	apiResp, err = WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, createTimeout, []string{StatePending}, []string{StateReady, StateFailed})
 	if err != nil {
 		resp.Diagnostics.AddError("error waiting for stream connection to be ready", err.Error())
 		return
@@ -289,13 +288,13 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	// Wait for the connection to reach a ready state before returning
-	// This ensures the connection is fully provisioned and available for use with stream processors
 	updateTimeout, diags := streamConnectionPlan.Timeouts.Update(ctx, DefaultConnectionTimeout)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	// Wait for the connection to reach a ready state before returning
+	// This ensures the connection is fully provisioned and available for use with stream processors
 	apiResp, err := WaitStateTransition(ctx, projectID, workspaceOrInstanceName, connectionName, connV2.StreamsApi, updateTimeout, []string{StatePending}, []string{StateReady, StateFailed})
 	if err != nil {
 		resp.Diagnostics.AddError("error waiting for stream connection to be ready", err.Error())
