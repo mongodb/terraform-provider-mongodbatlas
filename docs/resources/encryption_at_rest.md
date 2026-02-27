@@ -21,14 +21,18 @@ See [Encryption at Rest](https://docs.atlas.mongodb.com/security-kms-encryption/
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
-
--> **IMPORTANT NOTE** To disable the encryption at rest with customer key management for a project all existing clusters in the project must first either have encryption at rest for the provider set to none, e.g. `encryption_at_rest_provider = "NONE"`, or be deleted.
-
 ## Enabling Encryption at Rest for existing Atlas cluster
 
 After configuring at least one key management provider for an Atlas project, Project Owners can enable customer key management for each Atlas cluster for which they require encryption. For clusters defined in terraform, the [`encryption_at_rest_provider` attribute](advanced_cluster#encryption_at_rest_provider) can be used in both `mongodbatlas_advanced_cluster` and `mongodbatlas_cluster` resources. The key management provider does not have to match the cluster cloud service provider.
 
 Please reference [Enable Customer Key Management for an Atlas Cluster](https://www.mongodb.com/docs/atlas/security-kms-encryption/#enable-customer-key-management-for-an-service-cluster) documentation for additional considerations.
+
+## Disabling Encryption at Rest 
+
+To fully disable Customer Key Management, you must follow this order:
+
+1. **Cluster level**: For every cluster in the project, set [`encryption_at_rest_provider`](advanced_cluster#encryption_at_rest_provider) to `NONE` or remove the attribute from your configuration.
+2. **Project level**: Once no clusters are using the keys, remove the `mongodbatlas_encryption_at_rest` resource from your Terraform configuration.
 
 
 ## Example Usages
@@ -200,7 +204,7 @@ Optional:
 
 - `access_key_id` (String, Sensitive) Unique alphanumeric string that identifies an Identity and Access Management (IAM) access key with permissions required to access your Amazon Web Services (AWS) Customer Master Key (CMK).
 - `customer_master_key_id` (String, Sensitive) Unique alphanumeric string that identifies the Amazon Web Services (AWS) Customer Master Key (CMK) you used to encrypt and decrypt the MongoDB master keys.
-- `enabled` (Boolean) Flag that indicates whether someone enabled encryption at rest for the specified project through Amazon Web Services (AWS) Key Management Service (KMS). To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.
+- `enabled` (Boolean) Flag that indicates whether someone enabled encryption at rest for the specified project through Amazon Web Services (AWS) Key Management Service (KMS). Setting this field to `false` might lead to an inconsistent Terraform state. To disable encryption at rest, remove the `mongodbatlas_encryption_at_rest` resource and reapply your configuration.
 - `region` (String) Physical location where MongoDB Atlas deploys your AWS-hosted MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases. When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Atlas creates them as part of the deployment. MongoDB Atlas assigns the VPC a CIDR block. To limit a new VPC peering connection to one CIDR block and region, create the connection first. Deploy the cluster after the connection starts.
 - `require_private_networking` (Boolean) Enable connection to your Amazon Web Services (AWS) Key Management Service (KMS) over private networking.
 - `role_id` (String) Unique 24-hexadecimal digit string that identifies an Amazon Web Services (AWS) Identity and Access Management (IAM) role. This IAM role has the permissions required to manage your AWS customer master key.
@@ -218,7 +222,7 @@ Optional:
 
 - `azure_environment` (String) Azure environment in which your account credentials reside.
 - `client_id` (String, Sensitive) Unique 36-hexadecimal character string that identifies an Azure application associated with your Azure Active Directory tenant.
-- `enabled` (Boolean) Flag that indicates whether someone enabled encryption at rest for the specified  project. To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.
+- `enabled` (Boolean) Flag that indicates whether someone enabled encryption at rest for the specified  project. Setting this field to `false` might lead to an inconsistent Terraform state. To disable encryption at rest, remove the `mongodbatlas_encryption_at_rest` resource and reapply your configuration.
 - `key_identifier` (String, Sensitive) Web address with a unique key that identifies for your Azure Key Vault.
 - `key_vault_name` (String) Unique string that identifies the Azure Key Vault that contains your key.
 - `require_private_networking` (Boolean) Enable connection to your Azure Key Vault over private networking.
@@ -237,7 +241,7 @@ Read-Only:
 
 Optional:
 
-- `enabled` (Boolean) Flag that indicates whether someone enabled encryption at rest for the specified  project. To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.
+- `enabled` (Boolean) Flag that indicates whether someone enabled encryption at rest for the specified  project. Setting this field to `false` might lead to an inconsistent Terraform state. To disable encryption at rest, remove the `mongodbatlas_encryption_at_rest` resource and reapply your configuration.
 - `key_version_resource_id` (String, Sensitive) Resource path that displays the key version resource ID for your Google Cloud KMS.
 - `role_id` (String) Unique 24-hexadecimal digit string that identifies the Google Cloud Provider Access Role that MongoDB Cloud uses to access the Google Cloud KMS.
 - `service_account_key` (String, Sensitive) JavaScript Object Notation (JSON) object that contains the Google Cloud Key Management Service (KMS). Format the JSON as a string and not as an object.

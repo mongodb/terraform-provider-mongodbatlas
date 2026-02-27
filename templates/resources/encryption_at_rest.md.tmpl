@@ -21,14 +21,18 @@ See [Encryption at Rest](https://docs.atlas.mongodb.com/security-kms-encryption/
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
-
--> **IMPORTANT NOTE** To disable the encryption at rest with customer key management for a project all existing clusters in the project must first either have encryption at rest for the provider set to none, e.g. `encryption_at_rest_provider = "NONE"`, or be deleted.
-
 ## Enabling Encryption at Rest for existing Atlas cluster
 
 After configuring at least one key management provider for an Atlas project, Project Owners can enable customer key management for each Atlas cluster for which they require encryption. For clusters defined in terraform, the [`encryption_at_rest_provider` attribute](advanced_cluster#encryption_at_rest_provider) can be used in both `mongodbatlas_advanced_cluster` and `mongodbatlas_cluster` resources. The key management provider does not have to match the cluster cloud service provider.
 
 Please reference [Enable Customer Key Management for an Atlas Cluster](https://www.mongodb.com/docs/atlas/security-kms-encryption/#enable-customer-key-management-for-an-service-cluster) documentation for additional considerations.
+
+## Disabling Encryption at Rest 
+
+To fully disable Customer Key Management, you must follow this order:
+
+1. **Cluster level**: For every cluster in the project, set [`encryption_at_rest_provider`](advanced_cluster#encryption_at_rest_provider) to `NONE` or remove the attribute from your configuration.
+2. **Project level**: Once no clusters are using the keys, remove the `mongodbatlas_encryption_at_rest` resource from your Terraform configuration.
 
 
 ## Example Usages
