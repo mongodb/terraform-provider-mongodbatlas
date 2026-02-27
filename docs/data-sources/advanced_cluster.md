@@ -4,12 +4,9 @@ subcategory: "Clusters"
 
 # Data Source: mongodbatlas_advanced_cluster
 
-`mongodbatlas_advanced_cluster` describes an Advanced Cluster. The data source requires your Project ID.
-
+`mongodbatlas_advanced_cluster` describes an Advanced Cluster, including Flex clusters, for the specified name and project_id.
 
 -> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
-
--> **NOTE:** This data source also includes Flex clusters.
 
 ## Example Usage
 
