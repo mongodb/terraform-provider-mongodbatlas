@@ -90,11 +90,11 @@ func TestReplaceContextDeadlineExceededDiags(t *testing.T) {
 }
 
 type mockResource struct {
-	values    map[string]interface{}
+	values    map[string]any
 	isChanged bool
 }
 
-func (m *mockResource) GetOkExists(key string) (interface{}, bool) {
+func (m *mockResource) GetOkExists(key string) (any, bool) {
 	value, exists := m.values[key]
 	return value, exists
 }
@@ -106,7 +106,7 @@ func (m *mockResource) HasChange(key string) bool {
 func TestDeleteOnCreateTimeoutInvalidUpdate(t *testing.T) {
 	t.Run("No change in delete_on_create_timeout returns empty string", func(t *testing.T) {
 		resource := &mockResource{
-			values:    map[string]interface{}{},
+			values:    map[string]any{},
 			isChanged: false,
 		}
 
@@ -116,7 +116,7 @@ func TestDeleteOnCreateTimeoutInvalidUpdate(t *testing.T) {
 
 	t.Run("Change detected but field doesn't exist returns empty string", func(t *testing.T) {
 		resource := &mockResource{
-			values:    map[string]interface{}{},
+			values:    map[string]any{},
 			isChanged: true,
 		}
 
@@ -126,7 +126,7 @@ func TestDeleteOnCreateTimeoutInvalidUpdate(t *testing.T) {
 
 	t.Run("Change detected and field exists returns error message", func(t *testing.T) {
 		resource := &mockResource{
-			values:    map[string]interface{}{"delete_on_create_timeout": true},
+			values:    map[string]any{"delete_on_create_timeout": true},
 			isChanged: true,
 		}
 
@@ -137,7 +137,7 @@ func TestDeleteOnCreateTimeoutInvalidUpdate(t *testing.T) {
 
 	t.Run("Change detected with false value still returns error message", func(t *testing.T) {
 		resource := &mockResource{
-			values:    map[string]interface{}{"delete_on_create_timeout": false},
+			values:    map[string]any{"delete_on_create_timeout": false},
 			isChanged: true,
 		}
 

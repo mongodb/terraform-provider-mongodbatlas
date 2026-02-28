@@ -10,8 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+<<<<<<< HEAD
 	"github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
+=======
+>>>>>>> origin/master
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -109,6 +112,7 @@ func TestAccLogIntegration_basicS3(t *testing.T) {
 	})
 }
 
+<<<<<<< HEAD
 func TestAccLogIntegration_basicAzure(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
@@ -296,6 +300,25 @@ func TestAccLogIntegration_basicSplunk(t *testing.T) {
 			},
 		},
 	})
+=======
+func checkBasicS3(logTypes []string, bucketName, prefixPath string, withDS bool) resource.TestCheckFunc {
+	setChecks := []string{"iam_role_id", "integration_id"}
+	mapChecks := map[string]string{
+		"bucket_name": bucketName,
+		"prefix_path": prefixPath,
+		"type":        "S3_LOG_EXPORT",
+		"log_types.#": strconv.Itoa(len(logTypes)),
+		"log_types.0": logTypes[0],
+	}
+	checks := []resource.TestCheckFunc{}
+	var dsName *string
+	if withDS {
+		dsName = new(dataSourceName)
+		checks = append(checks, resource.TestCheckResourceAttrWith(pluralDataSourceName, "results.#", acc.IntGreatThan(0)))
+	}
+	checks = append(checks, acc.CheckRSAndDS(resourceName, dsName, nil, setChecks, mapChecks, checkExists(resourceName)))
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+>>>>>>> origin/master
 }
 
 func configBasicS3(projectID string, logTypes []string, config *s3Config, withDS bool) string {

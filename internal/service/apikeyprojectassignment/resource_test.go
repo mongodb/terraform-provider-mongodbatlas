@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -91,7 +90,7 @@ func apiKeyProjectAssignmentAttributeChecks() resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
 	}
-	return acc.CheckRSAndDS(resourceName, conversion.Pointer(singularDSName), conversion.Pointer(pluralDSName), attrsSet, attrsMap, checks...)
+	return acc.CheckRSAndDS(resourceName, new(singularDSName), new(pluralDSName), attrsSet, attrsMap, checks...)
 }
 
 func apiKeyProjectAssignmentConfig(orgID, roleName, projectName string) string {

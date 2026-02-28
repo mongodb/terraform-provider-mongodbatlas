@@ -422,7 +422,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if _, _, err := connV2.DataFederationApi.UpdateDataFederationWithParams(ctx, &admin.UpdateDataFederationApiParams{
 		GroupId:            projectID,
 		TenantName:         name,
-		SkipRoleValidation: admin.PtrBool(false),
+		SkipRoleValidation: new(false),
 		DataLakeTenant:     tenant,
 	}).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceUpdate, name, err))
@@ -546,7 +546,7 @@ func newStores(d *schema.ResourceData) *[]admin.DataLakeStoreSettings {
 			ClusterName:              conversion.StringPtr(storeFromConfMap["cluster_name"].(string)),
 			Prefix:                   conversion.StringPtr(storeFromConfMap["prefix"].(string)),
 			Delimiter:                conversion.StringPtr(storeFromConfMap["delimiter"].(string)),
-			IncludeTags:              conversion.Pointer(storeFromConfMap["include_tags"].(bool)),
+			IncludeTags:              new(storeFromConfMap["include_tags"].(bool)),
 			AdditionalStorageClasses: newAdditionalStorageClasses(storeFromConfMap["additional_storage_classes"].([]any)),
 			ReadPreference:           newReadPreference(storeFromConfMap),
 		}
@@ -584,11 +584,11 @@ func newTagSets(readPreferenceFromConfMap map[string]any) *[][]admin.DataLakeAtl
 		return new([][]admin.DataLakeAtlasStoreReadPreferenceTag)
 	}
 	var res [][]admin.DataLakeAtlasStoreReadPreferenceTag
-	for ts := 0; ts < len(tagSetsFromConf); ts++ {
+	for ts := range tagSetsFromConf {
 		tagSetFromConfMap := tagSetsFromConf[ts].(map[string]any)
 		tagsFromConfigMap := tagSetFromConfMap["tags"].([]any)
 		var atlastags []admin.DataLakeAtlasStoreReadPreferenceTag
-		for t := 0; t < len(tagsFromConfigMap); t++ {
+		for t := range tagsFromConfigMap {
 			tagFromConfMap := tagsFromConfigMap[t].(map[string]any)
 			atlastags = append(atlastags, admin.DataLakeAtlasStoreReadPreferenceTag{
 				Name:  conversion.StringPtr(tagFromConfMap["name"].(string)),
@@ -641,7 +641,7 @@ func newDataFederationDataSource(collectionFromConf map[string]any) *[]admin.Dat
 	for i, dataSourceFromConf := range dataSourcesFromConf {
 		dataSourceFromConfMap := dataSourceFromConf.(map[string]any)
 		dataSources[i] = admin.DataLakeDatabaseDataSourceSettings{
-			AllowInsecure:       conversion.Pointer(dataSourceFromConfMap["allow_insecure"].(bool)),
+			AllowInsecure:       new(dataSourceFromConfMap["allow_insecure"].(bool)),
 			Database:            conversion.StringPtr(dataSourceFromConfMap["database"].(string)),
 			Collection:          conversion.StringPtr(dataSourceFromConfMap["collection"].(string)),
 			CollectionRegex:     conversion.StringPtr(dataSourceFromConfMap["collection_regex"].(string)),

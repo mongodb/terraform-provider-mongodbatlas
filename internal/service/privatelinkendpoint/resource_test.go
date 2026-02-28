@@ -143,8 +143,8 @@ func basicGCPTestCaseWithPortMapping(tb testing.TB, portMappingEnabled bool) *re
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, providerName, region, conversion.Pointer(portMappingEnabled)),
-				Check:  checkBasic(providerName, region, conversion.Pointer(portMappingEnabled)),
+				Config: configBasic(projectID, providerName, region, new(portMappingEnabled)),
+				Check:  checkBasic(providerName, region, new(portMappingEnabled)),
 			},
 			{
 				ResourceName:      resourceName,

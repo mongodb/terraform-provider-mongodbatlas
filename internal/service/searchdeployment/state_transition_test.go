@@ -140,8 +140,8 @@ func responseWithState(state *string) *admin.ApiSearchDeploymentResponse {
 		return nil
 	}
 	return &admin.ApiSearchDeploymentResponse{
-		GroupId: admin.PtrString(dummyProjectID),
-		Id:      admin.PtrString(dummyDeploymentID),
+		GroupId: new(dummyProjectID),
+		Id:      new(dummyDeploymentID),
 		Specs: &[]admin.ApiSearchDeploymentSpec{
 			{
 				InstanceSize: instanceSize,

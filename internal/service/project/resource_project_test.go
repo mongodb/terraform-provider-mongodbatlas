@@ -16,6 +16,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/mock"
 
@@ -543,6 +545,11 @@ func TestAccProject_basic(t *testing.T) {
 		"users.#": "1",
 	}
 
+	pluralDSChecks := map[string]knownvalue.Check{
+		"users":                                  knownvalue.ListSizeExact(1),
+		"is_slow_operation_thresholding_enabled": knownvalue.NotNull(),
+	}
+
 	checks := acc.AddAttrChecks(resourceName, nil, commonChecks)
 	checks = acc.AddAttrChecks(dataSourceNameByID, checks, commonChecks)
 	checks = acc.AddAttrChecks(dataSourceNameByName, checks, commonChecks)
@@ -552,8 +559,7 @@ func TestAccProject_basic(t *testing.T) {
 	checks = acc.AddAttrSetChecks(dataSourceNameByID, checks, commonSetChecks...)
 	checks = acc.AddAttrSetChecks(dataSourceNameByName, checks, commonSetChecks...)
 	checks = append(checks, checkExists(resourceName), checkExists(dataSourceNameByID), checkExists(dataSourceNameByName))
-	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "total_count", "results.#", "results.0.is_slow_operation_thresholding_enabled")
-	checks = append(checks, resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.0.users.#", acc.IntGreatThan(0)))
+	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "total_count", "results.#")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 3) },
@@ -572,9 +578,12 @@ func TestAccProject_basic(t *testing.T) {
 							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
-					conversion.Pointer(true),
+					new(true),
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(checks...),
+				ConfigStateChecks: []statecheck.StateCheck{
+					acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(projectName), pluralDSChecks),
+				},
 			},
 			{
 				Config: configBasic(orgID, projectName, projectOwnerID, false,
@@ -592,7 +601,7 @@ func TestAccProject_basic(t *testing.T) {
 							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
-					conversion.Pointer(false),
+					new(false),
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -1113,7 +1122,7 @@ func TestAccProject_slowOperationReadOnly(t *testing.T) {
 	var (
 		orgID                  = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName            = acc.RandomProjectName()
-		config                 = configBasic(orgID, projectName, "", false, nil, conversion.Pointer(false))
+		config                 = configBasic(orgID, projectName, "", false, nil, new(false))
 		providerConfigReadOnly = acc.ConfigOrgMemberProvider()
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -1136,7 +1145,7 @@ func TestAccProject_slowOperationReadOnly(t *testing.T) {
 			},
 			// Validate the API Key has a different role
 			{
-				Config:      providerConfigReadOnly + configBasic(orgID, projectName, "", false, nil, conversion.Pointer(true)),
+				Config:      providerConfigReadOnly + configBasic(orgID, projectName, "", false, nil, new(true)),
 				ExpectError: regexp.MustCompile("error in project settings update"),
 			},
 			// read back again to ensure no changes, and allow deletion to work
@@ -1230,7 +1239,8 @@ func configBasic(orgID, projectName, projectOwnerID string, includeDataSource bo
 			data "mongodbatlas_project" "test2" {
 				name = mongodbatlas_project.test.name
 			}
-			 data "mongodbatlas_projects" "test" {
+			data "mongodbatlas_projects" "test" {
+				depends_on = [mongodbatlas_project.test]
 			}
 		`
 	}
@@ -1287,10 +1297,10 @@ func configWithDefaultAlertSettings(orgID, projectName, projectOwnerID string, w
 }
 
 func configWithLimits(orgID, projectName string, limits []*admin.DataFederationLimit) string {
-	var limitsString string
+	var limitsString strings.Builder
 
 	for _, limit := range limits {
-		limitsString += fmt.Sprintf(`
+		fmt.Fprintf(&limitsString, `
 		limits {
 			name = %[1]q
 			value = %[2]d
@@ -1309,7 +1319,7 @@ func configWithLimits(orgID, projectName string, limits []*admin.DataFederationL
 		data "mongodbatlas_project" "test" {
 			project_id = mongodbatlas_project.test.id
 		}
-	`, orgID, projectName, limitsString)
+	`, orgID, projectName, limitsString.String())
 }
 
 func configWithUpdatedRole(orgID, projectName, teamID, roleName string) string {

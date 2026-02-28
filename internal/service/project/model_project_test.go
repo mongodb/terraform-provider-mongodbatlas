@@ -61,9 +61,9 @@ var (
 		{
 			Name:         limitName,
 			Value:        limitValue,
-			CurrentUsage: admin.PtrInt64(limitCurrentUsage),
-			DefaultLimit: admin.PtrInt64(limitDefaultLimit),
-			MaximumLimit: admin.PtrInt64(limitMaximumLimit),
+			CurrentUsage: new(limitCurrentUsage),
+			DefaultLimit: new(limitDefaultLimit),
+			MaximumLimit: new(limitMaximumLimit),
 		},
 	}
 	limitsTF = []*project.TFLimitModel{
@@ -83,32 +83,32 @@ var (
 		{
 			Id:                  "user-id-1",
 			Username:            "user1@example.com",
-			FirstName:           admin.PtrString("FirstName1"),
-			LastName:            admin.PtrString("LastName1"),
+			FirstName:           new("FirstName1"),
+			LastName:            new("LastName1"),
 			Roles:               roles,
 			InvitationCreatedAt: nil,
 			InvitationExpiresAt: nil,
-			InviterUsername:     admin.PtrString(inviterUsername),
+			InviterUsername:     new(inviterUsername),
 			OrgMembershipStatus: userOrgMembershipStatus,
-			Country:             admin.PtrString("US"),
-			CreatedAt:           admin.PtrTime(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),
-			LastAuth:            admin.PtrTime(time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC)),
-			MobileNumber:        admin.PtrString(mobileNumber),
+			Country:             new("US"),
+			CreatedAt:           new(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),
+			LastAuth:            new(time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC)),
+			MobileNumber:        new(mobileNumber),
 		},
 		{
 			Id:                  "user-id-2",
 			Username:            "user2@example.com",
-			FirstName:           admin.PtrString("FirstName2"),
-			LastName:            admin.PtrString("LastName2"),
+			FirstName:           new("FirstName2"),
+			LastName:            new("LastName2"),
 			Roles:               roles,
 			InvitationCreatedAt: nil,
 			InvitationExpiresAt: nil,
-			InviterUsername:     admin.PtrString(inviterUsername),
+			InviterUsername:     new(inviterUsername),
 			OrgMembershipStatus: userOrgMembershipStatus,
-			Country:             admin.PtrString(country),
-			CreatedAt:           admin.PtrTime(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),
-			LastAuth:            admin.PtrTime(time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC)),
-			MobileNumber:        admin.PtrString(mobileNumber),
+			Country:             new(country),
+			CreatedAt:           new(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),
+			LastAuth:            new(time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC)),
+			MobileNumber:        new(mobileNumber),
 		},
 	}
 	usersTF = []*project.TFCloudUsersDSModel{
@@ -172,46 +172,46 @@ var (
 		},
 	})
 	projectSDK = admin.Group{
-		Id:           admin.PtrString(projectID),
+		Id:           new(projectID),
 		Name:         projectName,
 		OrgId:        projectOrgID,
 		ClusterCount: int64(clusterCount),
 	}
 	projectGovSDK = admin.Group{
-		Id:                      admin.PtrString(projectID),
+		Id:                      new(projectID),
 		Name:                    projectName,
 		OrgId:                   projectOrgID,
 		ClusterCount:            int64(clusterCount),
-		RegionUsageRestrictions: admin.PtrString(regionUsageRestrictions),
+		RegionUsageRestrictions: new(regionUsageRestrictions),
 	}
 	projectSettingsSDK = admin.GroupSettings{
-		IsCollectDatabaseSpecificsStatisticsEnabled: admin.PtrBool(true),
-		IsDataExplorerEnabled:                       admin.PtrBool(true),
-		IsExtendedStorageSizesEnabled:               admin.PtrBool(true),
-		IsPerformanceAdvisorEnabled:                 admin.PtrBool(true),
-		IsRealtimePerformancePanelEnabled:           admin.PtrBool(true),
-		IsSchemaAdvisorEnabled:                      admin.PtrBool(true),
+		IsCollectDatabaseSpecificsStatisticsEnabled: new(true),
+		IsDataExplorerEnabled:                       new(true),
+		IsExtendedStorageSizesEnabled:               new(true),
+		IsPerformanceAdvisorEnabled:                 new(true),
+		IsRealtimePerformancePanelEnabled:           new(true),
+		IsSchemaAdvisorEnabled:                      new(true),
 	}
 	IPAddressesSDK = admin.GroupIPAddresses{
-		GroupId: admin.PtrString(projectID),
+		GroupId: new(projectID),
 		Services: &admin.GroupService{
 			Clusters: &[]admin.ClusterIPAddresses{
 				{
 					Inbound:     &[]string{"13.13.13.13"},
 					Outbound:    &[]string{"13.13.13.13"},
-					ClusterName: admin.PtrString("Cluster0"),
+					ClusterName: new("Cluster0"),
 				},
 			},
 		},
 	}
 	IPAddressesWithClusterNoIPsSDK = admin.GroupIPAddresses{
-		GroupId: admin.PtrString(projectID),
+		GroupId: new(projectID),
 		Services: &admin.GroupService{
 			Clusters: &[]admin.ClusterIPAddresses{
 				{
 					Inbound:     &[]string{},
 					Outbound:    &[]string{},
-					ClusterName: admin.PtrString("Cluster0"),
+					ClusterName: new("Cluster0"),
 				},
 			},
 		},
@@ -582,7 +582,7 @@ func TestIPAddressesModelToTF(t *testing.T) {
 		{
 			name: "Empty response when no clusters are created",
 			sdkModel: &admin.GroupIPAddresses{
-				GroupId: admin.PtrString(projectID),
+				GroupId: new(projectID),
 				Services: &admin.GroupService{
 					Clusters: &[]admin.ClusterIPAddresses{},
 				},

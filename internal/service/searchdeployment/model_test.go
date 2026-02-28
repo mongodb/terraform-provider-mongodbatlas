@@ -33,16 +33,16 @@ func TestSearchDeploymentSDKToTFModel(t *testing.T) {
 			name:        "Complete SDK response",
 			clusterName: clusterName,
 			SDKResp: &admin.ApiSearchDeploymentResponse{
-				Id:        admin.PtrString(dummyDeploymentID),
-				GroupId:   admin.PtrString(dummyProjectID),
-				StateName: admin.PtrString(stateName),
+				Id:        new(dummyDeploymentID),
+				GroupId:   new(dummyProjectID),
+				StateName: new(stateName),
 				Specs: &[]admin.ApiSearchDeploymentSpec{
 					{
 						InstanceSize: instanceSize,
 						NodeCount:    nodeCount,
 					},
 				},
-				EncryptionAtRestProvider: admin.PtrString(earProvider),
+				EncryptionAtRestProvider: new(earProvider),
 			},
 			expectedTFModel: &searchdeployment.TFSearchDeploymentRSModel{
 				ID:                       types.StringValue(dummyDeploymentID),

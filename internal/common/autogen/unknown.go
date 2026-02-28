@@ -14,15 +14,14 @@ import (
 // ResolveUnknowns converts unknown attributes to null.
 func ResolveUnknowns(model any) error {
 	valModel := reflect.ValueOf(model)
-	if valModel.Kind() != reflect.Ptr {
+	if valModel.Kind() != reflect.Pointer {
 		panic("model must be pointer")
 	}
 	valModel = valModel.Elem()
 	if valModel.Kind() != reflect.Struct {
 		panic("model must be pointer to struct")
 	}
-	for i := range valModel.NumField() {
-		field := valModel.Field(i)
+	for _, field := range valModel.Fields() {
 		value, ok := field.Interface().(attr.Value)
 		if !ok || !field.CanSet() {
 			continue // skip attributes that are not Terraform or not settable

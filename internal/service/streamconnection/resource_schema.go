@@ -16,7 +16,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
 
-const defaultCreateUpdateTimeoutDoc = "20m"
+const (
+	defaultCreateUpdateTimeoutDoc = "20m"
+	defaultDeleteTimeoutDoc       = "10m"
+)
 
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
@@ -204,12 +207,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 
-			// Timeouts for create and update operations
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create:            true,
 				Update:            true,
+				Delete:            true,
 				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate(defaultCreateUpdateTimeoutDoc),
 				UpdateDescription: constant.TimeoutDescriptionCreateReadUpdate(defaultCreateUpdateTimeoutDoc),
+				DeleteDescription: constant.TimeoutDescriptionDelete(defaultDeleteTimeoutDoc),
 			}),
 		},
 	}

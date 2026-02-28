@@ -2,6 +2,7 @@ package alertconfiguration
 
 import (
 	"context"
+	"maps"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -112,9 +113,7 @@ func (d *AlertConfigurationsDS) Schema(ctx context.Context, req datasource.Schem
 func copyAndAdd(m map[string]schema.Attribute, k string, v schema.Attribute) map[string]schema.Attribute {
 	newMap := make(map[string]schema.Attribute, len(m)+1)
 
-	for key, value := range m {
-		newMap[key] = value
-	}
+	maps.Copy(newMap, m)
 
 	newMap[k] = v
 	return newMap

@@ -298,7 +298,7 @@ func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, arch
 			log.Printf("[DEBUG] status for MongoDB archive_id: %s: %s", archiveID, *c.State)
 		}
 
-		return c, conversion.SafeString(c.State), nil
+		return c, conversion.SafeValue(c.State), nil
 	}
 }
 
@@ -386,8 +386,8 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"archive_id":   conversion.SafeString(outOnlineArchive.Id),
-		"cluster_name": conversion.SafeString(outOnlineArchive.ClusterName),
+		"archive_id":   conversion.SafeValue(outOnlineArchive.Id),
+		"cluster_name": conversion.SafeValue(outOnlineArchive.ClusterName),
 		"project_id":   projectID,
 	}))
 
@@ -420,7 +420,7 @@ func mapToArchivePayload(d *schema.ResourceData) admin.BackupOnlineArchiveCreate
 				}
 				if dbType, ok := item["field_type"]; ok && dbType != nil {
 					if dbType.(string) != "" {
-						query.FieldType = admin.PtrString(dbType.(string))
+						query.FieldType = new(dbType.(string))
 					}
 				}
 				partitionList = append(partitionList, query)
@@ -465,7 +465,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	// reading current value
 	if pausedHasChange {
-		request.Paused = conversion.Pointer(d.Get("paused").(bool))
+		request.Paused = new(d.Get("paused").(bool))
 	}
 
 	if criteriaHasChange {
@@ -488,7 +488,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if collType := d.Get("collection_type").(string); collectionTypeHasChange && collType != "" {
-		request.CollectionType = admin.PtrString(collType)
+		request.CollectionType = new(collType)
 	}
 
 	_, _, err := connV2.OnlineArchiveApi.UpdateOnlineArchive(ctx, projectID, atlasID, clusterName, &request).Execute()
@@ -600,7 +600,7 @@ func mapDataExpirationRule(d *schema.ResourceData) *admin.DataExpirationRule {
 		dataExpireRule := dataExpireRules.([]any)[0].(map[string]any)
 		result := admin.DataExpirationRule{}
 		if expireAfterDays, ok := dataExpireRule["expire_after_days"]; ok {
-			result.ExpireAfterDays = conversion.Pointer(expireAfterDays.(int))
+			result.ExpireAfterDays = new(expireAfterDays.(int))
 		}
 		return &result
 	}
@@ -612,10 +612,10 @@ func mapDataProcessRegion(d *schema.ResourceData) *admin.CreateDataProcessRegion
 		dataProcessRegion := dataProcessRegions.([]any)[0].(map[string]any)
 		result := admin.CreateDataProcessRegion{}
 		if cloudProvider, ok := dataProcessRegion["cloud_provider"]; ok {
-			result.CloudProvider = conversion.Pointer(cloudProvider.(string))
+			result.CloudProvider = new(cloudProvider.(string))
 		}
 		if region, ok := dataProcessRegion["region"]; ok {
-			result.Region = conversion.Pointer(region.(string))
+			result.Region = new(region.(string))
 		}
 		return &result
 	}
@@ -628,25 +628,25 @@ func mapCriteria(d *schema.ResourceData) admin.Criteria {
 	criteria := criteriaList[0].(map[string]any)
 
 	criteriaInput := admin.Criteria{
-		Type: admin.PtrString(criteria["type"].(string)),
+		Type: new(criteria["type"].(string)),
 	}
 
 	if criteriaInput.Type != nil && *criteriaInput.Type == "DATE" {
 		if dateField := criteria["date_field"].(string); dateField != "" {
-			criteriaInput.DateField = admin.PtrString(dateField)
+			criteriaInput.DateField = new(dateField)
 		}
 
-		criteriaInput.ExpireAfterDays = conversion.Pointer(criteria["expire_after_days"].(int))
+		criteriaInput.ExpireAfterDays = new(criteria["expire_after_days"].(int))
 
 		// optional
 		if dformat, ok := criteria["date_format"]; ok && dformat.(string) != "" {
-			criteriaInput.DateFormat = admin.PtrString(dformat.(string))
+			criteriaInput.DateFormat = new(dformat.(string))
 		}
 	}
 
 	if criteriaInput.Type != nil && *criteriaInput.Type == "CUSTOM" {
 		if query := criteria["query"].(string); query != "" {
-			criteriaInput.Query = admin.PtrString(query)
+			criteriaInput.Query = new(query)
 		}
 	}
 
@@ -680,27 +680,27 @@ func mapSchedule(d *schema.ResourceData) *admin.OnlineArchiveSchedule {
 	}
 
 	if endHour, ok := scheduleTFConfig["end_hour"].(int); ok {
-		scheduleInput.EndHour = conversion.Pointer(endHour)
+		scheduleInput.EndHour = new(endHour)
 	}
 
 	if endMinute, ok := scheduleTFConfig["end_minute"].(int); ok {
-		scheduleInput.EndMinute = conversion.Pointer(endMinute)
+		scheduleInput.EndMinute = new(endMinute)
 	}
 
 	if startHour, ok := scheduleTFConfig["start_hour"].(int); ok {
-		scheduleInput.StartHour = conversion.Pointer(startHour)
+		scheduleInput.StartHour = new(startHour)
 	}
 
 	if startMinute, ok := scheduleTFConfig["start_minute"].(int); ok {
-		scheduleInput.StartMinute = conversion.Pointer(startMinute)
+		scheduleInput.StartMinute = new(startMinute)
 	}
 
 	if dayOfWeek, ok := scheduleTFConfig["day_of_week"].(int); ok && dayOfWeek != 0 { // needed to verify attribute is actually defined
-		scheduleInput.DayOfWeek = conversion.Pointer(dayOfWeek)
+		scheduleInput.DayOfWeek = new(dayOfWeek)
 	}
 
 	if dayOfMonth, ok := scheduleTFConfig["day_of_month"].(int); ok && dayOfMonth != 0 {
-		scheduleInput.DayOfMonth = conversion.Pointer(dayOfMonth)
+		scheduleInput.DayOfMonth = new(dayOfMonth)
 	}
 
 	return scheduleInput

@@ -172,7 +172,7 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 				expectedAttr := codespec.Attribute{
 					TFSchemaName:             "delete_on_create_timeout",
 					TFModelName:              "DeleteOnCreateTimeout",
-					Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(true)},
+					Bool:                     &codespec.BoolAttribute{Default: new(true)},
 					Description:              &description,
 					ReqBodyUsage:             codespec.OmitAlways,
 					CreateOnly:               true,
@@ -768,6 +768,132 @@ func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *test
 			assert.Equal(t, tc.expectedAttributes, tc.inputResource.Schema.Attributes)
 			if tc.expectedDiscrim != nil {
 				assert.Equal(t, tc.expectedDiscrim, tc.inputResource.Schema.Discriminator)
+			}
+		})
+	}
+}
+
+func TestApplyTransformationsToResource_IgnoreValidatorsTransformation(t *testing.T) {
+	tests := map[string]struct {
+		inputResource   *codespec.Resource
+		inputConfig     *config.Resource
+		expectedDiscrim *codespec.Discriminator
+		expectedNested  *codespec.Discriminator
+		nestedAttrName  string
+	}{
+		"Root discriminator SkipValidation set when override has discriminator": {
+			inputConfig: &config.Resource{
+				SchemaOptions: config.SchemaOptions{
+					Overrides: map[string]config.Override{
+						"type": {
+							IgnoreValidators: []string{"discriminator"},
+						},
+					},
+				},
+			},
+			inputResource: &codespec.Resource{
+				Schema: &codespec.Schema{
+					Discriminator: &codespec.Discriminator{
+						PropertyName: codespec.DiscriminatorAttrName{APIName: "type", TFSchemaName: "type"},
+						Mapping: map[string]codespec.DiscriminatorType{
+							"A": {Allowed: []codespec.DiscriminatorAttrName{{APIName: "attrA", TFSchemaName: "attr_a"}}},
+						},
+					},
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "type",
+							TFModelName:              "Type",
+							APIName:                  "type",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.AllRequestBodies,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{},
+					Read:   &codespec.APIOperation{},
+				},
+			},
+			expectedDiscrim: &codespec.Discriminator{
+				PropertyName:   codespec.DiscriminatorAttrName{APIName: "type", TFSchemaName: "type"},
+				SkipValidation: true,
+				Mapping: map[string]codespec.DiscriminatorType{
+					"A": {Allowed: []codespec.DiscriminatorAttrName{{APIName: "attrA", TFSchemaName: "attr_a"}}},
+				},
+			},
+		},
+		"Nested discriminator SkipValidation set via dot-notation override path": {
+			inputConfig: &config.Resource{
+				SchemaOptions: config.SchemaOptions{
+					Overrides: map[string]config.Override{
+						"nested_obj.type": {
+							IgnoreValidators: []string{"discriminator"},
+						},
+					},
+				},
+			},
+			inputResource: &codespec.Resource{
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "nested_obj",
+							TFModelName:              "NestedObj",
+							APIName:                  "nestedObj",
+							ComputedOptionalRequired: codespec.Computed,
+							SingleNested: &codespec.SingleNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Discriminator: &codespec.Discriminator{
+										PropertyName: codespec.DiscriminatorAttrName{APIName: "type", TFSchemaName: "type"},
+										Mapping: map[string]codespec.DiscriminatorType{
+											"X": {Allowed: []codespec.DiscriminatorAttrName{{APIName: "xAttr", TFSchemaName: "x_attr"}}},
+										},
+									},
+									Attributes: codespec.Attributes{
+										{
+											TFSchemaName:             "type",
+											TFModelName:              "Type",
+											APIName:                  "type",
+											ComputedOptionalRequired: codespec.Computed,
+											String:                   &codespec.StringAttribute{},
+											ReqBodyUsage:             codespec.OmitAlways,
+										},
+									},
+								},
+							},
+							ReqBodyUsage: codespec.OmitAlways,
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{},
+					Read:   &codespec.APIOperation{},
+				},
+			},
+			nestedAttrName: "nested_obj",
+			expectedNested: &codespec.Discriminator{
+				PropertyName:   codespec.DiscriminatorAttrName{APIName: "type", TFSchemaName: "type"},
+				SkipValidation: true,
+				Mapping: map[string]codespec.DiscriminatorType{
+					"X": {Allowed: []codespec.DiscriminatorAttrName{{APIName: "xAttr", TFSchemaName: "x_attr"}}},
+				},
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := codespec.ApplyTransformationsToResource(tc.inputConfig, tc.inputResource)
+			require.NoError(t, err)
+			if tc.expectedDiscrim != nil {
+				assert.Equal(t, tc.expectedDiscrim, tc.inputResource.Schema.Discriminator)
+			}
+			if tc.nestedAttrName != "" {
+				for _, attr := range tc.inputResource.Schema.Attributes {
+					if attr.TFSchemaName == tc.nestedAttrName && attr.SingleNested != nil {
+						assert.Equal(t, tc.expectedNested, attr.SingleNested.NestedObject.Discriminator)
+					}
+				}
 			}
 		})
 	}
@@ -1385,10 +1511,10 @@ func TestApplyTransformationsToDataSources_TypeOverride(t *testing.T) {
 	inputConfig := &config.DataSources{
 		SchemaOptions: config.SchemaOptions{
 			Overrides: map[string]config.Override{
-				"list_attr":        {Type: conversion.Pointer(config.Set)},
-				"set_attr":         {Type: conversion.Pointer(config.List)},
-				"nested_list_attr": {Type: conversion.Pointer(config.Set)},
-				"nested_set_attr":  {Type: conversion.Pointer(config.List)},
+				"list_attr":        {Type: new(config.Set)},
+				"set_attr":         {Type: new(config.List)},
+				"nested_list_attr": {Type: new(config.Set)},
+				"nested_set_attr":  {Type: new(config.List)},
 			},
 		},
 	}
