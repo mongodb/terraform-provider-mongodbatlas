@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_privatelink_endpoints` ([#4241](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4241))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_advanced_cluster: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
