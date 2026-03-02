@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_advanced_cluster: Adds `retain_backups_for_disabling` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_cluster: Adds `retain_backups_for_disabling` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_clusters: Adds `retain_backups_for_disabling` attribute
+```
