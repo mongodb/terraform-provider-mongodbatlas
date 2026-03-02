@@ -89,7 +89,6 @@ schema:
         property_name:
             api_name: type
             tf_schema_name: type
-        skip_validation: true
     attributes:
         - string: {}
           description: API key for authentication.
