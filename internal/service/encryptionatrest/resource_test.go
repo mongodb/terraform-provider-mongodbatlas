@@ -156,6 +156,28 @@ func TestAccEncryptionAtRest_basicAzure(t *testing.T) {
 	})
 }
 
+func TestAccEncryptionAtRest_basicAzureWithRole(t *testing.T) {
+	acc.SkipTestForCI(t) // needs Azure configuration
+
+	var (
+		projectID = acc.ProjectIDExecution(t)
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			acc.PreCheckEncryptionAtRestEnvAzureWithRole(t)
+		},
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.EARDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configAzureKeyVaultWithRole(projectID, true),
+				Check:  checkEARResourceAzureWithRole(projectID),
+			},
+		},
+	})
+}
+
 func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 	acc.SkipTestForCI(t) // needs GCP configuration
 
@@ -524,6 +546,56 @@ func configGoogleCloudKms(projectID string, google *admin.GoogleCloudKMS, useDat
 		return fmt.Sprintf(`%s %s`, config, acc.EARDatasourceConfig())
 	}
 	return config
+}
+
+func configAzureKeyVaultWithRole(projectID string, useDatasource bool) string {
+	config := fmt.Sprintf(`
+		resource "mongodbatlas_encryption_at_rest" "test" {
+			project_id = %[1]q
+
+			azure_key_vault_config {
+				enabled             = true
+				role_id             = %[2]q
+				azure_environment   = "AZURE"
+				subscription_id     = %[3]q
+				resource_group_name = %[4]q
+				key_vault_name      = %[5]q
+				key_identifier      = %[6]q
+			}
+		}
+	`, projectID,
+		os.Getenv("AZURE_CPA_ROLE_ID"),
+		os.Getenv("AZURE_SUBSCRIPTION_ID"),
+		os.Getenv("AZURE_RESOURCE_GROUP_NAME"),
+		os.Getenv("AZURE_KEY_VAULT_NAME"),
+		os.Getenv("AZURE_KEY_IDENTIFIER"),
+	)
+
+	if useDatasource {
+		return fmt.Sprintf(`%s %s`, config, acc.EARDatasourceConfig())
+	}
+	return config
+}
+
+func checkEARResourceAzureWithRole(projectID string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		acc.CheckEARExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+		resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.enabled", "true"),
+		resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.azure_environment", "AZURE"),
+		resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.resource_group_name", os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
+		resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.key_vault_name", os.Getenv("AZURE_KEY_VAULT_NAME")),
+		resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.role_id", os.Getenv("AZURE_CPA_ROLE_ID")),
+		resource.TestCheckResourceAttr(resourceName, "azure_key_vault_config.0.valid", "true"),
+
+		resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+		resource.TestCheckResourceAttr(datasourceName, "azure_key_vault_config.enabled", "true"),
+		resource.TestCheckResourceAttr(datasourceName, "azure_key_vault_config.azure_environment", "AZURE"),
+		resource.TestCheckResourceAttr(datasourceName, "azure_key_vault_config.resource_group_name", os.Getenv("AZURE_RESOURCE_GROUP_NAME")),
+		resource.TestCheckResourceAttr(datasourceName, "azure_key_vault_config.key_vault_name", os.Getenv("AZURE_KEY_VAULT_NAME")),
+		resource.TestCheckResourceAttr(datasourceName, "azure_key_vault_config.role_id", os.Getenv("AZURE_CPA_ROLE_ID")),
+		resource.TestCheckResourceAttr(datasourceName, "azure_key_vault_config.valid", "true"),
+	)
 }
 
 func configGoogleCloudKmsWithRole(projectID string, google *admin.GoogleCloudKMS, useDatasource bool) string {

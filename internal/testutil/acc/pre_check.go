@@ -162,6 +162,19 @@ func PreCheckGCPEnvWithRole(tb testing.TB) {
 	}
 }
 
+func PreCheckEncryptionAtRestEnvAzureWithRole(tb testing.TB) {
+	tb.Helper()
+	PreCheckBasic(tb)
+
+	if os.Getenv("AZURE_CPA_ROLE_ID") == "" ||
+		os.Getenv("AZURE_SUBSCRIPTION_ID") == "" ||
+		os.Getenv("AZURE_RESOURCE_GROUP_NAME") == "" ||
+		os.Getenv("AZURE_KEY_VAULT_NAME") == "" ||
+		os.Getenv("AZURE_KEY_IDENTIFIER") == "" {
+		tb.Fatal("`AZURE_CPA_ROLE_ID`, `AZURE_SUBSCRIPTION_ID`, `AZURE_RESOURCE_GROUP_NAME`, `AZURE_KEY_VAULT_NAME`, and `AZURE_KEY_IDENTIFIER` must be set for acceptance testing")
+	}
+}
+
 func PreCheckPeeringEnvAWS(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("AWS_ACCOUNT_ID") == "" ||
