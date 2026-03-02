@@ -39,21 +39,20 @@ data "mongodbatlas_advanced_clusters" "this" {
 }
 ```
 
-## Example using effective fields with auto-scaling
+## Example with effective_replication_specs
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
-  project_id            = "<YOUR-PROJECT-ID>"
-  name                  = "auto-scale-cluster-1"
-  cluster_type          = "REPLICASET"
-  use_effective_fields  = true
+  project_id   = "<YOUR-PROJECT-ID>"
+  name         = "auto-scale-cluster-1"
+  cluster_type = "REPLICASET"
 
   replication_specs = [
     {
       region_configs = [
         {
           electable_specs = {
-            instance_size = "M10" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
+            instance_size = "M10" # User-configured value stays constant in state
             node_count    = 3
           }
           auto_scaling = {
@@ -71,51 +70,18 @@ resource "mongodbatlas_advanced_cluster" "this" {
   ]
 }
 
-resource "mongodbatlas_advanced_cluster" "this_2" {
-  project_id            = "<YOUR-PROJECT-ID>"
-  name                  = "auto-scale-cluster-2"
-  cluster_type          = "REPLICASET"
-  use_effective_fields  = true
-
-  replication_specs = [
-    {
-      region_configs = [
-        {
-          electable_specs = {
-            instance_size = "M20" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
-            node_count    = 3
-          }
-          auto_scaling = {
-            compute_enabled            = true
-            compute_scale_down_enabled = true
-            compute_min_instance_size  = "M20"
-            compute_max_instance_size  = "M40"
-          }
-          provider_name = "AWS"
-          priority      = 7
-          region_name   = "US_WEST_2"
-        }
-      ]
-    }
-  ]
-}
-
-# Read effective values for all clusters in the project
+# Read both configured and effective values for all clusters
 data "mongodbatlas_advanced_clusters" "this" {
-  project_id           = "<YOUR-PROJECT-ID>"
-  use_effective_fields = true
-  depends_on = [
-    mongodbatlas_advanced_cluster.this,
-    mongodbatlas_advanced_cluster.this_2
-  ]
+  project_id = "<YOUR-PROJECT-ID>"
+  depends_on = [mongodbatlas_advanced_cluster.this]
 }
 
 output "all_cluster_names_and_sizes" {
   value = [
     for cluster in data.mongodbatlas_advanced_clusters.this.results : {
-      name                  = cluster.name
-      configured_size       = cluster.replication_specs[0].region_configs[0].electable_specs.instance_size
-      actual_size           = cluster.replication_specs[0].region_configs[0].effective_electable_specs.instance_size
+      name            = cluster.name
+      configured_size = cluster.replication_specs[0].region_configs[0].electable_specs.instance_size
+      actual_size     = cluster.effective_replication_specs[0].region_configs[0].electable_specs.instance_size
     }
   ]
 }
@@ -198,7 +164,6 @@ data "mongodbatlas_advanced_clusters" "this" {
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to get the clusters.
-* `use_effective_fields` - (Optional) Controls how hardware specification fields are returned in the response. When set to true, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to false (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications. This attribute applies to dedicated clusters, not to tenant or flex clusters. **Note:** Effective specs (`effective_electable_specs`, `effective_read_only_specs`, `effective_analytics_specs`) are always returned for dedicated clusters regardless of the flag value and always report the **current** hardware specifications. See the resource documentation for [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields) for more details.
 
 ## Attributes Reference
 
@@ -217,6 +182,7 @@ In addition to all arguments above, the following attributes are exported:
 * `pinned_fcv` - The pinned Feature Compatibility Version (FCV) with its associated expiration date. See [below](#pinned_fcv).
 * `pit_enabled` - Flag that indicates if the cluster uses Continuous Cloud Backup.
 * `replication_specs` - List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. See [below](#replication_specs)
+* `effective_replication_specs` - List of settings representing the actual running configuration as computed by Atlas, including auto-scaling changes. Has the same structure as `replication_specs`. See [below](#replication_specs)
 * `root_cert_type` - Certificate Authority that MongoDB Atlas clusters use.
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
 * `version_release_system` - Release cadence that Atlas uses for this cluster.
@@ -270,9 +236,6 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 * `analytics_auto_scaling` - Configuration for the Collection of settings that configures analytis-auto-scaling information for the cluster. See [below](#analytics_auto_scaling).
 * `backing_provider_name` - Cloud service provider on which you provision the host for a multi-tenant cluster.
 * `electable_specs` - Hardware specifications for electable nodes in the region.
-* `effective_electable_specs` - Effective hardware specifications for electable nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. See [below](#specs).
-* `effective_analytics_specs` - Effective hardware specifications for analytics nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. See [below](#specs).
-* `effective_read_only_specs` - Effective hardware specifications for read-only nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. See [below](#specs).
 * `priority` -  Election priority of the region.
 * `provider_name` - Cloud service provider on which the servers are provisioned.
 * `read_only_specs` - Hardware specifications for read-only nodes in the region. See [below](#specs).

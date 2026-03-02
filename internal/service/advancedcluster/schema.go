@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -21,7 +22,6 @@ import (
 )
 
 const (
-	descUseEffectiveFields        = "Controls how hardware specification fields are returned in the response. When set to true, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to false (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications."
 	descSpecs                     = "Hardware specifications for nodes deployed in the region."
 	descDiskIops                  = "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"Azure\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : \"M40\"` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost."
 	descDiskSizeGb                = "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
@@ -47,7 +47,7 @@ const (
 
 func resourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
-		Version: 2,
+		Version: 3,
 		Attributes: map[string]schema.Attribute{
 			"accept_data_risks_and_force_replica_set_reconfig": schema.StringAttribute{
 				Optional:            true,
@@ -55,22 +55,18 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. MongoDB Atlas docs contain more information. To proceed with an operation which carries that risk, set **acceptDataRisksAndForceReplicaSetReconfig** to the current date.",
 			},
 			"backup_enabled": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/) for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.",
+				MarkdownDescription: "Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses [Cloud Backups](https://docs.atlas.mongodb.com/backup/cloud-backup/overview/) for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"bi_connector_config": schema.SingleNestedAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Settings needed to configure the MongoDB Connector for Business Intelligence for this cluster.",
+				MarkdownDescription: "Settings needed to configure the MongoDB Connector for Business Intelligence for this cluster. This attribute is Optional only - if not specified, it will not appear in state. Use the data source to query actual values from Atlas.",
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
-						Computed:            true,
 						Optional:            true,
 						MarkdownDescription: "Flag that indicates whether MongoDB Connector for Business Intelligence is enabled on the specified cluster.",
 					},
 					"read_preference": schema.StringAttribute{
-						Computed:            true,
 						Optional:            true,
 						MarkdownDescription: "Data source node designated for the MongoDB Connector for Business Intelligence on MongoDB Cloud. The MongoDB Connector for Business Intelligence on MongoDB Cloud reads data from the primary, secondary, or analytics node based on your read preferences. Defaults to `ANALYTICS` node, or `SECONDARY` if there are no `ANALYTICS` nodes.",
 					},
@@ -81,17 +77,22 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Configuration of nodes that comprise the cluster.",
 			},
 			"config_server_management_mode": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Config Server Management Mode for creating or updating a sharded cluster.\n\nWhen configured as ATLAS_MANAGED, atlas may automatically switch the cluster's config server type for optimal performance and savings.\n\nWhen configured as FIXED_TO_DEDICATED, the cluster will always use a dedicated config server.",
+				MarkdownDescription: "Config Server Management Mode for creating or updating a sharded cluster.\n\nWhen configured as ATLAS_MANAGED, atlas may automatically switch the cluster's config server type for optimal performance and savings.\n\nWhen configured as FIXED_TO_DEDICATED, the cluster will always use a dedicated config server. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"config_server_type": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Describes a sharded cluster's config server type.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"connection_strings": schema.SingleNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "Collection of Uniform Resource Locators that point to the MongoDB database.",
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"private": schema.StringAttribute{
 						Computed:            true,
@@ -158,6 +159,9 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			"create_date": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Date and time when MongoDB Cloud created this cluster. This parameter expresses its value in ISO 8601 format in UTC.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed: true,
@@ -168,14 +172,12 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
 			},
 			"encryption_at_rest_provider": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Cloud service provider that manages your customer keys to provide an additional layer of encryption at rest for the cluster. To enable customer key management for encryption at rest, the cluster **replicationSpecs[n].regionConfigs[m].{type}Specs.instanceSize** setting must be `M10` or higher and `\"backupEnabled\" : false` or omitted entirely.",
+				MarkdownDescription: "Cloud service provider that manages your customer keys to provide an additional layer of encryption at rest for the cluster. To enable customer key management for encryption at rest, the cluster **replicationSpecs[n].regionConfigs[m].{type}Specs.instanceSize** setting must be `M10` or higher and `\"backupEnabled\" : false` or omitted entirely. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"global_cluster_self_managed_sharding": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Set this field to configure the Sharding Management Mode when creating a new Global Cluster.\n\nWhen set to false, the management mode is set to Atlas-Managed Sharding. This mode fully manages the sharding of your Global Cluster and is built to provide a seamless deployment experience.\n\nWhen set to true, the management mode is set to Self-Managed Sharding. This mode leaves the management of shards in your hands and is built to provide an advanced and flexible deployment experience.\n\nThis setting cannot be changed once the cluster is deployed.",
+				MarkdownDescription: "Set this field to configure the Sharding Management Mode when creating a new Global Cluster.\n\nWhen set to false, the management mode is set to Atlas-Managed Sharding. This mode fully manages the sharding of your Global Cluster and is built to provide a seamless deployment experience.\n\nWhen set to true, the management mode is set to Self-Managed Sharding. This mode leaves the management of shards in your hands and is built to provide an advanced and flexible deployment experience.\n\nThis setting cannot be changed once the cluster is deployed. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
@@ -187,18 +189,23 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			"cluster_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the cluster.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"mongo_db_major_version": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(regexp.MustCompile(`^([0-9]+)\.?([0-9]+)?$`), "MongoDB major version must be in the format \"8\" or \"8.0\""),
 				},
-				MarkdownDescription: "MongoDB major version of the cluster.\n\nOn creation: Choose from the available versions of MongoDB, or leave unspecified for the current recommended default in the MongoDB Cloud platform. The recommended version is a recent Long Term Support version. The default is not guaranteed to be the most recently released version throughout the entire release cycle. For versions available in a specific project, see the linked documentation or use the API endpoint for [project LTS versions endpoint](#tag/Projects/operation/getProjectLTSVersions).\n\n On update: Increase version only by 1 major version at a time. If the cluster is pinned to a MongoDB feature compatibility version exactly one major version below the current MongoDB version, the MongoDB version can be downgraded to the previous major version.",
+				MarkdownDescription: "MongoDB major version of the cluster.\n\nOn creation: Choose from the available versions of MongoDB, or leave unspecified for the current recommended default in the MongoDB Cloud platform. The recommended version is a recent Long Term Support version. The default is not guaranteed to be the most recently released version throughout the entire release cycle. For versions available in a specific project, see the linked documentation or use the API endpoint for [project LTS versions endpoint](#tag/Projects/operation/getProjectLTSVersions).\n\n On update: Increase version only by 1 major version at a time. If the cluster is pinned to a MongoDB feature compatibility version exactly one major version below the current MongoDB version, the MongoDB version can be downgraded to the previous major version. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"mongo_db_version": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Version of MongoDB that the cluster runs.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				Required:            true,
@@ -208,39 +215,26 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"paused": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether the cluster is paused.",
+				MarkdownDescription: "Flag that indicates whether the cluster is paused. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"pit_enabled": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether the cluster uses continuous cloud backups.",
+				MarkdownDescription: "Flag that indicates whether the cluster uses continuous cloud backups. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"redact_client_log_data": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Enable or disable log redaction.\n\nThis setting configures the ``mongod`` or ``mongos`` to redact any document field contents from a message accompanying a given log event before logging. This prevents the program from writing potentially sensitive data stored on the database to the diagnostic log. Metadata such as error or operation codes, line numbers, and source file names are still visible in the logs.\n\nUse ``redactClientLogData`` in conjunction with Encryption at Rest and TLS/SSL (Transport Encryption) to assist compliance with regulatory requirements.\n\n*Note*: changing this setting on a cluster will trigger a rolling restart as soon as the cluster is updated.",
+				MarkdownDescription: "Enable or disable log redaction.\n\nThis setting configures the ``mongod`` or ``mongos`` to redact any document field contents from a message accompanying a given log event before logging. This prevents the program from writing potentially sensitive data stored on the database to the diagnostic log. Metadata such as error or operation codes, line numbers, and source file names are still visible in the logs.\n\nUse ``redactClientLogData`` in conjunction with Encryption at Rest and TLS/SSL (Transport Encryption) to assist compliance with regulatory requirements.\n\n*Note*: changing this setting on a cluster will trigger a rolling restart as soon as the cluster is updated. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"replica_set_scaling_strategy": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Set this field to configure the replica set scaling mode for your cluster.\n\nBy default, Atlas scales under WORKLOAD_TYPE. This mode allows Atlas to scale your analytics nodes in parallel to your operational nodes.\n\nWhen configured as SEQUENTIAL, Atlas scales all nodes sequentially. This mode is intended for steady-state workloads and applications performing latency-sensitive secondary reads.\n\nWhen configured as NODE_TYPE, Atlas scales your electable nodes in parallel with your read-only and analytics nodes. This mode is intended for large, dynamic workloads requiring frequent and timely cluster tier scaling. This is the fastest scaling strategy, but it might impact latency of workloads when performing extensive secondary reads.",
+				MarkdownDescription: "Set this field to configure the replica set scaling mode for your cluster.\n\nBy default, Atlas scales under WORKLOAD_TYPE. This mode allows Atlas to scale your analytics nodes in parallel to your operational nodes.\n\nWhen configured as SEQUENTIAL, Atlas scales all nodes sequentially. This mode is intended for steady-state workloads and applications performing latency-sensitive secondary reads.\n\nWhen configured as NODE_TYPE, Atlas scales your electable nodes in parallel with your read-only and analytics nodes. This mode is intended for large, dynamic workloads requiring frequent and timely cluster tier scaling. This is the fastest scaling strategy, but it might impact latency of workloads when performing extensive secondary reads. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"replication_specs": schema.ListNestedAttribute{
 				Required:            true,
 				MarkdownDescription: descReplicationSpecs,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"container_id": schema.MapAttribute{
-							ElementType:         types.StringType,
-							Computed:            true,
-							MarkdownDescription: descContainerID,
-						},
-						"external_id": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: descExternalID,
-						},
 						"region_configs": schema.ListNestedAttribute{
 							Required:            true,
 							MarkdownDescription: descRegionConfigs,
@@ -273,12 +267,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 								},
 							},
 						},
-						"zone_id": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: descZoneID,
-						},
 						"zone_name": schema.StringAttribute{
-							Computed:            true,
 							Optional:            true,
 							MarkdownDescription: descZoneName,
 						},
@@ -286,13 +275,18 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"root_cert_type": schema.StringAttribute{
-				Computed:            true,
-				Optional:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: "Root Certificate Authority that MongoDB Cloud cluster uses. MongoDB Cloud supports Internet Security Research Group.",
 			},
 			"state_name": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Human-readable label that indicates the current operating condition of this cluster.",
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"termination_protection_enabled": schema.BoolAttribute{
 				Computed:            true,
@@ -305,9 +299,8 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Flag that indicates whether time-based snapshot copies will be used instead of slower standard snapshot copies during fast Atlas cross-region initial syncs. This flag is only relevant for clusters containing AWS nodes.",
 			},
 			"version_release_system": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Method by which the cluster maintains the MongoDB versions. If value is `CONTINUOUS`, you must not specify **mongoDBMajorVersion**.",
+				MarkdownDescription: "Method by which the cluster maintains the MongoDB versions. If value is `CONTINUOUS`, you must not specify **mongoDBMajorVersion**. This attribute is Optional only - if not specified, it will not appear in state.",
 			},
 			"retain_backups_enabled": schema.BoolAttribute{
 				Optional:            true,
@@ -343,13 +336,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Update: true,
 				Delete: true,
 			}),
-			"use_effective_fields": schema.BoolAttribute{
-				Optional: true,
-				Validators: []validator.Bool{
-					UseEffectiveFieldsValidator{},
-				},
-				MarkdownDescription: descUseEffectiveFields,
-			},
 		},
 	}
 }
@@ -365,12 +351,6 @@ func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 	return conversion.PluralDataSourceSchemaFromResource(resourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
 		RequiredFields:  []string{"project_id"},
 		OverridenFields: dataSourceOverridenFields(),
-		OverridenRootFields: map[string]dsschema.Attribute{
-			"use_effective_fields": dsschema.BoolAttribute{
-				Optional:            true,
-				MarkdownDescription: descUseEffectiveFields,
-			},
-		},
 	})
 }
 
@@ -379,18 +359,17 @@ func dataSourceOverridenFields() map[string]dsschema.Attribute {
 		"accept_data_risks_and_force_replica_set_reconfig": nil,
 		"delete_on_create_timeout":                         nil,
 		"retain_backups_enabled":                           nil,
-		"use_effective_fields": dsschema.BoolAttribute{
-			Optional:            true,
-			MarkdownDescription: descUseEffectiveFields,
-		},
-		"replication_specs": replicationSpecsSchemaDS(),
+		"effective_replication_specs":                      effectiveReplicationSpecsSchemaDS(),
 	}
 }
 
-func replicationSpecsSchemaDS() dsschema.ListNestedAttribute {
+// effectiveReplicationSpecsSchemaDS returns the schema for effective_replication_specs in data source.
+// This includes all attributes including Computed-only ones (container_id, external_id, zone_id)
+// as it represents the actual running configuration from Atlas.
+func effectiveReplicationSpecsSchemaDS() dsschema.ListNestedAttribute {
 	return dsschema.ListNestedAttribute{
 		Computed:            true,
-		MarkdownDescription: descReplicationSpecs,
+		MarkdownDescription: "Effective replication specifications representing the actual running configuration as computed by Atlas. This may differ from replication_specs when auto-scaling adjusts instance sizes or other values.",
 		NestedObject: dsschema.NestedAttributeObject{
 			Attributes: map[string]dsschema.Attribute{
 				"container_id": dsschema.MapAttribute{
@@ -414,10 +393,7 @@ func replicationSpecsSchemaDS() dsschema.ListNestedAttribute {
 								Computed:            true,
 								MarkdownDescription: descBackingProviderNameTenant,
 							},
-							"effective_analytics_specs": specsSchemaDS(),
-							"effective_electable_specs": specsSchemaDS(),
-							"effective_read_only_specs": specsSchemaDS(),
-							"electable_specs":           specsSchemaDS(),
+							"electable_specs": specsSchemaDS(),
 							"priority": dsschema.Int64Attribute{
 								Computed:            true,
 								MarkdownDescription: descPriority,
@@ -449,32 +425,26 @@ func replicationSpecsSchemaDS() dsschema.ListNestedAttribute {
 
 func autoScalingSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
-		Computed:            true,
 		Optional:            true,
 		MarkdownDescription: descAutoScaling,
 		Attributes: map[string]schema.Attribute{
 			"compute_enabled": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descComputeEnabled,
 			},
 			"compute_max_instance_size": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descComputeMinMaxInstanceSize,
 			},
 			"compute_min_instance_size": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descComputeMinMaxInstanceSize,
 			},
 			"compute_scale_down_enabled": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descComputeScaleDownEnabled,
 			},
 			"disk_gb_enabled": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descDiskGBEnabled,
 			},
@@ -513,27 +483,22 @@ func autoScalingSchemaDS() dsschema.SingleNestedAttribute {
 
 func specsSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
-		Computed:            true,
 		Optional:            true,
 		MarkdownDescription: descSpecs,
 		Attributes: map[string]schema.Attribute{
 			"disk_iops": schema.Int64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descDiskIops,
 			},
 			"disk_size_gb": schema.Float64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descDiskSizeGb,
 			},
 			"ebs_volume_type": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descEbsVolumeType,
 			},
 			"instance_size": schema.StringAttribute{
-				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					customplanmodifier.InstanceSizeStringAttributePlanModifier(),
@@ -541,7 +506,6 @@ func specsSchema() schema.SingleNestedAttribute {
 				MarkdownDescription: descInstanceSize,
 			},
 			"node_count": schema.Int64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: descNodeCount,
 			},
@@ -580,71 +544,56 @@ func specsSchemaDS() dsschema.SingleNestedAttribute {
 
 func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
-		Computed:            true,
 		Optional:            true,
-		MarkdownDescription: "Additional settings for an Atlas cluster.",
-		// Avoid adding optional-only attributes, if the block is removed and attributes are not null in the state we get unintentional plan changes after apply.
-		// Avoid computed-optional with Default, if the block is removed and the attribute Default != state value we get unintentional plan changes after apply.
+		MarkdownDescription: "Additional settings for an Atlas cluster. This attribute is Optional only - if not specified, it will not appear in state. Use the data source to query actual values from Atlas.",
 		Attributes: map[string]schema.Attribute{
 			"change_stream_options_pre_and_post_images_expire_after_seconds": schema.Int64Attribute{
-				Optional: true,
-				// Default set in NewAtlasReqAdvancedConfiguration
-				Computed:            true,
+				Optional:            true,
 				MarkdownDescription: "The minimum pre- and post-image retention time in seconds.",
 				PlanModifiers: []planmodifier.Int64{
 					PlanMustUseMongoDBVersion(7.0, EqualOrHigher),
 				},
 			},
 			"default_write_concern": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Default level of acknowledgment requested from MongoDB for write operations when none is specified by the driver.",
 			},
 			"javascript_enabled": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether the cluster allows execution of operations that perform server-side executions of JavaScript. When using 8.0+, we recommend disabling server-side JavaScript and using operators of aggregation pipeline as more performant alternative.",
 			},
 			"minimum_enabled_tls_protocol": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.",
 			},
 			"no_table_scan": schema.BoolAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether the cluster disables executing any query that requires a collection scan to return results.",
 			},
 			"oplog_min_retention_hours": schema.Float64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Minimum retention window for cluster's oplog expressed in hours. A value of null indicates that the cluster uses the default minimum oplog window that MongoDB Cloud calculates.",
 			},
 			"oplog_size_mb": schema.Int64Attribute{
 				Optional: true,
-				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.AtLeast(0),
 				},
 				MarkdownDescription: "Storage limit of cluster's oplog expressed in megabytes. A value of null indicates that the cluster uses the default oplog size that MongoDB Cloud calculates.",
 			},
 			"sample_refresh_interval_bi_connector": schema.Int64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Interval in seconds at which the mongosqld process re-samples data to create its relational schema.",
 			},
 			"sample_size_bi_connector": schema.Int64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Number of documents per database to sample when gathering schema information.",
 			},
 			"transaction_lifetime_limit_seconds": schema.Int64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Lifetime, in seconds, of multi-document transactions. Atlas considers the transactions that exceed this limit as expired and so aborts them through a periodic cleanup process.",
 			},
 			"default_max_time_ms": schema.Int64Attribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Default time limit in milliseconds for individual read operations to complete. This parameter is supported only for MongoDB version 8.0 and above.",
 				PlanModifiers: []planmodifier.Int64{
@@ -652,20 +601,17 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				},
 			},
 			"custom_openssl_cipher_config_tls12": schema.SetAttribute{
-				Computed:            true,
 				Optional:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.",
 			},
 			"custom_openssl_cipher_config_tls13": schema.SetAttribute{
-				Computed:            true,
 				Optional:            true,
 				ElementType:         types.StringType,
 				MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.",
 			},
 			"tls_cipher_config_mode": schema.StringAttribute{
 				Optional:            true,
-				Computed:            true,
 				MarkdownDescription: "The TLS cipher suite configuration mode. Valid values include `CUSTOM` or `DEFAULT`. The `DEFAULT` mode uses the default cipher suites. The `CUSTOM` mode allows you to specify custom cipher suites for both TLS 1.2 and TLS 1.3. To unset, this should be set back to `DEFAULT`.",
 			},
 		},
@@ -712,6 +658,7 @@ type TFModel struct {
 type TFModelDS struct {
 	Labels                                        types.Map    `tfsdk:"labels"`
 	ReplicationSpecs                              types.List   `tfsdk:"replication_specs"`
+	EffectiveReplicationSpecs                     types.List   `tfsdk:"effective_replication_specs"`
 	Tags                                          types.Map    `tfsdk:"tags"`
 	ReplicaSetScalingStrategy                     types.String `tfsdk:"replica_set_scaling_strategy"`
 	Name                                          types.String `tfsdk:"name"`
@@ -742,9 +689,8 @@ type TFModelDS struct {
 }
 
 type TFModelPluralDS struct {
-	ProjectID          types.String `tfsdk:"project_id"`
-	Results            []*TFModelDS `tfsdk:"results"`
-	UseEffectiveFields types.Bool   `tfsdk:"use_effective_fields"`
+	ProjectID types.String `tfsdk:"project_id"`
+	Results   []*TFModelDS `tfsdk:"results"`
 }
 
 type TFBiConnectorModel struct {
@@ -803,21 +749,30 @@ var endpointsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 
 type TFReplicationSpecsModel struct {
 	RegionConfigs types.List   `tfsdk:"region_configs"`
+	ZoneName      types.String `tfsdk:"zone_name"`
+}
+
+var replicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"region_configs": types.ListType{ElemType: regionConfigsObjType},
+	"zone_name":      types.StringType,
+}}
+
+var replicationSpecsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"region_configs": types.ListType{ElemType: regionConfigsDSObjType},
+	"zone_name":      types.StringType,
+}}
+
+// TFEffectiveReplicationSpecsModel includes Computed-only fields (container_id, external_id, zone_id)
+// that are only available in effective_replication_specs representing actual running values from Atlas.
+type TFEffectiveReplicationSpecsModel struct {
+	RegionConfigs types.List   `tfsdk:"region_configs"`
 	ContainerId   types.Map    `tfsdk:"container_id"`
 	ExternalId    types.String `tfsdk:"external_id"`
 	ZoneId        types.String `tfsdk:"zone_id"`
 	ZoneName      types.String `tfsdk:"zone_name"`
 }
 
-var replicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"container_id":   types.MapType{ElemType: types.StringType},
-	"external_id":    types.StringType,
-	"region_configs": types.ListType{ElemType: regionConfigsObjType},
-	"zone_id":        types.StringType,
-	"zone_name":      types.StringType,
-}}
-
-var replicationSpecsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var effectiveReplicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"container_id":   types.MapType{ElemType: types.StringType},
 	"external_id":    types.StringType,
 	"region_configs": types.ListType{ElemType: regionConfigsDSObjType},
@@ -850,33 +805,27 @@ var regionConfigsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type TFRegionConfigsDSModel struct {
-	AnalyticsAutoScaling    types.Object `tfsdk:"analytics_auto_scaling"`
-	AnalyticsSpecs          types.Object `tfsdk:"analytics_specs"`
-	AutoScaling             types.Object `tfsdk:"auto_scaling"`
-	BackingProviderName     types.String `tfsdk:"backing_provider_name"`
-	EffectiveAnalyticsSpecs types.Object `tfsdk:"effective_analytics_specs"`
-	EffectiveElectableSpecs types.Object `tfsdk:"effective_electable_specs"`
-	EffectiveReadOnlySpecs  types.Object `tfsdk:"effective_read_only_specs"`
-	ElectableSpecs          types.Object `tfsdk:"electable_specs"`
-	ProviderName            types.String `tfsdk:"provider_name"`
-	ReadOnlySpecs           types.Object `tfsdk:"read_only_specs"`
-	RegionName              types.String `tfsdk:"region_name"`
-	Priority                types.Int64  `tfsdk:"priority"`
+	AnalyticsAutoScaling types.Object `tfsdk:"analytics_auto_scaling"`
+	AnalyticsSpecs       types.Object `tfsdk:"analytics_specs"`
+	AutoScaling          types.Object `tfsdk:"auto_scaling"`
+	BackingProviderName  types.String `tfsdk:"backing_provider_name"`
+	ElectableSpecs       types.Object `tfsdk:"electable_specs"`
+	ProviderName         types.String `tfsdk:"provider_name"`
+	ReadOnlySpecs        types.Object `tfsdk:"read_only_specs"`
+	RegionName           types.String `tfsdk:"region_name"`
+	Priority             types.Int64  `tfsdk:"priority"`
 }
 
 var regionConfigsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"analytics_auto_scaling":    autoScalingObjType,
-	"analytics_specs":           specsObjType,
-	"auto_scaling":              autoScalingObjType,
-	"backing_provider_name":     types.StringType,
-	"effective_analytics_specs": specsObjType,
-	"effective_electable_specs": specsObjType,
-	"effective_read_only_specs": specsObjType,
-	"electable_specs":           specsObjType,
-	"priority":                  types.Int64Type,
-	"provider_name":             types.StringType,
-	"read_only_specs":           specsObjType,
-	"region_name":               types.StringType,
+	"analytics_auto_scaling": autoScalingObjType,
+	"analytics_specs":        specsObjType,
+	"auto_scaling":           autoScalingObjType,
+	"backing_provider_name":  types.StringType,
+	"electable_specs":        specsObjType,
+	"priority":               types.Int64Type,
+	"provider_name":          types.StringType,
+	"read_only_specs":        specsObjType,
+	"region_name":            types.StringType,
 }}
 
 type TFAutoScalingModel struct {

@@ -3,6 +3,7 @@ package advancedcluster
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 
@@ -42,7 +43,6 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		RedactClientLogData:              conversion.NilForUnknown(input.RedactClientLogData, input.RedactClientLogData.ValueBoolPointer()),
 		ReplicaSetScalingStrategy:        conversion.NilForUnknown(input.ReplicaSetScalingStrategy, input.ReplicaSetScalingStrategy.ValueStringPointer()),
 		ReplicationSpecs:                 newReplicationSpec(ctx, input.ReplicationSpecs, diags),
-		RootCertType:                     conversion.NilForUnknown(input.RootCertType, input.RootCertType.ValueStringPointer()),
 		Tags:                             newResourceTag(ctx, diags, input.Tags),
 		TerminationProtectionEnabled:     conversion.NilForUnknown(input.TerminationProtectionEnabled, input.TerminationProtectionEnabled.ValueBoolPointer()),
 		UseAwsTimeBasedSnapshotCopyForFastInitialSync: conversion.NilForUnknown(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync, input.UseAwsTimeBasedSnapshotCopyForFastInitialSync.ValueBoolPointer()),
@@ -65,9 +65,20 @@ func newClusterAdvancedConfiguration(ctx context.Context, objInput *types.Object
 	return &admin.ApiAtlasClusterAdvancedConfiguration{
 		MinimumEnabledTlsProtocol:      conversion.NilForUnknown(inputAdvConfig.MinimumEnabledTlsProtocol, inputAdvConfig.MinimumEnabledTlsProtocol.ValueStringPointer()),
 		TlsCipherConfigMode:            conversion.NilForUnknown(inputAdvConfig.TlsCipherConfigMode, inputAdvConfig.TlsCipherConfigMode.ValueStringPointer()),
-		CustomOpensslCipherConfigTls12: new(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls12)),
-		CustomOpensslCipherConfigTls13: new(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls13)),
+		CustomOpensslCipherConfigTls12: stringSliceFromSet(ctx, inputAdvConfig.CustomOpensslCipherConfigTls12),
+		CustomOpensslCipherConfigTls13: stringSliceFromSet(ctx, inputAdvConfig.CustomOpensslCipherConfigTls13),
 	}
+}
+
+// stringSliceFromSet returns nil when the set is null or unknown (user didn't configure it), avoiding
+// false diffs in PatchPayload. conversion.Pointer(TypesSetToString(...)) always produces &[]string{}
+// for null sets, which differs from the API's nil or populated cipher list.
+func stringSliceFromSet(ctx context.Context, set types.Set) *[]string {
+	if set.IsNull() || set.IsUnknown() {
+		return nil
+	}
+	result := conversion.TypesSetToString(ctx, set)
+	return &result
 }
 
 func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.BiConnector {
@@ -86,21 +97,34 @@ func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnos
 	}
 }
 
+// newComponentLabel converts a TF map to an SDK labels slice.
+// Results are sorted by key to ensure deterministic ordering, since Go map iteration is random.
+// Without sorting, PatchPayload's jsondiff would detect false changes from different orderings
+// between state and plan, causing unnecessary cluster PATCH calls.
 func newComponentLabel(ctx context.Context, diags *diag.Diagnostics, input types.Map) *[]admin.ComponentLabel {
+	if input.IsNull() || input.IsUnknown() {
+		return nil
+	}
 	elms := make(map[string]types.String, len(input.Elements()))
 	localDiags := input.ElementsAs(ctx, &elms, false)
 	diags.Append(localDiags...)
 	if diags.HasError() {
 		return nil
 	}
-	ret := make([]admin.ComponentLabel, 0, len(input.Elements()))
-	for key, value := range elms {
+	keys := make([]string, 0, len(elms))
+	for key := range elms {
 		if key == LegacyIgnoredLabelKey {
 			diags.AddError(ErrLegacyIgnoreLabel.Error(), ErrLegacyIgnoreLabel.Error())
 			return nil
 		}
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	ret := make([]admin.ComponentLabel, 0, len(keys))
+	for _, key := range keys {
+		value := elms[key]
 		ret = append(ret, admin.ComponentLabel{
-			Key:   &key,
+			Key:   conversion.StringPtr(key),
 			Value: value.ValueStringPointer(),
 		})
 	}
@@ -120,8 +144,6 @@ func newReplicationSpec(ctx context.Context, input types.List, diags *diag.Diagn
 	for i := range elements {
 		item := &elements[i]
 		resp[i] = admin.ReplicationSpec20240805{
-			Id:            conversion.NilForUnknownOrEmptyString(item.ExternalId),
-			ZoneId:        conversion.NilForUnknownOrEmptyString(item.ZoneId),
 			RegionConfigs: newRegionConfig(ctx, item.RegionConfigs, diags),
 			ZoneName:      conversion.StringPtr(resolveZoneNameOrUseDefault(item)),
 		}
@@ -137,15 +159,28 @@ func resolveZoneNameOrUseDefault(item *TFReplicationSpecsModel) string {
 	return *zoneName
 }
 
+// newResourceTag converts a TF map to an SDK tags slice.
+// Results are sorted by key to ensure deterministic ordering, since Go map iteration is random.
+// Without sorting, PatchPayload's jsondiff would detect false changes from different orderings
+// between state and plan, causing unnecessary cluster PATCH calls.
 func newResourceTag(ctx context.Context, diags *diag.Diagnostics, input types.Map) *[]admin.ResourceTag {
+	if input.IsNull() || input.IsUnknown() {
+		return nil
+	}
 	elms := make(map[string]types.String, len(input.Elements()))
 	localDiags := input.ElementsAs(ctx, &elms, false)
 	diags.Append(localDiags...)
 	if diags.HasError() {
 		return nil
 	}
-	ret := make([]admin.ResourceTag, 0, len(input.Elements()))
-	for key, value := range elms {
+	keys := make([]string, 0, len(elms))
+	for key := range elms {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	ret := make([]admin.ResourceTag, 0, len(keys))
+	for _, key := range keys {
+		value := elms[key]
 		ret = append(ret, admin.ResourceTag{
 			Key:   key,
 			Value: value.ValueString(),
