@@ -53,7 +53,7 @@ variable "aws_iam_role_name" {
 
 variable "log_types" {
   description = "The MongoDB log type to create"
-  type        = string array
+  type        = = list(string)
 }
 
 variable "prefix_path" {

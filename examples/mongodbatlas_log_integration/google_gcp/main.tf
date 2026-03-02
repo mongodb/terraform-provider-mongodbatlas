@@ -1,8 +1,3 @@
-provider "google" {
-  project = var.gcp_project_id
-  # region  = "us-central1"
-}
-
 # Set up log integration with authorized IAM role
 resource "mongodbatlas_log_integration" "gcs" {
   project_id  = var.project_id

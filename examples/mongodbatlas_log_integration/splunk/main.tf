@@ -3,8 +3,8 @@ resource "mongodbatlas_log_integration" "splunk" {
   project_id  = var.project_id
 
   type        = "SPLUNK_LOG_EXPORT"
-  log_types   = ["MONGOD_AUDIT"] # TODO take as variable
+  log_types   = var.log_types
 
-  hec_token = "test-hec-token" # TODO take as variable
-  hec_url = "https://test-hec-url.com:1234" # TODO take as variable
+  hec_token = var.hec_token
+  hec_url   = var.hec_url
 }

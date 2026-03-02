@@ -3,7 +3,7 @@ provider "mongodbatlas" {
   client_secret = var.atlas_client_secret
 }
 
-provider "gcp" {
+provider "google" {
   region     = var.gcp_region
   access_key = var.access_key
   secret_key = var.secret_key

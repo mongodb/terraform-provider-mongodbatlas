@@ -1,22 +1,19 @@
 # MongoDB Atlas Log Integration with Datadog
 
-This example demonstrates how to configure a log integration to export MongoDB Atlas logs to a Datadog integration.
+This example demonstrates how to configure a log integration to export MongoDB Atlas logs to Datadog.
 
 ## Prerequisites
 
 - MongoDB Atlas account with Organization Owner or Project Owner role.
-- Datadog account with permissions and API Keys.
-- Terraform >= `1.0`.
+- Datadog API Key.
 
 ## Resources Created
 
 This example creates the following resources:
 
 ### MongoDB Atlas
-- Project
-- Datadog Access Setup and Authorization.
-- Log Integration configuration.
 
+- Log Integration configuration.
 
 
 ## Usage
@@ -32,11 +29,11 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 
 ```bash
 export DATADOG_API_KEY='<DATADOG_API_KEY>'
-export DATADOG_REGION='<DATDOG_REGION>'
+export DATADOG_REGION='<DATADOG_REGION>'
 ```
 
 
-... or follow as in the `~/.azure/variables.tf` file and create **terraform.tfvars** file with all the variable values:
+... or follow as in the `~/.datadog/variables.tf` file and create **terraform.tfvars** file with all the variable values:
 
 ```hcl
 project_id        = "your-mongodb-project-id"

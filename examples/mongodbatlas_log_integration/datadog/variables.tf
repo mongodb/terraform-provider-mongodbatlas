@@ -1,4 +1,19 @@
 
+#MongoDB authentication variables
+variable "atlas_client_id" {
+  description = "The MongoDB Atlas Service Account Client ID"
+  type        = string
+  default     = ""
+}
+
+variable "atlas_client_secret" {
+  description = "The MongoDB Atlas Service Account Client Secret"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+#Datadog variables
 variable "project_id" {
   description = "The MongoDB Project ID"
   type        = string
@@ -6,7 +21,7 @@ variable "project_id" {
 
 variable "datadog_log_types" {
   description = "The MongoDB log type to create"
-  type        = string array
+  type        = list(string)
 }
 
 variable "datadog_api_key" {

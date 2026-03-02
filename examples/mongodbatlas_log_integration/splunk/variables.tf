@@ -6,7 +6,7 @@ variable "project_id" {
 
 variable "log_types" {
   description = "The MongoDB log type to create"
-  type        = string array
+  type        = list(string)
 }
 
 variable "hec_token" {

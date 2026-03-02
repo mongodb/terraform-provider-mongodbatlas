@@ -1,4 +1,4 @@
-# MongoDB Atlas Log Integration with Datadog
+# MongoDB Atlas Log Integration with Splunk
 
 This example demonstrates how to configure a log integration to export MongoDB Atlas logs to a Splunk integration.
 
@@ -7,7 +7,6 @@ This example demonstrates how to configure a log integration to export MongoDB A
 - MongoDB Atlas account with Organization Owner or Project Owner role.
 - Splunk HTTP Event Collector Token
 - Splunk Event Collector URL
-- Terraform >= `1.0`.
 
 ## Resources Created
 
@@ -22,7 +21,7 @@ This example creates the following resources:
 
 ## Usage
 
-**1\. Ensure your Datadog and MongoDB Atlas credentials are set up.**
+**1\. Ensure your Splunk and MongoDB Atlas credentials are set up.**
 
 This can be done using environment variables:
 
@@ -32,7 +31,7 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ```bash
-export HEC_TOKEC='<SPLUNK-HEC-TOKEN>'
+export HEC_TOKEN='<SPLUNK-HEC-TOKEN>'
 export HEC_URL='<SPLUNK-HEC-URL>'
 ```
 
@@ -41,7 +40,7 @@ export HEC_URL='<SPLUNK-HEC-URL>'
 
 ```hcl
 project_id    = "your-mongodb-project-id"
-type          = "DATADOG_LOG_EXPORT"
+type          = "SPLUNK_LOG_EXPORT"
 log_types     = "[your-log-export-types]"
 hec_token     = "your-splunk-hec-token"
 hec_url       = "your-splunk-hec-url"

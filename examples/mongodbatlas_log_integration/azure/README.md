@@ -6,21 +6,19 @@ This example demonstrates how to configure a log integration to export MongoDB A
 
 - MongoDB Atlas account with Organization Owner or Project Owner role.
 - Microsoft Azure account with permissions to create Blobs.
-- Terraform >= `1.0`.
 
 ## Resources Created
 
 This example creates the following resources:
 
 ### MongoDB Atlas
-- Project.
 - Cloud Provider Access Setup and Authorization.
 - Log Integration configuration.
 
 ### Azure
-- Azure Blob for storing logs.
-- IAM role for Atlas to assume.
-- IAM policy for Blob access.
+- Azure storage group.
+- Azure storage account. 
+- Azure storage container
 
 
 ## Usage
@@ -35,9 +33,9 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ```bash
-export AZURE_REGION = '<AZURE_REGION>'
-export AZURE_ACCESS_KEY_ID='<AZURE_ACCESS_KEY_ID>'
-export AZURE_SECRET_ACCESS_KEY='<AZURE_SECRET_ACCESS_KEY>'
+export AZURE_SUBSCRIPTION_ID = '<AZURE_SUBSCRIPTION_ID>'
+export AZURE_CLIENT_ID='<AZURE_CLIENT_ID>'
+export AZURE_CLIENT_SECRET='<AZURE_CLIENT_SECRET>'
 ```
 
 ... or the `~/.azure/credentials` file.
@@ -45,9 +43,9 @@ export AZURE_SECRET_ACCESS_KEY='<AZURE_SECRET_ACCESS_KEY>'
 ```
 $ cat ~/.azure/credentials
 [default]
-region     = var.azure_region
-access_key = var.access_key
-secret_key = var.secret_key
+subscription_id    = var.azure_subscription_id
+client_id = var.azure_client_id
+client_secret = var.azure_client_secret
 ```
 
 ... or follow as in the `~/.azure/variables.tf` file and create **terraform.tfvars** file with all the variable values:
@@ -57,7 +55,7 @@ project_id  = var.project_id
 type        = "AZURE_LOG_EXPORT"
 log_types   = ["MONGOS_AUDIT"]
 prefix_path            = "logs/mongodb/"
-service_principal_id   = mongodbatlas_cloud_provider_access_authorization.azure_auth.role_id
+role_id   = mongodbatlas_cloud_provider_access_authorization.azure_auth.role_id
 storage_account_name   = azurerm_storage_account.log_storage.name
 storage_container_name = azurerm_storage_container.log_container.name
 ```

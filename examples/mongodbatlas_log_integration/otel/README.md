@@ -1,4 +1,4 @@
-# MongoDB Atlas Log Integration with Datadog
+# MongoDB Atlas Log Integration with Open Telemetry
 
 This example demonstrates how to configure a log integration to export MongoDB Atlas logs to a Open Telemetry endpoint.
 
@@ -6,7 +6,6 @@ This example demonstrates how to configure a log integration to export MongoDB A
 
 - MongoDB Atlas account with Organization Owner or Project Owner role.
 - OTel endpoint and headers.
-- Terraform >= `1.0`.
 
 ## Resources Created
 
@@ -21,7 +20,7 @@ This example creates the following resources:
 
 ## Usage
 
-**1\. Ensure your Datadog and MongoDB Atlas credentials are set up.**
+**1\. Ensure your Open Telemetry and MongoDB Atlas credentials are set up.**
 
 This can be done using environment variables:
 
@@ -40,7 +39,7 @@ export OTEL-SUPPLIED-HEADERS='<OTEL-ENDPOINT-HEADERS>'
 
 ```hcl
 project_id            = "your-mongodb-project-id"
-type                  = "DATADOG_LOG_EXPORT"
+type                  = "OTEL_LOG_EXPORT"
 log_types             = var.otel_log_types
 otel_endpoint         = var.otel_endpoint
 otel_supplied_headers = var.otel_supplied_headers

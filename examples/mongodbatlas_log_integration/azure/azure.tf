@@ -15,6 +15,6 @@ resource "azurerm_storage_account" "log_storage" {
 
 # Create Azure storage container
 resource "azurerm_storage_container" "log_container" {
-  name                  = var.azure_storage_container_name
-  storage_account_id    = azurerm_storage_account.log_storage.id
+  name               = var.azure_storage_container_name
+  storage_account_id = azurerm_storage_account.log_storage.id
 }

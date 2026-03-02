@@ -6,7 +6,6 @@ This example demonstrates how to configure a log integration to export MongoDB A
 
 - MongoDB Atlas account with Organization Owner or Project Owner role.
 - AWS account with permissions to create S3 buckets and IAM roles.
-- Terraform >= `1.0`.
 
 ## Resources Created
 

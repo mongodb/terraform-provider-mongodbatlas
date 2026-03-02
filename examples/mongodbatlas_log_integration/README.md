@@ -47,7 +47,7 @@ A basic example that exports logs to a single Google Cloud Platform Container. T
 
 ### [Datadog Datastores](./datadog/)
 
-A basic example that exports logs to a single Datadog Datastore. This is the simplest setup and is suitable for most use cases.
+A basic example that configures MongoDB Atlas log integration to export logs to an existing Datadog Datastore. This is the simplest setup and is suitable for most use cases. This example does not create any Datadog resources; it assumes the Datadog Datastore already exists.
 
 **Resources created:**
 - Datadog Datastore
@@ -57,17 +57,17 @@ A basic example that exports logs to a single Datadog Datastore. This is the sim
 
 ### [OTel Collector](./otel/)
 
-A basic example that exports logs to a single OpenTelemtry Collector. This is the simplest setup and is suitable for most use cases.
+A basic example that configures MongoDB Atlas log integration to export logs to an existing OpenTelemetry Collector. This is the simplest setup and is suitable for most use cases. This example does not create any OpenTelemetry resources; it assumes the collector is already deployed.
 
 **Resources created:**
-- OpenTelemtry Collector
+- OpenTelemetry Collector
 - IAM role and policy
 - MongoDB Atlas Cloud Provider Access
 - MongoDB Atlas Log Integration
 
 ### [Splunk Storage](./splunk/)
 
-A basic example that exports logs to a single Splunk Storage. This is the simplest setup and is suitable for most use cases.
+ basic example that configures MongoDB Atlas log integration to export logs to an existing Splunk storage destination. This is the simplest setup and is suitable for most use cases. This example does not create any Splunk resources; it assumes the Splunk environment and storage are already configured.
 
 **Resources created:**
 - Splunk Storage
@@ -78,8 +78,6 @@ A basic example that exports logs to a single Splunk Storage. This is the simple
 ## Prerequisites
 
 - MongoDB Atlas account with Organization Owner or Project Owner role.
-- AWS account with permissions to create S3 buckets and IAM roles.
-- Terraform >= `1.0`.
 
 ## Log Types
 

@@ -1,12 +1,11 @@
 # MongoDB Atlas Log Integration with Google Cloud Platform Example
 
-This example demonstrates how to configure a log integration to export MongoDB Atlas logs to a Microsoft Azure Blob storage.
+This example demonstrates how to configure a log integration to export MongoDB Atlas logs to a Google Cloud Storage.
 
 ## Prerequisites
 
 - MongoDB Atlas account with Organization Owner or Project Owner role.
 - Google Cloud Platform account with permissions to create Containers and IAM roles.
-- Terraform >= `1.0`.
 
 ## Resources Created
 
@@ -17,7 +16,7 @@ This example creates the following resources:
 - Cloud Provider Access Setup and Authorization.
 - Log Integration configuration.
 
-### Google CLoud Platform
+### Google Cloud Platform
 - GCP Container for storing logs.
 - IAM role for Atlas to assume.
 - IAM policy for Container access.
@@ -36,8 +35,8 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 
 ```bash
 export GCP_REGION = '<GCP_REGION>'
-export GCP_ACCESS_KEY_ID='<GCP_ACCESS_KEY_ID>'
-export GCP_SECRET_ACCESS_KEY='<GCP_SECRET_ACCESS_KEY>'
+export GCP_ACCESS_KEY='<GCP_ACCESS_KEY>'
+export GCP_SECRET_KEY='<GCP_SECRET_KEY>'
 ```
 
 ... or the `~/.gcp/credentials` file.

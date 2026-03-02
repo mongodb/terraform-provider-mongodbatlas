@@ -1,3 +1,8 @@
+provider "mongodbatlas" {
+  client_id     = var.atlas_client_id
+  client_secret = var.atlas_client_secret
+}
+
 # Set up log integration with Datadog
 resource "mongodbatlas_log_integration" "datadog" {
   project_id  = var.project_id
