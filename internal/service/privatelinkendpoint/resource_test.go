@@ -273,7 +273,12 @@ func checkBasic(providerName, region string, portMappingEnabled *bool, withPlura
 		)
 	}
 	if withPluralDS {
-		checks = append(checks, resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)))
+		checks = append(checks,
+			resource.TestCheckResourceAttrSet(dataSourcePluralName, "project_id"),
+			resource.TestCheckResourceAttrSet(dataSourcePluralName, "provider_name"),
+			resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.#", acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.private_link_id"),
+		)
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
