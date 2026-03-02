@@ -18,7 +18,7 @@ The [private link Terraform module](https://registry.terraform.io/modules/terraf
 
 ```terraform
 resource "mongodbatlas_privatelink_endpoint" "this" {
-  project_id    = "<PROJECT-ID>"
+  project_id    = var.project_id
   provider_name = "AWS" # or "AZURE" or "GCP"
   region        = "US_EAST_1" # Any valid AWS, Azure, or GCP region
 }
@@ -32,12 +32,12 @@ resource "mongodbatlas_privatelink_endpoint" "this" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique identifier for the project, also known as `group_id` in the official documentation.
-* `provider_name` - (Required) Name of the cloud provider for which you want to create the private endpoint service. Atlas accepts `AWS`, `AZURE` or `GCP`.
+* `provider_name` - (Required) Name of the cloud provider for which you want to create the private endpoint service. Atlas accepts `AWS`, `AZURE`, `GCP`.
 * `region` - (Required) Cloud provider region in which you want to create the private endpoint connection.
 Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws), [AZURE regions](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure) and [GCP regions](https://docs.atlas.mongodb.com/reference/google-gcp/#std-label-google-gcp)
 * `timeouts` - (Optional) The duration to wait for Private Endpoint to be created or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `1h`), `delete` (default: `1h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 * `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
-* `port_mapping_enabled` - (Optional) Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-mapped architecture. When `false` or unset, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.
+* `port_mapping_enabled` - (Optional) Flag that indicates whether this resource uses GCP port-mapping. When `true`, the resource uses port-mapped architecture. When `false` or unset, the resource uses GCP legacy private endpoint architecture. Only applicable for GCP provider.
 
 ## Attributes Reference
 
@@ -46,18 +46,18 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Terraform's internal unique identifier. Use `private_link_id` instead to reference the private endpoint connection.
 * `private_link_id` - Unique identifier of the private endpoint connection.
 * `region_name` - Region for the Private Service Connect endpoint service.
-* `error_message` - Error message pertaining to the private endpoint connection. Returns null if there are no errors.
+* `error_message` - Error message for the private endpoint connection. Returns `null` if there are no errors.
 * `status` - Status of the private endpoint connection. See the provider-specific status values below.
 
 ### AWS
 
-* `endpoint_service_name` - Name of the PrivateLink endpoint service in AWS. Returns null while the endpoint service is being created.
+* `endpoint_service_name` - Name of the PrivateLink endpoint service in AWS. Returns `null` while Atlas creates the endpoint service.
 * `interface_endpoints` - Unique identifiers of the interface endpoints in your VPC that you added to the AWS PrivateLink connection.
 * `status` values:
   * `AVAILABLE` - Atlas is creating the network load balancer and VPC endpoint service.
   * `WAITING_FOR_USER` - The Atlas network load balancer and VPC endpoint service are created and ready to receive connection requests. When you receive this status, create an interface endpoint to continue configuring the AWS PrivateLink connection.
-  * `FAILED` - A system failure has occurred.
-  * `DELETING` - The AWS PrivateLink connection is being deleted.
+  * `FAILED` - A system failure occurred.
+  * `DELETING` - Atlas is deleting the AWS PrivateLink connection.
 
 ### AZURE
 
@@ -72,8 +72,8 @@ In addition to all arguments above, the following attributes are exported:
 
 ### GCP
 
-* `endpoint_group_names` - For port-mapped architectures, this is a list of private endpoint names associated with the private endpoint service. For GCP legacy private endpoint architectures, this is a list of the endpoint group names associated with the private endpoint service.
-* `service_attachment_names` - For port-mapped architecture, this is a list containing one service attachment connected to the private endpoint service. For GCP legacy private endpoint architecture, this is a list of service attachments connected to the private endpoint service (one per Atlas node). Returns an empty list while Atlas creates the service attachments.
+* `endpoint_group_names` - List of private endpoint names associated with the private endpoint service for port-mapped architectures. For GCP legacy private endpoint architectures, this is a list of endpoint group names associated with the private endpoint service.
+* `service_attachment_names` - List containing one service attachment connected to the private endpoint service for port-mapped architecture. For GCP legacy private endpoint architecture, this is a list of service attachments connected to the private endpoint service (one per Atlas node). Returns an empty list while Atlas creates the service attachments.
 * `status` values:
   * `AVAILABLE` - Atlas created the load balancer and the GCP Private Service Connect service.
   * `INITIATING` - Atlas is creating the load balancer and the GCP Private Service Connect service.
