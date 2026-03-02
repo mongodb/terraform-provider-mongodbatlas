@@ -181,6 +181,7 @@ In addition to all arguments above, the following attributes are exported:
 * `mongo_db_major_version` - Version of the cluster to deploy.
 * `pinned_fcv` - The pinned Feature Compatibility Version (FCV) with its associated expiration date. See [below](#pinned_fcv).
 * `pit_enabled` - Flag that indicates if the cluster uses Continuous Cloud Backup.
+* `retain_backups_for_disabling` - Flag that indicates whether to retain backups when disabling backups for the cluster.
 * `replication_specs` - List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. See [below](#replication_specs).
 * `root_cert_type` - Certificate Authority that MongoDB Atlas clusters use. 
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.

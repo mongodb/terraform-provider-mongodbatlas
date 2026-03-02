@@ -309,6 +309,11 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Method by which the cluster maintains the MongoDB versions. If value is `CONTINUOUS`, you must not specify **mongoDBMajorVersion**.",
 			},
+			"retain_backups_for_disabling": schema.BoolAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether to retain backup snapshots when disabling backups.",
+			},
 			"retain_backups_enabled": schema.BoolAttribute{
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster.",
@@ -698,6 +703,7 @@ type TFModel struct {
 	PinnedFCV                                     types.Object   `tfsdk:"pinned_fcv"`
 	TerminationProtectionEnabled                  types.Bool     `tfsdk:"termination_protection_enabled"`
 	Paused                                        types.Bool     `tfsdk:"paused"`
+	RetainBackupsForDisabling                     types.Bool     `tfsdk:"retain_backups_for_disabling"`
 	RetainBackupsEnabled                          types.Bool     `tfsdk:"retain_backups_enabled"`
 	BackupEnabled                                 types.Bool     `tfsdk:"backup_enabled"`
 	GlobalClusterSelfManagedSharding              types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
@@ -736,6 +742,7 @@ type TFModelDS struct {
 	BackupEnabled                                 types.Bool   `tfsdk:"backup_enabled"`
 	Paused                                        types.Bool   `tfsdk:"paused"`
 	TerminationProtectionEnabled                  types.Bool   `tfsdk:"termination_protection_enabled"`
+	RetainBackupsForDisabling                     types.Bool   `tfsdk:"retain_backups_for_disabling"`
 	PitEnabled                                    types.Bool   `tfsdk:"pit_enabled"`
 	UseAwsTimeBasedSnapshotCopyForFastInitialSync types.Bool   `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
 	UseEffectiveFields                            types.Bool   `tfsdk:"use_effective_fields"`

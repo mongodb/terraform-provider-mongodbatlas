@@ -540,6 +540,8 @@ Refer to the following for full privatelink endpoint connection string examples:
 
   -> **NOTE:** If you have a [Backup Compliance Policy](backup_compliance_policy.md) enabled for the project, you can't disable Cloud Backup without assistance from [MongoDB Support](https://www.mongodb.com/docs/atlas/support/#request-support).
 
+- `retain_backups_for_disabling` - (Optional) Set to true to retain backups when disabling backups for the cluster. Defaults to `false`.
+
 - `retain_backups_enabled` - (Optional) Set to true to retain backup snapshots for the deleted cluster. This parameter applies to the Delete operation and only affects M10 and above clusters. To delete an Atlas cluster that has an associated [`mongodbatlas_cloud_backup_schedule`](cloud_backup_schedule.md) resource and an enabled [Backup Compliance Policy](backup_compliance_policy.md), see [Delete a Cluster with a Backup Compliance Policy](../guides/delete-cluster-with-backup-compliance-policy.md).
 
   -> **NOTE** Prior version of provider had parameter as `bi_connector` state will migrate it to new value you only need to update parameter in your terraform file

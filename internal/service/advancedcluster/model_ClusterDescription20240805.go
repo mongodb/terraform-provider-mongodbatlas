@@ -47,6 +47,7 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 		RedactClientLogData:              types.BoolValue(conversion.SafeValue(input.RedactClientLogData)),
 		ReplicaSetScalingStrategy:        types.StringValue(conversion.SafeValue(input.ReplicaSetScalingStrategy)),
 		ReplicationSpecs:                 replicationSpecs,
+		RetainBackupsForDisabling:        types.BoolValue(conversion.SafeValue(input.RetainBackups)),
 		RootCertType:                     types.StringValue(conversion.SafeValue(input.RootCertType)),
 		StateName:                        types.StringValue(conversion.SafeValue(input.StateName)),
 		Tags:                             tags,

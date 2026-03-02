@@ -85,6 +85,11 @@ func TestAdvancedCluster_PlanModifierValid(t *testing.T) {
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
+			{
+				Config:             configBasic(projectID, clusterName, "retain_backups_for_disabling = true"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
 		},
 	})
 }
