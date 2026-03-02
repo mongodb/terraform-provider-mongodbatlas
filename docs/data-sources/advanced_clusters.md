@@ -4,16 +4,10 @@ subcategory: "Clusters"
 
 # Data Source: mongodbatlas_advanced_clusters
 
-`mongodbatlas_advanced_clusters` returns all Advanced Clusters for a project_id.
+`mongodbatlas_advanced_clusters` describes all Advanced Clusters, including Flex clusters, for a project_id.
 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
-~> **IMPORTANT:**
-<br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
-<br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
-
--> **NOTE:** This data source also includes Flex clusters.
 
 ## Example Usage
 
