@@ -1480,6 +1480,7 @@ func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, isTPF bool)
 			name         = %[2]q
 			cluster_type = %[3]q
 			retain_backups_enabled = "true"
+			retain_backups_for_disabling = "true"
 			disk_size_gb = %[4]d
 
 			replication_specs {
@@ -1507,6 +1508,7 @@ func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, isTPF bool)
 			name         = %[2]q
 			cluster_type = %[3]q
 			retain_backups_enabled = "true"
+			retain_backups_for_disabling = "true"
 		
 
 		  replication_specs = [{
@@ -1533,6 +1535,9 @@ func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, isTPF bool)
 func checkReplicaSetAWSProvider(isTPF, useDataSource bool, projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
 		acc.TestCheckResourceAttrMigTPF(isTPF, resourceName, "retain_backups_enabled", "true"),
+		acc.TestCheckResourceAttrMigTPF(isTPF, resourceName, "retain_backups_for_disabling", "true"),
+		acc.TestCheckResourceAttrMigTPF(isTPF, dataSourceName, "retain_backups_for_disabling", "true"),
+		acc.TestCheckResourceAttrMigTPF(isTPF, dataSourcePluralName, "results.0.retain_backups_for_disabling", "true"),
 	}
 	additionalChecks = append(additionalChecks,
 		acc.TestCheckResourceAttrWithMigTPF(isTPF, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
