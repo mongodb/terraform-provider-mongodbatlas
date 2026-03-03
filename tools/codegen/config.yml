@@ -1185,9 +1185,6 @@ resources:
             immutable_computed: true
           otel_supplied_headers:
             sensitive: true
-          # no need for discriminator as there is currently only a single type, keep prod code exactly as is
-          type:
-            ignore_validators: [ discriminator ]
     datasources:
       read:
         path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}

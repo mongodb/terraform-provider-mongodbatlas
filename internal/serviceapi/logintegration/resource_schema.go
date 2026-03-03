@@ -8,8 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customvalidator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -104,6 +106,36 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"type": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.",
+				Validators: []validator.String{
+					customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
+						Mapping: map[string]customvalidator.VariantDefinition{
+							"AZURE_LOG_EXPORT": {
+								Allowed:  []string{"prefix_path", "role_id", "storage_account_name", "storage_container_name"},
+								Required: []string{"prefix_path", "role_id", "storage_account_name", "storage_container_name"},
+							},
+							"DATADOG_LOG_EXPORT": {
+								Allowed:  []string{"api_key", "region"},
+								Required: []string{"api_key", "region"},
+							},
+							"GCS_LOG_EXPORT": {
+								Allowed:  []string{"bucket_name", "prefix_path", "role_id"},
+								Required: []string{"bucket_name", "prefix_path", "role_id"},
+							},
+							"OTEL_LOG_EXPORT": {
+								Allowed:  []string{"otel_endpoint", "otel_supplied_headers"},
+								Required: []string{"otel_endpoint", "otel_supplied_headers"},
+							},
+							"S3_LOG_EXPORT": {
+								Allowed:  []string{"bucket_name", "iam_role_id", "kms_key", "prefix_path"},
+								Required: []string{"bucket_name", "iam_role_id", "prefix_path"},
+							},
+							"SPLUNK_LOG_EXPORT": {
+								Allowed:  []string{"hec_token", "hec_url"},
+								Required: []string{"hec_token", "hec_url"},
+							},
+						},
+					}),
+				},
 			},
 		},
 	}
