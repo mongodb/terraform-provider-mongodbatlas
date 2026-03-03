@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       # Avoid: cannot run Terraform provider tests: error calling terraform version command: fork/exec /tmp/plugintest-terraformXXX/terraform: text file busy also speeds up the tests as terraform will already exist on path.
       # Also speeds up the tests
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85
         with:
           terraform_version: '1.14.x'
           terraform_wrapper: false
