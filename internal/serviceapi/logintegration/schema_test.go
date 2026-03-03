@@ -179,6 +179,12 @@ func TestAccLogIntegration_discriminatorValidConfig(t *testing.T) {
 				region  = "US1"
 			`),
 		},
+		{
+			name: "unknown integration type skips discriminator validation",
+			config: config("FUTURE_UNKNOWN_LOG_EXPORT", `
+				api_key = "test-dd-api-key"
+			`),
+		},
 	}
 
 	for _, tc := range testCases {
