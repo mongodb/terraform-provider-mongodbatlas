@@ -1,11 +1,11 @@
-# MongoDB Atlas Log Integration with S3 Bucket Example
+# MongoDB Atlas Log Integration with Azure Blob Storage Example
 
-This example demonstrates how to configure a log integration to export MongoDB Atlas logs to an Amazon S3 bucket.
+This example demonstrates how to configure a log integration to export MongoDB Atlas logs to an Azure Blob Storage container.
 
 ## Prerequisites
 
 - MongoDB Atlas Service Account with Organization Owner or Project Owner role.
-- AWS account with permissions to create S3 buckets and IAM roles.
+- Azure account with permissions to create resource groups, storage accounts, and storage containers.
 
 ## Resources Created
 
@@ -16,14 +16,14 @@ This example creates the following resources:
 - Cloud Provider Access Setup and Authorization.
 - Log Integration configuration.
 
-### AWS
-- S3 bucket for storing logs.
-- IAM role for Atlas to assume.
-- IAM policy for S3 access.
+### Azure
+- Resource group for log storage.
+- Storage account.
+- Storage container.
 
 ## Usage
 
-**1\. Ensure your AWS and MongoDB Atlas credentials are set up.**
+**1\. Ensure your Azure and MongoDB Atlas credentials are set up.**
 
 This can be done using environment variables:
 
@@ -33,27 +33,24 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ```bash
-export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
-export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
-```
-
-... or the `~/.aws/credentials` file.
-
-```
-$ cat ~/.aws/credentials
-[default]
-aws_access_key_id = <AWS_ACCESS_KEY_ID>
-aws_secret_access_key = <AWS_SECRET_ACCESS_KEY>
+export ARM_SUBSCRIPTION_ID="<AZURE_SUBSCRIPTION_ID>"
+export ARM_CLIENT_ID="<AZURE_CLIENT_ID>"
+export ARM_CLIENT_SECRET="<AZURE_CLIENT_SECRET>"
+export ARM_TENANT_ID="<AZURE_TENANT_ID>"
 ```
 
 ... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values:
 
 ```hcl
-atlas_org_id        = "your-org-id"
-atlas_client_id     = "your-service-account-client-id"
-atlas_client_secret = "your-service-account-client-secret"
-access_key          = "your-aws-access-key"
-secret_key          = "your-aws-secret-key"
+atlas_org_id               = "your-org-id"
+atlas_client_id            = "your-service-account-client-id"
+atlas_client_secret        = "your-service-account-client-secret"
+azure_subscription_id      = "your-azure-subscription-id"
+azure_client_id            = "your-azure-client-id"
+azure_client_secret        = "your-azure-client-secret"
+azure_tenant_id            = "your-azure-tenant-id"
+atlas_azure_app_id         = "your-atlas-azure-app-id"
+azure_service_principal_id = "your-azure-service-principal-id"
 ```
 
 **2\. Review the Terraform plan.**
@@ -91,4 +88,3 @@ The `log_types` attribute supports the following values:
 ## Notes
 
 - Atlas will add sub-directories based on the log type under the specified `prefix_path`.
-- Optional: Use `kms_key` to specify an AWS KMS key ID or ARN for server-side encryption.

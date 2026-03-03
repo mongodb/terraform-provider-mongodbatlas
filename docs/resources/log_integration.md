@@ -4,60 +4,140 @@ subcategory: "Log Integration"
 
 # Resource: mongodbatlas_log_integration
 
-`mongodbatlas_log_integration` provides a resource for managing log integration configurations at the project level. This resource allows you to continually export `mongod`, `mongos`, and audit logs to an AWS S3 bucket with 1-minute log export intervals.
+`mongodbatlas_log_integration` provides a resource for managing log integration configurations at the project level. This resource allows you to continually export `mongod`, `mongos`, and audit logs at 1-minute intervals. Supported integration types include AWS S3, Google Cloud Storage, Azure Blob Storage, Datadog, Splunk, and OpenTelemetry.
 
-To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+## Example Usages
 
-## Example Usage
+### AWS S3
 
 ```terraform
-resource "mongodbatlas_project" "project" {
-  name   = var.atlas_project_name
-  org_id = var.atlas_org_id
-}
-
-# Set up cloud provider access in Atlas using the created IAM role
-resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-  project_id    = mongodbatlas_project.project.id
+resource "mongodbatlas_cloud_provider_access_setup" "setup" {
+  project_id    = var.project_id
   provider_name = "AWS"
 }
 
-resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-  project_id = mongodbatlas_project.project.id
-  role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+resource "mongodbatlas_cloud_provider_access_authorization" "auth" {
+  project_id = var.project_id
+  role_id    = mongodbatlas_cloud_provider_access_setup.setup.role_id
 
   aws {
     iam_assumed_role_arn = aws_iam_role.atlas_role.arn
   }
 }
 
-# Set up log integration with authorized IAM role
 resource "mongodbatlas_log_integration" "example" {
-  project_id  = mongodbatlas_project.project.id
-  bucket_name = aws_s3_bucket.log_bucket.bucket
-  iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-  prefix_path = "atlas-logs"
+  project_id  = var.project_id
   type        = "S3_LOG_EXPORT"
-  log_types   = ["MONGOD_AUDIT"]
-}
-
-data "mongodbatlas_log_integration" "example" {
-  project_id     = mongodbatlas_log_integration.example.project_id
-  integration_id = mongodbatlas_log_integration.example.integration_id
-}
-
-data "mongodbatlas_log_integrations" "example" {
-  project_id = mongodbatlas_log_integration.example.project_id
-}
-
-output "log_integration_bucket_name" {
-  value = data.mongodbatlas_log_integration.example.bucket_name
-}
-
-output "log_integrations_results" {
-  value = data.mongodbatlas_log_integrations.example.results
+  log_types   = ["MONGOD", "MONGOS", "MONGOD_AUDIT", "MONGOS_AUDIT"]
+  bucket_name = aws_s3_bucket.log_bucket.bucket
+  iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth.role_id
+  prefix_path = "atlas-logs"
 }
 ```
+
+### Google Cloud Storage (GCS)
+
+```terraform
+resource "mongodbatlas_cloud_provider_access_setup" "setup" {
+  project_id    = var.project_id
+  provider_name = "GCP"
+}
+
+resource "mongodbatlas_cloud_provider_access_authorization" "auth" {
+  project_id = var.project_id
+  role_id    = mongodbatlas_cloud_provider_access_setup.setup.role_id
+}
+
+resource "mongodbatlas_log_integration" "example" {
+  project_id  = var.project_id
+  type        = "GCS_LOG_EXPORT"
+  log_types   = ["MONGOD"]
+  bucket_name = google_storage_bucket.log_bucket.name
+  role_id     = mongodbatlas_cloud_provider_access_authorization.auth.role_id
+  prefix_path = "atlas-logs"
+}
+```
+
+### Azure Blob Storage
+
+```terraform
+resource "mongodbatlas_cloud_provider_access_setup" "setup" {
+  project_id    = var.project_id
+  provider_name = "AZURE"
+
+  azure_config {
+    atlas_azure_app_id   = var.atlas_azure_app_id
+    service_principal_id = var.azure_service_principal_id
+    tenant_id            = var.azure_tenant_id
+  }
+}
+
+resource "mongodbatlas_cloud_provider_access_authorization" "auth" {
+  project_id = var.project_id
+  role_id    = mongodbatlas_cloud_provider_access_setup.setup.role_id
+
+  azure {
+    atlas_azure_app_id   = var.atlas_azure_app_id
+    service_principal_id = var.azure_service_principal_id
+    tenant_id            = var.azure_tenant_id
+  }
+}
+
+resource "mongodbatlas_log_integration" "example" {
+  project_id             = var.project_id
+  type                   = "AZURE_LOG_EXPORT"
+  log_types              = ["MONGOD"]
+  service_principal_id   = mongodbatlas_cloud_provider_access_authorization.auth.role_id
+  storage_account_name   = azurerm_storage_account.log_storage.name
+  storage_container_name = azurerm_storage_container.log_container.name
+  prefix_path            = "atlas-logs"
+}
+```
+
+### Datadog
+
+```terraform
+resource "mongodbatlas_log_integration" "example" {
+  project_id = var.project_id
+  type       = "DATADOG_LOG_EXPORT"
+  log_types  = ["MONGOD"]
+  api_key    = var.datadog_api_key
+  region     = "US1"
+}
+```
+
+### Splunk
+
+```terraform
+resource "mongodbatlas_log_integration" "example" {
+  project_id = var.project_id
+  type       = "SPLUNK_LOG_EXPORT"
+  log_types  = ["MONGOD"]
+  hec_token  = var.splunk_hec_token
+  hec_url    = "https://your-splunk-instance.com:8088"
+}
+```
+
+### OpenTelemetry
+
+```terraform
+resource "mongodbatlas_log_integration" "example" {
+  project_id    = var.project_id
+  type          = "OTEL_LOG_EXPORT"
+  log_types     = ["MONGOD"]
+  otel_endpoint = "https://your-otel-collector.com:4318/v1/logs"
+
+  otel_supplied_headers = [
+    {
+      name  = "Authorization"
+      value = "Bearer your-token"
+    }
+  ]
+}
+```
+
+### Further Examples
+- [Log Integration Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_log_integration)
 
 <!-- schema generated by tfplugindocs -->
 ## Schema

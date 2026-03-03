@@ -3,28 +3,24 @@ resource "mongodbatlas_project" "project" {
   org_id = var.atlas_org_id
 }
 
-# Set up cloud provider access in Atlas using the created IAM role
+# Set up cloud provider access in Atlas for GCP
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
   project_id    = mongodbatlas_project.project.id
-  provider_name = "AWS"
+  provider_name = "GCP"
 }
 
 resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
   project_id = mongodbatlas_project.project.id
   role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
-
-  aws {
-    iam_assumed_role_arn = aws_iam_role.atlas_role.arn
-  }
 }
 
-# Set up log integration with authorized IAM role
+# Set up log integration to export logs to GCS
 resource "mongodbatlas_log_integration" "example" {
   project_id  = mongodbatlas_project.project.id
-  type        = "S3_LOG_EXPORT"
-  log_types   = ["MONGOD_AUDIT"]
-  bucket_name = aws_s3_bucket.log_bucket.bucket
-  iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+  type        = "GCS_LOG_EXPORT"
+  log_types   = ["MONGOD"]
+  bucket_name = google_storage_bucket.log_bucket.name
+  role_id     = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
   prefix_path = "atlas-logs"
 }
 

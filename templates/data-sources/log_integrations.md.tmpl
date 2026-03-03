@@ -4,14 +4,23 @@ subcategory: "Log Integration"
 
 # {{.Type}}: {{.Name}}
 
-`{{.Name}}` returns all log integrations in a project. Log integrations allow you to continually export `mongod`, `mongos`, and audit logs to an AWS S3 bucket with 1-minute log export intervals.
+`{{.Name}}` describes all log integrations configured at the project level. Supported integration types include AWS S3, Google Cloud Storage, Azure Blob Storage, Datadog, Splunk, and OpenTelemetry.
 
-To use this data source, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+## Example Usage
 
-## Example Usages
-{{ tffile (printf "examples/mongodbatlas_log_integration/s3bucket/main.tf" )}}
+```terraform
+data "mongodbatlas_log_integrations" "example" {
+  project_id = var.project_id
+}
+
+output "integration_ids" {
+  value = [for r in data.mongodbatlas_log_integrations.example.results : r.integration_id]
+}
+```
+
+### Further Examples
+- [Log Integration Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_log_integration)
 
 {{ .SchemaMarkdown | trimspace }}
 
 For more information see: [MongoDB Atlas API - Log Integration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-push-based-log-export) Documentation.
-

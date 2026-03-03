@@ -1,12 +1,12 @@
 # MongoDB Atlas Log Integration Examples
 
-This directory contains examples demonstrating how to configure log integrations to export MongoDB Atlas logs to AWS S3.
+This directory contains examples demonstrating how to configure log integrations to export MongoDB Atlas logs to various destinations.
 
 ## Available Examples
 
 ### [S3 Bucket](./s3bucket/)
 
-A basic example that exports logs to a single S3 bucket. This is the simplest setup and is suitable for most use cases.
+A basic example that exports logs to a single S3 bucket. This is the simplest S3 setup and is suitable for most use cases.
 
 **Resources created:**
 - S3 bucket
@@ -25,11 +25,47 @@ An advanced example that exports logs to an S3 Multi-Region Access Point (MRAP) 
 - MongoDB Atlas Cloud Provider Access
 - MongoDB Atlas Log Integration
 
+### [GCS Bucket](./gcp/)
+
+Exports logs to a Google Cloud Storage (GCS) bucket.
+
+**Resources created:**
+- GCS bucket
+- MongoDB Atlas Log Integration
+
+### [Azure Blob Storage](./azure/)
+
+Exports logs to an Azure Blob Storage container.
+
+**Resources created:**
+- Azure resource group, storage account, and storage container
+- MongoDB Atlas Log Integration
+
+### [Datadog](./datadog/)
+
+Exports logs to Datadog.
+
+**Resources created:**
+- MongoDB Atlas Log Integration
+
+### [Splunk](./splunk/)
+
+Exports logs to a Splunk HTTP Event Collector (HEC) endpoint.
+
+**Resources created:**
+- MongoDB Atlas Log Integration
+
+### [OpenTelemetry (OTel)](./otel/)
+
+Exports logs to an OpenTelemetry collector.
+
+**Resources created:**
+- MongoDB Atlas Log Integration
+
 ## Prerequisites
 
-- MongoDB Atlas account with Organization Owner or Project Owner role.
-- AWS account with permissions to create S3 buckets and IAM roles.
-- Terraform >= `1.0`.
+- MongoDB Atlas Service Account with Organization Owner or Project Owner role.
+- Cloud provider account and credentials appropriate for the chosen example.
 
 ## Log Types
 
@@ -38,9 +74,3 @@ The `log_types` attribute supports the following values:
 - `MONGOS` - MongoDB router logs.
 - `MONGOD_AUDIT` - MongoDB server audit logs.
 - `MONGOS_AUDIT` - MongoDB router audit logs.
-
-## Notes
-
-- The requesting Service Account or API Key must have the Organization Owner or Project Owner role.
-- MongoDB Cloud will add sub-directories based on the log type under the specified `prefix_path`.
-- Optional: Use `kms_key` to specify an AWS KMS key ID or ARN for server-side encryption.
