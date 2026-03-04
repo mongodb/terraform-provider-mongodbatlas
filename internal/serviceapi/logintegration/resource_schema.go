@@ -17,7 +17,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"bucket_name": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "Human-readable label that identifies the S3 bucket name for storing log files.",
 			},
 			"project_id": schema.StringAttribute{
@@ -26,7 +26,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"iam_role_id": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.",
 			},
 			"integration_id": schema.StringAttribute{
@@ -40,12 +40,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"log_types": schema.SetAttribute{
 				Required:            true,
-				MarkdownDescription: "Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.",
+				MarkdownDescription: "Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.",
 				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
 			"prefix_path": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.",
 			},
 			"type": schema.StringAttribute{
