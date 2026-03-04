@@ -1,6 +1,6 @@
 # MongoDB Atlas Log Integration Examples
 
-This directory contains examples demonstrating how to configure log integrations to export MongoDB Atlas logs to various destinations.
+This directory contains examples demonstrating how to configure log integrations to export MongoDB Atlas logs to various cloud providers and monitoring and observability tools.
 
 ## Available Examples
 
