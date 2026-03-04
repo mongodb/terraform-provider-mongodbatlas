@@ -21,8 +21,8 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 				Name:        "test_name",
 				PackageName: "testname",
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
-						SingularDSAttributes: &codespec.Attributes{
+					Singular: &codespec.Schema{
+						Attributes: codespec.Attributes{
 							{
 								TFSchemaName:             "string_attr",
 								TFModelName:              "StringAttr",
@@ -69,8 +69,8 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 				Name:        "test_name",
 				PackageName: "testname",
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
-						SingularDSAttributes: &codespec.Attributes{
+					Singular: &codespec.Schema{
+						Attributes: codespec.Attributes{
 							{
 								TFSchemaName:             "nested_object_attr",
 								TFModelName:              "NestedObjectAttr",
@@ -130,9 +130,9 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 				Name:        "test_name",
 				PackageName: "testname",
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
+					Singular: &codespec.Schema{
 						DeprecationMessage: new("This data source is deprecated. Please use the test_name_new data source instead."),
-						SingularDSAttributes: &codespec.Attributes{
+						Attributes: codespec.Attributes{
 							{
 								TFSchemaName:             "string_attr",
 								TFModelName:              "StringAttr",
@@ -151,8 +151,8 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 				Name:        "test_name",
 				PackageName: "testname",
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
-						SingularDSAttributes: &codespec.Attributes{
+					Singular: &codespec.Schema{
+						Attributes: codespec.Attributes{
 							{
 								TFSchemaName:             "project_id",
 								TFModelName:              "ProjectId",
@@ -198,17 +198,17 @@ func TestDataSourceSchemaGenerationErrors(t *testing.T) {
 				PackageName: "testname",
 				DataSources: nil,
 			},
-			expectedErrMsg: "data source schema is required for test_name",
+			expectedErrMsg: "singular data source schema is required for test_name",
 		},
-		"Missing DataSources Schema": {
+		"Missing Singular Schema": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
 				DataSources: &codespec.DataSources{
-					Schema: nil,
+					Singular: nil,
 				},
 			},
-			expectedErrMsg: "data source schema is required for test_name",
+			expectedErrMsg: "singular data source schema is required for test_name",
 		},
 	}
 

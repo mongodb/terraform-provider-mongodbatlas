@@ -37,29 +37,31 @@ func ApplyTransformationsToResource(resourceConfig *config.Resource, resource *R
 // This mirrors ApplyTransformationsToResource for resources, without timeout-related and create-only transformations.
 // Exported for testing purposes.
 func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSources) error {
-	if ds == nil || ds.Schema == nil {
+	if ds == nil {
 		return nil
 	}
-
-	parentPaths := &attrPaths{schemaPath: "", apiPath: ""}
-	if err := applyAttributeTransformationsList(dsConfig.SchemaOptions, ds.Schema.SingularDSAttributes, parentPaths, dataSourceTransformations); err != nil {
-		return fmt.Errorf("failed to apply attribute transformations for singular data source: %w", err)
+	if err := applyDSSchemaTransformations(dsConfig.SchemaOptions, ds.Singular); err != nil {
+		return fmt.Errorf("failed to apply transformations for singular data source: %w", err)
 	}
-	if err := applyAttributeTransformationsList(dsConfig.SchemaOptions, ds.Schema.PluralDSAttributes, parentPaths, dataSourceTransformations); err != nil {
-		return fmt.Errorf("failed to apply attribute transformations for plural data source: %w", err)
+	if err := applyDSSchemaTransformations(dsConfig.SchemaOptions, ds.Plural); err != nil {
+		return fmt.Errorf("failed to apply transformations for plural data source: %w", err)
 	}
-
-	applyAliasToDiscriminator(dsConfig.SchemaOptions.Aliases, nil, ds.Schema.SingularDSAttributes)
-	applyAliasToDiscriminator(dsConfig.SchemaOptions.Aliases, nil, ds.Schema.PluralDSAttributes)
-	skipValidationForAllNestedDiscriminators(ds.Schema.SingularDSAttributes)
-	skipValidationForAllNestedDiscriminators(ds.Schema.PluralDSAttributes)
 	applyAliasToPathParams(&ds.Operations, dsConfig.SchemaOptions.Aliases)
-	if ds.Schema.SingularDSAttributes != nil {
-		EnhanceDescriptionsWithDiscriminator(*ds.Schema.SingularDSAttributes, nil, false)
+	return nil
+}
+
+func applyDSSchemaTransformations(schemaOptions config.SchemaOptions, schema *Schema) error {
+	if schema == nil {
+		return nil
 	}
-	if ds.Schema.PluralDSAttributes != nil {
-		EnhanceDescriptionsWithDiscriminator(*ds.Schema.PluralDSAttributes, nil, false)
+	parentPaths := &attrPaths{schemaPath: "", apiPath: ""}
+	if err := applyAttributeTransformationsList(schemaOptions, &schema.Attributes, parentPaths, dataSourceTransformations); err != nil {
+		return err
 	}
+	applyAliasToDiscriminator(schemaOptions.Aliases, schema.Discriminator, &schema.Attributes)
+	skipDiscriminator(schema.Discriminator)
+	skipValidationForAllNestedDiscriminators(&schema.Attributes)
+	EnhanceDescriptionsWithDiscriminator(schema.Attributes, schema.Discriminator, false)
 	return nil
 }
 
