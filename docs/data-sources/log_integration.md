@@ -12,11 +12,11 @@ To use this data source, the requesting Service Account or API Key must have the
 
 ```terraform
 data "mongodbatlas_log_integration" "example" {
-  project_id     = var.project_id
-  integration_id = var.integration_id
+  project_id     = mongodbatlas_log_integration.example.project_id
+  integration_id = mongodbatlas_log_integration.example.integration_id
 }
 
-output "integration_type" {
+output "log_integration_type" {
   value = data.mongodbatlas_log_integration.example.type
 }
 ```

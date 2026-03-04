@@ -10,15 +10,7 @@ To use this data source, the requesting Service Account or API Key must have the
 
 ## Example Usage
 
-```terraform
-data "mongodbatlas_log_integrations" "example" {
-  project_id = var.project_id
-}
-
-output "integration_ids" {
-  value = [for r in data.mongodbatlas_log_integrations.example.results : r.integration_id]
-}
-```
+{{ tffile "examples/mongodbatlas_log_integration/s3bucket/plural-data-source.tf" }}
 
 ### Further Examples
 - [Log Integration Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_log_integration)

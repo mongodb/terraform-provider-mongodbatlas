@@ -9,5 +9,5 @@ resource "google_storage_bucket" "log_bucket" {
 resource "google_storage_bucket_iam_member" "atlas_access" {
   bucket = google_storage_bucket.log_bucket.name
   role   = "roles/storage.objectAdmin"
-  member = "serviceAccount:${mongodbatlas_cloud_provider_access_authorization.auth_role.gcp[0].service_account_for_atlas}"
+  member = "serviceAccount:${mongodbatlas_cloud_provider_access_authorization.auth.gcp[0].service_account_for_atlas}"
 }

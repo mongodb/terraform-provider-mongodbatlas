@@ -13,13 +13,14 @@ To use this resource, the requesting Service Account or API Key must have the Or
 ### AWS S3
 
 ```terraform
+# Set up cloud provider access in Atlas for AWS
 resource "mongodbatlas_cloud_provider_access_setup" "setup" {
-  project_id    = var.project_id
+  project_id    = mongodbatlas_project.project.id
   provider_name = "AWS"
 }
 
 resource "mongodbatlas_cloud_provider_access_authorization" "auth" {
-  project_id = var.project_id
+  project_id = mongodbatlas_project.project.id
   role_id    = mongodbatlas_cloud_provider_access_setup.setup.role_id
 
   aws {
@@ -28,9 +29,9 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth" {
 }
 
 resource "mongodbatlas_log_integration" "example" {
-  project_id  = var.project_id
+  project_id  = mongodbatlas_project.project.id
   type        = "S3_LOG_EXPORT"
-  log_types   = ["MONGOD", "MONGOS", "MONGOD_AUDIT", "MONGOS_AUDIT"]
+  log_types   = ["MONGOD_AUDIT"]
   bucket_name = aws_s3_bucket.log_bucket.bucket
   iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth.role_id
   prefix_path = "atlas-logs"
@@ -40,18 +41,19 @@ resource "mongodbatlas_log_integration" "example" {
 ### Google Cloud Storage (GCS)
 
 ```terraform
+# Set up cloud provider access in Atlas for GCP
 resource "mongodbatlas_cloud_provider_access_setup" "setup" {
-  project_id    = var.project_id
+  project_id    = mongodbatlas_project.project.id
   provider_name = "GCP"
 }
 
 resource "mongodbatlas_cloud_provider_access_authorization" "auth" {
-  project_id = var.project_id
+  project_id = mongodbatlas_project.project.id
   role_id    = mongodbatlas_cloud_provider_access_setup.setup.role_id
 }
 
 resource "mongodbatlas_log_integration" "example" {
-  project_id  = var.project_id
+  project_id  = mongodbatlas_project.project.id
   type        = "GCS_LOG_EXPORT"
   log_types   = ["MONGOD"]
   bucket_name = google_storage_bucket.log_bucket.name
@@ -63,8 +65,9 @@ resource "mongodbatlas_log_integration" "example" {
 ### Azure Blob Storage
 
 ```terraform
+# Set up cloud provider access in Atlas for Azure
 resource "mongodbatlas_cloud_provider_access_setup" "setup" {
-  project_id    = var.project_id
+  project_id    = mongodbatlas_project.project.id
   provider_name = "AZURE"
 
   azure_config {
@@ -75,7 +78,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "setup" {
 }
 
 resource "mongodbatlas_cloud_provider_access_authorization" "auth" {
-  project_id = var.project_id
+  project_id = mongodbatlas_project.project.id
   role_id    = mongodbatlas_cloud_provider_access_setup.setup.role_id
 
   azure {
@@ -86,10 +89,10 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth" {
 }
 
 resource "mongodbatlas_log_integration" "example" {
-  project_id             = var.project_id
+  project_id             = mongodbatlas_project.project.id
   type                   = "AZURE_LOG_EXPORT"
   log_types              = ["MONGOD"]
-  service_principal_id   = mongodbatlas_cloud_provider_access_authorization.auth.role_id
+  role_id                = mongodbatlas_cloud_provider_access_authorization.auth.role_id
   storage_account_name   = azurerm_storage_account.log_storage.name
   storage_container_name = azurerm_storage_container.log_container.name
   prefix_path            = "atlas-logs"
@@ -100,11 +103,11 @@ resource "mongodbatlas_log_integration" "example" {
 
 ```terraform
 resource "mongodbatlas_log_integration" "example" {
-  project_id = var.project_id
+  project_id = mongodbatlas_project.project.id
   type       = "DATADOG_LOG_EXPORT"
   log_types  = ["MONGOD"]
   api_key    = var.datadog_api_key
-  region     = "US1"
+  region     = var.datadog_region
 }
 ```
 
@@ -112,11 +115,11 @@ resource "mongodbatlas_log_integration" "example" {
 
 ```terraform
 resource "mongodbatlas_log_integration" "example" {
-  project_id = var.project_id
+  project_id = mongodbatlas_project.project.id
   type       = "SPLUNK_LOG_EXPORT"
   log_types  = ["MONGOD"]
   hec_token  = var.splunk_hec_token
-  hec_url    = "https://your-splunk-instance.com:8088"
+  hec_url    = var.splunk_hec_url
 }
 ```
 
@@ -124,17 +127,11 @@ resource "mongodbatlas_log_integration" "example" {
 
 ```terraform
 resource "mongodbatlas_log_integration" "example" {
-  project_id    = var.project_id
-  type          = "OTEL_LOG_EXPORT"
-  log_types     = ["MONGOD"]
-  otel_endpoint = "https://your-otel-collector.com:4318/v1/logs"
-
-  otel_supplied_headers = [
-    {
-      name  = "Authorization"
-      value = "Bearer your-token"
-    }
-  ]
+  project_id            = mongodbatlas_project.project.id
+  type                  = "OTEL_LOG_EXPORT"
+  log_types             = ["MONGOD"]
+  otel_endpoint         = var.otel_endpoint
+  otel_supplied_headers = var.otel_supplied_headers
 }
 ```
 

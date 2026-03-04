@@ -10,16 +10,7 @@ To use this data source, the requesting Service Account or API Key must have the
 
 ## Example Usage
 
-```terraform
-data "mongodbatlas_log_integration" "example" {
-  project_id     = var.project_id
-  integration_id = var.integration_id
-}
-
-output "integration_type" {
-  value = data.mongodbatlas_log_integration.example.type
-}
-```
+{{ tffile "examples/mongodbatlas_log_integration/datadog/singular-data-source.tf" }}
 
 ### Further Examples
 - [Log Integration Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_log_integration)
