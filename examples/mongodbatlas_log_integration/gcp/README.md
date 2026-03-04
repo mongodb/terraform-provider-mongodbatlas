@@ -1,4 +1,4 @@
-# MongoDB Atlas Log Integration with GCS Bucket Example
+# MongoDB Atlas Log Integration with Google Cloud Storage Buckets Example
 
 This example demonstrates how to configure a log integration to export MongoDB Atlas logs to a Google Cloud Storage (GCS) bucket.
 

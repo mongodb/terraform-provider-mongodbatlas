@@ -29,7 +29,7 @@ variable "datadog_api_key" {
 }
 
 variable "datadog_region" {
-  description = "Datadog region (e.g. US1, US3, US5, EU1, AP1)"
+  description = "Datadog region"
   type        = string
   default     = "US1"
 }

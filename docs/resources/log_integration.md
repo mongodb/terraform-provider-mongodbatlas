@@ -6,6 +6,8 @@ subcategory: "Log Integration"
 
 `mongodbatlas_log_integration` provides a resource for managing log integration configurations at the project level. This resource allows you to continually export `mongod`, `mongos`, and audit logs at 1-minute intervals. Supported integration types include AWS S3, Google Cloud Storage, Azure Blob Storage, Datadog, Splunk, and OpenTelemetry.
 
+To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+
 ## Example Usages
 
 ### AWS S3

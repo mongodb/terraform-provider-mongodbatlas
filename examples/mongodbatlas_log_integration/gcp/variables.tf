@@ -34,7 +34,7 @@ variable "gcs_bucket_name" {
 }
 
 variable "gcs_bucket_location" {
-  description = "Location of the GCS bucket (e.g. US, EU, ASIA, or a specific region like us-central1)"
+  description = "Location where the GCS bucket is created"
   type        = string
   default     = "US"
 }

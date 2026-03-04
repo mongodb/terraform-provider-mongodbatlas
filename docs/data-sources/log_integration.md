@@ -6,6 +6,8 @@ subcategory: "Log Integration"
 
 `mongodbatlas_log_integration` describes the configuration of a log integration at the project level. Supported integration types include AWS S3, Google Cloud Storage, Azure Blob Storage, Datadog, Splunk, and OpenTelemetry.
 
+To use this data source, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+
 ## Example Usage
 
 ```terraform
