@@ -31,7 +31,7 @@ variable "azure_key_identifier" {
 
 variable "azure_role_id" {
   type        = string
-  description = "Azure ID that identifies the role with permissions to access your Azure Key Vault"
+  description = "The MongoDB Atlas cloud provider access role ID for Azure"
 }
 
 variable "azure_subscription_id" {
