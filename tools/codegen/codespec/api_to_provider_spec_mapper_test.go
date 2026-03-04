@@ -1848,11 +1848,13 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 				},
 				// Data sources model with independent schema
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
-						SingularDSDescription: conversion.StringPtr("GET API description"),
-						PluralDSDescription:   conversion.StringPtr("LIST API description"),
-						PluralDSAttributes:    &pluralDSAttributes,
-						SingularDSAttributes: &codespec.Attributes{
+					Plural: &codespec.Schema{
+						Description: conversion.StringPtr("LIST API description"),
+						Attributes:  pluralDSAttributes,
+					},
+					Singular: &codespec.Schema{
+						Description: conversion.StringPtr("GET API description"),
+						Attributes: codespec.Attributes{
 							// All response attributes are Computed
 							{
 								TFSchemaName:             "bool_default_attr",
@@ -1959,13 +1961,13 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 	// Additional assertions to verify key singular data source behaviors
 	ds := result.Resources[0].DataSources
 	require.NotNil(t, ds, "DataSources should be populated")
-	require.NotNil(t, ds.Schema, "DataSources.Schema should be populated")
+	require.NotNil(t, ds.Singular, "DataSources.Singular should be populated")
 
 	// Verify path param is Required (not Computed) even in singular data source
 	var projectIDAttr *codespec.Attribute
-	for i := range *ds.Schema.SingularDSAttributes {
-		if (*ds.Schema.SingularDSAttributes)[i].TFSchemaName == "project_id" {
-			projectIDAttr = &(*ds.Schema.SingularDSAttributes)[i]
+	for i := range ds.Singular.Attributes {
+		if ds.Singular.Attributes[i].TFSchemaName == "project_id" {
+			projectIDAttr = &ds.Singular.Attributes[i]
 			break
 		}
 	}
@@ -1974,7 +1976,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 	assert.Equal(t, "groupId", projectIDAttr.APIName, "APIName should preserve original name for aliased path param")
 
 	// Verify response attributes are Computed
-	for _, attr := range *ds.Schema.SingularDSAttributes {
+	for _, attr := range ds.Singular.Attributes {
 		if attr.TFSchemaName != "project_id" { // Skip path param
 			assert.Equal(t, codespec.Computed, attr.ComputedOptionalRequired,
 				"Response attribute %s should be Computed in data source", attr.TFSchemaName)
@@ -2025,9 +2027,9 @@ func TestConvertToProviderSpec_withPluralDataSource(t *testing.T) {
 					VersionHeader: "application/vnd.atlas.2023-01-01+json",
 				},
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
-						PluralDSDescription: conversion.StringPtr("LIST API description"),
-						PluralDSAttributes:  &pluralDSAttributes,
+					Plural: &codespec.Schema{
+						Description: conversion.StringPtr("LIST API description"),
+						Attributes:  pluralDSAttributes,
 					},
 					Operations: codespec.APIOperations{
 						List: &codespec.APIOperation{
@@ -2047,14 +2049,13 @@ func TestConvertToProviderSpec_withPluralDataSource(t *testing.T) {
 	// We only verify the plural data source parts
 	ds := result.Resources[0].DataSources
 	require.NotNil(t, ds, "DataSources should be populated")
-	require.NotNil(t, ds.Schema, "DataSources.Schema should be populated")
-	require.NotNil(t, ds.Schema.PluralDSAttributes, "PluralDSAttributes should be populated")
+	require.NotNil(t, ds.Plural, "DataSources.Plural should be populated")
 
 	// Verify path param is Required (not Computed) in plural data source
 	var projectIDAttr *codespec.Attribute
-	for i := range *ds.Schema.PluralDSAttributes {
-		if (*ds.Schema.PluralDSAttributes)[i].TFSchemaName == "project_id" {
-			projectIDAttr = &(*ds.Schema.PluralDSAttributes)[i]
+	for i := range ds.Plural.Attributes {
+		if ds.Plural.Attributes[i].TFSchemaName == "project_id" {
+			projectIDAttr = &ds.Plural.Attributes[i]
 			break
 		}
 	}
@@ -2064,9 +2065,9 @@ func TestConvertToProviderSpec_withPluralDataSource(t *testing.T) {
 
 	// Verify results array exists and is Computed
 	var resultsAttr *codespec.Attribute
-	for i := range *ds.Schema.PluralDSAttributes {
-		if (*ds.Schema.PluralDSAttributes)[i].TFSchemaName == "results" {
-			resultsAttr = &(*ds.Schema.PluralDSAttributes)[i]
+	for i := range ds.Plural.Attributes {
+		if ds.Plural.Attributes[i].TFSchemaName == "results" {
+			resultsAttr = &ds.Plural.Attributes[i]
 			break
 		}
 	}
@@ -2082,8 +2083,8 @@ func TestConvertToProviderSpec_withPluralDataSource(t *testing.T) {
 	}
 
 	// Verify the expected structure matches (comparing against the helper function output)
-	assert.Equal(t, tc.expectedResult.Resources[0].DataSources.Schema.PluralDSAttributes, ds.Schema.PluralDSAttributes,
-		"PluralDSAttributes should match expected structure")
+	assert.Equal(t, tc.expectedResult.Resources[0].DataSources.Plural.Attributes, ds.Plural.Attributes,
+		"Plural.Attributes should match expected structure")
 
 	// Verify List operation path uses aliased placeholder
 	require.NotNil(t, ds.Operations.List, "List operation should be defined for plural data source")
@@ -2122,15 +2123,14 @@ func TestConvertToProviderSpec_withDataSourceOnly(t *testing.T) {
 	assert.NotNil(t, ds.Operations.Read)
 	assert.NotNil(t, ds.Operations.List)
 
-	require.NotNil(t, ds.Schema)
-	require.NotNil(t, ds.Schema.SingularDSAttributes)
-	require.NotNil(t, ds.Schema.PluralDSAttributes)
+	require.NotNil(t, ds.Singular)
+	require.NotNil(t, ds.Plural)
 
 	// Singular data source: path param required, response attrs computed
 	var projectIDAttr *codespec.Attribute
 	var computedAttr *codespec.Attribute
-	for i := range *ds.Schema.SingularDSAttributes {
-		attr := &(*ds.Schema.SingularDSAttributes)[i]
+	for i := range ds.Singular.Attributes {
+		attr := &ds.Singular.Attributes[i]
 		if attr.TFSchemaName == "project_id" {
 			projectIDAttr = attr
 		}
@@ -2147,8 +2147,8 @@ func TestConvertToProviderSpec_withDataSourceOnly(t *testing.T) {
 	// Plural data source: path param required, results list is computed
 	var pluralProjectIDAttr *codespec.Attribute
 	var resultsAttr *codespec.Attribute
-	for i := range *ds.Schema.PluralDSAttributes {
-		attr := &(*ds.Schema.PluralDSAttributes)[i]
+	for i := range ds.Plural.Attributes {
+		attr := &ds.Plural.Attributes[i]
 		if attr.TFSchemaName == "project_id" {
 			pluralProjectIDAttr = attr
 		}
@@ -2190,16 +2190,13 @@ func TestConvertToProviderSpec_withDataSourceOnly_listOnly(t *testing.T) {
 	assert.Nil(t, ds.Operations.Read)
 	require.NotNil(t, ds.Operations.List)
 
-	require.NotNil(t, ds.Schema)
-	if ds.Schema.SingularDSAttributes != nil {
-		assert.Empty(t, *ds.Schema.SingularDSAttributes, "singular data source attributes should be absent for list-only config")
-	}
-	require.NotNil(t, ds.Schema.PluralDSAttributes)
+	assert.Nil(t, ds.Singular, "singular data source should be absent for list-only config")
+	require.NotNil(t, ds.Plural)
 
 	var projectIDAttr *codespec.Attribute
 	var resultsAttr *codespec.Attribute
-	for i := range *ds.Schema.PluralDSAttributes {
-		attr := &(*ds.Schema.PluralDSAttributes)[i]
+	for i := range ds.Plural.Attributes {
+		attr := &ds.Plural.Attributes[i]
 		if attr.TFSchemaName == "project_id" {
 			projectIDAttr = attr
 		}
@@ -2224,7 +2221,7 @@ func TestConvertToProviderSpec_withTagsAndLabelsAsMapType(t *testing.T) {
 	require.NoError(t, err)
 
 	resourceAttrs := []codespec.Attribute(result.Resources[0].Schema.Attributes)
-	dataSourceAttrs := []codespec.Attribute(*result.Resources[0].DataSources.Schema.SingularDSAttributes)
+	dataSourceAttrs := []codespec.Attribute(result.Resources[0].DataSources.Singular.Attributes)
 
 	assert.Len(t, resourceAttrs, 2, "Expected resource to have 2 attributes")
 	assert.Len(t, dataSourceAttrs, 2, "Expected data source to have 2 attributes")
