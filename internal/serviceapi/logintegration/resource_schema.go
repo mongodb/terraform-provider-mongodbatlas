@@ -20,12 +20,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"api_key": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "API key for authentication.",
+				MarkdownDescription: "Required when type is: DATADOG_LOG_EXPORT. API key for authentication.",
 				Sensitive:           true,
 			},
 			"bucket_name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Name of the bucket to store log files.",
+				MarkdownDescription: "Required when type is: GCS_LOG_EXPORT, S3_LOG_EXPORT. Name of the bucket to store log files.",
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
@@ -34,16 +34,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"hec_token": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "HTTP Event Collector (HEC) token for authentication.",
+				MarkdownDescription: "Required when type is: SPLUNK_LOG_EXPORT. HTTP Event Collector (HEC) token for authentication.",
 				Sensitive:           true,
 			},
 			"hec_url": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "HTTP Event Collector (HEC) endpoint URL.",
+				MarkdownDescription: "Required when type is: SPLUNK_LOG_EXPORT. HTTP Event Collector (HEC) endpoint URL.",
 			},
 			"iam_role_id": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.",
+				MarkdownDescription: "Required when type is: S3_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.",
 			},
 			"integration_id": schema.StringAttribute{
 				Computed:            true,
@@ -52,7 +52,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"kms_key": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.",
+				MarkdownDescription: "Applicable when type is: S3_LOG_EXPORT. AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.",
 			},
 			"log_types": schema.SetAttribute{
 				Required:            true,
@@ -62,11 +62,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"otel_endpoint": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.",
+				MarkdownDescription: "Required when type is: OTEL_LOG_EXPORT. OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.",
 			},
 			"otel_supplied_headers": schema.ListNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.",
+				MarkdownDescription: "Required when type is: OTEL_LOG_EXPORT. HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.",
 				Sensitive:           true,
 				CustomType:          customtypes.NewNestedListType[TFOtelSuppliedHeadersModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
@@ -85,23 +85,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"prefix_path": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.",
+				MarkdownDescription: "Required when type is: AZURE_LOG_EXPORT, GCS_LOG_EXPORT, S3_LOG_EXPORT. Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.",
 			},
 			"region": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.",
+				MarkdownDescription: "Required when type is: DATADOG_LOG_EXPORT. Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.",
 			},
 			"role_id": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.",
+				MarkdownDescription: "Required when type is: AZURE_LOG_EXPORT, GCS_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.",
 			},
 			"storage_account_name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Storage account name where logs will be stored.",
+				MarkdownDescription: "Required when type is: AZURE_LOG_EXPORT. Storage account name where logs will be stored.",
 			},
 			"storage_container_name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Storage container name for log files.",
+				MarkdownDescription: "Required when type is: AZURE_LOG_EXPORT. Storage container name for log files.",
 			},
 			"type": schema.StringAttribute{
 				Required:            true,
