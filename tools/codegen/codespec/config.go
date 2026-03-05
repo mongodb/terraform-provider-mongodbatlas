@@ -29,7 +29,6 @@ func ApplyTransformationsToResource(resourceConfig *config.Resource, resource *R
 	applyAliasToPathParams(&resource.Operations, resourceConfig.SchemaOptions.Aliases)
 	ApplyDeleteOnCreateTimeoutTransformation(resource)
 	ApplyTimeoutTransformation(resource)
-	EnhanceDescriptionsWithDiscriminator(resource.Schema.Attributes, resource.Schema.Discriminator, true)
 	return nil
 }
 
@@ -61,7 +60,6 @@ func applyDSSchemaTransformations(schemaOptions config.SchemaOptions, schema *Sc
 	applyAliasToDiscriminator(schemaOptions.Aliases, schema.Discriminator, &schema.Attributes)
 	skipDiscriminator(schema.Discriminator)
 	skipValidationForAllNestedDiscriminators(&schema.Attributes)
-	EnhanceDescriptionsWithDiscriminator(schema.Attributes, schema.Discriminator, false)
 	return nil
 }
 

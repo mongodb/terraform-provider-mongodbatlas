@@ -48,7 +48,7 @@ func GeneratePluralGoCode(input *codespec.Resource) ([]byte, error) {
 
 	tmplInputs := codetemplate.PluralDataSourceFileInputs{
 		PackageName:    input.PackageName,
-		DataSourceName: pluralizeName(input.Name),
+		DataSourceName: PluralizeName(input.Name),
 		VersionHeader:  input.DataSources.Operations.VersionHeader,
 		ReadPath:       listOp.Path,
 		ReadMethod:     listOp.HTTPMethod,
@@ -64,14 +64,11 @@ func GeneratePluralGoCode(input *codespec.Resource) ([]byte, error) {
 	return formattedResult, nil
 }
 
-// pluralizeName converts a resource name to its plural form for data sources.
-// For names ending with "_api", it inserts "s" before "_api".
-// E.g., "stream_instance_api" becomes "stream_instances_api"
-// This approach may not always be correct & should be improved in the future, for example,
-// "resource_policy_api" becomes "resource_policys_api" instead of "resource_policies_api"
-func pluralizeName(name string) string {
+// PluralizeName converts a resource name to its plural form for data sources.
+// For names ending with "_api", it inserts "s" before "_api" (e.g. "stream_instance_api" -> "stream_instances_api").
+// This heuristic is fragile: it doesn't handle irregular plurals (e.g. "resource_policy" -> "resource_policys").
+func PluralizeName(name string) string {
 	const apiSuffix = "_api"
-
 	if strings.HasSuffix(name, apiSuffix) {
 		return name[:len(name)-len(apiSuffix)] + "s" + apiSuffix
 	}
