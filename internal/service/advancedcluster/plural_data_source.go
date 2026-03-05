@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -46,7 +45,6 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	model, diags := d.readClusters(ctx, diags, &state)
 	resp.Diagnostics = *diags
 	if model != nil {
-		model.UseEffectiveFields = state.UseEffectiveFields // Set Optional Terraform-only attribute.
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
@@ -56,13 +54,13 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	outs := &TFModelPluralDS{
 		ProjectID: pluralModel.ProjectID,
 	}
-	basicClusters := d.getBasicClusters(ctx, diags, projectID, pluralModel.UseEffectiveFields)
+	basicClusters := d.getBasicClusters(ctx, diags, projectID)
 	if diags.HasError() {
 		return nil, diags
 	}
 	outs.Results = append(outs.Results, basicClusters...)
 
-	flexClusters := d.getFlexClusters(ctx, diags, projectID, pluralModel.UseEffectiveFields)
+	flexClusters := d.getFlexClusters(ctx, diags, projectID)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -71,12 +69,12 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 }
 
 // getBasicClusters gets the dedicated and tenant clusters.
-func (d *pluralDS) getBasicClusters(ctx context.Context, diags *diag.Diagnostics, projectID string, useEffectiveFields types.Bool) []*TFModelDS {
+func (d *pluralDS) getBasicClusters(ctx context.Context, diags *diag.Diagnostics, projectID string) []*TFModelDS {
 	var results []*TFModelDS
 	api := d.Client.AtlasV2.ClustersApi
 	params := admin.ListClustersApiParams{
 		GroupId:                    projectID,
-		UseEffectiveInstanceFields: new(useEffectiveFields.ValueBool()),
+		UseEffectiveInstanceFields: new(true),
 	}
 	list, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.ClusterDescription20240805], *http.Response, error) {
 		return api.ListClustersWithParams(ctx, &params).PageNum(pageNum).Execute()
@@ -89,14 +87,14 @@ func (d *pluralDS) getBasicClusters(ctx context.Context, diags *diag.Diagnostics
 	for i := range list {
 		clusterResp := &list[i]
 		modelOutDS := convertBasicClusterToDS(ctx, diags, d.Client, clusterResp)
-		if !appendClusterModelIfValid(diags, modelOutDS, useEffectiveFields, &results) {
+		if !appendClusterModelIfValid(diags, modelOutDS, &results) {
 			return nil
 		}
 	}
 	return results
 }
 
-func (d *pluralDS) getFlexClusters(ctx context.Context, diags *diag.Diagnostics, projectID string, useEffectiveFields types.Bool) []*TFModelDS {
+func (d *pluralDS) getFlexClusters(ctx context.Context, diags *diag.Diagnostics, projectID string) []*TFModelDS {
 	var results []*TFModelDS
 	listFlexClusters, err := flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasV2.FlexClustersApi)
 	if err != nil {
@@ -107,7 +105,7 @@ func (d *pluralDS) getFlexClusters(ctx context.Context, diags *diag.Diagnostics,
 	for i := range *listFlexClusters {
 		flexClusterResp := (*listFlexClusters)[i]
 		modelOutDS := convertFlexClusterToDS(ctx, diags, &flexClusterResp)
-		if !appendClusterModelIfValid(diags, modelOutDS, useEffectiveFields, &results) {
+		if !appendClusterModelIfValid(diags, modelOutDS, &results) {
 			return nil
 		}
 	}
@@ -121,13 +119,12 @@ func addListError(diags *diag.Diagnostics, projectID string, err error) {
 
 // appendClusterModelIfValid removes CLUSTER_NOT_FOUND errors from diags and appends the model to results if valid.
 // Returns false if processing should stop due to remaining errors after filtering.
-func appendClusterModelIfValid(diags *diag.Diagnostics, modelOutDS *TFModelDS, useEffectiveFields types.Bool, results *[]*TFModelDS) bool {
+func appendClusterModelIfValid(diags *diag.Diagnostics, modelOutDS *TFModelDS, results *[]*TFModelDS) bool {
 	RemoveClusterNotFoundErrors(diags)
 	if diags.HasError() {
 		return false
 	}
 	if modelOutDS != nil { // diags could be empty because of RemoveClusterNotFoundErrors but modelOutDS be nil.
-		modelOutDS.UseEffectiveFields = useEffectiveFields
 		*results = append(*results, modelOutDS)
 	}
 	return true
