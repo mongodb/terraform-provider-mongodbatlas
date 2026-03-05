@@ -33,6 +33,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexrestorejob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexsnapshot"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaddresses"
@@ -292,6 +293,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		encryptionatrestprivateendpoint.PluralDataSource,
 		mongodbemployeeaccessgrant.DataSource,
 		streamaccountdetails.DataSource,
+		privatelinkendpoint.PluralDataSource,
 		streamprivatelinkendpoint.DataSource,
 		streamprivatelinkendpoint.PluralDataSource,
 		flexcluster.DataSource,
