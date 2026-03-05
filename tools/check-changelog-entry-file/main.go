@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/go-changelog"
@@ -87,12 +88,7 @@ func validateEntryPrefix(entries []changelog.Note, filePath string) {
 }
 
 func containsType(entryType string, allowed []string) bool {
-	for _, a := range allowed {
-		if a == entryType {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(allowed, entryType)
 }
 
 func skipTitle(title string) bool {
@@ -105,12 +101,7 @@ func skipTitle(title string) bool {
 }
 
 func skipLabel(labels []string) bool {
-	for _, label := range labels {
-		if label == skipLabelName {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(labels, skipLabelName)
 }
 
 func getValidTypes(path string) []string {

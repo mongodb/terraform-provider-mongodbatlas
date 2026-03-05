@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/mongodbatlas_stream_connection: Adds support for asynchronous deletion by waiting for deletion to complete
+```
+
+```release-note:enhancement
+resource/mongodbatlas_stream_connection: Adds configurable `delete` timeout (default 10 minutes)
+```

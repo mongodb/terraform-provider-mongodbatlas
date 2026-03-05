@@ -11,7 +11,7 @@ func CopyModel[T any](src any) *T {
 	dest := new(T)
 	valSrc := reflect.ValueOf(src)
 	valDest := reflect.ValueOf(dest)
-	if valSrc.Kind() != reflect.Ptr || valDest.Kind() != reflect.Ptr {
+	if valSrc.Kind() != reflect.Pointer || valDest.Kind() != reflect.Pointer {
 		panic("params must be pointers")
 	}
 	valSrc = valSrc.Elem()
@@ -20,23 +20,19 @@ func CopyModel[T any](src any) *T {
 		panic("params must be pointers to structs")
 	}
 	typeSrc := valSrc.Type()
-	typeDest := valDest.Type()
-	for i := range typeDest.NumField() {
-		fieldDest := typeDest.Field(i)
-		name := fieldDest.Name
-		{
-			fieldSrc, found := typeSrc.FieldByName(name)
-			if !found {
-				continue
-			}
-			if fieldDest.Type != fieldSrc.Type {
-				panic(fmt.Sprintf("field has different type: %s", name))
-			}
+	for fieldDest := range valDest.Type().Fields() {
+		fieldSrc, found := typeSrc.FieldByName(fieldDest.Name)
+		if !found {
+			continue
 		}
-		if !valDest.Field(i).CanSet() {
-			panic(fmt.Sprintf("field can't be set, probably unexported: %s", name))
+		if fieldDest.Type != fieldSrc.Type {
+			panic(fmt.Sprintf("field has different type: %s", fieldDest.Name))
 		}
-		valDest.Field(i).Set(valSrc.FieldByName(name))
+		destVal := valDest.FieldByIndex(fieldDest.Index)
+		if !destVal.CanSet() {
+			panic(fmt.Sprintf("field can't be set, probably unexported: %s", fieldDest.Name))
+		}
+		destVal.Set(valSrc.FieldByName(fieldDest.Name))
 	}
 	return dest
 }

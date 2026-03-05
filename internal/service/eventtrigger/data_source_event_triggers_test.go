@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"go.mongodb.org/realm/realm"
 )
@@ -24,7 +23,7 @@ func TestAccEventTriggerDSPlural_basic(t *testing.T) {
 		Name:       acc.RandomName(),
 		Type:       "DATABASE",
 		FunctionID: os.Getenv("MONGODB_REALM_FUNCTION_ID"),
-		Disabled:   conversion.Pointer(false),
+		Disabled:   new(false),
 		Config: &realm.EventTriggerConfig{
 			OperationTypes: []string{"INSERT", "UPDATE"},
 			OperationType:  "LOGIN",
@@ -32,9 +31,9 @@ func TestAccEventTriggerDSPlural_basic(t *testing.T) {
 			Database:       "database",
 			Collection:     "collection",
 			ServiceID:      os.Getenv("MONGODB_REALM_SERVICE_ID"),
-			FullDocument:   conversion.Pointer(false),
+			FullDocument:   new(false),
 			Schedule:       "*",
-			Unordered:      conversion.Pointer(true),
+			Unordered:      new(true),
 		},
 	}
 

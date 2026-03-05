@@ -16,14 +16,16 @@ const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resour
 	"deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a " +
 	"transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`."
 
-func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resource *Resource) error {
+func ApplyTransformationsToResource(resourceConfig *config.Resource, resource *Resource) error {
 	if resource == nil || resource.Schema == nil {
 		return nil
 	}
-	// Start with empty paths for both schemaPath (snake_case) and apiPath (camelCase)
-	if err := applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
+	parentPaths := &attrPaths{schemaPath: "", apiPath: ""}
+	if err := applyAttributeTransformationsList(resourceConfig.SchemaOptions, &resource.Schema.Attributes, parentPaths, resourceTransformations); err != nil {
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
+	applyAliasToDiscriminator(resourceConfig.SchemaOptions.Aliases, resource.Schema.Discriminator, &resource.Schema.Attributes)
+	applyIgnoreValidatorsToDiscriminators(resource.Schema.Discriminator, resource.Schema.Attributes, resourceConfig.SchemaOptions)
 	applyAliasToPathParams(&resource.Operations, resourceConfig.SchemaOptions.Aliases)
 	ApplyDeleteOnCreateTimeoutTransformation(resource)
 	ApplyTimeoutTransformation(resource)
@@ -31,22 +33,41 @@ func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resourc
 }
 
 // ApplyTransformationsToDataSources applies schema transformations and path param aliasing to data sources.
-// This mirrors applyTransformationsWithConfigOpts for resources, without timeout-related and create-only transformations.
+// This mirrors ApplyTransformationsToResource for resources, without timeout-related and create-only transformations.
 // Exported for testing purposes.
 func ApplyTransformationsToDataSources(dsConfig *config.DataSources, ds *DataSources) error {
-	if ds == nil || ds.Schema == nil {
+	if ds == nil {
 		return nil
 	}
-
-	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.SingularDSAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
-		return fmt.Errorf("failed to apply attribute transformations for singular data source: %w", err)
+	if err := applyDSSchemaTransformations(dsConfig.SchemaOptions, ds.Singular); err != nil {
+		return fmt.Errorf("failed to apply transformations for singular data source: %w", err)
 	}
-	if err := applyDataSourceAttributeTransformations(dsConfig.SchemaOptions, ds.Schema.PluralDSAttributes, &attrPaths{schemaPath: "", apiPath: ""}); err != nil {
-		return fmt.Errorf("failed to apply attribute transformations for plural data source: %w", err)
+	if err := applyDSSchemaTransformations(dsConfig.SchemaOptions, ds.Plural); err != nil {
+		return fmt.Errorf("failed to apply transformations for plural data source: %w", err)
 	}
-
 	applyAliasToPathParams(&ds.Operations, dsConfig.SchemaOptions.Aliases)
 	return nil
+}
+
+func applyDSSchemaTransformations(schemaOptions config.SchemaOptions, schema *Schema) error {
+	if schema == nil {
+		return nil
+	}
+	parentPaths := &attrPaths{schemaPath: "", apiPath: ""}
+	if err := applyAttributeTransformationsList(schemaOptions, &schema.Attributes, parentPaths, dataSourceTransformations); err != nil {
+		return err
+	}
+	applyAliasToDiscriminator(schemaOptions.Aliases, schema.Discriminator, &schema.Attributes)
+	skipDiscriminator(schema.Discriminator)
+	skipValidationForAllNestedDiscriminators(&schema.Attributes)
+	return nil
+}
+
+func applyAliasToDiscriminator(aliases map[string]string, rootDiscriminator *Discriminator, attributes *Attributes) {
+	applyAliasesToDiscriminator(rootDiscriminator, aliases, "")
+	if attributes != nil {
+		applyAliasesToNestedDiscriminators(*attributes, aliases, "")
+	}
 }
 
 // applyAliasToPathParams replaces path parameter placeholders with their aliased names in all operation paths.
@@ -90,7 +111,7 @@ type attrPaths struct {
 // Implementations may mutate the attribute in-place.
 type AttributeTransformation func(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error
 
-var transformations = []AttributeTransformation{
+var resourceTransformations = []AttributeTransformation{
 	aliasTransformation,
 	commonRSAndDSOverridesTransformation,
 	immutableComputedOverrideTransformation,
@@ -104,14 +125,6 @@ var dataSourceTransformations = []AttributeTransformation{
 	commonRSAndDSOverridesTransformation,
 	tagsAndLabelsAsMapTypeTransformation,
 	// Note: resource-specific transformations (createOnly, requestOnlyRequiredOnCreate, immutableComputed) are excluded for data sources
-}
-
-func applyAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths) error {
-	return applyAttributeTransformationsList(schemaOptions, attributes, parentPaths, transformations)
-}
-
-func applyDataSourceAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths) error {
-	return applyAttributeTransformationsList(schemaOptions, attributes, parentPaths, dataSourceTransformations)
 }
 
 func applyAttributeTransformationsList(schemaOptions config.SchemaOptions, attributes *Attributes, parentPaths *attrPaths, transformationList []AttributeTransformation) error {
@@ -187,20 +200,13 @@ func shouldIgnoreAttribute(attrPathName string, ignoredAttrs map[string]bool) bo
 	return ignoredAttrs[attrPathName]
 }
 
-func applyAliasToAttribute(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) {
+func aliasTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
 	// Config uses full camelCase for aliases (e.g., groupId: projectId, nestedObject.innerAttr: renamedAttr)
 	// The apiPath is built from APIName values which preserve the original casing (e.g., "MongoDBMajorVersion")
 	// This avoids the lossy conversion from snake to camel case.
 
-	var aliasCamel string
-	var found bool
-
-	// First try path-based lookup for targeted aliasing of nested attributes
-	// apiPath already contains the correct camelCase path built from APIName values
-	if aliasCamel, found = schemaOptions.Aliases[paths.apiPath]; !found {
-		// Fall back to attribute-name only lookup (for path params like groupId: projectId)
-		aliasCamel, found = schemaOptions.Aliases[attr.APIName]
-	}
+	// Lookup by full apiPath only. We do not want to implicitly apply aliases to nested-level attributes.
+	aliasCamel, found := schemaOptions.Aliases[paths.apiPath]
 
 	if found {
 		// Change both TFSchemaName and TFModelName to the aliased name.
@@ -217,13 +223,6 @@ func applyAliasToAttribute(attr *Attribute, paths *attrPaths, schemaOptions conf
 		// Note: apiPath is not updated because it's only used for alias lookup,
 		// and aliases are defined using original API names
 	}
-}
-
-// Transformations
-func aliasTransformation(attr *Attribute, paths *attrPaths, schemaOptions config.SchemaOptions) error {
-	// Alias transformation runs first, updating TFSchemaName and paths.schemaPath.
-	// Subsequent overrides should use the aliased snake_case path (e.g., nested_list_array_attr.inner_num_attr_alias)
-	applyAliasToAttribute(attr, paths, schemaOptions)
 	return nil
 }
 
@@ -242,8 +241,10 @@ func commonRSAndDSOverridesTransformation(attr *Attribute, paths *attrPaths, sch
 	if override.Sensitive != nil {
 		attr.Sensitive = *override.Sensitive
 	}
-	if override.IncludeNullOnUpdate != nil && *override.IncludeNullOnUpdate {
-		attr.ReqBodyUsage = IncludeNullOnUpdate
+	if override.RequestBodyUsage != nil {
+		if err := applyReqBodyUsageOverride(*override.RequestBodyUsage, attr); err != nil {
+			return err
+		}
 	}
 	if override.Type != nil {
 		if err := applyTypeOverride(&override, attr); err != nil {
@@ -335,6 +336,18 @@ func getComputabilityFromConfig(computability config.Computability) ComputedOpti
 	return Required
 }
 
+func applyReqBodyUsageOverride(reqBodyUsage config.ReqBodyUsage, attr *Attribute) error {
+	switch reqBodyUsage {
+	case config.SendNullAsNullOnUpdate:
+		attr.ReqBodyUsage = SendNullAsNullOnUpdate
+		return nil
+	case config.SendNullAsEmptyOnUpdate:
+		attr.ReqBodyUsage = SendNullAsEmptyOnUpdate
+		return nil
+	}
+	return fmt.Errorf("unsupported request body usage defined in configuration: %s for attribute %s", reqBodyUsage, attr.TFSchemaName)
+}
+
 // ApplyTimeoutTransformation adds a timeout attribute to the resource schema if any operation has wait blocks.
 func ApplyTimeoutTransformation(resource *Resource) {
 	ops := &resource.Operations
@@ -374,7 +387,7 @@ func ApplyDeleteOnCreateTimeoutTransformation(resource *Resource) {
 	resource.Schema.Attributes = append(resource.Schema.Attributes, Attribute{
 		TFSchemaName:             "delete_on_create_timeout",
 		TFModelName:              "DeleteOnCreateTimeout",
-		Bool:                     &BoolAttribute{Default: conversion.Pointer(true)},
+		Bool:                     &BoolAttribute{Default: new(true)},
 		Description:              conversion.StringPtr(DeleteOnCreateTimeoutDescription),
 		ReqBodyUsage:             OmitAlways,
 		CreateOnly:               true,
@@ -396,6 +409,138 @@ func setCreateOnlyValue(attr *Attribute) {
 
 func attrPathForOverrides(attrPathName string) string {
 	return strings.TrimPrefix(attrPathName, "results.")
+}
+
+// applyAliasesToNestedDiscriminators recursively walks attributes and applies alias renames
+// to discriminators found on nested attribute objects.
+func applyAliasesToNestedDiscriminators(attributes Attributes, aliases map[string]string, parentAPIPath string) {
+	for i := range attributes {
+		attr := &attributes[i]
+		apiPath := buildPath(parentAPIPath, attr.APIName)
+
+		switch {
+		case attr.ListNested != nil:
+			applyAliasesToDiscriminator(attr.ListNested.NestedObject.Discriminator, aliases, apiPath)
+			applyAliasesToNestedDiscriminators(attr.ListNested.NestedObject.Attributes, aliases, apiPath)
+		case attr.SingleNested != nil:
+			applyAliasesToDiscriminator(attr.SingleNested.NestedObject.Discriminator, aliases, apiPath)
+			applyAliasesToNestedDiscriminators(attr.SingleNested.NestedObject.Attributes, aliases, apiPath)
+		case attr.SetNested != nil:
+			applyAliasesToDiscriminator(attr.SetNested.NestedObject.Discriminator, aliases, apiPath)
+			applyAliasesToNestedDiscriminators(attr.SetNested.NestedObject.Attributes, aliases, apiPath)
+		case attr.MapNested != nil:
+			applyAliasesToDiscriminator(attr.MapNested.NestedObject.Discriminator, aliases, apiPath)
+			applyAliasesToNestedDiscriminators(attr.MapNested.NestedObject.Attributes, aliases, apiPath)
+		}
+	}
+}
+
+// applyAliasesToDiscriminator reconciles discriminator property names and variant attribute names
+// when aliases have been applied. It looks up each DiscriminatorAttrName.APIName in the aliases map
+// and updates the corresponding TFSchemaName when a match is found.
+func applyAliasesToDiscriminator(disc *Discriminator, aliases map[string]string, parentAPIPath string) {
+	if disc == nil || len(aliases) == 0 {
+		return
+	}
+
+	applyAliasToDiscriminatorAttrName(&disc.PropertyName, aliases, parentAPIPath)
+
+	for key, variant := range disc.Mapping {
+		applyAliasToDiscriminatorAttrNames(variant.Allowed, aliases, parentAPIPath)
+		applyAliasToDiscriminatorAttrNames(variant.Required, aliases, parentAPIPath)
+		disc.Mapping[key] = variant
+	}
+}
+
+func applyAliasToDiscriminatorAttrName(name *DiscriminatorAttrName, aliases map[string]string, parentAPIPath string) {
+	fullPath := name.APIName
+	if parentAPIPath != "" {
+		fullPath = parentAPIPath + "." + name.APIName
+	}
+	if alias, ok := aliases[fullPath]; ok {
+		name.TFSchemaName = stringcase.ToSnakeCase(alias)
+	}
+}
+
+func applyAliasToDiscriminatorAttrNames(names []DiscriminatorAttrName, aliases map[string]string, parentAPIPath string) {
+	for i := range names {
+		applyAliasToDiscriminatorAttrName(&names[i], aliases, parentAPIPath)
+	}
+	sortDiscriminatorAttrNames(names)
+}
+
+func applyIgnoreValidatorsToDiscriminators(rootDisc *Discriminator, attrs Attributes, schemaOptions config.SchemaOptions) {
+	applyIgnoreValidatorsToDiscriminator(rootDisc, schemaOptions, "")
+	applyIgnoreValidatorsToNestedDiscriminators(attrs, schemaOptions, "")
+}
+
+func applyIgnoreValidatorsToDiscriminator(disc *Discriminator, schemaOptions config.SchemaOptions, parentSchemaPath string) {
+	if disc == nil {
+		return
+	}
+	overridePath := attrPathForOverrides(buildPath(parentSchemaPath, disc.PropertyName.TFSchemaName))
+	override, ok := schemaOptions.Overrides[overridePath]
+	if !ok {
+		return
+	}
+	for _, v := range override.IgnoreValidators {
+		if v == "discriminator" {
+			disc.SkipValidation = true
+		}
+	}
+}
+
+func applyIgnoreValidatorsToNestedDiscriminators(attributes Attributes, schemaOptions config.SchemaOptions, parentSchemaPath string) {
+	for i := range attributes {
+		attr := &attributes[i]
+		schemaPath := buildPath(parentSchemaPath, attr.TFSchemaName)
+
+		switch {
+		case attr.ListNested != nil:
+			applyIgnoreValidatorsToDiscriminator(attr.ListNested.NestedObject.Discriminator, schemaOptions, schemaPath)
+			applyIgnoreValidatorsToNestedDiscriminators(attr.ListNested.NestedObject.Attributes, schemaOptions, schemaPath)
+		case attr.SingleNested != nil:
+			applyIgnoreValidatorsToDiscriminator(attr.SingleNested.NestedObject.Discriminator, schemaOptions, schemaPath)
+			applyIgnoreValidatorsToNestedDiscriminators(attr.SingleNested.NestedObject.Attributes, schemaOptions, schemaPath)
+		case attr.SetNested != nil:
+			applyIgnoreValidatorsToDiscriminator(attr.SetNested.NestedObject.Discriminator, schemaOptions, schemaPath)
+			applyIgnoreValidatorsToNestedDiscriminators(attr.SetNested.NestedObject.Attributes, schemaOptions, schemaPath)
+		case attr.MapNested != nil:
+			applyIgnoreValidatorsToDiscriminator(attr.MapNested.NestedObject.Discriminator, schemaOptions, schemaPath)
+			applyIgnoreValidatorsToNestedDiscriminators(attr.MapNested.NestedObject.Attributes, schemaOptions, schemaPath)
+		}
+	}
+}
+
+// skipValidationForAllNestedDiscriminators unconditionally sets SkipValidation on every
+// discriminator found in the attribute tree. Used for data sources where validators are never emitted.
+func skipValidationForAllNestedDiscriminators(attributes *Attributes) {
+	if attributes == nil {
+		return
+	}
+	for i := range *attributes {
+		attr := &(*attributes)[i]
+		switch {
+		case attr.ListNested != nil:
+			skipDiscriminator(attr.ListNested.NestedObject.Discriminator)
+			skipValidationForAllNestedDiscriminators(&attr.ListNested.NestedObject.Attributes)
+		case attr.SingleNested != nil:
+			skipDiscriminator(attr.SingleNested.NestedObject.Discriminator)
+			skipValidationForAllNestedDiscriminators(&attr.SingleNested.NestedObject.Attributes)
+		case attr.SetNested != nil:
+			skipDiscriminator(attr.SetNested.NestedObject.Discriminator)
+			skipValidationForAllNestedDiscriminators(&attr.SetNested.NestedObject.Attributes)
+		case attr.MapNested != nil:
+			skipDiscriminator(attr.MapNested.NestedObject.Discriminator)
+			skipValidationForAllNestedDiscriminators(&attr.MapNested.NestedObject.Attributes)
+		}
+	}
+}
+
+func skipDiscriminator(disc *Discriminator) {
+	if disc != nil {
+		disc.SkipValidation = true
+	}
 }
 
 // tagsAndLabelsAsMapTypeTransformation transforms attributes that represent collections of key/value pairs (tags and labels) from a nested list of objects into a Map type.
@@ -430,5 +575,7 @@ func tagsAndLabelsAsMapTypeTransformation(attr *Attribute, _ *attrPaths, _ confi
 		ElementType: String,
 	}
 	attr.ListTypeAsMap = true
+	// Send an empty map on updates if the tags/labels attribute is null
+	attr.ReqBodyUsage = SendNullAsEmptyOnUpdate
 	return nil
 }

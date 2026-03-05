@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikeyprojectassignment"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 type sdkToTFModelTestCase struct {
@@ -20,15 +20,15 @@ func TestApiKeyProjectAssignmentSDKToTFModel(t *testing.T) {
 		"Complete SDK response": {
 			SDKResp: []admin.ApiKeyUserDetails{
 				{
-					Id: admin.PtrString("TargetAPIKeyID"),
+					Id: new("TargetAPIKeyID"),
 					Roles: &[]admin.CloudAccessRoleAssignment{
 						{
-							GroupId:  admin.PtrString("TargetProjectID"),
-							RoleName: admin.PtrString("MY_ROLE"),
+							GroupId:  new("TargetProjectID"),
+							RoleName: new("MY_ROLE"),
 						},
 						{
-							GroupId:  admin.PtrString("TargetProjectID"),
-							RoleName: admin.PtrString("MY_ROLE_2"),
+							GroupId:  new("TargetProjectID"),
+							RoleName: new("MY_ROLE_2"),
 						},
 					},
 				},
@@ -45,15 +45,15 @@ func TestApiKeyProjectAssignmentSDKToTFModel(t *testing.T) {
 		"Complete SDK response - Wrong project": {
 			SDKResp: []admin.ApiKeyUserDetails{
 				{
-					Id: admin.PtrString("TargetAPIKeyID"),
+					Id: new("TargetAPIKeyID"),
 					Roles: &[]admin.CloudAccessRoleAssignment{
 						{
-							GroupId:  admin.PtrString("NotMyTargetProjectID"),
-							RoleName: admin.PtrString("MY_ROLE"),
+							GroupId:  new("NotMyTargetProjectID"),
+							RoleName: new("MY_ROLE"),
 						},
 						{
-							GroupId:  admin.PtrString("NotMyTargetProjectID"),
-							RoleName: admin.PtrString("MY_ROLE_2"),
+							GroupId:  new("NotMyTargetProjectID"),
+							RoleName: new("MY_ROLE_2"),
 						},
 					},
 				},
@@ -132,7 +132,7 @@ func TestApiKeyProjectAssignmentTFModelToSDKCreate(t *testing.T) {
 			},
 			expectedSDKReq: &[]admin.UserAccessRoleAssignment{
 				{
-					UserId: admin.PtrString("TargetAPIKeyID"),
+					UserId: new("TargetAPIKeyID"),
 					Roles: &[]string{
 						"MY_ROLE",
 						"MY_ROLE_2",

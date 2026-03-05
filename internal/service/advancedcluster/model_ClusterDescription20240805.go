@@ -3,7 +3,7 @@ package advancedcluster
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -51,8 +51,9 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 		StateName:                        types.StringValue(conversion.SafeValue(input.StateName)),
 		Tags:                             tags,
 		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
-		VersionReleaseSystem:             types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
-		PinnedFCV:                        pinnedFCV,
+		UseAwsTimeBasedSnapshotCopyForFastInitialSync: types.BoolValue(conversion.SafeValue(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync)),
+		VersionReleaseSystem:                          types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
+		PinnedFCV:                                     pinnedFCV,
 	}
 }
 

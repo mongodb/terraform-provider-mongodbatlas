@@ -155,5 +155,7 @@ If a PR doesn't need a changelog entry its check can be skipped:
 
 ## Unreleased section of CHANGELOG.md automatic update
 
-After a PR is merged to master with a new entry in `.changelog` directory, [Generate Changelog workflow](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/generate-changelog.yml) will be triggered and it will update the `CHANGELOG.md` file with the new entry.
+After a PR is merged to `master` (or LTS branches like `v1-lts`) with a new entry in `.changelog` directory, [Generate Changelog workflow](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/generate-changelog.yml) will be triggered and it will update the `CHANGELOG.md` file with the new entry.
 This workflow can also be triggered manually and it will update the `CHANGELOG.md` file with all entries in `.changelog` directory that are not present in the `CHANGELOG.md` file.
+
+**Note:** After a backport release (e.g., from `v1-lts`), CHANGELOG.md changes from the LTS branch should be manually merged to `master` branch.

@@ -80,13 +80,15 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: awsSecurityGroupDesc,
 			},
 			"comment": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				MarkdownDescription: "Remark that explains the purpose or scope of this IP access list entry.",
 			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Read:   true,
-				Update: true,
 				Delete: true,
 			}),
 		},

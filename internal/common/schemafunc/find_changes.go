@@ -84,8 +84,7 @@ func NewAttributeChanges(ctx context.Context, src, dest any) AttributeChanges {
 	valSrc, valDest := validateStructPointers(src, dest)
 	typeDest := valDest.Type()
 	changes := []string{} // Always return an empty list so AttributeChanges is not nil, also nested attributes might be added and then removed, which make the test cases fail on nil vs []
-	for i := range typeDest.NumField() {
-		fieldDest := typeDest.Field(i)
+	for fieldDest := range typeDest.Fields() {
 		name, tfName := fieldNameTFName(&fieldDest)
 		nestedSrc := valSrc.FieldByName(name).Interface()
 		nestedDest := valDest.FieldByName(name).Interface()

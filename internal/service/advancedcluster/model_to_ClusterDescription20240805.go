@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -45,8 +45,9 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		RootCertType:                     conversion.NilForUnknown(input.RootCertType, input.RootCertType.ValueStringPointer()),
 		Tags:                             newResourceTag(ctx, diags, input.Tags),
 		TerminationProtectionEnabled:     conversion.NilForUnknown(input.TerminationProtectionEnabled, input.TerminationProtectionEnabled.ValueBoolPointer()),
-		VersionReleaseSystem:             conversion.NilForUnknown(input.VersionReleaseSystem, input.VersionReleaseSystem.ValueStringPointer()),
-		AdvancedConfiguration:            newClusterAdvancedConfiguration(ctx, &input.AdvancedConfiguration, diags),
+		UseAwsTimeBasedSnapshotCopyForFastInitialSync: conversion.NilForUnknown(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync, input.UseAwsTimeBasedSnapshotCopyForFastInitialSync.ValueBoolPointer()),
+		VersionReleaseSystem:                          conversion.NilForUnknown(input.VersionReleaseSystem, input.VersionReleaseSystem.ValueStringPointer()),
+		AdvancedConfiguration:                         newClusterAdvancedConfiguration(ctx, &input.AdvancedConfiguration, diags),
 	}
 }
 
@@ -64,8 +65,8 @@ func newClusterAdvancedConfiguration(ctx context.Context, objInput *types.Object
 	return &admin.ApiAtlasClusterAdvancedConfiguration{
 		MinimumEnabledTlsProtocol:      conversion.NilForUnknown(inputAdvConfig.MinimumEnabledTlsProtocol, inputAdvConfig.MinimumEnabledTlsProtocol.ValueStringPointer()),
 		TlsCipherConfigMode:            conversion.NilForUnknown(inputAdvConfig.TlsCipherConfigMode, inputAdvConfig.TlsCipherConfigMode.ValueStringPointer()),
-		CustomOpensslCipherConfigTls12: conversion.Pointer(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls12)),
-		CustomOpensslCipherConfigTls13: conversion.Pointer(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls13)),
+		CustomOpensslCipherConfigTls12: new(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls12)),
+		CustomOpensslCipherConfigTls13: new(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls13)),
 	}
 }
 

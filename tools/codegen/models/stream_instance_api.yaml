@@ -3,6 +3,71 @@ schema:
     attributes:
         - list_nested:
             nested_object:
+                discriminator:
+                    mapping:
+                        AWSKinesisDataStreams:
+                            allowed:
+                                - api_name: aws
+                                  tf_schema_name: aws
+                                - api_name: networking
+                                  tf_schema_name: networking
+                        AWSLambda:
+                            allowed:
+                                - api_name: aws
+                                  tf_schema_name: aws
+                        Cluster:
+                            allowed:
+                                - api_name: clusterGroupId
+                                  tf_schema_name: cluster_group_id
+                                - api_name: clusterName
+                                  tf_schema_name: cluster_name
+                                - api_name: dbRoleToExecute
+                                  tf_schema_name: db_role_to_execute
+                        Https:
+                            allowed:
+                                - api_name: headers
+                                  tf_schema_name: headers
+                                - api_name: url
+                                  tf_schema_name: url
+                        Kafka:
+                            allowed:
+                                - api_name: authentication
+                                  tf_schema_name: authentication
+                                - api_name: bootstrapServers
+                                  tf_schema_name: bootstrap_servers
+                                - api_name: config
+                                  tf_schema_name: config
+                                - api_name: networking
+                                  tf_schema_name: networking
+                                - api_name: security
+                                  tf_schema_name: security
+                        S3:
+                            allowed:
+                                - api_name: aws
+                                  tf_schema_name: aws
+                                - api_name: networking
+                                  tf_schema_name: networking
+                        Sample:
+                            allowed: []
+                        SchemaRegistry:
+                            allowed:
+                                - api_name: provider
+                                  tf_schema_name: provider
+                                - api_name: schemaRegistryAuthentication
+                                  tf_schema_name: schema_registry_authentication
+                                - api_name: schemaRegistryUrls
+                                  tf_schema_name: schema_registry_urls
+                            required:
+                                - api_name: provider
+                                  tf_schema_name: provider
+                                - api_name: schemaRegistryAuthentication
+                                  tf_schema_name: schema_registry_authentication
+                                - api_name: schemaRegistryUrls
+                                  tf_schema_name: schema_registry_urls
+                    property_name:
+                        api_name: type
+                        tf_schema_name: type
+                    skip_validation: true
                 attributes:
                     - single_nested:
                         nested_object:
@@ -258,7 +323,7 @@ schema:
                                   present_in_any_response: true
                                   request_only_required_on_create: false
                                 - string: {}
-                                  description: Type of the DB role. Can be either BuiltIn or Custom.
+                                  description: Type of the DB role. Can be either Built In or Custom.
                                   computed_optional_required: computed
                                   tf_schema_name: type
                                   tf_model_name: Type
@@ -317,7 +382,7 @@ schema:
                                     nested_object:
                                         attributes:
                                             - string: {}
-                                              description: Reserved. Will be used by PRIVATE_LINK connection type.
+                                              description: Reserved. Will be used by `PRIVATE_LINK` connection type.
                                               computed_optional_required: computed
                                               tf_schema_name: connection_id
                                               tf_model_name: ConnectionId
@@ -328,7 +393,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - string: {}
-                                              description: Reserved. Will be used by PRIVATE_LINK connection type.
+                                              description: Reserved. Will be used by `PRIVATE_LINK` connection type.
                                               computed_optional_required: computed
                                               tf_schema_name: name
                                               tf_model_name: Name
@@ -339,7 +404,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - string: {}
-                                              description: Reserved. Will be used by TRANSIT_GATEWAY connection type.
+                                              description: Reserved. Will be used by `TRANSIT_GATEWAY` connection type.
                                               computed_optional_required: computed
                                               tf_schema_name: tgw_route_id
                                               tf_model_name: TgwRouteId
@@ -350,7 +415,7 @@ schema:
                                               present_in_any_response: true
                                               request_only_required_on_create: false
                                             - string: {}
-                                              description: Selected networking type. Either PUBLIC, VPC, PRIVATE_LINK, or TRANSIT_GATEWAY. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. TRANSIT_GATEWAY support is coming soon.
+                                              description: Selected networking type. Either `PUBLIC`, `VPC`, `PRIVATE_LINK`, or `TRANSIT_GATEWAY`. Defaults to `PUBLIC`. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. `TRANSIT_GATEWAY` support is coming soon.
                                               computed_optional_required: computed
                                               tf_schema_name: type
                                               tf_model_name: Type
@@ -401,8 +466,38 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
+                    - string: {}
+                      description: The connection's region.
+                      computed_optional_required: computed
+                      tf_schema_name: region
+                      tf_model_name: Region
+                      api_name: region
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
                     - single_nested:
                         nested_object:
+                            discriminator:
+                                mapping:
+                                    SASL_INHERIT:
+                                        allowed: []
+                                    USER_INFO:
+                                        allowed:
+                                            - api_name: password
+                                              tf_schema_name: password
+                                            - api_name: username
+                                              tf_schema_name: username
+                                        required:
+                                            - api_name: password
+                                              tf_schema_name: password
+                                            - api_name: username
+                                              tf_schema_name: username
+                                property_name:
+                                    api_name: type
+                                    tf_schema_name: type
+                                skip_validation: true
                             attributes:
                                 - string: {}
                                   description: Password or Private Key for authentication.
@@ -483,7 +578,7 @@ schema:
                                   present_in_any_response: true
                                   request_only_required_on_create: false
                                 - string: {}
-                                  description: Describes the transport type. Can be either SASL_PLAINTEXT, SASL_SSL, or SSL.
+                                  description: Describes the transport type. Can be either `SASL_PLAINTEXT`, `SASL_SSL`, or `SSL`.
                                   computed_optional_required: computed
                                   tf_schema_name: protocol
                                   tf_model_name: Protocol
@@ -509,6 +604,17 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
+                      description: The state of the connection.
+                      computed_optional_required: computed
+                      tf_schema_name: state
+                      tf_model_name: State
+                      api_name: state
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
                       description: Type of the connection.
                       computed_optional_required: computed
                       tf_schema_name: type
@@ -520,7 +626,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: The url to be used for the request.
+                      description: The URL to be used for the request.
                       computed_optional_required: computed
                       tf_schema_name: url
                       tf_model_name: Url
@@ -631,7 +737,7 @@ schema:
                 attributes:
                     - bool:
                         default: false
-                      description: Flag that indicates whether to add a 'sample_stream_solar' connection.
+                      description: Flag that indicates whether to add a `sample_stream_solar` connection.
                       computed_optional_required: computed_optional
                       tf_schema_name: solar
                       tf_model_name: Solar
@@ -665,7 +771,7 @@ schema:
                       tf_schema_name: max_tier_size
                       tf_model_name: MaxTierSize
                       api_name: maxTierSize
-                      req_body_usage: ""
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                       present_in_any_response: true
@@ -676,7 +782,7 @@ schema:
                       tf_schema_name: tier
                       tf_model_name: Tier
                       api_name: tier
-                      req_body_usage: ""
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                       present_in_any_response: true
@@ -691,9 +797,9 @@ schema:
           tf_schema_name: stream_config
           tf_model_name: StreamConfig
           api_name: streamConfig
-          req_body_usage: omit_in_update_body
+          req_body_usage: all_request_bodies
           sensitive: false
-          create_only: true
+          create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
 operations:

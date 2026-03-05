@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"slices"
 
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -141,6 +142,11 @@ func Resource() *schema.Resource {
 				Optional: true,
 			},
 			"send_user_provided_resource_tags": {
+				Type:     schema.TypeBool,
+				Computed: true,
+				Optional: true,
+			},
+			"send_query_stats_metrics": {
 				Type:     schema.TypeBool,
 				Computed: true,
 				Optional: true,
@@ -289,7 +295,7 @@ func validateIntegrationType() schema.SchemaValidateDiagFunc {
 	return func(v any, p cty.Path) diag.Diagnostics {
 		value := v.(string)
 		var diags diag.Diagnostics
-		if !isElementExist(integrationTypes, value) {
+		if !slices.Contains(integrationTypes, value) {
 			diagError := diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  "Invalid Third Party Integration type",
@@ -299,13 +305,4 @@ func validateIntegrationType() schema.SchemaValidateDiagFunc {
 		}
 		return diags
 	}
-}
-
-func isElementExist(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-	return false
 }

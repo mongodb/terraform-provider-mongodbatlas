@@ -89,6 +89,7 @@ jobs:
       ca_cert: ${{ secrets.CA_CERT }}
       aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
       aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      aws_kms_key_id: ${{ secrets.AWS_KMS_KEY_ID }}
       aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       aws_s3_bucket_federation: ${{ secrets.AWS_S3_BUCKET_FEDERATION }}
       aws_s3_bucket_backup: ${{ secrets.AWS_S3_BUCKET_BACKUP }}

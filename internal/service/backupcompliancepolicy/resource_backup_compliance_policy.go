@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -466,10 +466,10 @@ func updateOrCreateDataProtectionSetting(ctx context.Context, d *schema.Resource
 		AuthorizedEmail:         d.Get("authorized_email").(string),
 		AuthorizedUserFirstName: d.Get("authorized_user_first_name").(string),
 		AuthorizedUserLastName:  d.Get("authorized_user_last_name").(string),
-		CopyProtectionEnabled:   conversion.Pointer(d.Get("copy_protection_enabled").(bool)),
-		EncryptionAtRestEnabled: conversion.Pointer(d.Get("encryption_at_rest_enabled").(bool)),
-		PitEnabled:              conversion.Pointer(d.Get("pit_enabled").(bool)),
-		RestoreWindowDays:       conversion.Pointer(cast.ToInt(d.Get("restore_window_days"))),
+		CopyProtectionEnabled:   new(d.Get("copy_protection_enabled").(bool)),
+		EncryptionAtRestEnabled: new(d.Get("encryption_at_rest_enabled").(bool)),
+		PitEnabled:              new(d.Get("pit_enabled").(bool)),
+		RestoreWindowDays:       new(cast.ToInt(d.Get("restore_window_days"))),
 		OnDemandPolicyItem:      expandDemandBackupPolicyItem(d),
 	}
 
@@ -537,7 +537,7 @@ func updateOrCreateDataProtectionSetting(ctx context.Context, d *schema.Resource
 	params := admin.UpdateCompliancePolicyApiParams{
 		GroupId:                        projectID,
 		DataProtectionSettings20231001: dataProtectionSettings,
-		OverwriteBackupPolicies:        conversion.Pointer(false),
+		OverwriteBackupPolicies:        new(false),
 	}
 	_, _, err := connV2.CloudBackupsApi.UpdateCompliancePolicyWithParams(ctx, &params).Execute()
 	return err

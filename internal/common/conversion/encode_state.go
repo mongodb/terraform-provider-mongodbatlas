@@ -4,7 +4,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
-	"sort"
+	"maps"
+	"slices"
 	"strings"
 )
 
@@ -25,14 +26,7 @@ func EncodeStateID(values map[string]string) string {
 	encodedValues := make([]string, 0)
 
 	// sort to make sure the same encoding is returned in case of same input
-	keys := make([]string, 0, len(values))
-	for key := range values {
-		keys = append(keys, key)
-	}
-
-	sort.Strings(keys)
-
-	for _, key := range keys {
+	for _, key := range slices.Sorted(maps.Keys(values)) {
 		encodedValues = append(encodedValues, fmt.Sprintf("%s:%s", encode(key), encode(values[key])))
 	}
 
@@ -49,9 +43,9 @@ func DecodeStateID(stateID string) map[string]string {
 		return string(decodedString)
 	}
 	decodedValues := make(map[string]string)
-	encodedValues := strings.Split(stateID, "-")
+	encodedValues := strings.SplitSeq(stateID, "-")
 
-	for _, value := range encodedValues {
+	for value := range encodedValues {
 		keyValue := strings.Split(value, ":")
 		if len(keyValue) > 1 {
 			decodedValues[decode(keyValue[0])] = decode(keyValue[1])

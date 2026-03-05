@@ -18,7 +18,7 @@ import (
 // Will only check the root level attributes
 func HasUnknowns(obj any) bool {
 	valObj := reflect.ValueOf(obj)
-	if valObj.Kind() != reflect.Ptr {
+	if valObj.Kind() != reflect.Pointer {
 		panic("params must be pointer")
 	}
 	valObj = valObj.Elem()
@@ -110,7 +110,7 @@ func fieldNameTFName(fieldDest *reflect.StructField) (name, tfName string) {
 func validateStructPointers(src, dest any) (reflectSrc, reflectDest reflect.Value) {
 	valSrc := reflect.ValueOf(src)
 	valDest := reflect.ValueOf(dest)
-	if valSrc.Kind() != reflect.Ptr || valDest.Kind() != reflect.Ptr {
+	if valSrc.Kind() != reflect.Pointer || valDest.Kind() != reflect.Pointer {
 		panic(fmt.Sprintf("params must be pointers %T %T\n", src, dest))
 	}
 	valSrc = valSrc.Elem()

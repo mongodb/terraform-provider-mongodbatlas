@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 func createProject(tb testing.TB, name string) string {
@@ -26,7 +26,7 @@ func createProject(tb testing.TB, name string) string {
 	return id
 }
 
-func deleteProject(id string) {
+func deleteProject(id string) error {
 	_, err := ConnV2().ProjectsApi.DeleteGroup(context.Background(), id).Execute()
 	if admin.IsErrorCode(err, "CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS") {
 		fmt.Printf("Project deletion failed will retry in 30s: %s, error: %s", id, err)
@@ -34,8 +34,9 @@ func deleteProject(id string) {
 		_, err = ConnV2().ProjectsApi.DeleteGroup(context.Background(), id).Execute()
 	}
 	if err != nil {
-		fmt.Printf("Project deletion failed: %s, error: %s", id, err)
+		return fmt.Errorf("project deletion failed: %s, error: %w", id, err)
 	}
+	return nil
 }
 
 func createCluster(tb testing.TB, projectID, name string) string {
@@ -50,33 +51,34 @@ func createCluster(tb testing.TB, projectID, name string) string {
 	return name
 }
 
-func deleteCluster(projectID, name string) {
+func deleteCluster(projectID, name string) error {
 	_, err := ConnV2().ClustersApi.DeleteCluster(context.Background(), projectID, name).Execute()
 	if err != nil {
-		fmt.Printf("Cluster deletion failed: %s %s, error: %s", projectID, name, err)
+		return fmt.Errorf("cluster deletion failed: %s %s, error: %w", projectID, name, err)
 	}
 	stateConf := cluster.DeleteStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
 	_, err = stateConf.WaitForStateContext(context.Background())
 	if err != nil {
-		fmt.Printf("Cluster deletion failed: %s %s, error: %s", projectID, name, err)
+		return fmt.Errorf("cluster deletion failed: %s %s, error: %w", projectID, name, err)
 	}
+	return nil
 }
 
 func clusterReq(name, projectID string) admin.ClusterDescription20240805 {
 	return admin.ClusterDescription20240805{
-		Name:        admin.PtrString(name),
-		GroupId:     admin.PtrString(projectID),
-		ClusterType: admin.PtrString("REPLICASET"),
+		Name:        new(name),
+		GroupId:     new(projectID),
+		ClusterType: new("REPLICASET"),
 		ReplicationSpecs: &[]admin.ReplicationSpec20240805{
 			{
 				RegionConfigs: &[]admin.CloudRegionConfig20240805{
 					{
 						ProviderName: admin.PtrString(constant.AWS),
 						RegionName:   admin.PtrString(constant.UsWest2),
-						Priority:     admin.PtrInt(7),
+						Priority:     new(7),
 						ElectableSpecs: &admin.HardwareSpec20240805{
 							InstanceSize: admin.PtrString(constant.M10),
-							NodeCount:    admin.PtrInt(3),
+							NodeCount:    new(3),
 						},
 					},
 				},
@@ -88,16 +90,16 @@ func clusterReq(name, projectID string) admin.ClusterDescription20240805 {
 func createStreamInstance(tb testing.TB, projectID, name string) {
 	tb.Helper()
 	req := admin.StreamsTenant{
-		Name: admin.PtrString(name),
+		Name: new(name),
 		DataProcessRegion: &admin.StreamsDataProcessRegion{
 			Region:        "VIRGINIA_USA",
 			CloudProvider: constant.AWS,
 		},
 		StreamConfig: &admin.StreamConfig{
-			Tier: admin.PtrString("SP10"),
+			Tier: new("SP10"),
 		},
 		SampleConnections: &admin.StreamsSampleConnections{
-			Solar: admin.PtrBool(true),
+			Solar: new(true),
 		},
 	}
 	_, _, err := ConnV2().StreamsApi.CreateStreamWorkspace(tb.Context(), projectID, &req).Execute()

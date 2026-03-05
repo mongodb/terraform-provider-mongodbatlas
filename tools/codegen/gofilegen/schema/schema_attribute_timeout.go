@@ -2,6 +2,7 @@ package schema
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 )
@@ -11,23 +12,23 @@ type timeoutAttributeGenerator struct {
 }
 
 func (s *timeoutAttributeGenerator) AttributeCode() (CodeStatement, error) {
-	var optionProperties string
+	var optionProperties strings.Builder
 	for _, op := range s.timeouts.ConfigurableTimeouts {
 		switch op {
 		case codespec.Create:
-			optionProperties += "Create: true,\n"
+			optionProperties.WriteString("Create: true,\n")
 		case codespec.Update:
-			optionProperties += "Update: true,\n"
+			optionProperties.WriteString("Update: true,\n")
 		case codespec.Delete:
-			optionProperties += "Delete: true,\n"
+			optionProperties.WriteString("Delete: true,\n")
 		case codespec.Read:
-			optionProperties += "Read: true,\n"
+			optionProperties.WriteString("Read: true,\n")
 		}
 	}
 	return CodeStatement{
 		Code: fmt.Sprintf(`"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 			%s
-		})`, optionProperties),
+		})`, optionProperties.String()),
 		Imports: []string{"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"},
 	}, nil
 }

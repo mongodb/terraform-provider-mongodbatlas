@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 func Resource() *schema.Resource {
@@ -271,8 +271,8 @@ func expandExportJobCustomData(d *schema.ResourceData) *[]admin.BackupLabel {
 	for i, val := range customData.List() {
 		v := val.(map[string]any)
 		res[i] = admin.BackupLabel{
-			Key:   conversion.Pointer(v["key"].(string)),
-			Value: conversion.Pointer(v["value"].(string)),
+			Key:   new(v["key"].(string)),
+			Value: new(v["value"].(string)),
 		}
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
@@ -18,14 +19,15 @@ import (
 //   - Terraform types: String, Bool, Int64, Float64.
 //   - Custom types: Object, Map, List, Set & jsontypes.Normalized.
 //
-// Attributes that are null or unknown are not marshaled.
-// Attributes with autogen tag `omitjson` are never marshaled, this only applies to the root model.
-// Attributes with autogen tag `omitjsonupdate` are not marshaled if isUpdate is true, this only applies to the root model.
-// Attributes with autogen tag `includenullonupdate` are marshaled if isUpdate is true (even if null), this only applies to the root model.
-// Null list or set root elements are sent as empty arrays if isUpdate is true.
+// Attributes that are null or unknown are not marshaled by default.
+// This behavior can be controlled via autogen tags (tags are exclusive):
+//   - `omitjson`: Attribute is never marshaled.
+//   - `omitjsonupdate`: Attribute is not marshaled if isUpdate is true.
+//   - `sendnullasnullonupdate`: Attribute is marshaled as null if isUpdate is true.
+//   - `sendnullasemptyonupdate`: Attribute is marshaled as empty value (`[]` or `{}`) if isUpdate is true (collections only).
 func Marshal(model any, isUpdate bool) ([]byte, error) {
 	valModel := reflect.ValueOf(model)
-	if valModel.Kind() != reflect.Ptr {
+	if valModel.Kind() != reflect.Pointer {
 		panic("model must be pointer")
 	}
 	valModel = valModel.Elem()
@@ -43,6 +45,24 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 	objJSON := make(map[string]any)
 	for i := range valModel.NumField() {
 		attrTypeModel := valModel.Type().Field(i)
+		attrValModel := valModel.Field(i)
+
+		// Flatten anonymous embedded structs into the same JSON object.
+		if attrTypeModel.Anonymous {
+			if attrValModel.Kind() == reflect.Struct {
+				embeddedJSON, err := marshalAttrs(attrValModel, isUpdate)
+				if err != nil {
+					return nil, err
+				}
+				maps.Copy(objJSON, embeddedJSON)
+				continue
+			}
+
+			return nil, fmt.Errorf(
+				"marshal unsupported anonymous field %q of kind %s (expected struct)",
+				attrTypeModel.Name, attrValModel.Kind())
+		}
+
 		tags := GetPropertyTags(&attrTypeModel)
 		if tags.OmitJSON {
 			continue // skip fields with tag `omitjson`
@@ -51,7 +71,6 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 			continue // skip fields with tag `omitjsonupdate` if in update mode
 		}
 		apiName := getAPINameFromTag(attrTypeModel.Name, tags)
-		attrValModel := valModel.Field(i)
 		if err := marshalAttr(apiName, attrValModel, objJSON, isUpdate, tags); err != nil {
 			return nil, err
 		}
@@ -78,8 +97,8 @@ func marshalAttr(attrNameJSON string, attrValModel reflect.Value, objJSON map[st
 		return err
 	}
 
-	// Emit empty array for null list/set attributes unless explicit configuration with includeNullOnUpdate
-	if val == nil && isUpdate && !tags.IncludeNullOnUpdate {
+	// Emit empty collection on update for null list/set/map attributes when configured via sendNullAsEmptyOnUpdate
+	if val == nil && isUpdate && tags.SendNullAsEmptyOnUpdate {
 		switch obj.(type) {
 		case customtypes.ListValueInterface, customtypes.NestedListValueInterface, customtypes.SetValueInterface, customtypes.NestedSetValueInterface:
 			val = []any{}
@@ -88,8 +107,8 @@ func marshalAttr(attrNameJSON string, attrValModel reflect.Value, objJSON map[st
 		}
 	}
 
-	// Emit value if non-nil, or emit null on update when configured by includeNullOnUpdate
-	if val != nil || (isUpdate && tags.IncludeNullOnUpdate) {
+	// Emit value if non-nil, or emit null on update when configured via sendNullAsNullOnUpdate
+	if val != nil || (isUpdate && tags.SendNullAsNullOnUpdate) {
 		if tags.ListAsMap {
 			val = ModifyJSONFromMapToList(val)
 		}

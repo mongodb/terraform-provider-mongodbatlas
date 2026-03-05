@@ -15,7 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 func Resource() *schema.Resource {
@@ -147,7 +147,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	params := &admin.DiskBackupOnDemandSnapshotRequest{
 		Description:     conversion.StringPtr(d.Get("description").(string)),
-		RetentionInDays: conversion.Pointer(d.Get("retention_in_days").(int)),
+		RetentionInDays: new(d.Get("retention_in_days").(int)),
 	}
 	snapshot, _, err := connV2.CloudBackupsApi.TakeSnapshots(ctx, groupID, clusterName, params).Execute()
 	if err != nil {

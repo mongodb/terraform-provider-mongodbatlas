@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -186,7 +186,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 
 	for _, projectInvitation := range projectInvitations {
-		if conversion.SafeString(projectInvitation.Username) != username {
+		if conversion.SafeValue(projectInvitation.Username) != username {
 			continue
 		}
 

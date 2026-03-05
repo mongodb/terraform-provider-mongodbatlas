@@ -69,7 +69,7 @@ func getOrgIDUsernameRolesFromStateObj(diags *diag.Diagnostics, stateObj map[str
 	username = schemafunc.GetAttrFromStateObj[string](stateObj, "username")
 	if !conversion.IsStringPresent(orgID) || !conversion.IsStringPresent(username) {
 		diags.AddError("Unable to read org_id or username from state", fmt.Sprintf("org_id: %s, username: %s",
-			conversion.SafeString(orgID), conversion.SafeString(username)))
+			conversion.SafeValue(orgID), conversion.SafeValue(username)))
 		return
 	}
 

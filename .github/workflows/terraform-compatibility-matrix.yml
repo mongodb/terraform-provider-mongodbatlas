@@ -57,18 +57,36 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - name: Get content of slack message
-        id: slack-payload
-        run: |
-          slack_message=$(./scripts/generate-slack-notification-content.sh ${{ needs.run-test-supported-versions.result }} ${{ secrets.SLACK_ONCALL_TAG }} ${{github.server_url}} ${{github.repository}} ${{github.run_id}})
-          echo "slack_payload=${slack_message}" >> "${GITHUB_OUTPUT}"
       - name: Send Slack message
-        id: slack
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
-          payload: ${{ steps.slack-payload.outputs.slack_payload }}
+          payload: |
+            {
+              "text": "${{ github.event.repository.name }}: HashiCorp Terraform Compatibility Matrix ${{ needs.run-test-supported-versions.result }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ needs.run-test-supported-versions.result == 'success' && '✅' || '🔴' }} *${{ github.event.repository.name }}: HashiCorp Terraform Compatibility Matrix ${{ needs.run-test-supported-versions.result }}* ${{ needs.run-test-supported-versions.result != 'success' && secrets.SLACK_ONCALL_TAG || '' }}"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": ":github: ${{ needs.run-test-supported-versions.result == 'success' && 'Successful action' || 'Failed action' }}"
+                      },
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
         
   

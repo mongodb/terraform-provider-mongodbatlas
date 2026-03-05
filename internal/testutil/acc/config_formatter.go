@@ -2,8 +2,9 @@ package acc
 
 import (
 	"fmt"
+	"maps"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 	"testing"
 
@@ -42,7 +43,7 @@ func FormatToHCLMap(m map[string]string, indent, varName string) string {
 	}
 	indentKeyValues := indent + "\t"
 
-	for _, k := range SortStringMapKeys(m) {
+	for _, k := range slices.Sorted(maps.Keys(m)) {
 		v := m[k]
 		lines = append(lines, fmt.Sprintf("%s%s = %[3]q", indentKeyValues, k, v))
 	}
@@ -134,13 +135,7 @@ func setAttributeHcl(body *hclwrite.Body, tfExpression string) error {
 // setAttributes iterates over attrs, snake-cases each key, converts the value
 // with toCtyValue, and calls body.SetAttributeValue.
 func setAttributes(body *hclwrite.Body, attrs map[string]any) {
-	keys := make([]string, 0, len(attrs))
-	for k := range attrs {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	for _, camel := range keys {
+	for _, camel := range slices.Sorted(maps.Keys(attrs)) {
 		key := ToSnakeCase(camel)
 		if cv, ok := toCtyValue(attrs[camel]); ok {
 			body.SetAttributeValue(key, cv)
@@ -170,12 +165,7 @@ func toCtyValue(v any) (cty.Value, bool) {
 		}
 		obj := make(map[string]cty.Value, len(v))
 		// sort keys for deterministic output
-		keys := make([]string, 0, len(v))
-		for k := range v {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		for _, k := range keys {
+		for _, k := range slices.Sorted(maps.Keys(v)) {
 			if cv, ok := toCtyValue(v[k]); ok {
 				obj[ToSnakeCase(k)] = cv
 			}

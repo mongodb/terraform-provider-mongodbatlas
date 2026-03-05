@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 const (
@@ -130,10 +130,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.BindPassword = v.(string)
 	}
 	if v, ok := d.GetOk("ca_certificate"); ok {
-		params.CaCertificate = conversion.Pointer(v.(string))
+		params.CaCertificate = new(v.(string))
 	}
 	if v, ok := d.GetOk("authz_query_template"); ok {
-		params.AuthzQueryTemplate = conversion.Pointer(v.(string))
+		params.AuthzQueryTemplate = new(v.(string))
 	}
 
 	ldap, _, err := connV2.LDAPConfigurationApi.VerifyUserSecurityLdap(ctx, projectID, params).Execute()

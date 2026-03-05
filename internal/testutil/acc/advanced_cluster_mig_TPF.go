@@ -126,7 +126,7 @@ func skipMigTPFWork(isTPF bool) bool {
 	return !isTPF
 }
 
-func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interface{}) {
+func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...any) {
 	t.Helper()
 	assert.Equal(t, hcl.CanonicalHCL(t, expected), hcl.CanonicalHCL(t, actual), msgAndArgs...)
 }

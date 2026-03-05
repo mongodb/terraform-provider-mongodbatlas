@@ -68,7 +68,7 @@ func TestAccGlobalClusterConfig_iss(t *testing.T) {
 				Config: configISS(&clusterInfo, false, false, zone1, zone2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil, []string{"project_id"}, attrsMap),
+					acc.CheckRSAndDS(resourceName, new(dataSourceName), nil, []string{"project_id"}, attrsMap),
 				),
 			},
 		},
@@ -96,7 +96,7 @@ func basicTestCase(tb testing.TB, withBackup bool) *resource.TestCase {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					checkZone(0, "CA", clusterInfo.ResourceName),
-					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil, []string{"project_id"}, attrsMap)),
+					acc.CheckRSAndDS(resourceName, new(dataSourceName), nil, []string{"project_id"}, attrsMap)),
 			},
 			{
 				ResourceName:            resourceName,
@@ -170,7 +170,7 @@ func TestAccGlobalClusterConfig_database(t *testing.T) {
 					checkZone(0, "US", clusterInfo.ResourceName),
 					checkZone(1, "IE", clusterInfo.ResourceName),
 					checkZone(2, "DE", clusterInfo.ResourceName),
-					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil,
+					acc.CheckRSAndDS(resourceName, new(dataSourceName), nil,
 						[]string{"project_id"},
 						map[string]string{
 							"cluster_name":         clusterInfo.Name,
@@ -189,7 +189,7 @@ func TestAccGlobalClusterConfig_database(t *testing.T) {
 					checkZone(1, "IE", clusterInfo.ResourceName),
 					checkZone(2, "DE", clusterInfo.ResourceName),
 					checkZone(3, "JP", clusterInfo.ResourceName),
-					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil,
+					acc.CheckRSAndDS(resourceName, new(dataSourceName), nil,
 						[]string{"project_id"},
 						map[string]string{
 							"cluster_name":         clusterInfo.Name,
@@ -208,7 +208,7 @@ func TestAccGlobalClusterConfig_database(t *testing.T) {
 				Config: configWithDBConfig(&clusterInfo, ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil,
+					acc.CheckRSAndDS(resourceName, new(dataSourceName), nil,
 						[]string{"project_id"},
 						map[string]string{
 							"cluster_name":         clusterInfo.Name,

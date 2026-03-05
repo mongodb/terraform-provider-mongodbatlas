@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]any {
@@ -155,7 +155,7 @@ func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID,
 		if err != nil {
 			return nil, "ERROR", err
 		}
-		status := conversion.SafeString(searchIndex.Status)
+		status := conversion.SafeValue(searchIndex.Status)
 		return searchIndex, status, nil
 	}
 }
@@ -175,8 +175,8 @@ func canonicalizeJSONString(s string) string {
 	return string(by)
 }
 
-func hashTypeSetElement(v interface{}) int {
-	m := v.(map[string]interface{})
+func hashTypeSetElement(v any) int {
+	m := v.(map[string]any)
 	name := ""
 	if nv, ok := m["name"].(string); ok {
 		name = nv

@@ -3,6 +3,11 @@ name: 'Cleanup test env'
 # Cleans up our atlas cloud dev and qa organizations used for testing.
 on:
   workflow_dispatch: # workflow can be run manually
+    inputs:
+      skip-grace-period:
+        description: 'Skip the grace period for recent projects and delete all bot projects regardless of creation time.'
+        type: boolean
+        default: false
   workflow_call: # workflow runs from Test Suite
 
 jobs:  
@@ -20,6 +25,7 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
           MONGODB_ATLAS_BASE_URL: ${{vars.MONGODB_ATLAS_BASE_URL}}
           MONGODB_ATLAS_CLEAN_RETRY_ATTEMPTS: "1" # Removing atlas clusters is slow, we don't want to block the TestSuite workflow, during next run we will retry again
+          MONGODB_ATLAS_CLEAN_SKIP_GRACE_PERIOD: ${{ github.event.inputs.skip-grace-period || 'false' }}
   cleanup-test-env-qa:
     runs-on: ubuntu-latest
     permissions: {}
@@ -34,3 +40,4 @@ jobs:
           MONGODB_ATLAS_ORG_ID: ${{ vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA }}
           MONGODB_ATLAS_BASE_URL: ${{ vars.MONGODB_ATLAS_BASE_URL_QA }}
           MONGODB_ATLAS_CLEAN_RETRY_ATTEMPTS: "1" # Removing atlas clusters is slow, we don't want to block the TestSuite workflow, during next run we will retry again
+          MONGODB_ATLAS_CLEAN_SKIP_GRACE_PERIOD: ${{ github.event.inputs.skip-grace-period || 'false' }}

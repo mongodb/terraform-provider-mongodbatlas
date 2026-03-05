@@ -1,0 +1,3 @@
+```release-note:note
+resource/mongodbatlas_project_ip_access_lists: In-place updates are not currently supported. Modifying any attribute requires a replacement
+```

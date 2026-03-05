@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -117,7 +117,7 @@ func getProjectIDNameFromStateObj(diags *diag.Diagnostics, stateObj map[string]t
 	name = schemafunc.GetAttrFromStateObj[string](stateObj, "name")
 	if !conversion.IsStringPresent(projectID) || !conversion.IsStringPresent(name) {
 		diags.AddError("Unable to read project_id or name from state", fmt.Sprintf("project_id: %s, name: %s",
-			conversion.SafeString(projectID), conversion.SafeString(name)))
+			conversion.SafeValue(projectID), conversion.SafeValue(name)))
 		return
 	}
 	return projectID, name

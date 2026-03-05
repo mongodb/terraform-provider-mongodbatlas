@@ -79,7 +79,7 @@ func getTestResourceComputedAttributes() codespec.Attributes {
 			TFModelName:              "BoolDefaultAttr",
 			APIName:                  "boolDefaultAttr",
 			ComputedOptionalRequired: codespec.Computed,
-			Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(false)},
+			Bool:                     &codespec.BoolAttribute{Default: new(false)},
 			ReqBodyUsage:             codespec.OmitAlways,
 		},
 		{
@@ -104,7 +104,7 @@ func getTestResourceComputedAttributes() codespec.Attributes {
 			TFSchemaName:             "num_double_default_attr",
 			TFModelName:              "NumDoubleDefaultAttr",
 			APIName:                  "numDoubleDefaultAttr",
-			Float64:                  &codespec.Float64Attribute{Default: conversion.Pointer(2.0)},
+			Float64:                  &codespec.Float64Attribute{Default: new(2.0)},
 			ComputedOptionalRequired: codespec.Computed,
 			ReqBodyUsage:             codespec.OmitAlways,
 		},
@@ -199,7 +199,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 							TFModelName:              "BoolDefaultAttr",
 							APIName:                  "boolDefaultAttr",
 							ComputedOptionalRequired: codespec.ComputedOptional,
-							Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(false)},
+							Bool:                     &codespec.BoolAttribute{Default: new(false)},
 							ReqBodyUsage:             codespec.AllRequestBodies,
 							PresentInAnyResponse:     true,
 						},
@@ -237,7 +237,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 							TFSchemaName:             "num_double_default_attr",
 							TFModelName:              "NumDoubleDefaultAttr",
 							APIName:                  "numDoubleDefaultAttr",
-							Float64:                  &codespec.Float64Attribute{Default: conversion.Pointer(2.0)},
+							Float64:                  &codespec.Float64Attribute{Default: new(2.0)},
 							ComputedOptionalRequired: codespec.ComputedOptional,
 							ReqBodyUsage:             codespec.AllRequestBodies,
 							PresentInAnyResponse:     true,
@@ -332,6 +332,26 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							ComputedOptionalRequired: codespec.Optional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr("Always in updates"),
+							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInAnyResponse:     true,
+						},
+						{
+							TFSchemaName:             "attr_send_empty_in_updates",
+							TFModelName:              "AttrSendEmptyInUpdates",
+							APIName:                  "attrSendEmptyInUpdates",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("Send empty in updates"),
+							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInAnyResponse:     true,
+						},
+						{
+							TFSchemaName:             "attr_send_null_in_updates",
+							TFModelName:              "AttrSendNullInUpdates",
+							APIName:                  "attrSendNullInUpdates",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("Send null in updates"),
 							ReqBodyUsage:             codespec.AllRequestBodies,
 							PresentInAnyResponse:     true,
 						},
@@ -627,13 +647,23 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 					Description: conversion.StringPtr(testResourceDesc),
 					Attributes: codespec.Attributes{
 						{
-							TFSchemaName:             "attr_always_in_updates",
-							TFModelName:              "AttrAlwaysInUpdates",
-							APIName:                  "attrAlwaysInUpdates",
+							TFSchemaName:             "attr_send_empty_in_updates",
+							TFModelName:              "AttrSendEmptyInUpdates",
+							APIName:                  "attrSendEmptyInUpdates",
 							ComputedOptionalRequired: codespec.Optional,
 							String:                   &codespec.StringAttribute{},
-							Description:              conversion.StringPtr("Always in updates"),
-							ReqBodyUsage:             codespec.IncludeNullOnUpdate,
+							Description:              conversion.StringPtr("Send empty in updates"),
+							ReqBodyUsage:             codespec.SendNullAsEmptyOnUpdate,
+							PresentInAnyResponse:     true,
+						},
+						{
+							TFSchemaName:             "attr_send_null_in_updates",
+							TFModelName:              "AttrSendNullInUpdates",
+							APIName:                  "attrSendNullInUpdates",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("Send null in updates"),
+							ReqBodyUsage:             codespec.SendNullAsNullOnUpdate,
 							PresentInAnyResponse:     true,
 						},
 						{
@@ -1532,6 +1562,122 @@ func TestConvertToProviderSpec_pathParamWithAlias(t *testing.T) {
 	assert.Contains(t, result.Resources[0].Operations.Delete.Path, "{dbUser}", "Delete path should use aliased path param")
 }
 
+func TestConvertToProviderSpec_polymorphicResource(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_polymorphic_resource",
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Len(t, result.Resources, 1)
+
+	schema := result.Resources[0].Schema
+	require.NotNil(t, schema)
+
+	// Verify root-level discriminator is populated
+	disc := schema.Discriminator
+	require.NotNil(t, disc, "Root discriminator should be populated")
+	assert.Equal(t, "type", disc.PropertyName.TFSchemaName, "Discriminator property name should be snake_case")
+	assert.Equal(t, "type", disc.PropertyName.APIName, "Discriminator API property name should be preserved")
+
+	// Verify TypeA mapping
+	typeA, ok := disc.Mapping["TypeA"]
+	require.True(t, ok, "TypeA variant should exist in mapping")
+	// type_a_only_attr, type_a_optional_attr, computed_type_a_attr from request
+	// response adds response_only_attr and response_required_attr
+	assert.Contains(t, typeA.Allowed, codespec.NewDiscriminatorAttrName("typeAOnlyAttr"))
+	assert.Contains(t, typeA.Allowed, codespec.NewDiscriminatorAttrName("typeAOptionalAttr"))
+	assert.Contains(t, typeA.Allowed, codespec.NewDiscriminatorAttrName("computedTypeAAttr"))
+	assert.Contains(t, typeA.Allowed, codespec.NewDiscriminatorAttrName("responseOnlyAttr"), "Response-only attribute should be in allowed via merge")
+	assert.Contains(t, typeA.Allowed, codespec.NewDiscriminatorAttrName("responseRequiredAttr"), "Response-only required attribute should be in allowed via merge")
+	// type is excluded from variant mappings (it's the discriminator property itself)
+	assert.NotContains(t, typeA.Allowed, codespec.NewDiscriminatorAttrName("type"), "Discriminator property itself should be excluded from allowed")
+
+	// Required: type_a_only_attr from request; computed_type_a_attr is readOnly so excluded from required.
+	// response_required_attr is required in the response discriminator but response-only properties
+	// should not contribute to required (required is driven by the request discriminator only).
+	assert.Contains(t, typeA.Required, codespec.NewDiscriminatorAttrName("typeAOnlyAttr"), "Non-readOnly required should be in required")
+	assert.NotContains(t, typeA.Required, codespec.NewDiscriminatorAttrName("computedTypeAAttr"), "ReadOnly required should be excluded from required")
+	assert.NotContains(t, typeA.Required, codespec.NewDiscriminatorAttrName("responseRequiredAttr"), "Response-only required should not appear in merged required")
+
+	// Verify TypeB mapping
+	typeB, ok := disc.Mapping["TypeB"]
+	require.True(t, ok, "TypeB variant should exist in mapping")
+	assert.Contains(t, typeB.Allowed, codespec.NewDiscriminatorAttrName("typeBOnlyAttr"))
+	assert.NotContains(t, typeB.Allowed, codespec.NewDiscriminatorAttrName("type"), "Discriminator property itself should be excluded from allowed")
+	assert.Contains(t, typeB.Required, codespec.NewDiscriminatorAttrName("typeBOnlyAttr"))
+
+	// Verify common attributes are NOT in any variant's allowed list
+	// commonAttr is a base property, not type-specific
+	for _, variant := range disc.Mapping {
+		assert.NotContains(t, variant.Allowed, codespec.NewDiscriminatorAttrName("commonAttr"), "Common attributes should not appear in variant allowed lists")
+	}
+
+	// Verify response-only attributes are present as computed attributes in the schema
+	for _, attrName := range []string{"response_only_attr", "response_required_attr"} {
+		var found *codespec.Attribute
+		for i := range schema.Attributes {
+			if schema.Attributes[i].TFSchemaName == attrName {
+				found = &schema.Attributes[i]
+				break
+			}
+		}
+		require.NotNil(t, found, "%s should exist in schema", attrName)
+		assert.Equal(t, codespec.Computed, found.ComputedOptionalRequired, "%s should be Computed", attrName)
+	}
+}
+
+func TestConvertToProviderSpec_nestedPolymorphicResource(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_nested_polymorphic_resource",
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Len(t, result.Resources, 1)
+
+	schema := result.Resources[0].Schema
+	require.NotNil(t, schema)
+
+	// Root schema should not have a discriminator (NestedPolymorphicResource is not polymorphic itself)
+	assert.Nil(t, schema.Discriminator, "Root schema should not have a discriminator")
+
+	// Find the nested_poly attribute
+	var nestedPolyAttr *codespec.Attribute
+	for i := range schema.Attributes {
+		if schema.Attributes[i].TFSchemaName == "nested_poly" {
+			nestedPolyAttr = &schema.Attributes[i]
+			break
+		}
+	}
+	require.NotNil(t, nestedPolyAttr, "nested_poly attribute should exist")
+	require.NotNil(t, nestedPolyAttr.SingleNested, "nested_poly should be a SingleNested attribute")
+
+	// Verify nested discriminator is populated
+	nestedDisc := nestedPolyAttr.SingleNested.NestedObject.Discriminator
+	require.NotNil(t, nestedDisc, "Nested discriminator should be populated")
+	assert.Equal(t, codespec.NewDiscriminatorAttrName("type"), nestedDisc.PropertyName)
+
+	// Verify TypeA mapping at nested level
+	typeA, ok := nestedDisc.Mapping["TypeA"]
+	require.True(t, ok, "TypeA variant should exist in nested mapping")
+	assert.Contains(t, typeA.Allowed, codespec.NewDiscriminatorAttrName("typeAOnlyAttr"))
+	assert.Contains(t, typeA.Allowed, codespec.NewDiscriminatorAttrName("typeAOptionalAttr"))
+	assert.Contains(t, typeA.Allowed, codespec.NewDiscriminatorAttrName("computedTypeAAttr"))
+	assert.NotContains(t, typeA.Allowed, codespec.NewDiscriminatorAttrName("type"))
+
+	// Verify TypeB mapping at nested level
+	typeB, ok := nestedDisc.Mapping["TypeB"]
+	require.True(t, ok, "TypeB variant should exist in nested mapping")
+	assert.Contains(t, typeB.Allowed, codespec.NewDiscriminatorAttrName("typeBOnlyAttr"))
+}
+
 func TestConvertToProviderSpec_ignoreSchemaAndIdAttributes(t *testing.T) {
 	tc := convertToSpecTestCase{
 		inputOpenAPISpecPath: testDataAPISpecPath,
@@ -1594,7 +1740,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 							TFModelName:              "BoolDefaultAttr",
 							APIName:                  "boolDefaultAttr",
 							ComputedOptionalRequired: codespec.ComputedOptional,
-							Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(false)},
+							Bool:                     &codespec.BoolAttribute{Default: new(false)},
 							ReqBodyUsage:             codespec.AllRequestBodies,
 							PresentInAnyResponse:     true,
 						},
@@ -1632,7 +1778,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 							TFSchemaName:             "num_double_default_attr",
 							TFModelName:              "NumDoubleDefaultAttr",
 							APIName:                  "numDoubleDefaultAttr",
-							Float64:                  &codespec.Float64Attribute{Default: conversion.Pointer(2.0)},
+							Float64:                  &codespec.Float64Attribute{Default: new(2.0)},
 							ComputedOptionalRequired: codespec.ComputedOptional,
 							ReqBodyUsage:             codespec.AllRequestBodies,
 							PresentInAnyResponse:     true,
@@ -1702,18 +1848,20 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 				},
 				// Data sources model with independent schema
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
-						SingularDSDescription: conversion.StringPtr("GET API description"),
-						PluralDSDescription:   conversion.StringPtr("LIST API description"),
-						PluralDSAttributes:    &pluralDSAttributes,
-						SingularDSAttributes: &codespec.Attributes{
+					Plural: &codespec.Schema{
+						Description: conversion.StringPtr("LIST API description"),
+						Attributes:  pluralDSAttributes,
+					},
+					Singular: &codespec.Schema{
+						Description: conversion.StringPtr("GET API description"),
+						Attributes: codespec.Attributes{
 							// All response attributes are Computed
 							{
 								TFSchemaName:             "bool_default_attr",
 								TFModelName:              "BoolDefaultAttr",
 								APIName:                  "boolDefaultAttr",
 								ComputedOptionalRequired: codespec.Computed,
-								Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(false)},
+								Bool:                     &codespec.BoolAttribute{Default: new(false)},
 								ReqBodyUsage:             codespec.OmitAlways,
 							},
 							{
@@ -1738,7 +1886,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 								TFSchemaName:             "num_double_default_attr",
 								TFModelName:              "NumDoubleDefaultAttr",
 								APIName:                  "numDoubleDefaultAttr",
-								Float64:                  &codespec.Float64Attribute{Default: conversion.Pointer(2.0)},
+								Float64:                  &codespec.Float64Attribute{Default: new(2.0)},
 								ComputedOptionalRequired: codespec.Computed,
 								ReqBodyUsage:             codespec.OmitAlways,
 							},
@@ -1813,13 +1961,13 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 	// Additional assertions to verify key singular data source behaviors
 	ds := result.Resources[0].DataSources
 	require.NotNil(t, ds, "DataSources should be populated")
-	require.NotNil(t, ds.Schema, "DataSources.Schema should be populated")
+	require.NotNil(t, ds.Singular, "DataSources.Singular should be populated")
 
 	// Verify path param is Required (not Computed) even in singular data source
 	var projectIDAttr *codespec.Attribute
-	for i := range *ds.Schema.SingularDSAttributes {
-		if (*ds.Schema.SingularDSAttributes)[i].TFSchemaName == "project_id" {
-			projectIDAttr = &(*ds.Schema.SingularDSAttributes)[i]
+	for i := range ds.Singular.Attributes {
+		if ds.Singular.Attributes[i].TFSchemaName == "project_id" {
+			projectIDAttr = &ds.Singular.Attributes[i]
 			break
 		}
 	}
@@ -1828,7 +1976,7 @@ func TestConvertToProviderSpec_withDataSources(t *testing.T) {
 	assert.Equal(t, "groupId", projectIDAttr.APIName, "APIName should preserve original name for aliased path param")
 
 	// Verify response attributes are Computed
-	for _, attr := range *ds.Schema.SingularDSAttributes {
+	for _, attr := range ds.Singular.Attributes {
 		if attr.TFSchemaName != "project_id" { // Skip path param
 			assert.Equal(t, codespec.Computed, attr.ComputedOptionalRequired,
 				"Response attribute %s should be Computed in data source", attr.TFSchemaName)
@@ -1879,9 +2027,9 @@ func TestConvertToProviderSpec_withPluralDataSource(t *testing.T) {
 					VersionHeader: "application/vnd.atlas.2023-01-01+json",
 				},
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
-						PluralDSDescription: conversion.StringPtr("LIST API description"),
-						PluralDSAttributes:  &pluralDSAttributes,
+					Plural: &codespec.Schema{
+						Description: conversion.StringPtr("LIST API description"),
+						Attributes:  pluralDSAttributes,
 					},
 					Operations: codespec.APIOperations{
 						List: &codespec.APIOperation{
@@ -1901,14 +2049,13 @@ func TestConvertToProviderSpec_withPluralDataSource(t *testing.T) {
 	// We only verify the plural data source parts
 	ds := result.Resources[0].DataSources
 	require.NotNil(t, ds, "DataSources should be populated")
-	require.NotNil(t, ds.Schema, "DataSources.Schema should be populated")
-	require.NotNil(t, ds.Schema.PluralDSAttributes, "PluralDSAttributes should be populated")
+	require.NotNil(t, ds.Plural, "DataSources.Plural should be populated")
 
 	// Verify path param is Required (not Computed) in plural data source
 	var projectIDAttr *codespec.Attribute
-	for i := range *ds.Schema.PluralDSAttributes {
-		if (*ds.Schema.PluralDSAttributes)[i].TFSchemaName == "project_id" {
-			projectIDAttr = &(*ds.Schema.PluralDSAttributes)[i]
+	for i := range ds.Plural.Attributes {
+		if ds.Plural.Attributes[i].TFSchemaName == "project_id" {
+			projectIDAttr = &ds.Plural.Attributes[i]
 			break
 		}
 	}
@@ -1918,9 +2065,9 @@ func TestConvertToProviderSpec_withPluralDataSource(t *testing.T) {
 
 	// Verify results array exists and is Computed
 	var resultsAttr *codespec.Attribute
-	for i := range *ds.Schema.PluralDSAttributes {
-		if (*ds.Schema.PluralDSAttributes)[i].TFSchemaName == "results" {
-			resultsAttr = &(*ds.Schema.PluralDSAttributes)[i]
+	for i := range ds.Plural.Attributes {
+		if ds.Plural.Attributes[i].TFSchemaName == "results" {
+			resultsAttr = &ds.Plural.Attributes[i]
 			break
 		}
 	}
@@ -1936,8 +2083,8 @@ func TestConvertToProviderSpec_withPluralDataSource(t *testing.T) {
 	}
 
 	// Verify the expected structure matches (comparing against the helper function output)
-	assert.Equal(t, tc.expectedResult.Resources[0].DataSources.Schema.PluralDSAttributes, ds.Schema.PluralDSAttributes,
-		"PluralDSAttributes should match expected structure")
+	assert.Equal(t, tc.expectedResult.Resources[0].DataSources.Plural.Attributes, ds.Plural.Attributes,
+		"Plural.Attributes should match expected structure")
 
 	// Verify List operation path uses aliased placeholder
 	require.NotNil(t, ds.Operations.List, "List operation should be defined for plural data source")
@@ -1976,15 +2123,14 @@ func TestConvertToProviderSpec_withDataSourceOnly(t *testing.T) {
 	assert.NotNil(t, ds.Operations.Read)
 	assert.NotNil(t, ds.Operations.List)
 
-	require.NotNil(t, ds.Schema)
-	require.NotNil(t, ds.Schema.SingularDSAttributes)
-	require.NotNil(t, ds.Schema.PluralDSAttributes)
+	require.NotNil(t, ds.Singular)
+	require.NotNil(t, ds.Plural)
 
 	// Singular data source: path param required, response attrs computed
 	var projectIDAttr *codespec.Attribute
 	var computedAttr *codespec.Attribute
-	for i := range *ds.Schema.SingularDSAttributes {
-		attr := &(*ds.Schema.SingularDSAttributes)[i]
+	for i := range ds.Singular.Attributes {
+		attr := &ds.Singular.Attributes[i]
 		if attr.TFSchemaName == "project_id" {
 			projectIDAttr = attr
 		}
@@ -2001,8 +2147,8 @@ func TestConvertToProviderSpec_withDataSourceOnly(t *testing.T) {
 	// Plural data source: path param required, results list is computed
 	var pluralProjectIDAttr *codespec.Attribute
 	var resultsAttr *codespec.Attribute
-	for i := range *ds.Schema.PluralDSAttributes {
-		attr := &(*ds.Schema.PluralDSAttributes)[i]
+	for i := range ds.Plural.Attributes {
+		attr := &ds.Plural.Attributes[i]
 		if attr.TFSchemaName == "project_id" {
 			pluralProjectIDAttr = attr
 		}
@@ -2044,16 +2190,13 @@ func TestConvertToProviderSpec_withDataSourceOnly_listOnly(t *testing.T) {
 	assert.Nil(t, ds.Operations.Read)
 	require.NotNil(t, ds.Operations.List)
 
-	require.NotNil(t, ds.Schema)
-	if ds.Schema.SingularDSAttributes != nil {
-		assert.Empty(t, *ds.Schema.SingularDSAttributes, "singular data source attributes should be absent for list-only config")
-	}
-	require.NotNil(t, ds.Schema.PluralDSAttributes)
+	assert.Nil(t, ds.Singular, "singular data source should be absent for list-only config")
+	require.NotNil(t, ds.Plural)
 
 	var projectIDAttr *codespec.Attribute
 	var resultsAttr *codespec.Attribute
-	for i := range *ds.Schema.PluralDSAttributes {
-		attr := &(*ds.Schema.PluralDSAttributes)[i]
+	for i := range ds.Plural.Attributes {
+		attr := &ds.Plural.Attributes[i]
 		if attr.TFSchemaName == "project_id" {
 			projectIDAttr = attr
 		}
@@ -2078,7 +2221,7 @@ func TestConvertToProviderSpec_withTagsAndLabelsAsMapType(t *testing.T) {
 	require.NoError(t, err)
 
 	resourceAttrs := []codespec.Attribute(result.Resources[0].Schema.Attributes)
-	dataSourceAttrs := []codespec.Attribute(*result.Resources[0].DataSources.Schema.SingularDSAttributes)
+	dataSourceAttrs := []codespec.Attribute(result.Resources[0].DataSources.Singular.Attributes)
 
 	assert.Len(t, resourceAttrs, 2, "Expected resource to have 2 attributes")
 	assert.Len(t, dataSourceAttrs, 2, "Expected data source to have 2 attributes")
@@ -2089,5 +2232,6 @@ func TestConvertToProviderSpec_withTagsAndLabelsAsMapType(t *testing.T) {
 		assert.Nil(t, attr.ListNested, "Attribute %s should be a map type", attr.TFSchemaName)
 		assert.True(t, attr.ListTypeAsMap, "Attribute %s should have correct flag", attr.TFSchemaName)
 		assert.Contains(t, []string{"labels", "tags"}, attr.TFSchemaName, "Resource attribute should be either 'labels' or 'tags'")
+		assert.Equal(t, codespec.SendNullAsEmptyOnUpdate, attr.ReqBodyUsage, "Attribute %s should have correct ReqBodyUsage", attr.TFSchemaName)
 	}
 }

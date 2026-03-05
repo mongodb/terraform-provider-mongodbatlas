@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 // GetWorkspaceOrInstanceName returns the workspace name from workspace_name or instance_name field. Assumes exactly one of the two is set.
@@ -175,8 +175,7 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName, w
 
 func ConvertOptionsToTF(ctx context.Context, options *admin.StreamsOptions) (*types.Object, diag.Diagnostics) {
 	if options == nil || !options.HasDlq() {
-		optionsTF := types.ObjectNull(OptionsObjectType.AttributeTypes())
-		return &optionsTF, nil
+		return new(types.ObjectNull(OptionsObjectType.AttributeTypes())), nil
 	}
 	dlqTF, diags := convertDlqToTF(ctx, options.Dlq)
 	if diags.HasError() {
@@ -194,8 +193,7 @@ func ConvertOptionsToTF(ctx context.Context, options *admin.StreamsOptions) (*ty
 
 func convertDlqToTF(ctx context.Context, dlq *admin.StreamsDLQ) (*types.Object, diag.Diagnostics) {
 	if dlq == nil {
-		dlqTF := types.ObjectNull(DlqObjectType.AttributeTypes())
-		return &dlqTF, nil
+		return new(types.ObjectNull(DlqObjectType.AttributeTypes())), nil
 	}
 	dlqModel := TFDlqModel{
 		Coll:           types.StringPointerValue(dlq.Coll),

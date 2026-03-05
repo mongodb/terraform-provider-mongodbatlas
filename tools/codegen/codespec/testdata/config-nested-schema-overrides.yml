@@ -30,6 +30,7 @@ resources:
           "set_primitive_string_attr",
           "single_nested_attr",
           "single_nested_attr_with_nested_maps",
+          "attr_always_in_updates",
         ]
 
       overrides:
@@ -42,5 +43,7 @@ resources:
             optional: true
             computed: true
           description: "Optional string that has config override to optional/computed"
-        attr_always_in_updates:
-          include_null_on_update: true
+        attr_send_null_in_updates:
+          request_body_usage: "send_null_as_null_on_update"
+        attr_send_empty_in_updates:
+          request_body_usage: "send_null_as_empty_on_update"

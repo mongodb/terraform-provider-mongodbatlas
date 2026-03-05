@@ -386,6 +386,21 @@ func TestCredentials_Errors(t *testing.T) {
 			},
 			want: "",
 		},
+		"SA client_id in public_key with private_key set": {
+			credentials: config.Credentials{
+				PublicKey:  "mdb_sa_id_12345",
+				PrivateKey: "some_secret_value",
+			},
+			want: "Service Account credentials (starting with 'mdb_sa') were provided in public_key/private_key which are meant for Programmatic Access Keys. " +
+				"Please use client_id and client_secret arguments for Service Account authentication",
+		},
+		"SA client_id in public_key with missing private_key": {
+			credentials: config.Credentials{
+				PublicKey: "mdb_sa_id_12345",
+			},
+			want: "Service Account credentials (starting with 'mdb_sa') were provided in public_key/private_key which are meant for Programmatic Access Keys. " +
+				"Please use client_id and client_secret arguments for Service Account authentication",
+		},
 	}
 
 	for name, tc := range testCases {

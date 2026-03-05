@@ -31,7 +31,7 @@ func Unmarshal(raw []byte, model any) error {
 
 func unmarshalAttrs(objJSON map[string]any, model any) error {
 	valModel := reflect.ValueOf(model)
-	if valModel.Kind() != reflect.Ptr {
+	if valModel.Kind() != reflect.Pointer {
 		panic("model must be pointer")
 	}
 	valModel = valModel.Elem()
@@ -47,6 +47,21 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 
 		if !fieldModel.CanSet() {
 			continue // skip fields that cannot be set
+		}
+
+		// Flatten anonymous embedded structs by recursively
+		// applying unmarshal over the same JSON object.
+		if field.Anonymous {
+			if fieldModel.Kind() == reflect.Struct {
+				if err := unmarshalAttrs(objJSON, fieldModel.Addr().Interface()); err != nil {
+					return err
+				}
+				continue
+			}
+
+			return fmt.Errorf(
+				"unmarshal unsupported anonymous field %q of kind %s (expected struct)",
+				field.Name, fieldModel.Kind())
 		}
 
 		tags := GetPropertyTags(&field)

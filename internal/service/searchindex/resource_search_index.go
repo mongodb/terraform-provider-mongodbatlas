@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 const (
@@ -185,7 +185,7 @@ func setMappingsAttributesFromDefinition(d *schema.ResourceData, mappings *admin
 		log.Printf("[DEBUG] search_index: unexpected mappings.dynamic type: %T", v)
 	}
 
-	if fields := mappings.Fields; fields != nil && conversion.HasElementsSliceOrMap(*fields) {
+	if fields := mappings.Fields; fields != nil && len(*fields) > 0 {
 		searchIndexMappingFields, err := marshalSearchIndex(*fields)
 		if err != nil {
 			return diag.FromErr(err)
@@ -573,7 +573,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.Errorf("error creating index: %s", err)
 	}
-	indexID := conversion.SafeString(dbSearchIndexRes.IndexID)
+	indexID := conversion.SafeValue(dbSearchIndexRes.IndexID)
 	if d.Get("wait_for_index_build_completion").(bool) {
 		timeout := d.Timeout(schema.TimeoutCreate)
 		stateConf := &retry.StateChangeConf{

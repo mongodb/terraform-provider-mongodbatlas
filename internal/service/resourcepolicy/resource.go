@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -44,23 +45,23 @@ func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPl
 	var policies []TFPolicyModel
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("policies"), &policies)...)
 	sdkPolicies := NewAdminPolicies(ctx, policies)
-	var orgID, name *string
+	var orgID, name types.String
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("org_id"), &orgID)...)
 	resp.Diagnostics.Append(req.Plan.GetAttribute(ctx, path.Root("name"), &name)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if name == nil || orgID == nil {
+	if name.IsUnknown() || name.IsNull() || orgID.IsUnknown() || orgID.IsNull() {
 		return
 	}
 	sdkCreate := &admin.ApiAtlasResourcePolicyCreate{
-		Name:     *name,
+		Name:     name.ValueString(),
 		Policies: sdkPolicies,
 	}
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.ResourcePoliciesApi.ValidateResourcePolicies(ctx, *orgID, sdkCreate).Execute()
+	_, _, err := connV2.ResourcePoliciesApi.ValidateResourcePolicies(ctx, orgID.ValueString(), sdkCreate).Execute()
 	if err != nil {
-		conversion.AddJSONBodyErrorToDiagnostics(fmt.Sprintf("Policy Validation failed (name=%s): ", *name), err, &resp.Diagnostics)
+		conversion.AddJSONBodyErrorToDiagnostics(fmt.Sprintf("Policy Validation failed (name=%s): ", name.ValueString()), err, &resp.Diagnostics)
 	}
 }
 
@@ -138,7 +139,7 @@ func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateReques
 		Name: plan.Name.ValueStringPointer(),
 		// description is an optional attribute (i.e. null by default), if it is removed from the config during an update
 		// (i.e. user wants to remove the existing description from resource policy), we send an empty string ("") as the value in API request for update
-		Description: conversion.Pointer(plan.Description.ValueString()),
+		Description: new(plan.Description.ValueString()),
 		Policies:    &policies,
 	}
 	policySDK, _, err := connV2.ResourcePoliciesApi.UpdateOrgResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()

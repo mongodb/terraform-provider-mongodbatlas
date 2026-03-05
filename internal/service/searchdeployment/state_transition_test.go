@@ -11,8 +11,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
-	"go.mongodb.org/atlas-sdk/v20250312012/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/mockadmin"
 )
 
 var (
@@ -140,8 +140,8 @@ func responseWithState(state *string) *admin.ApiSearchDeploymentResponse {
 		return nil
 	}
 	return &admin.ApiSearchDeploymentResponse{
-		GroupId: admin.PtrString(dummyProjectID),
-		Id:      admin.PtrString(dummyDeploymentID),
+		GroupId: new(dummyProjectID),
+		Id:      new(dummyDeploymentID),
 		Specs: &[]admin.ApiSearchDeploymentSpec{
 			{
 				InstanceSize: instanceSize,

@@ -3,6 +3,7 @@ package searchindexapi_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -499,12 +500,12 @@ func configVector(projectID, clusterName, indexName string) string {
 }
 
 func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON string, types []string) string {
-	var typesStr string
+	var typesStr strings.Builder
 	for i, t := range types {
 		if i > 0 {
-			typesStr += ","
+			typesStr.WriteString(",")
 		}
-		typesStr += fmt.Sprintf("jsonencode(%s)", t)
+		fmt.Fprintf(&typesStr, "jsonencode(%s)", t)
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index_api" "test" {
@@ -525,7 +526,7 @@ func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON string, t
 				}]
 			}
 		}
-	`, projectID, clusterName, indexName, database, collection, dynamicJSON, typesStr)
+	`, projectID, clusterName, indexName, database, collection, dynamicJSON, typesStr.String())
 }
 
 func configWithTypeSetsOmitted(projectID, clusterName, indexName, dynamicJSON string) string {

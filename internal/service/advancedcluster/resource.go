@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -59,8 +59,8 @@ func defaultAPIErrorDetails(clusterName string, err error) string {
 }
 
 var (
-	resumeRequest = admin.ClusterDescription20240805{Paused: conversion.Pointer(false)}
-	pauseRequest  = admin.ClusterDescription20240805{Paused: conversion.Pointer(true)}
+	resumeRequest = admin.ClusterDescription20240805{Paused: new(false)}
+	pauseRequest  = admin.ClusterDescription20240805{Paused: new(true)}
 )
 
 func Resource() resource.Resource {

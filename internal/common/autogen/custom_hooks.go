@@ -1,6 +1,9 @@
 package autogen
 
 import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -36,4 +39,12 @@ type PreUpdateAPICallHook interface {
 
 type PostUpdateAPICallHook interface {
 	PostUpdateAPICall(APICallResult) APICallResult
+}
+
+type PreImportHook interface {
+	PreImport(id string) (string, error)
+}
+
+type ResourceSchemaHook interface {
+	ResourceSchema(ctx context.Context, baseSchema schema.Schema) schema.Schema
 }

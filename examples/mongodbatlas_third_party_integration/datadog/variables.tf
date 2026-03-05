@@ -45,3 +45,9 @@ variable "send_user_provided_resource_tags" {
   default     = false
   type        = bool
 }
+
+variable "send_query_stats_metrics" {
+  description = "Send query shape metrics (only for Datadog integrations)"
+  default     = false
+  type        = bool
+}

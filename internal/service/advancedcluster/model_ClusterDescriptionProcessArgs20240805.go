@@ -3,7 +3,7 @@ package advancedcluster
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -21,7 +21,7 @@ func buildAdvancedConfigObjType(ctx context.Context, input *ProcessArgs, diags *
 		changeStreamOptionsPreAndPostImagesExpireAfterSeconds := input.ArgsDefault.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
 		if changeStreamOptionsPreAndPostImagesExpireAfterSeconds == nil {
 			// special behavior using -1 when it is unset by the user
-			changeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(-1)
+			changeStreamOptionsPreAndPostImagesExpireAfterSeconds = new(-1)
 		}
 
 		advancedConfig = TFAdvancedConfigurationModel{

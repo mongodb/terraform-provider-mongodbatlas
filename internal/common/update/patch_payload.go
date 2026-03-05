@@ -33,10 +33,8 @@ func (m *attrPatchOperations) ignoreInStatePath(path string) bool {
 		}
 	}
 	for _, ignore := range m.ignoreInStatePrefix {
-		for _, part := range strings.Split(path, "/") {
-			if ignore == part {
-				return true
-			}
+		if slices.Contains(strings.Split(path, "/"), ignore) {
+			return true
 		}
 	}
 	return false

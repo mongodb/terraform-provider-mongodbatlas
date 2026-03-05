@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescriptionValue types.String, plan *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
@@ -52,7 +52,7 @@ func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescri
 	if plan.Description.IsNull() && !stateDescriptionValue.Equal(plan.Description) {
 		// description is an optional attribute (i.e. null by default), if it is removed from the config during an update
 		// (i.e. user wants to remove the existing description from the database user), we send an empty string ("") as the value in API request for update (dumping null is not supported in the SDK)
-		result.Description = conversion.Pointer("")
+		result.Description = new("")
 	}
 	return &result, nil
 }

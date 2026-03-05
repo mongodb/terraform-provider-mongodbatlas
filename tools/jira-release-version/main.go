@@ -9,7 +9,6 @@ import (
 	"time"
 
 	jira "github.com/andygrunwald/go-jira/v2/onpremise"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 const (
@@ -111,7 +110,7 @@ func moveIssue(client *jira.Client, issueKey, versionName string) {
 func setReleased(client *jira.Client, versionID string) {
 	version := &jira.Version{
 		ID:          versionID,
-		Released:    conversion.Pointer(true),
+		Released:    new(true),
 		ReleaseDate: time.Now().UTC().Format("2006-01-02"),
 	}
 	_, _, err := client.Version.Update(context.Background(), version)

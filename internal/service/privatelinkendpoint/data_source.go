@@ -81,14 +81,17 @@ func DataSource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"port_mapping_enabled": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-mapped architecture. When `false` or unset, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.",
+			},
 		},
 	}
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
@@ -140,6 +143,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if err := d.Set("service_attachment_names", privateEndpoint.GetServiceAttachmentNames()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "service_attachment_names", privateLinkID, err))
+	}
+
+	if err := d.Set("port_mapping_enabled", privateEndpoint.GetPortMappingEnabled()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "port_mapping_enabled", privateLinkID, err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{

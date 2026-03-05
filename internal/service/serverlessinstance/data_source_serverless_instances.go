@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -42,7 +42,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	projectID := projectIDValue.(string)
 	options := &admin.ListServerlessInstancesApiParams{
 		ItemsPerPage: conversion.IntPtr(500),
-		IncludeCount: conversion.Pointer(true),
+		IncludeCount: new(true),
 		GroupId:      projectID,
 	}
 

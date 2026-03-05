@@ -1,7 +1,7 @@
 package acc_test
 
 import (
-	"sort"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -40,8 +40,8 @@ func TestConvertToMigTPFAttrsMapAndAttrsSet(t *testing.T) {
 		expectedSet = append(expectedSet, name)
 	}
 	actualSet := acc.ConvertToMigTPFAttrsSet(true, attrsSet)
-	sort.Strings(expectedSet)
-	sort.Strings(actualSet)
+	slices.Sort(expectedSet)
+	slices.Sort(actualSet)
 	assert.Equal(t, expectedSet, actualSet)
 }
 

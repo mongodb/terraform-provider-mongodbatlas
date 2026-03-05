@@ -32,6 +32,9 @@ type rs struct {
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
+	if schemaHook, ok := any(r).(autogen.ResourceSchemaHook); ok {
+		resp.Schema = schemaHook.ResourceSchema(ctx, resp.Schema)
+	}
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -164,7 +167,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idAttributes := []string{"group_id", "name"}
-	autogen.HandleImport(ctx, idAttributes, req, resp)
+	autogen.HandleImport(ctx, idAttributes, req, resp, r)
 }
 
 func readAPICallParams(model any) *config.APICallParams {

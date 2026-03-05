@@ -5,6 +5,8 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    allow:
+      - dependency-type: "all"
     commit-message:
       prefix: "chore"
   - package-ecosystem: github-actions

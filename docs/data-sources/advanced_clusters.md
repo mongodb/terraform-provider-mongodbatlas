@@ -4,16 +4,10 @@ subcategory: "Clusters"
 
 # Data Source: mongodbatlas_advanced_clusters
 
-`mongodbatlas_advanced_clusters` returns all Advanced Clusters for a project_id.
+`mongodbatlas_advanced_clusters` describes all Advanced Clusters, including Flex clusters, for a project_id.
 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
-~> **IMPORTANT:**
-<br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
-<br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
-
--> **NOTE:** This data source also includes Flex clusters.
 
 ## Example Usage
 
@@ -228,10 +222,11 @@ In addition to all arguments above, the following attributes are exported:
 * `version_release_system` - Release cadence that Atlas uses for this cluster.
 * `advanced_configuration` - Get the advanced configuration options. See [Advanced Configuration](#advanced-configuration) below for more details.
 * `global_cluster_self_managed_sharding` - Flag that indicates if cluster uses Atlas-Managed Sharding (false) or Self-Managed Sharding (true).
-* `replica_set_scaling_strategy` - (Optional) Replica set scaling mode for your cluster.
-* `redact_client_log_data` - (Optional) Flag that enables or disables log redaction, see the [manual](https://www.mongodb.com/docs/manual/administration/monitoring/#log-redaction) for more information.
+* `replica_set_scaling_strategy` - Replica set scaling mode for your cluster.
+* `redact_client_log_data` - Flag that enables or disables log redaction, see the [manual](https://www.mongodb.com/docs/manual/administration/monitoring/#log-redaction) for more information.
 * `config_server_management_mode` - Config Server Management Mode for creating or updating a sharded cluster. Valid values are `ATLAS_MANAGED` (default) and `FIXED_TO_DEDICATED`. When configured as `ATLAS_MANAGED`, Atlas may automatically switch the cluster's config server type for optimal performance and savings. When configured as `FIXED_TO_DEDICATED`, the cluster will always use a dedicated config server. To learn more, see the [Sharded Cluster Config Servers documentation](https://dochub.mongodb.org/docs/manual/core/sharded-cluster-config-servers/).
 * `config_server_type` Describes a sharded cluster's config server type. Valid values are `DEDICATED` and `EMBEDDED`. To learn more, see the [Sharded Cluster Config Servers documentation](https://dochub.mongodb.org/docs/manual/core/sharded-cluster-config-servers/).
+* `use_aws_time_based_snapshot_copy_for_fast_initial_sync` - Flag that indicates whether time-based snapshot copies will be used instead of slower standard snapshot copies during fast Atlas cross-region initial syncs. This flag is only relevant for clusters containing AWS nodes.
 
 ### bi_connector_config
 

@@ -3,9 +3,11 @@ package acc
 import (
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
@@ -100,7 +102,7 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 
 	if len(req.Tags) > 0 {
 		tagMap := make(map[string]cty.Value, len(req.Tags))
-		for _, key := range SortStringMapKeys(req.Tags) {
+		for _, key := range slices.Sorted(maps.Keys(req.Tags)) {
 			tagMap[key] = cty.StringVal(req.Tags[key])
 		}
 		cluster.SetAttributeValue("tags", cty.ObjectVal(tagMap))

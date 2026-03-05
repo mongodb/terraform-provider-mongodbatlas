@@ -2,7 +2,9 @@ package acc
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 	"sync"
 	"testing"
 	"time"
@@ -25,49 +27,60 @@ type projectInfo struct {
 }
 
 var sharedInfo = struct {
-	clusterName             string
-	streamInstanceName      string
-	privateLinkEndpointID   string
-	privateLinkProviderName string
-	projects                []projectInfo
-	mu                      sync.Mutex
-	muSleep                 sync.Mutex
-	init                    bool
+	clusterName        string
+	streamInstanceName string
+	projects           []projectInfo
+	mu                 sync.Mutex
+	muSleep            sync.Mutex
+	init               bool
 }{
 	projects: []projectInfo{},
 }
 
-// SetupSharedResources must be called from TestMain test package in order to use ProjectIDExecution.
-// It returns the cleanup function that must be called at the end of TestMain.
-func SetupSharedResources() func() {
+// Run handles the common logic for running acceptance tests: Init shared struct, run tests and clean up shared resources.
+// It returns an exit code to pass to os.Exit. The exit code is zero when all tests pass and clean up succeeds, and non-zero for any kind of failure.
+func Run(m *testing.M) (code int) {
 	sharedInfo.init = true
-	return cleanupSharedResources
+	exitCode := m.Run()
+	if err := cleanupSharedResources(); err != nil {
+		log.Printf("[ERROR] Cleanup failed: %v", err)
+		exitCode = 1
+	}
+	return exitCode
 }
 
-func cleanupSharedResources() {
+func cleanupSharedResources() error {
+	var hasError bool
 	firstProjectID := projectIDLocal()
 	if firstProjectID == "" && len(sharedInfo.projects) > 0 {
 		firstProjectID = sharedInfo.projects[0].id
 	}
 	if sharedInfo.clusterName != "" {
 		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", sharedInfo.clusterName, firstProjectID)
-		deleteCluster(firstProjectID, sharedInfo.clusterName)
-	}
-	if sharedInfo.streamInstanceName != "" {
-		_, err := clean.RemoveStreamInstances(context.TODO(), false, ConnV2(), firstProjectID)
-		if err != nil {
-			fmt.Printf("Failed to delete stream instances: for execution project %s, error: %s\n", firstProjectID, err)
+		if err := deleteCluster(firstProjectID, sharedInfo.clusterName); err != nil {
+			fmt.Printf("[ERROR] Cluster deletion failed: %v\n", err)
+			hasError = true
 		}
 	}
-	if sharedInfo.privateLinkEndpointID != "" {
-		fmt.Printf("Deleting execution private link endpoint: %s, project id: %s, provider: %s\n", sharedInfo.privateLinkEndpointID, firstProjectID, sharedInfo.privateLinkProviderName)
-		deletePrivateLinkEndpoint(firstProjectID, sharedInfo.privateLinkProviderName, sharedInfo.privateLinkEndpointID)
+	if sharedInfo.streamInstanceName != "" {
+		fmt.Printf("Deleting execution stream instance: %s, project id: %s\n", sharedInfo.streamInstanceName, firstProjectID)
+		if _, err := clean.RemoveStreamInstances(context.TODO(), false, ConnV2(), firstProjectID); err != nil {
+			fmt.Printf("[ERROR] Stream instance deletion failed: %v\n", err)
+			hasError = true
+		}
 	}
 	for i, project := range sharedInfo.projects {
 		fmt.Printf("Deleting execution project (%d): %s, id: %s\n", i+1, project.name, project.id)
-		deleteProject(project.id)
+		if err := deleteProject(project.id); err != nil {
+			fmt.Printf("[ERROR] Project deletion failed: %v\n", err)
+			hasError = true
+		}
 	}
 	config.CloseTokenSource() // Revoke SA token when acceptance tests finish.
+	if hasError {
+		return errors.New("failed to delete shared resources")
+	}
+	return nil
 }
 
 // ProjectIDExecution returns a project id created for the execution of the tests in the resource package.
@@ -76,7 +89,7 @@ func cleanupSharedResources() {
 func ProjectIDExecution(tb testing.TB) string {
 	tb.Helper()
 	SkipInUnitTest(tb)
-	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
+	require.True(tb, sharedInfo.init, "sharedInfo not initialized, use acc.Run() to run tests that require shared resources")
 
 	if id := projectIDLocal(); id != "" {
 		return id
@@ -92,7 +105,7 @@ func ProjectIDExecution(tb testing.TB) string {
 func MultipleProjectIDsExecution(tb testing.TB, count int) []string {
 	tb.Helper()
 	SkipInUnitTest(tb)
-	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
+	require.True(tb, sharedInfo.init, "sharedInfo not initialized, use acc.Run() to run tests that require shared resources")
 	require.Positive(tb, count, "count must be greater than 0")
 
 	if id := projectIDLocal(); id != "" {
@@ -142,7 +155,7 @@ func ProjectIDExecutionWithFreeCluster(tb testing.TB, totalNodeCount, freeTierCl
 	}
 	// Only skip after ExistingClusterUsed() to allow MacT (Mocked-Acceptance Tests) to return early instead of being skipped.
 	SkipInUnitTest(tb)
-	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
+	require.True(tb, sharedInfo.init, "sharedInfo not initialized, use acc.Run() to run tests that require shared resources")
 	return NextProjectIDClusterName(totalNodeCount, freeTierClusterCount, func(projectName string) string {
 		return createProject(tb, projectName)
 	})
@@ -163,7 +176,7 @@ func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID
 func ClusterNameExecution(tb testing.TB, populateSampleData bool) (projectID, clusterName string) {
 	tb.Helper()
 	SkipInUnitTest(tb)
-	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
+	require.True(tb, sharedInfo.init, "sharedInfo not initialized, use acc.Run() to run tests that require shared resources")
 
 	if ExistingClusterUsed() {
 		return existingProjectIDClusterName()
@@ -197,7 +210,7 @@ func ClusterNameExecution(tb testing.TB, populateSampleData bool) (projectID, cl
 func ProjectIDExecutionWithStreamInstance(tb testing.TB) (projectID, streamInstanceName string) {
 	tb.Helper()
 	SkipInUnitTest(tb)
-	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
+	require.True(tb, sharedInfo.init, "sharedInfo not initialized, use acc.Run() to run tests that require shared resources")
 	projectID = ProjectIDExecution(tb)
 
 	if existingStreamInstanceUsed() {
@@ -220,35 +233,12 @@ func ProjectIDExecutionWithStreamInstance(tb testing.TB) (projectID, streamInsta
 func SerialSleep(tb testing.TB) {
 	tb.Helper()
 	SkipInUnitTest(tb)
-	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
+	require.True(tb, sharedInfo.init, "sharedInfo not initialized, use acc.Run() to run tests that require shared resources")
 
 	sharedInfo.muSleep.Lock()
 	defer sharedInfo.muSleep.Unlock()
 
 	time.Sleep(5 * time.Second)
-}
-
-// PrivateLinkEndpointIDExecution returns a private link endpoint id created for the execution of the tests.
-// The endpoint is created with provider "AWS" and region from environment variable.
-// When `MONGODB_ATLAS_PROJECT_ID` is defined, it is used instead of creating a project.
-func PrivateLinkEndpointIDExecution(tb testing.TB, providerName, region string) (projectID, privateLinkEndpointID string) {
-	tb.Helper()
-	SkipInUnitTest(tb)
-	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
-
-	projectID = ProjectIDExecution(tb) // ensure the execution project is created before endpoint creation
-
-	sharedInfo.mu.Lock()
-	defer sharedInfo.mu.Unlock()
-
-	// lazy creation so it's only done if really needed
-	if sharedInfo.privateLinkEndpointID == "" {
-		tb.Logf("Creating execution private link endpoint for provider: %s, region: %s\n", providerName, region)
-		sharedInfo.privateLinkEndpointID = createPrivateLinkEndpoint(tb, projectID, providerName, region)
-		sharedInfo.privateLinkProviderName = providerName
-	}
-
-	return projectID, sharedInfo.privateLinkEndpointID
 }
 
 // NextProjectIDClusterName is an internal method used when we want to reuse a projectID respecting `MaxClustersNodesPerProject` and `MaxFreeTierClusterCount`

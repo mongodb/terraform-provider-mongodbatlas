@@ -1,0 +1,3 @@
+```release-note:new-guide
+Migration Guide: Push Based Log Export (PBLE) to Log Integration
+```

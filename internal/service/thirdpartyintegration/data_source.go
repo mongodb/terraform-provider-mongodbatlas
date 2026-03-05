@@ -114,6 +114,10 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"send_query_stats_metrics": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }

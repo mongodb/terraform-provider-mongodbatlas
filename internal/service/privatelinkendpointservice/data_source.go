@@ -3,10 +3,10 @@ package privatelinkendpointservice
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
@@ -92,52 +92,91 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"gcp_endpoint_status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Status of the GCP endpoint. Only populated for port-mapped architecture.",
+			},
+			"gcp_project_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Unique identifier of the GCP project in which you created your endpoints. Only applicable for GCP provider.",
+			},
+			"port_mapping_enabled": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "Flag that indicates whether the underlying `privatelink_endpoint` resource uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-mapped architecture. When `false`, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.",
+			},
 		},
 	}
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
-	endpointServiceID := conversion.GetEncodedID(d.Get("endpoint_service_id").(string), "endpoint_service_id")
 	providerName := d.Get("provider_name").(string)
+	endpointServiceID := conversion.GetEncodedID(d.Get("endpoint_service_id").(string), "endpoint_service_id")
 
 	serviceEndpoint, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err))
 	}
-
 	if err := d.Set("delete_requested", cast.ToBool(serviceEndpoint.GetDeleteRequested())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "delete_requested", endpointServiceID, err))
 	}
-
 	if err := d.Set("error_message", serviceEndpoint.GetErrorMessage()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "error_message", endpointServiceID, err))
 	}
-
 	if err := d.Set("aws_connection_status", serviceEndpoint.GetConnectionStatus()); err != nil {
 		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "aws_connection_status", endpointServiceID, err))
 	}
-
-	if strings.EqualFold(providerName, "azure") {
+	if err := d.Set("interface_endpoint_id", serviceEndpoint.GetInterfaceEndpointId()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "interface_endpoint_id", endpointServiceID, err))
+	}
+	if err := d.Set("private_endpoint_connection_name", serviceEndpoint.GetPrivateEndpointConnectionName()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_connection_name", endpointServiceID, err))
+	}
+	if err := d.Set("private_endpoint_resource_id", serviceEndpoint.GetPrivateEndpointResourceId()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_resource_id", endpointServiceID, err))
+	}
+	switch providerName {
+	case constant.AZURE:
 		if err := d.Set("azure_status", serviceEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
 		}
-	}
-
-	if err := d.Set("endpoints", flattenGCPEndpoints(serviceEndpoint.Endpoints)); err != nil {
-		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoints", endpointServiceID, err))
-	}
-
-	if strings.EqualFold(providerName, "gcp") {
+		if err := d.Set("private_endpoint_ip_address", serviceEndpoint.GetPrivateEndpointIPAddress()); err != nil {
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
+		}
+	case constant.GCP:
+		if err := d.Set("port_mapping_enabled", serviceEndpoint.GetPortMappingEnabled()); err != nil {
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "port_mapping_enabled", privateLinkID, err))
+		}
 		if err := d.Set("gcp_status", serviceEndpoint.GetStatus()); err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
 		}
-	}
+		if err := d.Set("gcp_project_id", serviceEndpoint.GetGcpProjectId()); err != nil {
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_project_id", endpointServiceID, err))
+		}
+		if serviceEndpoint.GetPortMappingEnabled() {
+			if len(serviceEndpoint.GetEndpoints()) != 1 {
+				return diag.FromErr(fmt.Errorf("unexpected API response: port-mapped architecture requires exactly one endpoint, but found %d endpoints. This is an API inconsistency. Please contact MongoDB support", len(serviceEndpoint.GetEndpoints())))
+			}
+			firstEndpoint := serviceEndpoint.GetEndpoints()[0]
 
+			if err := d.Set("gcp_endpoint_status", firstEndpoint.GetStatus()); err != nil {
+				return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_endpoint_status", endpointServiceID, err))
+			}
+
+			if err := d.Set("private_endpoint_ip_address", firstEndpoint.GetIpAddress()); err != nil {
+				return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
+			}
+		} else {
+			if err := d.Set("endpoints", flattenGCPEndpoints(serviceEndpoint.Endpoints)); err != nil {
+				return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoints", endpointServiceID, err))
+			}
+		}
+	}
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id":          projectID,
 		"private_link_id":     privateLinkID,

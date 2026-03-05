@@ -90,12 +90,12 @@ func TestMigConfigRSAlertConfiguration_withMultipleMatchers(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		config    = configWithMatchers(projectID, true, false, true,
-			map[string]interface{}{
+			map[string]any{
 				"fieldName": "TYPE_NAME",
 				"operator":  "EQUALS",
 				"value":     "SECONDARY",
 			},
-			map[string]interface{}{
+			map[string]any{
 				"fieldName": "TYPE_NAME",
 				"operator":  "CONTAINS",
 				"value":     "MONGOS",

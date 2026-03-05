@@ -8,7 +8,5 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	acc.SetupSharedResources()
-	exitCode := m.Run()
-	os.Exit(exitCode)
+	os.Exit(acc.Run(m))
 }

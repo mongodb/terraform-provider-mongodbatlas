@@ -62,6 +62,6 @@ type TFModel struct {
 	IamRoleId             types.String   `tfsdk:"iam_role_id"`
 	PrefixPath            types.String   `tfsdk:"prefix_path"`
 	State                 types.String   `tfsdk:"state" autogen:"omitjson"`
-	Timeouts              timeouts.Value `tfsdk:"timeouts" autogen:"omitjson"`
 	DeleteOnCreateTimeout types.Bool     `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
+	Timeouts              timeouts.Value `tfsdk:"timeouts" autogen:"omitjson"`
 }

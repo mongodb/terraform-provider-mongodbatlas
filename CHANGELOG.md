@@ -2,7 +2,58 @@
 
 FEATURES:
 
+* **New Data Source:** `data-source/mongodbatlas_privatelink_endpoints` ([#4241](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4241))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_advanced_cluster: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
+* data-source/mongodbatlas_advanced_clusters: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
+* data-source/mongodbatlas_third_party_integration: Adds `send_query_stats_metrics` attribute ([#4228](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4228))
+* data-source/mongodbatlas_third_party_integrations: Adds `send_query_stats_metrics` attribute ([#4228](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4228))
+* resource/mongodbatlas_advanced_cluster: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
+* resource/mongodbatlas_stream_connection: Adds configurable `delete` timeout (default 10 minutes) ([#4193](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4193))
+* resource/mongodbatlas_stream_connection: Adds support for asynchronous deletion by waiting for deletion to complete ([#4193](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4193))
+* resource/mongodbatlas_third_party_integration: Adds `send_query_stats_metrics` attribute ([#4228](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4228))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_federated_settings_identity_provider: Fixes crash when role assignments have no role defined ([#4233](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4233))
+* data-source/mongodbatlas_federated_settings_identity_providers: Fixes crash when role assignments have no role defined ([#4233](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4233))
+* data-source/mongodbatlas_search_indexes: Fixes `mappings_fields` attribute always being empty ([#4224](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4224))
+
+## 2.7.0 (February 18, 2026)
+
+FEATURES:
+
+* **New Guide:** Migration Guide: GCP Private Service Connect to Port-Mapped Architecture ([#4103](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4103))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_privatelink_endpoint: Adds `port_mapping_enabled` attribute to enable the new port-mapped architecture for GCP Private Service Connect ([#4017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4017))
+* data-source/mongodbatlas_privatelink_endpoint_service: Adds `port_mapping_enabled` attribute to enable the new port-mapped architecture for GCP Private Service Connect ([#4017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4017))
+* resource/mongodbatlas_organization: Adds `service_account.client_id` computed attribute with the Service Account Client ID ([#4150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4150))
+* resource/mongodbatlas_organization: Adds `service_account.secrets` computed attribute with the Service Account secrets list ([#4150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4150))
+* resource/mongodbatlas_organization: Adds optional `service_account` block to create a Service Account instead of a Programmatic API Key on organization creation ([#4150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4150))
+* resource/mongodbatlas_privatelink_endpoint: Adds `port_mapping_enabled` attribute to enable the new port-mapped architecture for GCP Private Service Connect ([#4017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4017))
+* resource/mongodbatlas_privatelink_endpoint_service: Adds `port_mapping_enabled` attribute to enable the new port-mapped architecture for GCP Private Service Connect ([#4017](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4017))
+* resource/mongodbatlas_stream_connection: Adds connection state polling to improve reliability of create and update operations ([#4122](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4122))
+* resource/mongodbatlas_stream_connection: Adds user-configurable timeouts for create and update operations ([#4122](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4122))
+
+## 2.6.0 (February 04, 2026)
+
+NOTES:
+
+* data-source/mongodbatlas_push_based_log_export: Deprecates this data source in favor of `data.mongodbatlas_log_integration` ([#4012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4012))
+* resource/mongodbatlas_project_ip_access_lists: In-place updates are not currently supported. Modifying any attribute requires a replacement ([#4139](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4139))
+* resource/mongodbatlas_push_based_log_export: Deprecates this resource in favor of `mongodbatlas_log_integration` ([#4012](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4012))
+
+FEATURES:
+
 * **New Data Source:** `data-source/project_ip_access_lists` ([#4104](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4104))
+* **New Data Source:** `mongodbatlas_log_integration` ([#3978](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3978))
+* **New Data Source:** `mongodbatlas_log_integrations` ([#4008](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4008))
+* **New Guide:** Migration Guide: Push Based Log Export (PBLE) to Log Integration ([#4010](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4010))
+* **New Resource:** `resource/mongodbatlas_log_integration` ([#3931](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3931))
 
 ## 2.5.0 (January 22, 2026)
 

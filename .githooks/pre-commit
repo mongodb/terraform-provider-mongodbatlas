@@ -1,28 +1,14 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-STAGED_GO_FILES=$(git diff --cached --name-only | grep ".go$")
-
-echo "Formatting go files"
-for FILE in ${STAGED_GO_FILES}
-do
-    gofmt -w -s "${FILE}"
-    goimports -w "${FILE}"
-    git add "${FILE}"
-done
+STAGED_GO_FILES=$(git diff --cached --name-only | grep '\.go$' | tr '\n' ' ' || true)
 
 if [[ -n "${STAGED_GO_FILES}" ]]; then
-    set -o errexit
-    make lint-fix
-    make lint
-    set +o errexit
-    for FILE in ${STAGED_GO_FILES}
-    do
-        git add "${FILE}"
-    done
+    make verify files="${STAGED_GO_FILES}"
 fi
 
-STAGED_TF_FILES=$(git diff --cached --name-only | grep ".tf$")
-if [ -n "$STAGED_TF_FILES" ]; then
+STAGED_TF_FILES=$(git diff --cached --name-only | grep '\.tf$' || true)
+if [[ -n "${STAGED_TF_FILES}" ]]; then
     echo "Checking the format of Terraform files"
     make tflint
 fi

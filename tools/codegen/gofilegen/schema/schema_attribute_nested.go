@@ -16,7 +16,12 @@ func (l *ListNestedAttrGenerator) AttributeCode() (CodeStatement, error) {
 	if err != nil {
 		return CodeStatement{}, err
 	}
-	return commonAttrStructure(&l.attr, "schema.ListNestedAttribute", "planmodifier.List", []CodeStatement{nestedObj})
+	return commonAttrStructure(&l.attr, &TypeSpecificStatements{
+		AttrType:         "schema.ListNestedAttribute",
+		PlanModifierType: "planmodifier.List",
+		ValidatorType:    "validator.List",
+		Properties:       []CodeStatement{nestedObj},
+	})
 }
 
 type SetNestedGenerator struct {
@@ -29,7 +34,12 @@ func (l *SetNestedGenerator) AttributeCode() (CodeStatement, error) {
 	if err != nil {
 		return CodeStatement{}, err
 	}
-	return commonAttrStructure(&l.attr, "schema.SetNestedAttribute", "planmodifier.Set", []CodeStatement{nestedObj})
+	return commonAttrStructure(&l.attr, &TypeSpecificStatements{
+		AttrType:         "schema.SetNestedAttribute",
+		PlanModifierType: "planmodifier.Set",
+		ValidatorType:    "validator.Set",
+		Properties:       []CodeStatement{nestedObj},
+	})
 }
 
 type MapNestedAttrGenerator struct {
@@ -42,7 +52,12 @@ func (m *MapNestedAttrGenerator) AttributeCode() (CodeStatement, error) {
 	if err != nil {
 		return CodeStatement{}, err
 	}
-	return commonAttrStructure(&m.attr, "schema.MapNestedAttribute", "planmodifier.Map", []CodeStatement{nestedObj})
+	return commonAttrStructure(&m.attr, &TypeSpecificStatements{
+		AttrType:         "schema.MapNestedAttribute",
+		PlanModifierType: "planmodifier.Map",
+		ValidatorType:    "validator.Map",
+		Properties:       []CodeStatement{nestedObj},
+	})
 }
 
 type SingleNestedAttrGenerator struct {
@@ -55,11 +70,16 @@ func (l *SingleNestedAttrGenerator) AttributeCode() (CodeStatement, error) {
 	if err != nil {
 		return CodeStatement{}, err
 	}
-	return commonAttrStructure(&l.attr, "schema.SingleNestedAttribute", "planmodifier.Object", []CodeStatement{attrProp})
+	return commonAttrStructure(&l.attr, &TypeSpecificStatements{
+		AttrType:         "schema.SingleNestedAttribute",
+		PlanModifierType: "planmodifier.Object",
+		ValidatorType:    "validator.Object",
+		Properties:       []CodeStatement{attrProp},
+	})
 }
 
 func attributesProperty(nested codespec.NestedAttributeObject) (CodeStatement, error) {
-	attrs, err := GenerateSchemaAttributes(nested.Attributes)
+	attrs, err := GenerateSchemaAttributes(nested.Attributes, nested.Discriminator)
 	if err != nil {
 		return CodeStatement{}, err
 	}

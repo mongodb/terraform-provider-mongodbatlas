@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserteamassignment"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 const (
@@ -51,16 +51,16 @@ func TestUserTeamAssignmentSDKToTFModel(t *testing.T) {
 	fullResp := &admin.OrgUserResponse{
 		Id:                  testUserID,
 		Username:            testUsername,
-		FirstName:           admin.PtrString(testFirstName),
-		LastName:            admin.PtrString(testLastName),
-		Country:             admin.PtrString(testCountry),
-		MobileNumber:        admin.PtrString(testMobile),
+		FirstName:           new(testFirstName),
+		LastName:            new(testLastName),
+		Country:             new(testCountry),
+		MobileNumber:        new(testMobile),
 		OrgMembershipStatus: testOrgMembershipStatus,
-		CreatedAt:           admin.PtrTime(when),
-		LastAuth:            admin.PtrTime(when.Add(-2 * time.Hour)),
-		InvitationCreatedAt: admin.PtrTime(when.Add(-24 * time.Hour)),
-		InvitationExpiresAt: admin.PtrTime(when.Add(24 * time.Hour)),
-		InviterUsername:     admin.PtrString(testInviterUsername),
+		CreatedAt:           new(when),
+		LastAuth:            new(when.Add(-2 * time.Hour)),
+		InvitationCreatedAt: new(when.Add(-24 * time.Hour)),
+		InvitationExpiresAt: new(when.Add(24 * time.Hour)),
+		InviterUsername:     new(testInviterUsername),
 		TeamIds:             &testTeamIDs,
 		Roles: admin.OrgUserRolesResponse{
 			OrgRoles: &testOrgRoles,

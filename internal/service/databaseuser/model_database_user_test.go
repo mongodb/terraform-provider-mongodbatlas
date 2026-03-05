@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312012/admin"
+	"go.mongodb.org/atlas-sdk/v20250312014/admin"
 )
 
 var (
@@ -65,7 +65,7 @@ var (
 		GroupId:      projectID,
 		DatabaseName: authDatabaseName,
 		Username:     username,
-		Description:  conversion.Pointer(""),
+		Description:  new(""),
 		Password:     &password,
 		X509Type:     &x509Type,
 		OidcAuthType: &oidCAuthType,
@@ -78,7 +78,7 @@ var (
 	cloudDatabaseUserWithoutPassword = &admin.CloudDatabaseUser{
 		GroupId:      projectID,
 		DatabaseName: authDatabaseName,
-		Description:  conversion.Pointer(""),
+		Description:  new(""),
 		Username:     username,
 		X509Type:     &x509Type,
 		OidcAuthType: &oidCAuthType,

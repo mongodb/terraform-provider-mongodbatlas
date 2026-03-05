@@ -116,7 +116,7 @@ type AnalyticsResourceSDKv2 struct {
 	isDataSource bool
 }
 
-func (a *AnalyticsResourceSDKv2) CreateContext(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
+func (a *AnalyticsResourceSDKv2) CreateContext(ctx context.Context, r *schema.ResourceData, m any) diag.Diagnostics {
 	meta, err := parseProviderMeta(r)
 	if err != nil {
 		return a.resource.CreateContext(ctx, r, m)
@@ -125,7 +125,7 @@ func (a *AnalyticsResourceSDKv2) CreateContext(ctx context.Context, r *schema.Re
 	return a.resource.CreateContext(ctx, r, m)
 }
 
-func (a *AnalyticsResourceSDKv2) CreateWithoutTimeout(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
+func (a *AnalyticsResourceSDKv2) CreateWithoutTimeout(ctx context.Context, r *schema.ResourceData, m any) diag.Diagnostics {
 	meta, err := parseProviderMeta(r)
 	if err != nil {
 		return a.resource.CreateWithoutTimeout(ctx, r, m)
@@ -134,7 +134,7 @@ func (a *AnalyticsResourceSDKv2) CreateWithoutTimeout(ctx context.Context, r *sc
 	return a.resource.CreateWithoutTimeout(ctx, r, m)
 }
 
-func (a *AnalyticsResourceSDKv2) ReadWithoutTimeout(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
+func (a *AnalyticsResourceSDKv2) ReadWithoutTimeout(ctx context.Context, r *schema.ResourceData, m any) diag.Diagnostics {
 	meta, err := parseProviderMeta(r)
 	if err != nil {
 		return a.resource.ReadWithoutTimeout(ctx, r, m)
@@ -143,7 +143,7 @@ func (a *AnalyticsResourceSDKv2) ReadWithoutTimeout(ctx context.Context, r *sche
 	return a.resource.ReadWithoutTimeout(ctx, r, m)
 }
 
-func (a *AnalyticsResourceSDKv2) ReadContext(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
+func (a *AnalyticsResourceSDKv2) ReadContext(ctx context.Context, r *schema.ResourceData, m any) diag.Diagnostics {
 	meta, err := parseProviderMeta(r)
 	if err != nil {
 		return a.resource.ReadContext(ctx, r, m)
@@ -152,7 +152,7 @@ func (a *AnalyticsResourceSDKv2) ReadContext(ctx context.Context, r *schema.Reso
 	return a.resource.ReadContext(ctx, r, m)
 }
 
-func (a *AnalyticsResourceSDKv2) UpdateContext(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
+func (a *AnalyticsResourceSDKv2) UpdateContext(ctx context.Context, r *schema.ResourceData, m any) diag.Diagnostics {
 	meta, err := parseProviderMeta(r)
 	if err != nil {
 		return a.resource.UpdateContext(ctx, r, m)
@@ -160,7 +160,7 @@ func (a *AnalyticsResourceSDKv2) UpdateContext(ctx context.Context, r *schema.Re
 	ctx = a.updateContextWithProviderMeta(ctx, meta, UserAgentOperationValueUpdate)
 	return a.resource.UpdateContext(ctx, r, m)
 }
-func (a *AnalyticsResourceSDKv2) UpdateWithoutTimeout(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
+func (a *AnalyticsResourceSDKv2) UpdateWithoutTimeout(ctx context.Context, r *schema.ResourceData, m any) diag.Diagnostics {
 	meta, err := parseProviderMeta(r)
 	if err != nil {
 		return a.resource.UpdateWithoutTimeout(ctx, r, m)
@@ -169,7 +169,7 @@ func (a *AnalyticsResourceSDKv2) UpdateWithoutTimeout(ctx context.Context, r *sc
 	return a.resource.UpdateWithoutTimeout(ctx, r, m)
 }
 
-func (a *AnalyticsResourceSDKv2) DeleteContext(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
+func (a *AnalyticsResourceSDKv2) DeleteContext(ctx context.Context, r *schema.ResourceData, m any) diag.Diagnostics {
 	meta, err := parseProviderMeta(r)
 	if err != nil {
 		return a.resource.DeleteContext(ctx, r, m)
@@ -178,7 +178,7 @@ func (a *AnalyticsResourceSDKv2) DeleteContext(ctx context.Context, r *schema.Re
 	return a.resource.DeleteContext(ctx, r, m)
 }
 
-func (a *AnalyticsResourceSDKv2) DeleteWithoutTimeout(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
+func (a *AnalyticsResourceSDKv2) DeleteWithoutTimeout(ctx context.Context, r *schema.ResourceData, m any) diag.Diagnostics {
 	meta, err := parseProviderMeta(r)
 	if err != nil {
 		return a.resource.DeleteWithoutTimeout(ctx, r, m)

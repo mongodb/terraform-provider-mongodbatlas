@@ -1,9 +1,17 @@
 package autogen_test
 
 import (
+	"context"
 	"fmt"
+	"regexp"
+	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/list/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/stretchr/testify/assert"
@@ -56,4 +64,74 @@ func TestHandleImport(t *testing.T) {
 			assert.Equal(t, tc.expectedAttrs, attrValues)
 		})
 	}
+}
+
+func TestHandleImportWithCustomHook(t *testing.T) {
+	hook := &testPreImportHook{
+		preImportFunc: func(id string) (string, error) {
+			if strings.Contains(id, "/") {
+				return id, nil
+			}
+
+			re := regexp.MustCompile(`^(.*)-([0-9a-fA-F]{24})-(.*)$`)
+			matches := re.FindStringSubmatch(id)
+			if len(matches) != 4 || matches[1] == "" || matches[3] == "" {
+				return "", fmt.Errorf("use one of the formats: {project_id}/{workspace_name}/{connection_name} or {workspace_name}-{project_id}-{connection_name}")
+			}
+			return fmt.Sprintf("%s/%s/%s", matches[2], matches[1], matches[3]), nil
+		},
+	}
+
+	type TFModel struct {
+		ProjectID      types.String `tfsdk:"project_id"`
+		WorkspaceName  types.String `tfsdk:"workspace_name"`
+		ConnectionName types.String `tfsdk:"connection_name"`
+	}
+
+	testSchema := schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"project_id":      schema.StringAttribute{},
+			"workspace_name":  schema.StringAttribute{},
+			"connection_name": schema.StringAttribute{},
+		},
+	}
+
+	testType := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"project_id":      tftypes.String,
+			"workspace_name":  tftypes.String,
+			"connection_name": tftypes.String,
+		},
+	}
+
+	emptyStateValue := tftypes.NewValue(testType, map[string]tftypes.Value{
+		"project_id":      tftypes.NewValue(tftypes.String, nil),
+		"workspace_name":  tftypes.NewValue(tftypes.String, nil),
+		"connection_name": tftypes.NewValue(tftypes.String, nil),
+	})
+
+	req := resource.ImportStateRequest{ID: "myWorkspace-507f1f77bcf86cd799439011-myConnection"}
+
+	resp := &resource.ImportStateResponse{
+		State: tfsdk.State{
+			Raw:    emptyStateValue,
+			Schema: testSchema,
+		},
+	}
+	autogen.HandleImport(context.Background(), []string{"project_id", "workspace_name", "connection_name"}, req, resp, hook)
+	require.False(t, resp.Diagnostics.HasError(), "unexpected diagnostics: %#v", resp.Diagnostics.Errors())
+
+	var state TFModel
+	resp.State.Get(context.Background(), &state)
+	assert.Equal(t, "507f1f77bcf86cd799439011", state.ProjectID.ValueString())
+	assert.Equal(t, "myWorkspace", state.WorkspaceName.ValueString())
+	assert.Equal(t, "myConnection", state.ConnectionName.ValueString())
+}
+
+type testPreImportHook struct {
+	preImportFunc func(string) (string, error)
+}
+
+func (h *testPreImportHook) PreImport(id string) (string, error) {
+	return h.preImportFunc(id)
 }
