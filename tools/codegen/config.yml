@@ -1202,3 +1202,30 @@ resources:
         overrides:
           project_id:
             description: *project_id_description
+
+  metric_integration:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: DELETE
+    schema:
+      aliases:
+        metricIntegrationId: id
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations
+        method: GET
+      schema:
+        aliases:
+          metricIntegrationId: id
