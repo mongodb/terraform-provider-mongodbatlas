@@ -10,3 +10,11 @@ locals {
 output "connection_string" {
   value = length(local.connection_strings) > 0 ? local.connection_strings[0] : ""
 }
+
+output "privatelink_endpoint" {
+  value = data.mongodbatlas_privatelink_endpoint.pe_east
+}
+
+output "privatelink_endpoints" {
+  value = data.mongodbatlas_privatelink_endpoints.endpoints.results
+}
