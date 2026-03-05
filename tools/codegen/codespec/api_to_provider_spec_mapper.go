@@ -445,11 +445,14 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 		configuredVersion = &versionHeader
 	}
 
-	var singularAttributes, pluralAttributes Attributes
 	var readOp *APIOperation
 	var listOp *APIOperation
-	var singularDescription *string
-	var pluralDescription *string
+
+	ds := &DataSources{
+		Operations: APIOperations{
+			VersionHeader: versionHeader,
+		},
+	}
 
 	if dsConfig.Read != nil {
 		oasReadOp, err := extractOp(spec.Paths, dsConfig.Read)
@@ -457,18 +460,21 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 			return nil, fmt.Errorf("unable to extract data source read operation: %w", err)
 		}
 
-		readResponseAttributes, _ := opResponseToAttributes(oasReadOp, configuredVersion)
+		readResponseAttributes, singularDisc := opResponseToAttributes(oasReadOp, configuredVersion)
 		pathParams := pathParamsToAttributes(oasReadOp)
-
-		// Merge all attributes, applying aliases to path params during merge to avoid duplicates
-		singularAttributes = mergeDataSourceAttributes(pathParams, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
+		singularAttributes := mergeDataSourceAttributes(pathParams, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
 
 		readOp = &APIOperation{
 			HTTPMethod: dsConfig.Read.Method,
-			Path:       dsConfig.Read.Path, // alias will be applied later by transformations helper
+			Path:       dsConfig.Read.Path,
 		}
 
-		singularDescription = &oasReadOp.Description
+		ds.Singular = &Schema{
+			Description:        &oasReadOp.Description,
+			DeprecationMessage: resourceConfig.DeprecationMessage,
+			Discriminator:      singularDisc,
+			Attributes:         singularAttributes,
+		}
 
 		if conversion.IsEmpty(configuredVersion) {
 			versionHeader = getLatestVersionFromAPISpec(oasReadOp)
@@ -481,39 +487,31 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 			return nil, fmt.Errorf("unable to extract data source read operation: %w", err)
 		}
 
-		readResponseAttributes, _ := opResponseToAttributes(oasListOp, configuredVersion)
+		readResponseAttributes, pluralDisc := opResponseToAttributes(oasListOp, configuredVersion)
 		params := pathParamsToAttributes(oasListOp)
 		params = append(params, queryParamsToAttributes(oasListOp)...)
-
-		// Merge all attributes, applying aliases to path params during merge to avoid duplicates
-		pluralAttributes = mergeDataSourceAttributes(params, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
+		pluralAttributes := mergeDataSourceAttributes(params, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
 
 		listOp = &APIOperation{
 			HTTPMethod: dsConfig.List.Method,
-			Path:       dsConfig.List.Path, // alias will be applied later by transformations helper
+			Path:       dsConfig.List.Path,
 		}
 
-		pluralDescription = &oasListOp.Description
+		ds.Plural = &Schema{
+			Description:        &oasListOp.Description,
+			DeprecationMessage: resourceConfig.DeprecationMessage,
+			Discriminator:      pluralDisc,
+			Attributes:         pluralAttributes,
+		}
 
 		if conversion.IsEmpty(configuredVersion) {
 			versionHeader = getLatestVersionFromAPISpec(oasListOp)
 		}
 	}
 
-	ds := &DataSources{
-		Schema: &DataSourceSchema{
-			SingularDSDescription: singularDescription,
-			PluralDSDescription:   pluralDescription,
-			DeprecationMessage:    resourceConfig.DeprecationMessage,
-			SingularDSAttributes:  &singularAttributes,
-			PluralDSAttributes:    &pluralAttributes,
-		},
-		Operations: APIOperations{
-			Read:          readOp,
-			List:          listOp,
-			VersionHeader: versionHeader,
-		},
-	}
+	ds.Operations.Read = readOp
+	ds.Operations.List = listOp
+	ds.Operations.VersionHeader = versionHeader
 
 	// Apply aliasing and schema transformations post-merge
 	if err := ApplyTransformationsToDataSources(dsConfig, ds); err != nil {
