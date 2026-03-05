@@ -7,5 +7,5 @@ import (
 )
 
 func TestMigPrivateLinkEndpoint_basicAWS(t *testing.T) {
-	mig.CreateAndRunTest(t, basicAWSTestCase(t, "us-west-2"))
+	mig.CreateAndRunTest(t, basicAWSTestCase(t, "us-west-2", false))
 }
