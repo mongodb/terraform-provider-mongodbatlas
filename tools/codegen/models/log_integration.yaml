@@ -327,9 +327,34 @@ operations:
         path: /api/atlas/v2/groups/{projectId}/logIntegrations/{integrationId}
     version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
-    schema:
-        singular_ds_description: Returns the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
-        singular_ds_attributes:
+    singular:
+        description: Returns the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+        discriminator:
+            mapping:
+                S3_LOG_EXPORT:
+                    allowed:
+                        - api_name: bucketName
+                          tf_schema_name: bucket_name
+                        - api_name: iamRoleId
+                          tf_schema_name: iam_role_id
+                        - api_name: kmsKey
+                          tf_schema_name: kms_key
+                        - api_name: logTypes
+                          tf_schema_name: log_types
+                        - api_name: prefixPath
+                          tf_schema_name: prefix_path
+                    required:
+                        - api_name: bucketName
+                          tf_schema_name: bucket_name
+                        - api_name: iamRoleId
+                          tf_schema_name: iam_role_id
+                        - api_name: prefixPath
+                          tf_schema_name: prefix_path
+            property_name:
+                api_name: type
+                tf_schema_name: type
+            skip_validation: true
+        attributes:
             - string: {}
               description: API key for authentication.
               computed_optional_required: computed
@@ -551,8 +576,9 @@ data_sources:
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
-        plural_ds_description: Returns all log integration configurations for the project. Optionally filter by integration type. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
-        plural_ds_attributes:
+    plural:
+        description: Returns all log integration configurations for the project. Optionally filter by integration type. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+        attributes:
             - string: {}
               description: Optional filter by integration type (e.g., `S3_LOG_EXPORT`).
               computed_optional_required: optional

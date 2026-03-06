@@ -706,12 +706,12 @@ operations:
         path: /api/atlas/v2/groups/{groupId}/alertConfigs/{id}
     version_header: application/vnd.atlas.2023-01-01+json
 data_sources:
-    schema:
-        singular_ds_description: |-
+    singular:
+        description: |-
             Returns the specified alert configuration from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role. Use the Return All Alert Configurations for One Project endpoint to retrieve all alert configurations to which the authenticated user has access.
 
             This resource remains under revision and may change.
-        singular_ds_attributes:
+        attributes:
             - string: {}
               description: Date and time when MongoDB Cloud created the alert configuration. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
               computed_optional_required: computed
@@ -1399,11 +1399,12 @@ data_sources:
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
-        plural_ds_description: |-
+    plural:
+        description: |-
             Returns all alert configurations for one project. These alert configurations apply to any component in the project. Alert configurations define the triggers and notification methods for alerts. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
 
             This resource remains under revision and may change.
-        plural_ds_attributes:
+        attributes:
             - string: {}
               description: |-
                 Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.

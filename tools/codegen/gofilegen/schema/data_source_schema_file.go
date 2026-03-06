@@ -11,16 +11,16 @@ import (
 // GenerateDataSourceSchemaGoCode generates the data_source_schema.go file containing
 // DataSourceSchema() and TFDSModel for data sources.
 func GenerateDataSourceSchemaGoCode(input *codespec.Resource) ([]byte, error) {
-	if input.DataSources == nil || input.DataSources.Schema == nil {
-		return nil, fmt.Errorf("data source schema is required for %s", input.Name)
+	if input.DataSources == nil || input.DataSources.Singular == nil {
+		return nil, fmt.Errorf("singular data source schema is required for %s", input.Name)
 	}
 
-	dsSchema := input.DataSources.Schema
-	schemaAttrs, err := GenerateDataSourceSchemaAttributes(*dsSchema.SingularDSAttributes)
+	singular := input.DataSources.Singular
+	schemaAttrs, err := GenerateDataSourceSchemaAttributes(singular.Attributes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate data source schema attributes: %w", err)
 	}
-	dsModel := GenerateDataSourceTypedModels(*dsSchema.SingularDSAttributes, false)
+	dsModel := GenerateDataSourceTypedModels(singular.Attributes, false)
 
 	// Collect imports (dsschema is hardcoded in the template)
 	var imports []string
@@ -32,7 +32,7 @@ func GenerateDataSourceSchemaGoCode(input *codespec.Resource) ([]byte, error) {
 		Imports:            imports,
 		SchemaAttributes:   schemaAttrs.Code,
 		DSModel:            dsModel.Code,
-		DeprecationMessage: dsSchema.DeprecationMessage,
+		DeprecationMessage: singular.DeprecationMessage,
 	}
 	result := codetemplate.ApplyDataSourceSchemaFileTemplate(&tmplInputs)
 
@@ -46,22 +46,18 @@ func GenerateDataSourceSchemaGoCode(input *codespec.Resource) ([]byte, error) {
 // GeneratePluralDataSourceSchemaGoCode generates the plural_data_source_schema.go file containing
 // PluralDataSourceSchema() and TFPluralDSModel for plural data sources.
 func GeneratePluralDataSourceSchemaGoCode(input *codespec.Resource) ([]byte, error) {
-	if input.DataSources == nil || input.DataSources.Schema == nil {
-		return nil, fmt.Errorf("data source schema is required for %s", input.Name)
+	if input.DataSources == nil || input.DataSources.Plural == nil {
+		return nil, fmt.Errorf("plural data source schema is required for %s", input.Name)
 	}
 
-	dsSchema := input.DataSources.Schema
-	if dsSchema.PluralDSAttributes == nil {
-		return nil, fmt.Errorf("plural data source attributes are required for %s", input.Name)
-	}
-
-	schemaAttrs, err := GeneratePluralDataSourceSchemaAttributes(*dsSchema.PluralDSAttributes)
+	plural := input.DataSources.Plural
+	schemaAttrs, err := GeneratePluralDataSourceSchemaAttributes(plural.Attributes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate plural data source schema attributes: %w", err)
 	}
 
 	// Generate TFPluralDSModel and nested TFResultsModel using the reusable function
-	pluralDSModel := GenerateDataSourceTypedModels(*dsSchema.PluralDSAttributes, true)
+	pluralDSModel := GenerateDataSourceTypedModels(plural.Attributes, true)
 
 	// Collect imports (dsschema is hardcoded in the template)
 	var imports []string
@@ -73,7 +69,7 @@ func GeneratePluralDataSourceSchemaGoCode(input *codespec.Resource) ([]byte, err
 		Imports:            imports,
 		SchemaAttributes:   schemaAttrs.Code,
 		PluralDSModel:      pluralDSModel.Code,
-		DeprecationMessage: dsSchema.DeprecationMessage,
+		DeprecationMessage: plural.DeprecationMessage,
 	}
 	result := codetemplate.ApplyPluralDataSourceSchemaFileTemplate(&tmplInputs)
 

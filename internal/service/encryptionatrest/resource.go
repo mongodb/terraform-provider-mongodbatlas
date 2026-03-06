@@ -80,6 +80,7 @@ type TFAzureKeyVaultConfigModel struct {
 	KeyIdentifier            types.String `tfsdk:"key_identifier"`
 	Secret                   types.String `tfsdk:"secret"`
 	TenantID                 types.String `tfsdk:"tenant_id"`
+	RoleID                   types.String `tfsdk:"role_id"`
 	Enabled                  types.Bool   `tfsdk:"enabled"`
 	RequirePrivateNetworking types.Bool   `tfsdk:"require_private_networking"`
 	Valid                    types.Bool   `tfsdk:"valid"`
@@ -127,7 +128,7 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 							PlanModifiers: []planmodifier.Bool{
 								boolplanmodifier.UseStateForUnknown(),
 							},
-							MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified project through Amazon Web Services (AWS) Key Management Service (KMS). To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.",
+							MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified project through Amazon Web Services (AWS) Key Management Service (KMS). Setting this field to `false` might lead to an inconsistent Terraform state. To disable encryption at rest, remove the `mongodbatlas_encryption_at_rest` resource and reapply your configuration.",
 						},
 						"access_key_id": schema.StringAttribute{
 							Optional:            true,
@@ -179,10 +180,11 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 							PlanModifiers: []planmodifier.Bool{
 								boolplanmodifier.UseStateForUnknown(),
 							},
-							MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified  project. To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.",
+							MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified  project. Setting this field to `false` might lead to an inconsistent Terraform state. To disable encryption at rest, remove the `mongodbatlas_encryption_at_rest` resource and reapply your configuration.",
 						},
 						"client_id": schema.StringAttribute{
 							Optional:            true,
+							Computed:            true,
 							Sensitive:           true,
 							MarkdownDescription: "Unique 36-hexadecimal character string that identifies an Azure application associated with your Azure Active Directory tenant.",
 						},
@@ -215,6 +217,7 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 						},
 						"tenant_id": schema.StringAttribute{
 							Optional:            true,
+							Computed:            true,
 							Sensitive:           true,
 							MarkdownDescription: "Unique 36-hexadecimal character string that identifies the Azure Active Directory tenant within your Azure subscription.",
 						},
@@ -230,6 +233,10 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 							Computed:            true,
 							MarkdownDescription: "Flag that indicates whether the Azure encryption key can encrypt and decrypt data.",
 						},
+						"role_id": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the Azure Service Principal that Atlas uses to access the Azure Key Vault.",
+						},
 					},
 				},
 			},
@@ -244,7 +251,7 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 							PlanModifiers: []planmodifier.Bool{
 								boolplanmodifier.UseStateForUnknown(),
 							},
-							MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified  project. To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.",
+							MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified  project. Setting this field to `false` might lead to an inconsistent Terraform state. To disable encryption at rest, remove the `mongodbatlas_encryption_at_rest` resource and reapply your configuration.",
 						},
 						"service_account_key": schema.StringAttribute{
 							Optional:            true,
