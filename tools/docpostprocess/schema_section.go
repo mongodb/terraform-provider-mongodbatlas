@@ -24,11 +24,14 @@ type parsedPrefix struct {
 	isRequired    bool
 }
 
+// parsedAttribute holds the decomposition of a markdown attribute entry.
+// name, typeInfo, prefixes, and description are parsed from the first source line;
+// sourceLines preserves all original lines (including continuation lines) for verbatim output.
 type parsedAttribute struct {
 	name        string
 	typeInfo    string
 	description string
-	rawLine     string
+	sourceLines []string
 	prefixes    []parsedPrefix
 }
 
@@ -120,7 +123,7 @@ func findReplacements(lines []string, start, end int) []replacement {
 }
 
 // collectAttributeBlock finds the contiguous block of attribute lines (with
-// interleaved blank lines) after a section heading.
+// interleaved blank lines and multiline continuations) after a section heading.
 func collectAttributeBlock(lines []string, afterHeading, schemaEnd int) (attrStart, attrEnd int, attrs []parsedAttribute) {
 	i := afterHeading
 	for i < schemaEnd && strings.TrimSpace(lines[i]) == "" {
@@ -128,23 +131,35 @@ func collectAttributeBlock(lines []string, afterHeading, schemaEnd int) (attrSta
 	}
 	attrStart = i
 
-	lastAttrIdx := i
+	lastContentIdx := i
+	var pendingBlanks []string
 	for i < schemaEnd {
 		line := lines[i]
 		if m := attrLineRegex.FindStringSubmatch(line); m != nil {
+			pendingBlanks = nil
 			attrs = append(attrs, parseAttributeLine(m))
-			lastAttrIdx = i + 1
+			lastContentIdx = i + 1
 			i++
 			continue
 		}
 		if strings.TrimSpace(line) == "" {
+			pendingBlanks = append(pendingBlanks, line)
+			i++
+			continue
+		}
+		if len(attrs) > 0 && !isSectionBoundary(line) {
+			last := &attrs[len(attrs)-1]
+			last.sourceLines = append(last.sourceLines, pendingBlanks...)
+			last.sourceLines = append(last.sourceLines, line)
+			pendingBlanks = nil
+			lastContentIdx = i + 1
 			i++
 			continue
 		}
 		break
 	}
-	attrEnd = lastAttrIdx
-	return
+	attrEnd = lastContentIdx
+	return attrStart, attrEnd, attrs
 }
 
 func parseAttributeLine(match []string) parsedAttribute {
@@ -152,15 +167,20 @@ func parseAttributeLine(match []string) parsedAttribute {
 	return parsedAttribute{
 		name:        match[1],
 		typeInfo:    match[2],
-		rawLine:     match[0],
+		sourceLines: []string{match[0]},
 		prefixes:    prefixes,
 		description: description,
 	}
 }
 
+func isSectionBoundary(line string) bool {
+	return strings.HasPrefix(line, "#") || strings.HasPrefix(line, "<a ") ||
+		nestedSubSectionRegex.MatchString(line)
+}
+
 func extractPrefixes(desc string) (prefixes []parsedPrefix, remaining string) {
 	remaining = desc
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		m := prefixRegex.FindStringSubmatch(remaining)
 		if m == nil {
 			break
@@ -177,7 +197,7 @@ func extractPrefixes(desc string) (prefixes []parsedPrefix, remaining string) {
 
 func splitAndTrim(s string) []string {
 	var result []string
-	for _, p := range strings.Split(s, ",") {
+	for p := range strings.SplitSeq(s, ",") {
 		if t := strings.TrimSpace(p); t != "" {
 			result = append(result, t)
 		}
@@ -203,7 +223,7 @@ func buildRestructuredBlock(attrs []parsedAttribute) []string {
 
 	var result []string
 	for _, attr := range common {
-		result = append(result, attr.rawLine)
+		result = append(result, attr.sourceLines...)
 	}
 
 	if len(common) > 0 {
@@ -219,7 +239,7 @@ func buildRestructuredBlock(attrs []parsedAttribute) []string {
 			return strings.Compare(a.attr.name, b.attr.name)
 		})
 		for i := range entries {
-			result = append(result, renderTypeAttribute(&entries[i]))
+			result = append(result, renderTypeAttribute(&entries[i])...)
 		}
 	}
 
@@ -263,12 +283,14 @@ func sortedTypeKeys(m map[string][]typeEntry) []string {
 	return keys
 }
 
-func renderTypeAttribute(entry *typeEntry) string {
+func renderTypeAttribute(entry *typeEntry) []string {
 	desc := entry.attr.description
 	if entry.isRequired {
 		desc = "**Required.** " + desc
 	}
-	return fmt.Sprintf("- `%s` (%s) %s", entry.attr.name, entry.attr.typeInfo, desc)
+	lines := []string{fmt.Sprintf("- `%s` (%s) %s", entry.attr.name, entry.attr.typeInfo, desc)}
+	lines = append(lines, entry.attr.sourceLines[1:]...)
+	return lines
 }
 
 func applyReplacements(lines []string, replacements []replacement) string {
