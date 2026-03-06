@@ -468,11 +468,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"synonym_mapping_status": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Status that describes this index's synonym mappings. This status appears only if the index has synonyms defined.",
+				MarkdownDescription: "Applies to type: search. Status that describes this index's synonym mappings. This status appears only if the index has synonyms defined.",
 			},
 			"synonym_mapping_status_detail": schema.ListAttribute{
 				Computed:            true,
-				MarkdownDescription: "A list of documents describing the status of the index's synonym mappings on each search host. Only appears if the index has synonyms defined.",
+				MarkdownDescription: "Applies to type: search. A list of documents describing the status of the index's synonym mappings on each search host. Only appears if the index has synonyms defined.",
 				CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 				ElementType:         jsontypes.NormalizedType{},
 			},

@@ -1251,7 +1251,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Status that describes this index's synonym mappings. This status appears only if the index has synonyms defined.
+          description: 'Applies to type: search. Status that describes this index''s synonym mappings. This status appears only if the index has synonyms defined.'
           computed_optional_required: computed
           tf_schema_name: synonym_mapping_status
           tf_model_name: SynonymMappingStatus
@@ -1263,7 +1263,7 @@ schema:
           request_only_required_on_create: false
         - list:
             element_type: 5
-          description: A list of documents describing the status of the index's synonym mappings on each search host. Only appears if the index has synonyms defined.
+          description: 'Applies to type: search. A list of documents describing the status of the index''s synonym mappings on each search host. Only appears if the index has synonyms defined.'
           custom_type:
             package: customtypes
             model: customtypes.ListValue[jsontypes.Normalized]
