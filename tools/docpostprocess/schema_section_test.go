@@ -372,7 +372,7 @@ func TestRestructure_NestedSchemaUnchangedPreserved(t *testing.T) {
 }
 
 func TestExtractPrefixes_RequiredOnly(t *testing.T) {
-	prefixes := extractPrefixes("Required for type: S3_LOG_EXPORT. Bucket name.")
+	prefixes, remaining := extractPrefixes("Required for type: S3_LOG_EXPORT. Bucket name.")
 
 	if len(prefixes) != 1 {
 		t.Fatalf("expected 1 prefix, got %d", len(prefixes))
@@ -386,10 +386,13 @@ func TestExtractPrefixes_RequiredOnly(t *testing.T) {
 	if len(prefixes[0].types) != 1 || prefixes[0].types[0] != "S3_LOG_EXPORT" {
 		t.Errorf("unexpected types: %v", prefixes[0].types)
 	}
+	if remaining != "Bucket name." {
+		t.Errorf("unexpected remaining: %s", remaining)
+	}
 }
 
 func TestExtractPrefixes_ApplicableMultipleTypes(t *testing.T) {
-	prefixes := extractPrefixes("Applies to type: S3, GCS. Description.")
+	prefixes, remaining := extractPrefixes("Applies to type: S3, GCS. Description.")
 
 	if len(prefixes) != 1 {
 		t.Fatalf("expected 1 prefix, got %d", len(prefixes))
@@ -400,10 +403,13 @@ func TestExtractPrefixes_ApplicableMultipleTypes(t *testing.T) {
 	if len(prefixes[0].types) != 2 || prefixes[0].types[0] != "S3" || prefixes[0].types[1] != "GCS" {
 		t.Errorf("unexpected types: %v", prefixes[0].types)
 	}
+	if remaining != "Description." {
+		t.Errorf("unexpected remaining: %s", remaining)
+	}
 }
 
 func TestExtractPrefixes_BothRequiredAndApplicable(t *testing.T) {
-	prefixes := extractPrefixes("Required for type: BETA. Applies to type: ALPHA. Description.")
+	prefixes, remaining := extractPrefixes("Required for type: BETA. Applies to type: ALPHA. Description.")
 
 	if len(prefixes) != 2 {
 		t.Fatalf("expected 2 prefixes, got %d", len(prefixes))
@@ -414,13 +420,19 @@ func TestExtractPrefixes_BothRequiredAndApplicable(t *testing.T) {
 	if prefixes[1].isRequired {
 		t.Error("second prefix should be applicable")
 	}
+	if remaining != "Description." {
+		t.Errorf("unexpected remaining: %s", remaining)
+	}
 }
 
 func TestExtractPrefixes_NoPrefix(t *testing.T) {
-	prefixes := extractPrefixes("A normal description without any prefix.")
+	prefixes, remaining := extractPrefixes("A normal description without any prefix.")
 
 	if len(prefixes) != 0 {
 		t.Errorf("expected 0 prefixes, got %d", len(prefixes))
+	}
+	if remaining != "A normal description without any prefix." {
+		t.Errorf("unexpected remaining: %s", remaining)
 	}
 }
 

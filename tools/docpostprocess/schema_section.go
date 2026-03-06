@@ -148,25 +148,18 @@ func collectAttributeBlock(lines []string, afterHeading, schemaEnd int) (attrSta
 }
 
 func parseAttributeLine(match []string) parsedAttribute {
-	attr := parsedAttribute{
-		name:     match[1],
-		typeInfo: match[2],
-		rawLine:  match[0],
+	prefixes, description := extractPrefixes(match[3])
+	return parsedAttribute{
+		name:        match[1],
+		typeInfo:    match[2],
+		rawLine:     match[0],
+		prefixes:    prefixes,
+		description: description,
 	}
-
-	remaining := match[3]
-	attr.prefixes = extractPrefixes(remaining)
-	for range attr.prefixes {
-		remaining = prefixRegex.ReplaceAllString(remaining, "")
-	}
-	attr.description = remaining
-
-	return attr
 }
 
-func extractPrefixes(desc string) []parsedPrefix {
-	var prefixes []parsedPrefix
-	remaining := desc
+func extractPrefixes(desc string) (prefixes []parsedPrefix, remaining string) {
+	remaining = desc
 	for i := 0; i < 2; i++ {
 		m := prefixRegex.FindStringSubmatch(remaining)
 		if m == nil {
@@ -179,7 +172,7 @@ func extractPrefixes(desc string) []parsedPrefix {
 		})
 		remaining = prefixRegex.ReplaceAllString(remaining, "")
 	}
-	return prefixes
+	return prefixes, remaining
 }
 
 func splitAndTrim(s string) []string {
