@@ -3,8 +3,9 @@ terraform {
     mongodbatlas = {
       source = "mongodb/mongodbatlas"
     }
-    aws = {
-      source = "hashicorp/aws"
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">= 4.0.0"
     }
   }
   required_version = ">= 1.8"

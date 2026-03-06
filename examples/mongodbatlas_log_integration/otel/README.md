@@ -1,11 +1,11 @@
-# MongoDB Atlas Log Integration with S3 Bucket Example
+# MongoDB Atlas Log Integration with OpenTelemetry Example
 
-This example demonstrates how to configure a log integration to export MongoDB Atlas logs to an Amazon S3 bucket.
+This example demonstrates how to configure a log integration to export MongoDB Atlas logs to an OpenTelemetry (OTel) collector endpoint.
 
 ## Prerequisites
 
 - MongoDB Atlas Service Account with Organization Owner or Project Owner role.
-- AWS account with permissions to create S3 buckets and IAM roles.
+- An OpenTelemetry collector accessible over HTTPS that accepts log data via the OTLP HTTP protocol.
 
 ## Resources Created
 
@@ -13,17 +13,11 @@ This example creates the following resources:
 
 ### MongoDB Atlas
 - Project.
-- Cloud Provider Access Setup and Authorization.
 - Log Integration configuration.
-
-### AWS
-- S3 bucket for storing logs.
-- IAM role for Atlas to assume.
-- IAM policy for S3 access.
 
 ## Usage
 
-**1\. Ensure your AWS and MongoDB Atlas credentials are set up.**
+**1\. Ensure your MongoDB Atlas credentials are set up.**
 
 This can be done using environment variables:
 
@@ -32,28 +26,19 @@ export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
 export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
-```bash
-export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
-export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
-```
-
-... or the `~/.aws/credentials` file.
-
-```
-$ cat ~/.aws/credentials
-[default]
-aws_access_key_id = <AWS_ACCESS_KEY_ID>
-aws_secret_access_key = <AWS_SECRET_ACCESS_KEY>
-```
-
 ... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values:
 
 ```hcl
 atlas_org_id        = "your-org-id"
 atlas_client_id     = "your-service-account-client-id"
 atlas_client_secret = "your-service-account-client-secret"
-access_key          = "your-aws-access-key"
-secret_key          = "your-aws-secret-key"
+otel_endpoint       = "https://your-otel-collector.com:4318/v1/logs"
+otel_supplied_headers = [
+  {
+    name  = "Authorization"
+    value = "Bearer your-token"
+  }
+]
 ```
 
 **2\. Review the Terraform plan.**
@@ -87,8 +72,3 @@ The `log_types` attribute supports the following values:
 - `MONGOS` - MongoDB router logs.
 - `MONGOD_AUDIT` - MongoDB server audit logs.
 - `MONGOS_AUDIT` - MongoDB router audit logs.
-
-## Notes
-
-- Atlas will add sub-directories based on the log type under the specified `prefix_path`.
-- Optional: Use `kms_key` to specify an AWS KMS key ID or ARN for server-side encryption.
