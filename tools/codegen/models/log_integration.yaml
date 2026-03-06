@@ -328,9 +328,65 @@ operations:
     version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
     singular:
-        description: Returns the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+        description: Returns the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
         discriminator:
             mapping:
+                AZURE_LOG_EXPORT:
+                    allowed:
+                        - api_name: prefixPath
+                          tf_schema_name: prefix_path
+                        - api_name: roleId
+                          tf_schema_name: role_id
+                        - api_name: storageAccountName
+                          tf_schema_name: storage_account_name
+                        - api_name: storageContainerName
+                          tf_schema_name: storage_container_name
+                    required:
+                        - api_name: prefixPath
+                          tf_schema_name: prefix_path
+                        - api_name: roleId
+                          tf_schema_name: role_id
+                        - api_name: storageAccountName
+                          tf_schema_name: storage_account_name
+                        - api_name: storageContainerName
+                          tf_schema_name: storage_container_name
+                DATADOG_LOG_EXPORT:
+                    allowed:
+                        - api_name: apiKey
+                          tf_schema_name: api_key
+                        - api_name: region
+                          tf_schema_name: region
+                    required:
+                        - api_name: apiKey
+                          tf_schema_name: api_key
+                        - api_name: region
+                          tf_schema_name: region
+                GCS_LOG_EXPORT:
+                    allowed:
+                        - api_name: bucketName
+                          tf_schema_name: bucket_name
+                        - api_name: prefixPath
+                          tf_schema_name: prefix_path
+                        - api_name: roleId
+                          tf_schema_name: role_id
+                    required:
+                        - api_name: bucketName
+                          tf_schema_name: bucket_name
+                        - api_name: prefixPath
+                          tf_schema_name: prefix_path
+                        - api_name: roleId
+                          tf_schema_name: role_id
+                OTEL_LOG_EXPORT:
+                    allowed:
+                        - api_name: otelEndpoint
+                          tf_schema_name: otel_endpoint
+                        - api_name: otelSuppliedHeaders
+                          tf_schema_name: otel_supplied_headers
+                    required:
+                        - api_name: otelEndpoint
+                          tf_schema_name: otel_endpoint
+                        - api_name: otelSuppliedHeaders
+                          tf_schema_name: otel_supplied_headers
                 S3_LOG_EXPORT:
                     allowed:
                         - api_name: bucketName
@@ -339,8 +395,6 @@ data_sources:
                           tf_schema_name: iam_role_id
                         - api_name: kmsKey
                           tf_schema_name: kms_key
-                        - api_name: logTypes
-                          tf_schema_name: log_types
                         - api_name: prefixPath
                           tf_schema_name: prefix_path
                     required:
@@ -350,6 +404,17 @@ data_sources:
                           tf_schema_name: iam_role_id
                         - api_name: prefixPath
                           tf_schema_name: prefix_path
+                SPLUNK_LOG_EXPORT:
+                    allowed:
+                        - api_name: hecToken
+                          tf_schema_name: hec_token
+                        - api_name: hecUrl
+                          tf_schema_name: hec_url
+                    required:
+                        - api_name: hecToken
+                          tf_schema_name: hec_token
+                        - api_name: hecUrl
+                          tf_schema_name: hec_url
             property_name:
                 api_name: type
                 tf_schema_name: type
@@ -577,7 +642,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
     plural:
-        description: Returns all log integration configurations for the project. Optionally filter by integration type. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role. This is currently in preview. Please contact your Customer Success Manager (CSM) for access.
+        description: Returns all log integration configurations for the project. Optionally filter by integration type. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
         attributes:
             - string: {}
               description: Optional filter by integration type (e.g., `S3_LOG_EXPORT`).
