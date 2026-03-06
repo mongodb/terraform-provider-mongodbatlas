@@ -390,11 +390,10 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 // This ensures users can configure longer timeouts for slow-provisioning connections or
 // shorter timeouts to fail fast.
 func TestNewTFStreamConnectionCustomTimeoutsOverrideDefault(t *testing.T) {
-	defaultTimeout := 20 * time.Minute
 	customCreateTimeout := 30 * time.Minute
 	customUpdateTimeout := 45 * time.Minute
+	customDeleteTimeout := 10 * time.Minute
 
-	// User specifies custom timeouts in their Terraform config
 	userConfiguredTimeouts := timeouts.Value{
 		Object: types.ObjectValueMust(
 			map[string]attr.Type{
@@ -407,7 +406,7 @@ func TestNewTFStreamConnectionCustomTimeoutsOverrideDefault(t *testing.T) {
 				"create": types.StringValue("30m"),
 				"read":   types.StringNull(),
 				"update": types.StringValue("45m"),
-				"delete": types.StringNull(),
+				"delete": types.StringValue("10m"),
 			},
 		),
 	}
@@ -425,23 +424,25 @@ func TestNewTFStreamConnectionCustomTimeoutsOverrideDefault(t *testing.T) {
 		nil,          // currAuthConfig
 		nil,          // currSchemaRegistryAuthConfig
 		apiResp,
-		&userConfiguredTimeouts, // planTimeouts - user configured custom timeouts
+		&userConfiguredTimeouts,
 	)
 
 	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
 	require.NotNil(t, resultModel)
 
-	// Verify user-configured timeouts are preserved in the model
 	assert.Equal(t, userConfiguredTimeouts, resultModel.Timeouts)
 
-	// Verify custom timeouts override the default (20m) when extracted
-	createTimeout, localDiags := resultModel.Timeouts.Create(t.Context(), defaultTimeout)
+	createTimeout, localDiags := resultModel.Timeouts.Create(t.Context(), streamconnection.DefaultConnectionTimeout)
 	require.False(t, localDiags.HasError())
 	assert.Equal(t, customCreateTimeout, createTimeout, "user-configured create timeout (30m) should override default (20m)")
 
-	updateTimeout, localDiags := resultModel.Timeouts.Update(t.Context(), defaultTimeout)
+	updateTimeout, localDiags := resultModel.Timeouts.Update(t.Context(), streamconnection.DefaultConnectionTimeout)
 	require.False(t, localDiags.HasError())
 	assert.Equal(t, customUpdateTimeout, updateTimeout, "user-configured update timeout (45m) should override default (20m)")
+
+	deleteTimeout, localDiags := resultModel.Timeouts.Delete(t.Context(), streamconnection.DefaultConnectionTimeout)
+	require.False(t, localDiags.HasError())
+	assert.Equal(t, customDeleteTimeout, deleteTimeout, "user-configured delete timeout (10m) should override default (20m)")
 }
 
 type paginatedConnectionsSDKToTFModelTestCase struct {

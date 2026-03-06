@@ -1,0 +1,7 @@
+```release-note:bug
+resource/mongodbatlas_stream_connection: Fixes default timeout for create, update, and delete operations to use 20 minutes instead of the generic 3-hour fallback
+```
+
+```release-note:enhancement
+resource/mongodbatlas_stream_connection: Updates default delete timeout from 10 minutes to 20 minutes to be consistent with create and update operations
+```
