@@ -57,7 +57,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Sensitive:           true,
 			},
 			"roles": schema.ListNestedAttribute{
-				Optional:            true,
+				Required:            true,
 				MarkdownDescription: "List that provides the pairings of one role with one applicable database.",
 				CustomType:          customtypes.NewNestedListType[TFRolesModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
