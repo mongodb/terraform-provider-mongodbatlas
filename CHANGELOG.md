@@ -3,14 +3,17 @@
 FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_privatelink_endpoints` ([#4241](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4241))
+* **New Guide:** Migration Guide: Encryption at Rest (Azure) Client Credentials to Role-based Auth ([#4187](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4187))
 
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_advanced_cluster: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
 * data-source/mongodbatlas_advanced_clusters: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
+* data-source/mongodbatlas_encryption_at_rest: Supports `role_id` in `azure_key_vault_config` ([#4187](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4187))
 * data-source/mongodbatlas_third_party_integration: Adds `send_query_stats_metrics` attribute ([#4228](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4228))
 * data-source/mongodbatlas_third_party_integrations: Adds `send_query_stats_metrics` attribute ([#4228](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4228))
 * resource/mongodbatlas_advanced_cluster: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
+* resource/mongodbatlas_encryption_at_rest: Supports `role_id` in `azure_key_vault_config` ([#4187](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4187))
 * resource/mongodbatlas_stream_connection: Adds configurable `delete` timeout (default 10 minutes) ([#4193](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4193))
 * resource/mongodbatlas_stream_connection: Adds support for asynchronous deletion by waiting for deletion to complete ([#4193](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4193))
 * resource/mongodbatlas_third_party_integration: Adds `send_query_stats_metrics` attribute ([#4228](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4228))
