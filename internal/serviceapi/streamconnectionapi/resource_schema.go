@@ -174,7 +174,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "The Schema Registry provider.",
 			},
 			"region": schema.StringAttribute{
-				Computed:            true,
+				Optional:            true,
 				MarkdownDescription: "The connection's region.",
 			},
 			"schema_registry_authentication": schema.SingleNestedAttribute{
@@ -304,7 +304,7 @@ type TFModel struct {
 	ConnectionName               types.String                                                 `tfsdk:"connection_name" apiname:"name"`
 	Networking                   customtypes.ObjectValue[TFNetworkingModel]                   `tfsdk:"networking"`
 	SchemaRegistryProvider       types.String                                                 `tfsdk:"schema_registry_provider" apiname:"provider"`
-	Region                       types.String                                                 `tfsdk:"region" autogen:"omitjson"`
+	Region                       types.String                                                 `tfsdk:"region"`
 	SchemaRegistryAuthentication customtypes.ObjectValue[TFSchemaRegistryAuthenticationModel] `tfsdk:"schema_registry_authentication"`
 	SchemaRegistryUrls           customtypes.ListValue[types.String]                          `tfsdk:"schema_registry_urls"`
 	Security                     customtypes.ObjectValue[TFSecurityModel]                     `tfsdk:"security"`
