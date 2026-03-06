@@ -80,6 +80,7 @@ type TFAzureKeyVaultConfigModel struct {
 	KeyIdentifier            types.String `tfsdk:"key_identifier"`
 	Secret                   types.String `tfsdk:"secret"`
 	TenantID                 types.String `tfsdk:"tenant_id"`
+	RoleID                   types.String `tfsdk:"role_id"`
 	Enabled                  types.Bool   `tfsdk:"enabled"`
 	RequirePrivateNetworking types.Bool   `tfsdk:"require_private_networking"`
 	Valid                    types.Bool   `tfsdk:"valid"`
@@ -183,6 +184,7 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 						},
 						"client_id": schema.StringAttribute{
 							Optional:            true,
+							Computed:            true,
 							Sensitive:           true,
 							MarkdownDescription: "Unique 36-hexadecimal character string that identifies an Azure application associated with your Azure Active Directory tenant.",
 						},
@@ -215,6 +217,7 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 						},
 						"tenant_id": schema.StringAttribute{
 							Optional:            true,
+							Computed:            true,
 							Sensitive:           true,
 							MarkdownDescription: "Unique 36-hexadecimal character string that identifies the Azure Active Directory tenant within your Azure subscription.",
 						},
@@ -229,6 +232,10 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 						"valid": schema.BoolAttribute{
 							Computed:            true,
 							MarkdownDescription: "Flag that indicates whether the Azure encryption key can encrypt and decrypt data.",
+						},
+						"role_id": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the Azure Service Principal that Atlas uses to access the Azure Key Vault.",
 						},
 					},
 				},
