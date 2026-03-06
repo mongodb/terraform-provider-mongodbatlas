@@ -1,0 +1,499 @@
+schema:
+    description: Creates a new metric integration configuration identified by a unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+    discriminator:
+        mapping:
+            OTEL:
+                allowed:
+                    - api_name: endpoint
+                      tf_schema_name: endpoint
+                    - api_name: headers
+                      tf_schema_name: headers
+                required:
+                    - api_name: endpoint
+                      tf_schema_name: endpoint
+                    - api_name: headers
+                      tf_schema_name: headers
+        property_name:
+            api_name: integrationType
+            tf_schema_name: integration_type
+    attributes:
+        - string: {}
+          description: The temporality to send to the metric integration.
+          computed_optional_required: required
+          tf_schema_name: aggregation_temporality
+          tf_model_name: AggregationTemporality
+          api_name: aggregationTemporality
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.
+          computed_optional_required: optional
+          tf_schema_name: endpoint
+          tf_model_name: Endpoint
+          api_name: endpoint
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: group_id
+          tf_model_name: GroupId
+          api_name: groupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Header name.
+                      computed_optional_required: required
+                      tf_schema_name: name
+                      tf_model_name: Name
+                      api_name: name
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Header value.
+                      computed_optional_required: required
+                      tf_schema_name: value
+                      tf_model_name: Value
+                      api_name: value
+                      req_body_usage: all_request_bodies
+                      sensitive: true
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.
+          custom_type:
+            package: customtypes
+            name: Headers
+            model: customtypes.NestedListValue[TFHeadersModel]
+            schema: customtypes.NewNestedListType[TFHeadersModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: headers
+          tf_model_name: Headers
+          api_name: headers
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique 24-character hexadecimal digit string that identifies the metric integration configuration.
+          computed_optional_required: required
+          tf_schema_name: id
+          tf_model_name: Id
+          api_name: id
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Type of metric integration. Identifies which protocol will be used for the integration. This value cannot be modified after the integration is created.
+          computed_optional_required: required
+          tf_schema_name: integration_type
+          tf_model_name: IntegrationType
+          api_name: integrationType
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - set:
+            element_type: 4
+          description: Array of metric categories to export. Determines which types of metrics are sent to the integration.
+          custom_type:
+            package: customtypes
+            model: customtypes.SetValue[types.String]
+            schema: customtypes.NewSetType[types.String](ctx)
+          computed_optional_required: required
+          tf_schema_name: metric_selection
+          tf_model_name: MetricSelection
+          api_name: metricSelection
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: The provider type for the metric integration. Identifies the third-party service provider.
+          computed_optional_required: required
+          tf_schema_name: provider_type
+          tf_model_name: ProviderType
+          api_name: providerType
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{id}
+    create:
+        http_method: POST
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{id}
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{id}
+    version_header: application/vnd.atlas.2025-03-12+json
+data_sources:
+    singular:
+        description: Returns the configuration for one metric integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+        discriminator:
+            mapping:
+                OTEL:
+                    allowed:
+                        - api_name: endpoint
+                          tf_schema_name: endpoint
+                        - api_name: headers
+                          tf_schema_name: headers
+                    required:
+                        - api_name: endpoint
+                          tf_schema_name: endpoint
+                        - api_name: headers
+                          tf_schema_name: headers
+            property_name:
+                api_name: integrationType
+                tf_schema_name: integration_type
+            skip_validation: true
+        attributes:
+            - string: {}
+              description: The temporality to send to the metric integration.
+              computed_optional_required: computed
+              tf_schema_name: aggregation_temporality
+              tf_model_name: AggregationTemporality
+              api_name: aggregationTemporality
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: OpenTelemetry collector endpoint URL.
+              computed_optional_required: computed
+              tf_schema_name: endpoint
+              tf_model_name: Endpoint
+              api_name: endpoint
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: |-
+                Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+                **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+              computed_optional_required: required
+              tf_schema_name: group_id
+              tf_model_name: GroupId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Header name.
+                          computed_optional_required: computed
+                          tf_schema_name: name
+                          tf_model_name: Name
+                          api_name: name
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Header value.
+                          computed_optional_required: computed
+                          tf_schema_name: value
+                          tf_model_name: Value
+                          api_name: value
+                          req_body_usage: omit_always
+                          sensitive: true
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: HTTP headers for authentication and configuration. Header values are redacted in responses.
+              custom_type:
+                package: customtypes
+                name: Headers
+                model: customtypes.NestedListValue[TFHeadersModel]
+                schema: customtypes.NewNestedListType[TFHeadersModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: headers
+              tf_model_name: Headers
+              api_name: headers
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique identifier of the metric integration configuration.
+              computed_optional_required: required
+              tf_schema_name: id
+              tf_model_name: Id
+              api_name: metricIntegrationId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Type of metric integration. Identifies which protocol will be used for the integration.
+              computed_optional_required: computed
+              tf_schema_name: integration_type
+              tf_model_name: IntegrationType
+              api_name: integrationType
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - set:
+                element_type: 4
+              description: Array of metric categories to export. Determines which types of metrics are sent to the integration.
+              custom_type:
+                package: customtypes
+                model: customtypes.SetValue[types.String]
+                schema: customtypes.NewSetType[types.String](ctx)
+              computed_optional_required: computed
+              tf_schema_name: metric_selection
+              tf_model_name: MetricSelection
+              api_name: metricSelection
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: The provider type for the metric integration. Identifies the third-party service provider.
+              computed_optional_required: computed
+              tf_schema_name: provider_type
+              tf_model_name: ProviderType
+              api_name: providerType
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    plural:
+        description: Returns all metric integration configurations for the project. Optionally filter by integration type and provider type. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+        attributes:
+            - string: {}
+              description: |-
+                Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+                **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+              computed_optional_required: required
+              tf_schema_name: group_id
+              tf_model_name: GroupId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Optional filter by integration type (e.g., `OTEL`). When specified, `providerType` must also be specified.
+              computed_optional_required: optional
+              tf_schema_name: integration_type
+              tf_model_name: IntegrationType
+              api_name: integrationType
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Optional filter by provider type (e.g., `CUSTOM`). When specified, `integrationType` must also be specified.
+              computed_optional_required: optional
+              tf_schema_name: provider_type
+              tf_model_name: ProviderType
+              api_name: providerType
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    discriminator:
+                        mapping:
+                            OTEL:
+                                allowed:
+                                    - api_name: endpoint
+                                      tf_schema_name: endpoint
+                                    - api_name: headers
+                                      tf_schema_name: headers
+                                required:
+                                    - api_name: endpoint
+                                      tf_schema_name: endpoint
+                                    - api_name: headers
+                                      tf_schema_name: headers
+                        property_name:
+                            api_name: integrationType
+                            tf_schema_name: integration_type
+                        skip_validation: true
+                    attributes:
+                        - string: {}
+                          description: The temporality to send to the metric integration.
+                          computed_optional_required: computed
+                          tf_schema_name: aggregation_temporality
+                          tf_model_name: AggregationTemporality
+                          api_name: aggregationTemporality
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: OpenTelemetry collector endpoint URL.
+                          computed_optional_required: computed
+                          tf_schema_name: endpoint
+                          tf_model_name: Endpoint
+                          api_name: endpoint
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - list_nested:
+                            nested_object:
+                                attributes:
+                                    - string: {}
+                                      description: Header name.
+                                      computed_optional_required: computed
+                                      tf_schema_name: name
+                                      tf_model_name: Name
+                                      api_name: name
+                                      req_body_usage: omit_always
+                                      sensitive: false
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                                    - string: {}
+                                      description: Header value.
+                                      computed_optional_required: computed
+                                      tf_schema_name: value
+                                      tf_model_name: Value
+                                      api_name: value
+                                      req_body_usage: omit_always
+                                      sensitive: true
+                                      create_only: false
+                                      present_in_any_response: false
+                                      request_only_required_on_create: false
+                          description: HTTP headers for authentication and configuration. Header values are redacted in responses.
+                          custom_type:
+                            package: customtypes
+                            name: ResultsHeaders
+                            model: customtypes.NestedListValue[TFResultsHeadersModel]
+                            schema: customtypes.NewNestedListType[TFResultsHeadersModel](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: headers
+                          tf_model_name: Headers
+                          api_name: headers
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 24-character hexadecimal digit string that identifies the metric integration configuration.
+                          computed_optional_required: computed
+                          tf_schema_name: id
+                          tf_model_name: Id
+                          api_name: id
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Type of metric integration. Identifies which protocol will be used for the integration.
+                          computed_optional_required: computed
+                          tf_schema_name: integration_type
+                          tf_model_name: IntegrationType
+                          api_name: integrationType
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - set:
+                            element_type: 4
+                          description: Array of metric categories to export. Determines which types of metrics are sent to the integration.
+                          custom_type:
+                            package: customtypes
+                            model: customtypes.SetValue[types.String]
+                            schema: customtypes.NewSetType[types.String](ctx)
+                          computed_optional_required: computed
+                          tf_schema_name: metric_selection
+                          tf_model_name: MetricSelection
+                          api_name: metricSelection
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: The provider type for the metric integration. Identifies the third-party service provider.
+                          computed_optional_required: computed
+                          tf_schema_name: provider_type
+                          tf_model_name: ProviderType
+                          api_name: providerType
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of returned documents that MongoDB Cloud provides when completing this request.
+              custom_type:
+                package: customtypes
+                name: Results
+                model: customtypes.NestedListValue[TFResultsModel]
+                schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: results
+              tf_model_name: Results
+              api_name: results
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{id}
+        list:
+            http_method: GET
+            path: /api/atlas/v2/groups/{groupId}/metricIntegrations
+        version_header: application/vnd.atlas.2025-03-12+json
+name: metric_integration
+packageName: metricintegration
