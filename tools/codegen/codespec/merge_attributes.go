@@ -184,17 +184,8 @@ func updateNestedComputabilityAndReqBodyUsage(attrs *Attributes, parentIsCompute
 		attrIsComputed := attr.ComputedOptionalRequired == Computed
 		attrIsOmittedInReqBody := attr.ReqBodyUsage == OmitAlways
 
-		if attr.ListNested != nil {
-			updateNestedComputabilityAndReqBodyUsage(&attr.ListNested.NestedObject.Attributes, attrIsComputed, attrIsOmittedInReqBody)
-		}
-		if attr.SingleNested != nil {
-			updateNestedComputabilityAndReqBodyUsage(&attr.SingleNested.NestedObject.Attributes, attrIsComputed, attrIsOmittedInReqBody)
-		}
-		if attr.SetNested != nil {
-			updateNestedComputabilityAndReqBodyUsage(&attr.SetNested.NestedObject.Attributes, attrIsComputed, attrIsOmittedInReqBody)
-		}
-		if attr.MapNested != nil {
-			updateNestedComputabilityAndReqBodyUsage(&attr.MapNested.NestedObject.Attributes, attrIsComputed, attrIsOmittedInReqBody)
+		if nested := attr.NestedObject(); nested != nil {
+			updateNestedComputabilityAndReqBodyUsage(&nested.Attributes, attrIsComputed, attrIsOmittedInReqBody)
 		}
 	}
 }
@@ -268,35 +259,10 @@ func setAttributeComputedRecursive(attr *Attribute) {
 	attr.ComputedOptionalRequired = Computed
 	attr.ReqBodyUsage = OmitAlways
 
-	// Process nested attributes in ListNested
-	if attr.ListNested != nil {
-		for i := range attr.ListNested.NestedObject.Attributes {
-			setAttributeComputedRecursive(&attr.ListNested.NestedObject.Attributes[i])
+	if nested := attr.NestedObject(); nested != nil {
+		for i := range nested.Attributes {
+			setAttributeComputedRecursive(&nested.Attributes[i])
 		}
-		sortAttributes(attr.ListNested.NestedObject.Attributes)
-	}
-
-	// Process nested attributes in SingleNested
-	if attr.SingleNested != nil {
-		for i := range attr.SingleNested.NestedObject.Attributes {
-			setAttributeComputedRecursive(&attr.SingleNested.NestedObject.Attributes[i])
-		}
-		sortAttributes(attr.SingleNested.NestedObject.Attributes)
-	}
-
-	// Process nested attributes in SetNested
-	if attr.SetNested != nil {
-		for i := range attr.SetNested.NestedObject.Attributes {
-			setAttributeComputedRecursive(&attr.SetNested.NestedObject.Attributes[i])
-		}
-		sortAttributes(attr.SetNested.NestedObject.Attributes)
-	}
-
-	// Process nested attributes in MapNested
-	if attr.MapNested != nil {
-		for i := range attr.MapNested.NestedObject.Attributes {
-			setAttributeComputedRecursive(&attr.MapNested.NestedObject.Attributes[i])
-		}
-		sortAttributes(attr.MapNested.NestedObject.Attributes)
+		sortAttributes(nested.Attributes)
 	}
 }

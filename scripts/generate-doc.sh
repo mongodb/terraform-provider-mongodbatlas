@@ -98,4 +98,7 @@ else
     mv "docs-out/data-sources/${resource_name}s.md" "docs/data-sources/${resource_name}s.md"
 fi
 
+printf "\nPost-processing polymorphic docs...\n"
+go run ./tools/docpostprocess --dir docs
+
 printf "\nThe documentation for %s has been created.\n" "${resource_name}"
