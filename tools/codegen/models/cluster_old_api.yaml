@@ -799,7 +799,7 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
-                                  description: Options that determine how this cluster handles resource scaling.
+                                  description: 'Applies to provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.'
                                   custom_type:
                                     package: customtypes
                                     name: ReplicationSpecsRegionConfigsAnalyticsAutoScaling
@@ -870,7 +870,7 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
-                                  description: Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region.
+                                  description: 'Applies to provider_name: AWS, AZURE, GCP. Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don''t specify this parameter, no read-only nodes are deployed to the region.'
                                   custom_type:
                                     package: customtypes
                                     name: ReplicationSpecsRegionConfigsAnalyticsSpecs
@@ -983,7 +983,7 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
-                                  description: Options that determine how this cluster handles resource scaling.
+                                  description: 'Applies to provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.'
                                   custom_type:
                                     package: customtypes
                                     name: ReplicationSpecsRegionConfigsAutoScaling
@@ -999,7 +999,7 @@ schema:
                                   present_in_any_response: true
                                   request_only_required_on_create: false
                                 - string: {}
-                                  description: "Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when `providerName` is `TENANT` and `electableSpecs.instanceSize` is `M0`, `M2` or `M5`. \n\nPlease note that using an `instanceSize` of M2 or M5 will create a Flex cluster instead. Support for the `instanceSize` of M2 or M5 will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward."
+                                  description: "Applies to provider_name: TENANT. Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when `providerName` is `TENANT` and `electableSpecs.instanceSize` is `M0`, `M2` or `M5`. \n\nPlease note that using an `instanceSize` of M2 or M5 will create a Flex cluster instead. Support for the `instanceSize` of M2 or M5 will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward."
                                   computed_optional_required: optional
                                   tf_schema_name: backing_provider_name
                                   tf_model_name: BackingProviderName
@@ -1172,7 +1172,7 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
-                                  description: Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region.
+                                  description: 'Applies to provider_name: AWS, AZURE, GCP. Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don''t specify this parameter, no read-only nodes are deployed to the region.'
                                   custom_type:
                                     package: customtypes
                                     name: ReplicationSpecsRegionConfigsReadOnlySpecs
