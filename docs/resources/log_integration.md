@@ -70,37 +70,39 @@ output "log_integrations_results" {
 
 ### Optional
 
-#### `type` of value `AZURE_LOG_EXPORT`
+The following attributes depend on the value of `type`:
+
+#### `AZURE_LOG_EXPORT`
 
 - `prefix_path` (String) **Required.** Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
 - `role_id` (String) **Required.** Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
 - `storage_account_name` (String) **Required.** Storage account name where logs will be stored.
 - `storage_container_name` (String) **Required.** Storage container name for log files.
 
-#### `type` of value `DATADOG_LOG_EXPORT`
+#### `DATADOG_LOG_EXPORT`
 
 - `api_key` (String, Sensitive) **Required.** API key for authentication.
 - `region` (String) **Required.** Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.
 
-#### `type` of value `GCS_LOG_EXPORT`
+#### `GCS_LOG_EXPORT`
 
 - `bucket_name` (String) **Required.** Name of the bucket to store log files.
 - `prefix_path` (String) **Required.** Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
 - `role_id` (String) **Required.** Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
 
-#### `type` of value `OTEL_LOG_EXPORT`
+#### `OTEL_LOG_EXPORT`
 
 - `otel_endpoint` (String) **Required.** OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.
 - `otel_supplied_headers` (Attributes List, Sensitive) **Required.** HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB. (see [below for nested schema](#nestedatt--otel_supplied_headers))
 
-#### `type` of value `S3_LOG_EXPORT`
+#### `S3_LOG_EXPORT`
 
 - `bucket_name` (String) **Required.** Name of the bucket to store log files.
 - `iam_role_id` (String) **Required.** Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.
 - `kms_key` (String) AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
 - `prefix_path` (String) **Required.** Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
 
-#### `type` of value `SPLUNK_LOG_EXPORT`
+#### `SPLUNK_LOG_EXPORT`
 
 - `hec_token` (String, Sensitive) **Required.** HTTP Event Collector (HEC) token for authentication.
 - `hec_url` (String) **Required.** HTTP Event Collector (HEC) endpoint URL.
