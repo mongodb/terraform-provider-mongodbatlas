@@ -91,7 +91,7 @@ schema:
             tf_schema_name: type
     attributes:
         - string: {}
-          description: API key for authentication.
+          description: 'Required for type: DATADOG_LOG_EXPORT. API key for authentication.'
           computed_optional_required: optional
           tf_schema_name: api_key
           tf_model_name: ApiKey
@@ -102,7 +102,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Name of the bucket to store log files.
+          description: 'Required for type: GCS_LOG_EXPORT, S3_LOG_EXPORT. Name of the bucket to store log files.'
           computed_optional_required: optional
           tf_schema_name: bucket_name
           tf_model_name: BucketName
@@ -124,7 +124,7 @@ schema:
           present_in_any_response: false
           request_only_required_on_create: false
         - string: {}
-          description: HTTP Event Collector (HEC) token for authentication.
+          description: 'Required for type: SPLUNK_LOG_EXPORT. HTTP Event Collector (HEC) token for authentication.'
           computed_optional_required: optional
           tf_schema_name: hec_token
           tf_model_name: HecToken
@@ -135,7 +135,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: HTTP Event Collector (HEC) endpoint URL.
+          description: 'Required for type: SPLUNK_LOG_EXPORT. HTTP Event Collector (HEC) endpoint URL.'
           computed_optional_required: optional
           tf_schema_name: hec_url
           tf_model_name: HecUrl
@@ -146,7 +146,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.
+          description: 'Required for type: S3_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.'
           computed_optional_required: optional
           tf_schema_name: iam_role_id
           tf_model_name: IamRoleId
@@ -169,7 +169,7 @@ schema:
           request_only_required_on_create: false
           immutable_computed: true
         - string: {}
-          description: AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
+          description: 'Optional for type: S3_LOG_EXPORT. AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.'
           computed_optional_required: optional
           tf_schema_name: kms_key
           tf_model_name: KmsKey
@@ -181,7 +181,7 @@ schema:
           request_only_required_on_create: false
         - set:
             element_type: 4
-          description: Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.
+          description: Array of log types exported by this integration.
           custom_type:
             package: customtypes
             model: customtypes.SetValue[types.String]
@@ -196,7 +196,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.
+          description: 'Required for type: OTEL_LOG_EXPORT. OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.'
           computed_optional_required: optional
           tf_schema_name: otel_endpoint
           tf_model_name: OtelEndpoint
@@ -231,7 +231,7 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
-          description: HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.
+          description: 'Required for type: OTEL_LOG_EXPORT. HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.'
           custom_type:
             package: customtypes
             name: OtelSuppliedHeaders
@@ -247,7 +247,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
+          description: 'Required for type: AZURE_LOG_EXPORT, GCS_LOG_EXPORT, S3_LOG_EXPORT. Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.'
           computed_optional_required: optional
           tf_schema_name: prefix_path
           tf_model_name: PrefixPath
@@ -258,7 +258,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: 'Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.'
+          description: 'Required for type: DATADOG_LOG_EXPORT. Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.'
           computed_optional_required: optional
           tf_schema_name: region
           tf_model_name: Region
@@ -269,7 +269,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
+          description: 'Required for type: AZURE_LOG_EXPORT, GCS_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.'
           computed_optional_required: optional
           tf_schema_name: role_id
           tf_model_name: RoleId
@@ -280,7 +280,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Storage account name where logs will be stored.
+          description: 'Required for type: AZURE_LOG_EXPORT. Storage account name where logs will be stored.'
           computed_optional_required: optional
           tf_schema_name: storage_account_name
           tf_model_name: StorageAccountName
@@ -291,7 +291,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Storage container name for log files.
+          description: 'Required for type: AZURE_LOG_EXPORT. Storage container name for log files.'
           computed_optional_required: optional
           tf_schema_name: storage_container_name
           tf_model_name: StorageContainerName
@@ -421,7 +421,7 @@ data_sources:
             skip_validation: true
         attributes:
             - string: {}
-              description: API key for authentication.
+              description: 'Applies to type: DATADOG_LOG_EXPORT. API key for authentication.'
               computed_optional_required: computed
               tf_schema_name: api_key
               tf_model_name: ApiKey
@@ -432,7 +432,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Name of the bucket to store log files.
+              description: 'Applies to type: GCS_LOG_EXPORT, S3_LOG_EXPORT. Name of the bucket to store log files.'
               computed_optional_required: computed
               tf_schema_name: bucket_name
               tf_model_name: BucketName
@@ -443,7 +443,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: HTTP Event Collector (HEC) token for authentication.
+              description: 'Applies to type: SPLUNK_LOG_EXPORT. HTTP Event Collector (HEC) token for authentication.'
               computed_optional_required: computed
               tf_schema_name: hec_token
               tf_model_name: HecToken
@@ -454,7 +454,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: HTTP Event Collector (HEC) endpoint URL.
+              description: 'Applies to type: SPLUNK_LOG_EXPORT. HTTP Event Collector (HEC) endpoint URL.'
               computed_optional_required: computed
               tf_schema_name: hec_url
               tf_model_name: HecUrl
@@ -465,7 +465,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.
+              description: 'Applies to type: S3_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.'
               computed_optional_required: computed
               tf_schema_name: iam_role_id
               tf_model_name: IamRoleId
@@ -487,7 +487,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
+              description: 'Applies to type: S3_LOG_EXPORT. AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.'
               computed_optional_required: computed
               tf_schema_name: kms_key
               tf_model_name: KmsKey
@@ -499,7 +499,7 @@ data_sources:
               request_only_required_on_create: false
             - set:
                 element_type: 4
-              description: Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.
+              description: Array of log types exported by this integration.
               custom_type:
                 package: customtypes
                 model: customtypes.SetValue[types.String]
@@ -514,7 +514,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: OpenTelemetry collector endpoint URL.
+              description: 'Applies to type: OTEL_LOG_EXPORT. OpenTelemetry collector endpoint URL.'
               computed_optional_required: computed
               tf_schema_name: otel_endpoint
               tf_model_name: OtelEndpoint
@@ -549,7 +549,7 @@ data_sources:
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false
-              description: HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.
+              description: 'Applies to type: OTEL_LOG_EXPORT. HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.'
               custom_type:
                 package: customtypes
                 name: OtelSuppliedHeaders
@@ -565,7 +565,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
+              description: 'Applies to type: AZURE_LOG_EXPORT, GCS_LOG_EXPORT, S3_LOG_EXPORT. Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.'
               computed_optional_required: computed
               tf_schema_name: prefix_path
               tf_model_name: PrefixPath
@@ -587,7 +587,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: 'Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.'
+              description: 'Applies to type: DATADOG_LOG_EXPORT. Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.'
               computed_optional_required: computed
               tf_schema_name: region
               tf_model_name: Region
@@ -598,7 +598,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
+              description: 'Applies to type: AZURE_LOG_EXPORT, GCS_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.'
               computed_optional_required: computed
               tf_schema_name: role_id
               tf_model_name: RoleId
@@ -609,7 +609,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Storage account name where logs will be stored.
+              description: 'Applies to type: AZURE_LOG_EXPORT. Storage account name where logs will be stored.'
               computed_optional_required: computed
               tf_schema_name: storage_account_name
               tf_model_name: StorageAccountName
@@ -620,7 +620,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Storage container name for log files.
+              description: 'Applies to type: AZURE_LOG_EXPORT. Storage container name for log files.'
               computed_optional_required: computed
               tf_schema_name: storage_container_name
               tf_model_name: StorageContainerName
@@ -760,7 +760,7 @@ data_sources:
                         skip_validation: true
                     attributes:
                         - string: {}
-                          description: API key for authentication.
+                          description: 'Applies to type: DATADOG_LOG_EXPORT. API key for authentication.'
                           computed_optional_required: computed
                           tf_schema_name: api_key
                           tf_model_name: ApiKey
@@ -771,7 +771,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Name of the bucket to store log files.
+                          description: 'Applies to type: GCS_LOG_EXPORT, S3_LOG_EXPORT. Name of the bucket to store log files.'
                           computed_optional_required: computed
                           tf_schema_name: bucket_name
                           tf_model_name: BucketName
@@ -782,7 +782,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: HTTP Event Collector (HEC) token for authentication.
+                          description: 'Applies to type: SPLUNK_LOG_EXPORT. HTTP Event Collector (HEC) token for authentication.'
                           computed_optional_required: computed
                           tf_schema_name: hec_token
                           tf_model_name: HecToken
@@ -793,7 +793,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: HTTP Event Collector (HEC) endpoint URL.
+                          description: 'Applies to type: SPLUNK_LOG_EXPORT. HTTP Event Collector (HEC) endpoint URL.'
                           computed_optional_required: computed
                           tf_schema_name: hec_url
                           tf_model_name: HecUrl
@@ -804,7 +804,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.
+                          description: 'Applies to type: S3_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.'
                           computed_optional_required: computed
                           tf_schema_name: iam_role_id
                           tf_model_name: IamRoleId
@@ -826,7 +826,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
+                          description: 'Applies to type: S3_LOG_EXPORT. AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.'
                           computed_optional_required: computed
                           tf_schema_name: kms_key
                           tf_model_name: KmsKey
@@ -838,7 +838,7 @@ data_sources:
                           request_only_required_on_create: false
                         - set:
                             element_type: 4
-                          description: Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.
+                          description: Array of log types exported by this integration.
                           custom_type:
                             package: customtypes
                             model: customtypes.SetValue[types.String]
@@ -853,7 +853,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: OpenTelemetry collector endpoint URL.
+                          description: 'Applies to type: OTEL_LOG_EXPORT. OpenTelemetry collector endpoint URL.'
                           computed_optional_required: computed
                           tf_schema_name: otel_endpoint
                           tf_model_name: OtelEndpoint
@@ -888,7 +888,7 @@ data_sources:
                                       create_only: false
                                       present_in_any_response: false
                                       request_only_required_on_create: false
-                          description: HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.
+                          description: 'Applies to type: OTEL_LOG_EXPORT. HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.'
                           custom_type:
                             package: customtypes
                             name: ResultsOtelSuppliedHeaders
@@ -904,7 +904,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
+                          description: 'Applies to type: AZURE_LOG_EXPORT, GCS_LOG_EXPORT, S3_LOG_EXPORT. Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.'
                           computed_optional_required: computed
                           tf_schema_name: prefix_path
                           tf_model_name: PrefixPath
@@ -915,7 +915,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: 'Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.'
+                          description: 'Applies to type: DATADOG_LOG_EXPORT. Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.'
                           computed_optional_required: computed
                           tf_schema_name: region
                           tf_model_name: Region
@@ -926,7 +926,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
+                          description: 'Applies to type: AZURE_LOG_EXPORT, GCS_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.'
                           computed_optional_required: computed
                           tf_schema_name: role_id
                           tf_model_name: RoleId
@@ -937,7 +937,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Storage account name where logs will be stored.
+                          description: 'Applies to type: AZURE_LOG_EXPORT. Storage account name where logs will be stored.'
                           computed_optional_required: computed
                           tf_schema_name: storage_account_name
                           tf_model_name: StorageAccountName
@@ -948,7 +948,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Storage container name for log files.
+                          description: 'Applies to type: AZURE_LOG_EXPORT. Storage container name for log files.'
                           computed_optional_required: computed
                           tf_schema_name: storage_container_name
                           tf_model_name: StorageContainerName

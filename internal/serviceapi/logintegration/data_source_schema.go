@@ -16,25 +16,25 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 		Attributes: map[string]dsschema.Attribute{
 			"api_key": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "API key for authentication.",
+				MarkdownDescription: "Applies to type: DATADOG_LOG_EXPORT. API key for authentication.",
 				Sensitive:           true,
 			},
 			"bucket_name": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Name of the bucket to store log files.",
+				MarkdownDescription: "Applies to type: GCS_LOG_EXPORT, S3_LOG_EXPORT. Name of the bucket to store log files.",
 			},
 			"hec_token": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "HTTP Event Collector (HEC) token for authentication.",
+				MarkdownDescription: "Applies to type: SPLUNK_LOG_EXPORT. HTTP Event Collector (HEC) token for authentication.",
 				Sensitive:           true,
 			},
 			"hec_url": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "HTTP Event Collector (HEC) endpoint URL.",
+				MarkdownDescription: "Applies to type: SPLUNK_LOG_EXPORT. HTTP Event Collector (HEC) endpoint URL.",
 			},
 			"iam_role_id": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.",
+				MarkdownDescription: "Applies to type: S3_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.",
 			},
 			"integration_id": dsschema.StringAttribute{
 				Required:            true,
@@ -42,21 +42,21 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"kms_key": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.",
+				MarkdownDescription: "Applies to type: S3_LOG_EXPORT. AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.",
 			},
 			"log_types": dsschema.SetAttribute{
 				Computed:            true,
-				MarkdownDescription: "Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.",
+				MarkdownDescription: "Array of log types exported by this integration.",
 				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
 			"otel_endpoint": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "OpenTelemetry collector endpoint URL.",
+				MarkdownDescription: "Applies to type: OTEL_LOG_EXPORT. OpenTelemetry collector endpoint URL.",
 			},
 			"otel_supplied_headers": dsschema.ListNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.",
+				MarkdownDescription: "Applies to type: OTEL_LOG_EXPORT. HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.",
 				Sensitive:           true,
 				CustomType:          customtypes.NewNestedListType[TFDSOtelSuppliedHeadersModel](ctx),
 				NestedObject: dsschema.NestedAttributeObject{
@@ -75,7 +75,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"prefix_path": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.",
+				MarkdownDescription: "Applies to type: AZURE_LOG_EXPORT, GCS_LOG_EXPORT, S3_LOG_EXPORT. Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.",
 			},
 			"project_id": dsschema.StringAttribute{
 				Required:            true,
@@ -83,19 +83,19 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"region": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.",
+				MarkdownDescription: "Applies to type: DATADOG_LOG_EXPORT. Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.",
 			},
 			"role_id": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.",
+				MarkdownDescription: "Applies to type: AZURE_LOG_EXPORT, GCS_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.",
 			},
 			"storage_account_name": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Storage account name where logs will be stored.",
+				MarkdownDescription: "Applies to type: AZURE_LOG_EXPORT. Storage account name where logs will be stored.",
 			},
 			"storage_container_name": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Storage container name for log files.",
+				MarkdownDescription: "Applies to type: AZURE_LOG_EXPORT. Storage container name for log files.",
 			},
 			"type": dsschema.StringAttribute{
 				Computed:            true,
