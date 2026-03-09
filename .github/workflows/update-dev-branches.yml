@@ -43,17 +43,29 @@ jobs:
       id: merge-check
       run: |
         echo "Updating branch: ${{ matrix.branch }}"
-        
+
         if ! git ls-remote --heads origin ${{ matrix.branch }} | grep -q ${{ matrix.branch }}; then
-          echo "ERROR: Branch ${{ matrix.branch }} does not exist."
-          exit 1
+          echo "SKIP: Branch ${{ matrix.branch }} does not exist (may have been deleted after merge)."
+          echo "has-changes=false" >> "${GITHUB_OUTPUT}"
+          echo "skipped=true" >> "${GITHUB_OUTPUT}"
+          exit 0
         fi
-        
+
         git fetch origin master
-        git fetch origin ${{ matrix.branch }}        
+        git fetch origin ${{ matrix.branch }}
+
+        # Check if branch is already fully merged into master.
+        unmerged_commits=$(git rev-list --count origin/master..origin/${{ matrix.branch }})
+        if [ "$unmerged_commits" -eq 0 ]; then
+          echo "SKIP: Branch ${{ matrix.branch }} is fully merged into master. Please remove it from the branch list in this workflow."
+          echo "has-changes=false" >> "${GITHUB_OUTPUT}"
+          echo "skipped=true" >> "${GITHUB_OUTPUT}"
+          exit 0
+        fi
+
         git checkout -B ${{ matrix.branch }} origin/${{ matrix.branch }}
-        
-        # Check if there are commits in master not in dev branch
+
+        # Check if there are commits in master not in dev branch.
         commits_to_merge=$(git rev-list --count origin/${{ matrix.branch }}..origin/master)
         if [ "$commits_to_merge" -eq 0 ]; then
           echo "OK: No commits to merge from master. Branch is already up to date."
@@ -75,6 +87,26 @@ jobs:
             exit 1
           fi
         fi
+
+    - name: Send Slack notification for skipped branch
+      if: steps.merge-check.outputs.skipped == 'true'
+      uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+      with:
+        webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+        webhook-type: incoming-webhook
+        payload: |
+          {
+            "text": "${{ github.event.repository.name }}: Dev branch skipped",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "ℹ️ ${{ github.event.repository.name }}: Dev branch `${{ matrix.branch }}` was skipped (merged or deleted). Please remove it from the branch list in `update-dev-branches.yml`. ${{ secrets.SLACK_ONCALL_TAG }}"
+                }
+              }
+            ]
+          }
 
     - name: Push updated branch
       if: steps.merge-check.outputs.has-changes == 'true'
