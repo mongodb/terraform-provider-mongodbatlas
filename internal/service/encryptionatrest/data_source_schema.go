@@ -26,7 +26,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 					},
 					"enabled": schema.BoolAttribute{
 						Computed:            true,
-						MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified project through Amazon Web Services (AWS) Key Management Service (KMS). To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.",
+						MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified project through Amazon Web Services (AWS) Key Management Service (KMS). Setting this field to `false` might lead to an inconsistent Terraform state. To disable encryption at rest, remove the `mongodbatlas_encryption_at_rest` resource and reapply your configuration.",
 					},
 					"region": schema.StringAttribute{
 						Computed:            true,
@@ -66,12 +66,16 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 					},
 					"enabled": schema.BoolAttribute{
 						Computed:            true,
-						MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified  project. To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.",
+						MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified  project. Setting this field to `false` might lead to an inconsistent Terraform state. To disable encryption at rest, remove the `mongodbatlas_encryption_at_rest` resource and reapply your configuration.",
 					},
 					"key_identifier": schema.StringAttribute{
 						Computed:            true,
 						Sensitive:           true,
 						MarkdownDescription: "Web address with a unique key that identifies for your Azure Key Vault.",
+					},
+					"role_id": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the Azure Service Principal that Atlas uses to access the Azure Key Vault.",
 					},
 					"key_vault_name": schema.StringAttribute{
 						Computed:            true,
@@ -112,7 +116,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
 						Computed:            true,
-						MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified  project. To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.",
+						MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified  project. Setting this field to `false` might lead to an inconsistent Terraform state. To disable encryption at rest, remove the `mongodbatlas_encryption_at_rest` resource and reapply your configuration.",
 					},
 					"key_version_resource_id": schema.StringAttribute{
 						Computed:            true,
