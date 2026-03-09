@@ -55,8 +55,7 @@ func enhanceCurrentLevel(attrs Attributes, disc *Discriminator, useRequiredPrefi
 			continue
 		}
 
-		prefix := buildPrefix(info, discriminatorPropName, useRequiredPrefix)
-		if prefix != "" {
+		if prefix := buildPrefix(info, discriminatorPropName, useRequiredPrefix); prefix != "" {
 			enhanced := prefix + " " + *attr.Description
 			attr.Description = &enhanced
 		}
