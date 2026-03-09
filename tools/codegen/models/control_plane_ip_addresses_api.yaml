@@ -1,9 +1,9 @@
 operations:
     version_header: ""
 data_sources:
-    schema:
-        singular_ds_description: Returns all control plane IP addresses.
-        singular_ds_attributes:
+    singular:
+        description: Returns all control plane IP addresses.
+        attributes:
             - single_nested:
                 nested_object:
                     attributes:
@@ -136,7 +136,6 @@ data_sources:
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
-        plural_ds_attributes: []
     operations:
         read:
             http_method: GET
