@@ -34,21 +34,45 @@ output "log_integration_type" {
 
 ### Read-Only
 
-- `api_key` (String, Sensitive) Applies to type: DATADOG_LOG_EXPORT. API key for authentication.
-- `bucket_name` (String) Applies to type: GCS_LOG_EXPORT, S3_LOG_EXPORT. Name of the bucket to store log files.
-- `hec_token` (String, Sensitive) Applies to type: SPLUNK_LOG_EXPORT. HTTP Event Collector (HEC) token for authentication.
-- `hec_url` (String) Applies to type: SPLUNK_LOG_EXPORT. HTTP Event Collector (HEC) endpoint URL.
-- `iam_role_id` (String) Applies to type: S3_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.
-- `kms_key` (String) Applies to type: S3_LOG_EXPORT. AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
 - `log_types` (Set of String) Array of log types exported by this integration.
-- `otel_endpoint` (String) Applies to type: OTEL_LOG_EXPORT. OpenTelemetry collector endpoint URL.
-- `otel_supplied_headers` (Attributes List, Sensitive) Applies to type: OTEL_LOG_EXPORT. HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB. (see [below for nested schema](#nestedatt--otel_supplied_headers))
-- `prefix_path` (String) Applies to type: AZURE_LOG_EXPORT, GCS_LOG_EXPORT, S3_LOG_EXPORT. Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
-- `region` (String) Applies to type: DATADOG_LOG_EXPORT. Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.
-- `role_id` (String) Applies to type: AZURE_LOG_EXPORT, GCS_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
-- `storage_account_name` (String) Applies to type: AZURE_LOG_EXPORT. Storage account name where logs will be stored.
-- `storage_container_name` (String) Applies to type: AZURE_LOG_EXPORT. Storage container name for log files.
 - `type` (String) Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.
+
+The following attributes depend on the value of `type`:
+
+#### `AZURE_LOG_EXPORT`
+
+- `prefix_path` (String) Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
+- `role_id` (String) Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
+- `storage_account_name` (String) Storage account name where logs will be stored.
+- `storage_container_name` (String) Storage container name for log files.
+
+#### `DATADOG_LOG_EXPORT`
+
+- `api_key` (String, Sensitive) API key for authentication.
+- `region` (String) Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.
+
+#### `GCS_LOG_EXPORT`
+
+- `bucket_name` (String) Name of the bucket to store log files.
+- `prefix_path` (String) Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
+- `role_id` (String) Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
+
+#### `OTEL_LOG_EXPORT`
+
+- `otel_endpoint` (String) OpenTelemetry collector endpoint URL.
+- `otel_supplied_headers` (Attributes List, Sensitive) HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB. (see [below for nested schema](#nestedatt--otel_supplied_headers))
+
+#### `S3_LOG_EXPORT`
+
+- `bucket_name` (String) Name of the bucket to store log files.
+- `iam_role_id` (String) Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.
+- `kms_key` (String) AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
+- `prefix_path` (String) Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
+
+#### `SPLUNK_LOG_EXPORT`
+
+- `hec_token` (String, Sensitive) HTTP Event Collector (HEC) token for authentication.
+- `hec_url` (String) HTTP Event Collector (HEC) endpoint URL.
 
 <a id="nestedatt--otel_supplied_headers"></a>
 ### Nested Schema for `otel_supplied_headers`
