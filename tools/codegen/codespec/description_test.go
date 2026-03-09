@@ -35,12 +35,12 @@ func TestEnhanceDescriptions_Resource(t *testing.T) {
 		},
 	}
 
-	codespec.EnhanceDescriptionsWithDiscriminator(attrs, disc, true)
+	codespec.EnhanceDescriptionsWithDiscriminator(attrs, disc, false)
 
 	assert.Equal(t, "The type.", *attrs[0].Description, "discriminator property itself is skipped")
 	assert.Equal(t, "Base attr description.", *attrs[1].Description, "base/common attribute is untouched")
 	assert.Equal(t, "Required for discriminator_prop: ALPHA, BETA. Required in all types description.", *attrs[2].Description)
-	assert.Equal(t, "Required for discriminator_prop: BETA. Applies to discriminator_prop: ALPHA. Mixed required and optional description.", *attrs[3].Description)
+	assert.Equal(t, "Required for discriminator_prop: BETA. Optional for discriminator_prop: ALPHA. Mixed required and optional description.", *attrs[3].Description)
 	assert.Equal(t, "Required for discriminator_prop: GAMMA. Required single type description.", *attrs[4].Description)
 	assert.Nil(t, attrs[5].Description, "nil description stays nil")
 }
@@ -64,7 +64,7 @@ func TestEnhanceDescriptions_DataSource(t *testing.T) {
 		},
 	}
 
-	codespec.EnhanceDescriptionsWithDiscriminator(attrs, disc, false)
+	codespec.EnhanceDescriptionsWithDiscriminator(attrs, disc, true)
 
 	assert.Equal(t, "Applies to type: GCS_LOG_EXPORT, S3_LOG_EXPORT. Name of the bucket.", *attrs[1].Description, "data sources always use 'Applies to'")
 }
@@ -96,7 +96,7 @@ func TestEnhanceDescriptions_NestedDiscriminator(t *testing.T) {
 		},
 	}
 
-	codespec.EnhanceDescriptionsWithDiscriminator(attrs, nil, true)
+	codespec.EnhanceDescriptionsWithDiscriminator(attrs, nil, false)
 
 	assert.Equal(t, "Auth config.", *attrs[0].Description, "parent not modified when root disc is nil")
 	nestedAttrs := attrs[0].SingleNested.NestedObject.Attributes

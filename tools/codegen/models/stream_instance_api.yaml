@@ -204,7 +204,7 @@ schema:
                                   create_only: false
                                   present_in_any_response: true
                                   request_only_required_on_create: false
-                      description: 'Applies to type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.'
+                      description: 'Optional for type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.'
                       custom_type:
                         package: customtypes
                         name: ConnectionsAuthentication
@@ -244,7 +244,7 @@ schema:
                                   create_only: false
                                   present_in_any_response: true
                                   request_only_required_on_create: false
-                      description: 'Applies to type: AWSKinesisDataStreams, AWSLambda, S3. AWS configurations for AWS-based connection types.'
+                      description: 'Optional for type: AWSKinesisDataStreams, AWSLambda, S3. AWS configurations for AWS-based connection types.'
                       custom_type:
                         package: customtypes
                         name: ConnectionsAws
@@ -260,7 +260,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: 'Applies to type: Kafka. Comma separated list of server addresses.'
+                      description: 'Optional for type: Kafka. Comma separated list of server addresses.'
                       computed_optional_required: computed
                       tf_schema_name: bootstrap_servers
                       tf_model_name: BootstrapServers
@@ -271,7 +271,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: 'Applies to type: Cluster. Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.'
+                      description: 'Optional for type: Cluster. Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.'
                       computed_optional_required: computed
                       tf_schema_name: cluster_group_id
                       tf_model_name: ClusterGroupId
@@ -282,7 +282,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: 'Applies to type: Cluster. Name of the cluster configured for this connection.'
+                      description: 'Optional for type: Cluster. Name of the cluster configured for this connection.'
                       computed_optional_required: computed
                       tf_schema_name: cluster_name
                       tf_model_name: ClusterName
@@ -294,7 +294,7 @@ schema:
                       request_only_required_on_create: false
                     - map:
                         element_type: 4
-                      description: 'Applies to type: Kafka. A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have ''.'' characters.'
+                      description: 'Optional for type: Kafka. A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have ''.'' characters.'
                       custom_type:
                         package: customtypes
                         model: customtypes.MapValue[types.String]
@@ -333,7 +333,7 @@ schema:
                                   create_only: false
                                   present_in_any_response: true
                                   request_only_required_on_create: false
-                      description: 'Applies to type: Cluster. The name of a Built in or Custom DB Role to connect to an Atlas Cluster.'
+                      description: 'Optional for type: Cluster. The name of a Built in or Custom DB Role to connect to an Atlas Cluster.'
                       custom_type:
                         package: customtypes
                         name: ConnectionsDbRoleToExecute
@@ -350,7 +350,7 @@ schema:
                       request_only_required_on_create: false
                     - map:
                         element_type: 4
-                      description: 'Applies to type: Https. A map of key-value pairs that will be passed as headers for the request.'
+                      description: 'Optional for type: Https. A map of key-value pairs that will be passed as headers for the request.'
                       custom_type:
                         package: customtypes
                         model: customtypes.MapValue[types.String]
@@ -440,7 +440,7 @@ schema:
                                   create_only: false
                                   present_in_any_response: true
                                   request_only_required_on_create: false
-                      description: 'Applies to type: AWSKinesisDataStreams, Kafka, S3. Networking configuration for Streams connections.'
+                      description: 'Optional for type: AWSKinesisDataStreams, Kafka, S3. Networking configuration for Streams connections.'
                       custom_type:
                         package: customtypes
                         name: ConnectionsNetworking
@@ -588,7 +588,7 @@ schema:
                                   create_only: false
                                   present_in_any_response: true
                                   request_only_required_on_create: false
-                      description: 'Applies to type: Kafka. Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.'
+                      description: 'Optional for type: Kafka. Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.'
                       custom_type:
                         package: customtypes
                         name: ConnectionsSecurity
@@ -626,7 +626,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string: {}
-                      description: 'Applies to type: Https. The URL to be used for the request.'
+                      description: 'Optional for type: Https. The URL to be used for the request.'
                       computed_optional_required: computed
                       tf_schema_name: url
                       tf_model_name: Url

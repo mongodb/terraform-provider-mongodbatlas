@@ -46,7 +46,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"log_types": dsschema.SetAttribute{
 				Computed:            true,
-				MarkdownDescription: "Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.",
+				MarkdownDescription: "Array of log types exported by this integration.",
 				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
 			},

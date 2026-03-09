@@ -169,7 +169,7 @@ schema:
           request_only_required_on_create: false
           immutable_computed: true
         - string: {}
-          description: 'Applies to type: S3_LOG_EXPORT. AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.'
+          description: 'Optional for type: S3_LOG_EXPORT. AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.'
           computed_optional_required: optional
           tf_schema_name: kms_key
           tf_model_name: KmsKey
@@ -181,7 +181,7 @@ schema:
           request_only_required_on_create: false
         - set:
             element_type: 4
-          description: Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.
+          description: Array of log types exported by this integration.
           custom_type:
             package: customtypes
             model: customtypes.SetValue[types.String]
@@ -499,7 +499,7 @@ data_sources:
               request_only_required_on_create: false
             - set:
                 element_type: 4
-              description: Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.
+              description: Array of log types exported by this integration.
               custom_type:
                 package: customtypes
                 model: customtypes.SetValue[types.String]
@@ -838,7 +838,7 @@ data_sources:
                           request_only_required_on_create: false
                         - set:
                             element_type: 4
-                          description: Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.
+                          description: Array of log types exported by this integration.
                           custom_type:
                             package: customtypes
                             model: customtypes.SetValue[types.String]

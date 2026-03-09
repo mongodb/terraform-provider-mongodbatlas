@@ -52,11 +52,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"kms_key": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Applies to type: S3_LOG_EXPORT. AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.",
+				MarkdownDescription: "Optional for type: S3_LOG_EXPORT. AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.",
 			},
 			"log_types": schema.SetAttribute{
 				Required:            true,
-				MarkdownDescription: "Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.",
+				MarkdownDescription: "Array of log types exported by this integration.",
 				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
 			},

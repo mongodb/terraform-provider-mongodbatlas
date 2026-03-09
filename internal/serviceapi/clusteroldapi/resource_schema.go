@@ -284,7 +284,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								Attributes: map[string]schema.Attribute{
 									"analytics_auto_scaling": schema.SingleNestedAttribute{
 										Optional:            true,
-										MarkdownDescription: "Applies to provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"compute": schema.SingleNestedAttribute{
@@ -326,7 +326,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"analytics_specs": schema.SingleNestedAttribute{
 										Computed:            true,
 										Optional:            true,
-										MarkdownDescription: "Applies to provider_name: AWS, AZURE, GCP. Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsSpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
@@ -354,7 +354,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"auto_scaling": schema.SingleNestedAttribute{
 										Computed:            true,
 										Optional:            true,
-										MarkdownDescription: "Applies to provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAutoScalingModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"compute": schema.SingleNestedAttribute{
@@ -402,7 +402,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"backing_provider_name": schema.StringAttribute{
 										Optional:            true,
-										MarkdownDescription: "Applies to provider_name: TENANT. Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when `providerName` is `TENANT` and `electableSpecs.instanceSize` is `M0`, `M2` or `M5`. \n\nPlease note that using an `instanceSize` of M2 or M5 will create a Flex cluster instead. Support for the `instanceSize` of M2 or M5 will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward.",
+										MarkdownDescription: "Optional for provider_name: TENANT. Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when `providerName` is `TENANT` and `electableSpecs.instanceSize` is `M0`, `M2` or `M5`. \n\nPlease note that using an `instanceSize` of M2 or M5 will create a Flex cluster instead. Support for the `instanceSize` of M2 or M5 will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward.",
 									},
 									"electable_specs": schema.SingleNestedAttribute{
 										Optional:            true,
@@ -463,7 +463,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"read_only_specs": schema.SingleNestedAttribute{
 										Computed:            true,
 										Optional:            true,
-										MarkdownDescription: "Applies to provider_name: AWS, AZURE, GCP. Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsReadOnlySpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{

@@ -51,7 +51,7 @@ Read-Only:
 - `iam_role_id` (String) Applies to type: S3_LOG_EXPORT. Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.
 - `integration_id` (String) Unique 24-character hexadecimal digit string that identifies the log integration configuration.
 - `kms_key` (String) Applies to type: S3_LOG_EXPORT. AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
-- `log_types` (Set of String) Array of log types exported by this integration. The specific log types available and maximum number of items depend on the integration type. See the integration-specific schema for details.
+- `log_types` (Set of String) Array of log types exported by this integration.
 - `otel_endpoint` (String) Applies to type: OTEL_LOG_EXPORT. OpenTelemetry collector endpoint URL.
 - `otel_supplied_headers` (Attributes List, Sensitive) Applies to type: OTEL_LOG_EXPORT. HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB. (see [below for nested schema](#nestedatt--results--otel_supplied_headers))
 - `prefix_path` (String) Applies to type: AZURE_LOG_EXPORT, GCS_LOG_EXPORT, S3_LOG_EXPORT. Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
