@@ -1,22 +1,31 @@
 # Troubleshooting
 
-The following are some of the common issues/errors encountered when using Terraform Provider for MongoDB Atlas:
+Common issues and debugging guidance for the MongoDB Atlas Terraform Provider.
 
-## Enhanced Network Logging
+## Enabling Debug Logging
 
-For debugging API connectivity issues, timeouts, and status code errors, the provider includes enhanced network logging capabilities. See [network-logging.md](network-logging.md) for details.
+Set the `TF_LOG` environment variable to get detailed provider logs:
 
-
-## Issue: The order of element objects in a TypeList attribute randomly changes every time a user runs `terraform plan`:
-
-### Cause:
-This issue occurs if the user tries to dynamically add objects to an attribute list (for example, by using `dynamic`). This is a known Terraform behavior, as `dynamic` can attempt to bring objects into the schema in any order. 
-
-This can be resolved by:
-
-1. Defining a static list of objects in your resource as shown in the example below:
-
+```bash
+export TF_LOG=DEBUG
+terraform apply 2>&1 | tee terraform-debug.log
 ```
+
+This outputs HTTP requests, responses, and internal provider operations, which is essential for diagnosing most issues.
+
+For enhanced visibility into HTTP requests and responses when communicating with the MongoDB Atlas API, see [Enhanced Network Logging](network-logging.md).
+
+## Common Issues
+
+### Random ordering of elements in TypeList attributes during `terraform plan`
+
+This occurs when dynamically adding objects to an attribute list (e.g., using `dynamic`). Terraform's `dynamic` block can bring objects into the schema in any order.
+
+**Solutions:**
+
+1. Define a static list of objects in your resource:
+
+```terraform
 resource "mongodbatlas_advanced_cluster" "main" {
   name         = "advanced-cluster-1"
   project_id   = "64258fba5c9...e5e94617e"
@@ -49,9 +58,9 @@ resource "mongodbatlas_advanced_cluster" "main" {
 }
 ```
 
-2. Using a `type = list()` variable when using `dynamic` as shown in the example below:
+2. Use a `type = list()` variable when using `dynamic`:
 
-```
+```terraform
 variable "region_configs_list" {
   description = "List of region_configs"
   type = list(object({
@@ -74,14 +83,35 @@ variable "region_configs_list" {
     }
   ]
 }
-
 ```
 
-## Issue: `mongodbatlas_alert_configuration` resource attribute `notification.#.integration_id` causes drift detection (non-empty plan) as shown below if no value is set:
+### Service Account rate limiting
+
+If you encounter a rate limit error when using Service Accounts:
+
+```
+Error: error initializing provider: oauth2: cannot fetch token: 429 Too Many Requests
+Response: {"detail":"Resource /api/oauth/token is limited to 50 requests every 1 minutes.","error":429,...}
+```
+
+Atlas enforces rate limiting for each combination of IP address and SA client. Each Terraform operation generates a new token used for the duration of that operation.
+
+**Solutions:**
+
+- Contact [MongoDB Support](https://support.mongodb.com/) to request a rate limit increase.
+- Create separate Service Accounts for different environments or CI/CD pipelines.
+- Distribute Terraform executions across different IP addresses.
+- Add retry logic to your automation workflows.
+
+For more details, see [Service Account configuration](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/provider-configuration#service-account-recommended).
+
+### Drift detection on `mongodbatlas_alert_configuration` `integration_id`
+
+If you see unexpected drift on `notification.#.integration_id`:
+
 ```
 ~ notification {
           - integration_id  = "xxxxxxxxxxxxxxxxxxxxxxxx" -> null
 ```
 
-### Cause:
-Due to recent updates in the Atlas API [Alert Configuration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getalertconfiguration), a computed value for `integration_id` might be returned. This affects MongoDB Atlas Provider versions **1.16.0 to 1.19.0**. Please review the Breaking Changes section in our [1.20.0 upgrade guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.20.0-upgrade-guide) to learn more.
+This affects provider versions 1.16.0 to 1.19.0. The Atlas API returns a computed value for `integration_id` when none is set. See the [1.20.0 upgrade guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.20.0-upgrade-guide) for details.

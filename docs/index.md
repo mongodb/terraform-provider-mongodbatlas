@@ -176,6 +176,20 @@ The MongoDB Atlas Provider supports multiple operating systems and architectures
 
 For common issues and networking diagnostics, see the [Troubleshooting Guide](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/troubleshooting).
 
+## FAQ
+
+**How do I enable debug logging?**
+Set `TF_LOG=DEBUG` before running Terraform commands. This outputs HTTP requests, responses, and internal provider operations. See the [Troubleshooting Guide](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/troubleshooting) for more details.
+
+**How do I report a bug?**
+Open an issue in our [GitHub repository](https://github.com/mongodb/terraform-provider-mongodbatlas/issues). Include the provider version, Terraform version, relevant configuration (with sensitive values removed), and debug logs.
+
+**How do I request a new feature or resource?**
+Submit your idea on our [feedback portal](https://feedback.mongodb.com/ideas?category=7548141186718564699).
+
+**Which authentication method should I use?**
+Service Accounts (SA) are the recommended method. See the [Provider Configuration Guide](guides/provider-configuration#service-account-recommended) for setup instructions. Programmatic Access Keys (PAK) are also supported.
+
 ## Helpful Links/Information
 
 [Upgrade Guide for Terraform MongoDB Atlas 0.4.0](https://www.mongodb.com/blog/post/upgrade-guide-for-terraform-mongodb-atlas-040)
