@@ -13,8 +13,8 @@ import (
 
 type fakeEphemeral struct {
 	config.ESCommon
-	openCalled, renewCalled, closeCalled bool
 	capturedCtx                          context.Context
+	openCalled, renewCalled, closeCalled bool
 }
 
 func (f *fakeEphemeral) Schema(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
@@ -78,7 +78,7 @@ func TestEphemeralWrapper_OpenSetsUserAgent(t *testing.T) {
 	fake := newFakeEphemeral()
 	wrapped := config.AnalyticsEphemeralResourceFunc(fake)()
 
-	wrapped.(ephemeral.EphemeralResource).Open(context.Background(), ephemeral.OpenRequest{}, &ephemeral.OpenResponse{})
+	wrapped.Open(context.Background(), ephemeral.OpenRequest{}, &ephemeral.OpenResponse{})
 	require.True(t, fake.openCalled)
 
 	ua := config.ReadUserAgentExtra(fake.capturedCtx)
