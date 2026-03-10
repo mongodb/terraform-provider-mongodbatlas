@@ -1538,8 +1538,6 @@ func configAddNotification(projectID string, twoNotifications bool) string {
 		secondNotification = `
 			notification {
 				type_name     = "EMAIL"
-				interval_min  = 120
-				delay_min     = 0
 				email_address = "ops-team@example.com"
 			}`
 	}
@@ -1551,8 +1549,6 @@ func configAddNotification(projectID string, twoNotifications bool) string {
 
 			notification {
 				type_name     = "EMAIL"
-				interval_min  = 120
-				delay_min     = 0
 				email_address = "test@mongodb.com"
 			}
 
