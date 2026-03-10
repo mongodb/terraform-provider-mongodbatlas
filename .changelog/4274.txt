@@ -1,3 +1,3 @@
-```release-note:new-resource
-resource/mongodbatlas_service_account_jwt
+```release-note:new-ephemeral-resource
+ephemeral/mongodbatlas_service_account_jwt
 ```
