@@ -25,6 +25,7 @@ type parsedPrefix struct {
 	discriminator string
 	types         []string
 	isRequired    bool
+	isApplicable  bool
 }
 
 // parsedAttribute holds the decomposition of a markdown attribute entry.
@@ -43,8 +44,9 @@ func (a *parsedAttribute) isPolymorphic() bool {
 }
 
 type typeEntry struct {
-	attr       parsedAttribute
-	isRequired bool
+	attr         parsedAttribute
+	isRequired   bool
+	isApplicable bool
 }
 
 type replacement struct {
@@ -200,6 +202,7 @@ func extractPrefixes(desc string) (prefixes []parsedPrefix, remaining string) {
 			discriminator: m[2],
 			types:         splitAndTrim(m[3]),
 			isRequired:    m[1] == codespec.DescriptionPrefixRequired,
+			isApplicable:  m[1] == codespec.DescriptionPrefixApplies,
 		})
 		remaining = prefixRegex.ReplaceAllString(remaining, "")
 	}
@@ -243,15 +246,13 @@ func buildRestructuredBlock(attrs []parsedAttribute) []string {
 	result = append(result, postProcessMarker, fmt.Sprintf("The following attributes depend on the value of `%s`:", discriminator))
 
 	for _, typeName := range sortedTypeKeys(typeGroups) {
-		result = append(result, "", fmt.Sprintf("#### `%s`", typeName), "")
+		result = append(result, "", fmt.Sprintf("#### `%s`", typeName))
 
 		entries := typeGroups[typeName]
 		slices.SortFunc(entries, func(a, b typeEntry) int {
 			return strings.Compare(a.attr.name, b.attr.name)
 		})
-		for i := range entries {
-			result = append(result, renderTypeAttribute(&entries[i])...)
-		}
+		result = append(result, renderTypeEntries(entries)...)
 	}
 
 	return result
@@ -276,8 +277,9 @@ func groupByType(attrs []parsedAttribute) (common []parsedAttribute, typeGroups 
 		for _, prefix := range attr.prefixes {
 			for _, typeName := range prefix.types {
 				typeGroups[typeName] = append(typeGroups[typeName], typeEntry{
-					attr:       attr,
-					isRequired: prefix.isRequired,
+					attr:         attr,
+					isRequired:   prefix.isRequired,
+					isApplicable: prefix.isApplicable,
 				})
 			}
 		}
@@ -294,12 +296,43 @@ func sortedTypeKeys(m map[string][]typeEntry) []string {
 	return keys
 }
 
-func renderTypeAttribute(entry *typeEntry) []string {
-	desc := entry.attr.description
-	if entry.isRequired {
-		desc = "**Required.** " + desc
+func renderTypeEntries(entries []typeEntry) []string {
+	var required, optional, applicable []typeEntry
+	for i := range entries {
+		switch {
+		case entries[i].isRequired:
+			required = append(required, entries[i])
+		case entries[i].isApplicable:
+			applicable = append(applicable, entries[i])
+		default:
+			optional = append(optional, entries[i])
+		}
 	}
-	lines := []string{fmt.Sprintf("- `%s` (%s) %s", entry.attr.name, entry.attr.typeInfo, desc)}
+
+	var result []string
+	if len(required) > 0 {
+		result = append(result, "", "Required:")
+		for i := range required {
+			result = append(result, renderAttrLine(&required[i])...)
+		}
+	}
+	if len(optional) > 0 {
+		result = append(result, "", "Optional:")
+		for i := range optional {
+			result = append(result, renderAttrLine(&optional[i])...)
+		}
+	}
+	if len(applicable) > 0 { // Applicable attributes are listed directly (for data source docs)
+		result = append(result, "")
+		for i := range applicable {
+			result = append(result, renderAttrLine(&applicable[i])...)
+		}
+	}
+	return result
+}
+
+func renderAttrLine(entry *typeEntry) []string {
+	lines := []string{fmt.Sprintf("- `%s` (%s) %s", entry.attr.name, entry.attr.typeInfo, entry.attr.description)}
 	lines = append(lines, entry.attr.sourceLines[1:]...)
 	return lines
 }
