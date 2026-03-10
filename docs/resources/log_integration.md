@@ -147,8 +147,6 @@ resource "mongodbatlas_log_integration" "example" {
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
 - `type` (String) Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.
 
-### Optional
-
 <!-- polymorphic attributes restructured by docpostprocess -->
 The following attributes depend on the value of `type`:
 

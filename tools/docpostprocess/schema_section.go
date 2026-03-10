@@ -111,8 +111,15 @@ func findReplacements(lines []string, start, end int) []replacement {
 		if topSectionRegex.MatchString(line) || nestedSubSectionRegex.MatchString(line) {
 			attrStart, attrEnd, attrs := collectAttributeBlock(lines, i+1, end)
 			if hasPolymorphicAttrs(attrs) {
+				common, _ := groupByType(attrs)
+				// When every attribute is polymorphic the section heading (e.g. "### Optional")
+				// would be left empty, so we include it in the replacement range to remove it.
+				replStart := attrStart
+				if len(common) == 0 {
+					replStart = i
+				}
 				replacements = append(replacements, replacement{
-					startLine:  attrStart,
+					startLine:  replStart,
 					endLine:    attrEnd,
 					newContent: buildRestructuredBlock(attrs),
 				})
