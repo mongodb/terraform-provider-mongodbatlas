@@ -13,8 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/float64planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -196,9 +194,6 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						"threshold": schema.Float64Attribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Float64{
-								float64planmodifier.UseStateForUnknown(),
-							},
 						},
 						"units": schema.StringAttribute{
 							Optional: true,
@@ -221,9 +216,6 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						"threshold": schema.Float64Attribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Float64{
-								float64planmodifier.UseStateForUnknown(),
-							},
 						},
 						"units": schema.StringAttribute{
 							Optional: true,
@@ -273,9 +265,6 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						"delay_min": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Int64{
-								int64planmodifier.UseStateForUnknown(),
-							},
 						},
 						"email_address": schema.StringAttribute{
 							Optional: true,
@@ -283,9 +272,6 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						"email_enabled": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(),
-							},
 						},
 						"interval_min": schema.Int64Attribute{
 							Optional: true,
@@ -314,18 +300,12 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						"sms_enabled": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
-							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(),
-							},
 						},
 						"team_id": schema.StringAttribute{
 							Optional: true,
 						},
 						"team_name": schema.StringAttribute{
 							Computed: true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
 						},
 						"notifier_id": schema.StringAttribute{
 							Computed: true,
