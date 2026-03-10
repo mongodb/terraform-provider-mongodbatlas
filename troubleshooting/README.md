@@ -11,7 +11,7 @@ export TF_LOG=DEBUG
 terraform apply 2>&1 | tee terraform-debug.log
 ```
 
-This outputs HTTP requests, responses, and internal provider operations, which is essential for diagnosing most issues.
+This outputs HTTP requests, responses, and internal provider operations, which are essential for diagnosing most issues.
 
 For enhanced visibility into HTTP requests and responses when communicating with the MongoDB Atlas API, see [Enhanced Network Logging](network-logging.md).
 
