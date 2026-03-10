@@ -291,9 +291,7 @@ func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
 }
 
 func TestAccConfigRSAlertConfiguration_addNotification(t *testing.T) {
-	var (
-		projectID = acc.ProjectIDExecution(t)
-	)
+	projectID := acc.ProjectIDExecution(t)
 	step1Checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
 		resource.TestCheckResourceAttr(resourceName, "notification.0.type_name", "EMAIL"),
