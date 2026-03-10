@@ -12,9 +12,11 @@ import (
 )
 
 type fakeEphemeral struct {
+	capturedCtx context.Context
 	config.ESCommon
-	capturedCtx                          context.Context
-	openCalled, renewCalled, closeCalled bool
+	openCalled  bool
+	renewCalled bool
+	closeCalled bool
 }
 
 func (f *fakeEphemeral) Schema(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
