@@ -102,35 +102,6 @@ func checkStreamsWorkspaceImportStateIDFunc(resourceName string) resource.Import
 	}
 }
 
-func TestAccStreamWorkspaceRS_maxTierSize(t *testing.T) {
-	var (
-		resourceName  = "mongodbatlas_stream_workspace.test"
-		projectID     = acc.ProjectIDExecution(t)
-		workspaceName = acc.RandomName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyStreamInstance,
-		Steps: []resource.TestStep{
-			{
-				Config: streamsWorkspaceWithStreamConfigConfig(projectID, workspaceName, region, cloudProvider, "SP10", "SP30"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					streamsWorkspaceAttributeChecks(resourceName, workspaceName, region, cloudProvider),
-					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP10"),
-					resource.TestCheckResourceAttr(resourceName, "stream_config.max_tier_size", "SP30"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: checkStreamsWorkspaceImportStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func streamsWorkspaceConfig(projectID, workspaceName, region, cloudProvider string) string {
 	return streamsWorkspaceWithStreamConfigConfig(projectID, workspaceName, region, cloudProvider, "SP10", "SP30")
 }
