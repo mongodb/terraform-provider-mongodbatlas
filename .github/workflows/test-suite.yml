@@ -138,9 +138,9 @@ jobs:
           CURSOR_WEBHOOK_URL: ${{ secrets.CURSOR_WEBHOOK_URL }}
           CURSOR_WEBHOOK_API_KEY: ${{ secrets.CURSOR_WEBHOOK_API_KEY }}
         run: |
-          curl -s -X POST "$CURSOR_WEBHOOK_URL" \
-            -H "Authorization: Bearer $CURSOR_WEBHOOK_API_KEY" \
+          curl -s -X POST -u "$CURSOR_WEBHOOK_API_KEY:" \
             -H "Content-Type: application/json" \
+            "$CURSOR_WEBHOOK_URL" \
             -d "{
               \"run_id\": \"${{ github.run_id }}\",
               \"repo\": \"${{ github.repository }}\",
