@@ -23,6 +23,7 @@ BUG FIXES:
 * data-source/mongodbatlas_federated_settings_identity_provider: Fixes crash when role assignments have no role defined ([#4233](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4233))
 * data-source/mongodbatlas_federated_settings_identity_providers: Fixes crash when role assignments have no role defined ([#4233](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4233))
 * data-source/mongodbatlas_search_indexes: Fixes `mappings_fields` attribute always being empty ([#4224](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4224))
+* resource/mongodbatlas_alert_configuration: Fixes error when updating notifications, thresholds, or metric thresholds without specifying all optional attributes ([#4278](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4278))
 
 ## 2.7.0 (February 18, 2026)
 
