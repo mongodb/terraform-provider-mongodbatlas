@@ -94,7 +94,7 @@ Error: error initializing provider: oauth2: cannot fetch token: 429 Too Many Req
 Response: {"detail":"Resource /api/oauth/token is limited to 50 requests every 1 minutes.","error":429,...}
 ```
 
-Atlas enforces rate limiting for each combination of IP address and SA client. Each Terraform operation generates a new token used for the duration of that operation.
+Atlas enforces rate limiting for each combination of IP address and Service Account client. Each Terraform operation generates a new token used for the duration of that operation.
 
 **Solutions:**
 
