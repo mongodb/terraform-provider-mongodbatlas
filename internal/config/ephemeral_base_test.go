@@ -10,22 +10,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type fakeEphemeral struct {
+type mockEphemeralResource struct {
 	config.ESCommon
 }
 
-func (f *fakeEphemeral) Schema(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+func (f *mockEphemeralResource) Schema(_ context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
 	resp.Schema = schema.Schema{}
 }
 
-func (f *fakeEphemeral) Open(_ context.Context, _ ephemeral.OpenRequest, _ *ephemeral.OpenResponse) {}
-func (f *fakeEphemeral) Renew(_ context.Context, _ ephemeral.RenewRequest, _ *ephemeral.RenewResponse) {
+func (f *mockEphemeralResource) Open(_ context.Context, _ ephemeral.OpenRequest, _ *ephemeral.OpenResponse) {}
+func (f *mockEphemeralResource) Renew(_ context.Context, _ ephemeral.RenewRequest, _ *ephemeral.RenewResponse) {
 }
-func (f *fakeEphemeral) Close(_ context.Context, _ ephemeral.CloseRequest, _ *ephemeral.CloseResponse) {
+func (f *mockEphemeralResource) Close(_ context.Context, _ ephemeral.CloseRequest, _ *ephemeral.CloseResponse) {
 }
 
 func TestNoEphemeralInterfaceLoss(t *testing.T) {
-	fake := &fakeEphemeral{ESCommon: config.ESCommon{ResourceName: "test_ephemeral"}}
+	fake := &mockEphemeralResource{ESCommon: config.ESCommon{ResourceName: "test_ephemeral"}}
 	wrapped := config.AnalyticsEphemeralResourceFunc(fake)()
 	_, ok := wrapped.(ephemeral.EphemeralResourceWithRenew)
 	assert.True(t, ok)
