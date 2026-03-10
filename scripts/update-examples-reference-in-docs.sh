@@ -6,12 +6,9 @@ set -euo pipefail
 
 RELEASE_TAG=$1
 
-# Define the old URL patterns and new URLs
-OLD_EXAMPLES_PATTERN="https:\/\/github.com\/mongodb\/terraform-provider-mongodbatlas\/tree\/[a-zA-Z0-9._-]*\/examples"
-NEW_EXAMPLES_URL="https:\/\/github.com\/mongodb\/terraform-provider-mongodbatlas\/tree\/$RELEASE_TAG\/examples"
-
-OLD_TROUBLESHOOTING_PATTERN="https:\/\/github.com\/mongodb\/terraform-provider-mongodbatlas\/tree\/[a-zA-Z0-9._-]*\/troubleshooting"
-NEW_TROUBLESHOOTING_URL="https:\/\/github.com\/mongodb\/terraform-provider-mongodbatlas\/tree\/$RELEASE_TAG\/troubleshooting"
+# Define the old URL pattern and new URL
+OLD_URL_PATTERN="https:\/\/github.com\/mongodb\/terraform-provider-mongodbatlas\/tree\/[a-zA-Z0-9._-]*\/"
+NEW_URL="https:\/\/github.com\/mongodb\/terraform-provider-mongodbatlas\/tree\/$RELEASE_TAG\/"
 
 FILES=()
 
@@ -40,8 +37,8 @@ for FILE_PATH in "${FILES[@]}"; do
   TMP_FILE_NAME="${FILE_PATH}.tmp"
   rm -f "$TMP_FILE_NAME"
 
-  # Use sed to update all versioned URLs
-  sed "s|$OLD_EXAMPLES_PATTERN|$NEW_EXAMPLES_URL|g; s|$OLD_TROUBLESHOOTING_PATTERN|$NEW_TROUBLESHOOTING_URL|g" "$FILE_PATH" > "$TMP_FILE_NAME"
+  # Use sed to update versioned URLs
+  sed "s|$OLD_URL_PATTERN|$NEW_URL|g" "$FILE_PATH" > "$TMP_FILE_NAME"
 
   # Move temporary file to original file
   mv "$TMP_FILE_NAME" "$FILE_PATH"
