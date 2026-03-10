@@ -6,7 +6,7 @@ set -euo pipefail
 
 RELEASE_TAG=$1
 
-# Define the old URL pattern and new URL
+# Define the regex pattern for the old and new versioned GitHub URLs (e.g., for /examples or /troubleshooting directories)
 OLD_URL_PATTERN="https:\/\/github.com\/mongodb\/terraform-provider-mongodbatlas\/tree\/[a-zA-Z0-9._-]*\/"
 NEW_URL="https:\/\/github.com\/mongodb\/terraform-provider-mongodbatlas\/tree\/$RELEASE_TAG\/"
 
@@ -37,7 +37,7 @@ for FILE_PATH in "${FILES[@]}"; do
   TMP_FILE_NAME="${FILE_PATH}.tmp"
   rm -f "$TMP_FILE_NAME"
 
-  # Use sed to update versioned URLs
+  # Use sed to update the URL and write to temporary file
   sed "s|$OLD_URL_PATTERN|$NEW_URL|g" "$FILE_PATH" > "$TMP_FILE_NAME"
 
   # Move temporary file to original file
