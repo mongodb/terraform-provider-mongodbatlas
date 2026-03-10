@@ -174,7 +174,6 @@ The MongoDB Atlas Provider supports multiple operating systems and architectures
 
 ## Troubleshooting
 
-<!-- NOTE: the below troubleshooting link is updated during the release process, when doing changes in the following sentence verify scripts/update-examples-reference-in-docs.sh is not impacted-->
 For common issues and networking diagnostics, see the [Troubleshooting Guide](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/troubleshooting).
 
 ## Helpful Links/Information
