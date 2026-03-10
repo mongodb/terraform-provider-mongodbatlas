@@ -126,3 +126,23 @@ jobs:
                 }
               ]
             }
+
+  trigger-test-summary:
+    needs: [tests, variables, clean-after]
+    if: ${{ !cancelled() && (needs.tests.result == 'failure' || needs.tests.result == 'cancelled') && needs.variables.outputs.send_notification == 'true' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Trigger Cursor test summary automation
+        env:
+          CURSOR_WEBHOOK_URL: ${{ secrets.CURSOR_WEBHOOK_URL }}
+          CURSOR_WEBHOOK_API_KEY: ${{ secrets.CURSOR_WEBHOOK_API_KEY }}
+        run: |
+          curl -s -X POST "$CURSOR_WEBHOOK_URL" \
+            -H "Authorization: Bearer $CURSOR_WEBHOOK_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"run_id\": \"${{ github.run_id }}\",
+              \"repo\": \"${{ github.repository }}\",
+              \"run_url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+            }"
