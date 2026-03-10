@@ -5,7 +5,7 @@ on:
     inputs:
       branches:
         description: 'Dev branch names to update from master'
-        default: '["CLOUDP-371552-dev-voyage", "CLOUDP-379436-dev-log-streaming-via-iac", "CLOUDP-376263_poc_effective_rep_specs", "dev/Improved-Auth-Azure-Key-Vault"]'
+        default: '["CLOUDP-371552-dev-voyage", "CLOUDP-379436-dev-log-streaming-via-iac", "CLOUDP-376263_poc_effective_rep_specs"]'
   schedule:
     - cron: "0 5 * * 1,4" # workflow runs every Monday and Thursday at 5 AM UTC
 concurrency:
@@ -18,7 +18,7 @@ jobs:
       max-parallel: 10
       fail-fast: false
       matrix:
-        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-371552-dev-voyage", "CLOUDP-379436-dev-log-streaming-via-iac", "CLOUDP-376263_poc_effective_rep_specs", "dev/Improved-Auth-Azure-Key-Vault"]') }} # scheduled branches go here
+        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-371552-dev-voyage", "CLOUDP-379436-dev-log-streaming-via-iac", "CLOUDP-376263_poc_effective_rep_specs"]') }} # scheduled branches go here
     name: ${{ matrix.branch }}
     runs-on: ubuntu-latest
     permissions:
@@ -31,7 +31,7 @@ jobs:
         fetch-depth: 0
         token: ${{ secrets.APIX_BOT_PAT }}
     - name: Install Go
-      uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417
       with:
         go-version-file: 'go.mod'
     - name: Config Git
