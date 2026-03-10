@@ -6,8 +6,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 type mockEphemeralResource struct {
@@ -26,8 +27,8 @@ func (f *mockEphemeralResource) Close(_ context.Context, _ ephemeral.CloseReques
 }
 
 func TestNoEphemeralInterfaceLoss(t *testing.T) {
-	fake := &mockEphemeralResource{ESCommon: config.ESCommon{ResourceName: "test_ephemeral"}}
-	wrapped := config.AnalyticsEphemeralResourceFunc(fake)()
+	mock := &mockEphemeralResource{ESCommon: config.ESCommon{ResourceName: "test_ephemeral"}}
+	wrapped := config.AnalyticsEphemeralResourceFunc(mock)()
 	_, ok := wrapped.(ephemeral.EphemeralResourceWithRenew)
 	assert.True(t, ok)
 	_, ok = wrapped.(ephemeral.EphemeralResourceWithClose)
