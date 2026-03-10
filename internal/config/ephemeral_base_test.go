@@ -18,7 +18,8 @@ func (f *mockEphemeralResource) Schema(_ context.Context, _ ephemeral.SchemaRequ
 	resp.Schema = schema.Schema{}
 }
 
-func (f *mockEphemeralResource) Open(_ context.Context, _ ephemeral.OpenRequest, _ *ephemeral.OpenResponse) {}
+func (f *mockEphemeralResource) Open(_ context.Context, _ ephemeral.OpenRequest, _ *ephemeral.OpenResponse) {
+}
 func (f *mockEphemeralResource) Renew(_ context.Context, _ ephemeral.RenewRequest, _ *ephemeral.RenewResponse) {
 }
 func (f *mockEphemeralResource) Close(_ context.Context, _ ephemeral.CloseRequest, _ *ephemeral.CloseResponse) {
