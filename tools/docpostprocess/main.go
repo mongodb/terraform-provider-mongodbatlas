@@ -13,13 +13,17 @@ func main() {
 	dirFlag := flag.String("dir", "", "Directory to recursively process all .md files")
 	flag.Parse()
 
-	if *dirFlag == "" {
-		log.Fatal("--dir must be specified")
+	files := flag.Args()
+	if *dirFlag != "" {
+		collected, err := collectMarkdownFiles(*dirFlag)
+		if err != nil {
+			log.Fatalf("failed to collect markdown files: %v", err)
+		}
+		files = append(files, collected...)
 	}
 
-	files, err := collectMarkdownFiles(*dirFlag)
-	if err != nil {
-		log.Fatalf("failed to collect markdown files: %v", err)
+	if len(files) == 0 {
+		log.Fatal("provide --dir or file paths as arguments")
 	}
 
 	processed := 0
@@ -58,10 +62,8 @@ func processFile(path string) (bool, error) {
 		return false, fmt.Errorf("reading file: %w", err)
 	}
 
-	original := string(content)
-	result := RestructurePolymorphicDocs(original)
-
-	if result == original {
+	result, changed := RestructurePolymorphicDocs(string(content))
+	if !changed {
 		return false, nil
 	}
 

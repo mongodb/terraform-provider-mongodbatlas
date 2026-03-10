@@ -61,6 +61,7 @@ func TestRestructure_ResourceOptionalSection(t *testing.T) {
 		"",
 		"### Optional",
 		"",
+		"<!-- polymorphic attributes restructured by docpostprocess -->",
 		"The following attributes depend on the value of `type`:",
 		"",
 		"#### `DATADOG`",
@@ -87,7 +88,10 @@ func TestRestructure_ResourceOptionalSection(t *testing.T) {
 		"",
 	)
 
-	result := RestructurePolymorphicDocs(input)
+	result, changed := RestructurePolymorphicDocs(input)
+	if !changed {
+		t.Error("expected changed=true")
+	}
 	if result != expected {
 		t.Errorf("mismatch.\n\nGot:\n---\n%s\n---\n\nExpected:\n---\n%s\n---", result, expected)
 	}
@@ -126,6 +130,7 @@ func TestRestructure_DataSourceReadOnlySection(t *testing.T) {
 		"- `log_types` (Set of String) Log types.",
 		"- `type` (String) The type value.",
 		"",
+		"<!-- polymorphic attributes restructured by docpostprocess -->",
 		"The following attributes depend on the value of `type`:",
 		"",
 		"#### `DATADOG`",
@@ -142,7 +147,10 @@ func TestRestructure_DataSourceReadOnlySection(t *testing.T) {
 		"",
 	)
 
-	result := RestructurePolymorphicDocs(input)
+	result, changed := RestructurePolymorphicDocs(input)
+	if !changed {
+		t.Error("expected changed=true")
+	}
 	if result != expected {
 		t.Errorf("mismatch.\n\nGot:\n---\n%s\n---\n\nExpected:\n---\n%s\n---", result, expected)
 	}
@@ -193,6 +201,7 @@ func TestRestructure_NestedSchemaWithPolymorphic(t *testing.T) {
 		"- `integration_id` (String) Unique ID.",
 		"- `type` (String) Type value.",
 		"",
+		"<!-- polymorphic attributes restructured by docpostprocess -->",
 		"The following attributes depend on the value of `type`:",
 		"",
 		"#### `DATADOG`",
@@ -202,7 +211,10 @@ func TestRestructure_NestedSchemaWithPolymorphic(t *testing.T) {
 		"",
 	)
 
-	result := RestructurePolymorphicDocs(input)
+	result, changed := RestructurePolymorphicDocs(input)
+	if !changed {
+		t.Error("expected changed=true")
+	}
 	if result != expected {
 		t.Errorf("mismatch.\n\nGot:\n---\n%s\n---\n\nExpected:\n---\n%s\n---", result, expected)
 	}
@@ -226,6 +238,7 @@ func TestRestructure_MixedRequiredAndOptional(t *testing.T) {
 		"",
 		"### Optional",
 		"",
+		"<!-- polymorphic attributes restructured by docpostprocess -->",
 		"The following attributes depend on the value of `type`:",
 		"",
 		"#### `ALPHA`",
@@ -239,7 +252,10 @@ func TestRestructure_MixedRequiredAndOptional(t *testing.T) {
 		"",
 	)
 
-	result := RestructurePolymorphicDocs(input)
+	result, changed := RestructurePolymorphicDocs(input)
+	if !changed {
+		t.Error("expected changed=true")
+	}
 	if result != expected {
 		t.Errorf("mismatch.\n\nGot:\n---\n%s\n---\n\nExpected:\n---\n%s\n---", result, expected)
 	}
@@ -278,6 +294,7 @@ func TestRestructure_ResourceWithRequiredAndOptionalPrefixes(t *testing.T) {
 		"",
 		"### Optional",
 		"",
+		"<!-- polymorphic attributes restructured by docpostprocess -->",
 		"The following attributes depend on the value of `type`:",
 		"",
 		"#### `DATADOG`",
@@ -299,7 +316,10 @@ func TestRestructure_ResourceWithRequiredAndOptionalPrefixes(t *testing.T) {
 		"",
 	)
 
-	result := RestructurePolymorphicDocs(input)
+	result, changed := RestructurePolymorphicDocs(input)
+	if !changed {
+		t.Error("expected changed=true")
+	}
 	if result != expected {
 		t.Errorf("mismatch.\n\nGot:\n---\n%s\n---\n\nExpected:\n---\n%s\n---", result, expected)
 	}
@@ -325,7 +345,10 @@ func TestRestructure_NoPolymorphicAttrs(t *testing.T) {
 		"",
 	)
 
-	result := RestructurePolymorphicDocs(input)
+	result, changed := RestructurePolymorphicDocs(input)
+	if changed {
+		t.Error("expected changed=false")
+	}
 	if result != input {
 		t.Errorf("expected no changes for non-polymorphic doc.\n\nGot:\n---\n%s\n---\n\nInput:\n---\n%s\n---", result, input)
 	}
@@ -343,7 +366,10 @@ func TestRestructure_NoTfplugindocsMarker(t *testing.T) {
 		"",
 	)
 
-	result := RestructurePolymorphicDocs(input)
+	result, changed := RestructurePolymorphicDocs(input)
+	if changed {
+		t.Error("expected changed=false")
+	}
 	if result != input {
 		t.Errorf("expected no changes for file without marker.\n\nGot:\n---\n%s\n---", result)
 	}
@@ -361,8 +387,14 @@ func TestRestructure_Idempotency(t *testing.T) {
 		"",
 	)
 
-	first := RestructurePolymorphicDocs(input)
-	second := RestructurePolymorphicDocs(first)
+	first, changed := RestructurePolymorphicDocs(input)
+	if !changed {
+		t.Error("expected first pass changed=true")
+	}
+	second, changed := RestructurePolymorphicDocs(first)
+	if changed {
+		t.Error("expected second pass changed=false")
+	}
 
 	if first != second {
 		t.Errorf("not idempotent.\n\nFirst pass:\n---\n%s\n---\n\nSecond pass:\n---\n%s\n---", first, second)
@@ -389,6 +421,7 @@ func TestRestructure_CommonAndPolymorphicMixed(t *testing.T) {
 		"",
 		"- `common_attr` (String) A common optional attribute.",
 		"",
+		"<!-- polymorphic attributes restructured by docpostprocess -->",
 		"The following attributes depend on the value of `type`:",
 		"",
 		"#### `ALPHA`",
@@ -397,7 +430,10 @@ func TestRestructure_CommonAndPolymorphicMixed(t *testing.T) {
 		"",
 	)
 
-	result := RestructurePolymorphicDocs(input)
+	result, changed := RestructurePolymorphicDocs(input)
+	if !changed {
+		t.Error("expected changed=true")
+	}
 	if result != expected {
 		t.Errorf("mismatch.\n\nGot:\n---\n%s\n---\n\nExpected:\n---\n%s\n---", result, expected)
 	}
@@ -425,7 +461,10 @@ func TestRestructure_NestedSchemaUnchangedPreserved(t *testing.T) {
 		"",
 	)
 
-	result := RestructurePolymorphicDocs(input)
+	result, changed := RestructurePolymorphicDocs(input)
+	if changed {
+		t.Error("expected changed=false")
+	}
 	if result != input {
 		t.Errorf("expected no changes for nested schema without polymorphic attrs.\n\nGot:\n---\n%s\n---\n\nInput:\n---\n%s\n---", result, input)
 	}
@@ -492,6 +531,7 @@ func TestRestructure_MultilineAndPolymorphicCoexist(t *testing.T) {
 		"",
 		"\t* AZURE provider with EVENTHUB or CONFLUENT vendor.",
 		"",
+		"<!-- polymorphic attributes restructured by docpostprocess -->",
 		"The following attributes depend on the value of `type`:",
 		"",
 		"#### `ALPHA`",
@@ -512,7 +552,10 @@ func TestRestructure_MultilineAndPolymorphicCoexist(t *testing.T) {
 		"",
 	)
 
-	result := RestructurePolymorphicDocs(input)
+	result, changed := RestructurePolymorphicDocs(input)
+	if !changed {
+		t.Error("expected changed=true")
+	}
 	if result != expected {
 		t.Errorf("mismatch.\n\nGot:\n---\n%s\n---\n\nExpected:\n---\n%s\n---", result, expected)
 	}

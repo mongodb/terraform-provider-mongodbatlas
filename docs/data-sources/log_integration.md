@@ -37,6 +37,7 @@ output "log_integration_type" {
 - `log_types` (Set of String) Array of log types exported by this integration.
 - `type` (String) Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.
 
+<!-- polymorphic attributes restructured by docpostprocess -->
 The following attributes depend on the value of `type`:
 
 #### `AZURE_LOG_EXPORT`

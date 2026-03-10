@@ -149,6 +149,7 @@ resource "mongodbatlas_log_integration" "example" {
 
 ### Optional
 
+<!-- polymorphic attributes restructured by docpostprocess -->
 The following attributes depend on the value of `type`:
 
 #### `AZURE_LOG_EXPORT`
