@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_alert_configuration: Fixes inconsistent result after apply when adding a new notification without defining `email_enabled` or `sms_enabled`
+```
