@@ -2,6 +2,10 @@
 
 The following are some of the common issues/errors encountered when using Terraform Provider for MongoDB Atlas:
 
+## Enhanced Network Logging
+
+For debugging API connectivity issues, timeouts, and status code errors, the provider includes enhanced network logging capabilities. See [network-logging.md](network-logging.md) for details.
+
 
 ## Issue: The order of element objects in a TypeList attribute randomly changes every time a user runs `terraform plan`:
 
