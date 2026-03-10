@@ -44,19 +44,7 @@ func generateTypedModels(attributes codespec.Attributes, name string, isDataSour
 }
 
 func getNestedModel(attribute *codespec.Attribute, ancestorsName string, isDataSource bool, dsPrefix string) *CodeStatement {
-	var nested *codespec.NestedAttributeObject
-	if attribute.ListNested != nil {
-		nested = &attribute.ListNested.NestedObject
-	}
-	if attribute.SingleNested != nil {
-		nested = &attribute.SingleNested.NestedObject
-	}
-	if attribute.MapNested != nil {
-		nested = &attribute.MapNested.NestedObject
-	}
-	if attribute.SetNested != nil {
-		nested = &attribute.SetNested.NestedObject
-	}
+	nested := attribute.NestedObject()
 	if nested == nil {
 		return nil
 	}

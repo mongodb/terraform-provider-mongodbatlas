@@ -4,80 +4,206 @@ subcategory: "Log Integration"
 
 # Resource: mongodbatlas_log_integration
 
-`mongodbatlas_log_integration` provides a resource for managing log integration configurations at the project level. This resource allows you to continually export `mongod`, `mongos`, and audit logs to an AWS S3 bucket with 1-minute log export intervals.
+`mongodbatlas_log_integration` provides a resource for managing log integration configurations at the project level. This resource allows you to continually export `mongod`, `mongos`, and audit logs at 1-minute intervals. Supported integration types include AWS S3, Google Cloud Storage, Azure Blob Storage, Datadog, Splunk, and OpenTelemetry.
 
 To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
 
-## Example Usage
+## Example Usages
+
+### AWS S3
 
 ```terraform
-resource "mongodbatlas_project" "project" {
-  name   = var.atlas_project_name
-  org_id = var.atlas_org_id
-}
-
-# Set up cloud provider access in Atlas using the created IAM role
-resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+# Set up cloud provider access in Atlas for AWS
+resource "mongodbatlas_cloud_provider_access_setup" "setup" {
   project_id    = mongodbatlas_project.project.id
   provider_name = "AWS"
 }
 
-resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+resource "mongodbatlas_cloud_provider_access_authorization" "auth" {
   project_id = mongodbatlas_project.project.id
-  role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+  role_id    = mongodbatlas_cloud_provider_access_setup.setup.role_id
 
   aws {
     iam_assumed_role_arn = aws_iam_role.atlas_role.arn
   }
 }
 
-# Set up log integration with authorized IAM role
 resource "mongodbatlas_log_integration" "example" {
   project_id  = mongodbatlas_project.project.id
-  bucket_name = aws_s3_bucket.log_bucket.bucket
-  iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-  prefix_path = "atlas-logs"
   type        = "S3_LOG_EXPORT"
   log_types   = ["MONGOD_AUDIT"]
-}
-
-data "mongodbatlas_log_integration" "example" {
-  project_id     = mongodbatlas_log_integration.example.project_id
-  integration_id = mongodbatlas_log_integration.example.integration_id
-}
-
-data "mongodbatlas_log_integrations" "example" {
-  project_id = mongodbatlas_log_integration.example.project_id
-}
-
-output "log_integration_bucket_name" {
-  value = data.mongodbatlas_log_integration.example.bucket_name
-}
-
-output "log_integrations_results" {
-  value = data.mongodbatlas_log_integrations.example.results
+  bucket_name = aws_s3_bucket.log_bucket.bucket
+  iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth.role_id
+  prefix_path = "atlas-logs"
 }
 ```
+
+### Google Cloud Storage (GCS)
+
+```terraform
+# Set up cloud provider access in Atlas for GCP
+resource "mongodbatlas_cloud_provider_access_setup" "setup" {
+  project_id    = mongodbatlas_project.project.id
+  provider_name = "GCP"
+}
+
+resource "mongodbatlas_cloud_provider_access_authorization" "auth" {
+  project_id = mongodbatlas_project.project.id
+  role_id    = mongodbatlas_cloud_provider_access_setup.setup.role_id
+}
+
+resource "mongodbatlas_log_integration" "example" {
+  project_id  = mongodbatlas_project.project.id
+  type        = "GCS_LOG_EXPORT"
+  log_types   = ["MONGOD"]
+  bucket_name = google_storage_bucket.log_bucket.name
+  role_id     = mongodbatlas_cloud_provider_access_authorization.auth.role_id
+  prefix_path = "atlas-logs"
+}
+```
+
+### Azure Blob Storage
+
+```terraform
+# Set up cloud provider access in Atlas for Azure
+resource "mongodbatlas_cloud_provider_access_setup" "setup" {
+  project_id    = mongodbatlas_project.project.id
+  provider_name = "AZURE"
+
+  azure_config {
+    atlas_azure_app_id   = var.atlas_azure_app_id
+    service_principal_id = var.azure_service_principal_id
+    tenant_id            = var.azure_tenant_id
+  }
+}
+
+resource "mongodbatlas_cloud_provider_access_authorization" "auth" {
+  project_id = mongodbatlas_project.project.id
+  role_id    = mongodbatlas_cloud_provider_access_setup.setup.role_id
+
+  azure {
+    atlas_azure_app_id   = var.atlas_azure_app_id
+    service_principal_id = var.azure_service_principal_id
+    tenant_id            = var.azure_tenant_id
+  }
+}
+
+resource "mongodbatlas_log_integration" "example" {
+  project_id             = mongodbatlas_project.project.id
+  type                   = "AZURE_LOG_EXPORT"
+  log_types              = ["MONGOD"]
+  role_id                = mongodbatlas_cloud_provider_access_authorization.auth.role_id
+  storage_account_name   = azurerm_storage_account.log_storage.name
+  storage_container_name = azurerm_storage_container.log_container.name
+  prefix_path            = "atlas-logs"
+}
+```
+
+### Datadog
+
+```terraform
+resource "mongodbatlas_log_integration" "example" {
+  project_id = mongodbatlas_project.project.id
+  type       = "DATADOG_LOG_EXPORT"
+  log_types  = ["MONGOD"]
+  api_key    = var.datadog_api_key
+  region     = var.datadog_region
+}
+```
+
+### Splunk
+
+```terraform
+resource "mongodbatlas_log_integration" "example" {
+  project_id = mongodbatlas_project.project.id
+  type       = "SPLUNK_LOG_EXPORT"
+  log_types  = ["MONGOD"]
+  hec_token  = var.splunk_hec_token
+  hec_url    = var.splunk_hec_url
+}
+```
+
+### OpenTelemetry
+
+```terraform
+resource "mongodbatlas_log_integration" "example" {
+  project_id            = mongodbatlas_project.project.id
+  type                  = "OTEL_LOG_EXPORT"
+  log_types             = ["MONGOD"]
+  otel_endpoint         = var.otel_endpoint
+  otel_supplied_headers = var.otel_supplied_headers
+}
+```
+
+### Further Examples
+- [Log Integration Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_log_integration)
 
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
 ### Required
 
-- `bucket_name` (String) Human-readable label that identifies the S3 bucket name for storing log files.
-- `iam_role_id` (String) Unique 24-hexadecimal digit string that identifies the AWS IAM role that MongoDB Cloud uses to access your S3 bucket.
-- `log_types` (Set of String) Array of log types to export to S3. Valid values: MONGOD, MONGOS, MONGOD_AUDIT, MONGOS_AUDIT.
-- `prefix_path` (String) S3 directory path prefix where the log files will be stored. MongoDB Cloud will add further sub-directories based on the log type.
+- `log_types` (Set of String) Array of log types exported by this integration.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
-- `type` (String) Human-readable label that identifies the service to which you want to integrate with MongoDB Cloud. The value must match the log integration type.
+- `type` (String) Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.
 
-### Optional
+<!-- polymorphic attributes restructured by docpostprocess -->
+The following attributes depend on the value of `type`:
 
+#### `AZURE_LOG_EXPORT`
+
+Required:
+- `prefix_path` (String) Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
+- `role_id` (String) Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
+- `storage_account_name` (String) Storage account name where logs will be stored.
+- `storage_container_name` (String) Storage container name for log files.
+
+#### `DATADOG_LOG_EXPORT`
+
+Required:
+- `api_key` (String, Sensitive) API key for authentication.
+- `region` (String) Datadog site/region for log ingestion. Valid values: US1, US3, US5, EU, AP1, AP2, US1_FED.
+
+#### `GCS_LOG_EXPORT`
+
+Required:
+- `bucket_name` (String) Name of the bucket to store log files.
+- `prefix_path` (String) Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
+- `role_id` (String) Unique 24-character hexadecimal string that identifies the Atlas Cloud Provider Access role.
+
+#### `OTEL_LOG_EXPORT`
+
+Required:
+- `otel_endpoint` (String) OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.
+- `otel_supplied_headers` (Attributes List, Sensitive) HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB. (see [below for nested schema](#nestedatt--otel_supplied_headers))
+
+#### `S3_LOG_EXPORT`
+
+Required:
+- `bucket_name` (String) Name of the bucket to store log files.
+- `iam_role_id` (String) Unique 24-character hexadecimal string that identifies the AWS IAM role that Atlas uses to access the S3 bucket.
+- `prefix_path` (String) Path prefix where the log files will be stored. Atlas will add further sub-directories based on the log type.
+
+Optional:
 - `kms_key` (String) AWS KMS key ID or ARN for server-side encryption (optional). If not provided, uses bucket default encryption settings.
+
+#### `SPLUNK_LOG_EXPORT`
+
+Required:
+- `hec_token` (String, Sensitive) HTTP Event Collector (HEC) token for authentication.
+- `hec_url` (String) HTTP Event Collector (HEC) endpoint URL.
 
 ### Read-Only
 
 - `integration_id` (String) Unique 24-character hexadecimal digit string that identifies the log integration configuration.
+
+<a id="nestedatt--otel_supplied_headers"></a>
+### Nested Schema for `otel_supplied_headers`
+
+Required:
+
+- `name` (String) Header name.
+- `value` (String, Sensitive) Header value.
 
 ## Import 
 Log integration resource can be imported using the project ID and log integration ID, separated by a slash, e.g.

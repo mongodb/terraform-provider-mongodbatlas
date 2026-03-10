@@ -156,7 +156,7 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
 		policyName  = acc.RandomName()
 		roleName    = acc.RandomIAMRole()
-		bucketName  = acc.RandomS3BucketName()
+		bucketName  = acc.RandomBucketName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

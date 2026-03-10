@@ -2,6 +2,7 @@ package hcl
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -72,8 +73,8 @@ func AddAttributes(t *testing.T, body *hclsyntax.Body, ret map[string]cty.Value)
 func PrettyHCL(tb testing.TB, content string) string {
 	tb.Helper()
 	builder := strings.Builder{}
-	fmt := getTF().Format(tb.Context(), io.NopCloser(strings.NewReader(content)), &builder)
-	require.NoError(tb, fmt)
+	err := getTF().Format(tb.Context(), io.NopCloser(strings.NewReader(content)), &builder)
+	require.NoError(tb, err)
 	formatted := builder.String()
 	return formatted
 }
@@ -98,4 +99,8 @@ func GetBlockBody(t *testing.T, block *hclwrite.Block) *hclsyntax.Body {
 	body, ok := parser.Body.(*hclsyntax.Body)
 	require.True(t, ok, "unexpected *hclsyntax.Body type: %T", parser.Body)
 	return body
+}
+
+func StringSliceToHCL(slice []string) string {
+	return fmt.Sprintf("[%s]", `"`+strings.Join(slice, `", "`)+`"`)
 }
