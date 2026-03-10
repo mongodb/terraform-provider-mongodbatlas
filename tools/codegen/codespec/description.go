@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	DescriptionPrefixRequired   = "Required for"
-	DescriptionPrefixOptional   = "Optional for"
-	DescriptionPrefixApplicable = "Applies to"
+	DescriptionPrefixRequired = "Required for"
+	DescriptionPrefixOptional = "Optional for"
+	DescriptionPrefixApplies  = "Applies to"
 )
 
 // EnhanceDescriptionsWithDiscriminator prepends polymorphic type context to attribute descriptions.
@@ -98,7 +98,7 @@ func buildPrefix(info *attrTypeInfo, discriminatorName string, isDataSource bool
 	if isDataSource {
 		allTypes := append(slices.Clone(info.requiredTypes), info.optionalTypes...)
 		slices.Sort(allTypes)
-		return fmt.Sprintf("%s %s: %s.", DescriptionPrefixApplicable, discriminatorName, strings.Join(allTypes, ", "))
+		return fmt.Sprintf("%s %s: %s.", DescriptionPrefixApplies, discriminatorName, strings.Join(allTypes, ", "))
 	}
 
 	var parts []string
