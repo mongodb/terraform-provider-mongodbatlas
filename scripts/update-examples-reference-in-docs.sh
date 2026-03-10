@@ -6,9 +6,9 @@ set -euo pipefail
 
 RELEASE_TAG=$1
 
-# Define the old URL pattern and new URL
-OLD_URL_PATTERN="https:\/\/github.com\/mongodb\/terraform-provider-mongodbatlas\/tree\/[a-zA-Z0-9._-]*\/examples"
-NEW_URL="https:\/\/github.com\/mongodb\/terraform-provider-mongodbatlas\/tree\/$RELEASE_TAG\/examples"
+# Define the regex pattern for the old and new versioned GitHub URLs (e.g., for /examples or /troubleshooting directories)
+OLD_URL_PATTERN="https:\/\/github.com\/mongodb\/terraform-provider-mongodbatlas\/tree\/[a-zA-Z0-9._-]*\/"
+NEW_URL="https:\/\/github.com\/mongodb\/terraform-provider-mongodbatlas\/tree\/$RELEASE_TAG\/"
 
 FILES=()
 
