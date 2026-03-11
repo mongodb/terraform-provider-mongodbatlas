@@ -27,6 +27,7 @@ BUG FIXES:
 * data-source/mongodbatlas_federated_settings_identity_providers: Fixes crash when role assignments have no role defined ([#4233](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4233))
 * data-source/mongodbatlas_search_indexes: Fixes `mappings_fields` attribute always being empty ([#4224](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4224))
 * resource/mongodbatlas_alert_configuration: Fixes error when updating notifications, thresholds, or metric thresholds without specifying all optional attributes ([#4278](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4278))
+* resource/mongodbatlas_stream_workspace: Fixes `max_tier_size` being dropped on read-back causing inconsistent result after apply ([#4277](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4277))
 
 ## 2.7.0 (February 18, 2026)
 
