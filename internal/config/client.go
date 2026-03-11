@@ -89,7 +89,7 @@ type RealmClient struct {
 }
 
 func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) {
-	userAgent := userAgent(terraformVersion)
+	userAgent := UserAgent(terraformVersion)
 	client, err := getHTTPClient(c)
 	if err != nil {
 		return nil, err
@@ -221,7 +221,7 @@ func (r *RealmClient) Get(ctx context.Context) (*realm.Client, error) {
 	}
 
 	optsRealm := []realm.ClientOpt{
-		realm.SetUserAgent(userAgent(r.terraformVersion)),
+		realm.SetUserAgent(UserAgent(r.terraformVersion)),
 	}
 
 	authConfig := realmAuth.NewConfig(nil)
@@ -301,7 +301,7 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params APICallParams
 	return apiResp, err
 }
 
-func userAgent(terraformVersion string) string {
+func UserAgent(terraformVersion string) string {
 	metadata := []struct {
 		Name  string
 		Value string

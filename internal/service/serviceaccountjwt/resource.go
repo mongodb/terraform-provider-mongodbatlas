@@ -3,6 +3,7 @@ package serviceaccountjwt
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"strings"
 
 	"golang.org/x/oauth2"
@@ -61,7 +62,7 @@ func (r *es) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemera
 		return
 	}
 
-	token, err := generateToken(ctx, clientID, clientSecret, baseURL)
+	token, err := r.generateToken(ctx, clientID, clientSecret, baseURL)
 	if err != nil {
 		resp.Diagnostics.AddError("Error generating Service Account JWT", err.Error())
 		return
@@ -89,17 +90,23 @@ func (r *es) Close(ctx context.Context, req ephemeral.CloseRequest, resp *epheme
 	raw, diags := req.Private.GetKey(ctx, closeDataKey)
 	resp.Diagnostics.Append(diags...)
 	if len(raw) == 0 {
+		log.Printf("[DEBUG] %s Close: no private state found (key=%q), skipping revocation", resourceTypeName, closeDataKey)
 		return
 	}
 	var data closeData
 	if err := json.Unmarshal(raw, &data); err != nil {
+		log.Printf("[DEBUG] %s Close: failed to unmarshal private state: %v", resourceTypeName, err)
 		return
 	}
 	if !data.RevokeOnClose {
+		log.Printf("[DEBUG] %s Close: revoke_on_closure is false, skipping revocation", resourceTypeName)
 		return
 	}
+	log.Printf("[DEBUG] %s Close: revoking access token", resourceTypeName)
 	conf := config.GetServiceAccountConfig(data.ClientID, data.ClientSecret, config.NormalizeBaseURL(data.BaseURL))
-	_ = conf.RevokeToken(ctx, &oauth2.Token{AccessToken: data.AccessToken})
+	if err := conf.RevokeToken(r.withUserAgentClient(ctx), &oauth2.Token{AccessToken: data.AccessToken}); err != nil {
+		resp.Diagnostics.AddWarning("Failed to revoke Service Account token on close", err.Error())
+	}
 }
 
 func (r *es) resolveCredentials(model *TFModel) (clientID, clientSecret, baseURL string, diags diag.Diagnostics) {
@@ -146,9 +153,9 @@ func providerBaseURL(providerData *config.EphemeralResourceData) string {
 	return ""
 }
 
-func generateToken(ctx context.Context, clientID, clientSecret, baseURL string) (*auth.Token, error) {
+func (r *es) generateToken(ctx context.Context, clientID, clientSecret, baseURL string) (*auth.Token, error) {
 	conf := config.GetServiceAccountConfig(clientID, clientSecret, config.NormalizeBaseURL(baseURL))
-	token, err := conf.Token(ctx)
+	token, err := conf.Token(r.withUserAgentClient(ctx))
 	if err != nil {
 		return nil, err
 	}
