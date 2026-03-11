@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
@@ -43,6 +44,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountaccesslistentry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountjwt"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamaccountdetails"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
@@ -385,7 +387,14 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 }
 
 func (p *MongodbatlasProvider) EphemeralResources(context.Context) []func() ephemeral.EphemeralResource {
-	return nil
+	ephemeralResources := []func() ephemeral.EphemeralResource{
+		serviceaccountjwt.New,
+	}
+	analyticsEphemeralResources := []func() ephemeral.EphemeralResource{}
+	for _, ephemeralResourceFunc := range ephemeralResources {
+		analyticsEphemeralResources = append(analyticsEphemeralResources, config.AnalyticsEphemeralResourceFunc(ephemeralResourceFunc()))
+	}
+	return analyticsEphemeralResources
 }
 
 func NewFrameworkProvider() provider.Provider {
