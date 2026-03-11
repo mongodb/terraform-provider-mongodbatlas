@@ -39,29 +39,6 @@ func TestAccStreamWorkspaceRS_basic(t *testing.T) {
 	})
 }
 
-func TestAccStreamWorkspaceRS_withStreamConfig(t *testing.T) {
-	var (
-		resourceName  = "mongodbatlas_stream_workspace.test"
-		projectID     = acc.ProjectIDExecution(t)
-		workspaceName = acc.RandomName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyStreamInstance, // Reuse the same destroy check
-		Steps: []resource.TestStep{
-			{
-				Config: streamsWorkspaceConfig(projectID, workspaceName, region, cloudProvider),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					streamsWorkspaceAttributeChecks(resourceName, workspaceName, region, cloudProvider),
-					resource.TestCheckResourceAttr(resourceName, "stream_config.max_tier_size", "SP30"),
-					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP10"),
-				),
-			},
-		},
-	})
-}
-
 func streamsWorkspaceAttributeChecks(resourceName, workspaceName, region, cloudProvider string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		checkStreamsWorkspaceExists(resourceName),

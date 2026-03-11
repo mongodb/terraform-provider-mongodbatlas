@@ -417,7 +417,7 @@ jobs:
             - 'internal/service/streaminstance/*.go'
             - 'internal/service/streamprocessor/*.go'
             - 'internal/service/streamprivatelinkendpoint/*.go'
-            - 'internal/service/streamworkspace/*.go' 
+            - 'internal/service/streamworkspace/*.go'
 
 
   advanced_cluster:
