@@ -30,11 +30,10 @@ type es struct {
 }
 
 type closeData struct {
-	AccessToken   string `json:"access_token"`
-	ClientID      string `json:"client_id"`
-	ClientSecret  string `json:"client_secret"`
-	BaseURL       string `json:"base_url"`
-	RevokeOnClose bool   `json:"revoke_on_close"`
+	AccessToken  string `json:"access_token"`
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	BaseURL      string `json:"base_url"`
 }
 
 func New() ephemeral.EphemeralResource {
@@ -72,15 +71,20 @@ func (r *es) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemera
 	model.TokenType = types.StringValue(token.Type())
 	model.ExpiresIn = types.Int64Value(token.ExpiresIn)
 
-	revokeData, err := json.Marshal(closeData{
-		AccessToken:   token.AccessToken,
-		ClientID:      clientID,
-		ClientSecret:  clientSecret,
-		BaseURL:       baseURL,
-		RevokeOnClose: model.RevokeOnClosure.ValueBool(),
-	})
-	if err == nil {
-		resp.Private.SetKey(ctx, closeDataKey, revokeData)
+	if model.RevokeOnClosure.ValueBool() {
+		revokeData, err := json.Marshal(closeData{
+			AccessToken:  token.AccessToken,
+			ClientID:     clientID,
+			ClientSecret: clientSecret,
+			BaseURL:      baseURL,
+		})
+		if err != nil {
+			resp.Diagnostics.AddWarning(
+				"Failed to prepare Service Account token revoke payload",
+				"The token will not be automatically revoked when the ephemeral resource is closed: "+err.Error())
+		} else {
+			resp.Diagnostics.Append(resp.Private.SetKey(ctx, closeDataKey, revokeData)...)
+		}
 	}
 
 	resp.Diagnostics.Append(resp.Result.Set(ctx, &model)...)
@@ -89,17 +93,16 @@ func (r *es) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemera
 func (r *es) Close(ctx context.Context, req ephemeral.CloseRequest, resp *ephemeral.CloseResponse) {
 	raw, diags := req.Private.GetKey(ctx, closeDataKey)
 	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	if len(raw) == 0 {
 		log.Printf("[DEBUG] %s Close: no private state found (key=%q), skipping revocation", resourceTypeName, closeDataKey)
 		return
 	}
 	var data closeData
 	if err := json.Unmarshal(raw, &data); err != nil {
-		log.Printf("[DEBUG] %s Close: failed to unmarshal private state: %v", resourceTypeName, err)
-		return
-	}
-	if !data.RevokeOnClose {
-		log.Printf("[DEBUG] %s Close: revoke_on_closure is false, skipping revocation", resourceTypeName)
+		resp.Diagnostics.AddWarning("Failed to read revoke payload", err.Error())
 		return
 	}
 	log.Printf("[DEBUG] %s Close: revoking access token", resourceTypeName)
@@ -113,6 +116,11 @@ func (r *es) resolveCredentials(model *TFModel) (clientID, clientSecret, baseURL
 	erd := r.EphemeralResourceData
 
 	// 1. Resource attributes (explicit client_id and client_secret on the ephemeral resource block).
+	if model.ClientID.IsUnknown() || model.ClientSecret.IsUnknown() {
+		diags.AddError("Unknown credentials",
+			"client_id and client_secret must be known at apply time to generate a token.")
+		return "", "", "", diags
+	}
 	id := strings.TrimSpace(model.ClientID.ValueString())
 	secret := strings.TrimSpace(model.ClientSecret.ValueString())
 	if id != "" && secret != "" {

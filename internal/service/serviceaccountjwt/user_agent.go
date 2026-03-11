@@ -24,7 +24,7 @@ func (r *es) terraformVersion() string {
 //
 //	baseUserAgentTransport  (sets "terraform-provider-mongodbatlas/<ver> Terraform/<ver>")
 //	  → UserAgentTransport  (appends "Name/service_account_jwt Operation/..." from context)
-//	    → NetworkLoggingTransport  (logs the complete User-Agent)
+//	    → NetworkLoggingTransport  (logs method/URL/timing/status)
 //	      → http.DefaultTransport
 func (r *es) withUserAgentClient(ctx context.Context) context.Context {
 	networkLog := config.NewTransportWithNetworkLogging(http.DefaultTransport, logging.IsDebugOrHigher())
