@@ -144,11 +144,11 @@ jobs:
     steps:
       - name: Trigger Cursor test summary automation
         env:
-          CURSOR_TEST_SUMMARY_WEBHOOK_URL: ${{ secrets.CURSOR_TEST_SUMMARY_WEBHOOK_URL }}
-          CURSOR_TEST_SUMMARY_WEBHOOK_API_KEY: ${{ secrets.CURSOR_TEST_SUMMARY_WEBHOOK_API_KEY }}
+          CURSOR_WEBHOOK_URL_TEST_SUMMARY: ${{ secrets.CURSOR_WEBHOOK_URL_TEST_SUMMARY }}
+          CURSOR_WEBHOOK_API_KEY_TEST_SUMMARY: ${{ secrets.CURSOR_WEBHOOK_API_KEY_TEST_SUMMARY }}
         run: |
-          curl -s -X POST "$CURSOR_TEST_SUMMARY_WEBHOOK_URL" \
-            -H "Authorization: Bearer $CURSOR_TEST_SUMMARY_WEBHOOK_API_KEY" \
+          curl -s -X POST "$CURSOR_WEBHOOK_URL_TEST_SUMMARY" \
+            -H "Authorization: Bearer $CURSOR_WEBHOOK_API_KEY_TEST_SUMMARY" \
             -H "Content-Type: application/json" \
             -d "{
               \"run_id\": \"${{ github.run_id }}\",
