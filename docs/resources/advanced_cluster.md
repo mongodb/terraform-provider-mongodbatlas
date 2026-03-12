@@ -612,9 +612,9 @@ explicitly change its value, you must set it back to the desired value
 instead of removing it from your configuration. For example, if you
 previously set `javascript_enabled` to `false` and later you want to go
 back to the default value (`true`), you must set it back to `true`
-instead of removing it. This is particularly important for
-`oplog_min_retention_hours`, where removing the attribute or setting it
-to `null` retains the last applied value rather than reverting to the
+instead of removing it. For `oplog_min_retention_hours` specifically,
+once set to a non-null value, removing the attribute or setting it to
+`null` retains the last applied value rather than reverting to the
 Atlas-computed default.
 
 Include **desired options** within advanced_configuration:
@@ -634,7 +634,7 @@ Include **desired options** within advanced_configuration:
   - TLS1_3
 * `no_table_scan` - (Optional) When true, the cluster disables the execution of any query that requires a collection scan to return results. When false, the cluster allows the execution of those operations.
 * `oplog_size_mb` - (Optional) The custom oplog size of the cluster. Without a value that indicates that the cluster uses the default oplog size calculated by Atlas.
-* `oplog_min_retention_hours` - (Optional) Minimum retention window for cluster's oplog expressed in hours. Once this attribute has been set to a non-null value, removing it from your configuration or setting it to `null` will retain the last applied value rather than reverting to the Atlas-computed default.
+* `oplog_min_retention_hours` - (Optional) Minimum retention window for cluster's oplog expressed in hours. Once this attribute has been set to a non-null value, removing it from your configuration or setting it to `null` will retain the last applied value rather than reverting to the default value.
   -> **NOTE:**  A minimum oplog retention is required when seeking to change a cluster's class to Local NVMe SSD. To learn more and for latest guidance see [`oplogMinRetentionHours`](https://www.mongodb.com/docs/manual/core/replica-set-oplog/#std-label-replica-set-minimum-oplog-size) 
 * `sample_size_bi_connector` - (Optional) Number of documents per database to sample when gathering schema information. Defaults to 100. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `sample_refresh_interval_bi_connector` - (Optional) Interval in seconds at which the mongosqld process re-samples data to create its relational schema. The default value is 300. The specified value must be a positive integer. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
