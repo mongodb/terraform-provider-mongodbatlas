@@ -10,23 +10,37 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+const (
+	region        = "VIRGINIA_USA"
+	cloudProvider = "AWS"
+)
+
 func TestAccStreamWorkspaceRS_basic(t *testing.T) {
 	var (
-		resourceName  = "mongodbatlas_stream_workspace.test"
-		projectID     = acc.ProjectIDExecution(t)
-		workspaceName = acc.RandomName()
+		resourceName   = "mongodbatlas_stream_workspace.test"
+		dataSourceName = "data.mongodbatlas_stream_workspace.test"
+		pluralDSName   = "data.mongodbatlas_stream_workspaces.test"
+		projectID      = acc.ProjectIDExecution(t)
+		workspaceName  = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	attrsMap := map[string]string{
+		"workspace_name":                     workspaceName,
+		"data_process_region.region":         region,
+		"data_process_region.cloud_provider": cloudProvider,
+		"stream_config.max_tier_size":        "SP30",
+		"stream_config.tier":                 "SP10",
+	}
+	attrsSet := []string{"project_id", "hostnames.#"}
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyStreamInstance, // Reuse the same destroy check
+		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: streamsWorkspaceConfig(projectID, workspaceName, region, cloudProvider),
+				Config: streamsWorkspaceResourceWithDataSourcesConfig(projectID, workspaceName, region, cloudProvider),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					streamsWorkspaceAttributeChecks(resourceName, workspaceName, region, cloudProvider),
-					resource.TestCheckResourceAttr(resourceName, "stream_config.max_tier_size", "SP30"),
-					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP10"),
+					checkStreamsWorkspaceExists(resourceName),
+					acc.CheckRSAndDS(resourceName, &dataSourceName, &pluralDSName, attrsSet, attrsMap),
 				),
 			},
 			{
@@ -37,17 +51,6 @@ func TestAccStreamWorkspaceRS_basic(t *testing.T) {
 			},
 		},
 	})
-}
-
-func streamsWorkspaceAttributeChecks(resourceName, workspaceName, region, cloudProvider string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		checkStreamsWorkspaceExists(resourceName),
-		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName),
-		resource.TestCheckResourceAttr(resourceName, "data_process_region.region", region),
-		resource.TestCheckResourceAttr(resourceName, "data_process_region.cloud_provider", cloudProvider),
-		resource.TestCheckResourceAttrSet(resourceName, "hostnames.#"),
-	)
 }
 
 func checkStreamsWorkspaceExists(resourceName string) resource.TestCheckFunc {
@@ -98,4 +101,19 @@ func streamsWorkspaceWithStreamConfigConfig(projectID, workspaceName, region, cl
 			}
 		}
 	`, projectID, workspaceName, region, cloudProvider, tier, maxTierSize)
+}
+
+func streamsWorkspaceResourceWithDataSourcesConfig(projectID, workspaceName, region, cloudProvider string) string {
+	return fmt.Sprintf(`
+		%s
+
+		data "mongodbatlas_stream_workspace" "test" {
+			project_id = mongodbatlas_stream_workspace.test.project_id
+			workspace_name = mongodbatlas_stream_workspace.test.workspace_name
+		}
+
+		data "mongodbatlas_stream_workspaces" "test" {
+			project_id = mongodbatlas_stream_workspace.test.project_id
+		}
+	`, streamsWorkspaceConfig(projectID, workspaceName, region, cloudProvider))
 }
