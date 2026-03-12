@@ -607,15 +607,7 @@ bi_connector_config = {
 
 -> **NOTE:** Prior to setting these options, read [Configure Additional Settings](https://docs.atlas.mongodb.com/cluster-config/additional-options/).
 
--> **NOTE:** To reset an attribute to its original value after you
-explicitly change its value, you must set it back to the desired value
-instead of removing it from your configuration. For example, if you
-previously set `javascript_enabled` to `false` and later you want to go
-back to the default value (`true`), you must set it back to `true`
-instead of removing it. For `oplog_min_retention_hours` specifically,
-once set to a non-null value, removing the attribute or setting it to
-`null` retains the last applied value rather than reverting to the
-Atlas-computed default.
+-> **NOTE:** To reset an attribute to its original value after you explicitly change its value, you must set it back to the desired value instead of removing it from your configuration. For example, if you previously set `javascript_enabled` to `false` and later you want to go back to the default value (`true`), you must set it back to `true` instead of removing it. Similarly, if you set `oplog_min_retention_hours` to a non-null value, removing the attribute or setting it to `null` retains the last applied value rather than reverting to the default value.
 
 Include **desired options** within advanced_configuration:
 
