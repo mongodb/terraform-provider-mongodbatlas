@@ -101,7 +101,7 @@ output "actual_instance_size" {
 }
 ```
 
-**For module authors:** See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete examples of using `use_effective_fields` and effective specs in reusable Terraform modules.
+**For module authors:** See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete examples of using `use_effective_fields` and effective specs in reusable Terraform modules.
 
 ### Example Tenant Cluster
 
@@ -497,30 +497,30 @@ output "endpoint_service_connection_string" {
 # Example return string: connection_string = "mongodb+srv://cluster-atlas-pl-0.ygo1m.mongodb.net"
 ```
 Refer to the following for full privatelink endpoint connection string examples:
-* [GCP Private Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
-* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_privatelink_endpoint/azure)
-* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
-* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
+* [GCP Private Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
+* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_privatelink_endpoint/azure)
+* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
 
 
 ### Further Examples
 
 **Cluster Types:**
-- [Replicaset](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_advanced_cluster/replicaset)
-- [Symmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster)
-- [Asymmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster)
-- [Global Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_advanced_cluster/global-cluster)
-- [Multi-Cloud](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_advanced_cluster/multi-cloud)
+- [Replicaset](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_advanced_cluster/replicaset)
+- [Symmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster)
+- [Asymmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster)
+- [Global Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_advanced_cluster/global-cluster)
+- [Multi-Cloud](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_advanced_cluster/multi-cloud)
 
 **Auto-scaling:**
-- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard)
-- [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_advanced_cluster/effective_fields)
+- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard)
+- [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_advanced_cluster/effective_fields)
 
 **Upgrades & Migrations:**
-- [Tenant Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_advanced_cluster/tenant-upgrade)
-- [Flex Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_advanced_cluster/flex-upgrade)
-- [Version Upgrade with Pinned FCV](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_advanced_cluster/version-upgrade-with-pinned-fcv)
-- [Migrate Cluster to Advanced Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/migrate_cluster_to_advanced_cluster/basic)
+- [Tenant Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_advanced_cluster/tenant-upgrade)
+- [Flex Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_advanced_cluster/flex-upgrade)
+- [Version Upgrade with Pinned FCV](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_advanced_cluster/version-upgrade-with-pinned-fcv)
+- [Migrate Cluster to Advanced Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/migrate_cluster_to_advanced_cluster/basic)
 
 ## Argument Reference
 
@@ -946,15 +946,14 @@ See the [Example using effective fields with auto-scaling](#example-using-effect
 
 When `use_effective_fields = true` and auto-scaling is enabled, you can update `instance_size`, `disk_size_gb`, or `disk_iops` in your configuration at any time without validation errors. However, Atlas echoes these values back in state while continuing to use auto-scaled values for actual cluster operations. To have your configured values take effect, temporarily disable auto-scaling:
 
-1. Set `compute_enabled = false` and `disk_gb_enabled = false` in the [`auto_scaling`](#auto_scaling) block and apply.
-2. Update `instance_size`, `disk_size_gb`, or `disk_iops` to your desired values and apply.
-3. Re-enable auto-scaling by setting `compute_enabled` and/or `disk_gb_enabled` back to `true` and apply.
+1. Set `compute_enabled = false` and `disk_gb_enabled = false` in the [`auto_scaling`](#auto_scaling) block, update `instance_size`, `disk_size_gb`, or `disk_iops` to your desired values, and apply.
+2. Re-enable auto-scaling by setting `compute_enabled` and/or `disk_gb_enabled` back to `true` and apply.
 
 This workflow allows you to set specific baseline values from which auto-scaling will resume dynamic adjustments based on workload.
 
 ### Terraform Modules
 
-`use_effective_fields` is particularly valuable for reusable Terraform modules. Without it, separate module implementations are required (one with lifecycle blocks for auto-scaling, one without). With `use_effective_fields`, a single module handles both scenarios without lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
+`use_effective_fields` is particularly valuable for reusable Terraform modules. Without it, separate module implementations are required (one with lifecycle blocks for auto-scaling, one without). With `use_effective_fields`, a single module handles both scenarios without lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
 
 ### Migration path and version 3.x
 

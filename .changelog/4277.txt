@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_stream_workspace: Fixes `max_tier_size` being dropped on read-back causing inconsistent result after apply
+```
