@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_service_account_access_list_entry: Fixes documentation to use the correct import ID separator (`/`)
+```
