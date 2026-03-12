@@ -26,7 +26,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 
 	var (
 		groupID              = acc.ProjectIDExecution(tb)
-		s3BucketNamePrefix   = acc.RandomS3BucketName()
+		s3BucketNamePrefix   = acc.RandomBucketName()
 		s3BucketName1        = fmt.Sprintf("%s-1", s3BucketNamePrefix)
 		s3BucketName2        = fmt.Sprintf("%s-2", s3BucketNamePrefix)
 		s3BucketPolicyName   = fmt.Sprintf("%s-s3-policy", s3BucketNamePrefix)
