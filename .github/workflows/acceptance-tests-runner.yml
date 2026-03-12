@@ -422,7 +422,8 @@ jobs:
             - 'internal/service/streamconnection/*.go'
             - 'internal/service/streaminstance/*.go'
             - 'internal/service/streamprocessor/*.go'
-            - 'internal/service/streamprivatelinkendpoint/*.go' 
+            - 'internal/service/streamprivatelinkendpoint/*.go'
+            - 'internal/service/streamworkspace/*.go'
 
 
   advanced_cluster:
@@ -1425,6 +1426,7 @@ jobs:
               ./internal/service/streaminstance
               ./internal/service/streamprocessor
               ./internal/service/streamprivatelinkendpoint
+              ./internal/service/streamworkspace
           run: make testacc
 
   slack-notification-stream:

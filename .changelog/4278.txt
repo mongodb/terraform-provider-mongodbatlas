@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_alert_configuration: Fixes error when updating notifications, thresholds, or metric thresholds without specifying all optional attributes
+```

@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.8.0 (March 11, 2026)
+
 FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_privatelink_endpoints` ([#4241](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4241))
@@ -10,10 +12,13 @@ ENHANCEMENTS:
 * data-source/mongodbatlas_advanced_cluster: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
 * data-source/mongodbatlas_advanced_clusters: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
 * data-source/mongodbatlas_encryption_at_rest: Supports `role_id` in `azure_key_vault_config` ([#4187](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4187))
+* data-source/mongodbatlas_log_integration: Adds support for GCS, Azure, Datadog, Splunk and OTel integrations ([#4173](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4173))
+* data-source/mongodbatlas_log_integrations: Adds support for GCS, Azure, Datadog, Splunk and OTel integrations ([#4173](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4173))
 * data-source/mongodbatlas_third_party_integration: Adds `send_query_stats_metrics` attribute ([#4228](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4228))
 * data-source/mongodbatlas_third_party_integrations: Adds `send_query_stats_metrics` attribute ([#4228](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4228))
 * resource/mongodbatlas_advanced_cluster: Adds `use_aws_time_based_snapshot_copy_for_fast_initial_sync` attribute ([#4180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4180))
 * resource/mongodbatlas_encryption_at_rest: Supports `role_id` in `azure_key_vault_config` ([#4187](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4187))
+* resource/mongodbatlas_log_integration: Adds support for GCS, Azure, Datadog, Splunk and OTel integrations ([#4173](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4173))
 * resource/mongodbatlas_stream_connection: Adds configurable `delete` timeout (default 10 minutes) ([#4193](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4193))
 * resource/mongodbatlas_stream_connection: Adds support for asynchronous deletion by waiting for deletion to complete ([#4193](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4193))
 * resource/mongodbatlas_third_party_integration: Adds `send_query_stats_metrics` attribute ([#4228](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4228))
@@ -23,6 +28,8 @@ BUG FIXES:
 * data-source/mongodbatlas_federated_settings_identity_provider: Fixes crash when role assignments have no role defined ([#4233](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4233))
 * data-source/mongodbatlas_federated_settings_identity_providers: Fixes crash when role assignments have no role defined ([#4233](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4233))
 * data-source/mongodbatlas_search_indexes: Fixes `mappings_fields` attribute always being empty ([#4224](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4224))
+* resource/mongodbatlas_alert_configuration: Fixes error when updating notifications, thresholds, or metric thresholds without specifying all optional attributes ([#4278](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4278))
+* resource/mongodbatlas_stream_workspace: Fixes `max_tier_size` being dropped on read-back causing inconsistent result after apply ([#4277](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4277))
 
 ## 2.7.0 (February 18, 2026)
 
