@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -70,6 +71,8 @@ const (
 
 type MongodbatlasProvider struct {
 }
+
+var _ provider.ProviderWithEphemeralResources = &MongodbatlasProvider{}
 
 type tfModel struct {
 	Region               types.String        `tfsdk:"region"`
@@ -221,6 +224,13 @@ func (p *MongodbatlasProvider) Configure(ctx context.Context, req provider.Confi
 	}
 	resp.DataSourceData = client
 	resp.ResourceData = client
+
+	resp.EphemeralResourceData = &config.EphemeralResourceData{
+		ClientID:         c.ClientID,
+		ClientSecret:     c.ClientSecret,
+		BaseURL:          c.BaseURL,
+		TerraformVersion: req.TerraformVersion,
+	}
 }
 
 func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) *config.Vars {
@@ -372,6 +382,10 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		analyticsResources = append(analyticsResources, config.AnalyticsResourceFunc(resourceFunc()))
 	}
 	return analyticsResources
+}
+
+func (p *MongodbatlasProvider) EphemeralResources(context.Context) []func() ephemeral.EphemeralResource {
+	return nil
 }
 
 func NewFrameworkProvider() provider.Provider {
