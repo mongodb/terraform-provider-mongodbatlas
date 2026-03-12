@@ -39,6 +39,7 @@ func Resource() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
+		CustomizeDiff: validateCopySettingsMutualExclusivity,
 
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -63,6 +64,21 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"copy_policy_items_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+			"update_copy_snapshots": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+			"delete_copy_snapshots": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 			"copy_settings": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -79,6 +95,43 @@ func Resource() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
+							},
+						},
+						"copy_policy_items": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"frequency_type": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"retention_unit": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"retention_value": {
+										Type:     schema.TypeInt,
+										Optional: true,
+									},
+								},
+							},
+						},
+						"last_number_of_snapshots": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: func(val any, key string) (warns []string, errs []error) {
+								v := val.(int)
+								if v < 1 || v > 500 {
+									errs = append(errs, fmt.Errorf("%q value should be between 1 and 500, got: %d", key, v))
+								}
+								return
 							},
 						},
 						"region_name": {
@@ -395,6 +448,10 @@ func setSchemaFields(d *schema.ResourceData, backupSchedule *admin.DiskBackupSna
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "use_org_and_group_names_in_export_prefix", clusterName, err)
 	}
 
+	if err := d.Set("copy_policy_items_enabled", backupSchedule.GetCopyPolicyItemsEnabled()); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_policy_items_enabled", clusterName, err)
+	}
+
 	if err := d.Set("policy_item_hourly", FlattenPolicyItem(backupSchedule.GetPolicies()[0].GetPolicyItems(), Hourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
 	}
@@ -540,6 +597,20 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		req.UpdateSnapshots = value
 	}
 
+	if d.HasChange("copy_policy_items_enabled") {
+		req.CopyPolicyItemsEnabled = new(d.Get("copy_policy_items_enabled").(bool))
+	}
+
+	updateCopySnapshots := new(d.Get("update_copy_snapshots").(bool))
+	if *updateCopySnapshots {
+		req.UpdateCopySnapshots = updateCopySnapshots
+	}
+
+	deleteCopySnapshots := new(d.Get("delete_copy_snapshots").(bool))
+	if *deleteCopySnapshots {
+		req.DeleteCopySnapshots = deleteCopySnapshots
+	}
+
 	resp, _, err := connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return fmt.Errorf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
@@ -563,14 +634,27 @@ func ExpandCopySetting(tfMap map[string]any) *admin.DiskBackupCopySetting2024080
 		return nil
 	}
 
-	frequencies := conversion.ExpandStringList(tfMap["frequencies"].(*schema.Set).List())
 	copySetting := &admin.DiskBackupCopySetting20240805{
 		CloudProvider:    new(tfMap["cloud_provider"].(string)),
-		Frequencies:      &frequencies,
 		RegionName:       new(tfMap["region_name"].(string)),
 		ZoneId:           tfMap["zone_id"].(string),
 		ShouldCopyOplogs: new(tfMap["should_copy_oplogs"].(bool)),
 	}
+
+	if frequencies, ok := tfMap["frequencies"]; ok && frequencies.(*schema.Set).Len() > 0 {
+		freqs := conversion.ExpandStringList(frequencies.(*schema.Set).List())
+		copySetting.Frequencies = &freqs
+	}
+
+	if copyPolicyItems, ok := tfMap["copy_policy_items"]; ok && len(copyPolicyItems.([]any)) > 0 {
+		items := ExpandCopyPolicyItems(copyPolicyItems.([]any))
+		copySetting.CopyPolicyItems = items
+	}
+
+	if lastNumberOfSnapshots, ok := tfMap["last_number_of_snapshots"]; ok && lastNumberOfSnapshots.(int) > 0 {
+		copySetting.LastNumberOfSnapshots = new(lastNumberOfSnapshots.(int))
+	}
+
 	return copySetting
 }
 
@@ -641,5 +725,57 @@ func getRequestPolicies(policiesItem []admin.DiskBackupApiPolicyItem, respPolici
 		}
 		return &[]admin.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
 	}
+	return nil
+}
+
+func validateCopySettingsMutualExclusivity(ctx context.Context, d *schema.ResourceDiff, meta any) error {
+	copySettings, ok := d.GetOk("copy_settings")
+	if !ok {
+		return nil
+	}
+
+	for i, settingRaw := range copySettings.([]any) {
+		setting, ok := settingRaw.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		hasFrequencies := false
+		if frequencies, ok := setting["frequencies"]; ok {
+			if freqSet, ok := frequencies.(*schema.Set); ok && freqSet.Len() > 0 {
+				hasFrequencies = true
+			}
+		}
+
+		hasCopyPolicyItems := false
+		if copyPolicyItems, ok := setting["copy_policy_items"]; ok {
+			if items, ok := copyPolicyItems.([]any); ok && len(items) > 0 {
+				hasCopyPolicyItems = true
+			}
+		}
+
+		hasLastNumberOfSnapshots := false
+		if lastNumberOfSnapshots, ok := setting["last_number_of_snapshots"]; ok {
+			if num, ok := lastNumberOfSnapshots.(int); ok && num > 0 {
+				hasLastNumberOfSnapshots = true
+			}
+		}
+
+		fieldsSet := 0
+		if hasFrequencies {
+			fieldsSet++
+		}
+		if hasCopyPolicyItems {
+			fieldsSet++
+		}
+		if hasLastNumberOfSnapshots {
+			fieldsSet++
+		}
+
+		if fieldsSet > 1 {
+			return fmt.Errorf("copy_settings[%d]: frequencies, copy_policy_items, and last_number_of_snapshots are mutually exclusive - only one may be specified", i)
+		}
+	}
+
 	return nil
 }

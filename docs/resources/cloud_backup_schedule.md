@@ -232,6 +232,12 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
   
   **Note** This parameter does not return updates on return from API, this is a feature of the MongoDB Atlas Admin API itself and not Terraform.  For more details about this resource see [Cloud Backup Schedule](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backups/operation/getBackupSchedule).
 
+* `update_copy_snapshots` - (Optional) Flag that indicates whether to apply the retention changes for updated copy policy items to Snapshot copies that MongoDB Cloud took previously. This is a request-level flag and does not persist in the schedule configuration.
+
+* `delete_copy_snapshots` - (Optional) Flag that indicates whether to delete Snapshot copies that MongoDB Cloud took previously when their associated `copy_policy_items` are removed from a `copy_settings` entry. This option requires `copy_policy_items_enabled` to be true. This is a request-level flag and does not persist in the schedule configuration.
+
+* `copy_policy_items_enabled` - (Optional) Flag that indicates whether copy settings use `copy_policy_items` instead of `frequencies`. When true, you must use `copy_policy_items` in copy_settings. When false or omitted, you must use `frequencies` in copy_settings.
+
 * `policy_item_hourly` - (Optional) Hourly policy item. See [below](#policy_item_hourly)
 * `policy_item_daily` - (Optional) Daily policy item. See [below](#policy_item_daily)
 * `policy_item_weekly` - (Optional) Weekly policy item. See [below](#policy_item_weekly)
@@ -287,10 +293,17 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 ### copy_settings
 * `cloud_provider` - (Required) Human-readable label that identifies the cloud provider that stores the snapshot copy. i.e. "AWS" "AZURE" "GCP"
-* `frequencies` - (Required) List that describes which types of snapshots to copy. i.e. "HOURLY" "DAILY" "WEEKLY" "MONTHLY" "ON_DEMAND"
+* `frequencies` - (Optional) List that describes which types of snapshots to copy. i.e. "HOURLY" "DAILY" "WEEKLY" "MONTHLY" "ON_DEMAND". **Note:** Use this field when `copy_policy_items_enabled` is false or omitted. This field is mutually exclusive with `copy_policy_items` and `last_number_of_snapshots`.
+* `copy_policy_items` - (Optional) List that contains a document for each copy policy item. Allowed only when `copy_policy_items_enabled` is true. This field is mutually exclusive with `frequencies` and `last_number_of_snapshots`. See [below](#copy_policy_items)
+* `last_number_of_snapshots` - (Optional) Number of most recent snapshots to copy to the target region (1-500). If specified, Atlas copies this number of the most recent snapshots rather than using a frequency-based or policy-based copy schedule. This field is mutually exclusive with `frequencies` and `copy_policy_items`.
 * `region_name` - (Required) Target region to copy snapshots belonging to replicationSpecId to. Please supply the 'Atlas Region' which can be found under https://www.mongodb.com/docs/atlas/reference/cloud-providers/ 'regions' link
 * `zone_id` - Unique 24-hexadecimal digit string that identifies the zone in a cluster. For global clusters, there can be multiple zones to choose from. For sharded clusters and replica set clusters, there is only one zone in the cluster. To find appropriate value for `zone_id`, do a GET request to Return One Cluster from One Project and consult the replicationSpecs array [Return One Cluster From One Project](#operation/getCluster). Alternately, use `mongodbatlas_advanced_cluster` data source or resource and reference `replication_specs.#.zone_id`.
 * `should_copy_oplogs` - (Required) Flag that indicates whether to copy the oplogs to the target region. You can use the oplogs to perform point-in-time restores.
+
+### copy_policy_items
+* `frequency_type` - (Required) Human-readable label that identifies the frequency type associated with the copy policy. Possible values are: `hourly`, `daily`, `weekly`, `monthly`, `yearly`, `ondemand`.
+* `retention_unit` - (Optional) Unit of time in which MongoDB Cloud measures snapshot copy retention. Required for time-based policy items (not required for `ondemand`). Possible values are: `days`, `weeks`, `months`, `years`.
+* `retention_value` - (Optional) Duration in days, weeks, months, or years that MongoDB Cloud retains the snapshot copy. Required for time-based policy items (not required for `ondemand`).
 
 ## Attributes Reference
 

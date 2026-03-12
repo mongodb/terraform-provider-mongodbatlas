@@ -116,6 +116,58 @@ func TestFlattenCopySettings(t *testing.T) {
 			},
 		},
 		{
+			name: "Copy Settings with CopyPolicyItems",
+			settings: []admin.DiskBackupCopySetting20240805{
+				{
+					CloudProvider:    conversion.StringPtr("AWS"),
+					Frequencies:      &[]string{},
+					RegionName:       conversion.StringPtr("US_WEST_1"),
+					ZoneId:           "12345",
+					ShouldCopyOplogs: new(true),
+					CopyPolicyItems: &[]admin.DiskBackupCopyPolicyItem{
+						{FrequencyType: "daily", RetentionUnit: conversion.StringPtr("days"), RetentionValue: conversion.IntPtr(7)},
+						{FrequencyType: "weekly", RetentionUnit: conversion.StringPtr("weeks"), RetentionValue: conversion.IntPtr(4)},
+					},
+				},
+			},
+			expected: []map[string]any{
+				{
+					"cloud_provider":     "AWS",
+					"frequencies":        []string{},
+					"region_name":        "US_WEST_1",
+					"zone_id":            "12345",
+					"should_copy_oplogs": true,
+					"copy_policy_items": []map[string]any{
+						{"frequency_type": "daily", "retention_unit": "days", "retention_value": 7},
+						{"frequency_type": "weekly", "retention_unit": "weeks", "retention_value": 4},
+					},
+				},
+			},
+		},
+		{
+			name: "Copy Settings with LastNumberOfSnapshots",
+			settings: []admin.DiskBackupCopySetting20240805{
+				{
+					CloudProvider:         conversion.StringPtr("GCP"),
+					Frequencies:           &[]string{},
+					RegionName:            conversion.StringPtr("CENTRAL_US"),
+					ZoneId:                "99999",
+					ShouldCopyOplogs:      new(false),
+					LastNumberOfSnapshots: conversion.IntPtr(100),
+				},
+			},
+			expected: []map[string]any{
+				{
+					"cloud_provider":           "GCP",
+					"frequencies":              []string{},
+					"region_name":              "CENTRAL_US",
+					"zone_id":                  "99999",
+					"should_copy_oplogs":       false,
+					"last_number_of_snapshots": 100,
+				},
+			},
+		},
+		{
 			name:     "Empty Copy Settings List",
 			settings: []admin.DiskBackupCopySetting20240805{},
 			expected: []map[string]any{},
@@ -132,12 +184,55 @@ func TestFlattenCopySettings(t *testing.T) {
 	}
 }
 
+func TestFlattenCopyPolicyItems(t *testing.T) {
+	testCases := []struct {
+		name     string
+		items    []admin.DiskBackupCopyPolicyItem
+		expected []map[string]any
+	}{
+		{
+			name: "Time-based policy items",
+			items: []admin.DiskBackupCopyPolicyItem{
+				{Id: conversion.StringPtr("123"), FrequencyType: "daily", RetentionUnit: conversion.StringPtr("days"), RetentionValue: conversion.IntPtr(7)},
+				{Id: conversion.StringPtr("456"), FrequencyType: "weekly", RetentionUnit: conversion.StringPtr("weeks"), RetentionValue: conversion.IntPtr(4)},
+			},
+			expected: []map[string]any{
+				{"id": "123", "frequency_type": "daily", "retention_unit": "days", "retention_value": 7},
+				{"id": "456", "frequency_type": "weekly", "retention_unit": "weeks", "retention_value": 4},
+			},
+		},
+		{
+			name: "On-demand policy item",
+			items: []admin.DiskBackupCopyPolicyItem{
+				{FrequencyType: "ondemand"},
+			},
+			expected: []map[string]any{
+				{"frequency_type": "ondemand"},
+			},
+		},
+		{
+			name:     "Empty items list",
+			items:    []admin.DiskBackupCopyPolicyItem{},
+			expected: []map[string]any{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := cloudbackupschedule.FlattenCopyPolicyItems(tc.items)
+			if !reflect.DeepEqual(result, tc.expected) {
+				t.Errorf("Test %s failed: expected %+v, got %+v", tc.name, tc.expected, result)
+			}
+		})
+	}
+}
+
 func TestExpandPolicyItems(t *testing.T) {
 	testCases := []struct {
-		expected      *[]admin.DiskBackupApiPolicyItem
+		items         []any
 		name          string
 		frequencyType string
-		items         []any
+		expected      *[]admin.DiskBackupApiPolicyItem
 	}{
 		{
 			name: "Valid Input",
@@ -158,6 +253,55 @@ func TestExpandPolicyItems(t *testing.T) {
 			result := cloudbackupschedule.ExpandPolicyItems(tc.items, tc.frequencyType)
 			if !reflect.DeepEqual(result, tc.expected) {
 				t.Errorf("Test %s failed: expected %+v, got %+v", tc.name, *tc.expected, *result)
+			}
+		})
+	}
+}
+
+func TestExpandCopyPolicyItems(t *testing.T) {
+	testCases := []struct {
+		items    []any
+		name     string
+		expected *[]admin.DiskBackupCopyPolicyItem
+	}{
+		{
+			name: "Time-based policy items",
+			items: []any{
+				map[string]any{"frequency_type": "daily", "retention_unit": "days", "retention_value": 7},
+				map[string]any{"frequency_type": "weekly", "retention_unit": "weeks", "retention_value": 4},
+			},
+			expected: &[]admin.DiskBackupCopyPolicyItem{
+				{FrequencyType: "daily", RetentionUnit: conversion.StringPtr("days"), RetentionValue: conversion.IntPtr(7)},
+				{FrequencyType: "weekly", RetentionUnit: conversion.StringPtr("weeks"), RetentionValue: conversion.IntPtr(4)},
+			},
+		},
+		{
+			name: "On-demand policy item",
+			items: []any{
+				map[string]any{"frequency_type": "ondemand"},
+			},
+			expected: &[]admin.DiskBackupCopyPolicyItem{
+				{FrequencyType: "ondemand"},
+			},
+		},
+		{
+			name:     "Empty items list",
+			items:    []any{},
+			expected: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := cloudbackupschedule.ExpandCopyPolicyItems(tc.items)
+			if tc.expected == nil {
+				if result != nil {
+					t.Errorf("Test %s failed: expected nil, got %+v", tc.name, result)
+				}
+			} else {
+				if !reflect.DeepEqual(result, tc.expected) {
+					t.Errorf("Test %s failed: expected %+v, got %+v", tc.name, *tc.expected, *result)
+				}
 			}
 		})
 	}

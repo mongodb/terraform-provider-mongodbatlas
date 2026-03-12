@@ -91,6 +91,7 @@ In addition to all arguments above, the following attributes are exported:
   * true - Enables automatic export of cloud backup snapshots to the Export Bucket.
   * false - Disables automatic export of cloud backup snapshots to the Export Bucket. (default)
 * `use_org_and_group_names_in_export_prefix` - Specify true to use organization and project names instead of organization and project UUIDs in the path for the metadata files that Atlas uploads to your bucket after it finishes exporting the snapshots. To learn more about the metadata files that Atlas uploads, see [Export Cloud Backup Snapshot](https://www.mongodb.com/docs/atlas/backup/cloud-backup/export/#std-label-cloud-provider-snapshot-export).
+* `copy_policy_items_enabled` - Flag that indicates whether copy settings use `copy_policy_items` instead of `frequencies`.
 * `copy_settings` - List that contains a document for each copy setting item in the desired backup policy. See [below](#copy_settings)
 * `export` - Policy for automatically exporting Cloud Backup Snapshots. See [below](#export)
 
@@ -138,11 +139,17 @@ In addition to all arguments above, the following attributes are exported:
 
 ### copy_settings
 * `cloud_provider` - Human-readable label that identifies the cloud provider that stores the snapshot copy. i.e. "AWS" "AZURE" "GCP"
-* `frequencies` - List that describes which types of snapshots to copy. i.e. "HOURLY" "DAILY" "WEEKLY" "MONTHLY" "YEARLY" "ON_DEMAND"
+* `frequencies` - List that describes which types of snapshots to copy. Returned when `copy_policy_items_enabled` is false or omitted. i.e. "HOURLY" "DAILY" "WEEKLY" "MONTHLY" "YEARLY" "ON_DEMAND"
+* `copy_policy_items` - List that contains a document for each copy policy item. Returned when `copy_policy_items_enabled` is true. See [below](#copy_policy_items)
+* `last_number_of_snapshots` - Number of most recent snapshots to copy to the target region.
 * `region_name` - Target region to copy snapshots belonging to replicationSpecId to. Please supply the 'Atlas Region' which can be found under https://www.mongodb.com/docs/atlas/reference/cloud-providers/ 'regions' link
 * `zone_id` - Unique 24-hexadecimal digit string that identifies the zone in a cluster. For global clusters, there can be multiple zones to choose from. For sharded clusters and replica set clusters, there is only one zone in the cluster.
 * `should_copy_oplogs` - Flag that indicates whether to copy the oplogs to the target region. You can use the oplogs to perform point-in-time restores.
 
-**Note** The parameter deleteCopiedBackups is not supported in terraform please leverage Atlas Admin API or AtlasCLI instead to manage the lifecycle of backup snaphot copies.
+### copy_policy_items
+* `id` - Unique identifier of the copy policy item.
+* `frequency_type` - Human-readable label that identifies the frequency type associated with the copy policy. Possible values are: `hourly`, `daily`, `weekly`, `monthly`, `yearly`, `ondemand`.
+* `retention_unit` - Unit of time in which MongoDB Cloud measures snapshot copy retention. Possible values are: `days`, `weeks`, `months`, `years`.
+* `retention_value` - Duration in days, weeks, months, or years that MongoDB Cloud retains the snapshot copy.
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/schedule/get-all-schedules/).

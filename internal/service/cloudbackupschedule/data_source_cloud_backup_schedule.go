@@ -28,6 +28,10 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"copy_policy_items_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"copy_settings": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -43,6 +47,34 @@ func DataSource() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
+						},
+						"copy_policy_items": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"frequency_type": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"retention_unit": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"retention_value": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"last_number_of_snapshots": {
+							Type:     schema.TypeInt,
+							Computed: true,
 						},
 						"region_name": {
 							Type:     schema.TypeString,
@@ -270,6 +302,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if err := d.Set("copy_settings", copySettings); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
+	}
+
+	if err := d.Set("copy_policy_items_enabled", backupSchedule.GetCopyPolicyItemsEnabled()); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_policy_items_enabled", clusterName, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
