@@ -594,7 +594,8 @@ func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *test
 					SingleNested: &codespec.SingleNestedAttribute{
 						NestedObject: codespec.NestedAttributeObject{
 							Discriminator: &codespec.Discriminator{
-								PropertyName: codespec.DiscriminatorAttrName{APIName: "innerType", TFSchemaName: "inner_kind"},
+								PropertyName:   codespec.DiscriminatorAttrName{APIName: "innerType", TFSchemaName: "inner_kind"},
+								SkipValidation: true,
 								Mapping: map[string]codespec.DiscriminatorType{
 									"TypeA": {
 										Allowed:  []codespec.DiscriminatorAttrName{{APIName: "attrA", TFSchemaName: "attr_a"}, {APIName: "innerType", TFSchemaName: "inner_kind"}},
@@ -726,7 +727,8 @@ func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *test
 						NestedObject: codespec.NestedAttributeObject{
 							Discriminator: &codespec.Discriminator{
 								// NOT renamed - non-dotted alias only applies at root level
-								PropertyName: codespec.NewDiscriminatorAttrName("typeField"),
+								PropertyName:   codespec.NewDiscriminatorAttrName("typeField"),
+								SkipValidation: true,
 								Mapping: map[string]codespec.DiscriminatorType{
 									"InnerA": {
 										Allowed:  []codespec.DiscriminatorAttrName{codespec.NewDiscriminatorAttrName("innerAttr"), codespec.NewDiscriminatorAttrName("typeField")},
