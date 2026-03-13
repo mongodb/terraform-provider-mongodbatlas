@@ -476,6 +476,7 @@ schema:
                                 property_name:
                                     api_name: providerName
                                     tf_schema_name: provider_name
+                                skip_validation: true
                             attributes:
                                 - single_nested:
                                     nested_object:
