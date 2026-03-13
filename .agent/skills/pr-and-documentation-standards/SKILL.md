@@ -34,6 +34,14 @@ Avoid excessive NOTE/IMPORTANT/WARNING boxes. Prefer:
 
 Do **not** include CLOUDP ticket references in user-facing documentation. Internal ticket references are acceptable in code comments only when tracking a deliberate technical decision.
 
+### Resource and Data Source Descriptions
+
+Start data source and resource descriptions with the resource name and a clear one-line purpose:
+
+```
+`mongodbatlas_log_integration` provides a resource for managing log integration configurations at the project level.
+```
+
 ## Examples (`examples/` directory)
 
 ### Use Variables Consistently
@@ -50,12 +58,4 @@ resource "mongodbatlas_project" "project" {
   name   = var.atlas_project_name
   org_id = var.atlas_org_id
 }
-```
-
-### Resource and Data Source Descriptions
-
-Start data source and resource descriptions with the resource name and a clear one-line purpose:
-
-```
-`mongodbatlas_log_integration` provides a resource for managing log integration configurations at the project level.
 ```
