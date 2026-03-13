@@ -17,15 +17,15 @@ import (
 )
 
 const (
-	resourceTypeName = "service_account_jwt"
+	ResourceTypeName = "service_account_jwt"
 	closeDataKey     = "revoke_data"
 )
 
-var _ ephemeral.EphemeralResource = &es{}
-var _ ephemeral.EphemeralResourceWithConfigure = &es{}
-var _ ephemeral.EphemeralResourceWithClose = &es{}
+var _ ephemeral.EphemeralResource = &ES{}
+var _ ephemeral.EphemeralResourceWithConfigure = &ES{}
+var _ ephemeral.EphemeralResourceWithClose = &ES{}
 
-type es struct {
+type ES struct {
 	config.ESCommon
 }
 
@@ -37,31 +37,31 @@ type closeData struct {
 }
 
 func New() ephemeral.EphemeralResource {
-	return &es{
+	return &ES{
 		ESCommon: config.ESCommon{
-			ResourceName: resourceTypeName,
+			ResourceName: ResourceTypeName,
 		},
 	}
 }
 
-func (r *es) Schema(ctx context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+func (r *ES) Schema(ctx context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
 	resp.Schema = EphemeralResourceSchema(ctx)
 }
 
-func (r *es) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
+func (r *ES) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
 	var model TFModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	clientID, clientSecret, baseURL, localDiags := r.resolveCredentials(&model)
+	clientID, clientSecret, baseURL, localDiags := r.ResolveCredentials(&model)
 	resp.Diagnostics.Append(localDiags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	token, err := r.generateToken(ctx, clientID, clientSecret, baseURL)
+	token, err := r.GenerateToken(ctx, clientID, clientSecret, baseURL)
 	if err != nil {
 		resp.Diagnostics.AddError("Error generating Service Account JWT", err.Error())
 		return
@@ -90,14 +90,15 @@ func (r *es) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemera
 	resp.Diagnostics.Append(resp.Result.Set(ctx, &model)...)
 }
 
-func (r *es) Close(ctx context.Context, req ephemeral.CloseRequest, resp *ephemeral.CloseResponse) {
+func (r *ES) Close(ctx context.Context, req ephemeral.CloseRequest, resp *ephemeral.CloseResponse) {
 	raw, diags := req.Private.GetKey(ctx, closeDataKey)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	if len(raw) == 0 {
-		log.Printf("[DEBUG] %s Close: no private state found (key=%q), skipping revocation", resourceTypeName, closeDataKey)
+		log.Printf("[DEBUG] %s Close: no private state found (key=%q), skipping revocation", ResourceTypeName, closeDataKey)
 		return
 	}
 	var data closeData
@@ -105,14 +106,14 @@ func (r *es) Close(ctx context.Context, req ephemeral.CloseRequest, resp *epheme
 		resp.Diagnostics.AddWarning("Failed to read revoke payload", err.Error())
 		return
 	}
-	log.Printf("[DEBUG] %s Close: revoking access token", resourceTypeName)
+	log.Printf("[DEBUG] %s Close: revoking access token", ResourceTypeName)
 	conf := config.GetServiceAccountConfig(data.ClientID, data.ClientSecret, config.NormalizeBaseURL(data.BaseURL))
-	if err := conf.RevokeToken(r.withUserAgentClient(ctx), &oauth2.Token{AccessToken: data.AccessToken}); err != nil {
+	if err := conf.RevokeToken(r.WithUserAgentClient(ctx), &oauth2.Token{AccessToken: data.AccessToken}); err != nil {
 		resp.Diagnostics.AddWarning("Failed to revoke Service Account token on close", err.Error())
 	}
 }
 
-func (r *es) resolveCredentials(model *TFModel) (clientID, clientSecret, baseURL string, diags diag.Diagnostics) {
+func (r *ES) ResolveCredentials(model *TFModel) (clientID, clientSecret, baseURL string, diags diag.Diagnostics) {
 	erd := r.EphemeralResourceData
 
 	// 1. Resource attributes (explicit client_id and client_secret on the ephemeral resource block).
@@ -161,9 +162,9 @@ func providerBaseURL(providerData *config.EphemeralResourceData) string {
 	return ""
 }
 
-func (r *es) generateToken(ctx context.Context, clientID, clientSecret, baseURL string) (*auth.Token, error) {
+func (r *ES) GenerateToken(ctx context.Context, clientID, clientSecret, baseURL string) (*auth.Token, error) {
 	conf := config.GetServiceAccountConfig(clientID, clientSecret, config.NormalizeBaseURL(baseURL))
-	token, err := conf.Token(r.withUserAgentClient(ctx))
+	token, err := conf.Token(r.WithUserAgentClient(ctx))
 	if err != nil {
 		return nil, err
 	}
