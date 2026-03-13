@@ -76,7 +76,7 @@ moved {
 ```
 
 7. Run `terraform apply` to apply the changes. The `mongodbatlas_cluster` resource will be removed from the Terraform state and the `mongodbatlas_advanced_cluster` resource will be added.
-8. After applying, the `moved` block remains in your configuration but has no ongoing effect on `terraform plan` or `terraform apply`. See [How long should you keep the moved block?](#how-long-should-you-keep-the-moved-block) for detailed guidance on when it is safe to remove it.
+8. After applying, the `moved` block remains in your configuration but has no ongoing effect on `terraform plan` or `terraform apply` for the state you just applied. It can still matter for other workspaces or state files that haven't had the move applied yet. See [How long should you keep the moved block?](#how-long-should-you-keep-the-moved-block) for detailed guidance on when it is safe to remove it.
 
 ## Migration using import
 
@@ -184,7 +184,7 @@ Alternatively you can use the [Atlas CLI plugin](https://github.com/mongodb-labs
 
 HashiCorp [strongly recommends](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#removing-moved-blocks) retaining all historical `moved` blocks: "We strongly recommend that you retain all historical moved blocks from earlier versions of your modules to preserve the upgrade path for users of any previous version."
 
-An important detail: `moved` blocks are **not stored in Terraform state**. They are evaluated at plan time from the configuration. After a successful `terraform apply`, the resource address is updated in state, but there is no persistent record that a move occurred. This means the `moved` block is only useful to users who have not yet applied it.
+An important detail: `moved` blocks are **not stored in Terraform state**. They are evaluated at plan time from the configuration. After a successful `terraform apply`, the resource address is updated in state, but there is no persistent record of the move mapping (old address to new address). This means the `moved` block is only useful to users who have not yet applied it.
 
 ### For direct resource users
 
