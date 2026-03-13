@@ -71,7 +71,7 @@ func extractDiscriminator(schema *APISpecSchema) *Discriminator {
 		}
 	}
 
-	if AllVariantsEmpty(mapping) {
+	if ShouldSkipDiscriminator(mapping) {
 		return nil
 	}
 
@@ -175,7 +175,10 @@ func clearRequired(disc *Discriminator) *Discriminator {
 	return result
 }
 
-func AllVariantsEmpty(mapping map[string]DiscriminatorType) bool {
+func ShouldSkipDiscriminator(mapping map[string]DiscriminatorType) bool {
+	if len(mapping) <= 1 {
+		return true
+	}
 	for _, variant := range mapping {
 		if len(variant.Allowed) > 0 {
 			return false

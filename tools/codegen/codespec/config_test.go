@@ -899,6 +899,70 @@ func TestApplyTransformationsToResource_IgnoreValidatorsTransformation(t *testin
 	}
 }
 
+func TestApplyTransformationsToResource_ComputedDiscriminatorAutoSkip(t *testing.T) {
+	inputResource := &codespec.Resource{
+		Schema: &codespec.Schema{
+			Discriminator: &codespec.Discriminator{
+				PropertyName: codespec.DiscriminatorAttrName{APIName: "type", TFSchemaName: "type"},
+				Mapping: map[string]codespec.DiscriminatorType{
+					"A": {Allowed: []codespec.DiscriminatorAttrName{{APIName: "attrA", TFSchemaName: "attr_a"}}},
+					"B": {Allowed: []codespec.DiscriminatorAttrName{{APIName: "attrB", TFSchemaName: "attr_b"}}},
+				},
+			},
+			Attributes: codespec.Attributes{
+				{
+					TFSchemaName:             "type",
+					TFModelName:              "Type",
+					APIName:                  "type",
+					ComputedOptionalRequired: codespec.Computed,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+				{
+					TFSchemaName:             "nested_obj",
+					TFModelName:              "NestedObj",
+					APIName:                  "nestedObj",
+					ComputedOptionalRequired: codespec.Computed,
+					SingleNested: &codespec.SingleNestedAttribute{
+						NestedObject: codespec.NestedAttributeObject{
+							Discriminator: &codespec.Discriminator{
+								PropertyName: codespec.DiscriminatorAttrName{APIName: "kind", TFSchemaName: "kind"},
+								Mapping: map[string]codespec.DiscriminatorType{
+									"X": {Allowed: []codespec.DiscriminatorAttrName{{APIName: "xAttr", TFSchemaName: "x_attr"}}},
+									"Y": {Allowed: []codespec.DiscriminatorAttrName{{APIName: "yAttr", TFSchemaName: "y_attr"}}},
+								},
+							},
+							Attributes: codespec.Attributes{
+								{
+									TFSchemaName:             "kind",
+									TFModelName:              "Kind",
+									APIName:                  "kind",
+									ComputedOptionalRequired: codespec.Computed,
+									String:                   &codespec.StringAttribute{},
+									ReqBodyUsage:             codespec.OmitAlways,
+								},
+							},
+						},
+					},
+					ReqBodyUsage: codespec.OmitAlways,
+				},
+			},
+		},
+		Operations: codespec.APIOperations{
+			Create: &codespec.APIOperation{},
+			Read:   &codespec.APIOperation{},
+		},
+	}
+
+	err := codespec.ApplyTransformationsToResource(&config.Resource{}, inputResource)
+	require.NoError(t, err)
+
+	assert.True(t, inputResource.Schema.Discriminator.SkipValidation, "root computed discriminator should auto-skip")
+
+	nestedDisc := inputResource.Schema.Attributes[1].SingleNested.NestedObject.Discriminator
+	assert.True(t, nestedDisc.SkipValidation, "nested computed discriminator should auto-skip")
+}
+
 func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
 	tests := map[string]struct {
 		inputDataSources   *codespec.DataSources
