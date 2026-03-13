@@ -200,6 +200,8 @@ If you maintain a module consumed by other teams or published publicly, **keep t
 
 Removal is only safe when you are certain that **every consumer** of your module has successfully run `terraform apply` with the version containing the `moved` block. For public or widely-used modules, this is effectively impossible to verify.
 
+-> **NOTE:** If you use [HCP Terraform](https://developer.hashicorp.com/terraform/cloud-docs), you can check the [explorer](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/explorer) to see which versions of your module are currently in use. If all consumers have upgraded past the version containing the `moved` block, it is safe to remove it.
+
 The `moved` block is small and has zero runtime cost. There is no technical reason to remove it.
 
 ### Worst case: skipping the version with the moved block
