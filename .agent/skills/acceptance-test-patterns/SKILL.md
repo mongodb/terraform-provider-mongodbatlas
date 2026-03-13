@@ -19,7 +19,7 @@ Before adding a test, verify no existing test already covers the same configurat
 
 Avoid hardcoded indices (e.g., `results.0`) when asserting on plural data source results unless the parent resource is guaranteed to be unique within the test execution. When uniqueness is ensured, using `results.0` is acceptable. Otherwise, the API may return items in any order and the test resource may not be at a predictable index.
 
-### Preferred approaches (when index is not safe)
+### Preferred approach (when index is not safe)
 
 1. **`PluralResultCheck` helper** — dynamically finds the test resource by name before asserting on its attributes.
 
