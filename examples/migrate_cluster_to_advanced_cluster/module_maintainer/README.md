@@ -150,6 +150,9 @@ output "mongodbatlas_cluster" {
 ```
 
 ## Step 4: Module `v4` Implementation Changes and Highlights
+
+> **Warning:** This step removes the `moved` block, which is a [breaking change](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#removing-moved-blocks) per HashiCorp's documentation. Any module consumer who has not yet applied a version containing the `moved` block (v2 or v3) and upgrades directly to v4 will see Terraform plan to **destroy their existing cluster and create a new one**, causing data loss. HashiCorp strongly recommends retaining all historical `moved` blocks indefinitely. Only remove the `moved` block if you are certain that all consumers have successfully applied the move. For more details, see the [moved block lifecycle guidance](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide#how-long-should-you-keep-the-moved-block).
+
 This module marks the end of the migration to `mongodbatlas_advanced_cluster`.
 We future-proof the module by removing references to the `mongodbatlas_cluster` data source and only allowing the latest schema for the `replication_specs` variable.
 A major version bump would typically accompany this module version since we remove and rename input and output variables.
