@@ -26,7 +26,7 @@ func (r *ES) terraformVersion() string {
 //	  → UserAgentTransport  (appends "Name/service_account_jwt Operation/..." from context)
 //	    → NetworkLoggingTransport  (logs method/URL/timing/status)
 //	      → http.DefaultTransport
-func (r *ES) withUserAgentClient(ctx context.Context) context.Context {
+func (r *ES) WithUserAgentClient(ctx context.Context) context.Context {
 	networkLog := config.NewTransportWithNetworkLogging(http.DefaultTransport, logging.IsDebugOrHigher())
 	uaTransport := &config.UserAgentTransport{Transport: networkLog, Enabled: true}
 	client := &http.Client{
