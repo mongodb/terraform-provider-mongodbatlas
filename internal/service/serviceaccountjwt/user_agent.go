@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func (r *es) terraformVersion() string {
+func (r *ES) terraformVersion() string {
 	if r.EphemeralResourceData != nil {
 		return r.EphemeralResourceData.TerraformVersion
 	}
@@ -26,7 +26,7 @@ func (r *es) terraformVersion() string {
 //	  → UserAgentTransport  (appends "Name/service_account_jwt Operation/..." from context)
 //	    → NetworkLoggingTransport  (logs method/URL/timing/status)
 //	      → http.DefaultTransport
-func (r *es) withUserAgentClient(ctx context.Context) context.Context {
+func (r *ES) WithUserAgentClient(ctx context.Context) context.Context {
 	networkLog := config.NewTransportWithNetworkLogging(http.DefaultTransport, logging.IsDebugOrHigher())
 	uaTransport := &config.UserAgentTransport{Transport: networkLog, Enabled: true}
 	client := &http.Client{
