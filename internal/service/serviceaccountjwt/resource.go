@@ -91,17 +91,17 @@ func (r *es) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemera
 }
 
 func (r *es) Close(ctx context.Context, req ephemeral.CloseRequest, resp *ephemeral.CloseResponse) {
-	raw, diags := req.Private.GetKey(ctx, closeDataKey)
+	revokeData, diags := req.Private.GetKey(ctx, closeDataKey)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if len(raw) == 0 {
+	if len(revokeData) == 0 {
 		log.Printf("[DEBUG] %s Close: no private state found (key=%q), skipping revocation", resourceTypeName, closeDataKey)
 		return
 	}
 	var data closeData
-	if err := json.Unmarshal(raw, &data); err != nil {
+	if err := json.Unmarshal(revokeData, &data); err != nil {
 		resp.Diagnostics.AddWarning("Failed to read revoke payload", err.Error())
 		return
 	}

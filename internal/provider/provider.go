@@ -390,11 +390,11 @@ func (p *MongodbatlasProvider) EphemeralResources(context.Context) []func() ephe
 	ephemeralResources := []func() ephemeral.EphemeralResource{
 		serviceaccountjwt.New,
 	}
-	analyticsEphemeralResources := []func() ephemeral.EphemeralResource{}
+	ephemeralResourcesWithAnalytics := []func() ephemeral.EphemeralResource{}
 	for _, ephemeralResourceFunc := range ephemeralResources {
-		analyticsEphemeralResources = append(analyticsEphemeralResources, config.AnalyticsEphemeralResourceFunc(ephemeralResourceFunc()))
+		ephemeralResourcesWithAnalytics = append(ephemeralResourcesWithAnalytics, config.AnalyticsEphemeralResourceFunc(ephemeralResourceFunc()))
 	}
-	return analyticsEphemeralResources
+	return ephemeralResourcesWithAnalytics
 }
 
 func NewFrameworkProvider() provider.Provider {
