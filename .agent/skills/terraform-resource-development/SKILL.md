@@ -11,6 +11,10 @@ description: Best practices for developing Terraform resources and data sources 
 
 ## Schema Design
 
+### `CreateOnly` Plan Modifier for Non-Updatable Attributes
+
+Use `customplanmodifier.CreateOnly()` on attributes that can only be set at creation time and cannot be updated. This generates a clear error during plan if a user tries to change the value, instead of silently failing or producing confusing API errors.
+
 ### `UseStateForUnknown` Plan Modifier
 
 Be cautious with `UseStateForUnknown` on Optional+Computed attributes. It can cause **"inconsistent result after apply"** errors when the API returns a value that differs from the prior state.

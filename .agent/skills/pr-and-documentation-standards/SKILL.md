@@ -1,6 +1,6 @@
 ---
 name: pr-and-documentation-standards
-description: Standards for pull requests, documentation, and code review in this Terraform provider. Use when creating PRs, writing or editing documentation (schema descriptions, docs/ markdown, examples), reviewing code, or adding changelog entries. Covers PR structure, docs style guide, example conventions, and changelog practices.
+description: Standards for pull requests, documentation, and code review in this Terraform provider. Use when creating PRs, writing or editing documentation (schema descriptions, docs markdown, examples), reviewing code, or adding changelog entries. Covers PR structure, docs style guide, example conventions, and changelog practices.
 ---
 
 # PR and Documentation Standards
@@ -43,6 +43,10 @@ Start data source and resource descriptions with the resource name and a clear o
 ```
 
 ## Examples (`examples/` directory)
+
+### Do Not Pin Provider Versions
+
+Do not pin specific provider versions in examples. This avoids examples becoming outdated and ensures users always get the latest compatible version.
 
 ### Use Variables Consistently
 
