@@ -30,19 +30,13 @@ jobs:
         INPUT_BRANCHES: ${{ inputs.branches }}
       run: |
         if [ -n "$INPUT_BRANCHES" ]; then
-          echo "Using branches from workflow_dispatch input."
           echo "branches=$INPUT_BRANCHES" >> "$GITHUB_OUTPUT"
           exit 0
         fi
-
-        echo "Fetching branches from ruleset ID: $DEV_BRANCHES_RULESET_ID"
         branches=$(gh api "repos/${{ github.repository }}/rulesets/$DEV_BRANCHES_RULESET_ID" --jq '.conditions.ref_name.include' | jq -c '[.[] | sub("^refs/heads/"; "")]')
-
         if [ -z "$branches" ] || [ "$branches" = "null" ]; then
           branches="[]"
         fi
-
-        echo "Resolved branches: $branches"
         echo "branches=$branches" >> "$GITHUB_OUTPUT"
 
   update-branches:
@@ -77,50 +71,42 @@ jobs:
       env:
         BRANCH: ${{ matrix.branch }} # Env var prevents shell injection from API-sourced branch names
       run: |
-        echo "Updating branch: $BRANCH"
-
         if ! git ls-remote --heads origin "$BRANCH" | grep -q "$BRANCH"; then
-          echo "SKIP: Branch $BRANCH does not exist (may have been deleted after merge)."
+          echo "SKIP: Branch does not exist (may have been deleted after merge)."
           echo "has-changes=false" >> "${GITHUB_OUTPUT}"
           echo "skipped=true" >> "${GITHUB_OUTPUT}"
           exit 0
         fi
-
         git fetch origin master
         git fetch origin "$BRANCH"
-
-        # Check if branch is already fully merged into master.
+        # Check if branch has unique commits not in master.
         unmerged_commits=$(git rev-list --count "origin/master..origin/$BRANCH")
         if [ "$unmerged_commits" -eq 0 ]; then
-          echo "SKIP: Branch $BRANCH is fully merged into master. Please remove it from the 'dev branches ruleset' in repo settings."
-          echo "has-changes=false" >> "${GITHUB_OUTPUT}"
-          echo "skipped=true" >> "${GITHUB_OUTPUT}"
-          exit 0
+          # Ancestor of master: just behind, proceed to merge/fast-forward.
+          # Otherwise: fully merged (e.g., via squash merge), skip.
+          if ! git merge-base --is-ancestor "origin/$BRANCH" "origin/master"; then
+            echo "SKIP: Branch is fully merged into master."
+            echo "has-changes=false" >> "${GITHUB_OUTPUT}"
+            echo "skipped=true" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
         fi
-
         git checkout -B "$BRANCH" "origin/$BRANCH"
-
-        # Check if there are commits in master not in dev branch.
         commits_to_merge=$(git rev-list --count "origin/$BRANCH..origin/master")
         if [ "$commits_to_merge" -eq 0 ]; then
-          echo "OK: No commits to merge from master. Branch is already up to date."
           echo "has-changes=false" >> "${GITHUB_OUTPUT}"
+        elif git merge origin/master --no-edit; then
+          echo "has-changes=true" >> "${GITHUB_OUTPUT}"
         else
-          echo "Found $commits_to_merge commits to merge from master."
-          if git merge origin/master --no-edit; then
-            echo "OK: Merge completed successfully with no conflicts."
-            echo "has-changes=true" >> "${GITHUB_OUTPUT}"
-          else
-            echo "ERROR: Merge conflicts detected. Manual intervention required:"
-            echo "1. Perform a manual merge of master into $BRANCH"
-            echo "2. Resolve all conflicts manually"
-            echo "3. Add a bypass in dev branch ruleset settings to allow direct push to $BRANCH"
-            echo "4. Push changes directly to $BRANCH (DO NOT create a PR)"
-            echo "5. Remove the bypass from ruleset settings"
-            echo "NOTE: Do not create a PR - squashed commits will cause the same conflicts to appear again in future updates"
-            git merge --abort
-            exit 1
-          fi
+          echo "ERROR: Merge conflicts detected. Manual intervention required:"
+          echo "1. Perform a manual merge of master into $BRANCH"
+          echo "2. Resolve all conflicts manually"
+          echo "3. Add a bypass in dev branch ruleset settings to allow direct push to $BRANCH"
+          echo "4. Push changes directly to $BRANCH (DO NOT create a PR)"
+          echo "5. Remove the bypass from ruleset settings"
+          echo "NOTE: Do not create a PR - squashed commits will cause the same conflicts to appear again in future updates"
+          git merge --abort
+          exit 1
         fi
 
     - name: Send Slack notification for skipped branch
@@ -137,7 +123,7 @@ jobs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "ℹ️ ${{ github.event.repository.name }}: Dev branch `${{ matrix.branch }}` was skipped (merged or deleted). Please remove it from the '${{ env.DEV_BRANCHES_RULESET_NAME }}' in repo settings. ${{ secrets.SLACK_ONCALL_TAG }}"
+                  "text": "⚠️ ${{ github.event.repository.name }}: Dev branch `${{ matrix.branch }}` was skipped (merged or deleted). Please remove it from the <https://github.com/${{ github.repository }}/settings/rules/${{ env.DEV_BRANCHES_RULESET_ID }}|dev branches ruleset> in repo settings. ${{ secrets.SLACK_ONCALL_TAG }}"
                 }
               }
             ]
@@ -147,18 +133,18 @@ jobs:
       if: steps.merge-check.outputs.has-changes == 'true'
       env:
         BRANCH: ${{ matrix.branch }}
-      run: |
-        echo "Pushing updated branch $BRANCH to remote"
-        git push origin "$BRANCH"
+      run: git push origin "$BRANCH"
 
     - name: Project check
       if: steps.merge-check.outputs.has-changes == 'true'
       id: project-check
+      env:
+        BRANCH: ${{ matrix.branch }}
       run: |
         if make tools verify test; then
-          echo "slack-text=✅ ${{ github.event.repository.name }}: Dev branch \`${{ matrix.branch }}\` merged and pushed with latest changes from master. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
+          echo "slack-text=✅ ${{ github.event.repository.name }}: Dev branch \`$BRANCH\` merged and pushed with latest changes from master. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
         else
-          echo "slack-text=⚠️ ${{ github.event.repository.name }}: Dev branch \`${{ matrix.branch }}\` merged and pushed. This is preferred even if checks failed as there were no merge conflicts. Project checks must be fixed. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
+          echo "slack-text=⚠️ ${{ github.event.repository.name }}: Dev branch \`$BRANCH\` merged and pushed. This is preferred even if checks failed as there were no merge conflicts. Project checks must be fixed. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
         fi
 
     - name: Send Slack notification
