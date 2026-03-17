@@ -4,21 +4,54 @@ on:
   workflow_dispatch:
     inputs:
       branches:
-        description: 'Dev branch names to update from master'
-        default: '["CLOUDP-371552-dev-voyage", "CLOUDP-376263_poc_effective_rep_specs"]'
+        description: 'JSON array of branch names (e.g. ["branch-a", "branch-b"]). Leave empty to use branches from the "dev branches ruleset" in repo settings.'
+        default: ''
   schedule:
     - cron: "0 5 * * 1,4" # workflow runs every Monday and Thursday at 5 AM UTC
 concurrency:
   group: '${{ github.workflow }}'
   cancel-in-progress: false
-   
+
+env:
+  DEV_BRANCHES_RULESET_ID: 5645825 # https://github.com/mongodb/terraform-provider-mongodbatlas/settings/rules/5645825
+
 jobs:
+  fetch-branches:
+    name: Fetch branch list
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      branches: ${{ steps.resolve.outputs.branches }}
+    steps:
+    - name: Resolve branch list
+      id: resolve
+      env:
+        GH_TOKEN: ${{ secrets.APIX_BOT_PAT }}
+        INPUT_BRANCHES: ${{ inputs.branches }}
+      run: |
+        if [ -n "$INPUT_BRANCHES" ]; then
+          echo "Using branches from workflow_dispatch input."
+          echo "branches=$INPUT_BRANCHES" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        echo "Fetching branches from ruleset ID: $DEV_BRANCHES_RULESET_ID"
+        branches=$(gh api "repos/${{ github.repository }}/rulesets/$DEV_BRANCHES_RULESET_ID" --jq '.conditions.ref_name.include' | jq -c '[.[] | sub("^refs/heads/"; "")]')
+
+        if [ -z "$branches" ] || [ "$branches" = "null" ]; then
+          branches="[]"
+        fi
+
+        echo "Resolved branches: $branches"
+        echo "branches=$branches" >> "$GITHUB_OUTPUT"
+
   update-branches:
+    needs: fetch-branches
     strategy:
       max-parallel: 10
       fail-fast: false
       matrix:
-        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-371552-dev-voyage", "CLOUDP-376263_poc_effective_rep_specs"]') }} # scheduled branches go here
+        branch: ${{ fromJSON(needs.fetch-branches.outputs.branches) }}
     name: ${{ matrix.branch }}
     runs-on: ubuntu-latest
     permissions:
@@ -38,35 +71,37 @@ jobs:
       run: |
         git config --local user.email svc-api-experience-integrations-escalation@mongodb.com
         git config --local user.name svc-apix-bot
-    
+
     - name: Merge branch with master
       id: merge-check
+      env:
+        BRANCH: ${{ matrix.branch }} # Env var prevents shell injection from API-sourced branch names
       run: |
-        echo "Updating branch: ${{ matrix.branch }}"
+        echo "Updating branch: $BRANCH"
 
-        if ! git ls-remote --heads origin ${{ matrix.branch }} | grep -q ${{ matrix.branch }}; then
-          echo "SKIP: Branch ${{ matrix.branch }} does not exist (may have been deleted after merge)."
+        if ! git ls-remote --heads origin "$BRANCH" | grep -q "$BRANCH"; then
+          echo "SKIP: Branch $BRANCH does not exist (may have been deleted after merge)."
           echo "has-changes=false" >> "${GITHUB_OUTPUT}"
           echo "skipped=true" >> "${GITHUB_OUTPUT}"
           exit 0
         fi
 
         git fetch origin master
-        git fetch origin ${{ matrix.branch }}
+        git fetch origin "$BRANCH"
 
         # Check if branch is already fully merged into master.
-        unmerged_commits=$(git rev-list --count origin/master..origin/${{ matrix.branch }})
+        unmerged_commits=$(git rev-list --count "origin/master..origin/$BRANCH")
         if [ "$unmerged_commits" -eq 0 ]; then
-          echo "SKIP: Branch ${{ matrix.branch }} is fully merged into master. Please remove it from the branch list in this workflow."
+          echo "SKIP: Branch $BRANCH is fully merged into master. Please remove it from the 'dev branches ruleset' in repo settings."
           echo "has-changes=false" >> "${GITHUB_OUTPUT}"
           echo "skipped=true" >> "${GITHUB_OUTPUT}"
           exit 0
         fi
 
-        git checkout -B ${{ matrix.branch }} origin/${{ matrix.branch }}
+        git checkout -B "$BRANCH" "origin/$BRANCH"
 
         # Check if there are commits in master not in dev branch.
-        commits_to_merge=$(git rev-list --count origin/${{ matrix.branch }}..origin/master)
+        commits_to_merge=$(git rev-list --count "origin/$BRANCH..origin/master")
         if [ "$commits_to_merge" -eq 0 ]; then
           echo "OK: No commits to merge from master. Branch is already up to date."
           echo "has-changes=false" >> "${GITHUB_OUTPUT}"
@@ -77,10 +112,10 @@ jobs:
             echo "has-changes=true" >> "${GITHUB_OUTPUT}"
           else
             echo "ERROR: Merge conflicts detected. Manual intervention required:"
-            echo "1. Perform a manual merge of master into ${{ matrix.branch }}"
+            echo "1. Perform a manual merge of master into $BRANCH"
             echo "2. Resolve all conflicts manually"
-            echo "3. Add a bypass in dev branch ruleset settings to allow direct push to ${{ matrix.branch }}"
-            echo "4. Push changes directly to ${{ matrix.branch }} (DO NOT create a PR)"
+            echo "3. Add a bypass in dev branch ruleset settings to allow direct push to $BRANCH"
+            echo "4. Push changes directly to $BRANCH (DO NOT create a PR)"
             echo "5. Remove the bypass from ruleset settings"
             echo "NOTE: Do not create a PR - squashed commits will cause the same conflicts to appear again in future updates"
             git merge --abort
@@ -102,7 +137,7 @@ jobs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "ℹ️ ${{ github.event.repository.name }}: Dev branch `${{ matrix.branch }}` was skipped (merged or deleted). Please remove it from the branch list in `update-dev-branches.yml`. ${{ secrets.SLACK_ONCALL_TAG }}"
+                  "text": "ℹ️ ${{ github.event.repository.name }}: Dev branch `${{ matrix.branch }}` was skipped (merged or deleted). Please remove it from the '${{ env.DEV_BRANCHES_RULESET_NAME }}' in repo settings. ${{ secrets.SLACK_ONCALL_TAG }}"
                 }
               }
             ]
@@ -110,9 +145,11 @@ jobs:
 
     - name: Push updated branch
       if: steps.merge-check.outputs.has-changes == 'true'
+      env:
+        BRANCH: ${{ matrix.branch }}
       run: |
-        echo "Pushing updated branch ${{ matrix.branch }} to remote"
-        git push origin ${{ matrix.branch }}
+        echo "Pushing updated branch $BRANCH to remote"
+        git push origin "$BRANCH"
 
     - name: Project check
       if: steps.merge-check.outputs.has-changes == 'true'
