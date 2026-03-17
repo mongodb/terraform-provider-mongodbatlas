@@ -142,7 +142,7 @@ jobs:
         BRANCH: ${{ matrix.branch }}
       run: |
         if make tools verify test; then
-          echo "slack-text=✅ ${{ github.event.repository.name }}: Dev branch \`$BRANCH\` merged and pushed with latest changes from master. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
+          echo "slack-text=✅ ${{ github.event.repository.name }}: Dev branch \`$BRANCH\` merged and pushed with latest changes from master. <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
         else
           echo "slack-text=⚠️ ${{ github.event.repository.name }}: Dev branch \`$BRANCH\` merged and pushed. This is preferred even if checks failed as there were no merge conflicts. Project checks must be fixed. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
         fi
