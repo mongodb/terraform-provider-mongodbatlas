@@ -26,6 +26,7 @@ func ApplyTransformationsToResource(resourceConfig *config.Resource, resource *R
 	}
 	applyAliasToDiscriminator(resourceConfig.SchemaOptions.Aliases, resource.Schema.Discriminator, &resource.Schema.Attributes)
 	applyIgnoreValidatorsToDiscriminators(resource.Schema.Discriminator, resource.Schema.Attributes, resourceConfig.SchemaOptions)
+	skipValidationForComputedDiscriminators(resource.Schema.Discriminator, resource.Schema.Attributes)
 	applyAliasToPathParams(&resource.Operations, resourceConfig.SchemaOptions.Aliases)
 	ApplyDeleteOnCreateTimeoutTransformation(resource)
 	ApplyTimeoutTransformation(resource)
@@ -476,6 +477,27 @@ func applyIgnoreValidatorsToNestedDiscriminators(attributes Attributes, schemaOp
 		if nested := attr.NestedObject(); nested != nil {
 			applyIgnoreValidatorsToDiscriminator(nested.Discriminator, schemaOptions, schemaPath)
 			applyIgnoreValidatorsToNestedDiscriminators(nested.Attributes, schemaOptions, schemaPath)
+		}
+	}
+}
+
+func skipValidationForComputedDiscriminators(disc *Discriminator, attrs Attributes) {
+	skipValidationIfComputed(disc, attrs)
+	for i := range attrs {
+		if nested := attrs[i].NestedObject(); nested != nil {
+			skipValidationForComputedDiscriminators(nested.Discriminator, nested.Attributes)
+		}
+	}
+}
+
+func skipValidationIfComputed(disc *Discriminator, attrs Attributes) {
+	if disc == nil {
+		return
+	}
+	for i := range attrs {
+		if attrs[i].TFSchemaName == disc.PropertyName.TFSchemaName && attrs[i].ComputedOptionalRequired == Computed {
+			disc.SkipValidation = true
+			return
 		}
 	}
 }
