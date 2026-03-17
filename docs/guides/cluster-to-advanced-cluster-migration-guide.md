@@ -215,7 +215,7 @@ If a module user upgrades directly from **X to Z** (skipping Y):
 3. No `moved` block exists to tell Terraform these are the same resource.
 4. Terraform plans to **destroy the existing cluster** and **create a new one**.
 
-In this scenario, Terraform does not raise an error. It instead proposes a destroy-and-create plan, so the risk appears in the `terraform plan` output.
+In this scenario, Terraform does not raise an error. It instead proposes a destroy-and-create plan, so the risk appears only in the `terraform plan` output.
 
 ~> **WARNING:** If applied, this plan deletes the existing cluster and creates a new one, which results in data loss and downtime. Always review `terraform plan` output carefully before applying.
 
