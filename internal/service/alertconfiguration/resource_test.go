@@ -290,6 +290,40 @@ func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSAlertConfiguration_addNotification(t *testing.T) {
+	projectID := acc.ProjectIDExecution(t)
+	step1Checks := []resource.TestCheckFunc{
+		checkExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "notification.0.type_name", "EMAIL"),
+		resource.TestCheckResourceAttr(resourceName, "notification.0.email_address", "test@mongodb.com"),
+		resource.TestCheckResourceAttr(resourceName, "notification.0.email_enabled", "false"),
+		resource.TestCheckResourceAttr(resourceName, "notification.0.sms_enabled", "false"),
+	}
+	step2Checks := step1Checks
+	step2Checks = append(step2Checks,
+		resource.TestCheckResourceAttr(resourceName, "notification.1.type_name", "EMAIL"),
+		resource.TestCheckResourceAttr(resourceName, "notification.1.email_address", "ops-team@example.com"),
+		resource.TestCheckResourceAttr(resourceName, "notification.1.email_enabled", "false"),
+		resource.TestCheckResourceAttr(resourceName, "notification.1.sms_enabled", "false"),
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy(),
+		Steps: []resource.TestStep{
+			{
+				Config: configAddNotification(projectID, false),
+				Check:  resource.ComposeAggregateTestCheckFunc(step1Checks...),
+			},
+			{
+				Config: configAddNotification(projectID, true),
+				Check:  resource.ComposeAggregateTestCheckFunc(step2Checks...),
+			},
+		},
+	})
+}
+
 func TestAccConfigRSAlertConfiguration_withoutOptionalAttributes(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
@@ -1496,4 +1530,35 @@ func checkCount(resourceName string) resource.TestCheckFunc {
 
 		return nil
 	}
+}
+
+func configAddNotification(projectID string, twoNotifications bool) string {
+	secondNotification := ""
+	if twoNotifications {
+		secondNotification = `
+			notification {
+				type_name     = "EMAIL"
+				email_address = "ops-team@example.com"
+			}`
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = %[1]q
+			event_type = "CPS_SNAPSHOT_BEHIND"
+			enabled    = true
+
+			notification {
+				type_name     = "EMAIL"
+				email_address = "test@mongodb.com"
+			}
+
+			threshold_config {
+				operator  = "GREATER_THAN"
+				threshold = 48
+				units     = "HOURS"
+			}
+
+			%[2]s
+		}
+	`, projectID, secondNotification)
 }

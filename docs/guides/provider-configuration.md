@@ -186,8 +186,11 @@ We ship binaries but do not prioritize fixes for the following operating system 
 
 - Linux / 386
 - Windows / 386
+- Windows / ARMv8 (AArch64/ARM64)
 - FreeBSD / 386
 - FreeBSD / AMD64
+- FreeBSD / ARMv6
+- FreeBSD / ARMv8 (AArch64/ARM64)
 
 ## Additional Resources
 

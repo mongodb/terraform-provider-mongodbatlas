@@ -76,7 +76,8 @@ moved {
 ```
 
 7. Run `terraform apply` to apply the changes. The `mongodbatlas_cluster` resource will be removed from the Terraform state and the `mongodbatlas_advanced_cluster` resource will be added.
-8. Hashicorp recommends to keep the move block in your configuration file to help track the migrations, however you can delete the `moved` block from your configuration file without any adverse impact.
+
+After applying, the `moved` block remains in your configuration but has no ongoing effect on `terraform plan` or `terraform apply` for the state you just applied. It can still matter for other workspaces or state files for which the move hasn't yet been applied. See [How long should you keep the moved block?](#how-long-should-you-keep-the-moved-block) for detailed guidance on when it is safe to remove it.
 
 ## Migration using import
 
@@ -179,6 +180,58 @@ Alternatively you can use the [Atlas CLI plugin](https://github.com/mongodb-labs
    - variables, for example: `var.project_id`
    - Terraform keywords, for example: `for_each`, `count`, and `depends_on`
 9. Re-run `terraform apply` to ensure you have no planned changes: `No changes. Your infrastructure matches the configuration.`
+
+## How long should you keep the moved block?
+
+`moved` blocks live only in your configuration, not in the Terraform state file. After a successful `terraform apply`, Terraform updates the resource address in state to the new location, but state does not retain the old-to-new mapping. Therefore, the `moved` block is only useful to users who have not yet applied it. The `moved` block is small and has zero runtime cost. You can remove it if you want to simplify your configuration.
+
+### Module maintainers
+
+If you maintain a module consumed by other teams or published publicly, **keep the `moved` block indefinitely**. HashiCorp [strongly recommends](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#removing-moved-blocks) retaining all historical `moved` blocks: "We strongly recommend that you retain all historical moved blocks from earlier versions of your modules to preserve the upgrade path for users of any previous version."
+
+HashiCorp's documentation is also explicit that ["Removing a moved block is a breaking change because any configurations that refer to the old address will plan to delete the existing object instead of move it."](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#removing-moved-blocks) Removal is only safe when you are certain that **every consumer** of your module has successfully run `terraform apply` with the version containing the `moved` block. For public or widely-used modules, this is effectively impossible to verify.
+
+-> **NOTE:** If you use [HCP Terraform](https://developer.hashicorp.com/terraform/cloud-docs), you can check the [explorer](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/explorer) to get an overview of which module versions are currently in use across your organization. If all consumers have upgraded past the version containing the `moved` block, it is safe to remove it.
+
+### Direct resource users
+
+If you manage the resource directly in your root module (not through a shared module), you can safely remove the `moved` block after running `terraform apply` successfully. You control when you run apply, and the move has already been recorded in your state.
+
+We recommend keeping the `moved` block as it serves as documentation of the migration history.
+
+If you use [Terraform workspaces](https://developer.hashicorp.com/terraform/language/state/workspaces) or have multiple state files for the same configuration, ensure that the move has been applied to all of them before removing the `moved` block.
+
+### What happens if you skip the version with the moved block
+
+This scenario applies primarily to module consumers. Consider three module versions:
+
+- **Version X**: uses `mongodbatlas_cluster`.
+- **Version Y**: introduces the `moved` block and `mongodbatlas_advanced_cluster`.
+- **Version Z**: removes the `moved` block, only has `mongodbatlas_advanced_cluster`.
+
+If a module user upgrades directly from **X to Z** (skipping Y):
+
+1. Terraform sees `module.cluster.mongodbatlas_cluster.this` in the state (from version X).
+2. The configuration (version Z) only defines `module.cluster.mongodbatlas_advanced_cluster.this`.
+3. No `moved` block exists to tell Terraform these are the same resource.
+4. Terraform plans to **destroy the existing cluster** and **create a new one**.
+
+In this scenario, Terraform does not raise an error. It instead proposes a destroy-and-create plan, so the risk appears only in the `terraform plan` output.
+
+~> **WARNING:** If applied, this plan deletes the existing cluster and creates a new one. This causes downtime and can lead to data loss. Always review `terraform plan` output carefully before applying.
+
+The `terraform plan` output in this scenario resembles the following output:
+
+```text
+  # module.cluster.mongodbatlas_cluster.this will be destroyed
+  # (because mongodbatlas_cluster.this is not in configuration)
+
+  # module.cluster.mongodbatlas_advanced_cluster.this will be created
+
+Plan: 1 to add, 0 to change, 1 to destroy.
+```
+
+To avoid this, always upgrade through the module version that contains the `moved` block (version Y) before moving to later versions. If you see a `terraform plan` that destroys a cluster and creates a new one after a module upgrade, **do not apply**. Instead, apply the intermediate version containing the `moved` block first, or use `terraform state mv` to manually update the resource address in state.
 
 ## Main Changes Between `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`
 

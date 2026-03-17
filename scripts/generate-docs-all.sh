@@ -74,3 +74,6 @@ for file in docs-out/data-sources/*; do
         fi
     fi
 done
+
+printf "\nPost-processing polymorphic docs...\n"
+go run ./tools/docpostprocess --dir docs
