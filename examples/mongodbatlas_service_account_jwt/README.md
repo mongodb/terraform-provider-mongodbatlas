@@ -7,7 +7,7 @@ In `step-1-token-generator`, the JWT is never written to Terraform state or plan
 ## Prerequisites
 
 - Terraform >= 1.11 (required for write-only attributes in step 1).
-- A MongoDB Atlas Service Account. By default, the JWT is generated using the provider's SA credentials. To use a dedicated SA with specific permissions, see the inline comments in `step-1-token-generator/main.tf`.
+- A MongoDB Atlas Service Account.
 - AWS CLI configured with credentials that have `secretsmanager:CreateSecret`, `secretsmanager:PutSecretValue`, and `secretsmanager:GetSecretValue` permissions.
 
 ## Structure
@@ -58,6 +58,31 @@ terraform apply
 ```
 
 This reads the JWT from Secrets Manager, authenticates the Atlas provider using `access_token`, and creates a project.
+
+## Using a dedicated Service Account for the JWT
+
+By default, the ephemeral resource generates a JWT using the provider's Service Account credentials. To generate a JWT with a different access level, create a dedicated Service Account and pass its credentials explicitly:
+
+```hcl
+resource "mongodbatlas_service_account" "jwt_sa" {
+  org_id                     = var.org_id
+  name                       = "jwt-dedicated-sa"
+  description                = "SA used exclusively for ephemeral JWT generation."
+  roles                      = ["ORG_READ_ONLY"]
+  secret_expires_after_hours = 2160
+}
+
+resource "mongodbatlas_service_account_secret" "jwt_sa" {
+  org_id                     = var.org_id
+  client_id                  = mongodbatlas_service_account.jwt_sa.client_id
+  secret_expires_after_hours = 2160
+}
+
+ephemeral "mongodbatlas_service_account_jwt" "token" {
+  client_id     = mongodbatlas_service_account.jwt_sa.client_id
+  client_secret = mongodbatlas_service_account_secret.jwt_sa.secret
+}
+```
 
 ## Alternative: local-exec provisioner (Terraform >= 1.10)
 
