@@ -4,9 +4,8 @@ This example demonstrates how to configure a log integration to export MongoDB A
 
 ## Prerequisites
 
-- MongoDB Atlas account with Organization Owner or Project Owner role.
+- MongoDB Atlas Service Account with Organization Owner or Project Owner role.
 - AWS account with permissions to create S3 buckets and IAM roles.
-- Terraform >= `1.0`.
 
 ## Resources Created
 
@@ -59,7 +58,7 @@ secret_key          = "your-aws-secret-key"
 
 **2\. Review the Terraform plan.**
 
-Execute the following command and ensure you are happy with the plan.
+Execute the following command and ensure you agree with the plan.
 
 ```bash
 terraform plan
@@ -91,6 +90,5 @@ The `log_types` attribute supports the following values:
 
 ## Notes
 
-- The requesting Service Account or API Key must have the Organization Owner or Project Owner role.
-- MongoDB Cloud will add sub-directories based on the log type under the specified `prefix_path`.
+- Atlas will add sub-directories based on the log type under the specified `prefix_path`.
 - Optional: Use `kms_key` to specify an AWS KMS key ID or ARN for server-side encryption.

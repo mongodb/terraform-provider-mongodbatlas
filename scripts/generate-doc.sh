@@ -98,4 +98,15 @@ else
     mv "docs-out/data-sources/${resource_name}s.md" "docs/data-sources/${resource_name}s.md"
 fi
 
+printf "\nPost-processing polymorphic docs...\n"
+postprocess_files=()
+for f in "docs/resources/${resource_name}.md" "docs/data-sources/${resource_name}.md" "docs/data-sources/${resource_name}s.md"; do
+    if [ -f "$f" ]; then
+        postprocess_files+=("$f")
+    else
+        printf "Skipping post-processing for %s (file not found).\n" "$f"
+    fi
+done
+go run ./tools/docpostprocess "${postprocess_files[@]}"
+
 printf "\nThe documentation for %s has been created.\n" "${resource_name}"

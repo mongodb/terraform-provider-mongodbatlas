@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -81,7 +82,7 @@ func TestAccServiceAccountProjectAssignment_multipleAssignments(t *testing.T) {
 }
 
 func configBasic(orgID string, projectIDs, roles []string) string {
-	rolesStr := fmt.Sprintf("[%s]", `"`+strings.Join(roles, `", "`)+`"`)
+	rolesStr := hcl.StringSliceToHCL(roles)
 
 	var assignmentsStr strings.Builder
 	resourceNames := []string{}
@@ -101,8 +102,7 @@ func configBasic(orgID string, projectIDs, roles []string) string {
 		`, i, projectID, rolesStr)
 		resourceNames = append(resourceNames, fmt.Sprintf("%s_%d", resourceName, i))
 	}
-
-	resourceNamesStr := fmt.Sprintf("[%s]", `"`+strings.Join(resourceNames, `", "`)+`"`)
+	resourceNamesStr := hcl.StringSliceToHCL(resourceNames)
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_service_account" "test" {

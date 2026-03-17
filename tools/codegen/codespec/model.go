@@ -148,6 +148,21 @@ type Attribute struct {
 	ImmutableComputed           bool                     `yaml:"immutable_computed,omitempty"`    // When true, adds UseStateForUnknown plan modifier for computed attributes.
 }
 
+func (a *Attribute) NestedObject() *NestedAttributeObject {
+	switch {
+	case a.ListNested != nil:
+		return &a.ListNested.NestedObject
+	case a.SetNested != nil:
+		return &a.SetNested.NestedObject
+	case a.SingleNested != nil:
+		return &a.SingleNested.NestedObject
+	case a.MapNested != nil:
+		return &a.MapNested.NestedObject
+	default:
+		return nil
+	}
+}
+
 type ComputedOptionalRequired string
 
 const (

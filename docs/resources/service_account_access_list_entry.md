@@ -83,11 +83,9 @@ output "all_access_list_entries" {
 - `request_count` (Number) The number of requests that has originated from this network address.
 
 ## Import
-
-Access List entries for Service Accounts can be imported using the `org_id`, `client_id` and `cidr_block` or `ip_address`, e.g.
-
+Import the Service Account Access List Entry resource by using the Organization ID, Client ID, and CIDR block or IP address in the format `ORG_ID/CLIENT_ID/CIDR_BLOCK` or `ORG_ID/CLIENT_ID/IP_ADDRESS`, e.g.
 ```
-$ terraform import mongodbatlas_service_account_access_list_entry.test 5d0f1f74cf09a29120e123cd-mdb_sa_id_1234567890abcdef12345678-10.242.88.0/21
+$ terraform import mongodbatlas_service_account_access_list_entry.test 5d0f1f74cf09a29120e123cd/mdb_sa_id_1234567890abcdef12345678/10.242.88.0/21
 ```
 
 For more information, see [Add Access List Entries for One Organization Service Account](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createorgserviceaccountaccesslist) in the MongoDB Atlas API documentation.

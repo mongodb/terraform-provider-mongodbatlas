@@ -172,6 +172,10 @@ HashiCorp Terraform versions that are not listed on this table are no longer sup
 
 The MongoDB Atlas Provider supports multiple operating systems and architectures. See the [Provider Configuration Guide](guides/provider-configuration#supported-os-and-architectures) for the complete list of supported platforms.
 
+## Troubleshooting
+
+For common issues and networking diagnostics, see the [Troubleshooting Guide](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/troubleshooting).
+
 ## Helpful Links/Information
 
 [Upgrade Guide for Terraform MongoDB Atlas 0.4.0](https://www.mongodb.com/blog/post/upgrade-guide-for-terraform-mongodb-atlas-040)
@@ -187,7 +191,7 @@ The MongoDB Atlas Provider supports multiple operating systems and architectures
 ## Examples from MongoDB and the Community
 
 <!-- NOTE: the below examples link is updated during the release process, when doing changes in the following sentence verify scripts/update-examples-reference-in-docs.sh is not impacted-->
-We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples)
+We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples)
 in our GitHub repo that will help both beginner and more advanced users.
 
 Have a good example you've created and want to share?

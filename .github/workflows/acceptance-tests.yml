@@ -119,6 +119,9 @@ jobs:
       slack_oncall_tag: ${{ secrets.SLACK_ONCALL_TAG }}
       slack_oncall_tag_stream: ${{ secrets.SLACK_ONCALL_TAG_STREAM }}
       slack_webhook_url_stream: ${{ secrets.SLACK_WEBHOOK_URL_STREAM }}
+      gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      gcp_workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      gcp_service_account_email: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
 
     with:
       terraform_version: ${{ inputs.terraform_version || '1.14.x' }}
