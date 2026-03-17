@@ -230,18 +230,7 @@ The `terraform plan` output in this scenario looks like:
 Plan: 1 to add, 0 to change, 1 to destroy.
 ```
 
-### Mitigation and recovery
-
-If you encounter a plan that shows your cluster being destroyed and recreated after a module upgrade:
-
-1. **Do not run `terraform apply`**. Review the plan output carefully before applying any changes.
-2. **Back up your state** before any major module version upgrade.
-3. **Apply the intermediate version first**: if possible, downgrade to the module version that contains the `moved` block (version Y in the example above), run `terraform apply`, then upgrade to the latest version.
-4. **Manual state move**: if the intermediate version is unavailable, use `terraform state mv` to manually move the resource in state:
-   ```bash
-   terraform state mv 'module.cluster.mongodbatlas_cluster.this' 'module.cluster.mongodbatlas_advanced_cluster.this'
-   ```
-   Then run `terraform plan` to verify no destructive changes are planned.
+To avoid this, always upgrade through the module version that contains the `moved` block (version Y) before moving to later versions. If you see a `terraform plan` that destroys a cluster and creates a new one after a module upgrade, **do not apply**. Instead, apply the intermediate version containing the `moved` block first, or use `terraform state mv` to manually update the resource address in state.
 
 ## Main Changes Between `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster`
 
