@@ -182,7 +182,7 @@ Alternatively you can use the [Atlas CLI plugin](https://github.com/mongodb-labs
 
 ## How long should you keep the moved block?
 
-`moved` blocks live only in your configuration, not in the Terraform state file. After a successful `terraform apply`, Terraform updates the resource address in state to the new location, but state does not retain the old-to-new mapping. This means the `moved` block is only useful to users who have not yet applied it. The `moved` block is small and has zero runtime cost. The only reason to remove it is to simplify your configuration.
+`moved` blocks live only in your configuration, not in the Terraform state file. After a successful `terraform apply`, Terraform updates the resource address in state to the new location, but state does not retain the old-to-new mapping. Therefore, the `moved` block is only useful to users who have not yet applied it. The `moved` block is small and has zero runtime cost. You can remove it if you want to simplify your configuration.
 
 ### Module maintainers
 
