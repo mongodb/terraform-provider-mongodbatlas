@@ -3009,6 +3009,24 @@ func TestAccAdvancedCluster_useAwsTimeBasedSnapshotCopy(t *testing.T) {
 	})
 }
 
+func TestAccAdvancedCluster_useAwsTimeBasedSnapshotCopy_nonAWSError(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 0)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:      configUseAwsTimeBasedSnapshotCopy(projectID, clusterName, true, "GCP", "US_EAST_4"),
+				ExpectError: regexp.MustCompile("AWS_TIME_BASED_SNAPSHOT_COPY_REQUIRES_AWS_NODES"),
+			},
+		},
+	})
+}
+
 func configUseAwsTimeBasedSnapshotCopy(projectID, name string, value bool, providerName, regionName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {

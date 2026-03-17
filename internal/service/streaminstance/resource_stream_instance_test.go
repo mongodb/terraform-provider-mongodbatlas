@@ -12,9 +12,11 @@ import (
 
 func TestAccStreamRSStreamInstance_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_stream_instance.test"
-		projectID    = acc.ProjectIDExecution(t)
-		instanceName = acc.RandomName()
+		resourceName   = "mongodbatlas_stream_instance.test"
+		dataSourceName = "data.mongodbatlas_stream_instance.test"
+		pluralDSName   = "data.mongodbatlas_stream_instances.test"
+		projectID      = acc.ProjectIDExecution(t)
+		instanceName   = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -22,11 +24,8 @@ func TestAccStreamRSStreamInstance_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider), // as of now there are no values that can be updated because only one region is supported
-				Check: resource.ComposeAggregateTestCheckFunc(
-					streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider),
-					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP30"),
-				),
+				Config: streamInstanceWithDataSourcesConfig(projectID, instanceName, region, cloudProvider),
+				Check:  streamInstanceChecksWithDataSources(resourceName, dataSourceName, pluralDSName, instanceName, "SP30"),
 			},
 			{
 				ResourceName:      resourceName,
@@ -40,9 +39,11 @@ func TestAccStreamRSStreamInstance_basic(t *testing.T) {
 
 func TestAccStreamRSStreamInstance_withStreamConfig(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_stream_instance.test"
-		projectID    = acc.ProjectIDExecution(t)
-		instanceName = acc.RandomName()
+		resourceName   = "mongodbatlas_stream_instance.test"
+		dataSourceName = "data.mongodbatlas_stream_instance.test"
+		pluralDSName   = "data.mongodbatlas_stream_instances.test"
+		projectID      = acc.ProjectIDExecution(t)
+		instanceName   = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -50,11 +51,8 @@ func TestAccStreamRSStreamInstance_withStreamConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.StreamInstanceWithStreamConfigConfig(projectID, instanceName, region, cloudProvider, "SP10"), // as of now there are no values that can be updated because only one region is supported
-				Check: resource.ComposeAggregateTestCheckFunc(
-					streamInstanceAttributeChecks(resourceName, instanceName, region, cloudProvider),
-					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP10"),
-				),
+				Config: streamInstanceWithDataSourcesAndStreamConfigConfig(projectID, instanceName, region, cloudProvider, "SP10"),
+				Check:  streamInstanceChecksWithDataSources(resourceName, dataSourceName, pluralDSName, instanceName, "SP10"),
 			},
 			{
 				ResourceName:      resourceName,
@@ -101,4 +99,54 @@ func checkSearchInstanceExists() resource.TestCheckFunc {
 		}
 		return nil
 	}
+}
+
+func streamInstanceChecksWithDataSources(resourceName, dataSourceName, pluralDataSourceName, instanceName, tier string) resource.TestCheckFunc {
+	attrsMap := map[string]string{
+		"instance_name":                      instanceName,
+		"data_process_region.region":         region,
+		"data_process_region.cloud_provider": cloudProvider,
+		"stream_config.tier":                 tier,
+	}
+	attrsSet := []string{"id", "project_id", "hostnames.#"}
+	return resource.ComposeAggregateTestCheckFunc(
+		checkSearchInstanceExists(),
+		acc.CheckRSAndDS(resourceName, &dataSourceName, nil, attrsSet, attrsMap),
+		resource.TestCheckResourceAttrSet(pluralDataSourceName, "project_id"),
+		resource.TestCheckResourceAttrSet(pluralDataSourceName, "total_count"),
+		resource.TestCheckResourceAttrWith(pluralDataSourceName, "results.#", acc.IntGreatThan(0)),
+		resource.TestCheckTypeSetElemNestedAttrs(pluralDataSourceName, "results.*", map[string]string{
+			"instance_name": instanceName,
+		}),
+	)
+}
+
+func streamInstanceWithDataSourcesConfig(projectID, instanceName, region, cloudProvider string) string {
+	return fmt.Sprintf(`
+		%s
+
+		data "mongodbatlas_stream_instance" "test" {
+			project_id = mongodbatlas_stream_instance.test.project_id
+			instance_name = mongodbatlas_stream_instance.test.instance_name
+		}
+
+		data "mongodbatlas_stream_instances" "test" {
+			project_id = mongodbatlas_stream_instance.test.project_id
+		}
+	`, acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider))
+}
+
+func streamInstanceWithDataSourcesAndStreamConfigConfig(projectID, instanceName, region, cloudProvider, tier string) string {
+	return fmt.Sprintf(`
+		%s
+
+		data "mongodbatlas_stream_instance" "test" {
+			project_id = mongodbatlas_stream_instance.test.project_id
+			instance_name = mongodbatlas_stream_instance.test.instance_name
+		}
+
+		data "mongodbatlas_stream_instances" "test" {
+			project_id = mongodbatlas_stream_instance.test.project_id
+		}
+	`, acc.StreamInstanceWithStreamConfigConfig(projectID, instanceName, region, cloudProvider, tier))
 }

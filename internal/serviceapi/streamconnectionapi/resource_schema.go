@@ -20,7 +20,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"authentication": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.",
+				MarkdownDescription: "Optional for type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.",
 				CustomType:          customtypes.NewObjectType[TFAuthenticationModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"client_id": schema.StringAttribute{
@@ -78,7 +78,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"aws": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "AWS configurations for AWS-based connection types.",
+				MarkdownDescription: "Optional for type: AWSKinesisDataStreams, AWSLambda, S3. AWS configurations for AWS-based connection types.",
 				CustomType:          customtypes.NewObjectType[TFAwsModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"role_arn": schema.StringAttribute{
@@ -93,25 +93,25 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"bootstrap_servers": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Comma separated list of server addresses.",
+				MarkdownDescription: "Optional for type: Kafka. Comma separated list of server addresses.",
 			},
 			"cluster_project_id": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.",
+				MarkdownDescription: "Optional for type: Cluster. Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.",
 			},
 			"cluster_name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Name of the cluster configured for this connection.",
+				MarkdownDescription: "Optional for type: Cluster. Name of the cluster configured for this connection.",
 			},
 			"config": schema.MapAttribute{
 				Optional:            true,
-				MarkdownDescription: "A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.",
+				MarkdownDescription: "Optional for type: Kafka. A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.",
 				CustomType:          customtypes.NewMapType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
 			"db_role_to_execute": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "The name of a Built in or Custom DB Role to connect to an Atlas Cluster.",
+				MarkdownDescription: "Optional for type: Cluster. The name of a Built in or Custom DB Role to connect to an Atlas Cluster.",
 				CustomType:          customtypes.NewObjectType[TFDbRoleToExecuteModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"role": schema.StringAttribute{
@@ -131,7 +131,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"headers": schema.MapAttribute{
 				Optional:            true,
-				MarkdownDescription: "A map of key-value pairs that will be passed as headers for the request.",
+				MarkdownDescription: "Optional for type: Https. A map of key-value pairs that will be passed as headers for the request.",
 				CustomType:          customtypes.NewMapType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
@@ -141,7 +141,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"networking": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "Networking configuration for Streams connections.",
+				MarkdownDescription: "Optional for type: AWSKinesisDataStreams, Kafka, S3. Networking configuration for Streams connections.",
 				CustomType:          customtypes.NewObjectType[TFNetworkingModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"access": schema.SingleNestedAttribute{
@@ -171,7 +171,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"schema_registry_provider": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The Schema Registry provider.",
+				MarkdownDescription: "Required for type: SchemaRegistry. The Schema Registry provider.",
 			},
 			"region": schema.StringAttribute{
 				Computed:            true,
@@ -179,12 +179,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"schema_registry_authentication": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "Authentication configuration for Schema Registry.",
+				MarkdownDescription: "Required for type: SchemaRegistry. Authentication configuration for Schema Registry.",
 				CustomType:          customtypes.NewObjectType[TFSchemaRegistryAuthenticationModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"password": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "Password or Private Key for authentication.",
+						MarkdownDescription: "Required for type: USER_INFO. Password or Private Key for authentication.",
 						Sensitive:           true,
 					},
 					"type": schema.StringAttribute{
@@ -204,19 +204,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"username": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "Username or Public Key for authentication.",
+						MarkdownDescription: "Required for type: USER_INFO. Username or Public Key for authentication.",
 					},
 				},
 			},
 			"schema_registry_urls": schema.ListAttribute{
 				Optional:            true,
-				MarkdownDescription: "List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.",
+				MarkdownDescription: "Required for type: SchemaRegistry. List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.",
 				CustomType:          customtypes.NewListType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
 			"security": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.",
+				MarkdownDescription: "Optional for type: Kafka. Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.",
 				CustomType:          customtypes.NewObjectType[TFSecurityModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"broker_public_certificate": schema.StringAttribute{
@@ -273,7 +273,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"url": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The URL to be used for the request.",
+				MarkdownDescription: "Optional for type: Https. The URL to be used for the request.",
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed:            true,

@@ -21,6 +21,10 @@ on:
         description: 'Send a Slack notification if some tests fail.'
         type: boolean
         default: false
+      trigger_test_summary:
+        description: 'Trigger Cursor automation to analyze and summarize test failures.'
+        type: boolean
+        default: false
       use_sa:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
@@ -40,6 +44,10 @@ on:
         required: false
       send_notification:
         description: 'Send the Slack notification if any of the tests fail.'
+        type: boolean
+        default: false
+      trigger_test_summary:
+        description: 'Trigger Cursor automation to analyze and summarize test failures.'
         type: boolean
         default: false
       use_sa:
@@ -65,6 +73,7 @@ jobs:
       is_sun: ${{ steps.set_day.outputs.DAY == 'Sun' }}
       use_sa: ${{ inputs.use_sa == true || (github.event_name == 'schedule' && (steps.set_day.outputs.DAY == 'Tue' || steps.set_day.outputs.DAY == 'Thu' || steps.set_day.outputs.DAY == 'Sat')) }}
       send_notification: ${{ github.event_name == 'schedule' || inputs.send_notification == true }}
+      trigger_test_summary: ${{ github.event_name == 'schedule' || inputs.trigger_test_summary == true }}
     steps:
       - name: set day
         id: set_day
@@ -126,3 +135,23 @@ jobs:
                 }
               ]
             }
+
+  trigger-test-summary:
+    needs: [tests, variables, clean-after]
+    if: ${{ !cancelled() && (needs.tests.result == 'failure' || needs.tests.result == 'cancelled') && needs.variables.outputs.trigger_test_summary == 'true' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Trigger Cursor test summary automation
+        env:
+          CURSOR_WEBHOOK_URL_TEST_SUMMARY: ${{ secrets.CURSOR_WEBHOOK_URL_TEST_SUMMARY }}
+          CURSOR_WEBHOOK_API_KEY_TEST_SUMMARY: ${{ secrets.CURSOR_WEBHOOK_API_KEY_TEST_SUMMARY }}
+        run: |
+          curl -s -X POST "$CURSOR_WEBHOOK_URL_TEST_SUMMARY" \
+            -H "Authorization: Bearer $CURSOR_WEBHOOK_API_KEY_TEST_SUMMARY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"run_id\": \"${{ github.run_id }}\",
+              \"repo\": \"${{ github.repository }}\",
+              \"run_url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+            }"

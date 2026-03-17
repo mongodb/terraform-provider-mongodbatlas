@@ -74,6 +74,7 @@ func (m *TFModel) FromInstanceModel(instanceModel *streaminstance.TFStreamInstan
 	} else {
 		instanceStreamConfigAttrs := instanceModel.StreamConfig.Attributes()
 		tierValue := instanceStreamConfigAttrs["tier"]
+		maxTierSizeValue := instanceStreamConfigAttrs["max_tier_size"]
 
 		workspaceStreamConfig, _ := types.ObjectValue(
 			map[string]attr.Type{
@@ -81,7 +82,7 @@ func (m *TFModel) FromInstanceModel(instanceModel *streaminstance.TFStreamInstan
 				"tier":          types.StringType,
 			},
 			map[string]attr.Value{
-				"max_tier_size": types.StringNull(),
+				"max_tier_size": maxTierSizeValue,
 				"tier":          tierValue,
 			},
 		)
