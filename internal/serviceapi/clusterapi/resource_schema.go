@@ -427,24 +427,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"provider_name": schema.StringAttribute{
 										Computed:            true,
 										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisions the hosts. Set dedicated clusters to `AWS`, `GCP`, `AZURE` or `TENANT`.",
-										Validators: []validator.String{
-											customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
-												Mapping: map[string]customvalidator.VariantDefinition{
-													"AWS": {
-														Allowed: []string{"analytics_auto_scaling", "analytics_specs", "auto_scaling", "effective_analytics_specs", "effective_electable_specs", "effective_read_only_specs", "read_only_specs"},
-													},
-													"AZURE": {
-														Allowed: []string{"analytics_auto_scaling", "analytics_specs", "auto_scaling", "effective_analytics_specs", "effective_electable_specs", "effective_read_only_specs", "read_only_specs"},
-													},
-													"GCP": {
-														Allowed: []string{"analytics_auto_scaling", "analytics_specs", "auto_scaling", "effective_analytics_specs", "effective_electable_specs", "effective_read_only_specs", "read_only_specs"},
-													},
-													"TENANT": {
-														Allowed: []string{"backing_provider_name"},
-													},
-												},
-											}),
-										},
 									},
 									"read_only_specs": schema.SingleNestedAttribute{
 										Computed:            true,

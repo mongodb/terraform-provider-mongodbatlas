@@ -15,13 +15,13 @@ FILES=()
 # 1) docs/index.md
 FILES+=("./docs/index.md")
 
-# 2) collect all *.md and *.md.tmpl under docs/resources, templates/resources,
-#    docs/data-sources, and templates/data-sources
+# 2) collect all *.md and *.md.tmpl under target directories.
 TARGET_DIRS=(
   "./docs/resources"
   "./templates/resources"
   "./docs/data-sources"
   "./templates/data-sources"
+  "./docs/guides"
 )
 
 for DIR in "${TARGET_DIRS[@]}"; do
