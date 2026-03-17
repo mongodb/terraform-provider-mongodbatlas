@@ -34,6 +34,8 @@ The hand-off is automated using `local-exec` provisioners that trigger downstrea
 - An org-level MongoDB Atlas Service Account with permissions to create projects.
 - AWS CLI configured with `secretsmanager:CreateSecret`, `secretsmanager:PutSecretValue`, and `secretsmanager:GetSecretValue` permissions.
 
+**State security:** `step-2-app-bootstrap` and `step-3-app-ongoing` store sensitive SA credentials in their Terraform state (marked sensitive). Protect state files with a remote backend, encryption, and restricted access controls.
+
 ## Usage
 
 Set the required variables in `step-1-platform/terraform.tfvars`:

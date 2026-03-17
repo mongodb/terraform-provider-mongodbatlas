@@ -35,6 +35,7 @@ resource "terraform_data" "trigger_ongoing" {
     environment = {
       TF_VAR_aws_secret_id = aws_secretsmanager_secret.sa_creds.arn
       TF_VAR_project_id    = var.project_id
+      TF_VAR_aws_region    = var.aws_region
     }
   }
 }
