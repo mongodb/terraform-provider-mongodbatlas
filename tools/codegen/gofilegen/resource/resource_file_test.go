@@ -13,27 +13,8 @@ type resourceGenerationTestCase struct {
 	inputModel     codespec.Resource
 }
 
-func runResourceGenerationTests(t *testing.T, testCases map[string]resourceGenerationTestCase) {
-	t.Helper()
-	for testName := range testCases {
-		tc := testCases[testName]
-		t.Run(testName, func(t *testing.T) {
-			result, err := resource.GenerateGoCode(&tc.inputModel)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
-			g.Assert(t, tc.goldenFileName, result)
-		})
-	}
-}
-
 func TestResourceGenerationFromCodeSpec(t *testing.T) {
-	runResourceGenerationTests(t, resourceGenerationTestCases())
-}
-
-func resourceGenerationTestCases() map[string]resourceGenerationTestCase {
-	return map[string]resourceGenerationTestCase{
+	testCases := map[string]resourceGenerationTestCase{
 		"Defining different operation URLs with different path params": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
@@ -164,7 +145,7 @@ func resourceGenerationTestCases() map[string]resourceGenerationTestCase {
 			},
 			goldenFileName: "wait-configuration",
 		},
-		"Defining static request body and resets to default in delete operation": {
+		"Defining static request body in delete operation with resets to defaults": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
@@ -379,5 +360,16 @@ func resourceGenerationTestCases() map[string]resourceGenerationTestCase {
 			},
 			goldenFileName: "id-attributes",
 		},
+	}
+
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			result, err := resource.GenerateGoCode(&tc.inputModel)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
+			g.Assert(t, tc.goldenFileName, result)
+		})
 	}
 }
