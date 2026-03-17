@@ -10,7 +10,7 @@ ephemeral "mongodbatlas_service_account_jwt" "token" {}
 
 resource "terraform_data" "trigger_bootstrap" {
   provisioner "local-exec" {
-    working_dir = "${path.module}/../step-2-app-bootstrap"
+    working_dir = "${path.module}/../phase-1-app-bootstrap"
     command     = "terraform init -input=false && terraform apply -auto-approve"
     environment = {
       TF_VAR_access_token = ephemeral.mongodbatlas_service_account_jwt.token.access_token

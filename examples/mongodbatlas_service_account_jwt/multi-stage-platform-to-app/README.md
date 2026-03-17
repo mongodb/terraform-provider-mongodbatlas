@@ -22,38 +22,38 @@ The hand-off is automated using `local-exec` provisioners that trigger downstrea
 
 ## Structure
 
-| Directory | Phase | Description |
-|---|---|---|
-| `step-1-platform/` | 0 | Creates the Atlas project, generates a JWT, and triggers `step-2-app-bootstrap`. |
-| `step-2-app-bootstrap/` | 1 | Uses the JWT to create a project-scoped SA, stores its credentials in AWS Secrets Manager, and triggers `step-3-app-ongoing`. |
-| `step-3-app-ongoing/` | 2 | Reads SA credentials from Secrets Manager, configures the Atlas provider, and creates a flex cluster. |
+| Directory | Description |
+|---|---|
+| `phase-0-platform/` | Creates the Atlas project, generates a JWT, and triggers `phase-1-app-bootstrap`. |
+| `phase-1-app-bootstrap/` | Uses the JWT to create a project-scoped SA, stores its credentials in AWS Secrets Manager, and triggers `phase-2-app-ongoing`. |
+| `phase-2-app-ongoing/` | Reads SA credentials from Secrets Manager, configures the Atlas provider, and creates a flex cluster. |
 
 ## Prerequisites
 
-- Terraform >= 1.11 (required for write-only attributes in `step-2-app-bootstrap`).
+- Terraform >= 1.11 (required for write-only attributes in `phase-1-app-bootstrap`).
 - An org-level MongoDB Atlas Service Account with permissions to create projects.
 - AWS CLI configured with `secretsmanager:CreateSecret`, `secretsmanager:PutSecretValue`, and `secretsmanager:GetSecretValue` permissions.
 
 ## Usage
 
-Set the required variables in `step-1-platform/terraform.tfvars`:
+Set the required variables in `phase-0-platform/terraform.tfvars`:
 
 - `atlas_client_id`: Org-level Service Account Client ID.
 - `atlas_client_secret`: Org-level Service Account Client Secret.
 - `org_id`: Atlas Organization ID.
 
-Then run a single apply from the `step-1-platform/` directory:
+Then run a single apply from the `phase-0-platform/` directory:
 
 ```bash
-cd step-1-platform
+cd phase-0-platform
 terraform init
 terraform apply
 ```
 
 This triggers the entire chain automatically:
 1. Creates the Atlas project and generates a JWT.
-2. Triggers `step-2-app-bootstrap`, which creates a project-scoped SA and stores its credentials.
-3. Triggers `step-3-app-ongoing`, which reads the SA credentials and creates a flex cluster.
+2. Triggers `phase-1-app-bootstrap`, which creates a project-scoped SA and stores its credentials.
+3. Triggers `phase-2-app-ongoing`, which reads the SA credentials and creates a flex cluster.
 
 ## Mapping to CI/CD Pipelines
 
@@ -70,14 +70,14 @@ The `local-exec` provisioners in this example simulate that trigger injection pa
 Destroy resources in reverse order:
 
 ```bash
-cd step-3-app-ongoing
+cd phase-2-app-ongoing
 terraform destroy
 
-cd ../step-2-app-bootstrap
+cd ../phase-1-app-bootstrap
 terraform destroy
 
-cd ../step-1-platform
+cd ../phase-0-platform
 terraform destroy
 ```
 
-Note: the flex cluster in `step-3-app-ongoing` may take several minutes to destroy.
+Note: the flex cluster in `phase-2-app-ongoing` may take several minutes to destroy.

@@ -30,7 +30,7 @@ resource "aws_secretsmanager_secret_version" "sa_creds" {
 
 resource "terraform_data" "trigger_ongoing" {
   provisioner "local-exec" {
-    working_dir = "${path.module}/../step-3-app-ongoing"
+    working_dir = "${path.module}/../phase-2-app-ongoing"
     command     = "terraform init -input=false && terraform apply -auto-approve"
     environment = {
       TF_VAR_aws_secret_id = aws_secretsmanager_secret.sa_creds.arn
