@@ -7,13 +7,42 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAllVariantsEmpty_AllEmpty(t *testing.T) {
-	mapping := map[string]codespec.DiscriminatorType{
-		"METRIC_A": {Allowed: nil},
-		"METRIC_B": {Allowed: []codespec.DiscriminatorAttrName{}},
-		"METRIC_C": {},
+func TestShouldSkipDiscriminator(t *testing.T) {
+	tests := map[string]struct {
+		mapping  map[string]codespec.DiscriminatorType
+		expected bool
+	}{
+		"all variants empty": {
+			mapping: map[string]codespec.DiscriminatorType{
+				"METRIC_A": {Allowed: nil},
+				"METRIC_B": {Allowed: []codespec.DiscriminatorAttrName{}},
+				"METRIC_C": {},
+			},
+			expected: true,
+		},
+		"single type mapping": {
+			mapping: map[string]codespec.DiscriminatorType{
+				"OnlyType": {Allowed: []codespec.DiscriminatorAttrName{codespec.NewDiscriminatorAttrName("attrA")}},
+			},
+			expected: true,
+		},
+		"empty mapping": {
+			mapping:  map[string]codespec.DiscriminatorType{},
+			expected: true,
+		},
+		"multiple types with non-empty allowed": {
+			mapping: map[string]codespec.DiscriminatorType{
+				"TypeA": {Allowed: []codespec.DiscriminatorAttrName{codespec.NewDiscriminatorAttrName("attrA")}},
+				"TypeB": {Allowed: []codespec.DiscriminatorAttrName{codespec.NewDiscriminatorAttrName("attrB")}},
+			},
+			expected: false,
+		},
 	}
-	assert.True(t, codespec.AllVariantsEmpty(mapping))
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, codespec.ShouldSkipDiscriminator(tc.mapping))
+		})
+	}
 }
 
 func TestMergeDiscriminators_BothNil(t *testing.T) {
