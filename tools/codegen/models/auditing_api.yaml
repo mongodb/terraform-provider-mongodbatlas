@@ -66,6 +66,7 @@ operations:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/auditLog
         static_request_body: '{"enabled": "false"}'
+        resets_to_defaults: true
     create:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/auditLog

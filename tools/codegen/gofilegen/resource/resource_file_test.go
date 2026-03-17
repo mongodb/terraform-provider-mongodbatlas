@@ -13,8 +13,31 @@ type resourceGenerationTestCase struct {
 	inputModel     codespec.Resource
 }
 
+func runResourceGenerationTests(t *testing.T, testCases map[string]resourceGenerationTestCase) {
+	t.Helper()
+	for testName := range testCases {
+		tc := testCases[testName]
+		t.Run(testName, func(t *testing.T) {
+			result, err := resource.GenerateGoCode(&tc.inputModel)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
+			g.Assert(t, tc.goldenFileName, result)
+		})
+	}
+}
+
 func TestResourceGenerationFromCodeSpec(t *testing.T) {
-	testCases := map[string]resourceGenerationTestCase{
+	runResourceGenerationTests(t, resourceGenerationTestCases())
+}
+
+func TestResourceGenerationDeleteBehaviors(t *testing.T) {
+	runResourceGenerationTests(t, deleteOperationTestCases())
+}
+
+func resourceGenerationTestCases() map[string]resourceGenerationTestCase {
+	return map[string]resourceGenerationTestCase{
 		"Defining different operation URLs with different path params": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
@@ -360,15 +383,45 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			goldenFileName: "id-attributes",
 		},
 	}
+}
 
-	for testName, tc := range testCases {
-		t.Run(testName, func(t *testing.T) {
-			result, err := resource.GenerateGoCode(&tc.inputModel)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
-			g.Assert(t, tc.goldenFileName, result)
-		})
+func deleteOperationTestCases() map[string]resourceGenerationTestCase {
+	return map[string]resourceGenerationTestCase{
+		"Defining delete operation that resets to defaults": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Schema: &codespec.Schema{
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName: "project_id",
+							TFModelName:  "ProjectId",
+						},
+					},
+				},
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{
+						HTTPMethod: "POST",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Update: &codespec.APIOperation{
+						HTTPMethod: "PATCH",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Read: &codespec.APIOperation{
+						HTTPMethod: "GET",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Delete: &codespec.APIOperation{
+						HTTPMethod:        "PATCH",
+						Path:              "/api/v1/testname/{projectId}",
+						StaticRequestBody: `{"enabled": false}`,
+						ResetsToDefaults:  true,
+					},
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			},
+			goldenFileName: "resets-to-defaults-delete",
+		},
 	}
 }
