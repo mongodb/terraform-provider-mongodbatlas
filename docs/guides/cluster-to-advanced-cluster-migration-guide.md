@@ -196,7 +196,7 @@ HashiCorp's documentation is also explicit that ["Removing a moved block is a br
 
 If you manage the resource directly in your root module (not through a shared module), you can safely remove the `moved` block after running `terraform apply` successfully. You control when you run apply, and the move has already been recorded in your state.
 
-That said, keeping the `moved` block is harmless and serves as documentation of the migration history.
+We recommend keeping the `moved` block as it serves as documentation of the migration history.
 
 If you use [Terraform workspaces](https://developer.hashicorp.com/terraform/language/state/workspaces) or have multiple state files for the same configuration, ensure all of them have been applied before removing the `moved` block.
 
