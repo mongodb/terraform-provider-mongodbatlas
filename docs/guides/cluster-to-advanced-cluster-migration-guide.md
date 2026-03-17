@@ -219,7 +219,7 @@ In this scenario, Terraform does not raise an error. It instead proposes a destr
 
 ~> **WARNING:** If applied, this plan deletes the existing cluster and creates a new one. This causes downtime and can lead to data loss. Always review `terraform plan` output carefully before applying.
 
-The `terraform plan` output in this scenario looks like:
+The `terraform plan` output in this scenario resembles the following output:
 
 ```text
   # module.cluster.mongodbatlas_cluster.this will be destroyed
