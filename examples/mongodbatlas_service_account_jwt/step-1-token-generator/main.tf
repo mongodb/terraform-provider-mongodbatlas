@@ -1,26 +1,39 @@
-# Step 1: Create a Service Account, generate an ephemeral JWT, and store it
-# in AWS Secrets Manager.
-
-resource "mongodbatlas_service_account" "this" {
-  org_id      = var.org_id
-  name        = var.service_account_name
-  description = "Service Account for the Atlas ephemeral JWT example."
-  roles                      = ["ORG_READ_ONLY"]
-  secret_expires_after_hours = 2160
-}
-
-resource "mongodbatlas_service_account_secret" "this" {
-  org_id                     = var.org_id
-  client_id                  = mongodbatlas_service_account.this.client_id
-  secret_expires_after_hours = 2160
-}
+# Step 1: Generate an ephemeral JWT and store it in AWS Secrets Manager.
+# The JWT uses the provider's Service Account credentials by default.
 
 resource "aws_secretsmanager_secret" "atlas_token" {
   name = var.secret_name
 }
 
 # Generate a short-lived Atlas JWT -- never written to state or plan.
+# By default, this uses the provider's Service Account credentials.
 ephemeral "mongodbatlas_service_account_jwt" "token" {}
+
+# ---------------------------------------------------------------------------
+# Using a specific Service Account for the JWT
+# ---------------------------------------------------------------------------
+# To generate a JWT with a different access level, create a dedicated
+# Service Account and pass its credentials explicitly:
+#
+#   resource "mongodbatlas_service_account" "jwt_sa" {
+#     org_id                     = var.org_id
+#     name                       = "jwt-dedicated-sa"
+#     description                = "SA used exclusively for ephemeral JWT generation."
+#     roles                      = ["ORG_READ_ONLY"]
+#     secret_expires_after_hours = 2160
+#   }
+#
+#   resource "mongodbatlas_service_account_secret" "jwt_sa" {
+#     org_id                     = var.org_id
+#     client_id                  = mongodbatlas_service_account.jwt_sa.client_id
+#     secret_expires_after_hours = 2160
+#   }
+#
+#   ephemeral "mongodbatlas_service_account_jwt" "token" {
+#     client_id     = mongodbatlas_service_account.jwt_sa.client_id
+#     client_secret = mongodbatlas_service_account_secret.jwt_sa.secret
+#   }
+# ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # Approach A: Write-only attribute (Terraform >= 1.11, recommended)

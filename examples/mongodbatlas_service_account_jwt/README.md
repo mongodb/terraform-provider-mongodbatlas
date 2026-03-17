@@ -2,19 +2,19 @@
 
 This example demonstrates how to generate a short-lived Atlas JWT using the `mongodbatlas_service_account_jwt` ephemeral resource and store it securely in AWS Secrets Manager. A second configuration then retrieves the stored token and uses it to authenticate the Atlas provider and create a project.
 
-The JWT is never written to Terraform state or plan. In `step-1-token-generator`, the token is persisted in AWS Secrets Manager using a write-only attribute (`secret_string_wo`), so the value is sent to AWS but excluded from Terraform state on both sides.
+In `step-1-token-generator`, the JWT is never written to Terraform state or plan. The token is persisted in AWS Secrets Manager using a write-only attribute (`secret_string_wo`), so the value is sent to AWS but excluded from Terraform state. In `step-2-token-consumer`, the JWT is read from Secrets Manager via a data source, which means it will be present in step 2's Terraform state (marked as sensitive).
 
 ## Prerequisites
 
 - Terraform >= 1.11 (required for write-only attributes in step 1).
-- An existing MongoDB Atlas Service Account with permissions to create Service Accounts in your organization.
+- A MongoDB Atlas Service Account. By default, the JWT is generated using the provider's SA credentials. To use a dedicated SA with specific permissions, see the inline comments in `step-1-token-generator/main.tf`.
 - AWS CLI configured with credentials that have `secretsmanager:CreateSecret`, `secretsmanager:PutSecretValue`, and `secretsmanager:GetSecretValue` permissions.
 
 ## Structure
 
 | Directory | Purpose |
 |---|---|
-| `step-1-token-generator/` | Creates a Service Account, generates an ephemeral JWT, and stores it in AWS Secrets Manager. |
+| `step-1-token-generator/` | Generates an ephemeral JWT and stores it in AWS Secrets Manager. |
 | `step-2-token-consumer/` | Reads the JWT from Secrets Manager, configures the Atlas provider with it, and creates a project. |
 
 ## Usage
@@ -29,7 +29,6 @@ Set the required variables in `terraform.tfvars`:
 
 - `atlas_client_id`: MongoDB Atlas Service Account Client ID.
 - `atlas_client_secret`: MongoDB Atlas Service Account Client Secret.
-- `org_id`: Organization ID where the Service Account will be created.
 
 Then apply:
 

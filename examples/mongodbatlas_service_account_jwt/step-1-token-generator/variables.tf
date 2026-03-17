@@ -1,5 +1,5 @@
 variable "atlas_client_id" {
-  description = "MongoDB Atlas Service Account Client ID with permissions to create Service Accounts."
+  description = "MongoDB Atlas Service Account Client ID."
   type        = string
 }
 
@@ -7,17 +7,6 @@ variable "atlas_client_secret" {
   description = "MongoDB Atlas Service Account Client Secret."
   type        = string
   sensitive   = true
-}
-
-variable "org_id" {
-  description = "MongoDB Atlas Organization ID."
-  type        = string
-}
-
-variable "service_account_name" {
-  description = "Name for the Service Account created by this step."
-  type        = string
-  default     = "jwt-example-sa"
 }
 
 variable "aws_region" {
