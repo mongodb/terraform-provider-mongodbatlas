@@ -76,7 +76,7 @@ moved {
 ```
 
 7. Run `terraform apply` to apply the changes. The `mongodbatlas_cluster` resource will be removed from the Terraform state and the `mongodbatlas_advanced_cluster` resource will be added.
-8. After applying, the `moved` block remains in your configuration but has no ongoing effect on `terraform plan` or `terraform apply` for the state you just applied. It can still matter for other workspaces or state files that haven't had the move applied yet. See [How long should you keep the moved block?](#how-long-should-you-keep-the-moved-block) for detailed guidance on when it is safe to remove it.
+   After applying, the `moved` block remains in your configuration but has no ongoing effect on `terraform plan` or `terraform apply` for the state you just applied. It can still matter for other workspaces or state files for which  the move hasn't yet been applied. See [How long should you keep the moved block?](#how-long-should-you-keep-the-moved-block) for detailed guidance on when it is safe to remove it.
 
 ## Migration using import
 
