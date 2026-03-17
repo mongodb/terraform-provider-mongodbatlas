@@ -32,10 +32,6 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 	runResourceGenerationTests(t, resourceGenerationTestCases())
 }
 
-func TestResourceGenerationDeleteBehaviors(t *testing.T) {
-	runResourceGenerationTests(t, deleteOperationTestCases())
-}
-
 func resourceGenerationTestCases() map[string]resourceGenerationTestCase {
 	return map[string]resourceGenerationTestCase{
 		"Defining different operation URLs with different path params": {
@@ -168,7 +164,7 @@ func resourceGenerationTestCases() map[string]resourceGenerationTestCase {
 			},
 			goldenFileName: "wait-configuration",
 		},
-		"Defining static request body in delete operation": {
+		"Defining static request body and resets to default in delete operation": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
@@ -197,6 +193,7 @@ func resourceGenerationTestCases() map[string]resourceGenerationTestCase {
 						HTTPMethod:        "PATCH",
 						Path:              "/api/v1/testname/{projectId}",
 						StaticRequestBody: `{"enabled": false}`,
+						ResetsToDefaults:  true,
 					},
 					VersionHeader: "application/vnd.atlas.2024-05-30+json",
 				},
@@ -381,47 +378,6 @@ func resourceGenerationTestCases() map[string]resourceGenerationTestCase {
 				},
 			},
 			goldenFileName: "id-attributes",
-		},
-	}
-}
-
-func deleteOperationTestCases() map[string]resourceGenerationTestCase {
-	return map[string]resourceGenerationTestCase{
-		"Defining delete operation that resets to defaults": {
-			inputModel: codespec.Resource{
-				Name:        "test_name",
-				PackageName: "testname",
-				Schema: &codespec.Schema{
-					Attributes: codespec.Attributes{
-						{
-							TFSchemaName: "project_id",
-							TFModelName:  "ProjectId",
-						},
-					},
-				},
-				Operations: codespec.APIOperations{
-					Create: &codespec.APIOperation{
-						HTTPMethod: "POST",
-						Path:       "/api/v1/testname/{projectId}",
-					},
-					Update: &codespec.APIOperation{
-						HTTPMethod: "PATCH",
-						Path:       "/api/v1/testname/{projectId}",
-					},
-					Read: &codespec.APIOperation{
-						HTTPMethod: "GET",
-						Path:       "/api/v1/testname/{projectId}",
-					},
-					Delete: &codespec.APIOperation{
-						HTTPMethod:        "PATCH",
-						Path:              "/api/v1/testname/{projectId}",
-						StaticRequestBody: `{"enabled": false}`,
-						ResetsToDefaults:  true,
-					},
-					VersionHeader: "application/vnd.atlas.2024-05-30+json",
-				},
-			},
-			goldenFileName: "resets-to-defaults-delete",
 		},
 	}
 }
