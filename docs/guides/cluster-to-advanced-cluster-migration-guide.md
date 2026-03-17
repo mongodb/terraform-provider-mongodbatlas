@@ -198,7 +198,7 @@ If you manage the resource directly in your root module (not through a shared mo
 
 We recommend keeping the `moved` block as it serves as documentation of the migration history.
 
-If you use [Terraform workspaces](https://developer.hashicorp.com/terraform/language/state/workspaces) or have multiple state files for the same configuration, ensure all of them have been applied before removing the `moved` block.
+If you use [Terraform workspaces](https://developer.hashicorp.com/terraform/language/state/workspaces) or have multiple state files for the same configuration, ensure that the move has been applied to all of them before removing the `moved` block.
 
 ### What happens if you skip the version with the moved block
 
