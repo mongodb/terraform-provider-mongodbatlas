@@ -1,8 +1,8 @@
 # MongoDB Atlas Provider -- Ephemeral Service Account JWT with AWS Secrets Manager
 
-This example demonstrates how to generate a short-lived Atlas JWT using the `mongodbatlas_service_account_jwt` ephemeral resource and store it securely in AWS Secrets Manager. A second configuration then retrieves the stored token and uses it to authenticate the Atlas provider and create a project.
+This example demonstrates how to generate a short-lived Atlas JWT using the `mongodbatlas_service_account_jwt` ephemeral resource and store it securely in AWS Secrets Manager. A second configuration then retrieves the stored token and uses it to authenticate the Atlas provider and create a project. This is useful when passing short-lived credentials between separate Terraform configurations, CI/CD pipeline stages, or teams, for example, a platform team generating a JWT for an application team, or a pipeline injecting a scoped token into downstream stages that provision Atlas resources.
 
-In `step-1-token-generator`, the JWT is never written to Terraform state or plan. The token is persisted in AWS Secrets Manager using a write-only attribute (`secret_string_wo`), so the value is sent to AWS but excluded from Terraform state. In `step-2-token-consumer`, the JWT is read from Secrets Manager via a data source, which means it will be present in step 2's Terraform state (marked as sensitive).
+In `step-1-token-generator`, the JWT is never written to Terraform state or plan. The token is persisted in AWS Secrets Manager using a write-only attribute (`secret_string_wo`), so the value is sent to AWS but excluded from Terraform state. In `step-2-token-consumer`, the JWT is read from Secrets Manager via a data source.
 
 ## Prerequisites
 
@@ -75,8 +75,3 @@ cd ../step-1-token-generator
 terraform destroy
 ```
 
-The AWS Secrets Manager secret has a default 30-day recovery window. To delete it immediately, use:
-
-```bash
-aws secretsmanager delete-secret --secret-id <aws_secret_id> --force-delete-without-recovery
-```
