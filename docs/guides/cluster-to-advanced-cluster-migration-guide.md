@@ -182,9 +182,9 @@ Alternatively you can use the [Atlas CLI plugin](https://github.com/mongodb-labs
 
 ## How long should you keep the moved block?
 
-HashiCorp [strongly recommends](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#removing-moved-blocks) retaining all historical `moved` blocks: "We strongly recommend that you retain all historical moved blocks from earlier versions of your modules to preserve the upgrade path for users of any previous version."
+For **module maintainers**, HashiCorp [strongly recommends](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#removing-moved-blocks) retaining all historical `moved` blocks: "We strongly recommend that you retain all historical moved blocks from earlier versions of your modules to preserve the upgrade path for users of any previous version." For direct resource users the guidance differs (see subsections below).
 
-An important detail: `moved` blocks are **not stored in Terraform state**. They are evaluated at plan time from the configuration. After a successful `terraform apply`, the resource address is updated in state, but there is no persistent record of the move mapping (old address to new address). This means the `moved` block is only useful to users who have not yet applied it.
+An important detail: `moved` blocks live only in your configuration, not in the Terraform state file. After a successful `terraform apply`, Terraform updates the resource address in state to the new location, but state does not retain the old-to-new mapping. This means the `moved` block is only useful to users who have not yet applied it.
 
 ### For direct resource users
 
@@ -200,7 +200,7 @@ If you maintain a module consumed by other teams or published publicly, **keep t
 
 Removal is only safe when you are certain that **every consumer** of your module has successfully run `terraform apply` with the version containing the `moved` block. For public or widely-used modules, this is effectively impossible to verify.
 
--> **NOTE:** If you use [HCP Terraform](https://developer.hashicorp.com/terraform/cloud-docs), you can check the [explorer](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/explorer) to see which versions of your module are currently in use. If all consumers have upgraded past the version containing the `moved` block, it is safe to remove it.
+-> **NOTE:** If you use [HCP Terraform](https://developer.hashicorp.com/terraform/cloud-docs), you can check the [explorer](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/explorer) to get an overview of which module versions are currently in use across your organization. If all consumers have upgraded past the version containing the `moved` block, it is safe to remove it.
 
 The `moved` block is small and has zero runtime cost. There is no technical reason to remove it.
 
