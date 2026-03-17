@@ -113,7 +113,7 @@ jobs:
       if: steps.merge-check.outputs.skipped == 'true'
       uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
       with:
-        webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
+        webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
         webhook-type: incoming-webhook
         payload: |
           {
@@ -151,7 +151,7 @@ jobs:
       if: steps.merge-check.outputs.has-changes == 'true'
       uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
       with:
-        webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
+        webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
         webhook-type: incoming-webhook
         payload: |
           {
@@ -176,7 +176,7 @@ jobs:
       - name: Send Slack notification on failure
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
             {
