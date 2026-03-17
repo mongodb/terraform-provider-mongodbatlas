@@ -115,7 +115,6 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	}
 	reqHandle := deleteRequest(r, r.Client, &state, &resp.Diagnostics)
 	autogen.HandleDelete(ctx, *reqHandle)
-	resp.Diagnostics.AddWarning("Delete resets resource to default settings", "This resource does not perform a true delete. Instead, the delete operation resets the resource configuration to its default values through an API call.")
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -152,5 +151,6 @@ func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *d
 			Method:        "PATCH",
 		},
 		StaticRequestBody: `{"enabled": "false"}`,
+		ResetsToDefaults:  true,
 	}
 }
