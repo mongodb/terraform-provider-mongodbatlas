@@ -217,7 +217,7 @@ If a module user upgrades directly from **X to Z** (skipping Y):
 
 In this scenario, Terraform does not raise an error. It instead proposes a destroy-and-create plan, so the risk appears only in the `terraform plan` output.
 
-~> **WARNING:** If applied, this plan deletes the existing cluster and creates a new one, which results in data loss and downtime. Always review `terraform plan` output carefully before applying.
+~> **WARNING:** If applied, this plan deletes the existing cluster and creates a new one. This causes downtime and can lead to data loss. Always review `terraform plan` output carefully before applying.
 
 The `terraform plan` output in this scenario looks like:
 
