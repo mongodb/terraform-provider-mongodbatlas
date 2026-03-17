@@ -154,7 +154,7 @@ output "mongodbatlas_cluster" {
 > **Warning:** This step removes the `moved` block, which is a [breaking change](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#removing-moved-blocks) per HashiCorp's documentation.
 >
 > - Any module consumer who has not yet applied a version containing the `moved` block (v2 or v3) and upgrades directly to v4 will see Terraform plan to **destroy the existing cluster and create a new one**.
-> - If applied, this plan causes data loss and downtime.
+> - If applied, this causes downtime and can lead to data loss.
 > - HashiCorp strongly recommends retaining all historical `moved` blocks indefinitely.
 > - Only remove the `moved` block if you are certain that all consumers have successfully applied the move.
 > - If you use [HCP Terraform](https://developer.hashicorp.com/terraform/cloud-docs), check the [explorer](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/explorer) to verify which module versions are currently in use.
