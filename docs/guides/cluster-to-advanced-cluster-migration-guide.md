@@ -204,9 +204,9 @@ Removal is only safe when you are certain that **every consumer** of your module
 
 The `moved` block is small and has zero runtime cost. There is no technical reason to remove it.
 
-### Worst case: skipping the version with the moved block
+### What happens if you skip the version with the moved block
 
-This is the most dangerous scenario and applies primarily to module consumers. Consider three module versions:
+This scenario applies primarily to module consumers. Consider three module versions:
 
 - **Version X**: uses `mongodbatlas_cluster`.
 - **Version Y**: introduces the `moved` block and `mongodbatlas_advanced_cluster`.
@@ -219,7 +219,7 @@ If a module user upgrades directly from **X to Z** (skipping Y):
 3. No `moved` block exists to tell Terraform these are the same resource.
 4. Terraform plans to **destroy the existing cluster** and **create a new one**.
 
-~> **WARNING:** This results in **data loss and downtime**. The existing cluster (with all its data) is deleted and a brand new empty cluster is created. Always review `terraform plan` output carefully before applying.
+~> **WARNING:** If applied, this plan deletes the existing cluster and creates a new one, which results in data loss and downtime. Always review `terraform plan` output carefully before applying.
 
 The `terraform plan` output in this scenario looks like:
 
