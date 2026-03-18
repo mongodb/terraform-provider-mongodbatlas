@@ -665,7 +665,7 @@ resources:
       method: PATCH
       wait:
         <<: *search-index-create-wait
-    delete: # Not a LRO (long-running operation).
+    delete:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
       method: DELETE
       wait:
