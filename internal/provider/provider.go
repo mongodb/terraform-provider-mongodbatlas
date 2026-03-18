@@ -2,23 +2,6 @@ package provider
 
 import (
 	"context"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/alertconfigurationapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/auditingapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusterapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusteroldapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/controlplaneipaddressesapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/customdbroleapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/databaseuserapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/maintenancewindowapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectsettingsapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/pushbasedlogexportapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/resourcepolicyapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/searchdeploymentapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/searchindexapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/streamconnectionapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/streaminstanceapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/streamprocessorapi"
 	"log"
 	"slices"
 
@@ -283,9 +266,6 @@ func applyGovBaseURLIfNeeded(providerBaseURL string, providerIsMongodbGovCloud b
 
 func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.DataSource {
 	dataSources := []func() datasource.DataSource{
-		alertconfigurationapi.DataSource,
-		alertconfigurationapi.PluralDataSource,
-		controlplaneipaddressesapi.DataSource,
 		project.DataSource,
 		project.PluralDataSource,
 		databaseuser.DataSource,
@@ -356,22 +336,6 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 
 func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Resource {
 	resources := []func() resource.Resource{
-		alertconfigurationapi.Resource,
-		auditingapi.Resource,
-		clusterapi.Resource,
-		clusteroldapi.Resource,
-		customdbroleapi.Resource,
-		databaseuserapi.Resource,
-		maintenancewindowapi.Resource,
-		projectapi.Resource,
-		projectsettingsapi.Resource,
-		pushbasedlogexportapi.Resource,
-		resourcepolicyapi.Resource,
-		searchdeploymentapi.Resource,
-		searchindexapi.Resource,
-		streamconnectionapi.Resource,
-		streaminstanceapi.Resource,
-		streamprocessorapi.Resource,
 		project.Resource,
 		logintegration.Resource,
 		encryptionatrest.Resource,
