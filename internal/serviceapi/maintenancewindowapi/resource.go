@@ -150,5 +150,6 @@ func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *d
 			PathParams:    pathParams,
 			Method:        "DELETE",
 		},
+		ResetsToDefaults: true,
 	}
 }

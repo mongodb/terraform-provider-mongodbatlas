@@ -71,6 +71,7 @@ type APIOperation struct {
 	HTTPMethod        string `yaml:"http_method"`
 	Path              string `yaml:"path"`
 	StaticRequestBody string `yaml:"static_request_body,omitempty"`
+	ResetsToDefaults  bool   `yaml:"resets_to_defaults,omitempty"`
 }
 
 type Wait struct {
