@@ -21,7 +21,7 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.14.0
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20260216084555-96ab07112d0d
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20260311084531-12f9ff8d8cf5
 	github.com/pb33f/libopenapi v0.34.1
 	github.com/sebdah/goldie/v2 v2.8.0
 	github.com/spf13/cast v1.10.0
@@ -44,7 +44,7 @@ require (
 	github.com/hashicorp/terraform-json v0.27.2
 	github.com/hashicorp/terraform-plugin-framework-jsontypes v0.2.0
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
-	go.mongodb.org/atlas-sdk/v20250312014 v20250312014.0.0
+	go.mongodb.org/atlas-sdk/v20250312016 v20250312016.0.0
 	golang.org/x/oauth2 v0.35.0
 )
 

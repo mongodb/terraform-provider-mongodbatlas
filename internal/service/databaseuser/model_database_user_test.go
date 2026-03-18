@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 )
 
 var (
@@ -71,7 +71,7 @@ var (
 		OidcAuthType: &oidCAuthType,
 		LdapAuthType: &ldapAuthType,
 		AwsIAMType:   &awsIAMType,
-		Roles:        &[]admin.DatabaseUserRole{sdkRole},
+		Roles:        []admin.DatabaseUserRole{sdkRole},
 		Labels:       &[]admin.ComponentLabel{sdkLabel},
 		Scopes:       &[]admin.UserScope{sdkScope},
 	}
@@ -84,7 +84,7 @@ var (
 		OidcAuthType: &oidCAuthType,
 		LdapAuthType: &ldapAuthType,
 		AwsIAMType:   &awsIAMType,
-		Roles:        &[]admin.DatabaseUserRole{sdkRole},
+		Roles:        []admin.DatabaseUserRole{sdkRole},
 		Labels:       &[]admin.ComponentLabel{sdkLabel},
 		Scopes:       &[]admin.UserScope{sdkScope},
 	}
@@ -294,19 +294,19 @@ func TestNewTFLabelsModel(t *testing.T) {
 
 func TestNewMongoDBAtlasRoles(t *testing.T) {
 	testCases := []struct {
-		expectedResult *[]admin.DatabaseUserRole
+		expectedResult []admin.DatabaseUserRole
 		name           string
 		currentRoles   []*databaseuser.TfRoleModel
 	}{
 		{
 			name:           "Success DatabaseUserRole",
 			currentRoles:   []*databaseuser.TfRoleModel{&tfUserRole},
-			expectedResult: &[]admin.DatabaseUserRole{sdkRole},
+			expectedResult: []admin.DatabaseUserRole{sdkRole},
 		},
 		{
 			name:           "Empty DatabaseUserRole",
 			currentRoles:   []*databaseuser.TfRoleModel{},
-			expectedResult: &[]admin.DatabaseUserRole{},
+			expectedResult: []admin.DatabaseUserRole{},
 		},
 	}
 

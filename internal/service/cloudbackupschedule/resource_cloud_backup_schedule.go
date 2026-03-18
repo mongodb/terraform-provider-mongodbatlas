@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -631,15 +631,15 @@ func isCopySettingsNonEmptyOrChanged(d *schema.ResourceData) bool {
 	return len(copySettings) > 0 || d.HasChange("copy_settings")
 }
 
-func getRequestPolicies(policiesItem []admin.DiskBackupApiPolicyItem, respPolicies []admin.AdvancedDiskBackupSnapshotSchedulePolicy) *[]admin.AdvancedDiskBackupSnapshotSchedulePolicy {
+func getRequestPolicies(policiesItem []admin.DiskBackupApiPolicyItem, respPolicies []admin.AdvancedDiskBackupSnapshotSchedulePolicy) []admin.AdvancedDiskBackupSnapshotSchedulePolicy {
 	if len(policiesItem) > 0 {
 		policy := admin.AdvancedDiskBackupSnapshotSchedulePolicy{
-			PolicyItems: &policiesItem,
+			PolicyItems: policiesItem,
 		}
 		if len(respPolicies) == 1 {
 			policy.Id = respPolicies[0].Id
 		}
-		return &[]admin.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
+		return []admin.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
 	}
 	return nil
 }

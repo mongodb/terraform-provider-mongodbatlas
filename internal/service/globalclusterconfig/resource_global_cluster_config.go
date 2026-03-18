@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -335,7 +335,7 @@ func newCustomZoneMapping(tfMap map[string]any) *admin.ZoneMapping {
 	return apiObject
 }
 
-func newCustomZoneMappings(tfList []any) *[]admin.ZoneMapping {
+func newCustomZoneMappings(tfList []any) []admin.ZoneMapping {
 	if len(tfList) == 0 {
 		return nil
 	}
@@ -353,7 +353,7 @@ func newCustomZoneMappings(tfList []any) *[]admin.ZoneMapping {
 		}
 	}
 
-	return &apiObjects
+	return apiObjects
 }
 
 func addManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, add []any, projectID, clusterName string) error {

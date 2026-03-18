@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 )
 
 func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescriptionValue types.String, plan *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
@@ -200,7 +200,7 @@ func NewTFRolesModel(roles []admin.DatabaseUserRole) []TfRoleModel {
 	return out
 }
 
-func NewMongoDBAtlasRoles(roles []*TfRoleModel) *[]admin.DatabaseUserRole {
+func NewMongoDBAtlasRoles(roles []*TfRoleModel) []admin.DatabaseUserRole {
 	out := make([]admin.DatabaseUserRole, len(roles))
 	for i, v := range roles {
 		out[i] = admin.DatabaseUserRole{
@@ -209,5 +209,5 @@ func NewMongoDBAtlasRoles(roles []*TfRoleModel) *[]admin.DatabaseUserRole {
 			CollectionName: v.CollectionName.ValueStringPointer(),
 		}
 	}
-	return &out
+	return out
 }

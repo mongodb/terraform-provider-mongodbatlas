@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 
 	"github.com/stretchr/testify/require"
 
@@ -186,10 +186,6 @@ func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, clie
 	if clustersRemoved > 0 {
 		changes = append(changes, fmt.Sprintf("removed %d clusters", clustersRemoved))
 	}
-	serverlessClustersRemoved := removeServerlessClusters(ctx, t, dryRun, client, projectID)
-	if serverlessClustersRemoved > 0 {
-		changes = append(changes, fmt.Sprintf("removed %d serverless clusters", serverlessClustersRemoved))
-	}
 	peeringsRemoved := removeNetworkPeering(ctx, t, dryRun, client, projectID)
 	if peeringsRemoved > 0 {
 		changes = append(changes, fmt.Sprintf("removed %d peerings", peeringsRemoved))
@@ -276,27 +272,6 @@ func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admi
 		}
 	}
 	require.Empty(t, deleteFailures, strings.Join(deleteFailures, "\n"))
-	return len(clustersResults)
-}
-
-func removeServerlessClusters(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
-	t.Helper()
-	clusters, _, err := client.ServerlessInstancesApi.ListServerlessInstances(ctx, projectID).ItemsPerPage(itemsPerPage).Execute()
-	require.NoError(t, err)
-	clustersResults := clusters.GetResults()
-	for i := range clustersResults {
-		c := clustersResults[i]
-		cName := c.GetName()
-		t.Logf("delete serverless cluster %s", cName)
-		if !dryRun {
-			_, _, err = client.ServerlessInstancesApi.DeleteServerlessInstance(ctx, projectID, cName).Execute()
-			if admin.IsErrorCode(err, "SERVERLESS_INSTANCE_ALREADY_REQUESTED_DELETION") {
-				t.Logf("serverless cluster %s already requested deletion", cName)
-				continue
-			}
-			require.NoError(t, err)
-		}
-	}
 	return len(clustersResults)
 }
 

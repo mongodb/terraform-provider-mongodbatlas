@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 )
 
 const (
@@ -96,7 +96,7 @@ func TestStreamInstancesSDKToTFModel(t *testing.T) {
 		{
 			name: "Complete SDK response with configured page options",
 			SDKResp: &admin.PaginatedApiStreamsTenant{
-				Results: &[]admin.StreamsTenant{
+				Results: []admin.StreamsTenant{
 					{
 						Id: new(dummyStreamInstanceID),
 						DataProcessRegion: &admin.StreamsDataProcessRegion{
@@ -138,7 +138,7 @@ func TestStreamInstancesSDKToTFModel(t *testing.T) {
 		{
 			name: "Without defining page options",
 			SDKResp: &admin.PaginatedApiStreamsTenant{
-				Results:    &[]admin.StreamsTenant{},
+				Results:    []admin.StreamsTenant{},
 				TotalCount: new(0),
 			},
 			providedConfig: &streaminstance.TFStreamInstancesModel{

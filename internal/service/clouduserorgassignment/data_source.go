@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
@@ -67,12 +67,12 @@ func (d *cloudUserOrgAssignmentDS) Read(ctx context.Context, req datasource.Read
 			return
 		}
 
-		if usersResp == nil || usersResp.Results == nil || len(*usersResp.Results) == 0 {
+		if len(usersResp.GetResults()) == 0 {
 			resp.Diagnostics.AddError("resource not found", "no user found with the specified username")
 			return
 		}
 
-		orgUser = &(*usersResp.Results)[0]
+		orgUser = &usersResp.Results[0]
 	}
 
 	tfModel, diags := NewTFModel(ctx, orgUser, cloudUserOrgAssignmentConfig.OrgId.ValueString())

@@ -9,8 +9,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
-	"go.mongodb.org/atlas-sdk/v20250312014/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/mockadmin"
 )
 
 var (
@@ -89,7 +89,7 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Successful but with at least one cluster not idle",
-			mockCluster:   &admin.PaginatedClusterDescription20240805{Results: &advancedClusters},
+			mockCluster:   &admin.PaginatedClusterDescription20240805{Results: advancedClusters},
 			mockResponse:  &http.Response{StatusCode: http.StatusOK},
 			expectedError: false,
 			expectedResult: Result{
