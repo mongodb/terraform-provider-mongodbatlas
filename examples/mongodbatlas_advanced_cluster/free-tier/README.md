@@ -13,6 +13,8 @@ To run this example, ensure you have the following tools:
 
 ## Procedure
 
+Follow the next steps to run this example:
+
 1. Set Up your MongoDB Atlas Credentials
 
    Create a ``terraform.tfvars`` file with your credentials:
