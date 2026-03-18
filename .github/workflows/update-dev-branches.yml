@@ -78,7 +78,7 @@ jobs:
           exit 0
         fi
         git fetch origin master
-        git fetch origin -- "$BRANCH"
+        git fetch origin "$BRANCH"
         # Check if branch has unique commits not in master.
         unmerged_commits=$(git rev-list --count "origin/master..origin/$BRANCH")
         if [ "$unmerged_commits" -eq 0 ]; then
