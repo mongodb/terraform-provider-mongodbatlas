@@ -167,7 +167,7 @@ func (d *atlasUsersDS) Schema(ctx context.Context, req datasource.SchemaRequest,
 }
 
 func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	connV2 := d.Client.AtlasV220241113
+	connV220241113 := d.Client.AtlasV220241113
 
 	var atlasUsersConfig tfAtlasUsersDSModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &atlasUsersConfig)...)
@@ -188,7 +188,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 	switch {
 	case !atlasUsersConfig.ProjectID.IsNull():
 		projectID := atlasUsersConfig.ProjectID.ValueString()
-		apiResp, _, err := connV2.ProjectsApi.ListProjectUsersWithParams(ctx, &admin20241113.ListProjectUsersApiParams{
+		apiResp, _, err := connV220241113.ProjectsApi.ListProjectUsersWithParams(ctx, &admin20241113.ListProjectUsersApiParams{
 			GroupId:      projectID,
 			PageNum:      conversion.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
 			ItemsPerPage: conversion.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
@@ -201,7 +201,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 		totalCount = *apiResp.TotalCount
 	case !atlasUsersConfig.TeamID.IsNull() && !atlasUsersConfig.OrgID.IsNull():
 		teamID := atlasUsersConfig.TeamID.ValueString()
-		apiResp, _, err := connV2.TeamsApi.ListTeamUsersWithParams(ctx, &admin20241113.ListTeamUsersApiParams{
+		apiResp, _, err := connV220241113.TeamsApi.ListTeamUsersWithParams(ctx, &admin20241113.ListTeamUsersApiParams{
 			OrgId:        atlasUsersConfig.OrgID.ValueString(),
 			TeamId:       teamID,
 			PageNum:      conversion.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
@@ -215,7 +215,7 @@ func (d *atlasUsersDS) Read(ctx context.Context, req datasource.ReadRequest, res
 		totalCount = *apiResp.TotalCount
 	default: // only org_id is defined
 		orgID := atlasUsersConfig.OrgID.ValueString()
-		apiResp, _, err := connV2.OrganizationsApi.ListOrganizationUsersWithParams(ctx, &admin20241113.ListOrganizationUsersApiParams{
+		apiResp, _, err := connV220241113.OrganizationsApi.ListOrganizationUsersWithParams(ctx, &admin20241113.ListOrganizationUsersApiParams{
 			OrgId:        atlasUsersConfig.OrgID.ValueString(),
 			PageNum:      conversion.Int64PtrToIntPtr(atlasUsersConfig.PageNum.ValueInt64Pointer()),
 			ItemsPerPage: conversion.Int64PtrToIntPtr(atlasUsersConfig.ItemsPerPage.ValueInt64Pointer()),
