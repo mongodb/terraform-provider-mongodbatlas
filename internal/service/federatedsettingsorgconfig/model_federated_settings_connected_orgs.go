@@ -4,7 +4,7 @@ import (
 	"cmp"
 	"slices"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 )
 
 func compareRoleMappingsByGroupName(a, b admin.AuthFederationRoleMapping) int {
