@@ -120,6 +120,7 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/auditLog
       method: PATCH
       static_request_body: '{"enabled": "false"}'
+      resets_to_defaults: true
     version_header: application/vnd.atlas.2023-01-01+json
 
   cluster_old_api:
@@ -589,6 +590,7 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
       method: DELETE
+      resets_to_defaults: true
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
       overrides:
