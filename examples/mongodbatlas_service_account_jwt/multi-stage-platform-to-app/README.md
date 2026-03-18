@@ -57,7 +57,7 @@ This triggers the entire chain automatically:
 
 ## Mapping to CI/CD Pipelines
 
-In a real deployment, each phase maps to a separate CI/CD pipeline stage:
+In a real deployment, each phase can map to a separate CI/CD pipeline stage:
 
 - **Platform pipeline** creates the project and JWT, then triggers the app pipeline with the JWT as a masked runtime variable (e.g., GitHub Actions `workflow_dispatch` secret, GitLab CI trigger variable).
 - **App bootstrap pipeline** receives the JWT, creates the project SA, and stores credentials in the app team's own secret store.
@@ -65,19 +65,3 @@ In a real deployment, each phase maps to a separate CI/CD pipeline stage:
 
 The `local-exec` provisioners in this example simulate that trigger injection pattern.
 
-## Cleanup
-
-Destroy resources in reverse order:
-
-```bash
-cd phase-2-app-ongoing
-terraform destroy
-
-cd ../phase-1-app-bootstrap
-terraform destroy
-
-cd ../phase-0-platform
-terraform destroy
-```
-
-Note: the flex cluster in `phase-2-app-ongoing` may take several minutes to destroy.
