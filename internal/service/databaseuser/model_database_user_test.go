@@ -294,19 +294,19 @@ func TestNewTFLabelsModel(t *testing.T) {
 
 func TestNewMongoDBAtlasRoles(t *testing.T) {
 	testCases := []struct {
-		expectedResult *[]admin.DatabaseUserRole
+		expectedResult []admin.DatabaseUserRole
 		name           string
 		currentRoles   []*databaseuser.TfRoleModel
 	}{
 		{
 			name:           "Success DatabaseUserRole",
 			currentRoles:   []*databaseuser.TfRoleModel{&tfUserRole},
-			expectedResult: &[]admin.DatabaseUserRole{sdkRole},
+			expectedResult: []admin.DatabaseUserRole{sdkRole},
 		},
 		{
 			name:           "Empty DatabaseUserRole",
 			currentRoles:   []*databaseuser.TfRoleModel{},
-			expectedResult: &[]admin.DatabaseUserRole{},
+			expectedResult: []admin.DatabaseUserRole{},
 		},
 	}
 
