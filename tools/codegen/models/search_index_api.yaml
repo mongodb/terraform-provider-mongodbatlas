@@ -1320,9 +1320,9 @@ operations:
                 - DELETING
             target_states:
                 - DELETED
-            timeout_seconds: 10800
-            min_timeout_seconds: 30
-            delay_seconds: 30
+            timeout_seconds: 300
+            min_timeout_seconds: 5
+            delay_seconds: 5
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}
     create:
