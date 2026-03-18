@@ -39,6 +39,10 @@ terraform apply
 
 Note the `aws_secret_id` output, you will need it for step 2.
 
+#### Alternative: local-exec provisioner (Terraform >= 1.10)
+
+If you are on Terraform 1.10 or your cloud provider does not yet support write-only attributes, see the inline comments in `step-1-token-generator/main.tf` for instructions on switching to a `local-exec` provisioner approach.
+
 ### Step 2: Consume the token
 
 ```bash
@@ -83,20 +87,3 @@ ephemeral "mongodbatlas_service_account_jwt" "token" {
   client_secret = mongodbatlas_service_account_secret.jwt_sa.secret
 }
 ```
-
-## Alternative: local-exec provisioner (Terraform >= 1.10)
-
-If you are on Terraform 1.10 or your cloud provider does not yet support write-only attributes, see the inline comments in `step-1-token-generator/main.tf` for instructions on switching to a `local-exec` provisioner approach.
-
-## Cleanup
-
-Destroy resources in reverse order:
-
-```bash
-cd step-2-token-consumer
-terraform destroy
-
-cd ../step-1-token-generator
-terraform destroy
-```
-
