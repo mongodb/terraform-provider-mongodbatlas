@@ -3,7 +3,7 @@ package clean
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 )
 
 // RemoveStreamInstances deletes all stream instances in the project.
@@ -14,7 +14,7 @@ func RemoveStreamInstances(ctx context.Context, dryRun bool, client *admin.APICl
 		return 0, err
 	}
 
-	for _, instance := range *streamInstances.Results {
+	for _, instance := range streamInstances.GetResults() {
 		instanceName := *instance.Name
 
 		if !dryRun {
@@ -25,7 +25,7 @@ func RemoveStreamInstances(ctx context.Context, dryRun bool, client *admin.APICl
 					return 0, spErr
 				}
 
-				for _, processor := range *streamProcessors.Results {
+				for _, processor := range streamProcessors.GetResults() {
 					_, err = client.StreamsApi.DeleteStreamProcessor(ctx, projectID, instanceName, processor.Name).Execute()
 					if err != nil {
 						return 0, err
@@ -41,5 +41,5 @@ func RemoveStreamInstances(ctx context.Context, dryRun bool, client *admin.APICl
 			}
 		}
 	}
-	return len(*streamInstances.Results), nil
+	return len(streamInstances.GetResults()), nil
 }

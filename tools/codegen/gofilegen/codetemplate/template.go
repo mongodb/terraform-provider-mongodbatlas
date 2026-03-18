@@ -33,11 +33,11 @@ var pluralDataSourceFileTemplate string
 var pluralDataSourceSchemaFileTemplate string
 
 type ResourceFileInputs struct {
+	MoveState     *MoveState
 	PackageName   string
 	ResourceName  string
+	IDAttributes  []string
 	APIOperations APIOperations
-	MoveState     *MoveState
-	IDAttributes  []string // e.g. ["project_id", "name"]
 }
 
 type APIOperations struct {
@@ -54,6 +54,7 @@ type Operation struct {
 	HTTPMethod        string
 	StaticRequestBody string
 	PathParams        []Param
+	ResetsToDefaults  bool
 }
 
 type Wait struct {

@@ -30,6 +30,7 @@ type APIOperation struct {
 	Method            string `yaml:"method"`
 	StaticRequestBody string `yaml:"static_request_body"`
 	SchemaIgnore      bool   `yaml:"schema_ignore"`
+	ResetsToDefaults  bool   `yaml:"resets_to_defaults"`
 }
 
 type Wait struct {

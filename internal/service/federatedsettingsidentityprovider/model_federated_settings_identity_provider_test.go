@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 
 	"github.com/stretchr/testify/assert"
 
@@ -81,7 +81,7 @@ var (
 		{
 			ExternalGroupName: externalGroupName,
 			Id:                &roleAssignmentsID,
-			RoleAssignments:   &roleAssignments,
+			RoleAssignments:   roleAssignments,
 		},
 	}
 	flattenedFederationRoleMapping = []map[string]any{
