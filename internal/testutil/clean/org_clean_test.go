@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
 	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 
 	"github.com/stretchr/testify/require"
@@ -279,9 +280,10 @@ func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admi
 	return len(clustersResults)
 }
 
-func removeServerlessClusters(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+func removeServerlessClusters(ctx context.Context, t *testing.T, dryRun bool, _ *admin.APIClient, projectID string) int {
 	t.Helper()
-	clusters, _, err := client.ServerlessInstancesApi.ListServerlessInstances(ctx, projectID).ItemsPerPage(itemsPerPage).Execute()
+	oldClient := acc.ConnV220241113()
+	clusters, _, err := oldClient.ServerlessInstancesApi.ListServerlessInstances(ctx, projectID).ItemsPerPage(itemsPerPage).Execute()
 	require.NoError(t, err)
 	clustersResults := clusters.GetResults()
 	for i := range clustersResults {
@@ -289,8 +291,8 @@ func removeServerlessClusters(ctx context.Context, t *testing.T, dryRun bool, cl
 		cName := c.GetName()
 		t.Logf("delete serverless cluster %s", cName)
 		if !dryRun {
-			_, _, err = client.ServerlessInstancesApi.DeleteServerlessInstance(ctx, projectID, cName).Execute()
-			if admin.IsErrorCode(err, "SERVERLESS_INSTANCE_ALREADY_REQUESTED_DELETION") {
+			_, _, err = oldClient.ServerlessInstancesApi.DeleteServerlessInstance(ctx, projectID, cName).Execute()
+			if admin20241113.IsErrorCode(err, "SERVERLESS_INSTANCE_ALREADY_REQUESTED_DELETION") {
 				t.Logf("serverless cluster %s already requested deletion", cName)
 				continue
 			}

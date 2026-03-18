@@ -74,13 +74,13 @@ func DataSourceRestoreJob() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCloudSharedTierRestoreJobsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).AtlasV2
+	conn := meta.(*config.MongoDBClient).AtlasV220241113
 
 	jobID := d.Get("job_id").(string)
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	job, _, err := conn.SharedTierRestoreJobsApi.GetBackupTenantRestore(ctx, clusterName, projectID, jobID).Execute()
+	job, _, err := conn.SharedTierRestoreJobsApi.GetSharedClusterBackupRestoreJob(ctx, clusterName, projectID, jobID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting shared tier restore job '%s': %w", jobID, err))
 	}

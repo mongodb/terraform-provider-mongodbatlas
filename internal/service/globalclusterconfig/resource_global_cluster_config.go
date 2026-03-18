@@ -335,7 +335,7 @@ func newCustomZoneMapping(tfMap map[string]any) *admin.ZoneMapping {
 	return apiObject
 }
 
-func newCustomZoneMappings(tfList []any) *[]admin.ZoneMapping {
+func newCustomZoneMappings(tfList []any) []admin.ZoneMapping {
 	if len(tfList) == 0 {
 		return nil
 	}
@@ -353,7 +353,7 @@ func newCustomZoneMappings(tfList []any) *[]admin.ZoneMapping {
 		}
 	}
 
-	return &apiObjects
+	return apiObjects
 }
 
 func addManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, add []any, projectID, clusterName string) error {

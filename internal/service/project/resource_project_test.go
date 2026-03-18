@@ -484,7 +484,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 			mockResponses: AdvancedClusterDescriptionResponse{
 				AdvancedClusterDescription: &admin.PaginatedClusterDescription20240805{
 					TotalCount: conversion.IntPtr(2),
-					Results: &[]admin.ClusterDescription20240805{
+					Results: []admin.ClusterDescription20240805{
 						{StateName: conversion.StringPtr("IDLE")},
 						{StateName: conversion.StringPtr("DELETING")},
 					},

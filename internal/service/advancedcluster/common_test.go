@@ -89,7 +89,7 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		},
 		{
 			name:          "Successful but with at least one cluster not idle",
-			mockCluster:   &admin.PaginatedClusterDescription20240805{Results: &advancedClusters},
+			mockCluster:   &admin.PaginatedClusterDescription20240805{Results: advancedClusters},
 			mockResponse:  &http.Response{StatusCode: http.StatusOK},
 			expectedError: false,
 			expectedResult: Result{

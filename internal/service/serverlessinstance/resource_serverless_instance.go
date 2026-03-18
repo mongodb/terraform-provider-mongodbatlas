@@ -17,7 +17,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
-	"go.mongodb.org/atlas-sdk/v20250312016/admin"
+	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 const (
@@ -129,22 +129,22 @@ func resourceSchema() map[string]*schema.Schema {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220241113 := meta.(*config.MongoDBClient).AtlasV220241113
 	projectID := d.Get("project_id").(string)
 
 	name := d.Get("name").(string)
 
-	serverlessProviderSettings := admin.ServerlessProviderSettings{
+	serverlessProviderSettings := admin20241113.ServerlessProviderSettings{
 		BackingProviderName: d.Get("provider_settings_backing_provider_name").(string),
 		ProviderName:        conversion.StringPtr(d.Get("provider_settings_provider_name").(string)),
 		RegionName:          d.Get("provider_settings_region_name").(string),
 	}
 
-	serverlessBackupOptions := &admin.ClusterServerlessBackupOptions{
+	serverlessBackupOptions := &admin20241113.ClusterServerlessBackupOptions{
 		ServerlessContinuousBackupEnabled: new(d.Get("continuous_backup_enabled").(bool)),
 	}
 
-	params := &admin.ServerlessInstanceDescriptionCreate{
+	createParams := &admin20241113.ServerlessInstanceDescriptionCreate{
 		Name:                         name,
 		ProviderSettings:             serverlessProviderSettings,
 		ServerlessBackupOptions:      serverlessBackupOptions,
@@ -152,10 +152,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, ok := d.GetOk("tags"); ok {
-		params.Tags = conversion.ExpandTagsFromSetSchema(d)
+		createParams.Tags = expandTagsToOldSDK(d)
 	}
 
-	_, _, err := connV2.ServerlessInstancesApi.CreateServerlessInstance(ctx, projectID, params).Execute()
+	_, _, err := connV220241113.ServerlessInstancesApi.CreateServerlessInstance(ctx, projectID, createParams).Execute()
 	if err != nil {
 		return diag.Errorf("error creating serverless instance: %s", err)
 	}
@@ -163,7 +163,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 		Target:     []string{"IDLE"},
-		Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, connV2),
+		Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, connV220241113),
 		Timeout:    3 * time.Hour,
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
@@ -175,12 +175,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if _, ok := d.GetOkExists("auto_indexing"); ok {
-		params := &admin.SetServerlessAutoIndexingApiParams{
+		autoIndexParams := &admin20241113.SetServerlessAutoIndexingApiParams{
 			GroupId:     projectID,
 			ClusterName: name,
 			Enable:      new(d.Get("auto_indexing").(bool)),
 		}
-		_, err := connV2.PerformanceAdvisorApi.SetServerlessAutoIndexingWithParams(ctx, params).Execute()
+		_, _, err := connV220241113.PerformanceAdvisorApi.SetServerlessAutoIndexingWithParams(ctx, autoIndexParams).Execute()
 		if err != nil {
 			return diag.Errorf("error creating MongoDB Serverless Instance setting auto_indexing: %s", err)
 		}
@@ -195,12 +195,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220241113 := meta.(*config.MongoDBClient).AtlasV220241113
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	instanceName := ids["name"]
 
-	instance, _, err := connV2.ServerlessInstancesApi.GetServerlessInstance(ctx, projectID, instanceName).Execute()
+	instance, _, err := connV220241113.ServerlessInstancesApi.GetServerlessInstance(ctx, projectID, instanceName).Execute()
 	if err != nil {
 		// case 404: deleted in the backend case
 		if strings.Contains(err.Error(), "404") && !d.IsNewResource() {
@@ -230,7 +230,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_standard_srv", d.Id(), err)
 	}
 
-	if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionString(instance.ConnectionStrings.GetPrivateEndpoint())); err != nil {
+	if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionStrings(instance.ConnectionStrings.GetPrivateEndpoint())); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_private_endpoint_srv", d.Id(), err)
 	}
 
@@ -242,7 +242,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf(errorServerlessInstanceSetting, "mongo_db_version", d.Id(), err)
 	}
 
-	if err := d.Set("links", conversion.FlattenLinks(instance.GetLinks())); err != nil {
+	if err := d.Set("links", flattenLinks(instance.GetLinks())); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "links", d.Id(), err)
 	}
 
@@ -258,11 +258,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.Errorf(errorServerlessInstanceSetting, "continuous_backup_enabled", d.Id(), err)
 	}
 
-	if err := d.Set("tags", conversion.FlattenTags(instance.GetTags())); err != nil {
+	if err := d.Set("tags", flattenTags(instance.GetTags())); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "tags", d.Id(), err)
 	}
 
-	autoIndexing, _, err := connV2.PerformanceAdvisorApi.GetServerlessAutoIndexing(ctx, projectID, instanceName).Execute()
+	autoIndexing, _, err := connV220241113.PerformanceAdvisorApi.GetServerlessAutoIndexing(ctx, projectID, instanceName).Execute()
 	if err != nil {
 		return diag.Errorf("error getting serverless instance information for auto_indexing: %s", err)
 	}
@@ -274,26 +274,26 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220241113 := meta.(*config.MongoDBClient).AtlasV220241113
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	name := ids["name"]
 
 	if d.HasChange("termination_protection_enabled") || d.HasChange("continuous_backup_enabled") || d.HasChange("tags") {
-		serverlessBackupOptions := &admin.ClusterServerlessBackupOptions{
+		serverlessBackupOptions := &admin20241113.ClusterServerlessBackupOptions{
 			ServerlessContinuousBackupEnabled: new(d.Get("continuous_backup_enabled").(bool)),
 		}
 
-		params := &admin.ServerlessInstanceDescriptionUpdate{
+		updateParams := &admin20241113.ServerlessInstanceDescriptionUpdate{
 			ServerlessBackupOptions:      serverlessBackupOptions,
 			TerminationProtectionEnabled: new(d.Get("termination_protection_enabled").(bool)),
 		}
 
 		if d.HasChange("tags") {
-			params.Tags = conversion.ExpandTagsFromSetSchema(d)
+			updateParams.Tags = expandTagsToOldSDK(d)
 		}
 
-		_, _, err := connV2.ServerlessInstancesApi.UpdateServerlessInstance(ctx, projectID, name, params).Execute()
+		_, _, err := connV220241113.ServerlessInstancesApi.UpdateServerlessInstance(ctx, projectID, name, updateParams).Execute()
 		if err != nil {
 			return diag.Errorf("error updating serverless instance: %s", err)
 		}
@@ -301,7 +301,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		stateConf := &retry.StateChangeConf{
 			Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
 			Target:     []string{"IDLE"},
-			Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, connV2),
+			Refresh:    resourceRefreshFunc(ctx, d.Get("name").(string), projectID, connV220241113),
 			Timeout:    3 * time.Hour,
 			MinTimeout: 1 * time.Minute,
 			Delay:      3 * time.Minute,
@@ -314,12 +314,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("auto_indexing") {
-		params := &admin.SetServerlessAutoIndexingApiParams{
+		autoIndexParams := &admin20241113.SetServerlessAutoIndexingApiParams{
 			GroupId:     projectID,
 			ClusterName: name,
 			Enable:      new(d.Get("auto_indexing").(bool)),
 		}
-		_, err := connV2.PerformanceAdvisorApi.SetServerlessAutoIndexingWithParams(ctx, params).Execute()
+		_, _, err := connV220241113.PerformanceAdvisorApi.SetServerlessAutoIndexingWithParams(ctx, autoIndexParams).Execute()
 		if err != nil {
 			return diag.Errorf("error updating MongoDB Serverless Instance setting auto_indexing: %s", err)
 		}
@@ -329,12 +329,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220241113 := meta.(*config.MongoDBClient).AtlasV220241113
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	serverlessName := ids["name"]
 
-	_, _, err := connV2.ServerlessInstancesApi.DeleteServerlessInstance(ctx, projectID, serverlessName).Execute()
+	_, _, err := connV220241113.ServerlessInstancesApi.DeleteServerlessInstance(ctx, projectID, serverlessName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting MongoDB Serverless Instance (%s): %s", serverlessName, err))
 	}
@@ -342,7 +342,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING"},
 		Target:     []string{"DELETED"},
-		Refresh:    resourceRefreshFunc(ctx, serverlessName, projectID, connV2),
+		Refresh:    resourceRefreshFunc(ctx, serverlessName, projectID, connV220241113),
 		Timeout:    3 * time.Hour,
 		MinTimeout: 30 * time.Second,
 		Delay:      1 * time.Minute,
@@ -356,13 +356,13 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220241113 := meta.(*config.MongoDBClient).AtlasV220241113
 	projectID, name, err := splitImportID(d.Id())
 	if err != nil {
 		return nil, err
 	}
 
-	instance, _, err := connV2.ServerlessInstancesApi.GetServerlessInstance(ctx, *projectID, *name).Execute()
+	instance, _, err := connV220241113.ServerlessInstancesApi.GetServerlessInstance(ctx, *projectID, *name).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import cluster %s in project %s, error: %s", *name, *projectID, err)
 	}
@@ -387,9 +387,9 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceRefreshFunc(ctx context.Context, name, projectID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, name, projectID string, connV220241113 *admin20241113.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		instance, resp, err := connV2.ServerlessInstancesApi.GetServerlessInstance(ctx, projectID, name).Execute()
+		instance, resp, err := connV220241113.ServerlessInstancesApi.GetServerlessInstance(ctx, projectID, name).Execute()
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
 		}
@@ -409,10 +409,45 @@ func resourceRefreshFunc(ctx context.Context, name, projectID string, connV2 *ad
 	}
 }
 
-func flattenSRVConnectionString(list []admin.ServerlessConnectionStringsPrivateEndpointList) []any {
+func expandTagsToOldSDK(d *schema.ResourceData) *[]admin20241113.ResourceTag {
+	list := d.Get("tags").(*schema.Set)
+	ret := make([]admin20241113.ResourceTag, list.Len())
+	for i, item := range list.List() {
+		tag := item.(map[string]any)
+		ret[i] = admin20241113.ResourceTag{
+			Key:   tag["key"].(string),
+			Value: tag["value"].(string),
+		}
+	}
+	return &ret
+}
+
+func flattenSRVConnectionStrings(list []admin20241113.ServerlessConnectionStringsPrivateEndpointList) []any {
 	ret := make([]any, len(list))
 	for i, elm := range list {
 		ret[i] = elm.GetSrvConnectionString()
+	}
+	return ret
+}
+
+func flattenLinks(links []admin20241113.Link) []map[string]string {
+	ret := make([]map[string]string, len(links))
+	for i, link := range links {
+		ret[i] = map[string]string{
+			"href": link.GetHref(),
+			"rel":  link.GetRel(),
+		}
+	}
+	return ret
+}
+
+func flattenTags(tags []admin20241113.ResourceTag) []map[string]string {
+	ret := make([]map[string]string, len(tags))
+	for i, tag := range tags {
+		ret[i] = map[string]string{
+			"key":   tag.GetKey(),
+			"value": tag.GetValue(),
+		}
 	}
 	return ret
 }

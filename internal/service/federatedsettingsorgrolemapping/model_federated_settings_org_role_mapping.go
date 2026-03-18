@@ -39,7 +39,7 @@ func FlattenRoleAssignments(roleAssignments []admin.ConnectedOrgConfigRoleAssign
 	return roleAssignmentsMap
 }
 
-func expandRoleAssignments(d *schema.ResourceData) *[]admin.ConnectedOrgConfigRoleAssignment {
+func expandRoleAssignments(d *schema.ResourceData) []admin.ConnectedOrgConfigRoleAssignment {
 	var roleAssignments []admin.ConnectedOrgConfigRoleAssignment
 
 	if v, ok := d.GetOk("role_assignments"); ok {
@@ -60,7 +60,7 @@ func expandRoleAssignments(d *schema.ResourceData) *[]admin.ConnectedOrgConfigRo
 	}
 
 	slices.SortFunc(roleAssignments, compareRoleAssignment)
-	return &roleAssignments
+	return roleAssignments
 }
 
 func flattenRoleAssignmentsResource(roleAssignments []admin.ConnectedOrgConfigRoleAssignment) []map[string]any {

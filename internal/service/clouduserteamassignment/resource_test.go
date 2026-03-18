@@ -128,7 +128,7 @@ func checkDestroy(s *terraform.State) error {
 				TeamId: teamID,
 			}
 			userListUserID, _, err := conn.MongoDBCloudUsersApi.ListTeamUsersWithParams(ctx, userIDParams).Execute()
-			if userListUserID.HasResults() {
+			if len(userListUserID.GetResults()) > 0 {
 				return fmt.Errorf("cloud user team assignment for user (%s) in team (%s) still exists %s", userID, teamID, err)
 			}
 		}

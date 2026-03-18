@@ -302,7 +302,7 @@ func flattenActions(actions []admin.DatabasePrivilegeAction) []map[string]any {
 	return actionList
 }
 
-func expandActionResources(resources *schema.Set) *[]admin.DatabasePermittedNamespaceResource {
+func expandActionResources(resources *schema.Set) []admin.DatabasePermittedNamespaceResource {
 	actionResources := make([]admin.DatabasePermittedNamespaceResource, resources.Len())
 	for k, v := range resources.List() {
 		resourceMap := v.(map[string]any)
@@ -312,7 +312,7 @@ func expandActionResources(resources *schema.Set) *[]admin.DatabasePermittedName
 			Cluster:    cast.ToBool(resourceMap["cluster"]),
 		}
 	}
-	return &actionResources
+	return actionResources
 }
 
 func flattenActionResources(resources []admin.DatabasePermittedNamespaceResource) []map[string]any {

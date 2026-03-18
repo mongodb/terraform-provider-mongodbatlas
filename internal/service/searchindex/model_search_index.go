@@ -108,7 +108,11 @@ func expandSearchIndexTypeSets(d *schema.ResourceData) ([]admin.SearchTypeSets, 
 			if diags != nil {
 				return nil, diags
 			}
-			ts.Types = conversion.ToAnySlicePointer(&arr)
+			types := make([]any, len(arr))
+			for idx, elem := range arr {
+				types[idx] = elem
+			}
+			ts.Types = types
 		}
 
 		result = append(result, ts)

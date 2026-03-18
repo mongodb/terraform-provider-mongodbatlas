@@ -81,7 +81,7 @@ var (
 		{
 			ExternalGroupName: externalGroupName,
 			Id:                &roleAssignmentsID,
-			RoleAssignments:   &roleAssignments,
+			RoleAssignments:   roleAssignments,
 		},
 	}
 	flattenedFederationRoleMapping = []map[string]any{

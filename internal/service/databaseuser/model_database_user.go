@@ -200,7 +200,7 @@ func NewTFRolesModel(roles []admin.DatabaseUserRole) []TfRoleModel {
 	return out
 }
 
-func NewMongoDBAtlasRoles(roles []*TfRoleModel) *[]admin.DatabaseUserRole {
+func NewMongoDBAtlasRoles(roles []*TfRoleModel) []admin.DatabaseUserRole {
 	out := make([]admin.DatabaseUserRole, len(roles))
 	for i, v := range roles {
 		out[i] = admin.DatabaseUserRole{
@@ -209,5 +209,5 @@ func NewMongoDBAtlasRoles(roles []*TfRoleModel) *[]admin.DatabaseUserRole {
 			CollectionName: v.CollectionName.ValueStringPointer(),
 		}
 	}
-	return &out
+	return out
 }

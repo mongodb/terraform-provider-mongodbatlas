@@ -107,7 +107,7 @@ func dataSourceSchema() map[string]*schema.Schema {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220241113 := meta.(*config.MongoDBClient).AtlasV220241113
 
 	projectID, projectIDOk := d.GetOk("project_id")
 	instanceName, instanceNameOk := d.GetOk("name")
@@ -116,7 +116,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf("project_id and name must be configured")
 	}
 
-	instance, _, err := connV2.ServerlessInstancesApi.GetServerlessInstance(ctx, projectID.(string), instanceName.(string)).Execute()
+	instance, _, err := connV220241113.ServerlessInstancesApi.GetServerlessInstance(ctx, projectID.(string), instanceName.(string)).Execute()
 	if err != nil {
 		return diag.Errorf("error getting serverless instance information: %s", err)
 	}
@@ -142,7 +142,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if len(instance.ConnectionStrings.GetPrivateEndpoint()) > 0 {
-		if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionString(instance.ConnectionStrings.GetPrivateEndpoint())); err != nil {
+		if err := d.Set("connection_strings_private_endpoint_srv", flattenSRVConnectionStrings(instance.ConnectionStrings.GetPrivateEndpoint())); err != nil {
 			return diag.Errorf(errorServerlessInstanceSetting, "connection_strings_private_endpoint_srv", d.Id(), err)
 		}
 	}
@@ -155,7 +155,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf(errorServerlessInstanceSetting, "mongo_db_version", d.Id(), err)
 	}
 
-	if err := d.Set("links", conversion.FlattenLinks(instance.GetLinks())); err != nil {
+	if err := d.Set("links", flattenLinks(instance.GetLinks())); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "links", d.Id(), err)
 	}
 
@@ -171,7 +171,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf(errorServerlessInstanceSetting, "continuous_backup_enabled", d.Id(), err)
 	}
 
-	autoIndexing, _, err := connV2.PerformanceAdvisorApi.GetServerlessAutoIndexing(ctx, projectID.(string), instanceName.(string)).Execute()
+	autoIndexing, _, err := connV220241113.PerformanceAdvisorApi.GetServerlessAutoIndexing(ctx, projectID.(string), instanceName.(string)).Execute()
 	if err != nil {
 		return diag.Errorf("error getting serverless instance information for auto_indexing: %s", err)
 	}
@@ -179,7 +179,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf(errorServerlessInstanceSetting, "auto_indexing", d.Id(), err)
 	}
 
-	if err := d.Set("tags", conversion.FlattenTags(instance.GetTags())); err != nil {
+	if err := d.Set("tags", flattenTags(instance.GetTags())); err != nil {
 		return diag.Errorf(errorServerlessInstanceSetting, "tags", d.Id(), err)
 	}
 

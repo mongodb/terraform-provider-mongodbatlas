@@ -197,8 +197,8 @@ func checkDestroy(s *terraform.State) error {
 				Username: &username,
 			}
 
-			users, _, err := conn.MongoDBCloudUsersApi.ListOrgUsersWithParams(context.Background(), params).Execute()
-			if err == nil && users != nil && len(*users.Results) > 0 {
+			users, _, _ := conn.MongoDBCloudUsersApi.ListOrgUsersWithParams(context.Background(), params).Execute()
+			if len(users.GetResults()) > 0 {
 				return fmt.Errorf("cloud user org assignment (%s) still exists", username)
 			}
 		}

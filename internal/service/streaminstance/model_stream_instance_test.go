@@ -96,7 +96,7 @@ func TestStreamInstancesSDKToTFModel(t *testing.T) {
 		{
 			name: "Complete SDK response with configured page options",
 			SDKResp: &admin.PaginatedApiStreamsTenant{
-				Results: &[]admin.StreamsTenant{
+				Results: []admin.StreamsTenant{
 					{
 						Id: new(dummyStreamInstanceID),
 						DataProcessRegion: &admin.StreamsDataProcessRegion{
@@ -138,7 +138,7 @@ func TestStreamInstancesSDKToTFModel(t *testing.T) {
 		{
 			name: "Without defining page options",
 			SDKResp: &admin.PaginatedApiStreamsTenant{
-				Results:    &[]admin.StreamsTenant{},
+				Results:    []admin.StreamsTenant{},
 				TotalCount: new(0),
 			},
 			providedConfig: &streaminstance.TFStreamInstancesModel{

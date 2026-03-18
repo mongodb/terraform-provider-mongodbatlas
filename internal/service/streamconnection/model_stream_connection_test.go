@@ -456,7 +456,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 		{
 			name: "Complete SDK response with configured page options",
 			SDKResp: &admin.PaginatedApiStreamsConnection{
-				Results: &[]admin.StreamsConnection{
+				Results: []admin.StreamsConnection{
 					{
 						Name: new(connectionName),
 						Type: new("Kafka"),
@@ -657,7 +657,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 		{
 			name: "Without defining page options",
 			SDKResp: &admin.PaginatedApiStreamsConnection{
-				Results:    &[]admin.StreamsConnection{},
+				Results:    []admin.StreamsConnection{},
 				TotalCount: new(0),
 			},
 			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
@@ -676,7 +676,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 		{
 			name: "With workspace name and no page options",
 			SDKResp: &admin.PaginatedApiStreamsConnection{
-				Results:    &[]admin.StreamsConnection{},
+				Results:    []admin.StreamsConnection{},
 				TotalCount: new(0),
 			},
 			providedConfig: &streamconnection.TFStreamConnectionsDSModel{

@@ -297,7 +297,7 @@ func TestPluralDSSDKToTFModel(t *testing.T) {
 	}{
 		"noResults_with_workspace_name": {
 			sdkModel: &admin.PaginatedApiStreamsStreamProcessorWithStats{
-				Results:    &[]admin.StreamsProcessorWithStats{},
+				Results:    []admin.StreamsProcessorWithStats{},
 				TotalCount: new(0),
 			},
 			expectedTFModel: &streamprocessor.TFStreamProcessorsDSModel{
@@ -308,7 +308,7 @@ func TestPluralDSSDKToTFModel(t *testing.T) {
 		},
 		"oneResult_with_workspace_name": {
 			sdkModel: &admin.PaginatedApiStreamsStreamProcessorWithStats{
-				Results: &[]admin.StreamsProcessorWithStats{*admin.NewStreamsProcessorWithStats(
+				Results: []admin.StreamsProcessorWithStats{*admin.NewStreamsProcessorWithStats(
 					processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 				)},
 				TotalCount: new(1),
@@ -344,7 +344,7 @@ func TestPluralDSSDKToTFModelWithInstanceName(t *testing.T) {
 		expectedTFModel *streamprocessor.TFStreamProcessorsDSModel
 	}{
 		"noResults": {sdkModel: &admin.PaginatedApiStreamsStreamProcessorWithStats{
-			Results:    &[]admin.StreamsProcessorWithStats{},
+			Results:    []admin.StreamsProcessorWithStats{},
 			TotalCount: new(0),
 		}, expectedTFModel: &streamprocessor.TFStreamProcessorsDSModel{
 			ProjectID:    types.StringValue(projectID),
@@ -352,7 +352,7 @@ func TestPluralDSSDKToTFModelWithInstanceName(t *testing.T) {
 			Results:      []streamprocessor.TFStreamProcessorDSModel{},
 		}},
 		"oneResult": {sdkModel: &admin.PaginatedApiStreamsStreamProcessorWithStats{
-			Results: &[]admin.StreamsProcessorWithStats{*admin.NewStreamsProcessorWithStats(
+			Results: []admin.StreamsProcessorWithStats{*admin.NewStreamsProcessorWithStats(
 				processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated,
 			)},
 			TotalCount: new(1),
