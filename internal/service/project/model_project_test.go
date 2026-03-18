@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -233,7 +233,7 @@ func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 		{
 			name: "Complete TeamRole",
 			paginatedTeamRole: &admin.PaginatedTeamRole{
-				Results:    &teamRolesSDK,
+				Results:    teamRolesSDK,
 				TotalCount: conversion.IntPtr(1),
 			},
 			expectedTFModel: teamsDSTF,
@@ -311,7 +311,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 			project: &projectSDK,
 			projectProps: project.AdditionalProperties{
 				Teams: &admin.PaginatedTeamRole{
-					Results:    &teamRolesSDK,
+					Results:    teamRolesSDK,
 					TotalCount: conversion.IntPtr(1),
 				},
 				Settings:    &projectSettingsSDK,
@@ -346,7 +346,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 			project: &projectGovSDK,
 			projectProps: project.AdditionalProperties{
 				Teams: &admin.PaginatedTeamRole{
-					Results:    &teamRolesSDK,
+					Results:    teamRolesSDK,
 					TotalCount: conversion.IntPtr(1),
 				},
 				Settings:                           &projectSettingsSDK,
@@ -403,7 +403,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 			project: &projectSDK,
 			projectProps: project.AdditionalProperties{
 				Teams: &admin.PaginatedTeamRole{
-					Results:    &teamRolesSDK,
+					Results:    teamRolesSDK,
 					TotalCount: conversion.IntPtr(1),
 				},
 				Settings:    &projectSettingsSDK,
@@ -435,7 +435,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 			project: &projectGovSDK,
 			projectProps: project.AdditionalProperties{
 				Teams: &admin.PaginatedTeamRole{
-					Results:    &teamRolesSDK,
+					Results:    teamRolesSDK,
 					TotalCount: conversion.IntPtr(1),
 				},
 				Settings:    &projectSettingsSDK,

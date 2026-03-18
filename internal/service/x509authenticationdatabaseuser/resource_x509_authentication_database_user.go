@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 )
 
 const (
@@ -155,11 +155,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			}
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err))
 		}
-		if resp != nil && resp.Results != nil {
-			certificates = *resp.Results
-			if len(certificates) > 0 {
-				serialNumber = cast.ToString(certificates[len(certificates)-1].GetId()) // Get SerialId from last user certificate
-			}
+		certificates = resp.GetResults()
+		if len(certificates) > 0 {
+			serialNumber = cast.ToString(certificates[len(certificates)-1].GetId()) // Get SerialId from last user certificate
 		}
 	}
 	if err := d.Set("certificates", flattenCertificates(certificates)); err != nil {
