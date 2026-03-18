@@ -668,6 +668,10 @@ resources:
     delete: # Not a LRO (long-running operation).
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
       method: DELETE
+      wait:
+        <<: *search-index-create-wait
+        pending_states: ["DELETING"]
+        target_states: ["DELETED"]
     version_header: application/vnd.atlas.2024-05-30+json
     schema:
       aliases:
