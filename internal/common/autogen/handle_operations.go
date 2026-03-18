@@ -284,7 +284,7 @@ func HandleDelete(ctx context.Context, req HandleDeleteReq) {
 		return
 	}
 	if req.ResetsToDefaults {
-		req.Diags.AddWarning("Delete resets resource to default settings", "This resource does not perform a true delete. Instead, the delete operation resets the resource configuration to its default values through an API call.")
+		req.Diags.AddWarning("Delete resets resource to default settings", "This resource does not perform a true delete. Instead, the delete operation resets the resource configuration to its default values.")
 	}
 }
 
