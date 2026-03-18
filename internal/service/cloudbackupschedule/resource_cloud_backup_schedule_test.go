@@ -3,6 +3,8 @@ package cloudbackupschedule_test
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20250312014/admin"
@@ -153,13 +155,18 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	var (
 		// A snapshot export bucket can't be deleted it there exist a cluster that is still using it. So the cluster resource needs to depend on it
-		clusterInfo         = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
-		policyName          = acc.RandomName()
-		roleName            = acc.RandomIAMRole()
-		bucketName          = acc.RandomBucketName()
-		configWithExport    = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, true, true)
-		configWithoutExport = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, false, false)
-		checksWithExport    = resource.ComposeAggregateTestCheckFunc(
+		clusterInfo             = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
+		policyName              = acc.RandomName()
+		roleName                = acc.RandomIAMRole()
+		bucketName              = acc.RandomBucketName()
+		configWithExport        = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, true, true)
+		configWithoutExport     = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, false, false)
+		configWithExportInvalid = strings.ReplaceAll(
+			configWithExport,
+			"restore_window_days      = 4",
+			"restore_window_days      = 99", // cannot be longer than default retention period 7 days
+		)
+		checksWithExport = resource.ComposeAggregateTestCheckFunc(
 			checkExists(resourceName),
 			resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
 			resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "true"),
@@ -196,13 +203,10 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 			},
 			// Go from export disabled to export enabled to test the PATCH behavior
 			{
-				Config: configWithExport,
-				Check:  checksWithExport,
+				Config:      configWithExportInvalid,
+				ExpectError: regexp.MustCompile(".* policy item retention cannot be less than restore window"),
 			},
-			{
-				Config: configWithoutExport,
-				Check:  checksNoExport,
-			},
+			acc.TestStepCheckEmptyPlan(configWithoutExport),
 		},
 	})
 }
