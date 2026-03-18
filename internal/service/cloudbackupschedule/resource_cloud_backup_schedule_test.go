@@ -153,10 +153,31 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	var (
 		// A snapshot export bucket can't be deleted it there exist a cluster that is still using it. So the cluster resource needs to depend on it
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
-		policyName  = acc.RandomName()
-		roleName    = acc.RandomIAMRole()
-		bucketName  = acc.RandomBucketName()
+		clusterInfo         = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
+		policyName          = acc.RandomName()
+		roleName            = acc.RandomIAMRole()
+		bucketName          = acc.RandomBucketName()
+		configWithExport    = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, true, true)
+		configWithoutExport = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, false, false)
+		checksWithExport    = resource.ComposeAggregateTestCheckFunc(
+			checkExists(resourceName),
+			resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+			resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "true"),
+			resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "20"),
+			resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "5"),
+			resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
+			resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
+			resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
+			resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
+			resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_value", "4"),
+			resource.TestCheckResourceAttr(resourceName, "export.#", "1"),
+		)
+		checksNoExport = resource.ComposeAggregateTestCheckFunc(
+			checkExists(resourceName),
+			resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+			resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "false"),
+			resource.TestCheckResourceAttr(resourceName, "export.#", "0"),
+		)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -166,28 +187,21 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			{
-				Config: configExportPolicies(&clusterInfo, policyName, roleName, bucketName, true, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
-					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "20"),
-					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "5"),
-					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_value", "4"),
-				),
+				Config: configWithExport,
+				Check:  checksWithExport,
 			},
 			{
-				Config: configExportPolicies(&clusterInfo, policyName, roleName, bucketName, false, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
-					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "export.#", "0"),
-				),
+				Config: configWithoutExport,
+				Check:  checksNoExport,
+			},
+			// Go from export disabled to export enabled to test the PATCH behavior
+			{
+				Config: configWithExport,
+				Check:  checksWithExport,
+			},
+			{
+				Config: configWithoutExport,
+				Check:  checksNoExport,
 			},
 		},
 	})
