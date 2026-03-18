@@ -97,12 +97,12 @@ func (r *es) Close(ctx context.Context, req ephemeral.CloseRequest, resp *epheme
 		return
 	}
 	if len(revokeData) == 0 {
-		log.Printf("[DEBUG] %s Close: no private state found (key=%q), skipping revocation", resourceTypeName, closeDataKey)
 		return
 	}
 	var data closeData
 	if err := json.Unmarshal(revokeData, &data); err != nil {
-		resp.Diagnostics.AddWarning("Failed to read revoke payload", err.Error())
+		resp.Diagnostics.AddWarning("Failed to read revoke payload",
+			"Could not deserialize the token revocation data from private state. The token will not be revoked.")
 		return
 	}
 	log.Printf("[DEBUG] %s Close: revoking access token", resourceTypeName)
