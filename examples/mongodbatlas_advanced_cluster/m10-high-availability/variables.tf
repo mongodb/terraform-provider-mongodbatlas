@@ -1,5 +1,5 @@
 variable "atlas_base_url" {
-  description = "MongoDB Atlas Base URL"
+  description = "Atlas base URL (defaults to cloud.mongodb.com)"
   type        = string
   default     = "https://cloud.mongodb.com/"
 }
