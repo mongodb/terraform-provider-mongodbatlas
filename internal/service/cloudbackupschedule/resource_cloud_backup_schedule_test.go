@@ -164,7 +164,7 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 		configWithExportInvalid = strings.ReplaceAll(
 			configWithExport,
 			"restore_window_days      = 4",
-			"restore_window_days      = 99", // cannot be longer than default retention period 7 days
+			"restore_window_days      = 999", // cannot be longer than default retention period 7 days
 		)
 		checksWithExport = resource.ComposeAggregateTestCheckFunc(
 			checkExists(resourceName),
@@ -186,6 +186,7 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 			resource.TestCheckResourceAttr(resourceName, "export.#", "0"),
 		)
 	)
+	fmt.Println(configWithExportInvalid)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
