@@ -8,7 +8,7 @@ The cluster distributes nodes across three regions as follows:
 
 - `US_EAST_1` (AWS) — Two electable nodes, priority 7 (preferred primary region)
 - `US_WEST_2` (AWS) — Two electable nodes, priority 6 (secondary failover region)
-- `EU_WEST_1` (AWS) — One1 electable node, priority 5 (tiebreaker)
+- `EU_WEST_1` (AWS) — One electable node, priority 5 (tiebreaker)
 
 ### Why the odd node (2-2-1)?
 
