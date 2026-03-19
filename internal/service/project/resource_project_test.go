@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
-	"go.mongodb.org/atlas-sdk/v20250312014/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -484,7 +484,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 			mockResponses: AdvancedClusterDescriptionResponse{
 				AdvancedClusterDescription: &admin.PaginatedClusterDescription20240805{
 					TotalCount: conversion.IntPtr(2),
-					Results: &[]admin.ClusterDescription20240805{
+					Results: []admin.ClusterDescription20240805{
 						{StateName: conversion.StringPtr("IDLE")},
 						{StateName: conversion.StringPtr("DELETING")},
 					},

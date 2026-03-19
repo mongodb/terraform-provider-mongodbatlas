@@ -18,7 +18,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 )
 
 // The Custom DB Role APIs do not support concurrent requests to create, update and delete custom db roles.
@@ -302,7 +302,7 @@ func flattenActions(actions []admin.DatabasePrivilegeAction) []map[string]any {
 	return actionList
 }
 
-func expandActionResources(resources *schema.Set) *[]admin.DatabasePermittedNamespaceResource {
+func expandActionResources(resources *schema.Set) []admin.DatabasePermittedNamespaceResource {
 	actionResources := make([]admin.DatabasePermittedNamespaceResource, resources.Len())
 	for k, v := range resources.List() {
 		resourceMap := v.(map[string]any)
@@ -312,7 +312,7 @@ func expandActionResources(resources *schema.Set) *[]admin.DatabasePermittedName
 			Cluster:    cast.ToBool(resourceMap["cluster"]),
 		}
 	}
-	return &actionResources
+	return actionResources
 }
 
 func flattenActionResources(resources []admin.DatabasePermittedNamespaceResource) []map[string]any {

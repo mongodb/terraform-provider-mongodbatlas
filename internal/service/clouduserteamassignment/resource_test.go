@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 )
 
 var resourceName = "mongodbatlas_cloud_user_team_assignment.test"
@@ -128,7 +128,7 @@ func checkDestroy(s *terraform.State) error {
 				TeamId: teamID,
 			}
 			userListUserID, _, err := conn.MongoDBCloudUsersApi.ListTeamUsersWithParams(ctx, userIDParams).Execute()
-			if userListUserID.HasResults() {
+			if len(userListUserID.GetResults()) > 0 {
 				return fmt.Errorf("cloud user team assignment for user (%s) in team (%s) still exists %s", userID, teamID, err)
 			}
 		}
