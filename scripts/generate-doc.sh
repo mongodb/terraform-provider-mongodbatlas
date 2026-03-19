@@ -25,8 +25,8 @@
 #   echo "  online_archive"
 #   echo "  encryption_at_rest"
 #
-# The scripts requires to install tfplugindocs and to create the resource templates in
-# templates/resources/${resource_name}.md.tmpl and
+# The scripts requires to install tfplugindocs and to create the resource templates in 
+# templates/resources/${resource_name}.md.tmpl and 
 # templates/data-sources/${resource_name}.md.tmpl
 # templates/data-sources/${resource_name}s.md.tmpl
 #
