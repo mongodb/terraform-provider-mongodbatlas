@@ -29,8 +29,6 @@
 # templates/resources/${resource_name}.md.tmpl and 
 # templates/data-sources/${resource_name}.md.tmpl
 # templates/data-sources/${resource_name}s.md.tmpl
-#
-# For ephemeral resources, create the template in:
 # templates/ephemeral-resources/${resource_name}.md.tmpl
 # The script auto-detects the type based on which template directory contains the file.
 
@@ -55,7 +53,6 @@ fi
 
 resource_name="$1"
 
-# Detect whether this is an ephemeral resource (template exists under ephemeral-resources/).
 is_ephemeral=false
 if [ -f "${TEMPLATE_FOLDER_PATH}/ephemeral-resources/${resource_name}.md.tmpl" ]; then
     is_ephemeral=true
@@ -84,7 +81,6 @@ trap 'rm -R docs-out/' EXIT # temp dir cleanup when script exits
 tfplugindocs generate --tf-version "${TF_VERSION}" --website-source-dir "${TEMPLATE_FOLDER_PATH}"  --rendered-website-dir "docs-out"
 
 if [ "${is_ephemeral}" = true ]; then
-    # Ephemeral resource: only look for the ephemeral-resources output.
     if [ ! -f "docs-out/ephemeral-resources/${resource_name}.md" ]; then
         echo "Error: We cannot find the documentation file for the ephemeral resource ${resource_name}.md"
         echo "Please, make sure to include the template under templates/ephemeral-resources/${resource_name}.md.tmpl"
