@@ -507,6 +507,10 @@ Refer to the following for full privatelink endpoint connection string examples:
 
 **Target Examples (Recommended Starting Points):**
 - [Free Tier (M0)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/free-tier)
+- [Simple M10 Replica Set](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/m10-replicaset)
+- [M10 High-Availability Replica Set (2-2-1)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/m10-high-availability)
+- [Simple M30 Single-Shard Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/m30-single-shard)
+- [M30 Multi-Shard Cluster (2 Shards)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/m30-multi-shard)
 
 **Cluster Types:**
 - [Replicaset](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_advanced_cluster/replicaset)
