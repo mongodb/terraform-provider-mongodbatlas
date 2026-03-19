@@ -67,7 +67,7 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220241113 := meta.(*config.MongoDBClient).AtlasV220241113
+	connV2 := meta.(*config.MongoDBClient).AtlasV220241113
 	orgID := d.Get("org_id").(string)
 
 	usernames := conversion.ExpandStringListFromSetSchema(d.Get("usernames").(*schema.Set))
@@ -79,7 +79,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		createTeamReq.Usernames = usernames
 	}
 
-	teamsResp, _, err := connV220241113.TeamsApi.CreateTeam(ctx, orgID, createTeamReq).Execute()
+	teamsResp, _, err := connV2.TeamsApi.CreateTeam(ctx, orgID, createTeamReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamCreate, err))
 	}
@@ -93,13 +93,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220241113 := meta.(*config.MongoDBClient).AtlasV220241113
+	connV2 := meta.(*config.MongoDBClient).AtlasV220241113
 
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	teamID := ids["id"]
 
-	team, resp, err := connV220241113.TeamsApi.GetTeamById(ctx, orgID, teamID).Execute()
+	team, resp, err := connV2.TeamsApi.GetTeamById(ctx, orgID, teamID).Execute()
 
 	if err != nil {
 		if validate.StatusNotFound(resp) {
@@ -117,7 +117,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "team_id", teamID, err))
 	}
 
-	teamUsers, err := listAllTeamUsers(ctx, connV220241113, orgID, team.GetId())
+	teamUsers, err := listAllTeamUsers(ctx, connV2, orgID, team.GetId())
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamRead, err))
@@ -136,14 +136,14 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220241113 := meta.(*config.MongoDBClient).AtlasV220241113
+	connV2 := meta.(*config.MongoDBClient).AtlasV220241113
 
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	teamID := ids["id"]
 
 	if d.HasChange("name") {
-		_, _, err := connV220241113.TeamsApi.RenameTeam(ctx, orgID, teamID,
+		_, _, err := connV2.TeamsApi.RenameTeam(ctx, orgID, teamID,
 			&admin20241113.TeamUpdate{Name: d.Get("name").(string)},
 		).Execute()
 		if err != nil {
@@ -152,14 +152,14 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("usernames") {
-		existingUsers, err := listAllTeamUsers(ctx, connV220241113, orgID, teamID)
+		existingUsers, err := listAllTeamUsers(ctx, connV2, orgID, teamID)
 
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorTeamRead, err))
 		}
 		newUsernames := conversion.ExpandStringList(d.Get("usernames").(*schema.Set).List())
 
-		err = UpdateTeamUsers(ctx, connV220241113.TeamsApi, connV220241113.MongoDBCloudUsersApi, existingUsers, newUsernames, orgID, teamID)
+		err = UpdateTeamUsers(ctx, connV2.TeamsApi, connV2.MongoDBCloudUsersApi, existingUsers, newUsernames, orgID, teamID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error when updating usernames in team: %s", err))
 		}
@@ -169,21 +169,21 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220241113 := meta.(*config.MongoDBClient).AtlasV220241113
+	connV2 := meta.(*config.MongoDBClient).AtlasV220241113
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	id := ids["id"]
 
 	err := retry.RetryContext(ctx, 1*time.Hour, func() *retry.RetryError {
-		_, _, err := connV220241113.TeamsApi.DeleteTeam(ctx, orgID, id).Execute()
+		_, _, err := connV2.TeamsApi.DeleteTeam(ctx, orgID, id).Execute()
 		if err != nil {
 			if admin20241113.IsErrorCode(err, "CANNOT_DELETE_TEAM_ASSIGNED_TO_PROJECT") {
-				projectID, err := getProjectIDByTeamID(ctx, connV220241113, id)
+				projectID, err := getProjectIDByTeamID(ctx, connV2, id)
 				if err != nil {
 					return retry.NonRetryableError(err)
 				}
 
-				_, err = connV220241113.TeamsApi.RemoveProjectTeam(ctx, projectID, id).Execute()
+				_, err = connV2.TeamsApi.RemoveProjectTeam(ctx, projectID, id).Execute()
 				if err != nil {
 					return retry.NonRetryableError(fmt.Errorf(errorTeamDelete, id, err))
 				}
@@ -200,7 +200,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV220241113 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	parts := strings.SplitN(d.Id(), "-", 2)
 	if len(parts) != 2 {
@@ -210,7 +210,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	orgID := parts[0]
 	teamID := parts[1]
 
-	team, _, err := connV220241113.TeamsApi.GetOrgTeam(ctx, orgID, teamID).Execute()
+	team, _, err := connV2.TeamsApi.GetOrgTeam(ctx, orgID, teamID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import team (%s) in organization(%s), error: %s", teamID, orgID, err)
 	}
@@ -231,14 +231,14 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func getProjectIDByTeamID(ctx context.Context, connV220241113 *admin20241113.APIClient, teamID string) (string, error) {
-	projects, _, err := connV220241113.ProjectsApi.ListProjects(ctx).Execute()
+func getProjectIDByTeamID(ctx context.Context, connV2 *admin20241113.APIClient, teamID string) (string, error) {
+	projects, _, err := connV2.ProjectsApi.ListProjects(ctx).Execute()
 	if err != nil {
 		return "", fmt.Errorf("error getting projects information: %s", err)
 	}
 
 	for _, project := range projects.GetResults() {
-		teams, _, err := connV220241113.TeamsApi.ListProjectTeams(ctx, project.GetId()).Execute()
+		teams, _, err := connV2.TeamsApi.ListProjectTeams(ctx, project.GetId()).Execute()
 		if err != nil {
 			return "", fmt.Errorf("error getting teams from project information: %s", err)
 		}
@@ -253,9 +253,9 @@ func getProjectIDByTeamID(ctx context.Context, connV220241113 *admin20241113.API
 	return "", nil
 }
 
-func listAllTeamUsers(ctx context.Context, connV220241113 *admin20241113.APIClient, orgID, teamID string) ([]admin20241113.CloudAppUser, error) {
+func listAllTeamUsers(ctx context.Context, connV2 *admin20241113.APIClient, orgID, teamID string) ([]admin20241113.CloudAppUser, error) {
 	return dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin20241113.CloudAppUser], *http.Response, error) {
-		request := connV220241113.TeamsApi.ListTeamUsers(ctx, orgID, teamID)
+		request := connV2.TeamsApi.ListTeamUsers(ctx, orgID, teamID)
 		request = request.PageNum(pageNum)
 		return request.Execute()
 	})

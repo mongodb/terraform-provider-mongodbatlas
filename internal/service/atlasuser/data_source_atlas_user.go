@@ -146,7 +146,7 @@ func (d *atlasUserDS) Schema(ctx context.Context, req datasource.SchemaRequest, 
 }
 
 func (d *atlasUserDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	connV220241113 := d.Client.AtlasV220241113
+	connV2 := d.Client.AtlasV220241113
 
 	var atlasUserConfig tfAtlasUserDSModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &atlasUserConfig)...)
@@ -165,14 +165,14 @@ func (d *atlasUserDS) Read(ctx context.Context, req datasource.ReadRequest, resp
 	)
 	if !atlasUserConfig.UserID.IsNull() {
 		userID := atlasUserConfig.UserID.ValueString()
-		user, _, err = connV220241113.MongoDBCloudUsersApi.GetUser(ctx, userID).Execute()
+		user, _, err = connV2.MongoDBCloudUsersApi.GetUser(ctx, userID).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("error when getting User from Atlas", fmt.Sprintf(errorUserRead, userID, err.Error()))
 			return
 		}
 	} else {
 		username := atlasUserConfig.Username.ValueString()
-		user, _, err = connV220241113.MongoDBCloudUsersApi.GetUserByUsername(ctx, username).Execute()
+		user, _, err = connV2.MongoDBCloudUsersApi.GetUserByUsername(ctx, username).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("error when getting User from Atlas", fmt.Sprintf(errorUserRead, username, err.Error()))
 			return
