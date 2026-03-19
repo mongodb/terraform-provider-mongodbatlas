@@ -24,7 +24,7 @@
 #   echo "  project"
 #   echo "  online_archive"
 #   echo "  encryption_at_rest"
-#   echo "  service_account_jwt  (ephemeral resource)"
+#   echo "  service_account_jwt"
 #
 # The scripts requires to install tfplugindocs and to create the resource templates in
 # templates/resources/${resource_name}.md.tmpl and
@@ -33,6 +33,7 @@
 #
 # For ephemeral resources, create the template in:
 # templates/ephemeral-resources/${resource_name}.md.tmpl
+# The script auto-detects the type based on which template directory contains the file.
 
 set -euo pipefail
 
@@ -50,7 +51,7 @@ if [ $# -eq 0 ]; then
     echo "  project"
     echo "  online_archive"
     echo "  encryption_at_rest"
-    echo "  service_account_jwt  (ephemeral resource)"
+    echo "  service_account_jwt"
     exit 1
 fi
 
