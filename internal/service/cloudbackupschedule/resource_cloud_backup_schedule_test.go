@@ -155,16 +155,17 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	var (
 		// A snapshot export bucket can't be deleted it there exist a cluster that is still using it. So the cluster resource needs to depend on it
-		clusterInfo             = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
-		policyName              = acc.RandomName()
-		roleName                = acc.RandomIAMRole()
-		bucketName              = acc.RandomBucketName()
-		configWithExport        = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, true, true)
-		configWithoutExport     = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, false, false)
-		configWithExportInvalid = strings.ReplaceAll(
+		clusterInfo              = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, PitEnabled: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
+		policyName               = acc.RandomName()
+		roleName                 = acc.RandomIAMRole()
+		bucketName               = acc.RandomBucketName()
+		configWithExport         = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, true, true)
+		configWithoutExport      = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, false, false)
+		invalidRestoreWindowDays = "restore_window_days      = 99" // cannot be longer than the configured retention period of 4 days
+		configWithExportInvalid  = strings.ReplaceAll(
 			configWithExport,
 			"restore_window_days      = 4",
-			"restore_window_days      = 999", // cannot be longer than default retention period 7 days
+			invalidRestoreWindowDays,
 		)
 		checksWithExport = resource.ComposeAggregateTestCheckFunc(
 			checkExists(resourceName),
@@ -186,8 +187,10 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 			resource.TestCheckResourceAttr(resourceName, "export.#", "0"),
 		)
 	)
-	fmt.Println(configWithExportInvalid)
-
+	// Sanity check in case formatting changes below
+	if !strings.Contains(configWithExport, invalidRestoreWindowDays) {
+		t.Fatalf("configWithExport does not contain invalidRestoreWindowDays: %s\n%s", invalidRestoreWindowDays, configWithExport)
+	}
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
