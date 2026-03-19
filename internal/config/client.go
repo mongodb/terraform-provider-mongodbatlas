@@ -92,8 +92,9 @@ type baseUserAgentTransport struct {
 }
 
 func (t *baseUserAgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Set("User-Agent", t.userAgent)
-	return t.base.RoundTrip(req)
+	r := req.Clone(req.Context())
+	r.Header.Set(UserAgentHeader, t.userAgent)
+	return t.base.RoundTrip(r)
 }
 
 // tfLoggingInterceptor should wrap the authentication transport to add Terraform logging.
