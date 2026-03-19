@@ -53,7 +53,7 @@ Follow the next steps to run this example:
    - `provider_name`: The cloud service provider hosting the cluster. Set to `"AWS"`
    - `region_name`: The cloud region where the cluster is deployed. Set to `"US_EAST_1"`
    - `backup_enabled`: Flags whether cloud backup is enabled. Set to `true`
-   - `termination_protection_enabled`: Flags whether termination protection is enabled. If enabled, you cannot destroy the cluster using `terraform destroy`. Set to `false`
+   - `termination_protection_enabled`: Flags whether termination protection is enabled on the cluster. If set to `true`, you cannot delete the cluster using `terraform destroy`. Set to `false` for development. Set as `true` before moving to a production environment.
    - `replication_specs`: Two entries, one per shard, each with identical region configuration
 
 3. Apply your configuration
@@ -66,7 +66,7 @@ Follow the next steps to run this example:
 
    Note that the apply might take several minutes.
 
-4. Destroy the resources
+4. (Optional) Destroy the resources
 
    The following command destroys the resources created by `terraform apply`.
 

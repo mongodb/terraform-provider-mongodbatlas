@@ -53,12 +53,12 @@ Follow the next steps to run this example:
 
    Review the following fields in the plan output before applying:
 
-   - `name`: The name of the cluster (default: `"m10-high-availability"`)
+   - `name`: The name of the cluster (Default for this example: `"m10-high-availability"`)
    - `cluster_type`: The type of cluster. Must be `"REPLICASET"`
    - `instance_size`: The instance size for all nodes. Set to `"M10"`
    - `provider_name`: The cloud service provider hosting the cluster. Set to `"AWS"`
    - `backup_enabled`: Flags whether cloud backup is enabled. Set to `true`
-   - `termination_protection_enabled`: Flags whether termination protection is enabled. If enabled, you cannot destroy the cluster using `terraform destroy`. Set to `false`
+   - `termination_protection_enabled`: Flags whether termination protection is enabled on the cluster. If set to `true`, you cannot delete the cluster using `terraform destroy`. Set to `false` for development. Set as `true` before moving to a production environment.
    - `region_configs`: Three entries — `US_EAST_1` (2 nodes, priority 7), `US_WEST_2` (2 nodes, priority 6), `EU_WEST_1` (1 node, priority 5)
 
 3. Apply your configuration
@@ -71,7 +71,7 @@ Follow the next steps to run this example:
 
    Note that the apply might take several minutes.
 
-4. Destroy the resources
+4. (Optional) Destroy the resources
 
    The following command destroys the resources created by `terraform apply`.
 
@@ -86,5 +86,5 @@ The `terraform.tfvars` file must contain the following variables for the configu
 - `atlas_org_id`: The ID of the Atlas organization. To learn how to retrieve an organization's details, see [View Organizations](https://www.mongodb.com/docs/atlas/access/orgs-create-view-edit-delete/#view-organizations) in the Atlas documentation.
 - `atlas_client_id`: The MongoDB Atlas Service Account Client ID
 - `atlas_client_secret`: The MongoDB Atlas Service Account Client Secret
-- `project_name`: The Atlas project name (default: `"m10-ha-project"`)
-- `cluster_name`: The Atlas cluster name (default: `"m10-high-availability"`)
+- `project_name`: The Atlas project name (Default for this example: `"m10-ha-project"`)
+- `cluster_name`: The Atlas cluster name (Default for this example: `"m10-high-availability"`)

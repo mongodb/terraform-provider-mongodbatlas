@@ -43,7 +43,7 @@ Follow the next steps to run this example:
    - `provider_name`: The cloud service provider on which MongoDB Cloud provisions the hosts. For M0 clusters, must be `"TENANT"`
    - `backing_provider_name`: The cloud provider hosting the cluster (Default for this example: `"AWS"`)
    - `region_name`: The cloud region where the cluster is deployed (Default for this example: `"US_EAST_1"`)
-   - `termination_protection_enabled`: Flags whether termination protection is enabled on the cluster. Set to `false` for development; mark as `enabled` before moving to production
+   - `termination_protection_enabled`: Flags whether termination protection is enabled on the cluster. If set to `true`, you cannot delete the cluster using `terraform destroy`. Set to `false` for development. Set as `true` before moving to a production environment.
 
 3. Apply your configuration
 
@@ -53,7 +53,7 @@ Follow the next steps to run this example:
    terraform apply
    ```
 
-4. Destroy the resources
+4. (Optional) Destroy the resources
 
    The following command destroys the resources created by `terraform apply`.
 
