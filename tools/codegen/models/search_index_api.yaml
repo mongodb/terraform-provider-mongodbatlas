@@ -1303,6 +1303,7 @@ schema:
             configurable_timeouts:
                 - create
                 - update
+                - delete
           computed_optional_required: ""
           tf_schema_name: timeouts
           tf_model_name: Timeouts
@@ -1313,6 +1314,15 @@ schema:
           request_only_required_on_create: false
 operations:
     delete:
+        wait:
+            state_property: status
+            pending_states:
+                - DELETING
+            target_states:
+                - DELETED
+            timeout_seconds: 300
+            min_timeout_seconds: 5
+            delay_seconds: 5
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}
     create:
