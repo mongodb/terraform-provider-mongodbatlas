@@ -205,7 +205,7 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 				Config: configWithoutExport,
 				Check:  checksNoExport,
 			},
-			// Go from export disabled to export enabled to test the PATCH behavior
+			// rejected PATCH must not pollute state; empty plan confirms setSchemaFields syncs auto_export_enabled+export from API
 			{
 				Config:      configWithExportInvalid,
 				ExpectError: regexp.MustCompile(".* policy item retention cannot be less than restore window"),
