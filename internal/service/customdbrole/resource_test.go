@@ -15,7 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 )
 
 const (
@@ -155,7 +155,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 			RoleName: acc.RandomName(),
 			Actions: &[]admin.DatabasePrivilegeAction{{
 				Action: "INSERT",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{{
+				Resources: []admin.DatabasePermittedNamespaceResource{{
 					Db: acc.RandomClusterName(),
 				}},
 			}},
@@ -164,7 +164,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 			RoleName: acc.RandomName(),
 			Actions: &[]admin.DatabasePrivilegeAction{{
 				Action: "SERVER_STATUS",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{{
+				Resources: []admin.DatabasePermittedNamespaceResource{{
 					Cluster: true,
 				}},
 			}},
@@ -175,7 +175,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 		RoleName: acc.RandomName(),
 		Actions: &[]admin.DatabasePrivilegeAction{{
 			Action: "UPDATE",
-			Resources: &[]admin.DatabasePermittedNamespaceResource{{
+			Resources: []admin.DatabasePermittedNamespaceResource{{
 				Db: acc.RandomClusterName(),
 			}},
 		}},
@@ -186,7 +186,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 			RoleName: inheritRole[0].RoleName,
 			Actions: &[]admin.DatabasePrivilegeAction{{
 				Action: "FIND",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{{
+				Resources: []admin.DatabasePermittedNamespaceResource{{
 					Db: acc.RandomClusterName(),
 				}},
 			}},
@@ -195,7 +195,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 			RoleName: inheritRole[1].RoleName,
 			Actions: &[]admin.DatabasePrivilegeAction{{
 				Action: "CONN_POOL_STATS",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{{
+				Resources: []admin.DatabasePermittedNamespaceResource{{
 					Cluster: true,
 				}},
 			}},
@@ -206,7 +206,7 @@ func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
 		RoleName: testRole.RoleName,
 		Actions: &[]admin.DatabasePrivilegeAction{{
 			Action: "REMOVE",
-			Resources: &[]admin.DatabasePermittedNamespaceResource{{
+			Resources: []admin.DatabasePermittedNamespaceResource{{
 				Db: acc.RandomClusterName(),
 			}},
 		}},
@@ -296,7 +296,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 		Actions: &[]admin.DatabasePrivilegeAction{
 			{
 				Action: "REMOVE",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{
+				Resources: []admin.DatabasePermittedNamespaceResource{
 					{
 						Db: acc.RandomClusterName(),
 					},
@@ -307,7 +307,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 			},
 			{
 				Action: "FIND",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{
+				Resources: []admin.DatabasePermittedNamespaceResource{
 					{
 						Db: acc.RandomClusterName(),
 					},
@@ -321,7 +321,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 		Actions: &[]admin.DatabasePrivilegeAction{
 			{
 				Action: "UPDATE",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{
+				Resources: []admin.DatabasePermittedNamespaceResource{
 					{
 						Db: acc.RandomClusterName(),
 					},
@@ -332,7 +332,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 			},
 			{
 				Action: "INSERT",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{
+				Resources: []admin.DatabasePermittedNamespaceResource{
 					{
 						Db: acc.RandomClusterName(),
 					},
@@ -352,7 +352,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 		Actions: &[]admin.DatabasePrivilegeAction{
 			{
 				Action: "UPDATE",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{
+				Resources: []admin.DatabasePermittedNamespaceResource{
 					{
 						Db: acc.RandomClusterName(),
 					},
@@ -360,7 +360,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 			},
 			{
 				Action: "FIND",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{
+				Resources: []admin.DatabasePermittedNamespaceResource{
 					{
 						Db: acc.RandomClusterName(),
 					},
@@ -371,7 +371,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 			},
 			{
 				Action: "INSERT",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{
+				Resources: []admin.DatabasePermittedNamespaceResource{
 					{
 						Db: acc.RandomClusterName(),
 					},
@@ -388,7 +388,7 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 		Actions: &[]admin.DatabasePrivilegeAction{
 			{
 				Action: "REMOVE",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{
+				Resources: []admin.DatabasePermittedNamespaceResource{
 					{
 						Db: acc.RandomClusterName(),
 					},
@@ -492,7 +492,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 		Actions: &[]admin.DatabasePrivilegeAction{
 			{
 				Action: "REMOVE",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{
+				Resources: []admin.DatabasePermittedNamespaceResource{
 					{
 						Db: acc.RandomClusterName(),
 					},
@@ -503,7 +503,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 			},
 			{
 				Action: "FIND",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{
+				Resources: []admin.DatabasePermittedNamespaceResource{
 					{
 						Db: acc.RandomClusterName(),
 					},
@@ -517,7 +517,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 		Actions: &[]admin.DatabasePrivilegeAction{
 			{
 				Action: "UPDATE",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{
+				Resources: []admin.DatabasePermittedNamespaceResource{
 					{
 						Db: acc.RandomClusterName(),
 					},
@@ -525,7 +525,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 			},
 			{
 				Action: "FIND",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{
+				Resources: []admin.DatabasePermittedNamespaceResource{
 					{
 						Db: acc.RandomClusterName(),
 					},
@@ -536,7 +536,7 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 			},
 			{
 				Action: "INSERT",
-				Resources: &[]admin.DatabasePermittedNamespaceResource{
+				Resources: []admin.DatabasePermittedNamespaceResource{
 					{
 						Db: acc.RandomClusterName(),
 					},

@@ -72,7 +72,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err))
 		}
 		if resp != nil && resp.Results != nil {
-			if err := d.Set("certificates", flattenCertificates(*resp.Results)); err != nil {
+			if err := d.Set("certificates", flattenCertificates(resp.Results)); err != nil {
 				return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersSetting, "certificates", username, err))
 			}
 		}

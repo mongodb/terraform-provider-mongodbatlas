@@ -243,6 +243,7 @@ func operationConfigToModel(opConfig *config.APIOperation) *APIOperation {
 		Path:              opConfig.Path,
 		Wait:              waitConfigToModel(opConfig.Wait),
 		StaticRequestBody: opConfig.StaticRequestBody,
+		ResetsToDefaults:  opConfig.ResetsToDefaults,
 	}
 }
 

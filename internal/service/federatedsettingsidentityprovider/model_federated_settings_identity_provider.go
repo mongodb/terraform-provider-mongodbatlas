@@ -4,7 +4,7 @@ import (
 	"cmp"
 	"slices"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -211,7 +211,7 @@ func FlattenAuthFederationRoleMapping(roleMappings []admin.AuthFederationRoleMap
 			roleMappingsMap[i] = map[string]any{
 				"external_group_name": roleMappings[i].ExternalGroupName,
 				"id":                  roleMappings[i].Id,
-				"role_assignments":    FlattenRoleAssignments(*roleMappings[i].RoleAssignments),
+				"role_assignments":    FlattenRoleAssignments(roleMappings[i].RoleAssignments),
 			}
 		}
 	}

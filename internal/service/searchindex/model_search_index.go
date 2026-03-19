@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 )
 
 func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]any {
@@ -108,7 +108,11 @@ func expandSearchIndexTypeSets(d *schema.ResourceData) ([]admin.SearchTypeSets, 
 			if diags != nil {
 				return nil, diags
 			}
-			ts.Types = conversion.ToAnySlicePointer(&arr)
+			types := make([]any, len(arr))
+			for idx, elem := range arr {
+				types[idx] = elem
+			}
+			ts.Types = types
 		}
 
 		result = append(result, ts)

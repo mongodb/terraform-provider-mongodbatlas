@@ -271,6 +271,7 @@ type HandleDeleteReq struct {
 	CallParams        *config.APICallParams
 	Wait              *WaitReq
 	StaticRequestBody string
+	ResetsToDefaults  bool
 }
 
 func HandleDelete(ctx context.Context, req HandleDeleteReq) {
@@ -280,6 +281,10 @@ func HandleDelete(ctx context.Context, req HandleDeleteReq) {
 	}
 	if errWait := handleWaitDelete(ctx, req.Wait, req.Client, req.State, req.Hooks); errWait != nil {
 		addError(req.Diags, opDelete, errWaitingForChanges, errWait)
+		return
+	}
+	if req.ResetsToDefaults {
+		req.Diags.AddWarning("Delete resets resource to default settings", "This resource does not perform a true delete. Instead, the delete operation resets the resource configuration to its default values.")
 	}
 }
 

@@ -12,7 +12,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
@@ -75,7 +75,7 @@ type MongoDBClient struct {
 	AtlasV2          *admin.APIClient
 	AtlasPreview     *adminpreview.APIClient
 	AtlasV220240530  *admin20240530.APIClient // Used in cluster to support deprecated attributes default_read_concern and fail_index_key_too_long in advanced_configuration.
-	AtlasV220241113  *admin20241113.APIClient // Used in teams and atlas_users to avoiding breaking changes.
+	AtlasV220241113  *admin20241113.APIClient // Used in teams and atlas_users to avoid breaking changes. Also used for serverless instances and shared tier, whose APIs were sunset and are no longer available in newer SDK versions.
 	Realm            *RealmClient
 	BaseURL          string // Needed by organization resource.
 	TerraformVersion string // Needed by organization resource.
