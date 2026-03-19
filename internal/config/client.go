@@ -63,6 +63,39 @@ func networkLoggingBaseTransport() http.RoundTripper {
 	return NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
 }
 
+// NewOAuthHTTPClient builds an HTTP client for OAuth2 token endpoint calls
+// (token generation, revocation). It omits auth transports to avoid conflicts
+// with the token endpoint's Authorization: Basic header, and omits
+// tfLoggingInterceptor to avoid logging sensitive credentials that appear in token endpoint requests and responses.
+//
+// Transport chain:
+//
+//	baseUserAgentTransport (sets base User-Agent)
+//	  -> UserAgentTransport (appends resource/operation extras from context)
+//	    -> NetworkLoggingTransport (timing/status logging, no body/headers)
+//	      -> baseTransport (connection pooling, timeouts, proxy)
+func NewOAuthHTTPClient(terraformVersion string) *http.Client {
+	transport := networkLoggingBaseTransport()
+	transport = &UserAgentTransport{Transport: transport, Enabled: true}
+	transport = &baseUserAgentTransport{
+		base:      transport,
+		userAgent: UserAgent(terraformVersion),
+	}
+	return &http.Client{Transport: transport}
+}
+
+// baseUserAgentTransport sets the base User-Agent header on every outgoing
+// request so that UserAgentTransport can append resource/operation extras.
+type baseUserAgentTransport struct {
+	base      http.RoundTripper
+	userAgent string
+}
+
+func (t *baseUserAgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Header.Set("User-Agent", t.userAgent)
+	return t.base.RoundTrip(req)
+}
+
 // tfLoggingInterceptor should wrap the authentication transport to add Terraform logging.
 func tfLoggingInterceptor(base http.RoundTripper) http.RoundTripper {
 	// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.

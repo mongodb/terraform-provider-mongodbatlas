@@ -107,7 +107,7 @@ func (r *es) Close(ctx context.Context, req ephemeral.CloseRequest, resp *epheme
 	}
 	log.Printf("[DEBUG] %s Close: revoking access token", resourceTypeName)
 	conf := config.GetServiceAccountConfig(data.ClientID, data.ClientSecret, config.NormalizeBaseURL(data.BaseURL))
-	if err := conf.RevokeToken(r.withUserAgentClient(ctx), &oauth2.Token{AccessToken: data.AccessToken}); err != nil {
+	if err := conf.RevokeToken(r.oauthClientCtx(ctx), &oauth2.Token{AccessToken: data.AccessToken}); err != nil {
 		resp.Diagnostics.AddWarning("Failed to revoke Service Account token on close", err.Error())
 	}
 }
@@ -161,9 +161,16 @@ func providerBaseURL(providerData *config.EphemeralResourceData) string {
 	return ""
 }
 
+// oauthClientCtx injects an HTTP client into the context via
+// auth.HTTPClient so the atlas-sdk-go token exchange picks it up.
+func (r *es) oauthClientCtx(ctx context.Context) context.Context {
+	client := config.NewOAuthHTTPClient(r.TerraformVersion())
+	return context.WithValue(ctx, auth.HTTPClient, client)
+}
+
 func (r *es) generateToken(ctx context.Context, clientID, clientSecret, baseURL string) (*auth.Token, error) {
 	conf := config.GetServiceAccountConfig(clientID, clientSecret, config.NormalizeBaseURL(baseURL))
-	token, err := conf.Token(r.withUserAgentClient(ctx))
+	token, err := conf.Token(r.oauthClientCtx(ctx))
 	if err != nil {
 		return nil, err
 	}

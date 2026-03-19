@@ -107,6 +107,13 @@ func (e *ESCommon) GetName() string {
 	return e.ResourceName
 }
 
+func (e *ESCommon) TerraformVersion() string {
+	if e.EphemeralResourceData != nil {
+		return e.EphemeralResourceData.TerraformVersion
+	}
+	return ""
+}
+
 func (e *ESCommon) SetClient(data *EphemeralResourceData) {
 	e.EphemeralResourceData = data
 }
