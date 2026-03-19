@@ -188,8 +188,8 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 		)
 	)
 	// Sanity check in case formatting changes below
-	if !strings.Contains(configWithExport, invalidRestoreWindowDays) {
-		t.Fatalf("configWithExport does not contain invalidRestoreWindowDays: %s\n%s", invalidRestoreWindowDays, configWithExport)
+	if !strings.Contains(configWithExportInvalid, invalidRestoreWindowDays) {
+		t.Fatalf("configWithExportInvalid does not contain invalidRestoreWindowDays: %s\n%s", invalidRestoreWindowDays, configWithExportInvalid)
 	}
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
