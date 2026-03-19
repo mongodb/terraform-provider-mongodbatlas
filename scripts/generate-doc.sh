@@ -15,7 +15,7 @@
 # limitations under the License.
 
 #
-# Shell script to generate the Terraform documentation for the resource and data sources.
+# Shell script to generate the Terraform documentation for resources, data sources, and ephemeral resources.
 #
 # Usage: ./generate-doc.sh" ${resource_name}
 #   resource_name is the terraform resource name. Example: search_deployment
@@ -24,11 +24,15 @@
 #   echo "  project"
 #   echo "  online_archive"
 #   echo "  encryption_at_rest"
+#   echo "  service_account_jwt  (ephemeral resource)"
 #
-# The scripts requires to install tfplugindocs and to create the resource templates in 
-# templates/resources/${resource_name}.md.tmpl and 
+# The scripts requires to install tfplugindocs and to create the resource templates in
+# templates/resources/${resource_name}.md.tmpl and
 # templates/data-sources/${resource_name}.md.tmpl
 # templates/data-sources/${resource_name}s.md.tmpl
+#
+# For ephemeral resources, create the template in:
+# templates/ephemeral-resources/${resource_name}.md.tmpl
 
 set -euo pipefail
 
@@ -46,67 +50,92 @@ if [ $# -eq 0 ]; then
     echo "  project"
     echo "  online_archive"
     echo "  encryption_at_rest"
+    echo "  service_account_jwt  (ephemeral resource)"
     exit 1
 fi
 
 resource_name="$1"
 
-if [ ! -f "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.md.tmpl" ]; then
-    printf "Warning: we coudn't find the template for the %s resource. The default template templates/resources.md.tmpl will be used." "${resource_name}"
-    printf "Please, make sure to include the resource template under %s.\n\n" "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.md.tmpl"
+# Detect whether this is an ephemeral resource (template exists under ephemeral-resources/).
+is_ephemeral=false
+if [ -f "${TEMPLATE_FOLDER_PATH}/ephemeral-resources/${resource_name}.md.tmpl" ]; then
+    is_ephemeral=true
 fi
 
-if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl" ]; then
-    printf "Warning: we coudn't find the template for the %s data source. The default template templates/data-source.md.tmpl will be used." "${resource_name}"
-    printf "Please, make sure to include the data source template under %s.\n\n" "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
-fi
+if [ "${is_ephemeral}" = false ]; then
+    if [ ! -f "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.md.tmpl" ]; then
+        printf "Warning: we coudn't find the template for the %s resource. The default template templates/resources.md.tmpl will be used." "${resource_name}"
+        printf "Please, make sure to include the resource template under %s.\n\n" "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.md.tmpl"
+    fi
 
-if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}s.md.tmpl" ]; then
-    echo "Warning: we coudn't find the template for the ${resource_name}s data source"
-    printf "Please, make sure to include the data source template under %s." "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
-    printf "Skipping this check: We assume that the resource does not have a plural data source.\n\n"
+    if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl" ]; then
+        printf "Warning: we coudn't find the template for the %s data source. The default template templates/data-source.md.tmpl will be used." "${resource_name}"
+        printf "Please, make sure to include the data source template under %s.\n\n" "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
+    fi
+
+    if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}s.md.tmpl" ]; then
+        echo "Warning: we coudn't find the template for the ${resource_name}s data source"
+        printf "Please, make sure to include the data source template under %s." "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
+        printf "Skipping this check: We assume that the resource does not have a plural data source.\n\n"
+    fi
 fi
 
 trap 'rm -R docs-out/' EXIT # temp dir cleanup when script exits
 
 tfplugindocs generate --tf-version "${TF_VERSION}" --website-source-dir "${TEMPLATE_FOLDER_PATH}"  --rendered-website-dir "docs-out"
 
-if [ ! -f "docs-out/resources/${resource_name}.md" ]; then
-    echo "Error: We cannot find the documentation file for the resource ${resource_name}.md"
-    echo "Please, make sure to include the resource template under templates/resources/${resource_name}.md.tmpl"
-    printf "Skipping this step: We assume that only a data source is being generated.\n\n"
-else
-    printf "Moving the generated resource file %s.md to the website folder.\n" "${resource_name}"
-    mv "docs-out/resources/${resource_name}.md" "docs/resources/${resource_name}.md"
-fi
-
-if [ ! -f "docs-out/data-sources/${resource_name}.md" ]; then
-    echo "Error: We cannot find the documentation file for the data source ${resource_name}.md"
-    echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}.md.tmpl"
-    exit 1
-else
-    printf "Moving the generated data-source file %s.md to the website folder.\n" "${resource_name}"
-    mv "docs-out/data-sources/${resource_name}.md" "docs/data-sources/${resource_name}.md"
-fi
-
-if [ ! -f "docs-out/data-sources/${resource_name}s.md" ]; then
-    echo "Warning: We cannot find the documentation file for the plural data source ${resource_name}s.md."
-    echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}s.md.tmpl"
-    printf "Skipping this step: We assume that the resource does not have a plural data source.\n\n"
-else
-    printf "\nMoving the generated plural data-source file %s.md to the website folder.\n" "${resource_name}s"
-    mv "docs-out/data-sources/${resource_name}s.md" "docs/data-sources/${resource_name}s.md"
-fi
-
-printf "\nPost-processing polymorphic docs...\n"
-postprocess_files=()
-for f in "docs/resources/${resource_name}.md" "docs/data-sources/${resource_name}.md" "docs/data-sources/${resource_name}s.md"; do
-    if [ -f "$f" ]; then
-        postprocess_files+=("$f")
-    else
-        printf "Skipping post-processing for %s (file not found).\n" "$f"
+if [ "${is_ephemeral}" = true ]; then
+    # Ephemeral resource: only look for the ephemeral-resources output.
+    if [ ! -f "docs-out/ephemeral-resources/${resource_name}.md" ]; then
+        echo "Error: We cannot find the documentation file for the ephemeral resource ${resource_name}.md"
+        echo "Please, make sure to include the template under templates/ephemeral-resources/${resource_name}.md.tmpl"
+        exit 1
     fi
-done
-go run ./tools/docpostprocess "${postprocess_files[@]}"
+    mkdir -p "docs/ephemeral-resources"
+    printf "Moving the generated ephemeral resource file %s.md to the website folder.\n" "${resource_name}"
+    mv "docs-out/ephemeral-resources/${resource_name}.md" "docs/ephemeral-resources/${resource_name}.md"
+
+    printf "\nPost-processing polymorphic docs...\n"
+    go run ./tools/docpostprocess "docs/ephemeral-resources/${resource_name}.md"
+else
+    # Standard resource and data source handling.
+    if [ ! -f "docs-out/resources/${resource_name}.md" ]; then
+        echo "Error: We cannot find the documentation file for the resource ${resource_name}.md"
+        echo "Please, make sure to include the resource template under templates/resources/${resource_name}.md.tmpl"
+        printf "Skipping this step: We assume that only a data source is being generated.\n\n"
+    else
+        printf "Moving the generated resource file %s.md to the website folder.\n" "${resource_name}"
+        mv "docs-out/resources/${resource_name}.md" "docs/resources/${resource_name}.md"
+    fi
+
+    if [ ! -f "docs-out/data-sources/${resource_name}.md" ]; then
+        echo "Error: We cannot find the documentation file for the data source ${resource_name}.md"
+        echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}.md.tmpl"
+        exit 1
+    else
+        printf "Moving the generated data-source file %s.md to the website folder.\n" "${resource_name}"
+        mv "docs-out/data-sources/${resource_name}.md" "docs/data-sources/${resource_name}.md"
+    fi
+
+    if [ ! -f "docs-out/data-sources/${resource_name}s.md" ]; then
+        echo "Warning: We cannot find the documentation file for the plural data source ${resource_name}s.md."
+        echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}s.md.tmpl"
+        printf "Skipping this step: We assume that the resource does not have a plural data source.\n\n"
+    else
+        printf "\nMoving the generated plural data-source file %s.md to the website folder.\n" "${resource_name}s"
+        mv "docs-out/data-sources/${resource_name}s.md" "docs/data-sources/${resource_name}s.md"
+    fi
+
+    printf "\nPost-processing polymorphic docs...\n"
+    postprocess_files=()
+    for f in "docs/resources/${resource_name}.md" "docs/data-sources/${resource_name}.md" "docs/data-sources/${resource_name}s.md"; do
+        if [ -f "$f" ]; then
+            postprocess_files+=("$f")
+        else
+            printf "Skipping post-processing for %s (file not found).\n" "$f"
+        fi
+    done
+    go run ./tools/docpostprocess "${postprocess_files[@]}"
+fi
 
 printf "\nThe documentation for %s has been created.\n" "${resource_name}"
