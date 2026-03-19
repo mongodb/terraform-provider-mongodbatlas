@@ -26,7 +26,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     }
   ]
 
-  termination_protection_enabled = true
+  termination_protection_enabled = false
 
   tags = {
     environment = "production"
