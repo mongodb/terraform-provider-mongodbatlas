@@ -6,6 +6,8 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -24,11 +26,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Name of the service account",
 			},
+			"count": schema.Int64Attribute{
+				Computed:            true,
+				MarkdownDescription: "The count value",
+				PlanModifiers:       []planmodifier.Int64{int64planmodifier.UseStateForUnknown()},
+			},
+			"enabled": schema.BoolAttribute{
+				Computed:            true,
+				MarkdownDescription: "Whether feature is enabled",
+				PlanModifiers:       []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
+			},
 		},
 	}
 }
 
 type TFModel struct {
-	Secret types.String `tfsdk:"secret" autogen:"sensitive"`
-	Name   types.String `tfsdk:"name"`
+	Secret  types.String `tfsdk:"secret" autogen:"sensitive"`
+	Name    types.String `tfsdk:"name"`
+	Count   types.Int64  `tfsdk:"count"`
+	Enabled types.Bool   `tfsdk:"enabled"`
 }

@@ -58,7 +58,7 @@ type Override struct {
 	Sensitive          *bool          `yaml:"sensitive"`
 	RequestBodyUsage   *ReqBodyUsage  `yaml:"request_body_usage,omitempty"`
 	SkipStateListMerge *bool          `yaml:"skip_state_list_merge"`
-	ImmutableComputed  *bool          `yaml:"immutable_computed"` // Currently supported for string attributes, support for additional types can be added as needed.
+	ImmutableComputed  *bool          `yaml:"immutable_computed"` // Generates UseStateForUnknown() plan modifier; only meaningful for computed/computed_optional attributes on resource schemas (not data sources).
 	Type               *Type          `yaml:"type"`
 	Description        string         `yaml:"description"`
 	PlanModifiers      []PlanModifier `yaml:"plan_modifiers"`
