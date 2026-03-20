@@ -784,7 +784,11 @@ replication_specs = [
 
 ### auto_scaling
 
-* `disk_gb_enabled` - (Optional) Flag that indicates whether this cluster enables disk auto-scaling. This parameter defaults to false.
+* `disk_gb_enabled` - (Optional) Flag that indicates whether this cluster enables disk auto-scaling. The maximum memory allowed for the selected cluster tier and the oplog size can limit storage auto-scaling. This parameter defaults to false.
+  - To set this to `false`, Atlas requires `advanced_configuration.oplog_min_retention_hours` to be `0` on the server.
+  - If it is still non-zero, the API returns `OPLOG_MIN_RETENTION_HOURS_NO_DISK_AUTO_SCALING` (HTTP 400) with a message that oplog minimum retention cannot be configured without disk auto-scaling.
+  - This resource updates the cluster before process arguments, so setting `advanced_configuration.oplog_min_retention_hours` to `0` in the same apply as `disk_gb_enabled = false` does not prevent the error. The cluster update can fail before the process-args change applies.
+  - Workaround: run two applies. First set `advanced_configuration.oplog_min_retention_hours` to `0` and apply. Then set `disk_gb_enabled` to `false` and apply again.
 * `compute_enabled` - (Optional) Flag that indicates whether instance size auto-scaling is enabled. This parameter defaults to false. If a sharded cluster is making use of the [New Sharding Configuration](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), auto-scaling of the instance size will be independent for each individual shard. Please reference the [Use Auto-Scaling Per Shard](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema#use-auto-scaling-per-shard) section for more details.
 * `compute_scale_down_enabled` - (Optional) Flag that indicates whether the instance size may scale down. Atlas requires this parameter if `replication_specs[#].region_configs[#].auto_scaling.compute_enabled` : true. If you enable this option, specify a value for `replication_specs[#].region_configs[#].auto_scaling.compute_min_instance_size`.
 * `compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale (such as M10). Atlas requires this parameter if `replication_specs[#].region_configs[#].auto_scaling.compute_scale_down_enabled` is true.
@@ -817,7 +821,11 @@ lifecycle {
 
 ### analytics_auto_scaling
 
-* `disk_gb_enabled` - (Optional) Flag that indicates whether this cluster enables disk auto-scaling. This parameter defaults to false.
+* `disk_gb_enabled` - (Optional) Flag that indicates whether this cluster enables disk auto-scaling. The maximum memory allowed for the selected cluster tier and the oplog size can limit storage auto-scaling. This parameter defaults to false.
+  - To set this to `false`, Atlas requires `advanced_configuration.oplog_min_retention_hours` to be `0` on the server.
+  - If it is still non-zero, the API returns `OPLOG_MIN_RETENTION_HOURS_NO_DISK_AUTO_SCALING` (HTTP 400) with a message that oplog minimum retention cannot be configured without disk auto-scaling.
+  - This resource updates the cluster before process arguments, so setting `advanced_configuration.oplog_min_retention_hours` to `0` in the same apply as `disk_gb_enabled = false` does not prevent the error. The cluster update can fail before the process-args change applies.
+  - Workaround: run two applies. First set `advanced_configuration.oplog_min_retention_hours` to `0` and apply. Then set `disk_gb_enabled` to `false` and apply again.
 * `compute_enabled` - (Optional) Flag that indicates whether analytics instance size auto-scaling is enabled. This parameter defaults to false. If a sharded cluster is making use of the [New Sharding Configuration](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), auto-scaling of analytics instance size will be independent for each individual shard. Please reference the [Use Auto-Scaling Per Shard](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema#use-auto-scaling-per-shard) section for more details.
 * `compute_scale_down_enabled` - (Optional) Flag that indicates whether the instance size may scale down. Atlas requires this parameter if `replication_specs[#].region_configs[#].analytics_auto_scaling.compute_enabled` : true. If you enable this option, specify a value for `replication_specs[#].region_configs[#].analytics_auto_scaling.compute_min_instance_size`.
 * `compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale (such as M10). Atlas requires this parameter if `replication_specs[#].region_configs[#].analytics_auto_scaling.compute_scale_down_enabled` is true.
@@ -943,6 +951,8 @@ When `use_effective_fields = true` and auto-scaling is enabled, you can update `
 
 1. Set `compute_enabled = false` and `disk_gb_enabled = false` in the [`auto_scaling`](#auto_scaling) block, update `instance_size`, `disk_size_gb`, or `disk_iops` to your desired values, and apply.
 2. Re-enable auto-scaling by setting `compute_enabled` and/or `disk_gb_enabled` back to `true` and apply.
+
+-> **NOTE:** If `advanced_configuration.oplog_min_retention_hours` is non-zero on the server, set it to `0` and apply before step 1 disables `disk_gb_enabled`. Otherwise the API can return `OPLOG_MIN_RETENTION_HOURS_NO_DISK_AUTO_SCALING` (HTTP 400). See the [`disk_gb_enabled`](#auto_scaling) argument description.
 
 This workflow allows you to set specific baseline values from which auto-scaling will resume dynamic adjustments based on workload.
 
