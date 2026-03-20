@@ -8,9 +8,9 @@ subcategory: "Service Accounts"
 
 `mongodbatlas_service_account_jwt` generates a short-lived access token (JWT) for a MongoDB Atlas [Service Account](https://www.mongodb.com/docs/atlas/api/service-accounts-overview/) using the OAuth 2.0 Client Credentials flow.
 
-The access token is generated during each Terraform operation and is never persisted to state or plan. For more information on where ephemeral values can be used, see [Ephemeral values](https://developer.hashicorp.com/terraform/language/manage-sensitive-data/ephemeral).
+The access token is generated during each Terraform operation and is never persisted to state or plan. For more information on where to use ephemeral values, see [Ephemeral values](https://developer.hashicorp.com/terraform/language/manage-sensitive-data/ephemeral).
 
--> **NOTE:** The access token is valid for 3600 seconds (1 hour) and cannot be refreshed.
+-> **NOTE:** The access token is valid for 3600 seconds (1 hour) and cannot be refreshed. Set `revoke_on_closure = true` to revoke the token as soon as the Terraform operation ends.
 
 ## Example Usages
 
@@ -54,7 +54,7 @@ This resource requires Service Account credentials. Programmatic Access Keys (PA
 
 - `client_id` (String) The Client ID of the Service Account.
 - `client_secret` (String, Sensitive) The service account client secret.
-- `revoke_on_closure` (Boolean) When true, the access token is revoked when the Terraform operation ends. Defaults to `false`.
+- `revoke_on_closure` (Boolean) If true, the access token is revoked when the Terraform operation ends. Defaults to `false`.
 
 ### Read-Only
 

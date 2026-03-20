@@ -61,17 +61,17 @@ fi
 if [ "${is_ephemeral}" = false ]; then
     if [ ! -f "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.md.tmpl" ]; then
         printf "Warning: we coudn't find the template for the %s resource. The default template templates/resources.md.tmpl will be used." "${resource_name}"
-        printf "Please, make sure to include the resource template under %s.\n\n" "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.md.tmpl"
+        printf "Include the resource template under %s.\n\n" "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.md.tmpl"
     fi
 
     if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl" ]; then
         printf "Warning: we coudn't find the template for the %s data source. The default template templates/data-source.md.tmpl will be used." "${resource_name}"
-        printf "Please, make sure to include the data source template under %s.\n\n" "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
+        printf "Include the data source template under %s.\n\n" "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
     fi
 
     if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}s.md.tmpl" ]; then
         echo "Warning: we coudn't find the template for the ${resource_name}s data source"
-        printf "Please, make sure to include the data source template under %s." "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
+        printf "Include the data source template under %s." "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
         printf "Skipping this check: We assume that the resource does not have a plural data source.\n\n"
     fi
 fi
@@ -83,7 +83,7 @@ tfplugindocs generate --tf-version "${TF_VERSION}" --website-source-dir "${TEMPL
 if [ "${is_ephemeral}" = true ]; then
     if [ ! -f "docs-out/ephemeral-resources/${resource_name}.md" ]; then
         echo "Error: We cannot find the documentation file for the ephemeral resource ${resource_name}.md"
-        echo "Please, make sure to include the template under templates/ephemeral-resources/${resource_name}.md.tmpl"
+        echo "Include the template under templates/ephemeral-resources/${resource_name}.md.tmpl"
         exit 1
     fi
     mkdir -p "docs/ephemeral-resources"
@@ -96,7 +96,7 @@ else
     # Standard resource and data source handling.
     if [ ! -f "docs-out/resources/${resource_name}.md" ]; then
         echo "Error: We cannot find the documentation file for the resource ${resource_name}.md"
-        echo "Please, make sure to include the resource template under templates/resources/${resource_name}.md.tmpl"
+        echo "Include the resource template under templates/resources/${resource_name}.md.tmpl"
         printf "Skipping this step: We assume that only a data source is being generated.\n\n"
     else
         printf "Moving the generated resource file %s.md to the website folder.\n" "${resource_name}"
@@ -105,7 +105,7 @@ else
 
     if [ ! -f "docs-out/data-sources/${resource_name}.md" ]; then
         echo "Error: We cannot find the documentation file for the data source ${resource_name}.md"
-        echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}.md.tmpl"
+        echo "Include the data source template under templates/data-sources/${resource_name}.md.tmpl"
         exit 1
     else
         printf "Moving the generated data-source file %s.md to the website folder.\n" "${resource_name}"
@@ -114,7 +114,7 @@ else
 
     if [ ! -f "docs-out/data-sources/${resource_name}s.md" ]; then
         echo "Warning: We cannot find the documentation file for the plural data source ${resource_name}s.md."
-        echo "Please, make sure to include the data source template under templates/data-sources/${resource_name}s.md.tmpl"
+        echo "Include the data source template under templates/data-sources/${resource_name}s.md.tmpl"
         printf "Skipping this step: We assume that the resource does not have a plural data source.\n\n"
     else
         printf "\nMoving the generated plural data-source file %s.md to the website folder.\n" "${resource_name}s"
