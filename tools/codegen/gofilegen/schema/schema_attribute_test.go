@@ -203,6 +203,107 @@ func TestGenerateSchemaAttributes_ImmutableComputed(t *testing.T) {
 			hasPlanModifier:        true,
 			expectedPlanModifierFn: "numberplanmodifier.UseStateForUnknown()",
 		},
+		"List attribute with ImmutableComputed": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "test_list",
+				TFModelName:              "TestList",
+				List:                     &codespec.ListAttribute{ElementType: codespec.String},
+				ComputedOptionalRequired: codespec.Computed,
+				ImmutableComputed:        true,
+			},
+			hasPlanModifier:        true,
+			expectedPlanModifierFn: "listplanmodifier.UseStateForUnknown()",
+		},
+		"Map attribute with ImmutableComputed": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "test_map",
+				TFModelName:              "TestMap",
+				Map:                      &codespec.MapAttribute{ElementType: codespec.String},
+				ComputedOptionalRequired: codespec.Computed,
+				ImmutableComputed:        true,
+			},
+			hasPlanModifier:        true,
+			expectedPlanModifierFn: "mapplanmodifier.UseStateForUnknown()",
+		},
+		"Set attribute with ImmutableComputed": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "test_set",
+				TFModelName:              "TestSet",
+				Set:                      &codespec.SetAttribute{ElementType: codespec.String},
+				ComputedOptionalRequired: codespec.Computed,
+				ImmutableComputed:        true,
+			},
+			hasPlanModifier:        true,
+			expectedPlanModifierFn: "setplanmodifier.UseStateForUnknown()",
+		},
+		"ListNested attribute with ImmutableComputed": {
+			attribute: codespec.Attribute{
+				TFSchemaName: "test_list_nested",
+				TFModelName:  "TestListNested",
+				ListNested: &codespec.ListNestedAttribute{
+					NestedObject: codespec.NestedAttributeObject{
+						Attributes: codespec.Attributes{
+							{TFSchemaName: "inner", TFModelName: "Inner", String: &codespec.StringAttribute{}, ComputedOptionalRequired: codespec.Computed},
+						},
+					},
+				},
+				ComputedOptionalRequired: codespec.Computed,
+				ImmutableComputed:        true,
+			},
+			hasPlanModifier:        true,
+			expectedPlanModifierFn: "listplanmodifier.UseStateForUnknown()",
+		},
+		"SetNested attribute with ImmutableComputed": {
+			attribute: codespec.Attribute{
+				TFSchemaName: "test_set_nested",
+				TFModelName:  "TestSetNested",
+				SetNested: &codespec.SetNestedAttribute{
+					NestedObject: codespec.NestedAttributeObject{
+						Attributes: codespec.Attributes{
+							{TFSchemaName: "inner", TFModelName: "Inner", String: &codespec.StringAttribute{}, ComputedOptionalRequired: codespec.Computed},
+						},
+					},
+				},
+				ComputedOptionalRequired: codespec.Computed,
+				ImmutableComputed:        true,
+			},
+			hasPlanModifier:        true,
+			expectedPlanModifierFn: "setplanmodifier.UseStateForUnknown()",
+		},
+		"MapNested attribute with ImmutableComputed": {
+			attribute: codespec.Attribute{
+				TFSchemaName: "test_map_nested",
+				TFModelName:  "TestMapNested",
+				MapNested: &codespec.MapNestedAttribute{
+					NestedObject: codespec.NestedAttributeObject{
+						Attributes: codespec.Attributes{
+							{TFSchemaName: "inner", TFModelName: "Inner", String: &codespec.StringAttribute{}, ComputedOptionalRequired: codespec.Computed},
+						},
+					},
+				},
+				ComputedOptionalRequired: codespec.Computed,
+				ImmutableComputed:        true,
+			},
+			hasPlanModifier:        true,
+			expectedPlanModifierFn: "mapplanmodifier.UseStateForUnknown()",
+		},
+		"SingleNested attribute with ImmutableComputed": {
+			attribute: codespec.Attribute{
+				TFSchemaName: "test_single_nested",
+				TFModelName:  "TestSingleNested",
+				SingleNested: &codespec.SingleNestedAttribute{
+					NestedObject: codespec.NestedAttributeObject{
+						Attributes: codespec.Attributes{
+							{TFSchemaName: "inner", TFModelName: "Inner", String: &codespec.StringAttribute{}, ComputedOptionalRequired: codespec.Computed},
+						},
+					},
+				},
+				ComputedOptionalRequired: codespec.Computed,
+				ImmutableComputed:        true,
+			},
+			hasPlanModifier:        true,
+			expectedPlanModifierFn: "objectplanmodifier.UseStateForUnknown()",
+		},
 	}
 
 	for name, tc := range tests {
