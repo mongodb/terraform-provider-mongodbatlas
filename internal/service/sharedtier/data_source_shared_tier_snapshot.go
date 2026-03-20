@@ -58,12 +58,12 @@ func DataSourceSnapshot() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasSharedTierSnapshotRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).AtlasV220241113
+	connV220241113 := meta.(*config.MongoDBClient).AtlasV220241113
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	snapshotID := d.Get("snapshot_id").(string)
-	snapshot, _, err := conn.SharedTierSnapshotsApi.GetSharedClusterBackup(ctx, projectID, clusterName, snapshotID).Execute()
+	snapshot, _, err := connV220241113.SharedTierSnapshotsApi.GetSharedClusterBackup(ctx, projectID, clusterName, snapshotID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting shard-tier snapshot '%s': %w", snapshotID, err))
 	}
