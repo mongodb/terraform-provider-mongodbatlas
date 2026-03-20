@@ -490,6 +490,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
 				Update: true,
+				Delete: true,
 			}),
 		},
 	}
