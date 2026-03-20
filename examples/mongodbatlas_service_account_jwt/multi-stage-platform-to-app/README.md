@@ -18,7 +18,7 @@ JWT expires, nothing                    │
                                         No time limit
 ```
 
-The hand-off is automated using `local-exec` provisioners that trigger downstream `terraform apply` runs, passing values as `TF_VAR_` environment variables. This mirrors how CI/CD pipelines inject masked runtime variables into downstream stages.
+The hand-off is automated using `local-exec` provisioners that trigger downstream `terraform apply` runs, passing values as `TF_VAR_` environment variables. This demonstrates how CI/CD pipelines inject masked runtime variables into downstream stages.
 
 ## Structure
 
