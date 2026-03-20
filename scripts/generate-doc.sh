@@ -17,7 +17,7 @@
 #
 # Shell script to generate the Terraform documentation for resources, data sources, and ephemeral resources.
 #
-# Usage: ./generate-doc.sh" ${resource_name}
+# Usage: ./generate-doc.sh ${resource_name}
 #   resource_name is the terraform resource name. Example: search_deployment
 #   echo "Examples:"
 #   echo "  search_deployment"
@@ -60,17 +60,17 @@ fi
 
 if [ "${is_ephemeral}" = false ]; then
     if [ ! -f "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.md.tmpl" ]; then
-        printf "Warning: we coudn't find the template for the %s resource. The default template templates/resources.md.tmpl will be used." "${resource_name}"
+        printf "Warning: we couldn't find the template for the %s resource. The default template templates/resources.md.tmpl will be used." "${resource_name}"
         printf "Include the resource template under %s.\n\n" "${TEMPLATE_FOLDER_PATH}/resources/${resource_name}.md.tmpl"
     fi
 
     if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl" ]; then
-        printf "Warning: we coudn't find the template for the %s data source. The default template templates/data-source.md.tmpl will be used." "${resource_name}"
+        printf "Warning: we couldn't find the template for the %s data source. The default template templates/data-source.md.tmpl will be used." "${resource_name}"
         printf "Include the data source template under %s.\n\n" "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
     fi
 
     if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}s.md.tmpl" ]; then
-        echo "Warning: we coudn't find the template for the ${resource_name}s data source"
+        echo "Warning: we couldn't find the template for the ${resource_name}s data source"
         printf "Include the data source template under %s." "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
         printf "Skipping this check: We assume that the resource does not have a plural data source.\n\n"
     fi
