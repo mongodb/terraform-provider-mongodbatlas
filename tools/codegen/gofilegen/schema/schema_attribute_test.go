@@ -122,8 +122,9 @@ func TestGenerateSchemaAttributes_CreateOnly(t *testing.T) {
 
 func TestGenerateSchemaAttributes_ImmutableComputed(t *testing.T) {
 	tests := map[string]struct {
-		attribute       codespec.Attribute
-		hasPlanModifier bool
+		expectedPlanModifierFn string
+		attribute              codespec.Attribute
+		hasPlanModifier        bool
 	}{
 		"No ImmutableComputed - no plan modifiers": {
 			attribute: codespec.Attribute{
@@ -135,7 +136,7 @@ func TestGenerateSchemaAttributes_ImmutableComputed(t *testing.T) {
 			},
 			hasPlanModifier: false,
 		},
-		"String attribute with ImmutableComputed - uses UseStateForUnknown()": {
+		"String attribute with ImmutableComputed": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "test_string",
 				TFModelName:              "TestString",
@@ -143,9 +144,10 @@ func TestGenerateSchemaAttributes_ImmutableComputed(t *testing.T) {
 				ComputedOptionalRequired: codespec.Computed,
 				ImmutableComputed:        true,
 			},
-			hasPlanModifier: true,
+			hasPlanModifier:        true,
+			expectedPlanModifierFn: "stringplanmodifier.UseStateForUnknown()",
 		},
-		"Sensitive string attribute with ImmutableComputed - uses UseStateForUnknown()": {
+		"Sensitive string attribute with ImmutableComputed": {
 			attribute: codespec.Attribute{
 				TFSchemaName:             "secret",
 				TFModelName:              "Secret",
@@ -154,7 +156,52 @@ func TestGenerateSchemaAttributes_ImmutableComputed(t *testing.T) {
 				Sensitive:                true,
 				ImmutableComputed:        true,
 			},
-			hasPlanModifier: true,
+			hasPlanModifier:        true,
+			expectedPlanModifierFn: "stringplanmodifier.UseStateForUnknown()",
+		},
+		"Bool attribute with ImmutableComputed": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "test_bool",
+				TFModelName:              "TestBool",
+				Bool:                     &codespec.BoolAttribute{},
+				ComputedOptionalRequired: codespec.Computed,
+				ImmutableComputed:        true,
+			},
+			hasPlanModifier:        true,
+			expectedPlanModifierFn: "boolplanmodifier.UseStateForUnknown()",
+		},
+		"Int64 attribute with ImmutableComputed": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "test_int",
+				TFModelName:              "TestInt",
+				Int64:                    &codespec.Int64Attribute{},
+				ComputedOptionalRequired: codespec.Computed,
+				ImmutableComputed:        true,
+			},
+			hasPlanModifier:        true,
+			expectedPlanModifierFn: "int64planmodifier.UseStateForUnknown()",
+		},
+		"Float64 attribute with ImmutableComputed": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "test_float",
+				TFModelName:              "TestFloat",
+				Float64:                  &codespec.Float64Attribute{},
+				ComputedOptionalRequired: codespec.Computed,
+				ImmutableComputed:        true,
+			},
+			hasPlanModifier:        true,
+			expectedPlanModifierFn: "float64planmodifier.UseStateForUnknown()",
+		},
+		"Number attribute with ImmutableComputed": {
+			attribute: codespec.Attribute{
+				TFSchemaName:             "test_number",
+				TFModelName:              "TestNumber",
+				Number:                   &codespec.NumberAttribute{},
+				ComputedOptionalRequired: codespec.Computed,
+				ImmutableComputed:        true,
+			},
+			hasPlanModifier:        true,
+			expectedPlanModifierFn: "numberplanmodifier.UseStateForUnknown()",
 		},
 	}
 
@@ -168,35 +215,7 @@ func TestGenerateSchemaAttributes_ImmutableComputed(t *testing.T) {
 				return
 			}
 			assert.Contains(t, code, "PlanModifiers:")
-			assert.Contains(t, code, "stringplanmodifier.UseStateForUnknown()")
-		})
-	}
-}
-
-func TestGenerateSchemaAttributes_ImmutableComputedNonStringReturnsError(t *testing.T) {
-	tests := map[string]codespec.Attribute{
-		"Bool attribute with ImmutableComputed": {
-			TFSchemaName:             "test_bool",
-			TFModelName:              "TestBool",
-			Bool:                     &codespec.BoolAttribute{},
-			ComputedOptionalRequired: codespec.Computed,
-			ImmutableComputed:        true,
-		},
-		"Int64 attribute with ImmutableComputed": {
-			TFSchemaName:             "test_int",
-			TFModelName:              "TestInt",
-			Int64:                    &codespec.Int64Attribute{},
-			ComputedOptionalRequired: codespec.Computed,
-			ImmutableComputed:        true,
-		},
-	}
-
-	for name, attr := range tests {
-		t.Run(name, func(t *testing.T) {
-			_, err := schema.GenerateSchemaAttributes([]codespec.Attribute{attr}, nil)
-			require.Error(t, err)
-			assert.Contains(t, err.Error(), "immutableComputed is only supported for string attributes")
-			assert.Contains(t, err.Error(), attr.TFSchemaName)
+			assert.Contains(t, code, tc.expectedPlanModifierFn)
 		})
 	}
 }
