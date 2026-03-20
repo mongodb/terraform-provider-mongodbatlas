@@ -224,6 +224,17 @@ schema:
                       create_only: false
                       present_in_any_response: false
                       request_only_required_on_create: false
+                    - string: {}
+                      description: Top-level path to the array that contains vector fields. When provided, vector fields under this path are treated as nested.
+                      computed_optional_required: optional
+                      tf_schema_name: nested_root
+                      tf_model_name: NestedRoot
+                      api_name: nestedRoot
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: false
+                      request_only_required_on_create: false
                     - int64:
                         default: 1
                       description: Number of index partitions. Allowed values are [1, 2, 4].
@@ -368,7 +379,7 @@ schema:
                                     package: customtypes
                                     model: customtypes.ListValue[jsontypes.Normalized]
                                     schema: customtypes.NewListType[jsontypes.Normalized](ctx)
-                                  computed_optional_required: optional
+                                  computed_optional_required: required
                                   tf_schema_name: types
                                   tf_model_name: Types
                                   api_name: types
@@ -603,6 +614,17 @@ schema:
                       tf_schema_name: mappings
                       tf_model_name: Mappings
                       api_name: mappings
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Top-level path to the array that contains vector fields. When provided, vector fields under this path are treated as nested.
+                      computed_optional_required: computed
+                      tf_schema_name: nested_root
+                      tf_model_name: NestedRoot
+                      api_name: nestedRoot
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -907,6 +929,17 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
+                                            - string: {}
+                                              description: Top-level path to the array that contains vector fields. When provided, vector fields under this path are treated as nested.
+                                              computed_optional_required: computed
+                                              tf_schema_name: nested_root
+                                              tf_model_name: NestedRoot
+                                              api_name: nestedRoot
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
                                             - int64:
                                                 default: 1
                                               description: Number of index partitions. Allowed values are [1, 2, 4].
@@ -1073,6 +1106,17 @@ schema:
                                               tf_schema_name: fields
                                               tf_model_name: Fields
                                               api_name: fields
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Top-level path to the array that contains vector fields. When provided, vector fields under this path are treated as nested.
+                                              computed_optional_required: computed
+                                              tf_schema_name: nested_root
+                                              tf_model_name: NestedRoot
+                                              api_name: nestedRoot
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
