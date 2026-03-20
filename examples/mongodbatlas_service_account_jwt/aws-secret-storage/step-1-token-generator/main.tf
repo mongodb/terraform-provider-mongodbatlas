@@ -11,7 +11,7 @@ ephemeral "mongodbatlas_service_account_jwt" "token" {}
 # ---------------------------------------------------------------------------
 # Approach A: Write-only attribute (Terraform >= 1.11, recommended)
 # ---------------------------------------------------------------------------
-# Stores the JWT via secret_string_wo, which accepts ephemeral values.
+# Stores the JWT using secret_string_wo, which accepts ephemeral values.
 # The token is sent to AWS but never stored in Terraform state.
 # Increment var.token_version to rotate the stored token on subsequent applies.
 # ---------------------------------------------------------------------------
@@ -48,6 +48,6 @@ resource "aws_secretsmanager_secret_version" "atlas_token" {
 #        }
 #
 # NOTE:
-# - The token is passed via environment variable, never logged or stored in state.
+# - The token is passed using an environment variable and is never logged or stored in state.
 # - Use triggers_replace = [timestamp()] to re-run on every apply and refresh the token.
 # ---------------------------------------------------------------------------
