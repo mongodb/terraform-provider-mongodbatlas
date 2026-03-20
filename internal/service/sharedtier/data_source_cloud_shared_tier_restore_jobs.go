@@ -89,12 +89,12 @@ func PluralDataSourceRestoreJob() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasCloudSharedTierRestoreJobRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).AtlasV220241113
+	connV220241113 := meta.(*config.MongoDBClient).AtlasV220241113
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	jobs, _, err := conn.SharedTierRestoreJobsApi.ListSharedClusterBackupRestoreJobs(ctx, clusterName, projectID).Execute()
+	jobs, _, err := connV220241113.SharedTierRestoreJobsApi.ListSharedClusterBackupRestoreJobs(ctx, clusterName, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting shared tier restore jobs for cluster '%s': %w", clusterName, err))
 	}

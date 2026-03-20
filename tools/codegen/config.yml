@@ -665,9 +665,16 @@ resources:
       method: PATCH
       wait:
         <<: *search-index-create-wait
-    delete: # Not a LRO (long-running operation).
+    delete:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
       method: DELETE
+      wait:
+        <<: *search-index-create-wait
+        pending_states: ["DELETING"]
+        target_states: ["DELETED"]
+        delay_seconds: 5 # Lower delay than create/update
+        timeout_seconds: 300 # 5 minutes
+        min_timeout_seconds: 5
     version_header: application/vnd.atlas.2024-05-30+json
     schema:
       aliases:
