@@ -1170,13 +1170,27 @@ resources:
     create:
       path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
       method: POST
+      wait: &pe-create-wait
+        state_property: status
+        pending_states: ["PENDING"]
+        target_states: ["OK"]
+        timeout_seconds: 7200
+        min_timeout_seconds: 60
+        delay_seconds: 30
     update:
       path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
       method: POST
+      wait:
+        <<: *pe-create-wait
     delete:
       path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
       method: DELETE
+      wait:
+        <<: *pe-create-wait
+        pending_states: ["DELETING"]
+        target_states: ["DELETED"]
     schema:
+      expanded_model: true
       aliases:
         groupId: projectId
         provider: provider_name
@@ -1187,6 +1201,9 @@ resources:
           provider_name:
             computability:
               required: true
+          status:
+            computability:
+              computed: true
 
   log_integration:
     read:

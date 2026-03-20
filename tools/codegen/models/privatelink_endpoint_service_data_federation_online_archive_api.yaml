@@ -43,7 +43,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Human-readable label to identify customer's VPC endpoint DNS name. If defined, you must also specify a value for **region**.
+          description: Human-readable label to identify customer's VPC endpoint DNS name. If defined, you must also specify a value for `region`.
           computed_optional_required: optional
           tf_schema_name: customer_endpoint_dns_name
           tf_model_name: CustomerEndpointDNSName
@@ -113,7 +113,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Human-readable label to identify the region of customer's VPC endpoint. If defined, you must also specify a value for **customerEndpointDNSName**.
+          description: Human-readable label to identify the region of customer's VPC endpoint. If defined, you must also specify a value for `customerEndpointDNSName`.
           computed_optional_required: optional
           tf_schema_name: region
           tf_model_name: Region
@@ -125,7 +125,7 @@ schema:
           request_only_required_on_create: false
         - string: {}
           description: Status of the private endpoint connection request.
-          computed_optional_required: optional
+          computed_optional_required: computed
           tf_schema_name: status
           tf_model_name: Status
           api_name: status
@@ -146,17 +146,69 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+        - bool:
+            default: true
+          description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
+          computed_optional_required: computed_optional
+          tf_schema_name: delete_on_create_timeout
+          tf_model_name: DeleteOnCreateTimeout
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+          present_in_any_response: false
+          request_only_required_on_create: false
+        - timeouts:
+            configurable_timeouts:
+                - create
+                - update
+                - delete
+          computed_optional_required: ""
+          tf_schema_name: timeouts
+          tf_model_name: Timeouts
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+          present_in_any_response: false
+          request_only_required_on_create: false
+    expanded_model: true
 operations:
     delete:
+        wait:
+            state_property: status
+            pending_states:
+                - DELETING
+            target_states:
+                - DELETED
+            timeout_seconds: 7200
+            min_timeout_seconds: 60
+            delay_seconds: 30
         http_method: DELETE
         path: /api/atlas/v2/groups/{projectId}/privateNetworkSettings/endpointIds/{endpointId}
     create:
+        wait:
+            state_property: status
+            pending_states:
+                - PENDING
+            target_states:
+                - OK
+            timeout_seconds: 7200
+            min_timeout_seconds: 60
+            delay_seconds: 30
         http_method: POST
         path: /api/atlas/v2/groups/{projectId}/privateNetworkSettings/endpointIds
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{projectId}/privateNetworkSettings/endpointIds/{endpointId}
     update:
+        wait:
+            state_property: status
+            pending_states:
+                - PENDING
+            target_states:
+                - OK
+            timeout_seconds: 7200
+            min_timeout_seconds: 60
+            delay_seconds: 30
         http_method: POST
         path: /api/atlas/v2/groups/{projectId}/privateNetworkSettings/endpointIds
     version_header: application/vnd.atlas.2023-01-01+json

@@ -5,6 +5,7 @@ package privatelinkendpointservicedatafederationonlinearchiveapi
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -24,7 +25,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"customer_endpoint_dns_name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Human-readable label to identify customer's VPC endpoint DNS name. If defined, you must also specify a value for **region**.",
+				MarkdownDescription: "Human-readable label to identify customer's VPC endpoint DNS name. If defined, you must also specify a value for `region`.",
 			},
 			"customer_endpoint_ip_address": schema.StringAttribute{
 				Optional:            true,
@@ -49,10 +50,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"region": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Human-readable label to identify the region of customer's VPC endpoint. If defined, you must also specify a value for **customerEndpointDNSName**.",
+				MarkdownDescription: "Human-readable label to identify the region of customer's VPC endpoint. If defined, you must also specify a value for `customerEndpointDNSName`.",
 			},
 			"status": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Status of the private endpoint connection request.",
 			},
 			"type": schema.StringAttribute{
@@ -60,20 +61,34 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Human-readable label that identifies the resource type associated with this private endpoint.",
 			},
+			"delete_on_create_timeout": schema.BoolAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
+				PlanModifiers:       []planmodifier.Bool{customplanmodifier.CreateOnlyBoolWithDefault(true)},
+			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Update: true,
+				Delete: true,
+			}),
 		},
 	}
 }
 
 type TFModel struct {
-	AzureLinkId               types.String `tfsdk:"azure_link_id"`
-	Comment                   types.String `tfsdk:"comment"`
-	CustomerEndpointDNSName   types.String `tfsdk:"customer_endpoint_dns_name"`
-	CustomerEndpointIPAddress types.String `tfsdk:"customer_endpoint_ip_address"`
-	EndpointId                types.String `tfsdk:"endpoint_id"`
-	ErrorMessage              types.String `tfsdk:"error_message"`
-	ProjectId                 types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Provider_name             types.String `tfsdk:"provider_name" apiname:"provider"`
-	Region                    types.String `tfsdk:"region"`
-	Status                    types.String `tfsdk:"status"`
-	Type                      types.String `tfsdk:"type"`
+	TFExpandedModel
+	AzureLinkId               types.String   `tfsdk:"azure_link_id"`
+	Comment                   types.String   `tfsdk:"comment"`
+	CustomerEndpointDNSName   types.String   `tfsdk:"customer_endpoint_dns_name"`
+	CustomerEndpointIPAddress types.String   `tfsdk:"customer_endpoint_ip_address"`
+	EndpointId                types.String   `tfsdk:"endpoint_id"`
+	ErrorMessage              types.String   `tfsdk:"error_message"`
+	ProjectId                 types.String   `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	Provider_name             types.String   `tfsdk:"provider_name" apiname:"provider"`
+	Region                    types.String   `tfsdk:"region"`
+	Status                    types.String   `tfsdk:"status"`
+	Type                      types.String   `tfsdk:"type"`
+	DeleteOnCreateTimeout     types.Bool     `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
+	Timeouts                  timeouts.Value `tfsdk:"timeouts" autogen:"omitjson"`
 }

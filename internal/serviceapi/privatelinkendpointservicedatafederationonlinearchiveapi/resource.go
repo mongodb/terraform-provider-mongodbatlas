@@ -4,6 +4,7 @@ package privatelinkendpointservicedatafederationonlinearchiveapi
 
 import (
 	"context"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -31,6 +32,9 @@ type rs struct {
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
+	if schemaHook, ok := any(r).(autogen.ResourceSchemaHook); ok {
+		resp.Schema = schemaHook.ResourceSchema(ctx, resp.Schema)
+	}
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -49,12 +53,30 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "POST",
 	}
+	timeout, localDiags := plan.Timeouts.Create(ctx, 7200*time.Second)
+	resp.Diagnostics.Append(localDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	reqHandle := autogen.HandleCreateReq{
 		Hooks:      r,
 		Resp:       resp,
 		Client:     r.Client,
 		Plan:       &plan,
 		CallParams: &callParams,
+		DeleteReq: func(model any) *autogen.HandleDeleteReq {
+			return deleteRequest(r, r.Client, model.(*TFModel), &resp.Diagnostics)
+		},
+		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
+		Wait: &autogen.WaitReq{
+			StateProperty:     "status",
+			PendingStates:     []string{"PENDING"},
+			TargetStates:      []string{"OK"},
+			Timeout:           timeout,
+			MinTimeoutSeconds: 60,
+			DelaySeconds:      30,
+			CallParams:        readAPICallParams,
+		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)
 }
@@ -94,12 +116,26 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "POST",
 	}
+	timeout, localDiags := plan.Timeouts.Update(ctx, 7200*time.Second)
+	resp.Diagnostics.Append(localDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	reqHandle := autogen.HandleUpdateReq{
 		Hooks:      r,
 		Resp:       resp,
 		Client:     r.Client,
 		Plan:       &plan,
 		CallParams: &callParams,
+		Wait: &autogen.WaitReq{
+			StateProperty:     "status",
+			PendingStates:     []string{"PENDING"},
+			TargetStates:      []string{"OK"},
+			Timeout:           timeout,
+			MinTimeoutSeconds: 60,
+			DelaySeconds:      30,
+			CallParams:        readAPICallParams,
+		},
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
 }
@@ -111,6 +147,20 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 	reqHandle := deleteRequest(r, r.Client, &state, &resp.Diagnostics)
+	timeout, diags := state.Timeouts.Delete(ctx, 7200*time.Second)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	reqHandle.Wait = &autogen.WaitReq{
+		StateProperty:     "status",
+		PendingStates:     []string{"DELETING"},
+		TargetStates:      []string{"DELETED"},
+		Timeout:           timeout,
+		MinTimeoutSeconds: 60,
+		DelaySeconds:      30,
+		CallParams:        readAPICallParams,
+	}
 	autogen.HandleDelete(ctx, *reqHandle)
 }
 
