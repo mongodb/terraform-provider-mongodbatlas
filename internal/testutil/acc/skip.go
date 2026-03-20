@@ -37,7 +37,7 @@ func HasPAKCreds() bool {
 }
 
 func HasSACreds() bool {
-	return os.Getenv("MONGODB_ATLAS_CLIENT_ID") != "" || os.Getenv("MONGODB_ATLAS_CLIENT_SECRET") != ""
+	return os.Getenv("MONGODB_ATLAS_CLIENT_ID") != "" && os.Getenv("MONGODB_ATLAS_CLIENT_SECRET") != ""
 }
 
 func HasAccessToken() bool {
@@ -62,5 +62,14 @@ func SkipInAccessToken(tb testing.TB, description string) {
 	tb.Helper()
 	if HasAccessToken() {
 		tb.Skip(description)
+	}
+}
+
+// PreCheckSA skips the test if Service Account credentials are not configured.
+func PreCheckSA(tb testing.TB) {
+	tb.Helper()
+	PreCheckBasic(tb)
+	if !HasSACreds() {
+		tb.Skip("MONGODB_ATLAS_CLIENT_ID and MONGODB_ATLAS_CLIENT_SECRET required")
 	}
 }
