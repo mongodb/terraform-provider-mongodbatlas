@@ -15,7 +15,7 @@ variable "project_id" {
 }
 
 variable "cluster_name" {
-  description = "Name for the flex cluster."
+  description = "Name for the cluster."
   type        = string
   default     = "app-cluster"
 }
