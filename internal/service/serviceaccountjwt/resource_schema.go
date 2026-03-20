@@ -21,7 +21,7 @@ func EphemeralResourceSchema(_ context.Context) schema.Schema {
 			},
 			"revoke_on_closure": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "If true, the access token is revoked when the Terraform operation ends. Defaults to `false`.",
+				MarkdownDescription: "When true, the access token is revoked when the Terraform operation ends. Defaults to `false`.",
 			},
 			"access_token": schema.StringAttribute{
 				Computed:            true,
