@@ -43,7 +43,7 @@ func getTokenSource(clientID, clientSecret, baseURL string, tokenRenewalBase htt
 
 	// Use a new context to avoid "context canceled" errors as the token source is reused and can outlast the callee context.
 	ctx := context.WithValue(context.Background(), auth.HTTPClient, &http.Client{Transport: tokenRenewalBase})
-	conf := getConfig(clientID, clientSecret, baseURL)
+	conf := GetServiceAccountConfig(clientID, clientSecret, baseURL)
 	tokenSource := oauth2.ReuseTokenSourceWithExpiry(nil, conf.TokenSource(ctx), saTokenExpiryBuffer)
 	if _, err := tokenSource.Token(); err != nil { // Retrieve token to fail-fast if credentials are invalid.
 		return nil, err
@@ -59,7 +59,7 @@ func NormalizeBaseURL(baseURL string) string {
 	return strings.TrimRight(baseURL, "/")
 }
 
-func getConfig(clientID, clientSecret, baseURL string) *clientcredentials.Config {
+func GetServiceAccountConfig(clientID, clientSecret, baseURL string) *clientcredentials.Config {
 	config := clientcredentials.NewConfig(clientID, clientSecret)
 	if baseURL != "" {
 		config.TokenURL = baseURL + clientcredentials.TokenAPIPath
@@ -81,7 +81,7 @@ func CloseTokenSource() {
 		return
 	}
 	if token, err := saInfo.tokenSource.Token(); err == nil {
-		conf := getConfig(saInfo.clientID, saInfo.clientSecret, saInfo.baseURL)
+		conf := GetServiceAccountConfig(saInfo.clientID, saInfo.clientSecret, saInfo.baseURL)
 		_ = conf.RevokeToken(context.Background(), token) // Best-effort, no need to do anything if it fails.
 	}
 }

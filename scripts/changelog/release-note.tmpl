@@ -1,6 +1,8 @@
 {{- define "note" -}}
 {{- if eq "new-resource" .Type -}}
 * **New Resource:** `{{.Body}}` ([#{{- .Issue -}}](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/{{- .Issue -}}))
+{{- else if eq "new-ephemeral-resource" .Type -}}
+* **New Ephemeral Resource:** `{{.Body}}` ([#{{- .Issue -}}](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/{{- .Issue -}}))
 {{- else if eq "new-datasource" .Type -}}
 * **New Data Source:** `{{.Body}}` ([#{{- .Issue -}}](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/{{- .Issue -}}))
 {{- else if eq "new-guide" .Type -}}
