@@ -124,7 +124,7 @@ type RealmClient struct {
 
 func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) {
 	userAgent := UserAgent(terraformVersion)
-	client, err := getHTTPClient(c)
+	client, err := getHTTPClient(c, terraformVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) 
 	return clients, nil
 }
 
-func getHTTPClient(c *Credentials) (*http.Client, error) {
+func getHTTPClient(c *Credentials, terraformVersion string) (*http.Client, error) {
 	// Transport chain (outermost to innermost):
 	// userAgentTransport -> tfLoggingTransport -> {digestTransport|oauth2.Transport} -> networkLoggingTransport -> baseTransport
 	//
@@ -195,7 +195,7 @@ func getHTTPClient(c *Credentials) (*http.Client, error) {
 			Base:   networkLoggingBaseTransport(),
 		}
 	case ServiceAccount:
-		tokenSource, err := getTokenSource(c.ClientID, c.ClientSecret, c.BaseURL, networkLoggingBaseTransport())
+		tokenSource, err := getTokenSource(c.ClientID, c.ClientSecret, c.BaseURL, terraformVersion)
 		if err != nil {
 			return nil, err
 		}
