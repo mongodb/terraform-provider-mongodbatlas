@@ -14,7 +14,7 @@ JWT expires, nothing                    │
   to rotate or revoke                   v
                                       App Ongoing (Phase 2)
                                         Reads SA creds from Secrets Manager
-                                        Creates flex cluster
+                                        Creates dedicated cluster
                                         No time limit
 ```
 
@@ -26,7 +26,7 @@ The hand-off is automated using `local-exec` provisioners that trigger downstrea
 |---|---|
 | `phase-0-platform/` | Creates the Atlas project, generates a JWT, and triggers `phase-1-app-bootstrap`. |
 | `phase-1-app-bootstrap/` | Uses the JWT to create a project-scoped SA, stores its credentials in AWS Secrets Manager, and triggers `phase-2-app-ongoing`. |
-| `phase-2-app-ongoing/` | Reads SA credentials from Secrets Manager, configures the Atlas provider, and creates a flex cluster. |
+| `phase-2-app-ongoing/` | Reads SA credentials from Secrets Manager, configures the Atlas provider, and creates a dedicated cluster. |
 
 ## Prerequisites
 
@@ -53,7 +53,7 @@ terraform apply
 This triggers the entire chain automatically:
 1. Creates the Atlas project and generates a JWT.
 2. Triggers `phase-1-app-bootstrap`, which creates a project-scoped SA and stores its credentials.
-3. Triggers `phase-2-app-ongoing`, which reads the SA credentials and creates a flex cluster.
+3. Triggers `phase-2-app-ongoing`, which reads the SA credentials and creates a dedicated cluster.
 
 ## Mapping to CI/CD Pipelines
 
