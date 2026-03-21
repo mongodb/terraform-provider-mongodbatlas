@@ -3,7 +3,6 @@ package config
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -17,15 +16,16 @@ import (
 const saTokenExpiryBuffer = 10 * time.Minute
 
 var saInfo = struct {
-	tokenSource  auth.TokenSource
-	clientID     string
-	clientSecret string
-	baseURL      string
-	mu           sync.Mutex
-	closed       bool
+	tokenSource      auth.TokenSource
+	clientID         string
+	clientSecret     string
+	baseURL          string
+	terraformVersion string
+	mu               sync.Mutex
+	closed           bool
 }{}
 
-func getTokenSource(clientID, clientSecret, baseURL string, tokenRenewalBase http.RoundTripper) (auth.TokenSource, error) {
+func getTokenSource(clientID, clientSecret, baseURL, terraformVersion string) (auth.TokenSource, error) {
 	saInfo.mu.Lock()
 	defer saInfo.mu.Unlock()
 
@@ -42,7 +42,7 @@ func getTokenSource(clientID, clientSecret, baseURL string, tokenRenewalBase htt
 	}
 
 	// Use a new context to avoid "context canceled" errors as the token source is reused and can outlast the callee context.
-	ctx := context.WithValue(context.Background(), auth.HTTPClient, &http.Client{Transport: tokenRenewalBase})
+	ctx := context.WithValue(context.Background(), auth.HTTPClient, NewOAuthHTTPClient(terraformVersion))
 	conf := GetServiceAccountConfig(clientID, clientSecret, baseURL)
 	tokenSource := oauth2.ReuseTokenSourceWithExpiry(nil, conf.TokenSource(ctx), saTokenExpiryBuffer)
 	if _, err := tokenSource.Token(); err != nil { // Retrieve token to fail-fast if credentials are invalid.
@@ -51,6 +51,7 @@ func getTokenSource(clientID, clientSecret, baseURL string, tokenRenewalBase htt
 	saInfo.clientID = clientID
 	saInfo.clientSecret = clientSecret
 	saInfo.baseURL = baseURL
+	saInfo.terraformVersion = terraformVersion
 	saInfo.tokenSource = tokenSource
 	return saInfo.tokenSource, nil
 }
@@ -82,6 +83,7 @@ func CloseTokenSource() {
 	}
 	if token, err := saInfo.tokenSource.Token(); err == nil {
 		conf := GetServiceAccountConfig(saInfo.clientID, saInfo.clientSecret, saInfo.baseURL)
-		_ = conf.RevokeToken(context.Background(), token) // Best-effort, no need to do anything if it fails.
+		ctx := context.WithValue(context.Background(), auth.HTTPClient, NewOAuthHTTPClient(saInfo.terraformVersion))
+		_ = conf.RevokeToken(ctx, token) // Best-effort, no need to do anything if it fails.
 	}
 }
