@@ -632,10 +632,6 @@ jobs:
           terraform_wrapper: false
       - name: Acceptance Tests (Service Account JWT)
         env:
-          MONGODB_ATLAS_PUBLIC_KEY: ""
-          MONGODB_ATLAS_PRIVATE_KEY: ""
-          MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
-          MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_REGEX_RUN: '^TestAccServiceAccountJWT'
           ACCTEST_PACKAGES: ./internal/service/serviceaccountjwt

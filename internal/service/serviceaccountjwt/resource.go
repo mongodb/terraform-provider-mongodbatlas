@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	// ResourceTypeName is the Terraform type name for the service account JWT ephemeral resource.
 	ResourceTypeName = "service_account_jwt"
 	closeDataKey     = "revoke_data"
 )
