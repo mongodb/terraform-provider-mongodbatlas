@@ -63,6 +63,40 @@ func networkLoggingBaseTransport() http.RoundTripper {
 	return NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
 }
 
+// NewOAuthHTTPClient builds an HTTP client for OAuth2 token endpoint calls
+// (token generation, revocation). It omits auth transports to avoid conflicts
+// with the token endpoint's Authorization: Basic header, and omits
+// tfLoggingInterceptor to avoid logging sensitive credentials that appear in token endpoint requests and responses.
+//
+// Transport chain:
+//
+//	baseUserAgentTransport (sets base User-Agent)
+//	  -> UserAgentTransport (appends resource/operation extras from context)
+//	    -> NetworkLoggingTransport (timing/status logging, no body/headers)
+//	      -> baseTransport (connection pooling, timeouts, proxy)
+func NewOAuthHTTPClient(terraformVersion string) *http.Client {
+	transport := networkLoggingBaseTransport()
+	transport = &UserAgentTransport{Transport: transport, Enabled: true}
+	transport = &baseUserAgentTransport{
+		base:      transport,
+		userAgent: UserAgent(terraformVersion),
+	}
+	return &http.Client{Transport: transport}
+}
+
+// baseUserAgentTransport sets the base User-Agent header on every outgoing
+// request so that UserAgentTransport can append resource/operation extras.
+type baseUserAgentTransport struct {
+	base      http.RoundTripper
+	userAgent string
+}
+
+func (t *baseUserAgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	r := req.Clone(req.Context())
+	r.Header.Set(UserAgentHeader, t.userAgent)
+	return t.base.RoundTrip(r)
+}
+
 // tfLoggingInterceptor should wrap the authentication transport to add Terraform logging.
 func tfLoggingInterceptor(base http.RoundTripper) http.RoundTripper {
 	// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
@@ -90,7 +124,7 @@ type RealmClient struct {
 
 func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) {
 	userAgent := UserAgent(terraformVersion)
-	client, err := getHTTPClient(c)
+	client, err := getHTTPClient(c, terraformVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +175,7 @@ func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) 
 	return clients, nil
 }
 
-func getHTTPClient(c *Credentials) (*http.Client, error) {
+func getHTTPClient(c *Credentials, terraformVersion string) (*http.Client, error) {
 	// Transport chain (outermost to innermost):
 	// userAgentTransport -> tfLoggingTransport -> {digestTransport|oauth2.Transport} -> networkLoggingTransport -> baseTransport
 	//
@@ -161,7 +195,7 @@ func getHTTPClient(c *Credentials) (*http.Client, error) {
 			Base:   networkLoggingBaseTransport(),
 		}
 	case ServiceAccount:
-		tokenSource, err := getTokenSource(c.ClientID, c.ClientSecret, c.BaseURL, networkLoggingBaseTransport())
+		tokenSource, err := getTokenSource(c.ClientID, c.ClientSecret, c.BaseURL, terraformVersion)
 		if err != nil {
 			return nil, err
 		}
