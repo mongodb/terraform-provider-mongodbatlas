@@ -616,7 +616,7 @@ jobs:
 
   service_account_jwt:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.service_account_jwt == 'true' || inputs.test_group == 'service_account_jwt' }}
+    if: ${{ inputs.use_sa == true && (needs.change-detection.outputs.service_account_jwt == 'true' || inputs.test_group == 'service_account_jwt') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:

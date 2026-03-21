@@ -6,16 +6,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
-	"github.com/stretchr/testify/require"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountjwt"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -23,104 +19,10 @@ var versionChecks = []tfversion.TerraformVersionCheck{
 	tfversion.SkipBelow(tfversion.Version1_10_0),
 }
 
-func newES(erd *config.EphemeralResourceData) *serviceaccountjwt.ES {
-	return &serviceaccountjwt.ES{
-		ESCommon: config.ESCommon{
-			EphemeralResourceData: erd,
-			ResourceName:          serviceaccountjwt.ResourceTypeName,
-		},
-	}
-}
-
-func TestResolveCredentials_Order(t *testing.T) {
-	r := newES(&config.EphemeralResourceData{
-		ClientID:         "provider-id",
-		ClientSecret:     "provider-secret",
-		BaseURL:          "https://provider.example.com/",
-		TerraformVersion: "1.10.0",
-	})
-
-	t.Run("resource attributes first", func(t *testing.T) {
-		model := serviceaccountjwt.TFModel{
-			ClientID:     types.StringValue("resource-id"),
-			ClientSecret: types.StringValue("resource-secret"),
-		}
-		id, secret, baseURL, diags := r.ResolveCredentials(&model)
-		require.False(t, diags.HasError())
-		require.Equal(t, "resource-id", id)
-		require.Equal(t, "resource-secret", secret)
-		require.Equal(t, "https://provider.example.com/", baseURL)
-	})
-
-	t.Run("provider fallback when no resource attributes", func(t *testing.T) {
-		model := serviceaccountjwt.TFModel{}
-		id, secret, baseURL, diags := r.ResolveCredentials(&model)
-		require.False(t, diags.HasError())
-		require.Equal(t, "provider-id", id)
-		require.Equal(t, "provider-secret", secret)
-		require.Equal(t, "https://provider.example.com/", baseURL)
-	})
-}
-
-func TestResolveCredentials_NonSAProviderAuth(t *testing.T) {
-	t.Run("nil provider data", func(t *testing.T) {
-		r := newES(nil)
-		model := serviceaccountjwt.TFModel{}
-		clientID, clientSecret, baseURL, diags := r.ResolveCredentials(&model)
-		require.Empty(t, clientID)
-		require.Empty(t, clientSecret)
-		require.Empty(t, baseURL)
-		require.True(t, diags.HasError())
-		require.Contains(t, diags.Errors()[0].Detail(), "Service Account credentials")
-	})
-
-	t.Run("provider configured with PAK (no SA credentials)", func(t *testing.T) {
-		r := newES(&config.EphemeralResourceData{
-			BaseURL:          "https://cloud.mongodb.com/",
-			TerraformVersion: "1.11.0",
-		})
-		model := serviceaccountjwt.TFModel{}
-		clientID, clientSecret, baseURL, diags := r.ResolveCredentials(&model)
-		require.Empty(t, clientID)
-		require.Empty(t, clientSecret)
-		require.Empty(t, baseURL)
-		require.True(t, diags.HasError())
-		require.Contains(t, diags.Errors()[0].Detail(), "different authentication method")
-	})
-}
-
-func TestResolveCredentials_DoesNotMixSources(t *testing.T) {
-	t.Run("partial resource credentials do not fallback", func(t *testing.T) {
-		r := newES(&config.EphemeralResourceData{
-			ClientID:     "provider-id",
-			ClientSecret: "provider-secret",
-			BaseURL:      "https://provider.example.com/",
-		})
-		model := serviceaccountjwt.TFModel{ClientID: types.StringValue("resource-id")}
-		clientID, clientSecret, baseURL, diags := r.ResolveCredentials(&model)
-		require.Empty(t, clientID)
-		require.Empty(t, clientSecret)
-		require.Empty(t, baseURL)
-		require.True(t, diags.HasError())
-	})
-
-	t.Run("partial provider credentials do not fallback", func(t *testing.T) {
-		r := newES(&config.EphemeralResourceData{
-			ClientID: "provider-id",
-			BaseURL:  "https://provider.example.com/",
-		})
-		model := serviceaccountjwt.TFModel{}
-		clientID, clientSecret, baseURL, diags := r.ResolveCredentials(&model)
-		require.Empty(t, clientID)
-		require.Empty(t, clientSecret)
-		require.Empty(t, baseURL)
-		require.True(t, diags.HasError())
-	})
-}
-
 func TestAccServiceAccountJWT_providerCredentials(t *testing.T) {
+	acc.SkipIfNotSA(t)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckSA(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		TerraformVersionChecks:   versionChecks,
 		ProtoV6ProviderFactories: acc.ProtoV6FactoriesWithEcho(),
 		Steps: []resource.TestStep{
@@ -137,8 +39,9 @@ func TestAccServiceAccountJWT_providerCredentials(t *testing.T) {
 }
 
 func TestAccServiceAccountJWT_revokeOnClosure(t *testing.T) {
+	acc.SkipIfNotSA(t)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckSA(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		TerraformVersionChecks:   versionChecks,
 		ProtoV6ProviderFactories: acc.ProtoV6FactoriesWithEcho(),
 		Steps: []resource.TestStep{
@@ -154,8 +57,9 @@ func TestAccServiceAccountJWT_revokeOnClosure(t *testing.T) {
 }
 
 func TestAccServiceAccountJWT_explicitCredentials(t *testing.T) {
+	acc.SkipIfNotSA(t)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckSA(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		TerraformVersionChecks:   versionChecks,
 		ProtoV6ProviderFactories: acc.ProtoV6FactoriesWithEcho(),
 		Steps: []resource.TestStep{

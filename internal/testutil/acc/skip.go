@@ -65,10 +65,9 @@ func SkipInAccessToken(tb testing.TB, description string) {
 	}
 }
 
-// PreCheckSA skips the test if Service Account credentials are not configured.
-func PreCheckSA(tb testing.TB) {
+// SkipIfNotSA skips the test if Service Account credentials are not configured.
+func SkipIfNotSA(tb testing.TB) {
 	tb.Helper()
-	PreCheckBasic(tb)
 	if !HasSACreds() {
 		tb.Skip("MONGODB_ATLAS_CLIENT_ID and MONGODB_ATLAS_CLIENT_SECRET required")
 	}

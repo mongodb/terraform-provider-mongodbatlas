@@ -4,11 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"strings"
 
 	"golang.org/x/oauth2"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/atlas-sdk-go/auth"
@@ -21,16 +19,15 @@ const (
 	closeDataKey     = "revoke_data"
 )
 
-// TokenGenerator abstracts token generation so tests can inject a fake.
 type TokenGenerator interface {
 	GenerateToken(ctx context.Context, clientID, clientSecret, baseURL string) (*auth.Token, error)
 }
 
-var _ ephemeral.EphemeralResource = &ES{}
-var _ ephemeral.EphemeralResourceWithConfigure = &ES{}
-var _ ephemeral.EphemeralResourceWithClose = &ES{}
+var _ ephemeral.EphemeralResource = &ER{}
+var _ ephemeral.EphemeralResourceWithConfigure = &ER{}
+var _ ephemeral.EphemeralResourceWithClose = &ER{}
 
-type ES struct {
+type ER struct {
 	TokenGen TokenGenerator
 	config.ESCommon
 }
@@ -43,7 +40,7 @@ type closeData struct {
 }
 
 func New() ephemeral.EphemeralResource {
-	r := &ES{
+	r := &ER{
 		ESCommon: config.ESCommon{
 			ResourceName: ResourceTypeName,
 		},
@@ -52,18 +49,28 @@ func New() ephemeral.EphemeralResource {
 	return r
 }
 
-func (r *ES) Schema(ctx context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
+func (r *ER) Schema(ctx context.Context, _ ephemeral.SchemaRequest, resp *ephemeral.SchemaResponse) {
 	resp.Schema = EphemeralResourceSchema(ctx)
 }
 
-func (r *ES) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
+func (r *ER) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemeral.OpenResponse) {
 	var model TFModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	clientID, clientSecret, baseURL, localDiags := r.ResolveCredentials(&model)
+	if model.ClientID.IsUnknown() || model.ClientSecret.IsUnknown() {
+		resp.Diagnostics.AddError("Unknown credentials",
+			"client_id and client_secret must be known at apply time to generate a token.")
+		return
+	}
+
+	resolver := &config.CredentialResolver{ProviderData: r.EphemeralResourceData}
+	clientID, clientSecret, baseURL, localDiags := resolver.ResolveServiceAccountCredentials(
+		model.ClientID.ValueString(),
+		model.ClientSecret.ValueString(),
+	)
 	resp.Diagnostics.Append(localDiags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -98,7 +105,7 @@ func (r *ES) Open(ctx context.Context, req ephemeral.OpenRequest, resp *ephemera
 	resp.Diagnostics.Append(resp.Result.Set(ctx, &model)...)
 }
 
-func (r *ES) Close(ctx context.Context, req ephemeral.CloseRequest, resp *ephemeral.CloseResponse) {
+func (r *ER) Close(ctx context.Context, req ephemeral.CloseRequest, resp *ephemeral.CloseResponse) {
 	revokeData, diags := req.Private.GetKey(ctx, closeDataKey)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -120,63 +127,14 @@ func (r *ES) Close(ctx context.Context, req ephemeral.CloseRequest, resp *epheme
 	}
 }
 
-func (r *ES) ResolveCredentials(model *TFModel) (clientID, clientSecret, baseURL string, diags diag.Diagnostics) {
-	erd := r.EphemeralResourceData
-
-	// 1. Resource attributes (explicit client_id and client_secret on the ephemeral resource block).
-	if model.ClientID.IsUnknown() || model.ClientSecret.IsUnknown() {
-		diags.AddError("Unknown credentials",
-			"client_id and client_secret must be known at apply time to generate a token.")
-		return "", "", "", diags
-	}
-	id := strings.TrimSpace(model.ClientID.ValueString())
-	secret := strings.TrimSpace(model.ClientSecret.ValueString())
-	if id != "" && secret != "" {
-		return id, secret, providerBaseURL(erd), diags
-	} else if id != "" || secret != "" {
-		diags.AddError("Invalid Service Account credentials",
-			"When setting credentials on this ephemeral resource, both client_id and client_secret must be provided.")
-		return "", "", "", diags
-	}
-
-	// 2. Provider credentials (the provider already coalesces HCL config and env vars).
-	if erd != nil {
-		id = strings.TrimSpace(erd.ClientID)
-		secret = strings.TrimSpace(erd.ClientSecret)
-		if id != "" && secret != "" {
-			return id, secret, providerBaseURL(erd), diags
-		} else if id != "" || secret != "" {
-			diags.AddError("Invalid Service Account credentials",
-				"To use this resource please ensure both client_id and client_secret are configured for the provider.")
-			return "", "", "", diags
-		}
-	}
-
-	// 3. No SA credentials found, provider is configured with non-SA auth (PAK or Access Token).
-	diags.AddError(
-		"Service Account credentials required",
-		"This ephemeral resource requires Service Account credentials (client_id and client_secret). "+
-			"The provider is currently configured with a different authentication method (Programmatic Access Key or Access Token). "+
-			"Set client_id and client_secret on the ephemeral resource block or configure the provider with Service Account credentials.",
-	)
-	return "", "", "", diags
-}
-
-func providerBaseURL(providerData *config.EphemeralResourceData) string {
-	if providerData != nil {
-		return strings.TrimSpace(providerData.BaseURL)
-	}
-	return ""
-}
-
 // oauthClientCtx injects an HTTP client into the context via
 // auth.HTTPClient so the atlas-sdk-go token exchange picks it up.
-func (r *ES) oauthClientCtx(ctx context.Context) context.Context {
+func (r *ER) oauthClientCtx(ctx context.Context) context.Context {
 	client := config.NewOAuthHTTPClient(r.TerraformVersion())
 	return context.WithValue(ctx, auth.HTTPClient, client)
 }
 
-func (r *ES) GenerateToken(ctx context.Context, clientID, clientSecret, baseURL string) (*auth.Token, error) {
+func (r *ER) GenerateToken(ctx context.Context, clientID, clientSecret, baseURL string) (*auth.Token, error) {
 	conf := config.GetServiceAccountConfig(clientID, clientSecret, config.NormalizeBaseURL(baseURL))
 	token, err := conf.Token(r.oauthClientCtx(ctx))
 	if err != nil {
