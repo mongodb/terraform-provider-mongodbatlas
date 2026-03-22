@@ -85,7 +85,7 @@ type TFModel struct {
 	EndpointId                types.String   `tfsdk:"endpoint_id"`
 	ErrorMessage              types.String   `tfsdk:"error_message"`
 	ProjectId                 types.String   `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Provider_name             types.String   `tfsdk:"provider_name" apiname:"provider"`
+	ProviderName              types.String   `tfsdk:"provider_name" apiname:"provider"`
 	Region                    types.String   `tfsdk:"region"`
 	Status                    types.String   `tfsdk:"status"`
 	Type                      types.String   `tfsdk:"type"`

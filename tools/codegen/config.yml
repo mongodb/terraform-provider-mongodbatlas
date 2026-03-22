@@ -1193,12 +1193,12 @@ resources:
       expanded_model: true
       aliases:
         groupId: projectId
-        provider: provider_name
+        provider: providerName
       ignores: [
         "results"
       ]
       overrides:
-          provider_name:
+          providerName:
             computability:
               required: true
           status:
