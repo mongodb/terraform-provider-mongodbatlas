@@ -103,7 +103,7 @@ schema:
         - string:
             default: AWS
           description: Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services only.
-          computed_optional_required: computed_optional
+          computed_optional_required: required
           tf_schema_name: provider_name
           tf_model_name: ProviderName
           api_name: provider

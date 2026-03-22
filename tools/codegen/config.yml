@@ -1198,7 +1198,7 @@ resources:
         "results"
       ]
       overrides:
-          providerName:
+          provider_name:
             computability:
               required: true
           status:
