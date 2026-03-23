@@ -4,8 +4,8 @@ provider "mongodbatlas" {
 }
 
 resource "mongodbatlas_advanced_cluster" "cluster" {
-  project_id     = mongodbatlas_project.project.id
-  name           = var.cluster_name
+  project_id           = mongodbatlas_project.project.id
+  name                 = var.cluster_name
   cluster_type         = "REPLICASET"
   backup_enabled       = true
   use_effective_fields = true
