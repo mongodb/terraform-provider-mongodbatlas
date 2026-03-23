@@ -24,6 +24,17 @@ resource "mongodbatlas_privatelink_endpoint" "this" {
 }
 ```
 
+### AWS Cross-Region Private Endpoint
+
+```terraform
+resource "mongodbatlas_privatelink_endpoint" "cross_region" {
+  project_id                = var.project_id
+  provider_name             = "AWS"
+  region                    = "us-east-1"
+  supported_remote_regions  = ["eu-west-1", "ap-southeast-1"]
+}
+```
+
 ### Further Examples
 - [AWS PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_privatelink_endpoint/aws)
 - [Azure PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_privatelink_endpoint/azure)
