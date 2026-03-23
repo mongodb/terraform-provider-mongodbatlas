@@ -3,6 +3,7 @@ package privatelinkendpointservicedatafederationonlinearchiveapi
 import (
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -26,7 +27,7 @@ type TFExpandedModel struct {
 }
 
 func (r *rs) PreCreateAPICall(callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte) {
-	modifiedBody, ok := injectEndpointType(bodyReq)
+	modifiedBody, ok := prepareCreateBody(bodyReq)
 	if !ok {
 		return callParams, bodyReq
 	}
@@ -92,6 +93,25 @@ func injectEndpointType(bodyReq []byte) ([]byte, bool) {
 		return bodyReq, false
 	}
 	body["type"] = endpointType
+	modifiedBody, err := json.Marshal(body)
+	if err != nil {
+		return bodyReq, false
+	}
+	return modifiedBody, true
+}
+
+func prepareCreateBody(bodyReq []byte) ([]byte, bool) {
+	var body map[string]any
+	if err := json.Unmarshal(bodyReq, &body); err != nil {
+		return bodyReq, false
+	}
+
+	body["type"] = endpointType
+	if providerRaw, ok := body["provider"].(string); ok && providerRaw != "" {
+		providerUpper := strings.ToUpper(providerRaw)
+		body["provider"] = providerUpper
+	}
+
 	modifiedBody, err := json.Marshal(body)
 	if err != nil {
 		return bodyReq, false
