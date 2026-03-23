@@ -1,8 +1,3 @@
-variable "atlas_base_url" {
-  description = "Atlas base URL (defaults to cloud.mongodb.com)"
-  type        = string
-  default     = "https://cloud.mongodb.com/"
-}
 variable "atlas_org_id" {
   description = "Atlas organization id"
   type        = string

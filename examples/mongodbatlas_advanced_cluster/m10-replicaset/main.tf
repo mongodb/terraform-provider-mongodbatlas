@@ -1,7 +1,6 @@
 provider "mongodbatlas" {
   client_id     = var.atlas_client_id
   client_secret = var.atlas_client_secret
-  base_url      = var.atlas_base_url
 }
 
 resource "mongodbatlas_advanced_cluster" "cluster" {
