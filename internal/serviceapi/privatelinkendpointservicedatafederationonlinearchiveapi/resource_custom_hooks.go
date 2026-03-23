@@ -3,6 +3,7 @@ package privatelinkendpointservicedatafederationonlinearchiveapi
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -19,6 +20,7 @@ const endpointType = "DATA_LAKE"
 var (
 	_ autogen.PreCreateAPICallHook = (*rs)(nil)
 	_ autogen.PreUpdateAPICallHook = (*rs)(nil)
+	_ autogen.PreImportHook        = (*rs)(nil)
 	_ autogen.ResourceSchemaHook   = (*rs)(nil)
 )
 
@@ -84,6 +86,19 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 		Err:  nil,
 		Resp: result.Resp,
 	}
+}
+
+func (r *rs) PreImport(id string) (string, error) {
+	if strings.Contains(id, "/") {
+		return id, nil
+	}
+
+	parts := strings.Split(id, "--")
+	if len(parts) == 2 && parts[0] != "" && parts[1] != "" {
+		return fmt.Sprintf("%s/%s", parts[0], parts[1]), nil
+	}
+
+	return "", fmt.Errorf("use one of the formats: {project_id}/{endpoint_id} or {project_id}--{endpoint_id}")
 }
 
 // Ensures POST request body includes type=DATA_LAKE.
