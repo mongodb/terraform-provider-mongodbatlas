@@ -43,7 +43,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Human-readable label to identify customer's VPC endpoint DNS name. If defined, you must also specify a value for `region`.
+          description: Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`.
           computed_optional_required: optional
           tf_schema_name: customer_endpoint_dns_name
           tf_model_name: CustomerEndpointDNSName
@@ -110,7 +110,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Human-readable label to identify the region of customer's VPC endpoint. If defined, you must also specify a value for `customerEndpointDNSName`.
+          description: Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`.
           computed_optional_required: optional
           tf_schema_name: region
           tf_model_name: Region

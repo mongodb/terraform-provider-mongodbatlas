@@ -25,7 +25,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"customer_endpoint_dns_name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Human-readable label to identify customer's VPC endpoint DNS name. If defined, you must also specify a value for `region`.",
+				MarkdownDescription: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`.",
 			},
 			"customer_endpoint_ip_address": schema.StringAttribute{
 				Optional:            true,
@@ -50,7 +50,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"region": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Human-readable label to identify the region of customer's VPC endpoint. If defined, you must also specify a value for `customerEndpointDNSName`.",
+				MarkdownDescription: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`.",
 			},
 			"status": schema.StringAttribute{
 				Computed:            true,
