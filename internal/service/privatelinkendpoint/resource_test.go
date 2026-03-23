@@ -236,6 +236,7 @@ func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsEmptyList(t *testing.T)
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "supported_remote_regions.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "supported_remote_regions.#", "0"),
 				),
 			},
 		},
