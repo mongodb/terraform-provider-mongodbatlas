@@ -174,6 +174,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Required for type: SchemaRegistry. The Schema Registry provider.",
 			},
 			"region": schema.StringAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "The connection's region.",
 			},

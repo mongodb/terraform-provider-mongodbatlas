@@ -838,6 +838,13 @@ resources:
         schema_registry_urls:
           type: list
 
+        # API returns a default region (e.g. VIRGINIA_USA) even when not set in config.
+        # Without computed, Terraform sees null->value drift and fails with "inconsistent result after apply".
+        region:
+          computability:
+            optional: true
+            computed: true
+
   alert_configuration_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
