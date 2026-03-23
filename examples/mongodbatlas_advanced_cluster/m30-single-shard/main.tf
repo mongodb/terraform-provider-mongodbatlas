@@ -6,8 +6,9 @@ provider "mongodbatlas" {
 resource "mongodbatlas_advanced_cluster" "cluster" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
-  cluster_type   = "SHARDED"
-  backup_enabled = true
+  cluster_type         = "SHARDED"
+  backup_enabled       = true
+  use_effective_fields = true
 
   replication_specs = [
     {
@@ -15,9 +16,16 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       region_configs = [
         {
           electable_specs = {
-            instance_size = "M30" # Paid tier. Production-grade dedicated cluster
+            instance_size = "M30" # paid — production-grade dedicated cluster; auto-scaling may increase this
             node_count    = 3
             disk_size_gb  = 10
+          }
+          auto_scaling = {
+            compute_enabled            = true
+            compute_scale_down_enabled = true
+            compute_min_instance_size  = "M30"
+            compute_max_instance_size  = "M80"
+            disk_gb_enabled            = true
           }
           provider_name = "AWS"
           priority      = 7
