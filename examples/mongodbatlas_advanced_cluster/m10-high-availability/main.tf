@@ -17,7 +17,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
           # Primary region: 2 nodes ensure the primary stays in this region
           # during normal operation.
           electable_specs = {
-            instance_size = "M10"
+            instance_size = "M10" # Paid tier. Entry-level dedicated cluster
             node_count    = 2
           }
           provider_name = "AWS"
@@ -27,7 +27,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         {
           # Secondary region: 2 nodes provide a full failover target.
           electable_specs = {
-            instance_size = "M10"
+            instance_size = "M10" # Paid tier. Entry-level dedicated cluster
             node_count    = 2
           }
           provider_name = "AWS"
@@ -40,7 +40,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
           # degraded. A smaller or geographically distant region is acceptable
           # here since it will rarely become primary.
           electable_specs = {
-            instance_size = "M10"
+            instance_size = "M10" # Paid tier. Entry-level dedicated cluster
             node_count    = 1
           }
           provider_name = "AWS"

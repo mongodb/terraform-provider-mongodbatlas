@@ -16,7 +16,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       region_configs = [
         {
           electable_specs = {
-            instance_size = "M30"
+            instance_size = "M30" # Paid tier. Production-grade dedicated cluster
             node_count    = 3
             disk_size_gb  = 10
           }

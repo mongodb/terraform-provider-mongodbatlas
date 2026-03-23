@@ -15,7 +15,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       region_configs = [
         {
           electable_specs = {
-            instance_size = "M10"
+            instance_size = "M10" # Paid tier. Entry-level dedicated cluster
             node_count    = 3
           }
           provider_name = "AWS"

@@ -14,7 +14,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       region_configs = [
         {
           electable_specs = {
-            instance_size = "M0"
+            instance_size = "M0" # Free tier. Permanently free, shared infrastructure
           }
           provider_name         = "TENANT"
           backing_provider_name = "AWS"
