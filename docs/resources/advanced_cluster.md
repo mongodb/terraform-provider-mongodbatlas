@@ -10,7 +10,7 @@ We recommend all MongoDB Atlas Terraform users start with the [`Official MongoDB
 
 ~> **IMPORTANT:** If you are upgrading to our Terraform Provider v2.0.0 or later from v1.x.x, you must update your existing `mongodbatlas_advanced_cluster` resource configuration according to [this guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-advanced-cluster-2.0).
 
--> **NOTE:** This resource supports creating Flex clusters, upgrading [M0 clusters to Flex](#example-tenant-cluster-upgrade-to-flex), and upgrading [Flex clusters to Dedicated](#Example-Flex-Cluster-Upgrade). When creating a Flex cluster, you must set the `replication_specs[#].region_configs[#].priority` value to 7.
+-> **NOTE:** This resource supports creating Flex clusters, upgrading [M0 clusters to Flex](#example-tenant-cluster-upgrade-to-flex), and upgrading [Flex clusters to Dedicated](#example-flex-cluster-upgrade). When creating a Flex cluster, you must set the `replication_specs[#].region_configs[#].priority` value to 7.
 
 -> **NOTE:** When you modify cluster configurations, your Terraform plan output might include `(known after apply)` markers for attributes you didin't modify. This is expected behavior. For more information, see the ["known after apply" verbosity](#known-after-apply-verbosity) section below.
 
