@@ -395,6 +395,14 @@ func setSchemaFields(d *schema.ResourceData, backupSchedule *admin.DiskBackupSna
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "use_org_and_group_names_in_export_prefix", clusterName, err)
 	}
 
+	if err := d.Set("auto_export_enabled", backupSchedule.GetAutoExportEnabled()); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
+	}
+
+	if err := d.Set("export", FlattenExport(backupSchedule)); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "export", clusterName, err)
+	}
+
 	if err := d.Set("policy_item_hourly", FlattenPolicyItem(backupSchedule.GetPolicies()[0].GetPolicyItems(), Hourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
 	}
@@ -513,8 +521,8 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		policiesItem = append(policiesItem, *ExpandPolicyItems(v.([]any), Yearly)...)
 	}
 
-	if d.HasChange("auto_export_enabled") {
-		req.AutoExportEnabled = new(d.Get("auto_export_enabled").(bool))
+	if v, ok := d.GetOkExists("auto_export_enabled"); ok {
+		req.AutoExportEnabled = new(v.(bool))
 	}
 
 	if v, ok := d.GetOk("export"); ok {

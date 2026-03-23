@@ -3,6 +3,8 @@ package cloudbackupschedule_test
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20250312016/admin"
@@ -153,12 +155,42 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	var (
 		// A snapshot export bucket can't be deleted it there exist a cluster that is still using it. So the cluster resource needs to depend on it
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
-		policyName  = acc.RandomName()
-		roleName    = acc.RandomIAMRole()
-		bucketName  = acc.RandomBucketName()
+		clusterInfo              = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, PitEnabled: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
+		policyName               = acc.RandomName()
+		roleName                 = acc.RandomIAMRole()
+		bucketName               = acc.RandomBucketName()
+		configWithExport         = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, true, true)
+		configWithoutExport      = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, false, false)
+		invalidRestoreWindowDays = "restore_window_days      = 99" // cannot be longer than the configured retention period of 4 days
+		configWithExportInvalid  = strings.ReplaceAll(
+			configWithExport,
+			"restore_window_days      = 4",
+			invalidRestoreWindowDays,
+		)
+		checksWithExport = resource.ComposeAggregateTestCheckFunc(
+			checkExists(resourceName),
+			resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+			resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "true"),
+			resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "20"),
+			resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "5"),
+			resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
+			resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
+			resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
+			resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
+			resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_value", "4"),
+			resource.TestCheckResourceAttr(resourceName, "export.#", "1"),
+		)
+		checksNoExport = resource.ComposeAggregateTestCheckFunc(
+			checkExists(resourceName),
+			resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+			resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "false"),
+			resource.TestCheckResourceAttr(resourceName, "export.#", "0"),
+		)
 	)
-
+	// Sanity check in case formatting changes below
+	if !strings.Contains(configWithExportInvalid, invalidRestoreWindowDays) {
+		t.Fatalf("configWithExportInvalid does not contain invalidRestoreWindowDays: %s\n%s", invalidRestoreWindowDays, configWithExportInvalid)
+	}
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
@@ -166,29 +198,19 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			{
-				Config: configExportPolicies(&clusterInfo, policyName, roleName, bucketName, true, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
-					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "20"),
-					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "5"),
-					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_value", "4"),
-				),
+				Config: configWithExport,
+				Check:  checksWithExport,
 			},
 			{
-				Config: configExportPolicies(&clusterInfo, policyName, roleName, bucketName, false, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
-					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "export.#", "0"),
-				),
+				Config: configWithoutExport,
+				Check:  checksNoExport,
 			},
+			// rejected PATCH must not pollute state; empty plan confirms setSchemaFields syncs auto_export_enabled+export from API
+			{
+				Config:      configWithExportInvalid,
+				ExpectError: regexp.MustCompile(".* policy item retention cannot be less than restore window"),
+			},
+			acc.TestStepCheckEmptyPlan(configWithoutExport),
 		},
 	})
 }
