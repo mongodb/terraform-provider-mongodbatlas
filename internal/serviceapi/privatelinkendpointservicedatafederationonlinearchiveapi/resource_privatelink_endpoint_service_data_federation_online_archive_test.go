@@ -45,6 +45,9 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 				ImportStateIdFunc: importLegacyStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"delete_on_create_timeout",
+				},
 			},
 		},
 	})
@@ -78,6 +81,9 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_normali
 				ImportStateIdFunc: importNormalizedStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"delete_on_create_timeout",
+				},
 			},
 		},
 	})
