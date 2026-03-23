@@ -1198,6 +1198,8 @@ resources:
         "results"
       ]
       overrides:
+          project_id:
+            description: *project_id_description
           provider_name:
             computability:
               required: true
