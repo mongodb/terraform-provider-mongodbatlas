@@ -29,7 +29,7 @@ type TFExpandedModel struct {
 }
 
 func (r *rs) PreCreateAPICall(callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte) {
-	modifiedBody, ok := prepareCreateBody(bodyReq)
+	modifiedBody, ok := prepareBody(bodyReq)
 	if !ok {
 		return callParams, bodyReq
 	}
@@ -37,7 +37,7 @@ func (r *rs) PreCreateAPICall(callParams config.APICallParams, bodyReq []byte) (
 }
 
 func (r *rs) PreUpdateAPICall(callParams config.APICallParams, bodyReq []byte) (modifiedParams config.APICallParams, modifiedBody []byte) {
-	modifiedBody, ok := injectEndpointType(bodyReq)
+	modifiedBody, ok := prepareBody(bodyReq)
 	if !ok {
 		return callParams, bodyReq
 	}
@@ -101,21 +101,7 @@ func (r *rs) PreImport(id string) (string, error) {
 	return "", fmt.Errorf("use one of the formats: {project_id}/{endpoint_id} or {project_id}--{endpoint_id}")
 }
 
-// Ensures POST request body includes type=DATA_LAKE.
-func injectEndpointType(bodyReq []byte) ([]byte, bool) {
-	var body map[string]any
-	if err := json.Unmarshal(bodyReq, &body); err != nil {
-		return bodyReq, false
-	}
-	body["type"] = endpointType
-	modifiedBody, err := json.Marshal(body)
-	if err != nil {
-		return bodyReq, false
-	}
-	return modifiedBody, true
-}
-
-func prepareCreateBody(bodyReq []byte) ([]byte, bool) {
+func prepareBody(bodyReq []byte) ([]byte, bool) {
 	var body map[string]any
 	if err := json.Unmarshal(bodyReq, &body); err != nil {
 		return bodyReq, false
