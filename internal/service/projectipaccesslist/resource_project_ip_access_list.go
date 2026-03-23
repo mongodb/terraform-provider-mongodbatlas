@@ -137,6 +137,23 @@ func (r *projectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 	}
 }
 
+func (r *projectIPAccessListRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state TfProjectIPAccessListModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if !plan.DeleteAfterDate.Equal(state.DeleteAfterDate) {
+		resp.Diagnostics.AddError(
+			"delete_after_date cannot be updated in-place",
+			"The delete_after_date field can only be set at resource creation time. To change this value, destroy and recreate the resource.",
+		)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+}
+
 func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var projectIPAccessListModelState *TfProjectIPAccessListModel
 
