@@ -289,10 +289,11 @@ jobs:
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
       service_account: ${{ steps.filter.outputs.service_account == 'true' || env.mustTrigger == 'true' }}
+      service_account_jwt: ${{ steps.filter.outputs.service_account_jwt == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-    - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
+    - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d
       id: filter
       if: ${{ inputs.test_group == ''  && env.mustTrigger == 'false' }}
       with:
@@ -304,7 +305,9 @@ jobs:
             - 'internal/provider/*.go'
           authentication:
             - 'internal/config/*.go'
-            - 'internal/provider/*.go' 
+            - 'internal/provider/*.go'
+          service_account_jwt:
+            - 'internal/service/serviceaccountjwt/*.go'
           autogen_fast:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/aimodelapikey/*.go'
@@ -615,6 +618,29 @@ jobs:
           MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}        
         run: make access-token-revoke token="${{ steps.create-token.outputs.access_token }}"
 
+  service_account_jwt:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ inputs.use_sa == true && (needs.change-detection.outputs.service_account_jwt == 'true' || inputs.test_group == 'service_account_jwt') }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false
+      - name: Acceptance Tests (Service Account JWT)
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_REGEX_RUN: '^TestAccServiceAccountJWT'
+          ACCTEST_PACKAGES: ./internal/service/serviceaccountjwt
+        run: make testacc
+
   autogen_fast:
     needs: [change-detection, get-provider-version]
     # Avoids concurrent execution of resource policy tests to prevent race conditions on organization-level side effects of resource policies
@@ -636,7 +662,7 @@ jobs:
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
-      - uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           workload_identity_provider: ${{ secrets.gcp_workload_identity_provider }}
           service_account: ${{ secrets.gcp_service_account_email }}
@@ -1443,7 +1469,7 @@ jobs:
     permissions: {}
     steps:
       - name: Send Slack message
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        uses: slackapi/slack-github-action@af78098f536edbc4de71162a307590698245be95
         with:
           webhook: ${{ secrets.slack_webhook_url_stream }}
           webhook-type: incoming-webhook

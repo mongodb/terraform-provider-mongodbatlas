@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
@@ -42,6 +44,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountaccesslistentry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountjwt"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamaccountdetails"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
@@ -74,6 +77,8 @@ const (
 
 type MongodbatlasProvider struct {
 }
+
+var _ provider.ProviderWithEphemeralResources = &MongodbatlasProvider{}
 
 type tfModel struct {
 	Region               types.String        `tfsdk:"region"`
@@ -225,6 +230,13 @@ func (p *MongodbatlasProvider) Configure(ctx context.Context, req provider.Confi
 	}
 	resp.DataSourceData = client
 	resp.ResourceData = client
+
+	resp.EphemeralResourceData = &config.EphemeralResourceData{
+		ClientID:         c.ClientID,
+		ClientSecret:     c.ClientSecret,
+		BaseURL:          c.BaseURL,
+		TerraformVersion: req.TerraformVersion,
+	}
 }
 
 func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) *config.Vars {
@@ -390,6 +402,17 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		analyticsResources = append(analyticsResources, config.AnalyticsResourceFunc(resourceFunc()))
 	}
 	return analyticsResources
+}
+
+func (p *MongodbatlasProvider) EphemeralResources(context.Context) []func() ephemeral.EphemeralResource {
+	ephemeralResources := []func() ephemeral.EphemeralResource{
+		serviceaccountjwt.New,
+	}
+	ephemeralResourcesWithAnalytics := []func() ephemeral.EphemeralResource{}
+	for _, ephemeralResourceFunc := range ephemeralResources {
+		ephemeralResourcesWithAnalytics = append(ephemeralResourcesWithAnalytics, config.AnalyticsEphemeralResourceFunc(ephemeralResourceFunc()))
+	}
+	return ephemeralResourcesWithAnalytics
 }
 
 func NewFrameworkProvider() provider.Provider {

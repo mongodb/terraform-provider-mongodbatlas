@@ -1,11 +1,13 @@
 package acc
 
 import (
+	"maps"
 	"os"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-testing/echoprovider"
 	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
@@ -48,6 +50,15 @@ func ConnV2UsingGov() *admin.APIClient {
 	}
 	client, _ := config.NewClient(c, "")
 	return client.AtlasV2
+}
+
+// ProtoV6FactoriesWithEcho returns provider factories that include both the
+// mongodbatlas provider and the echo provider (for testing ephemeral values).
+func ProtoV6FactoriesWithEcho() map[string]func() (tfprotov6.ProviderServer, error) {
+	factories := make(map[string]func() (tfprotov6.ProviderServer, error))
+	maps.Copy(factories, TestAccProviderV6Factories)
+	factories["echo"] = echoprovider.NewProviderServer()
+	return factories
 }
 
 func init() {
