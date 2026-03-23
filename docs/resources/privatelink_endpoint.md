@@ -65,7 +65,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `endpoint_service_name` - Name of the PrivateLink endpoint service in AWS. Returns `null` while Atlas creates the endpoint service.
 * `interface_endpoints` - Unique identifiers of the interface endpoints in your VPC that you added to the AWS PrivateLink connection.
-* `supported_remote_regions` - List of additional AWS regions that can connect to the endpoint service.
 * `status` values:
   * `AVAILABLE` - Atlas is creating the network load balancer and VPC endpoint service.
   * `WAITING_FOR_USER` - The Atlas network load balancer and VPC endpoint service are created and ready to receive connection requests. When you receive this status, create an interface endpoint to continue configuring the AWS PrivateLink connection.
