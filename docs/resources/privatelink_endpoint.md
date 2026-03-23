@@ -24,6 +24,17 @@ resource "mongodbatlas_privatelink_endpoint" "this" {
 }
 ```
 
+### AWS Cross-Region Private Endpoint
+
+```terraform
+resource "mongodbatlas_privatelink_endpoint" "cross_region" {
+  project_id                = var.project_id
+  provider_name             = "AWS"
+  region                    = "us-east-1"
+  supported_remote_regions  = ["eu-west-1", "ap-southeast-1"]
+}
+```
+
 ### Further Examples
 - [AWS PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_privatelink_endpoint/aws)
 - [Azure PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples/mongodbatlas_privatelink_endpoint/azure)
@@ -35,7 +46,8 @@ resource "mongodbatlas_privatelink_endpoint" "this" {
 * `provider_name` - (Required) Name of the cloud provider for which you want to create the private endpoint service. Atlas accepts `AWS`, `AZURE`, `GCP`.
 * `region` - (Required) Cloud provider region in which you want to create the private endpoint connection.
 Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws), [AZURE regions](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure) and [GCP regions](https://docs.atlas.mongodb.com/reference/google-gcp/#std-label-google-gcp)
-* `timeouts` - (Optional) The duration to wait for Private Endpoint to be created or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `1h`), `delete` (default: `1h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
+* `supported_remote_regions` - (Optional) List of additional AWS regions that can connect to the endpoint service. AWS only. The endpoint service region is supported by default and must not be included.
+* `timeouts` - (Optional) The duration to wait for Private Endpoint to be created, updated, or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `1h`), `update` (default: `1h`), `delete` (default: `1h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 * `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 * `port_mapping_enabled` - (Optional) Flag that indicates whether this resource uses GCP port-mapping. When `true`, the resource uses port-mapped architecture. When `false` or unset, the resource uses GCP legacy private endpoint architecture. Only applicable for GCP provider.
 
@@ -53,6 +65,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `endpoint_service_name` - Name of the PrivateLink endpoint service in AWS. Returns `null` while Atlas creates the endpoint service.
 * `interface_endpoints` - Unique identifiers of the interface endpoints in your VPC that you added to the AWS PrivateLink connection.
+* `supported_remote_regions` - List of additional AWS regions that can connect to the endpoint service.
 * `status` values:
   * `AVAILABLE` - Atlas is creating the network load balancer and VPC endpoint service.
   * `WAITING_FOR_USER` - The Atlas network load balancer and VPC endpoint service are created and ready to receive connection requests. When you receive this status, create an interface endpoint to continue configuring the AWS PrivateLink connection.

@@ -86,6 +86,14 @@ func DataSource() *schema.Resource {
 				Computed:    true,
 				Description: "Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-mapped architecture. When `false` or unset, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.",
 			},
+			"supported_remote_regions": {
+				Type:        schema.TypeSet,
+				Computed:    true,
+				Description: "List of additional AWS regions that can connect to the endpoint service. AWS only.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -147,6 +155,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if err := d.Set("port_mapping_enabled", privateEndpoint.GetPortMappingEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "port_mapping_enabled", privateLinkID, err))
+	}
+
+	if err := d.Set("supported_remote_regions", privateEndpoint.GetSupportedRemoteRegions()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "supported_remote_regions", privateLinkID, err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{

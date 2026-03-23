@@ -1221,6 +1221,8 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
+          # TODO: TEMPORARY: Only run subset of test. DONT MERGE THIS CHANGE.
+          ACCTEST_REGEX_RUN: "TestAccPrivateLinkEndpoint_aws|TestAccPrivateLinkEndpoint_basicAWS"
           MONGODB_ATLAS_PRIVATE_ENDPOINT_ID: ${{ secrets.mongodb_atlas_private_endpoint_id }}
           MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME: ${{ secrets.mongodb_atlas_private_endpoint_dns_name }}      
           AWS_ACCOUNT_ID: ${{ secrets.aws_account_id }}

@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_privatelink_endpoint: Adds `supported_remote_regions` attribute to configure additional AWS regions that can connect to the endpoint service
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_privatelink_endpoint: Adds `supported_remote_regions` attribute to support reading additional AWS regions that can connect to the endpoint service
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_privatelink_endpoints: Adds `supported_remote_regions` attribute to support reading additional AWS regions that can connect to the endpoint service
+```

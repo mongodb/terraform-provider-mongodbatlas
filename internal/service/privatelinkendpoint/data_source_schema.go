@@ -63,6 +63,11 @@ func PluralDataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-mapped architecture. When `false` or unset, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.",
 						},
+						"supported_remote_regions": schema.SetAttribute{
+							Computed:            true,
+							ElementType:         types.StringType,
+							MarkdownDescription: "List of additional AWS regions that can connect to the endpoint service. AWS only.",
+						},
 					},
 				},
 			},
@@ -77,17 +82,18 @@ type TFPrivateLinkEndpointsModel struct {
 }
 
 type TFPrivateLinkEndpointDSModel struct {
-	PrivateLinkID                types.String `tfsdk:"private_link_id"`
-	EndpointServiceName          types.String `tfsdk:"endpoint_service_name"`
-	ErrorMessage                 types.String `tfsdk:"error_message"`
+	EndpointGroupNames           types.List   `tfsdk:"endpoint_group_names"`
+	SupportedRemoteRegions       types.Set    `tfsdk:"supported_remote_regions"`
+	ServiceAttachmentNames       types.List   `tfsdk:"service_attachment_names"`
 	InterfaceEndpoints           types.List   `tfsdk:"interface_endpoints"`
 	PrivateEndpoints             types.List   `tfsdk:"private_endpoints"`
-	PrivateLinkServiceName       types.String `tfsdk:"private_link_service_name"`
 	PrivateLinkServiceResourceID types.String `tfsdk:"private_link_service_resource_id"`
+	PrivateLinkID                types.String `tfsdk:"private_link_id"`
 	Status                       types.String `tfsdk:"status"`
-	EndpointGroupNames           types.List   `tfsdk:"endpoint_group_names"`
+	PrivateLinkServiceName       types.String `tfsdk:"private_link_service_name"`
 	RegionName                   types.String `tfsdk:"region_name"`
-	ServiceAttachmentNames       types.List   `tfsdk:"service_attachment_names"`
+	ErrorMessage                 types.String `tfsdk:"error_message"`
+	EndpointServiceName          types.String `tfsdk:"endpoint_service_name"`
 	PortMappingEnabled           types.Bool   `tfsdk:"port_mapping_enabled"`
 }
 
@@ -113,6 +119,8 @@ func newTFPrivateLinkEndpointDSModel(ctx context.Context, endpoint *admin.Endpoi
 	diags.Append(d...)
 	serviceAttachmentNames, d := types.ListValueFrom(ctx, types.StringType, endpoint.GetServiceAttachmentNames())
 	diags.Append(d...)
+	supportedRemoteRegions, d := types.SetValueFrom(ctx, types.StringType, endpoint.GetSupportedRemoteRegions())
+	diags.Append(d...)
 
 	return TFPrivateLinkEndpointDSModel{
 		PrivateLinkID:                types.StringValue(endpoint.GetId()),
@@ -127,5 +135,6 @@ func newTFPrivateLinkEndpointDSModel(ctx context.Context, endpoint *admin.Endpoi
 		RegionName:                   types.StringValue(endpoint.GetRegionName()),
 		ServiceAttachmentNames:       serviceAttachmentNames,
 		PortMappingEnabled:           types.BoolValue(endpoint.GetPortMappingEnabled()),
+		SupportedRemoteRegions:       supportedRemoteRegions,
 	}, diags
 }
