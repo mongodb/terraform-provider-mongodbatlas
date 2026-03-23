@@ -184,3 +184,89 @@ func configMoveSecondUnsupported(projectID, clusterName string) string {
 		}
 	` + configMoveBasic(projectID, clusterName, 1)
 }
+
+func TestAccAdvancedCluster_moveWithVersion(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(tfversion.Version1_8_0),
+		},
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configMoveFirstWithVersion(projectID, clusterName),
+			},
+			{
+				Config: configMoveSecondWithVersion(projectID, clusterName),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+			},
+		},
+	})
+}
+
+func configMoveFirstWithVersion(projectID, clusterName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cluster" "old" {
+			project_id                  = %[1]q
+			name                        = %[2]q
+			disk_size_gb                = 10
+			cluster_type                = "REPLICASET"
+			provider_name               = "AWS"
+			provider_instance_size_name = "M10"
+			mongo_db_major_version      = "8.0"
+			replication_specs {
+				num_shards = 1
+				regions_config {
+					region_name     = "US_EAST_1"
+					electable_nodes = 3
+					priority        = 7
+				}
+			}
+			advanced_configuration {
+				javascript_enabled = true
+			}
+		}
+	`, projectID, clusterName)
+}
+
+func configMoveWithVersion(projectID, clusterName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id             = %[1]q
+			name                   = %[2]q
+			cluster_type           = "REPLICASET"
+			mongo_db_major_version = "8.0"
+			replication_specs = [{
+				region_configs = [{
+					priority      = 7
+					provider_name = "AWS"
+					region_name   = "US_EAST_1"
+					electable_specs = {
+						node_count    = 3
+						instance_size = "M10"
+						disk_size_gb  = 10
+					}
+				}]
+			}]
+			advanced_configuration = {
+				javascript_enabled = true
+			}
+		}
+	`, projectID, clusterName)
+}
+
+func configMoveSecondWithVersion(projectID, clusterName string) string {
+	return `
+		moved {
+			from = mongodbatlas_cluster.old
+			to   = mongodbatlas_advanced_cluster.test
+		}
+	` + configMoveWithVersion(projectID, clusterName)
+}
