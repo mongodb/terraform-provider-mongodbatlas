@@ -87,6 +87,7 @@ data "mongodbatlas_project_ip_access_list" "this" {
 ### Read-Only
 
 - `comment` (String) Remark that explains the purpose or scope of this IP access list entry.
+- `delete_after_date` (String) Date and time after which MongoDB Cloud deletes the temporary access list entry. This parameter expresses its value in the ISO 8601 timestamp format in UTC and can include the time zone designation.
 - `id` (String) Unique identifier used for terraform for internal management.
 
 For more information, see [MongoDB Atlas API Reference](https://docs.atlas.mongodb.com/reference/api/access-lists/).

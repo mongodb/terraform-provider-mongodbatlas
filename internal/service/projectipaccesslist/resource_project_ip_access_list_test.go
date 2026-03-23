@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -155,6 +156,38 @@ func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 			{
 				Config: configWithMultiple(projectID, accessList, true),
 				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
+			},
+		},
+	})
+}
+
+func TestAccProjectIPAccessList_deleteAfterDate(t *testing.T) {
+	var (
+		projectID       = acc.ProjectIDExecution(t)
+		ipAddress       = acc.RandomIP(179, 154, 227)
+		comment         = fmt.Sprintf("TestAcc for deleteAfterDate (%s)", ipAddress)
+		deleteAfterDate = time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithDeleteAfterDate(projectID, ipAddress, comment, deleteAfterDate),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+					resource.TestCheckResourceAttrSet(resourceName, "delete_after_date"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -359,6 +392,17 @@ func configWithAWSSecurityGroup(projectID, providerName, vpcID, awsAccountID, vp
 	}
 
 	return config
+}
+
+func configWithDeleteAfterDate(projectID, ipAddress, comment, deleteAfterDate string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project_ip_access_list" "test" {
+			project_id        = %[1]q
+			ip_address        = %[2]q
+			comment           = %[3]q
+			delete_after_date = %[4]q
+		}
+	`, projectID, ipAddress, comment, deleteAfterDate)
 }
 
 func configWithMultiple(projectID string, accessList []map[string]string, isUpdate bool) string {

@@ -1147,7 +1147,6 @@ resources:
       schema:
         ignores: [
           "links", "results.links",
-          "results.delete_after_date", # delete_after_date not exposed in handwritten resource.
           "results.group_id" # group_id/project_id in results is the same as the root one.
         ]
         aliases:
@@ -1162,6 +1161,8 @@ resources:
             description: "Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`."
           aws_security_group:
             description: "Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`."
+          results.delete_after_date:
+            description: "Date and time after which MongoDB Cloud deletes the temporary access list entry. This parameter expresses its value in the ISO 8601 timestamp format in UTC."
 
   log_integration:
     read:

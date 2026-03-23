@@ -36,6 +36,10 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Remark that explains the purpose or scope of this IP access list entry.",
 						},
+						"delete_after_date": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Date and time after which MongoDB Cloud deletes the temporary access list entry. This parameter expresses its value in the ISO 8601 timestamp format in UTC and can include the time zone designation. The date must be later than the current date but no later than one week after you submit this request. The resource returns this parameter if you specified an expiration date when creating this IP access list entry.",
+						},
 						"ip_address": dsschema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`.",
@@ -55,5 +59,6 @@ type TFPluralDSResultsModel struct {
 	AwsSecurityGroup types.String `tfsdk:"aws_security_group" autogen:"omitjson"`
 	CidrBlock        types.String `tfsdk:"cidr_block" autogen:"omitjson"`
 	Comment          types.String `tfsdk:"comment" autogen:"omitjson"`
+	DeleteAfterDate  types.String `tfsdk:"delete_after_date" autogen:"omitjson"`
 	IpAddress        types.String `tfsdk:"ip_address" autogen:"omitjson"`
 }

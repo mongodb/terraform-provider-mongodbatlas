@@ -10,14 +10,18 @@ import (
 )
 
 func NewMongoDBProjectIPAccessList(projectIPAccessListModel *TfProjectIPAccessListModel) *[]admin.NetworkPermissionEntry {
-	return &[]admin.NetworkPermissionEntry{
-		{
-			AwsSecurityGroup: conversion.StringPtr(projectIPAccessListModel.AWSSecurityGroup.ValueString()),
-			CidrBlock:        conversion.StringPtr(projectIPAccessListModel.CIDRBlock.ValueString()),
-			IpAddress:        conversion.StringPtr(projectIPAccessListModel.IPAddress.ValueString()),
-			Comment:          conversion.StringPtr(projectIPAccessListModel.Comment.ValueString()),
-		},
+	entry := admin.NetworkPermissionEntry{
+		AwsSecurityGroup: conversion.StringPtr(projectIPAccessListModel.AWSSecurityGroup.ValueString()),
+		CidrBlock:        conversion.StringPtr(projectIPAccessListModel.CIDRBlock.ValueString()),
+		IpAddress:        conversion.StringPtr(projectIPAccessListModel.IPAddress.ValueString()),
+		Comment:          conversion.StringPtr(projectIPAccessListModel.Comment.ValueString()),
 	}
+	if !projectIPAccessListModel.DeleteAfterDate.IsNull() && !projectIPAccessListModel.DeleteAfterDate.IsUnknown() && projectIPAccessListModel.DeleteAfterDate.ValueString() != "" {
+		if t, ok := conversion.StringToTime(projectIPAccessListModel.DeleteAfterDate.ValueString()); ok {
+			entry.DeleteAfterDate = &t
+		}
+	}
+	return &[]admin.NetworkPermissionEntry{entry}
 }
 
 func NewTfProjectIPAccessListModel(projectIPAccessListModel *TfProjectIPAccessListModel, projectIPAccessList *admin.NetworkPermissionEntry) *TfProjectIPAccessListModel {
@@ -33,6 +37,11 @@ func NewTfProjectIPAccessListModel(projectIPAccessListModel *TfProjectIPAccessLi
 		"project_id": projectIPAccessList.GetGroupId(),
 	})
 
+	deleteAfterDate := types.StringValue("")
+	if t, ok := projectIPAccessList.GetDeleteAfterDateOk(); ok {
+		deleteAfterDate = types.StringValue(conversion.TimeToString(*t))
+	}
+
 	return &TfProjectIPAccessListModel{
 		ID:               types.StringValue(id),
 		ProjectID:        types.StringValue(projectIPAccessList.GetGroupId()),
@@ -40,17 +49,24 @@ func NewTfProjectIPAccessListModel(projectIPAccessListModel *TfProjectIPAccessLi
 		IPAddress:        types.StringValue(projectIPAccessList.GetIpAddress()),
 		AWSSecurityGroup: types.StringValue(projectIPAccessList.GetAwsSecurityGroup()),
 		Comment:          types.StringValue(projectIPAccessList.GetComment()),
+		DeleteAfterDate:  deleteAfterDate,
 		Timeouts:         projectIPAccessListModel.Timeouts,
 	}
 }
 
 func NewTfProjectIPAccessListDSModel(ctx context.Context, accessList *admin.NetworkPermissionEntry) (*TfProjectIPAccessListDSModel, diag.Diagnostics) {
+	deleteAfterDate := types.StringValue("")
+	if t, ok := accessList.GetDeleteAfterDateOk(); ok {
+		deleteAfterDate = types.StringValue(conversion.TimeToString(*t))
+	}
+
 	databaseUserModel := &TfProjectIPAccessListDSModel{
 		ProjectID:        types.StringValue(accessList.GetGroupId()),
 		Comment:          types.StringValue(accessList.GetComment()),
 		CIDRBlock:        types.StringValue(accessList.GetCidrBlock()),
 		IPAddress:        types.StringValue(accessList.GetIpAddress()),
 		AWSSecurityGroup: types.StringValue(accessList.GetAwsSecurityGroup()),
+		DeleteAfterDate:  deleteAfterDate,
 	}
 
 	entry := accessList.GetCidrBlock()

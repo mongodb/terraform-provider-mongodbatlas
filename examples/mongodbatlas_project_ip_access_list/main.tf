@@ -43,6 +43,14 @@ resource "mongodbatlas_project_ip_access_list" "cidr" {
   comment    = each.value.comment
 }
 
+# Example: temporary access list entry that expires after 24 hours
+resource "mongodbatlas_project_ip_access_list" "temporary" {
+  project_id        = var.project_id
+  ip_address        = "203.0.113.1"
+  comment           = "Temporary access - expires in 24 hours"
+  delete_after_date = timeadd(timestamp(), "24h")
+}
+
 data "mongodbatlas_project_ip_access_lists" "this" {
   project_id = var.project_id
   depends_on = [mongodbatlas_project_ip_access_list.ip, mongodbatlas_project_ip_access_list.cidr]

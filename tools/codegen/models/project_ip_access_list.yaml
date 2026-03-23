@@ -52,6 +52,17 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
+                          description: Date and time after which MongoDB Cloud deletes the temporary access list entry. This parameter expresses its value in the ISO 8601 timestamp format in UTC and can include the time zone designation. The date must be later than the current date but no later than one week after you submit this request. The resource returns this parameter if you specified an expiration date when creating this IP access list entry.
+                          computed_optional_required: computed
+                          tf_schema_name: delete_after_date
+                          tf_model_name: DeleteAfterDate
+                          api_name: deleteAfterDate
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
                           description: Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`.
                           computed_optional_required: computed
                           tf_schema_name: ip_address
