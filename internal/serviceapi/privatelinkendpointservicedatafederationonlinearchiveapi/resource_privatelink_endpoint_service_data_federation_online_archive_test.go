@@ -49,33 +49,6 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 					"delete_on_create_timeout",
 				},
 			},
-		},
-	})
-}
-
-func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_normalizedStateID(t *testing.T) {
-	var (
-		projectID  = acc.ProjectIDExecution(t)
-		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceConfigBasicAWS(projectID, endpointID, comment),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					checkEncodedID(resourceName, projectID, endpointID),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-					resource.TestCheckResourceAttrSet(resourceName, "type"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-				),
-			},
 			{
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importNormalizedStateIDFunc(resourceName),
