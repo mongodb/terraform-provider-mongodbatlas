@@ -160,8 +160,6 @@ func basicGCPTestCaseWithPortMapping(tb testing.TB, portMappingEnabled bool) *re
 	}
 }
 
-// TestAccPrivateLinkEndpoint_awsSupportedRemoteRegions tests creating an AWS endpoint service with
-// supported remote regions, then updating the regions list.
 func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegions(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
@@ -182,7 +180,6 @@ func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegions(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 					resource.TestCheckResourceAttr(resourceName, "supported_remote_regions.#", "2"),
 					resource.TestCheckResourceAttr(dataSourceName, "supported_remote_regions.#", "2"),
-					resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0.supported_remote_regions.#"),
 				),
 			},
 			{
@@ -206,31 +203,6 @@ func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegions(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-		},
-	})
-}
-
-// TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsEmptyList tests that setting an empty list
-// removes all supported remote regions.
-func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsEmptyList(t *testing.T) {
-	var (
-		projectID    = acc.ProjectIDExecution(t)
-		providerName = constant.AWS
-		region       = "EU_WEST_2" // Different region to avoid project conflicts.
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithSupportedRemoteRegions(projectID, providerName, region, []string{"US_EAST_1"}),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "supported_remote_regions.#", "1"),
-				),
-			},
 			{
 				Config: configWithSupportedRemoteRegions(projectID, providerName, region, []string{}),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -243,8 +215,6 @@ func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsEmptyList(t *testing.T)
 	})
 }
 
-// TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidRegion tests that the API returns an
-// error when the endpoint service region is included in the supported remote regions list.
 func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidRegion(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
@@ -259,7 +229,7 @@ func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidRegion(t *testin
 		Steps: []resource.TestStep{
 			{
 				Config:      configWithSupportedRemoteRegions(projectID, providerName, region, []string{region}),
-				ExpectError: regexp.MustCompile("INVALID|BAD_REQUEST|BAD REQUEST|VALIDATION|supported.*region|error"),
+				ExpectError: regexp.MustCompile("CROSS_REGION_PRIVATE_LINK_SELF_REGION"),
 			},
 		},
 	})

@@ -193,25 +193,23 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	if !d.HasChange("supported_remote_regions") {
+		return resourceRead(ctx, d, meta)
+	}
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	privateLinkID := ids["private_link_id"]
 	projectID := ids["project_id"]
 	providerName := ids["provider_name"]
-
-	if d.HasChange("supported_remote_regions") {
-		regions := conversion.ExpandStringList(d.Get("supported_remote_regions").(*schema.Set).List())
-		updateRequest := &admin.ApiAtlasModifyEndpointServiceRequest{
-			CloudProvider:          providerName,
-			SupportedRemoteRegions: regions,
-		}
-
-		_, _, err := connV2.PrivateEndpointServicesApi.UpdatePrivateEndpointService(ctx, projectID, privateLinkID, updateRequest).Execute()
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsUpdate, privateLinkID, err))
-		}
+	regions := conversion.ExpandStringList(d.Get("supported_remote_regions").(*schema.Set).List())
+	updateRequest := &admin.ApiAtlasModifyEndpointServiceRequest{
+		CloudProvider:          providerName,
+		SupportedRemoteRegions: regions,
 	}
-
+	_, _, err := connV2.PrivateEndpointServicesApi.UpdatePrivateEndpointService(ctx, projectID, privateLinkID, updateRequest).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsUpdate, privateLinkID, err))
+	}
 	return resourceRead(ctx, d, meta)
 }
 
