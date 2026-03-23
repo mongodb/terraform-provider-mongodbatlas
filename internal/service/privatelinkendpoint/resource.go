@@ -24,6 +24,7 @@ import (
 const (
 	errorPrivateLinkEndpointsCreate  = "error creating MongoDB Private Endpoints Connection: %s"
 	errorPrivateLinkEndpointsRead    = "error reading MongoDB Private Endpoints Connection(%s): %s"
+	errorPrivateLinkEndpointsUpdate  = "error updating MongoDB Private Endpoints Connection(%s): %s"
 	errorPrivateLinkEndpointsDelete  = "error deleting MongoDB Private Endpoints Connection(%s): %s"
 	ErrorPrivateLinkEndpointsSetting = "error setting `%s` for MongoDB Private Endpoints Connection(%s): %s"
 	delayAndMinTimeout               = 5 * time.Second
@@ -117,6 +118,14 @@ func Resource() *schema.Resource {
 				Optional:    true,
 				Description: "Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-mapped architecture. When `false` or unset, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.",
 			},
+			"supported_remote_regions": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Description: "List of additional AWS regions that can connect to the endpoint service. AWS only. The endpoint service region is supported by default and must not be included.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -126,6 +135,7 @@ func Resource() *schema.Resource {
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Hour),
+			Update: schema.DefaultTimeout(1 * time.Hour),
 			Delete: schema.DefaultTimeout(1 * time.Hour),
 		},
 	}
@@ -147,6 +157,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if request.GetPortMappingEnabled() && providerName != constant.GCP {
 			return diag.FromErr(errors.New("port_mapping_enabled is only supported for GCP provider"))
 		}
+	}
+
+	if v, ok := d.GetOk("supported_remote_regions"); ok {
+		regions := conversion.ExpandStringList(v.(*schema.Set).List())
+		request.SupportedRemoteRegions = &regions
 	}
 
 	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.CreatePrivateEndpointService(ctx, projectID, request).Execute()
@@ -179,7 +194,38 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// CustomizeDiff prevents port_mapping_enabled from being changed, so this should never be called with actual changes.
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	ids := conversion.DecodeStateID(d.Id())
+	privateLinkID := ids["private_link_id"]
+	projectID := ids["project_id"]
+	providerName := ids["provider_name"]
+
+	if d.HasChange("supported_remote_regions") {
+		regions := conversion.ExpandStringList(d.Get("supported_remote_regions").(*schema.Set).List())
+		updateRequest := &admin.ApiAtlasModifyEndpointServiceRequest{
+			CloudProvider:          providerName,
+			SupportedRemoteRegions: regions,
+		}
+
+		_, _, err := connV2.PrivateEndpointServicesApi.UpdatePrivateEndpointService(ctx, projectID, privateLinkID, updateRequest).Execute()
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsUpdate, privateLinkID, err))
+		}
+
+		stateConf := &retry.StateChangeConf{
+			Pending:    []string{"INITIATING", "AVAILABLE"},
+			Target:     []string{"WAITING_FOR_USER", "FAILED", "AVAILABLE_UPDATED"},
+			Refresh:    resourceUpdateRefreshFunc(ctx, connV2, projectID, providerName, privateLinkID, regions),
+			Timeout:    d.Timeout(schema.TimeoutUpdate),
+			MinTimeout: delayAndMinTimeout,
+			Delay:      delayAndMinTimeout,
+		}
+		_, err = stateConf.WaitForStateContext(ctx)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsUpdate, privateLinkID, err))
+		}
+	}
+
 	return resourceRead(ctx, d, meta)
 }
 
@@ -263,6 +309,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "port_mapping_enabled", privateLinkID, err))
 	}
 
+	if err := d.Set("supported_remote_regions", privateEndpoint.GetSupportedRemoteRegions()); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "supported_remote_regions", privateLinkID, err))
+	}
+
 	if privateEndpoint.GetErrorMessage() != "" {
 		return diag.FromErr(fmt.Errorf("privatelink endpoint is in a failed state: %s", privateEndpoint.GetErrorMessage()))
 	}
@@ -333,6 +383,52 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}))
 
 	return []*schema.ResourceData{d}, nil
+}
+
+// resourceUpdateRefreshFunc returns a refresh function that waits for the endpoint service to reach
+// a stable state AND have the expected supported remote regions. This prevents the wait from
+// succeeding immediately when the endpoint service was already in the target state before the update.
+func resourceUpdateRefreshFunc(ctx context.Context, client *admin.APIClient, projectID, providerName, privateLinkID string, expectedRegions []string) retry.StateRefreshFunc {
+	return func() (any, string, error) {
+		p, resp, err := client.PrivateEndpointServicesApi.GetPrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
+		if err != nil {
+			if validate.StatusNotFound(resp) {
+				return "", "DELETED", nil
+			}
+			return nil, "REJECTED", err
+		}
+
+		status := p.GetStatus()
+		actualRegions := p.GetSupportedRemoteRegions()
+
+		if (status == "WAITING_FOR_USER" || status == "FAILED") && regionsMatch(expectedRegions, actualRegions) {
+			return p, status, nil
+		}
+
+		// When regions already match in AVAILABLE state (e.g. removing all remote regions), the endpoint
+		// may not transition to WAITING_FOR_USER. Return a synthetic state to signal completion.
+		if status == "AVAILABLE" && regionsMatch(expectedRegions, actualRegions) {
+			return p, "AVAILABLE_UPDATED", nil
+		}
+
+		return "", status, nil
+	}
+}
+
+func regionsMatch(expected, actual []string) bool {
+	if len(expected) != len(actual) {
+		return false
+	}
+	set := make(map[string]struct{}, len(expected))
+	for _, r := range expected {
+		set[r] = struct{}{}
+	}
+	for _, r := range actual {
+		if _, ok := set[r]; !ok {
+			return false
+		}
+	}
+	return true
 }
 
 func refreshFunc(ctx context.Context, client *admin.APIClient, projectID, providerName, privateLinkID string) retry.StateRefreshFunc {
