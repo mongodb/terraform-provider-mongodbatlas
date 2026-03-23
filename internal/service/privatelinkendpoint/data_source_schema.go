@@ -63,7 +63,7 @@ func PluralDataSourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-mapped architecture. When `false` or unset, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.",
 						},
-						"supported_remote_regions": schema.ListAttribute{
+						"supported_remote_regions": schema.SetAttribute{
 							Computed:            true,
 							ElementType:         types.StringType,
 							MarkdownDescription: "List of additional AWS regions that can connect to the endpoint service. AWS only.",
@@ -83,7 +83,7 @@ type TFPrivateLinkEndpointsModel struct {
 
 type TFPrivateLinkEndpointDSModel struct {
 	EndpointGroupNames           types.List   `tfsdk:"endpoint_group_names"`
-	SupportedRemoteRegions       types.List   `tfsdk:"supported_remote_regions"`
+	SupportedRemoteRegions       types.Set    `tfsdk:"supported_remote_regions"`
 	ServiceAttachmentNames       types.List   `tfsdk:"service_attachment_names"`
 	InterfaceEndpoints           types.List   `tfsdk:"interface_endpoints"`
 	PrivateEndpoints             types.List   `tfsdk:"private_endpoints"`
@@ -119,7 +119,7 @@ func newTFPrivateLinkEndpointDSModel(ctx context.Context, endpoint *admin.Endpoi
 	diags.Append(d...)
 	serviceAttachmentNames, d := types.ListValueFrom(ctx, types.StringType, endpoint.GetServiceAttachmentNames())
 	diags.Append(d...)
-	supportedRemoteRegions, d := types.ListValueFrom(ctx, types.StringType, endpoint.GetSupportedRemoteRegions())
+	supportedRemoteRegions, d := types.SetValueFrom(ctx, types.StringType, endpoint.GetSupportedRemoteRegions())
 	diags.Append(d...)
 
 	return TFPrivateLinkEndpointDSModel{

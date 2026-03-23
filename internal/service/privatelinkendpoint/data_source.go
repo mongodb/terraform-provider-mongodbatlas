@@ -87,7 +87,7 @@ func DataSource() *schema.Resource {
 				Description: "Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-mapped architecture. When `false` or unset, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.",
 			},
 			"supported_remote_regions": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Computed:    true,
 				Description: "List of additional AWS regions that can connect to the endpoint service. AWS only.",
 				Elem: &schema.Schema{
