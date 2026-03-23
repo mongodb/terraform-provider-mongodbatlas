@@ -8,11 +8,11 @@ The cluster distributes nodes across three regions as follows:
 
 - `US_EAST_1` (AWS) — Two electable nodes, priority 7 (preferred primary region)
 - `US_WEST_2` (AWS) — Two electable nodes, priority 6 (secondary failover region)
-- `EU_WEST_1` (AWS) — One1 electable node, priority 5 (tiebreaker)
+- `EU_WEST_1` (AWS) — One electable node, priority 5 (tiebreaker)
 
 ### Why the odd node (2-2-1)?
 
-A four-node cluster (2+2) would have an even number of votes. If both regions in a 2-node group are simultaneously affected, neither side can reach a simple majority, causing an election stalemate. The fifth node in a third region adds one extra vote, ensuring a majority (3 of 5) is always reachable even if any single region goes down.
+A four-node cluster (2+2) would have an even number of votes. If both regions in a 2-node group are simultaneously affected, neither side can reach a simple majority, resulting in an election stalemate. The fifth node in a third region adds one extra vote, ensuring a majority (3 of 5) is always reachable even if any single region goes down.
 
 Failover scenarios with five votes (majority = 3):
 
@@ -29,9 +29,9 @@ To run this example, ensure you have the following tools:
 
 ## Procedure
 
-Follow the next steps to run this example:
+To run this example, perform the following steps:
 
-1. Set Up your MongoDB Atlas Credentials
+1. Set Up your MongoDB Atlas Credentials.
 
    Create a `terraform.tfvars` file with your credentials:
 
@@ -43,9 +43,9 @@ Follow the next steps to run this example:
 
    Service Accounts are the recommended way to authenticate with the MongoDB Atlas API. To learn how to create a Service Account, see [Manage Service Accounts](https://www.mongodb.com/docs/atlas/configure-api-access/#manage-service-accounts) in the Atlas documentation.
 
-2. Review your Terraform plan
+2. Review your Terraform plan.
 
-   The following command lists the resources that your configuration will create.
+   The following command lists the resources that your configuration creates.
 
    ```bash
    terraform plan
@@ -53,15 +53,15 @@ Follow the next steps to run this example:
 
    Review the following fields in the plan output before applying:
 
-   - `name`: The name of the cluster (Default for this example: `"m10-high-availability"`)
+   - `name`: The name of the cluster. Default for this example: `"m10-high-availability"`
    - `cluster_type`: The type of cluster. Must be `"REPLICASET"`
    - `instance_size`: The instance size for all nodes. Set to `"M10"`
    - `provider_name`: The cloud service provider hosting the cluster. Set to `"AWS"`
-   - `backup_enabled`: Flags whether cloud backup is enabled. Set to `true`
-   - `termination_protection_enabled`: Flags whether termination protection is enabled on the cluster. If set to `true`, you cannot delete the cluster using `terraform destroy`. Set to `false` for development. Set as `true` before moving to a production environment.
-   - `region_configs`: Three entries — `US_EAST_1` (2 nodes, priority 7), `US_WEST_2` (2 nodes, priority 6), `EU_WEST_1` (1 node, priority 5)
+   - `backup_enabled`: Flag that specifies whether cloud backup is enabled. Set to `true`
+   - `termination_protection_enabled`: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, you can't delete the cluster using `terraform destroy`. Set to `false` for development. Set as `true` before moving to a production environment.
+   - `region_configs`: Cloud provider region configuration. Three entries — `US_EAST_1` (2 nodes, priority 7), `US_WEST_2` (2 nodes, priority 6), `EU_WEST_1` (1 node, priority 5)
 
-3. Apply your configuration
+3. Apply your configuration.
 
    The following command applies your configuration and creates the resources.
 
@@ -69,9 +69,9 @@ Follow the next steps to run this example:
    terraform apply
    ```
 
-   Note that the apply might take several minutes.
+   This operation might take several minutes to complete.
 
-4. (Optional) Destroy the resources
+4. (Optional) Destroy the resources.
 
    The following command destroys the resources created by `terraform apply`.
 

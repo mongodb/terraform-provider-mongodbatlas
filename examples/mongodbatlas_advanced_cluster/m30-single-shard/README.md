@@ -21,9 +21,9 @@ To run this example, ensure you have the following tools:
 
 ## Procedure
 
-Follow the next steps to run this example:
+To run this example, perform the following steps:
 
-1. Set Up your MongoDB Atlas Credentials
+1. Set Up your MongoDB Atlas Credentials.
 
    Create a `terraform.tfvars` file with your credentials:
 
@@ -35,9 +35,9 @@ Follow the next steps to run this example:
 
    Service Accounts are the recommended way to authenticate with the MongoDB Atlas API. To learn how to create a Service Account, see [Manage Service Accounts](https://www.mongodb.com/docs/atlas/configure-api-access/#manage-service-accounts) in the Atlas documentation.
 
-2. Review your Terraform plan
+2. Review your Terraform plan.
 
-   The following command lists the resources that your configuration will create.
+   The following command lists the resources that your configuration creates.
 
    ```bash
    terraform plan
@@ -51,10 +51,10 @@ Follow the next steps to run this example:
    - `node_count`: The number of electable nodes per shard. Set to `3`
    - `provider_name`: The cloud service provider hosting the cluster. Set to `"AWS"`
    - `region_name`: The cloud region where the cluster is deployed. Set to `"US_EAST_1"`
-   - `backup_enabled`: Flags whether cloud backup is enabled. Set to `true`
-   - `termination_protection_enabled`: Flags whether termination protection is enabled on the cluster. If set to `true`, you cannot delete the cluster using `terraform destroy`. Set to `false` for development. Set as `true` before moving to a production environment.
+   - `backup_enabled`: Flag that specifies whether cloud backup is enabled. Set to `true`
+   - `termination_protection_enabled`: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, you can't delete the cluster using `terraform destroy`. Set to `false` for development. Set as `true` before moving to a production environment.
 
-3. Apply your configuration
+3. Apply your configuration.
 
    The following command applies your configuration and creates the resources.
 
@@ -62,9 +62,9 @@ Follow the next steps to run this example:
    terraform apply
    ```
 
-   Note that the apply might take several minutes.
+   This operation might take several minutes to complete.
 
-4. (Optional) Destroy the resources
+4. (Optional) Destroy the resources.
 
    The following command destroys the resources created by `terraform apply`.
 

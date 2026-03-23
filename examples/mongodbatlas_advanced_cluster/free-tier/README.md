@@ -2,7 +2,7 @@
 
 This example creates an Atlas project and a **free tier M0 cluster** using the [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) resource. M0 clusters are permanently free and are ideal for learning, prototyping, and early-stage development.
 
-> **NOTE**: M0 is a shared-tier cluster with limited resources. To learn more, see [Atlas M0 (Free Cluster) Limits](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/) for more information in the Atlas documentation.
+> **NOTE**: M0 is a shared-tier cluster with limited resources. To learn more, see [Atlas M0 (Free Cluster) Limits](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/).
 
 ## Prerequisites
 
@@ -13,9 +13,9 @@ To run this example, ensure you have the following tools:
 
 ## Procedure
 
-Follow the next steps to run this example:
+To run this example, perform the following steps:
 
-1. Set Up your MongoDB Atlas Credentials
+1. Set Up your MongoDB Atlas Credentials.
 
    Create a ``terraform.tfvars`` file with your credentials:
 
@@ -27,9 +27,9 @@ Follow the next steps to run this example:
 
    Service Accounts are the recommended way to authenticate with the MongoDB Atlas API. To learn how to create a Service Account, see [Manage Service Accounts](https://www.mongodb.com/docs/atlas/configure-api-access/#manage-service-accounts) in the Atlas documentation.
 
-2. Review your Terraform Plan
+2. Review your Terraform Plan.
 
-   The following command lists the resources that your configuration will create.
+   The following command lists the resources that your configuration creates.
 
    ```bash
    terraform plan
@@ -39,13 +39,13 @@ Follow the next steps to run this example:
 
    - `name`: The name of the cluster, set via `var.cluster_name` (Default for this example: `"free-tier-cluster"`)
    - `cluster_type`: The type of cluster. Must be `"REPLICASET"` for M0 clusters
-   - `instance_size`: The instance size of the cluster. For M0 clusters, must be `"M0"`
+   - `instance_size`: The instance size of the cluster. For M0 clusters, value must be `"M0"`
    - `provider_name`: The cloud service provider on which MongoDB Cloud provisions the hosts. For M0 clusters, must be `"TENANT"`
    - `backing_provider_name`: The cloud provider hosting the cluster (Default for this example: `"AWS"`)
    - `region_name`: The cloud region where the cluster is deployed (Default for this example: `"US_EAST_1"`)
-   - `termination_protection_enabled`: Flags whether termination protection is enabled on the cluster. If set to `true`, you cannot delete the cluster using `terraform destroy`. Set to `false` for development. Set as `true` before moving to a production environment.
+   - `termination_protection_enabled`: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, you can't delete the cluster using `terraform destroy`. Set to `false` for development. Set as `true` before moving to a production environment.
 
-3. Apply your configuration
+3. Apply your configuration.
 
    The following command applies your configuration and creates the resources.
 
@@ -53,7 +53,7 @@ Follow the next steps to run this example:
    terraform apply
    ```
 
-4. (Optional) Destroy the resources
+4. (Optional) Destroy the resources.
 
    The following command destroys the resources created by `terraform apply`.
 
