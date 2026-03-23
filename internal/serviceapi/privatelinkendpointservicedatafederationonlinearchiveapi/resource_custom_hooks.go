@@ -19,10 +19,10 @@ import (
 const endpointType = "DATA_LAKE"
 
 var (
-	_ autogen.PreCreateAPICallHook = (*rs)(nil)
-	_ autogen.PreUpdateAPICallHook = (*rs)(nil)
-	_ autogen.PreImportHook        = (*rs)(nil)
-	_ autogen.ResourceSchemaHook   = (*rs)(nil)
+	_ autogen.PreCreateAPICallHook    = (*rs)(nil)
+	_ autogen.PreUpdateAPICallHook    = (*rs)(nil)
+	_ autogen.PreImportHook           = (*rs)(nil)
+	_ autogen.ResourceSchemaHook      = (*rs)(nil)
 	_ resource.ResourceWithModifyPlan = (*rs)(nil)
 )
 
