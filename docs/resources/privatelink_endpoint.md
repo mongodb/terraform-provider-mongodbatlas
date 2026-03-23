@@ -30,8 +30,8 @@ resource "mongodbatlas_privatelink_endpoint" "this" {
 resource "mongodbatlas_privatelink_endpoint" "cross_region" {
   project_id                = var.project_id
   provider_name             = "AWS"
-  region                    = "us-east-1"
-  supported_remote_regions  = ["eu-west-1", "ap-southeast-1"]
+  region                    = "US_EAST_1"
+  supported_remote_regions  = ["EU_WEST_1", "AP_SOUTHEAST_1"]
 }
 ```
 
