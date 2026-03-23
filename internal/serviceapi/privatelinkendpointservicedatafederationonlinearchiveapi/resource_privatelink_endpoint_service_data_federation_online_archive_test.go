@@ -32,6 +32,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 				Config: resourceConfigBasicAWS(projectID, endpointID, comment),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
+					checkEncodedID(resourceName, projectID, endpointID),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
@@ -64,6 +65,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_normali
 				Config: resourceConfigBasicAWS(projectID, endpointID, comment),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
+					checkEncodedID(resourceName, projectID, endpointID),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
@@ -133,6 +135,24 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		_, _, err := acc.ConnV2().DataFederationApi.GetPrivateEndpointId(context.Background(), ids["project_id"], ids["endpoint_id"]).Execute()
 		if err != nil {
 			return err
+		}
+		return nil
+	}
+}
+
+func checkEncodedID(resourceName, expectedProjectID, expectedEndpointID string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("id is empty")
+		}
+
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+		if ids["project_id"] != expectedProjectID || ids["endpoint_id"] != expectedEndpointID {
+			return fmt.Errorf("unexpected decoded ID map: %+v", ids)
 		}
 		return nil
 	}
