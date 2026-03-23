@@ -135,7 +135,6 @@ func Resource() *schema.Resource {
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Hour),
-			Update: schema.DefaultTimeout(1 * time.Hour),
 			Delete: schema.DefaultTimeout(1 * time.Hour),
 		},
 	}
@@ -208,19 +207,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 
 		_, _, err := connV2.PrivateEndpointServicesApi.UpdatePrivateEndpointService(ctx, projectID, privateLinkID, updateRequest).Execute()
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsUpdate, privateLinkID, err))
-		}
-
-		stateConf := &retry.StateChangeConf{
-			Pending:    []string{"INITIATING", "AVAILABLE"},
-			Target:     []string{"WAITING_FOR_USER", "FAILED", "AVAILABLE_UPDATED"},
-			Refresh:    resourceUpdateRefreshFunc(ctx, connV2, projectID, providerName, privateLinkID, regions),
-			Timeout:    d.Timeout(schema.TimeoutUpdate),
-			MinTimeout: delayAndMinTimeout,
-			Delay:      delayAndMinTimeout,
-		}
-		_, err = stateConf.WaitForStateContext(ctx)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsUpdate, privateLinkID, err))
 		}
@@ -383,52 +369,6 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}))
 
 	return []*schema.ResourceData{d}, nil
-}
-
-// resourceUpdateRefreshFunc returns a refresh function that waits for the endpoint service to reach
-// a stable state AND have the expected supported remote regions. This prevents the wait from
-// succeeding immediately when the endpoint service was already in the target state before the update.
-func resourceUpdateRefreshFunc(ctx context.Context, client *admin.APIClient, projectID, providerName, privateLinkID string, expectedRegions []string) retry.StateRefreshFunc {
-	return func() (any, string, error) {
-		p, resp, err := client.PrivateEndpointServicesApi.GetPrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
-		if err != nil {
-			if validate.StatusNotFound(resp) {
-				return "", "DELETED", nil
-			}
-			return nil, "REJECTED", err
-		}
-
-		status := p.GetStatus()
-		actualRegions := p.GetSupportedRemoteRegions()
-
-		if (status == "WAITING_FOR_USER" || status == "FAILED") && regionsMatch(expectedRegions, actualRegions) {
-			return p, status, nil
-		}
-
-		// When regions already match in AVAILABLE state (e.g. removing all remote regions), the endpoint
-		// may not transition to WAITING_FOR_USER. Return a synthetic state to signal completion.
-		if status == "AVAILABLE" && regionsMatch(expectedRegions, actualRegions) {
-			return p, "AVAILABLE_UPDATED", nil
-		}
-
-		return "", status, nil
-	}
-}
-
-func regionsMatch(expected, actual []string) bool {
-	if len(expected) != len(actual) {
-		return false
-	}
-	set := make(map[string]struct{}, len(expected))
-	for _, r := range expected {
-		set[r] = struct{}{}
-	}
-	for _, r := range actual {
-		if _, ok := set[r]; !ok {
-			return false
-		}
-	}
-	return true
 }
 
 func refreshFunc(ctx context.Context, client *admin.APIClient, projectID, providerName, privateLinkID string) retry.StateRefreshFunc {
