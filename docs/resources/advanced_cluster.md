@@ -6,7 +6,7 @@ subcategory: "Clusters"
 
 `mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters.
 
-We recommend all MongoDB Atlas Terraform users start with the [`Official MongoDB Atlas Cluster Module`](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/cluster/mongodbatlas/latest).  This module simplifies cluster deployment and implements MongoDB Atlas best practices by default.
+We recommend all MongoDB Atlas Terraform users start with the [`Official MongoDB Atlas Cluster Module`](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/cluster/mongodbatlas/latest). This module simplifies cluster deployment and implements MongoDB Atlas best practices by default.
 
 ~> **IMPORTANT:** If you are upgrading to our Terraform Provider v2.0.0 or later from v1.x.x, you must update your existing `mongodbatlas_advanced_cluster` resource configuration according to [this guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-advanced-cluster-2.0).
 
