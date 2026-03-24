@@ -614,6 +614,7 @@ jobs:
           MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}        
         run: make access-token-revoke token="${{ steps.create-token.outputs.access_token }}"
 
+  # Always runs using Service Account credentials (explicitly set in step env)
   service_account_jwt:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.service_account_jwt == 'true' || inputs.test_group == 'service_account_jwt' }}
