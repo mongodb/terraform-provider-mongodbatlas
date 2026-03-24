@@ -1066,6 +1066,7 @@ func configureAWSLambda(projectID, instanceName, connectionName, awsIamRoleName 
 	config := fmt.Sprintf(`
 		resource "aws_iam_role" "test_role" {
 			name = %[4]q
+			force_detach_policies = true
 	  
 			assume_role_policy = jsonencode({
 				"Version" : "2012-10-17",
