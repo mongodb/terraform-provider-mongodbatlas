@@ -12,6 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 )
 
 const (
@@ -331,17 +332,7 @@ func configBasic(projectID, providerName, region string, portMappingEnabled *boo
 }
 
 func configWithSupportedRemoteRegions(projectID, providerName, region string, supportedRemoteRegions []string) string {
-	regionsStr := "[]"
-	if len(supportedRemoteRegions) > 0 {
-		regionsStr = "["
-		for i, r := range supportedRemoteRegions {
-			if i > 0 {
-				regionsStr += ", "
-			}
-			regionsStr += fmt.Sprintf("%q", r)
-		}
-		regionsStr += "]"
-	}
+	regionsStr := hcl.StringSliceToHCL(supportedRemoteRegions)
 	return fmt.Sprintf(`
 		resource "mongodbatlas_privatelink_endpoint" "this" {
 			project_id                = %[1]q
@@ -354,7 +345,6 @@ func configWithSupportedRemoteRegions(projectID, providerName, region string, su
 			project_id      = mongodbatlas_privatelink_endpoint.this.project_id
 			private_link_id = mongodbatlas_privatelink_endpoint.this.private_link_id
 			provider_name   = mongodbatlas_privatelink_endpoint.this.provider_name
-			depends_on      = [mongodbatlas_privatelink_endpoint.this]
 		}
 
 		data "mongodbatlas_privatelink_endpoints" "this" {

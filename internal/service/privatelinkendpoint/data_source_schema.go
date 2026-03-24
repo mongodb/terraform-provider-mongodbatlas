@@ -66,7 +66,7 @@ func PluralDataSourceSchema(ctx context.Context) schema.Schema {
 						"supported_remote_regions": schema.SetAttribute{
 							Computed:            true,
 							ElementType:         types.StringType,
-							MarkdownDescription: "List of additional AWS regions that can connect to the endpoint service. AWS only.",
+							MarkdownDescription: "List of additional AWS regions that can connect to the endpoint service. Only applicable for AWS provider.",
 						},
 					},
 				},

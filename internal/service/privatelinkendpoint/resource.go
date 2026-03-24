@@ -121,7 +121,7 @@ func Resource() *schema.Resource {
 			"supported_remote_regions": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "List of additional AWS regions that can connect to the endpoint service. AWS only. The endpoint service region is supported by default and must not be included.",
+				Description: "List of additional AWS regions that can connect to the endpoint service. Only applicable for AWS provider. The region_name is supported by default and must not be included.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -192,6 +192,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return resourceRead(ctx, d, meta)
 }
 
+// resourceUpdate handles changes to supported_remote_regions. Most attributes use ForceNew so they
+// never reach update, and port_mapping_enabled is blocked by CustomizeDiff. Only supported_remote_regions
+// triggers an in-place update.
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	if !d.HasChange("supported_remote_regions") {
 		return resourceRead(ctx, d, meta)
@@ -293,7 +296,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "port_mapping_enabled", privateLinkID, err))
 	}
 
-	if err := d.Set("supported_remote_regions", privateEndpoint.GetSupportedRemoteRegions()); err != nil {
+	if err := d.Set("supported_remote_regions", privateEndpoint.SupportedRemoteRegions); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "supported_remote_regions", privateLinkID, err))
 	}
 

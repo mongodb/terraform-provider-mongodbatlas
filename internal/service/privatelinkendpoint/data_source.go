@@ -89,7 +89,7 @@ func DataSource() *schema.Resource {
 			"supported_remote_regions": {
 				Type:        schema.TypeSet,
 				Computed:    true,
-				Description: "List of additional AWS regions that can connect to the endpoint service. AWS only.",
+				Description: "List of additional AWS regions that can connect to the endpoint service. Only applicable for AWS provider.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
