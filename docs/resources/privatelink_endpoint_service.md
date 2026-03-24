@@ -23,7 +23,7 @@ resource "mongodbatlas_privatelink_endpoint" "this" {
   region        = "US_EAST_1"
 }
 
-resource "aws_vpc_endpoint" "ptfe_service" {
+resource "aws_vpc_endpoint" "this" {
   vpc_id             = "vpc-7fc0a543"
   service_name       = mongodbatlas_privatelink_endpoint.this.endpoint_service_name
   vpc_endpoint_type  = "Interface"
@@ -34,7 +34,35 @@ resource "aws_vpc_endpoint" "ptfe_service" {
 resource "mongodbatlas_privatelink_endpoint_service" "this" {
   project_id          = mongodbatlas_privatelink_endpoint.this.project_id
   private_link_id     = mongodbatlas_privatelink_endpoint.this.private_link_id
-  endpoint_service_id = aws_vpc_endpoint.ptfe_service.id
+  endpoint_service_id = aws_vpc_endpoint.this.id
+  provider_name       = "AWS"
+}
+```
+
+## Example with AWS Cross-Region
+
+```terraform
+resource "mongodbatlas_privatelink_endpoint" "this" {
+  project_id               = "<PROJECT_ID>"
+  provider_name            = "AWS"
+  region                   = "EU_WEST_1"
+  supported_remote_regions = ["US_EAST_1"] # Additional AWS regions that can connect to the private endpoint
+}
+
+resource "aws_vpc_endpoint" "this" {
+  vpc_id             = "vpc-7fc0a543"
+  service_name       = mongodbatlas_privatelink_endpoint.this.endpoint_service_name
+  vpc_endpoint_type  = "Interface"
+  subnet_ids         = ["subnet-de0406d2"]
+  security_group_ids = ["sg-3f238186"]
+  region             = "us-east-1" # The AWS region of the VPC
+  service_region     = "eu-west-1" # The AWS region of the private endpoint
+}
+
+resource "mongodbatlas_privatelink_endpoint_service" "this" {
+  project_id          = mongodbatlas_privatelink_endpoint.this.project_id
+  private_link_id     = mongodbatlas_privatelink_endpoint.this.private_link_id
+  endpoint_service_id = aws_vpc_endpoint.this.id
   provider_name       = "AWS"
 }
 ```
