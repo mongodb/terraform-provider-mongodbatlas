@@ -96,7 +96,7 @@ func TestAccServiceAccountJWT_partialResourceCredentials(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configPartialCredentials(),
-				ExpectError: regexp.MustCompile(`(?s)both client_id and\s+client_secret must be provided`),
+				ExpectError: regexp.MustCompile(`(?s)Both client_id and\s+client_secret must be provided`),
 			},
 		},
 	})
