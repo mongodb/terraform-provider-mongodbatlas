@@ -124,6 +124,22 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"desired_timestamp": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"date": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"increment": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -207,7 +223,23 @@ func setCommonFields(d *schema.ResourceData, snapshotReq *admin.DiskBackupSnapsh
 		return diag.FromErr(fmt.Errorf("error setting `timestamp` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
 	}
 
+	if err = d.Set("desired_timestamp", FlattenDesiredTimestamp(snapshotReq.DesiredTimestamp)); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `desired_timestamp` for cloudProviderSnapshotRestoreJob (%s): %s", restoreID, err))
+	}
+
 	return nil
+}
+
+func FlattenDesiredTimestamp(dt *admin.ApiBSONTimestamp) []map[string]any {
+	if dt == nil {
+		return nil
+	}
+	return []map[string]any{
+		{
+			"date":      conversion.TimePtrToStringPtr(dt.Date),
+			"increment": dt.GetIncrement(),
+		},
+	}
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {

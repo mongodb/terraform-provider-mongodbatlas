@@ -86,6 +86,22 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"desired_timestamp": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"date": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"increment": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -132,6 +148,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if err = d.Set("oplog_inc", snapshotRes.GetOplogInc()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `oplog_inc` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err))
+	}
+
+	if err = d.Set("desired_timestamp", FlattenDesiredTimestamp(snapshotRes.DesiredTimestamp)); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `desired_timestamp` for cloudProviderSnapshotRestoreJob (%s): %s", d.Id(), err))
 	}
 
 	d.SetId(snapshotRes.GetId())

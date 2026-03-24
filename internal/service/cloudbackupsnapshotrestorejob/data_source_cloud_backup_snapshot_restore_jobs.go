@@ -100,6 +100,22 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
+						"desired_timestamp": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"date": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"increment": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -164,6 +180,7 @@ func flattenCloudProviderSnapshotRestoreJobs(cloudProviderSnapshotRestoreJobs []
 				"oplog_ts":                  cloudProviderSnapshotRestoreJob.GetOplogTs(),
 				"point_in_time_utc_seconds": cloudProviderSnapshotRestoreJob.GetPointInTimeUTCSeconds(),
 				"oplog_inc":                 cloudProviderSnapshotRestoreJob.GetOplogInc(),
+				"desired_timestamp":         FlattenDesiredTimestamp(cloudProviderSnapshotRestoreJob.DesiredTimestamp),
 			}
 		}
 	}

@@ -63,5 +63,8 @@ In addition to all arguments above, the following attributes are exported:
 * `oplogTs` - Timestamp in the number of seconds that have elapsed since the UNIX epoch.
 * `oplogInc` - Oplog operation number from which to you want to restore this snapshot.
 * `pointInTimeUTCSeconds` - Timestamp in the number of seconds that have elapsed since the UNIX epoch.
+* `desired_timestamp` - BSON timestamp that indicates when the checkpoint token entry in the oplog occurred. Only populated for point-in-time restore jobs.
+  * `desired_timestamp.date` - Date and time when the oplog recorded this database operation, in ISO 8601 format.
+  * `desired_timestamp.increment` - Order of the database operation that the oplog recorded at that date and time.
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/restore/get-one-restore-job/)

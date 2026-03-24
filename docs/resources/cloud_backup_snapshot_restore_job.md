@@ -203,6 +203,9 @@ In addition to all arguments above, the following attributes are exported:
     Two conditions apply to this parameter:
     * Enable Continuous Cloud Backup on your cluster.
     * Specify either pointInTimeUTCSeconds or oplogTs and oplogInc, but not both.
+* `desired_timestamp` - BSON timestamp that indicates when the checkpoint token entry in the oplog occurred. Only populated for point-in-time restore jobs.
+  * `desired_timestamp.date` - Date and time when the oplog recorded this database operation, in ISO 8601 format.
+  * `desired_timestamp.increment` - Order of the database operation that the oplog recorded at that date and time.
 
 ## Import
 
