@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -107,6 +108,47 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateC
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
 					resource.TestCheckResourceAttr(resourceName, "comment", ""),
 				),
+			},
+		},
+	})
+}
+
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_forceNewEndpointID(t *testing.T) {
+	acc.SkipTestForCI(t)
+
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		endpointID  = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+		endpointID2 = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_2")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			acc.PreCheckPrivateEndpoint(t)
+			if endpointID2 == "" {
+				t.Fatal("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_2` must be set for force-new endpoint_id acceptance testing")
+			}
+		},
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfigBasicAWS(projectID, endpointID, comment),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					checkEncodedID(resourceName, projectID, endpointID),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+				),
+			},
+			{
+				Config: resourceConfigBasicAWS(projectID, endpointID2, comment),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionReplace),
+					},
+				},
 			},
 		},
 	})
