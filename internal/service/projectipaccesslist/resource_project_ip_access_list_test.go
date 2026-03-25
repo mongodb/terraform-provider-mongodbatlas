@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -75,6 +76,32 @@ func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 			{
 				Config: configWithCIDRBlock(projectID, updatedCIDRBlock, updatedComment, withDS),
 				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks("", updatedCIDRBlock, "", updatedComment, withDS)...),
+			},
+		},
+	})
+}
+
+func TestAccProjectIPAccessList_withDeleteAfterDate(t *testing.T) {
+	var (
+		projectID       = acc.ProjectIDExecution(t)
+		ipAddress       = acc.RandomIP(179, 154, 227)
+		comment         = fmt.Sprintf("TestAcc for deleteAfterDate (%s)", ipAddress)
+		deleteAfterDate = time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithDeleteAfterDate(projectID, ipAddress, comment, deleteAfterDate),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "ip_address", ipAddress),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+					resource.TestCheckResourceAttrSet(resourceName, "delete_after_date"),
+				),
 			},
 		},
 	})
@@ -288,6 +315,17 @@ func configWithIPAddress(projectID, ipAddress, comment string, withDS bool) stri
 	}
 
 	return config
+}
+
+func configWithDeleteAfterDate(projectID, ipAddress, comment, deleteAfterDate string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project_ip_access_list" "test" {
+			project_id        = %[1]q
+			ip_address        = %[2]q
+			comment           = %[3]q
+			delete_after_date = %[4]q
+		}
+	`, projectID, ipAddress, comment, deleteAfterDate)
 }
 
 func configWithCIDRBlock(projectID, cidrBlock, comment string, withDS bool) string {
