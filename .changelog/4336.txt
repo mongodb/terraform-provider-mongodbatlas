@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/mongodbatlas_project_ip_access_list: Adds `delete_after_date` attribute to support temporary access list entries with an expiration date
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_project_ip_access_list: Adds `delete_after_date` attribute
+```
