@@ -192,10 +192,37 @@ func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegions(t *testing.T) {
 				),
 			},
 			{
+				// Empty set removes all regions.
+				Config: configWithSupportedRemoteRegions(projectID, providerName, region, []string{}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "supported_remote_regions.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "supported_remote_regions.#", "0"),
+				),
+			},
+			{
 				Config: configWithSupportedRemoteRegions(projectID, providerName, region, []string{"US_EAST_1"}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "supported_remote_regions.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "supported_remote_regions.#", "1"),
+				),
+			},
+			{
+				// nil set also removes all regions.
+				Config: configWithSupportedRemoteRegions(projectID, providerName, region, nil),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "supported_remote_regions.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "supported_remote_regions.#", "0"),
+				),
+			},
+			{
+				Config: configWithSupportedRemoteRegions(projectID, providerName, region, []string{"US_EAST_1", "EU_WEST_1"}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "supported_remote_regions.#", "2"),
+					resource.TestCheckResourceAttr(dataSourceName, "supported_remote_regions.#", "2"),
 				),
 			},
 			{
@@ -203,14 +230,6 @@ func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegions(t *testing.T) {
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
-			},
-			{
-				Config: configWithSupportedRemoteRegions(projectID, providerName, region, []string{}),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "supported_remote_regions.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "supported_remote_regions.#", "0"),
-				),
 			},
 		},
 	})
@@ -333,7 +352,7 @@ func configBasic(projectID, providerName, region string, portMappingEnabled *boo
 
 func configWithSupportedRemoteRegions(projectID, providerName, region string, supportedRemoteRegions []string) string {
 	regionsStr := hcl.StringSliceToHCL(supportedRemoteRegions)
-	return fmt.Sprintf(`
+	ret := fmt.Sprintf(`
 		resource "mongodbatlas_privatelink_endpoint" "this" {
 			project_id                = %[1]q
 			provider_name             = %[2]q
@@ -353,6 +372,8 @@ func configWithSupportedRemoteRegions(projectID, providerName, region string, su
 			depends_on      = [mongodbatlas_privatelink_endpoint.this]
 		}
 	`, projectID, providerName, region, regionsStr)
+	fmt.Println(ret)
+	return ret
 }
 
 func checkBasic(providerName, region string, portMappingEnabled *bool, withPluralDS bool) resource.TestCheckFunc {
