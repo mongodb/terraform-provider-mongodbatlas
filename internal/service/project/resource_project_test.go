@@ -1241,6 +1241,7 @@ func configBasic(orgID, projectName, projectOwnerID string, includeDataSource bo
 			}
 			data "mongodbatlas_projects" "test" {
 				depends_on = [mongodbatlas_project.test]
+				items_per_page = 250
 			}
 		`
 	}
