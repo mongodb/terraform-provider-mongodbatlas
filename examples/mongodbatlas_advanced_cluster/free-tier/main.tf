@@ -35,5 +35,5 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
 resource "mongodbatlas_project" "project" {
   name   = var.project_name
-  org_id = var.atlas_org_id
+  org_id = var.org_id
 }

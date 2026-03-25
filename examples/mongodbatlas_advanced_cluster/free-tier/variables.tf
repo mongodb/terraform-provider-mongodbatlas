@@ -1,4 +1,4 @@
-variable "atlas_org_id" {
+variable "org_id" {
   description = "Atlas organization id"
   type        = string
 }

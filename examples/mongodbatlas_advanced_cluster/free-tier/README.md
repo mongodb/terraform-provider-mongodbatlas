@@ -20,7 +20,7 @@ To run this example, perform the following steps:
    Create a ``terraform.tfvars`` file with your credentials:
 
    ```hcl
-   atlas_org_id        = "<MONGODB_ATLAS_ORG_ID>"
+   org_id              = "<MONGODB_ATLAS_ORG_ID>"
    atlas_client_id     = "<ATLAS_CLIENT_ID>"
    atlas_client_secret = "<ATLAS_CLIENT_SECRET>"
    ```
@@ -65,6 +65,6 @@ To run this example, perform the following steps:
 
 The ``terraform.tfvars`` file must contain the following variables for the configuration to work:
 
-- `atlas_org_id`: The ID of the Atlas organization. To learn how to retrieve an organization's details, see [View Organizations](https://www.mongodb.com/docs/atlas/access/orgs-create-view-edit-delete/#view-organizations) in the Atlas documentation.
+- `org_id`: The ID of the Atlas organization. To learn how to retrieve an organization's details, see [View Organizations](https://www.mongodb.com/docs/atlas/access/orgs-create-view-edit-delete/#view-organizations) in the Atlas documentation.
 - `atlas_client_id`: The MongoDB Atlas Service Account Client ID
 - `atlas_client_secret`: The MongoDB Atlas Service Account Client Secret
