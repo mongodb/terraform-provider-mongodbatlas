@@ -24,6 +24,7 @@ import (
 const (
 	errorPrivateLinkEndpointsCreate  = "error creating MongoDB Private Endpoints Connection: %s"
 	errorPrivateLinkEndpointsRead    = "error reading MongoDB Private Endpoints Connection(%s): %s"
+	errorPrivateLinkEndpointsUpdate  = "error updating MongoDB Private Endpoints Connection(%s): %s"
 	errorPrivateLinkEndpointsDelete  = "error deleting MongoDB Private Endpoints Connection(%s): %s"
 	ErrorPrivateLinkEndpointsSetting = "error setting `%s` for MongoDB Private Endpoints Connection(%s): %s"
 	delayAndMinTimeout               = 5 * time.Second
@@ -117,6 +118,14 @@ func Resource() *schema.Resource {
 				Optional:    true,
 				Description: "Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-mapped architecture. When `false` or unset, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.",
 			},
+			"supported_remote_regions": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Description: "List of additional AWS regions that can connect to the endpoint service. Only applicable for AWS provider. The region_name is supported by default and must not be included.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -149,6 +158,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
+	if v, ok := d.GetOk("supported_remote_regions"); ok {
+		regions := conversion.ExpandStringList(v.(*schema.Set).List())
+		request.SupportedRemoteRegions = &regions
+	}
+
 	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.CreatePrivateEndpointService(ctx, projectID, request).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, err))
@@ -178,8 +192,27 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return resourceRead(ctx, d, meta)
 }
 
+// resourceUpdate handles changes to supported_remote_regions. Most attributes use ForceNew so they
+// never reach update, and port_mapping_enabled is blocked by CustomizeDiff. Only supported_remote_regions
+// triggers an in-place update.
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// CustomizeDiff prevents port_mapping_enabled from being changed, so this should never be called with actual changes.
+	if !d.HasChange("supported_remote_regions") {
+		return resourceRead(ctx, d, meta)
+	}
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	ids := conversion.DecodeStateID(d.Id())
+	privateLinkID := ids["private_link_id"]
+	projectID := ids["project_id"]
+	providerName := ids["provider_name"]
+	regions := conversion.ExpandStringList(d.Get("supported_remote_regions").(*schema.Set).List())
+	updateRequest := &admin.ApiAtlasModifyEndpointServiceRequest{
+		CloudProvider:          providerName,
+		SupportedRemoteRegions: regions,
+	}
+	_, _, err := connV2.PrivateEndpointServicesApi.UpdatePrivateEndpointService(ctx, projectID, privateLinkID, updateRequest).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsUpdate, privateLinkID, err))
+	}
 	return resourceRead(ctx, d, meta)
 }
 
@@ -261,6 +294,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	if err := d.Set("port_mapping_enabled", privateEndpoint.GetPortMappingEnabled()); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "port_mapping_enabled", privateLinkID, err))
+	}
+
+	if err := d.Set("supported_remote_regions", privateEndpoint.SupportedRemoteRegions); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "supported_remote_regions", privateLinkID, err))
 	}
 
 	if privateEndpoint.GetErrorMessage() != "" {
