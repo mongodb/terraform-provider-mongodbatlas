@@ -18,6 +18,7 @@ const (
 	cidrBlockDesc        = "Range of IP addresses in CIDR notation to be added to the access list. Mutually exclusive with `ip_address` and `aws_security_group`."
 	ipAddressDesc        = "Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`."
 	awsSecurityGroupDesc = "Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`."
+	deleteAfterDateDesc  = "Date and time after which MongoDB Cloud deletes the temporary access list entry. This parameter expresses its value in the ISO 8601 timestamp format in UTC. The date must be later than the current date but no later than one week after you submit this request. Cannot be set with `aws_security_group`."
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -87,6 +88,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 				MarkdownDescription: "Remark that explains the purpose or scope of this IP access list entry.",
 			},
+			"delete_after_date": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.Expressions{
+						path.MatchRelative().AtParent().AtName("aws_security_group"),
+					}...),
+				},
+				MarkdownDescription: deleteAfterDateDesc,
+			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Read:   true,
 				Delete: true,
@@ -102,5 +116,6 @@ type TfProjectIPAccessListModel struct {
 	IPAddress        types.String   `tfsdk:"ip_address"`
 	AWSSecurityGroup types.String   `tfsdk:"aws_security_group"`
 	Comment          types.String   `tfsdk:"comment"`
+	DeleteAfterDate  types.String   `tfsdk:"delete_after_date"`
 	Timeouts         timeouts.Value `tfsdk:"timeouts"`
 }

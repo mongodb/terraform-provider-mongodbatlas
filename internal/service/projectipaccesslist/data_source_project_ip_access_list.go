@@ -42,6 +42,7 @@ type TfProjectIPAccessListDSModel struct {
 	IPAddress        types.String `tfsdk:"ip_address"`
 	AWSSecurityGroup types.String `tfsdk:"aws_security_group"`
 	Comment          types.String `tfsdk:"comment"`
+	DeleteAfterDate  types.String `tfsdk:"delete_after_date"`
 }
 
 func (d *projectIPAccessListDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {

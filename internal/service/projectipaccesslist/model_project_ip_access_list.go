@@ -2,12 +2,25 @@ package projectipaccesslist
 
 import (
 	"context"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20250312016/admin"
 )
+
+func deleteAfterDateToTimePtr(s types.String) *time.Time {
+	str := conversion.NilForUnknownOrEmptyString(s)
+	if str == nil {
+		return nil
+	}
+	t, ok := conversion.StringToTime(*str)
+	if !ok {
+		return nil
+	}
+	return &t
+}
 
 func NewMongoDBProjectIPAccessList(projectIPAccessListModel *TfProjectIPAccessListModel) *[]admin.NetworkPermissionEntry {
 	return &[]admin.NetworkPermissionEntry{
@@ -16,6 +29,7 @@ func NewMongoDBProjectIPAccessList(projectIPAccessListModel *TfProjectIPAccessLi
 			CidrBlock:        conversion.StringPtr(projectIPAccessListModel.CIDRBlock.ValueString()),
 			IpAddress:        conversion.StringPtr(projectIPAccessListModel.IPAddress.ValueString()),
 			Comment:          conversion.StringPtr(projectIPAccessListModel.Comment.ValueString()),
+			DeleteAfterDate:  deleteAfterDateToTimePtr(projectIPAccessListModel.DeleteAfterDate),
 		},
 	}
 }
@@ -40,6 +54,7 @@ func NewTfProjectIPAccessListModel(projectIPAccessListModel *TfProjectIPAccessLi
 		IPAddress:        types.StringValue(projectIPAccessList.GetIpAddress()),
 		AWSSecurityGroup: types.StringValue(projectIPAccessList.GetAwsSecurityGroup()),
 		Comment:          types.StringValue(projectIPAccessList.GetComment()),
+		DeleteAfterDate:  types.StringPointerValue(conversion.TimePtrToStringPtr(projectIPAccessList.DeleteAfterDate)),
 		Timeouts:         projectIPAccessListModel.Timeouts,
 	}
 }
@@ -51,6 +66,7 @@ func NewTfProjectIPAccessListDSModel(ctx context.Context, accessList *admin.Netw
 		CIDRBlock:        types.StringValue(accessList.GetCidrBlock()),
 		IPAddress:        types.StringValue(accessList.GetIpAddress()),
 		AWSSecurityGroup: types.StringValue(accessList.GetAwsSecurityGroup()),
+		DeleteAfterDate:  types.StringPointerValue(conversion.TimePtrToStringPtr(accessList.DeleteAfterDate)),
 	}
 
 	entry := accessList.GetCidrBlock()
