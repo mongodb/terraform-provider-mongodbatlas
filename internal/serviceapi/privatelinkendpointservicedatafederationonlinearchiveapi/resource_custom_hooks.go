@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -61,6 +62,13 @@ func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schem
 			stringplanmodifier.RequiresReplace(),
 		}
 		baseSchema.Attributes[name] = attr
+	}
+
+	if regionAttr, ok := baseSchema.Attributes["region"].(schema.StringAttribute); ok {
+		regionAttr.Validators = append(regionAttr.Validators,
+			validate.ValidUppercaseString(),
+		)
+		baseSchema.Attributes["region"] = regionAttr
 	}
 
 	baseSchema.Attributes["id"] = schema.StringAttribute{
