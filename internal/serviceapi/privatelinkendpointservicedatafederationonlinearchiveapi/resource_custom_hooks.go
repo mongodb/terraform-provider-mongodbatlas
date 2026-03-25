@@ -71,7 +71,6 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 }
 
 func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schema.Schema {
-
 	requiresReplace := []string{
 		"project_id",
 		"endpoint_id",
