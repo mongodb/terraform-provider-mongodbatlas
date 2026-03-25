@@ -11,7 +11,7 @@ The cluster distributes data across two shards as follows:
 - Shard 1 — `US_EAST_1` (AWS), 3 electable nodes, instance size M30
 - Shard 2 — `US_EAST_1` (AWS), 3 electable nodes, instance size M30
 
- **Tip:** To add a third shard, append another `replication_specs` block with the same shape as shards 1 and 2. Atlas performs a live online shard addition — no downtime is required.
+ **Tip:** To add a third shard, append another `replication_specs` block with the same shape as shards 1 and 2. Atlas performs a live online shard addition with no downtime.
 
 ## Prerequisites
 

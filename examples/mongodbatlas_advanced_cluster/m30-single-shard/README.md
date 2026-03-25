@@ -2,7 +2,7 @@
 
 This example creates an Atlas project and a **single-shard M30 sharded cluster** using the [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) resource. Starting with a single-shard `SHARDED` cluster (rather than a `REPLICASET`) allows you to scale horizontally by adding more shards later without migrating data or recreating the cluster.
 
-This is a good fit for applications that expect significant data growth or write volume over time and want to avoid a future migration from a replica set to a sharded cluster.
+This is a useful for applications that expect significant data growth or write volume over time and want to avoid a future migration from a replica set to a sharded cluster.
 
 ## Topology
 
@@ -10,7 +10,7 @@ The cluster runs a single shard as follows:
 
 - Shard 1 — `US_EAST_1` (AWS), three electable nodes, instance size M30
 
-Each shard runs as a three-node replica set internally, so all the automatic failover and data redundancy guarantees of a replica set apply to each shard.
+The shard runs as a three-node replica set internally and so, all the automatic failover and data redundancy guarantees of a replica set apply to the shard.
 
 ## Prerequisites
 

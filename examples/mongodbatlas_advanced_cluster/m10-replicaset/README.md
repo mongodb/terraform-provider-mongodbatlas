@@ -6,7 +6,7 @@ This example creates an Atlas project and a **three-node M10 replica set** using
 
 A three-node replica set provides:
 
-- Automatic failover (a new primary is elected if the current one goes down)
+- Automatic failover where a new primary is elected if the current one goes down
 - Data redundancy across three copies
 - Sufficient votes (three) to always reach a majority
 
