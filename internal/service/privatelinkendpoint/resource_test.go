@@ -22,7 +22,7 @@ const (
 )
 
 func TestAccPrivateLinkEndpoint_basicAWS(t *testing.T) {
-	resource.ParallelTest(t, *basicAWSTestCase(t, "us-east-1", true))
+	resource.ParallelTest(t, *basicAWSTestCase(t, "us-east-1", true)) // Different region to avoid project conflicts.
 }
 
 func basicAWSTestCase(tb testing.TB, region string, withPluralDS bool) *resource.TestCase {
@@ -54,7 +54,7 @@ func basicAWSTestCase(tb testing.TB, region string, withPluralDS bool) *resource
 func TestAccPrivateLinkEndpoint_basicAzure(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
-		region       = "US_EAST_2"
+		region       = "US_EAST_2" // Different region to avoid project conflicts.
 		providerName = constant.AZURE
 		withPluralDS = true
 	)
@@ -81,7 +81,7 @@ func TestAccPrivateLinkEndpoint_basicAzure(t *testing.T) {
 func TestAccPrivateLinkEndpoint_basicGCP(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
-		region       = "us-central1"
+		region       = "us-central1" // Different region to avoid project conflicts.
 		providerName = constant.GCP
 		withPluralDS = true
 	)
@@ -108,7 +108,7 @@ func TestAccPrivateLinkEndpoint_basicGCP(t *testing.T) {
 func TestAccPrivateLinkEndpoint_deleteOnCreateTimeout(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
-		region       = "eu-west-1"
+		region       = "eu-west-1" // Different region to avoid project conflicts.
 		providerName = constant.AWS
 	)
 
@@ -138,7 +138,7 @@ func basicGCPTestCaseWithPortMapping(tb testing.TB, portMappingEnabled bool) *re
 	var (
 		projectID    = acc.ProjectIDExecution(tb)
 		providerName = constant.GCP
-		region       = "us-west3"
+		region       = "us-west3" // Different region to avoid project conflicts.
 		withPluralDS = true
 	)
 
