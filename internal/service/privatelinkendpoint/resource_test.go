@@ -241,7 +241,6 @@ func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidRegion(t *testin
 		providerName = constant.AWS
 		region       = "EU_NORTH_1" // Different region to avoid project conflicts.
 	)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -250,6 +249,25 @@ func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidRegion(t *testin
 			{
 				Config:      configWithSupportedRemoteRegions(projectID, providerName, region, []string{region}),
 				ExpectError: regexp.MustCompile("CROSS_REGION_PRIVATE_LINK_SELF_REGION"),
+			},
+		},
+	})
+}
+
+func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidProvider(t *testing.T) {
+	var (
+		projectID    = acc.ProjectIDExecution(t)
+		providerName = constant.AZURE
+		region       = "EUROPE_NORTH" // Different region to avoid project conflicts.
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      configWithSupportedRemoteRegions(projectID, providerName, region, []string{region}),
+				ExpectError: regexp.MustCompile("PROVIDER_UNSUPPORTED"),
 			},
 		},
 	})
