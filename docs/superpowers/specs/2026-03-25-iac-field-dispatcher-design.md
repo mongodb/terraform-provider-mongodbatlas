@@ -99,6 +99,7 @@ Runs:
 jira issue list --plain -q "project = CLOUDP AND labels = terraform-sdk-gaps" --paginate "0:50"
 ```
 
+Paginates through all results (page size 50) until no more results are returned.
 Extracts all field+resource combos that already have a ticket. Builds an
 exclusion set. Jira is the sole source of truth for "what has already been
 dispatched" — no separate state file is used.
