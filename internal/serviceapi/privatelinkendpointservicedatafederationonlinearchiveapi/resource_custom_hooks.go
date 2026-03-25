@@ -92,6 +92,7 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
 	}
 
+	normalizeOptionalStringFields(obj)
 	obj["id"] = craftedID
 
 	body, err := json.Marshal(obj)
@@ -103,6 +104,18 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 		Body: body,
 		Err:  nil,
 		Resp: result.Resp,
+	}
+}
+
+func normalizeOptionalStringFields(obj map[string]any) {
+	setEmptyStringIfMissing(obj, "comment")
+	setEmptyStringIfMissing(obj, "region")
+	setEmptyStringIfMissing(obj, "customerEndpointDNSName")
+}
+
+func setEmptyStringIfMissing(obj map[string]any, responseKey string) {
+	if val, exists := obj[responseKey]; !exists || val == nil {
+		obj[responseKey] = ""
 	}
 }
 
