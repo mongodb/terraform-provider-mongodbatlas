@@ -23,7 +23,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
             compute_enabled            = true
             compute_scale_down_enabled = true
             compute_min_instance_size  = "M10"
-            compute_max_instance_size  = "M40"
+            compute_max_instance_size  = "M50"
             disk_gb_enabled            = true
           }
           provider_name = "AWS"
