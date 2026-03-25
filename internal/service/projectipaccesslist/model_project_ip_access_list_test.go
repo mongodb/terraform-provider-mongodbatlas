@@ -2,6 +2,7 @@ package projectipaccesslist_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -17,6 +18,7 @@ var (
 	IPAddress        = "IPAddress"
 	Comment          = "Comment"
 	GroupID          = "GroupID"
+	DeleteAfterDate  = "2026-03-26T12:00:00Z"
 	IPAddressID      = conversion.EncodeStateID(map[string]string{
 		"entry":      IPAddress,
 		"project_id": GroupID,
@@ -53,6 +55,26 @@ func TestNewMongoDBProjectIPAccessList(t *testing.T) {
 					Comment:          &Comment,
 				},
 			},
+		},
+		{
+			name: "NewMongoDBProjectIPAccessList with DeleteAfterDate",
+			tfModel: &projectipaccesslist.TfProjectIPAccessListModel{
+				IPAddress:       types.StringValue(IPAddress),
+				Comment:         types.StringValue(Comment),
+				DeleteAfterDate: types.StringValue(DeleteAfterDate),
+			},
+			expectedResult: func() *[]admin.NetworkPermissionEntry {
+				t, _ := time.Parse(time.RFC3339, DeleteAfterDate)
+				return &[]admin.NetworkPermissionEntry{
+					{
+						IpAddress:        &IPAddress,
+						Comment:          &Comment,
+						AwsSecurityGroup: conversion.StringPtr(""),
+						CidrBlock:        conversion.StringPtr(""),
+						DeleteAfterDate:  &t,
+					},
+				}
+			}(),
 		},
 	}
 
@@ -131,6 +153,32 @@ func TestNewTfProjectIPAccessListModel(t *testing.T) {
 				CIDRBlock:        types.StringValue(""),
 				IPAddress:        types.StringValue(IPAddress),
 				Comment:          types.StringValue(Comment),
+				DeleteAfterDate:  types.StringNull(),
+				Timeouts:         timeouts.Value{},
+			},
+		},
+		{
+			name: "NewTfProjectIPAccessListModel with DeleteAfterDate",
+			tfModel: &projectipaccesslist.TfProjectIPAccessListModel{
+				Timeouts: timeouts.Value{},
+			},
+			sdkModel: func() *admin.NetworkPermissionEntry {
+				t, _ := time.Parse(time.RFC3339, DeleteAfterDate)
+				return &admin.NetworkPermissionEntry{
+					IpAddress:       &IPAddress,
+					Comment:         &Comment,
+					GroupId:         &GroupID,
+					DeleteAfterDate: &t,
+				}
+			}(),
+			expectedResult: &projectipaccesslist.TfProjectIPAccessListModel{
+				ID:               types.StringValue(IPAddressID),
+				ProjectID:        types.StringValue(GroupID),
+				AWSSecurityGroup: types.StringValue(""),
+				CIDRBlock:        types.StringValue(""),
+				IPAddress:        types.StringValue(IPAddress),
+				Comment:          types.StringValue(Comment),
+				DeleteAfterDate:  types.StringValue(DeleteAfterDate),
 				Timeouts:         timeouts.Value{},
 			},
 		},
@@ -200,6 +248,28 @@ func TestNewTfProjectIPAccessListDSModel(t *testing.T) {
 				CIDRBlock:        types.StringValue(CIDRBlock),
 				IPAddress:        types.StringValue(""),
 				Comment:          types.StringValue(Comment),
+				DeleteAfterDate:  types.StringNull(),
+			},
+		},
+		{
+			name: "NewTfProjectIPAccessListDSModel with DeleteAfterDate",
+			sdkModel: func() *admin.NetworkPermissionEntry {
+				t, _ := time.Parse(time.RFC3339, DeleteAfterDate)
+				return &admin.NetworkPermissionEntry{
+					IpAddress:       &IPAddress,
+					Comment:         &Comment,
+					GroupId:         &GroupID,
+					DeleteAfterDate: &t,
+				}
+			}(),
+			expectedResult: &projectipaccesslist.TfProjectIPAccessListDSModel{
+				ID:               types.StringValue(IPAddressID),
+				ProjectID:        types.StringValue(GroupID),
+				AWSSecurityGroup: types.StringValue(""),
+				CIDRBlock:        types.StringValue(""),
+				IPAddress:        types.StringValue(IPAddress),
+				Comment:          types.StringValue(Comment),
+				DeleteAfterDate:  types.StringValue(DeleteAfterDate),
 			},
 		},
 	}
