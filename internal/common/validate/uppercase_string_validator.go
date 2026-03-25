@@ -2,8 +2,9 @@ package validate
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
@@ -23,12 +24,12 @@ func (v UppercaseStringValidator) ValidateString(ctx context.Context, req valida
 	}
 
 	value := req.ConfigValue.ValueString()
-	if !isUppercase(value) {
-		resp.Diagnostics.Append(validatordiag.InvalidAttributeValueDiagnostic(
+	if value != strings.ToUpper(value) {
+		resp.Diagnostics.AddAttributeError(
 			req.Path,
-			v.Description(ctx),
-			value,
-		))
+			fmt.Sprintf("The provided string %q must be uppercase.", value),
+			"",
+		)
 	}
 }
 
