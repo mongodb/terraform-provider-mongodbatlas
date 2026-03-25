@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -19,11 +18,10 @@ import (
 const endpointType = "DATA_LAKE"
 
 var (
-	_ autogen.PreCreateAPICallHook    = (*rs)(nil)
-	_ autogen.PreUpdateAPICallHook    = (*rs)(nil)
-	_ autogen.PreImportHook           = (*rs)(nil)
-	_ autogen.ResourceSchemaHook      = (*rs)(nil)
-	_ resource.ResourceWithModifyPlan = (*rs)(nil)
+	_ autogen.PreCreateAPICallHook = (*rs)(nil)
+	_ autogen.PreUpdateAPICallHook = (*rs)(nil)
+	_ autogen.PreImportHook        = (*rs)(nil)
+	_ autogen.ResourceSchemaHook   = (*rs)(nil)
 )
 
 type TFExpandedModel struct {
@@ -44,30 +42,6 @@ func (r *rs) PreUpdateAPICall(callParams config.APICallParams, bodyReq []byte) (
 		return callParams, bodyReq
 	}
 	return callParams, modifiedBody
-}
-
-func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.Plan.Raw.IsNull() {
-		return
-	}
-
-	var plan TFModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if plan.ProviderName.IsNull() || plan.ProviderName.IsUnknown() {
-		return
-	}
-
-	normalizedProvider := strings.ToUpper(plan.ProviderName.ValueString())
-	if normalizedProvider == plan.ProviderName.ValueString() {
-		return
-	}
-
-	plan.ProviderName = types.StringValue(normalizedProvider)
-	resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
 }
 
 func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schema.Schema {
