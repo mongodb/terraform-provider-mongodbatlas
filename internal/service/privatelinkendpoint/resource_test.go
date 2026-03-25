@@ -370,7 +370,7 @@ func configBasic(projectID, providerName, region string, portMappingEnabled *boo
 
 func configWithSupportedRemoteRegions(projectID, providerName, region string, supportedRemoteRegions []string) string {
 	regionsStr := hcl.StringSliceToHCL(supportedRemoteRegions)
-	ret := fmt.Sprintf(`
+	return fmt.Sprintf(`
 		resource "mongodbatlas_privatelink_endpoint" "this" {
 			project_id                = %[1]q
 			provider_name             = %[2]q
@@ -390,8 +390,6 @@ func configWithSupportedRemoteRegions(projectID, providerName, region string, su
 			depends_on      = [mongodbatlas_privatelink_endpoint.this]
 		}
 	`, projectID, providerName, region, regionsStr)
-	fmt.Println(ret)
-	return ret
 }
 
 func checkBasic(providerName, region string, portMappingEnabled *bool, withPluralDS bool) resource.TestCheckFunc {
