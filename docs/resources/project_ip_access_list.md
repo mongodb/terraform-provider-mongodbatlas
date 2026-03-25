@@ -78,6 +78,7 @@ resource "mongodbatlas_project_ip_access_list" "this" {
 - `aws_security_group` (String) Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`.
 - `cidr_block` (String) Range of IP addresses in CIDR notation to be added to the access list. Mutually exclusive with `ip_address` and `aws_security_group`.
 - `comment` (String) Remark that explains the purpose or scope of this IP access list entry.
+- `delete_after_date` (String) Date and time after which MongoDB Cloud deletes the temporary access list entry. This parameter expresses its value in the ISO 8601 timestamp format in UTC. The date must be later than the current date but no later than one week after you submit this request. Cannot be set with `aws_security_group`.
 - `ip_address` (String) Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
