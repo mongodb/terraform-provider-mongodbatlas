@@ -11846,6 +11846,7 @@ components:
         - INTERFACE_ENDPOINT_CREATED
         - INTERFACE_ENDPOINT_DELETED
         - INTERFACE_ENDPOINT_PATCHED
+        - INTERFACE_ENDPOINT_RETRIED
         - PROACTIVE_OPERATION_EVENT_LOGGED
         - PRIMARY_ELECTED
         - REPLICATION_OPLOG_WINDOW_HEALTHY
@@ -14424,6 +14425,9 @@ components:
     GroupSettings:
       description: Collection of settings that configures the project.
       properties:
+        isClusterAiAssistantEnabled:
+          description: Flag that indicates whether the AI Cluster Assistant is enabled for the specified project.
+          type: boolean
         isCollectDatabaseSpecificsStatisticsEnabled:
           description: Flag that indicates whether to collect database-specific metrics for the specified project.
           type: boolean
@@ -24439,7 +24443,7 @@ info:
   termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
   title: MongoDB Atlas Administration API
   version: "2.0"
-  x-xgen-sha: f826d50d5cc831d205d68217c5fbe320de763e01
+  x-xgen-sha: bfc5836f4fbdde5c0a9751379f8306f4a1773428
 openapi: 3.0.1
 paths:
   /api/atlas/v2:
