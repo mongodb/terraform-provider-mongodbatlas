@@ -58,7 +58,7 @@ To run this example, perform the following steps:
    - `instance_size`: The instance size for all nodes. Set to `"M10"`
    - `provider_name`: The cloud service provider hosting the cluster. Set to `"AWS"`
    - `backup_enabled`: Flag that specifies whether cloud backup is enabled. Set to `true`
-   - `termination_protection_enabled`: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, you can't delete the cluster using `terraform destroy`. Set to `false` for development. Set as `true` before moving to a production environment.
+   - `termination_protection_enabled`: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, you can't delete the cluster using `terraform destroy`. Set to `true` in this example.
    - `region_configs`: Cloud provider region configuration. Three entries — `US_EAST_1` (2 nodes, priority 7), `US_WEST_2` (2 nodes, priority 6), `EU_WEST_1` (1 node, priority 5)
 
 3. Apply your configuration.
