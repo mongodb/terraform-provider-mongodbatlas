@@ -71,6 +71,25 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 }
 
 func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schema.Schema {
+
+	requiresReplace := []string{
+		"project_id",
+		"endpoint_id",
+		"provider_name",
+		"region",
+	}
+	for _, name := range requiresReplace {
+		attr, ok := baseSchema.Attributes[name].(schema.StringAttribute)
+		if !ok {
+			continue
+		}
+		// Override generated modifiers (CreateOnly) to mirror manual ForceNew behavior.
+		attr.PlanModifiers = []planmodifier.String{
+			stringplanmodifier.RequiresReplace(),
+		}
+		baseSchema.Attributes[name] = attr
+	}
+
 	baseSchema.Attributes["id"] = schema.StringAttribute{
 		Computed: true,
 		PlanModifiers: []planmodifier.String{
