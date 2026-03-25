@@ -10,7 +10,7 @@ The cluster runs a single shard as follows:
 
 - Shard 1 — `US_EAST_1` (AWS), three electable nodes, instance size M30
 
-The shard runs as a three-node replica set internally and so, all the automatic failover and data redundancy guarantees of a replica set apply to the shard.
+The shard runs as a three-node replica set internally. All the automatic failover and data redundancy guarantees of a replica set apply to the shard.
 
 ## Prerequisites
 
