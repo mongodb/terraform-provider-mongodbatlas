@@ -500,6 +500,7 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 		}
 
 		ds.Plural = &Schema{
+			ExpandedModel:      dsConfig.SchemaOptions.ExpandedModel,
 			Description:        &oasListOp.Description,
 			DeprecationMessage: resourceConfig.DeprecationMessage,
 			Discriminator:      pluralDisc,

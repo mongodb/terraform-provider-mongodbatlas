@@ -481,6 +481,7 @@ data_sources:
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
+        expanded_model: true
     operations:
         read:
             http_method: GET

@@ -14,6 +14,7 @@ import (
 var (
 	AWSregion      = "US_EAST_1"
 	dataSourceName = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test"
+	pluralDSName   = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archives_api.test"
 )
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_basicAWS(t *testing.T) {
@@ -73,6 +74,30 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_regio
 	})
 }
 
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchivesDSPlural_basicAWS(t *testing.T) {
+	var (
+		projectID  = acc.ProjectIDExecution(t)
+		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: pluralDataSourceConfigBasicAWS(projectID, endpointID, comment),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(pluralDSName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
+					resource.TestCheckResourceAttr(pluralDSName, "id", projectID),
+				),
+			},
+		},
+	})
+}
+
 func checkDataSourceEncodedID(resourceName, expectedProjectID, expectedEndpointID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -123,4 +148,19 @@ func dataSourceConfigRegionAndDNSAWS(projectID, endpointID, comment, customerEnd
 	  endpoint_id				= mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test.endpoint_id
 	}
 	`, projectID, endpointID, comment, AWSregion, customerEndpointDNSName)
+}
+
+func pluralDataSourceConfigBasicAWS(projectID, endpointID, comment string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
+	  project_id				= %[1]q
+	  endpoint_id				= %[2]q
+	  provider_name				= "AWS"
+	  comment					= %[3]q
+	}
+
+	data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archives_api" "test" {
+	  project_id				= mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test.project_id
+	}
+	`, projectID, endpointID, comment)
 }

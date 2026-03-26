@@ -12,12 +12,25 @@ import (
 
 var _ autogen.PostReadAPICallHook = (*ds)(nil)
 var _ autogen.DataSourceSchemaHook = (*ds)(nil)
+var _ autogen.PostReadAPICallHook = (*pluralDS)(nil)
+var _ autogen.DataSourceSchemaHook = (*pluralDS)(nil)
 
 type TFDSExpandedModel struct {
 	ID types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
 }
 
+type TFPluralDSExpandedModel struct {
+	ID types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
+}
+
 func (d *ds) DataSourceSchema(_ context.Context, baseSchema datasourceschema.Schema) datasourceschema.Schema {
+	baseSchema.Attributes["id"] = datasourceschema.StringAttribute{
+		Computed: true,
+	}
+	return baseSchema
+}
+
+func (d *pluralDS) DataSourceSchema(_ context.Context, baseSchema datasourceschema.Schema) datasourceschema.Schema {
 	baseSchema.Attributes["id"] = datasourceschema.StringAttribute{
 		Computed: true,
 	}
@@ -45,6 +58,34 @@ func (d *ds) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
 	}
 	obj["id"] = craftedID
+
+	body, err := json.Marshal(obj)
+	if err != nil {
+		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
+	}
+
+	return autogen.APICallResult{
+		Body: body,
+		Err:  nil,
+		Resp: result.Resp,
+	}
+}
+
+// PostReadAPICall injects the project_id as the plural data source ID to mimic logic of manual resource.
+func (d *pluralDS) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
+	if result.Err != nil {
+		return result
+	}
+	model, ok := req.State.(*TFPluralDSModel)
+	if !ok || model.ProjectId.IsNull() {
+		return result
+	}
+
+	var obj map[string]any
+	if err := json.Unmarshal(result.Body, &obj); err != nil {
+		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
+	}
+	obj["id"] = model.ProjectId.ValueString()
 
 	body, err := json.Marshal(obj)
 	if err != nil {
