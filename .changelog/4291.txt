@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_cloud_backup_schedule: Fixes `autoExportEnabled` being omitted from PATCH requests and `auto_export_enabled`/`export` not synchronized to state from the API response. This can lead to a plan updating the actual infrastructure to your current configuration
+```

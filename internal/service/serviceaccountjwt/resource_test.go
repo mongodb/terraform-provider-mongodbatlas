@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -96,7 +97,7 @@ func TestAccServiceAccountJWT_partialResourceCredentials(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configPartialCredentials(),
-				ExpectError: regexp.MustCompile(`(?s)both client_id and\s+client_secret must be provided`),
+				ExpectError: regexp.MustCompile(config.ErrPartialCreds),
 			},
 		},
 	})

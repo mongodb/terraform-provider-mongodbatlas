@@ -155,7 +155,7 @@ schema:
             name: Roles
             model: customtypes.NestedListValue[TFRolesModel]
             schema: customtypes.NewNestedListType[TFRolesModel](ctx)
-          computed_optional_required: optional
+          computed_optional_required: required
           tf_schema_name: roles
           tf_model_name: Roles
           api_name: roles
