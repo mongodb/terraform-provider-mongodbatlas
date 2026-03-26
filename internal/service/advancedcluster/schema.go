@@ -618,7 +618,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 			"oplog_min_retention_hours": schema.Float64Attribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Minimum retention window for cluster's oplog expressed in hours. Once this attribute has been set to a non-null value, removing it from your configuration or setting it to `null` will retain the last applied value rather than reverting to the default value.",
+				MarkdownDescription: "Minimum retention window for cluster's oplog expressed in hours. Once this attribute has been set to a non-null value, removing it from your configuration or setting it to `null` will retain the last applied value rather than reverting to the default value. To disable this setting, check the [Atlas API documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/getClusterAdvancedConfiguration) for the specific value to use (currently `0`).",
 			},
 			"oplog_size_mb": schema.Int64Attribute{
 				Optional: true,
