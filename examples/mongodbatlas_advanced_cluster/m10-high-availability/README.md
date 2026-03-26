@@ -31,7 +31,7 @@ To run this example, ensure you have the following tools:
 
 To run this example, perform the following steps:
 
-1. Set Up your MongoDB Atlas Credentials.
+1. Set up your MongoDB Atlas credentials.
 
    Create a `terraform.tfvars` file with your credentials:
 
@@ -53,12 +53,12 @@ To run this example, perform the following steps:
 
    Review the following fields in the plan output before applying:
 
-   - `name`: The name of the cluster. Default for this example: `"m10-high-availability"`
-   - `cluster_type`: The type of cluster. Must be `"REPLICASET"`
-   - `instance_size`: The instance size for all nodes. Set to `"M10"`
-   - `provider_name`: The cloud service provider hosting the cluster. Set to `"AWS"`
+   - `name`: Name of the cluster. Default for this example: `"m10-high-availability"`
+   - `cluster_type`: Type of cluster. Must be `"REPLICASET"`
+   - `instance_size`: Instance size for all nodes. Set to `"M10"`
+   - `provider_name`: Cloud service provider hosting the cluster. Set to `"AWS"`
    - `backup_enabled`: Flag that specifies whether cloud backup is enabled. Set to `true`
-   - `termination_protection_enabled`: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, you can't delete the cluster using `terraform destroy`. Set to `true` in this example.
+   - `termination_protection_enabled`: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, you can't delete the cluster using `terraform destroy`. Set to `true` in this example
    - `region_configs`: Cloud provider region configuration. Three entries — `US_EAST_1` (2 nodes, priority 7), `US_WEST_2` (2 nodes, priority 6), `EU_WEST_1` (1 node, priority 5)
 
 3. Apply your configuration.
@@ -83,8 +83,8 @@ To run this example, perform the following steps:
 
 The `terraform.tfvars` file must contain the following variables for the configuration to work:
 
-- `org_id`: The ID of the Atlas organization. To learn how to retrieve an organization's details, see [View Organizations](https://www.mongodb.com/docs/atlas/access/orgs-create-view-edit-delete/#view-organizations) in the Atlas documentation.
-- `atlas_client_id`: The MongoDB Atlas Service Account Client ID
-- `atlas_client_secret`: The MongoDB Atlas Service Account Client Secret
-- `project_name`: The Atlas project name (Default for this example: `"m10-ha-project"`)
-- `cluster_name`: The Atlas cluster name (Default for this example: `"m10-high-availability"`)
+- `org_id`: ID of the Atlas organization. To learn how to retrieve an organization's details, see [View Organizations](https://www.mongodb.com/docs/atlas/access/orgs-create-view-edit-delete/#view-organizations) in the Atlas documentation.
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
+- `project_name`: Atlas project name. Default for this example: `"m10-ha-project"`)
+- `cluster_name`: Atlas cluster name. Default for this example: `"m10-high-availability"`)

@@ -21,7 +21,7 @@ To run this example, ensure you have the following tools:
 
 To run this example, perform the following steps:
 
-1. Set Up your MongoDB Atlas Credentials.
+1. Set up your MongoDB Atlas credentials.
 
    Create a ``terraform.tfvars`` file with your credentials:
 
@@ -33,7 +33,7 @@ To run this example, perform the following steps:
 
    Service Accounts are the recommended way to authenticate with the MongoDB Atlas API. To learn more, see [Authentication Methods](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/provider-configuration#authentication-methods) in the MongoDB Atlas Provider documentation.
 
-2. Review your Terraform Plan.
+2. Review your Terraform plan.
 
    The following command lists the resources that your configuration creates.
 
@@ -43,14 +43,14 @@ To run this example, perform the following steps:
 
    Review the following fields in the plan output before applying:
 
-   - `name`: The name of the cluster, set via `var.cluster_name` (Default for this example: `"m10-replicaset"`)
-   - `cluster_type`: The type of cluster. Must be `"REPLICASET"`
-   - `instance_size`: The instance size of the cluster. Set to `"M10"`
-   - `node_count`: The number of electable nodes. Set to `3`
-   - `provider_name`: The cloud service provider hosting the cluster (Default for this example: `"AWS"`)
-   - `region_name`: The cloud region where the cluster is deployed (Default for this example: `"US_EAST_1"`)
+   - `name`: Name of the cluster, set via `var.cluster_name`. Default for this example: `"m10-replicaset"`)
+   - `cluster_type`: Type of cluster. Must be `"REPLICASET"`
+   - `instance_size`: Instance size of the cluster. Set to `"M10"`
+   - `node_count`: Number of electable nodes. Set to `3`
+   - `provider_name`: Cloud service provider hosting the cluster. Default for this example: `"AWS"`)
+   - `region_name`: Cloud region where the cluster is deployed. Default for this example: `"US_EAST_1"`)
    - `backup_enabled`: Flag that specifies whether cloud backup is enabled. Set to `true`
-   - `termination_protection_enabled`: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, you can't delete the cluster using `terraform destroy`. Set to `false` for development. Set as `true` before moving to a production environment.
+   - `termination_protection_enabled`: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, you can't delete the cluster using `terraform destroy`. Set to `false` for development. Set as `true` before moving to a production environment
 
 3. Apply your configuration.
 
@@ -74,8 +74,8 @@ To run this example, perform the following steps:
 
 The ``terraform.tfvars`` file must contain the following variables for the configuration to work:
 
-- `org_id`: The ID of the Atlas organization. To learn how to retrieve an organization's details, see [View Organizations](https://www.mongodb.com/docs/atlas/access/orgs-create-view-edit-delete/#view-organizations) in the Atlas documentation.
-- `atlas_client_id`: The MongoDB Atlas Service Account Client ID
-- `atlas_client_secret`: The MongoDB Atlas Service Account Client Secret
-- `project_name`: The Atlas project name (default: `"m10-replicaset-project"`)
-- `cluster_name`: The Atlas cluster name (default: `"m10-replicaset"`)
+- `org_id`: ID of the Atlas organization. To learn how to retrieve an organization's details, see [View Organizations](https://www.mongodb.com/docs/atlas/access/orgs-create-view-edit-delete/#view-organizations) in the Atlas documentation.
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
+- `project_name`: Atlas project name (default: `"m10-replicaset-project"`)
+- `cluster_name`: Atlas cluster name (default: `"m10-replicaset"`)
