@@ -88,7 +88,9 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		require.NoError(t, err)
 		runRetries = attempts
 	}
-	projects := readAllProjects(t.Context(), t, client)
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	require.NotEmpty(t, orgID, "MONGODB_ATLAS_ORG_ID must be set")
+	projects := readAllProjects(t.Context(), t, client, orgID)
 	projectsBefore := len(projects)
 	t.Logf("found %d projects (DRY_RUN=%t)", projectsBefore, dryRun)
 	projectsToClean := map[string]string{}
@@ -146,15 +148,15 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		})
 	}
 	t.Cleanup(func() {
-		projectsAfter := readAllProjects(context.Background(), t, client) // reason: using context.Background() here intentionally because t.Context() is canceled at cleanup
+		projectsAfter := readAllProjects(context.Background(), t, client, orgID) // reason: using context.Background() here intentionally because t.Context() is canceled at cleanup
 		t.Logf("SUMMARY\nProjects changed from %d to %d\ndelete_errors=%d\nempty_project_count=%d\nDRY_RUN=%t", projectsBefore, len(projectsAfter), deleteErrors, emptyProjectCount, dryRun)
 	})
 }
 
-func readAllProjects(ctx context.Context, t *testing.T, client *admin.APIClient) []admin.Group {
+func readAllProjects(ctx context.Context, t *testing.T, client *admin.APIClient, orgID string) []admin.Group {
 	t.Helper()
 	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {
-		return client.ProjectsApi.ListGroups(ctx).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
+		return client.OrganizationsApi.GetOrgGroups(ctx, orgID).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
 	})
 	require.NoError(t, err)
 	return projects
