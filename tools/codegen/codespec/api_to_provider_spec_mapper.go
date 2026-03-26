@@ -471,6 +471,7 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 		}
 
 		ds.Singular = &Schema{
+			ExpandedModel:      dsConfig.SchemaOptions.ExpandedModel,
 			Description:        &oasReadOp.Description,
 			DeprecationMessage: resourceConfig.DeprecationMessage,
 			Discriminator:      singularDisc,

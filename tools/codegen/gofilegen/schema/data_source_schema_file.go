@@ -20,7 +20,7 @@ func GenerateDataSourceSchemaGoCode(input *codespec.Resource) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate data source schema attributes: %w", err)
 	}
-	dsModel := GenerateDataSourceTypedModels(singular.Attributes, false)
+	dsModel := GenerateDataSourceTypedModels(singular.Attributes, false, singular.ExpandedModel)
 
 	// Collect imports (dsschema is hardcoded in the template)
 	var imports []string
@@ -57,7 +57,7 @@ func GeneratePluralDataSourceSchemaGoCode(input *codespec.Resource) ([]byte, err
 	}
 
 	// Generate TFPluralDSModel and nested TFResultsModel using the reusable function
-	pluralDSModel := GenerateDataSourceTypedModels(plural.Attributes, true)
+	pluralDSModel := GenerateDataSourceTypedModels(plural.Attributes, true, plural.ExpandedModel)
 
 	// Collect imports (dsschema is hardcoded in the template)
 	var imports []string
