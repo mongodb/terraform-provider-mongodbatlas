@@ -116,6 +116,7 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 	}
 }
 
+// Mirrors logic of SDKv2 manual resource for "" values in state instead of null values
 func normalizeOptionalStringFields(obj map[string]any) {
 	setEmptyStringIfMissing(obj, "comment")
 	setEmptyStringIfMissing(obj, "region")
