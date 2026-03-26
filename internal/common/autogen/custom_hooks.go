@@ -3,6 +3,7 @@ package autogen
 import (
 	"context"
 
+	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -47,4 +48,8 @@ type PreImportHook interface {
 
 type ResourceSchemaHook interface {
 	ResourceSchema(ctx context.Context, baseSchema schema.Schema) schema.Schema
+}
+
+type DataSourceSchemaHook interface {
+	DataSourceSchema(ctx context.Context, baseSchema datasourceschema.Schema) datasourceschema.Schema
 }

@@ -197,6 +197,14 @@ func HandleDataSourceReadList(ctx context.Context, req HandleReadReq) {
 		addError(req.RespDiags, opRead, errUnmarshallingResponse, err)
 		return
 	}
+	if postReadHook, ok := req.Hooks.(PostReadAPICallHook); ok {
+		callResult := postReadHook.PostReadAPICall(req, APICallResult{Body: fullResponseBytes})
+		if callResult.Err != nil {
+			addError(req.RespDiags, opRead, errCallingAPI, callResult.Err)
+			return
+		}
+		fullResponseBytes = callResult.Body
+	}
 
 	// Unmarshal into the model
 	if err := Unmarshal(fullResponseBytes, req.State); err != nil {
