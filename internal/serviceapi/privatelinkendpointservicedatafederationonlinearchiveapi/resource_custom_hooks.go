@@ -51,6 +51,7 @@ func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schem
 		"endpoint_id",
 		"provider_name",
 		"region",
+		"customer_endpoint_dns_name",
 	}
 	for _, name := range requiresReplace {
 		attr, ok := baseSchema.Attributes[name].(schema.StringAttribute)
