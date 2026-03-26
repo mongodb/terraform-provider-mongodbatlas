@@ -50,7 +50,7 @@ To run this example, perform the following steps:
    - `provider_name`: Cloud service provider hosting the cluster. Default for this example: `"AWS"`)
    - `region_name`: Cloud region where the cluster is deployed. Default for this example: `"US_EAST_1"`)
    - `backup_enabled`: Flag that specifies whether cloud backup is enabled. Set to `true`
-   - `termination_protection_enabled`: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, you can't delete the cluster using `terraform destroy`. Set to `false` for development. Set as `true` before moving to a production environment
+   - `termination_protection_enabled`: Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, you can't delete the cluster using `terraform destroy`. Set to `true` in this example.
 
 3. Apply your configuration.
 
