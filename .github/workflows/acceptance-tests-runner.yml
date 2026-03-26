@@ -671,8 +671,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_KMS_KEY_ID: ${{ secrets.aws_kms_key_id }}
-          MONGODB_ATLAS_PRIVATE_ENDPOINT_ID: ${{ secrets.mongodb_atlas_private_endpoint_id }}
           MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME: ${{ secrets.mongodb_atlas_private_endpoint_dns_name }}
+          MONGODB_ATLAS_PRIVATE_ENDPOINT_ID: ${{ secrets.mongodb_atlas_private_endpoint_id }}
           AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
           AZURE_APP_SECRET: ${{ secrets.azure_app_secret }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}

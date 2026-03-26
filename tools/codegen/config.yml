@@ -1212,6 +1212,7 @@ resources:
             computability:
               optional: true
               computed: true
+            immutable_computed: true
           comment:
             computability:
               optional: true
