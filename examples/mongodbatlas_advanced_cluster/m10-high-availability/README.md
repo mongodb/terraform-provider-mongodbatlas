@@ -83,8 +83,8 @@ To run this example, perform the following steps:
 
 The `terraform.tfvars` file must contain the following variables for the configuration to work:
 
-- `org_id`: ID of the Atlas organization. To learn how to retrieve an organization's details, see [View Organizations](https://www.mongodb.com/docs/atlas/access/orgs-create-view-edit-delete/#view-organizations) in the Atlas documentation.
+- `org_id`: ID of the MongoDB Atlas organization. To learn how to retrieve an organization's details, see [View Organizations](https://www.mongodb.com/docs/atlas/access/orgs-create-view-edit-delete/#view-organizations) in the Atlas documentation.
 - `atlas_client_id`: MongoDB Atlas Service Account Client ID
 - `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
-- `project_name`: Atlas project name. Default for this example: `"m10-ha-project"`)
-- `cluster_name`: Atlas cluster name. Default for this example: `"m10-high-availability"`)
+- `project_name`: MongoDB Atlas project name. Default for this example: `"m10-ha-project"`)
+- `cluster_name`: MongoDB Atlas cluster name. Default for this example: `"m10-high-availability"`)
