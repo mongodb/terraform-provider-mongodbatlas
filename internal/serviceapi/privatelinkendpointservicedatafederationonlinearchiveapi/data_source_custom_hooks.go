@@ -1,0 +1,59 @@
+package privatelinkendpointservicedatafederationonlinearchiveapi
+
+import (
+	"context"
+	"encoding/json"
+
+	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+)
+
+var _ autogen.PostReadAPICallHook = (*ds)(nil)
+var _ autogen.DataSourceSchemaHook = (*ds)(nil)
+
+type TFDSExpandedModel struct {
+	ID types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
+}
+
+func (d *ds) DataSourceSchema(_ context.Context, baseSchema datasourceschema.Schema) datasourceschema.Schema {
+	baseSchema.Attributes["id"] = datasourceschema.StringAttribute{
+		Computed: true,
+	}
+	return baseSchema
+}
+
+// PostReadAPICall injects a crafted ID into the singular data source response body.
+func (d *ds) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
+	if result.Err != nil {
+		return result
+	}
+
+	model, ok := req.State.(*TFDSModel)
+	if !ok || model.ProjectId.IsNull() || model.EndpointId.IsNull() {
+		return result
+	}
+
+	craftedID := conversion.EncodeStateID(map[string]string{
+		"project_id":  model.ProjectId.ValueString(),
+		"endpoint_id": model.EndpointId.ValueString(),
+	})
+
+	var obj map[string]any
+	if err := json.Unmarshal(result.Body, &obj); err != nil {
+		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
+	}
+	obj["id"] = craftedID
+
+	body, err := json.Marshal(obj)
+	if err != nil {
+		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
+	}
+
+	return autogen.APICallResult{
+		Body: body,
+		Err:  nil,
+		Resp: result.Resp,
+	}
+}
