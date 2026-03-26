@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Ephemeral Resource:** `ephemeral/mongodbatlas_service_account_jwt` ([#4274](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4274))
 
+BUG FIXES:
+
+* resource/mongodbatlas_cloud_backup_schedule: Fixes `autoExportEnabled` being omitted from PATCH requests and `auto_export_enabled`/`export` not synchronized to state from the API response. This can lead to a plan updating the actual infrastructure to your current configuration ([#4291](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4291))
+
 ## 2.8.0 (March 11, 2026)
 
 FEATURES:

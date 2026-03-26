@@ -847,6 +847,13 @@ resources:
         schema_registry_urls:
           type: list
 
+        # API returns a default region (e.g. VIRGINIA_USA) even when not set in config.
+        # Without computed, Terraform sees null->value drift and fails with "inconsistent result after apply".
+        region:
+          computability:
+            optional: true
+            computed: true
+
   alert_configuration_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
@@ -1163,6 +1170,54 @@ resources:
           aws_security_group:
             description: "Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`."
 
+  privatelink_endpoint_service_data_federation_online_archive_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
+      method: POST
+      wait: &pe-create-wait
+        state_property: status
+        pending_states: ["PENDING"]
+        target_states: ["OK"]
+        timeout_seconds: 7200
+        min_timeout_seconds: 60
+        delay_seconds: 30
+    update:
+      path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
+      method: POST
+      wait:
+        <<: *pe-create-wait
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
+      method: DELETE
+      wait:
+        <<: *pe-create-wait
+        pending_states: ["DELETING"]
+        target_states: ["DELETED"]
+    schema:
+      expanded_model: true
+      aliases:
+        groupId: projectId
+        provider: providerName
+      ignores: [
+        "results"
+      ]
+      overrides:
+          project_id:
+            description: *project_id_description
+          region:
+            description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
+          customer_endpoint_dns_name:
+            description: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`."
+          provider_name:
+            computability:
+              required: true
+          status:
+            computability:
+              computed: true
+
   log_integration:
     read:
       path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
@@ -1200,7 +1255,7 @@ resources:
           groupId: projectId
           alertConfigId: integrationId
           id: integrationId
-          results.id: integrationId 
+          results.id: integrationId
         overrides:
           project_id:
             description: *project_id_description
