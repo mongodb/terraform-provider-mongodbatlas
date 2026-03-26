@@ -43,6 +43,36 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_basic
 	})
 }
 
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_regionAndDNSAWS(t *testing.T) {
+	var (
+		projectID               = acc.ProjectIDExecution(t)
+		endpointID              = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+		customerEndpointDNSName = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourceConfigRegionAndDNSAWS(projectID, endpointID, comment, customerEndpointDNSName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourceName, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
+					resource.TestCheckResourceAttr(dataSourceName, "region", AWSregion),
+					resource.TestCheckResourceAttr(dataSourceName, "customer_endpoint_dns_name", customerEndpointDNSName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "provider_name"),
+					checkDataSourceEncodedID(dataSourceName, projectID, endpointID),
+				),
+			},
+		},
+	})
+}
+
 func checkDataSourceEncodedID(resourceName, expectedProjectID, expectedEndpointID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -75,4 +105,22 @@ func dataSourceConfigBasicAWS(projectID, endpointID, comment string) string {
 	  endpoint_id				= mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test.endpoint_id
 	}
 	`, projectID, endpointID, comment)
+}
+
+func dataSourceConfigRegionAndDNSAWS(projectID, endpointID, comment, customerEndpointDNSName string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
+	  project_id					= %[1]q
+	  endpoint_id					= %[2]q
+	  provider_name					= "AWS"
+	  comment						= %[3]q
+	  region						= %[4]q
+	  customer_endpoint_dns_name	= %[5]q
+	}
+
+	data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
+	  project_id				= mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test.project_id
+	  endpoint_id				= mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test.endpoint_id
+	}
+	`, projectID, endpointID, comment, AWSregion, customerEndpointDNSName)
 }
