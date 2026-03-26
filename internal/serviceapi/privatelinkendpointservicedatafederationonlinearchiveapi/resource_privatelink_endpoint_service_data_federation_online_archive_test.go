@@ -101,7 +101,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateC
 						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
 					},
 				},
-				Check:  checkWithComment(commentValue),
+				Check: checkWithComment(commentValue),
 			},
 			{
 				Config: resourceConfigBasicAWS(projectID, endpointID, commentUpdated2),
@@ -110,7 +110,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateC
 						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
 					},
 				},
-				Check:  checkWithComment(commentUpdated2),
+				Check: checkWithComment(commentUpdated2),
 			},
 		},
 	})
