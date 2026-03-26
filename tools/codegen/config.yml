@@ -1196,6 +1196,34 @@ resources:
         <<: *pe-create-wait
         pending_states: ["DELETING"]
         target_states: ["DELETED"]
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+          provider: providerName
+          results.provider: providerName
+        overrides:
+          project_id:
+            description: *project_id_description
+          endpoint_id:
+            description: "Unique 22-character alphanumeric string that identifies the private endpoint."
+          region:
+            description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
+          customer_endpoint_dns_name:
+            description: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`."
+          results.endpoint_id:
+            description: "Unique 22-character alphanumeric string that identifies the private endpoint."
+          results.region:
+            description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
+          results.customer_endpoint_dns_name:
+            description: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`."
+        ignores: ["links", "results.links"]
     schema:
       expanded_model: true
       aliases:
