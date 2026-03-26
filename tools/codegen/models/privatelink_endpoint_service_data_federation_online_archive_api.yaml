@@ -120,7 +120,6 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-          immutable_computed: true
         - string: {}
           description: Status of the private endpoint connection request.
           computed_optional_required: computed

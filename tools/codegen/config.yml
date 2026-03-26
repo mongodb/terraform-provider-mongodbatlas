@@ -1213,7 +1213,6 @@ resources:
             computability:
               optional: true
               computed: true
-            immutable_computed: true
           comment:
             # Mirrors logic of SDKv2 manual resource for "" values in state instead of null values
             computability:
