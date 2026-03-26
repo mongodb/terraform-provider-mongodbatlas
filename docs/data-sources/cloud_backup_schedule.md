@@ -8,8 +8,6 @@ subcategory: "Cloud Backups"
 
 -> **NOTE:** To delete an Atlas cluster that has an associated `mongodbatlas_cloud_backup_schedule` resource and an enabled Backup Compliance Policy, first instruct Terraform to remove the `mongodbatlas_cloud_backup_schedule` resource from the state and then use Terraform to delete the cluster. To learn more, see [Delete a Cluster with a Backup Compliance Policy](../guides/delete-cluster-with-backup-compliance-policy.md).
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -68,7 +66,7 @@ data "mongodbatlas_cloud_backup_schedule" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `group_id` in the official documentation.
 * `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshots backup policy you want to retrieve.
 
 

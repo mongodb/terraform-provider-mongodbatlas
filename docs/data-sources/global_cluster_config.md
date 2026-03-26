@@ -7,8 +7,6 @@ subcategory: "Clusters"
 `mongodbatlas_global_cluster_config` describes all managed namespaces and custom zone mappings associated with the specified Global Cluster.
 
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 
 ## Example Usage
 
@@ -98,7 +96,7 @@ resource "mongodbatlas_global_cluster_config" "config" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project.
+* `project_id` - (Required) The unique ID for the project, also known as `group_id` in the official documentation.
 * `cluster_name` - (Required) The name of the Global Cluster.
 
 ## Attributes Reference

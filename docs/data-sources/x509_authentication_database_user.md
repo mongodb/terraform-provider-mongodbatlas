@@ -6,8 +6,6 @@ subcategory: "Database Users"
 
 `mongodbatlas_x509_authentication_database_user` describes a X509 Authentication Database User. This represents a X509 Authentication Database User.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ## Example Usages
 
 ### Example Usage: Generate an Atlas-managed X.509 certificate for a MongoDB user
@@ -72,7 +70,7 @@ data "mongodbatlas_x509_authentication_database_user" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Identifier for the Atlas project associated with the X.509 configuration.
+* `project_id` - (Required) Identifier for the Atlas project associated with the X.509 configuration, also known as `group_id` in the official documentation.
 * `username` - (Optional) Username of the database user to create a certificate for.
 
 ## Attributes Reference

@@ -6,8 +6,6 @@ subcategory: "Clusters"
 
 `mongodbatlas_advanced_cluster` describes an Advanced Cluster, including Flex clusters, for the specified name and project_id.
 
--> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -165,7 +163,7 @@ data "mongodbatlas_advanced_cluster" "this" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the cluster.
+* `project_id` - (Required) The unique ID for the project to create the cluster, also known as `group_id` in the official documentation.
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed.
 * `use_effective_fields` - (Optional) Controls how hardware specification fields are returned in the response. When set to true, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to false (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications. This attribute applies to dedicated clusters, not to tenant or flex clusters. **Note:** Effective specs (`effective_electable_specs`, `effective_read_only_specs`, `effective_analytics_specs`) are always returned for dedicated clusters regardless of the flag value and always report the **current** hardware specifications. See the resource documentation for [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields) for more details.
 

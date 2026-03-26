@@ -8,7 +8,6 @@ subcategory: "Cloud Backups"
 
 `mongodbatlas_shared_tier_restore_jobs` provides Cloud Backup Snapshot Restore Jobs data source for Shared Tier Clusters. Gets all the cloud backup snapshot restore jobs for the specified shared tier cluster.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 -> **NOTE:** This data source is only for Shared Tier Clusters (M2 and M5). See [here](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/) for more details on Shared Tier Cluster Limitations. 
 
 ## Example Usage
@@ -21,7 +20,7 @@ data "mongodbatlas_shared_tier_restore_jobs" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `group_id` in the official documentation.
 * `cluster_name` - (Required) Unique 24-hexadecimal digit string that identifies your project.
 
 

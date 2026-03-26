@@ -6,8 +6,6 @@ subcategory: "Database Users"
 
 `mongodbatlas_custom_db_role` describes a Custom DB Role. This represents a custom db role.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -39,7 +37,7 @@ data "mongodbatlas_custom_db_role" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project.
+* `project_id` - (Required) The unique ID for the project, also known as `group_id` in the official documentation.
 * `role_name` - (Required) Name of the custom role. 
 
 ## Attributes Reference

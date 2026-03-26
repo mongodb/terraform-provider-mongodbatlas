@@ -13,8 +13,6 @@ subcategory: "Clusters"
 <br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
 <br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -46,7 +44,7 @@ data "mongodbatlas_clusters" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to get the clusters.
+* `project_id` - (Required) The unique ID for the project to get the clusters, also known as `group_id` in the official documentation.
 
 ## Attributes Reference
 

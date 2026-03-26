@@ -6,8 +6,6 @@ subcategory: "Projects"
 
 `mongodbatlas_ldap_verify` describes a LDAP Verify.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
-
 
 ## Example Usage
 
@@ -53,7 +51,7 @@ data "mongodbatlas_ldap_verify" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the Atlas project associated with the verification request.
+* `project_id` - (Required) Unique identifier for the Atlas project associated with the verification request, also known as `group_id` in the official documentation.
 * `request_id` - (Required) Unique identifier of a request to verify an LDAP configuration.
 
 ## Attributes Reference

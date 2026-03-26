@@ -6,8 +6,6 @@ subcategory: "Cloud Provider Access"
 
 `mongodbatlas_cloud_provider_access_setup` allows you to get a single role for a provider access role setup. Supported providers: AWS, AZURE and GCP.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 ## Example Usage with AWS
 ```terraform
 resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
@@ -58,7 +56,7 @@ data "mongodbatlas_cloud_provider_access_setup" "single_setup" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to get all Cloud Provider Access 
+* `project_id` - (Required) The unique ID for the project to get all Cloud Provider Access, also known as `group_id` in the official documentation 
 * `provider_name` - (Required) cloud provider name. Supported values: `AWS`, `AZURE`, and `GCP`.
 * `role_id` - (Required) unique role id among all the roles provided by MongoDB Atlas. 
 

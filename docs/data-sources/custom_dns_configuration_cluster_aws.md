@@ -6,8 +6,6 @@ subcategory: "Projects"
 
 `mongodbatlas_custom_dns_configuration_cluster_aws` describes a Custom DNS Configuration for Atlas Clusters on AWS.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
-
 
 ## Example Usage
 
@@ -24,7 +22,7 @@ data "mongodbatlas_custom_dns_configuration_cluster_aws" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the project.
+* `project_id` - (Required) Unique identifier for the project, also known as `group_id` in the official documentation.
 
 ## Attributes Reference
 

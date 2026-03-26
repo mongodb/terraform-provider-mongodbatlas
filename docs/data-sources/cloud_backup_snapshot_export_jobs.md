@@ -7,8 +7,6 @@ subcategory: "Cloud Backups"
 `mongodbatlas_cloud_backup_snapshot_export_jobs` datasource allows you to retrieve all the buckets for the specified project.
 
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -39,7 +37,7 @@ data "mongodbatlas_cloud_backup_snapshot_export_jobs" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `group_id` in the official documentation.
 * `cluster_name` - (Required) Name of the Atlas cluster whose export job you want to retrieve.
 * `page_num` - (Optional)  	The page to return. Defaults to `1`.
 * `items_per_page` - (Optional) Number of items to return per page, up to a maximum of 500. Defaults to `100`.
@@ -55,7 +53,7 @@ In addition to all arguments above, the following attributes are exported:
 
 
 ### CloudProviderSnapshotExportJob
-* `project_id` - The unique identifier of the project for the Atlas cluster.
+* `project_id` - The unique identifier of the project for the Atlas cluster, also known as `group_id` in the official documentation.
 * `export_job_id` -	Unique identifier of the S3 bucket.
 * `snapshot_id` - Unique identifier of the Cloud Backup snapshot to export.
 * `export_bucket_id` - Unique identifier of the AWS bucket to export the Cloud Backup snapshot to.

@@ -6,8 +6,6 @@ subcategory: "Cloud Backups"
 
 `mongodbatlas_cloud_backup_snapshot_restore_job` provides a Cloud Backup Snapshot Restore Job datasource. Gets all the cloud backup snapshot restore jobs for the specified cluster.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 ## Example Usage
 First create a snapshot of the desired cluster. Then request that snapshot be restored in an automated fashion to the designated cluster and project.
 
@@ -39,7 +37,7 @@ data "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `group_id` in the official documentation.
 * `cluster_name` - (Required) The name of the Atlas cluster for which you want to retrieve the restore job.
 * `snapshot_restore_job_id` - (Required) The unique identifier of the restore job to retrieve.
 

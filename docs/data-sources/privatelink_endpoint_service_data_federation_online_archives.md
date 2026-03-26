@@ -6,8 +6,6 @@ subcategory: "Data Federation"
 
 `mongodbatlas_privatelink_endpoint_service_data_federation_online_archives` describes Private Endpoint Service resources for Data Federation and Online Archive.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -33,7 +31,7 @@ data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archives"
 
 ## Argument Reference
 
-* `project_id` (Required) - Unique 24-hexadecimal digit string that identifies your project. 
+* `project_id` (Required) - Unique 24-hexadecimal digit string that identifies your project, also known as `group_id` in the official documentation. 
 
 ## Attributes Reference
 * `results` - A list where each represents a Private Endpoint Service

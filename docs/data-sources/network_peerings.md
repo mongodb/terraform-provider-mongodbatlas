@@ -6,8 +6,6 @@ subcategory: "Network Peering"
 
 `mongodbatlas_network_peerings` describes all Network Peering Connections.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
-
 
 ## Example Usage
 
@@ -32,7 +30,7 @@ data "mongodbatlas_network_peerings" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project.
+* `project_id` - (Required) The unique ID for the project, also known as `group_id` in the official documentation.
 
 ## Attributes Reference
 

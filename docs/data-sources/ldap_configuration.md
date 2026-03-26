@@ -6,8 +6,6 @@ subcategory: "Projects"
 
 `mongodbatlas_ldap_configuration` describes a LDAP Configuration.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
-
 
 ## Example Usage
 
@@ -33,7 +31,7 @@ data "mongodbatlas_ldap_configuration" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Identifier for the Atlas project associated with the LDAP over TLS/SSL configuration.
+* `project_id` - (Required) Identifier for the Atlas project associated with the LDAP over TLS/SSL configuration, also known as `group_id` in the official documentation.
 
 ## Attributes Reference
 

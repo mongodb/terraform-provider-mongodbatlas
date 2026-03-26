@@ -8,8 +8,6 @@ subcategory: "Projects"
 
 ~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource: <br> - Organization Owner <br> - Project Owner
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 
 ## Example Usage
 
@@ -22,7 +20,7 @@ resource "mongodbatlas_custom_dns_configuration_cluster_aws" "test" {
 
 ## Argument Reference
 
-* `project_id` - Required 	Unique identifier for the project.
+* `project_id` - Required 	Unique identifier for the project, also known as `group_id` in the official documentation.
 * `enabled` - (Required) Indicates whether the project's clusters deployed to AWS use custom DNS. If `true`, the `Get All Clusters` and `Get One Cluster` endpoints return the `connectionStrings.private` and `connectionStrings.privateSrv` fields for clusters deployed to AWS .
 
 

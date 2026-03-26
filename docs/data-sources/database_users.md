@@ -8,8 +8,6 @@ subcategory: "Database Users"
 
 Each user has a set of roles that provide access to the project’s databases. User's roles apply to all the clusters in the project: if two clusters have a `products` database and a user has a role granting `read` access on the products database, the user has that access on both clusters.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -67,7 +65,7 @@ Note: OIDC support is only avalible starting in [MongoDB 7.0](https://www.mongod
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to get all database users.
+* `project_id` - (Required) The unique ID for the project to get all database users, also known as `group_id` in the official documentation.
 
 ## Attributes Reference
 
@@ -79,7 +77,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Database User
 
-* `project_id` - ID of the Atlas project the user belongs to.
+* `project_id` - ID of the Atlas project the user belongs to, also known as `group_id` in the official documentation.
 * `username` - Username for authenticating to MongoDB.
 * `description` - Description of this database user.
 * `roles` - List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
