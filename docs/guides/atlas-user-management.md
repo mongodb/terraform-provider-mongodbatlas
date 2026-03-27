@@ -179,14 +179,14 @@ config and state:
     - Org assignment: `org_id/user_id` (or `org_id/username`)
     - Team assignment: `org_id/team_id/user_id` (or `org_id/team_id/username`)
   - Publish a new module version.
-  - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer) for complete implementation.
+  - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer) for complete implementation.
 
 - **Module users**
   - Upgrade to the new module version (`terraform init -upgrade`).
   - Add `import` blocks for team assignments (the org assignment is handled by the `moved` block in the module).
   - Run `terraform plan` — expect `has moved to` for org assignment and `will be imported` for team assignments.
   - Run `terraform apply`.
-  - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_user) for complete implementation.
+  - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_user) for complete implementation.
 
 ---
 
@@ -364,9 +364,9 @@ Then:
 ### Examples
 
 For complete working examples, see:
-- Basic usage (v1–v3): [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/basic)
-- Module maintainer (v1–v3): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer)
-- Module user (v1–v3): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_user)
+- Basic usage (v1–v3): [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/basic)
+- Module maintainer (v1–v3): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_maintainer)
+- Module user (v1–v3): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_org_invitation_to_cloud_user_org_assignment/module_user)
 
 ### Notes and tips
 
@@ -522,13 +522,13 @@ cannot be used. Existing team memberships must be imported.
   - Replace the deprecated `usernames` attribute with `mongodbatlas_cloud_user_team_assignment` resources inside the module.
   - Terraform doesn't allow import blocks in modules ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document the import ID format for users: `org_id/team_id/user_id` (or `org_id/team_id/username`).
   - Publish a new module version.
-  - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_user_team_assignment/module_maintainer) for complete implementation.
+  - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_user_team_assignment/module_maintainer) for complete implementation.
 
 - **Module users**
   - Upgrade to the new module version (`terraform init -upgrade`) and run `terraform plan` but **do not apply**.
   - Add `import` blocks (or use `terraform import`) for each existing team assignment.
   - Run `terraform plan` to confirm import operations, then `terraform apply`.
-  - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_user_team_assignment/module_user) for complete implementation.
+  - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_user_team_assignment/module_user) for complete implementation.
 
 ---
 
@@ -728,17 +728,17 @@ Keep
   - Re-run `terraform plan` to confirm import operations, then `terraform apply`.
 
 
-- See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_team_project_assignment/module_maintainer) for complete implementation.
-- See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_team_project_assignment/module_user) for complete implementation.
+- See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_team_project_assignment/module_maintainer) for complete implementation.
+- See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_team_project_assignment/module_user) for complete implementation.
 
 ---
 
 ### Examples
 
 For complete, working examples that demonstrate the migration process, see:
-- Basic usage (v1–v2): [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_team_project_assignment/basic)
-- Module maintainer (v1–v3): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_team_project_assignment/module_maintainer)
-- Module user (v1–v3): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_team_project_assignment/module_user)
+- Basic usage (v1–v2): [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_team_project_assignment/basic)
+- Module maintainer (v1–v3): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_team_project_assignment/module_maintainer)
+- Module user (v1–v3): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_team_project_assignment/module_user)
 
 ---
 
@@ -837,13 +837,13 @@ Run `terraform apply` to create the assignment with the new resource & delete th
   - Keep inputs consistent (`project_id`, `username`, `roles`) so the new resource re-creates the pending invite with the same roles.
   - Remove the deprecated `mongodbatlas_project_invitation` resource block from the module.
   - Publish a new module version.
-  - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment/module_maintainer) for complete implementation.
+  - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_project_invitation_to_cloud_user_project_assignment/module_maintainer) for complete implementation.
 
 - **Module users**
   - Upgrade to the new module version and run `terraform plan`.
   - Expect to see planned creation `mongodbatlas_cloud_user_project_assignment` and deletion of `mongodbatlas_project_invitation`.
   - Run `terraform apply`.
-  - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment/module_user) for complete implementation.
+  - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_project_invitation_to_cloud_user_project_assignment/module_user) for complete implementation.
 
 ---
 
@@ -851,9 +851,9 @@ Run `terraform apply` to create the assignment with the new resource & delete th
 
 For complete, working configurations that demonstrate the migration process, see:
 
-- Basic usage (v1–v3): [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment/basic)
-- Module maintainer (v1–v3): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment/module_maintainer)
-- Module user (v1–v3): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment/module_user)
+- Basic usage (v1–v3): [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_project_invitation_to_cloud_user_project_assignment/basic)
+- Module maintainer (v1–v3): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_project_invitation_to_cloud_user_project_assignment/module_maintainer)
+- Module user (v1–v3): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_project_invitation_to_cloud_user_project_assignment/module_user)
 
 ---
 
@@ -1116,13 +1116,13 @@ Since data sources don’t live in state, in this case migration is about replac
   - Replace deprecated data sources with the new data sources as mentioned in above steps.
   - Update attribute references as mentioned above.
   - Publish a new module version.
-  - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_atlas_user_and_atlas_users/module_maintainer) for complete implementation.
+  - See [module_maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_atlas_user_and_atlas_users/module_maintainer) for complete implementation.
 
 - **Module users**
   - Upgrade to the new module version and run `terraform plan`.
   - Update your references to the module's outputs/variables to match the new attribute structure (use the mapping above).
   - Re-run `terraform plan` to confirm reads succeed and the output shape is as expected, then proceed as usual.
-  - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_atlas_user_and_atlas_users/module_user) for complete implementation.
+  - See [module_user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_atlas_user_and_atlas_users/module_user) for complete implementation.
 
 
 ---
@@ -1131,9 +1131,9 @@ Since data sources don’t live in state, in this case migration is about replac
 
 For complete, working configurations that demonstrate the migration process, see:
 
-- Basic usage (v1–v3): [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_atlas_user_and_atlas_users/basic)
-- Module maintainer (v1–v3): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_atlas_user_and_atlas_users/module_maintainer)
-- Module user (v1–v3): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_atlas_user_and_atlas_users/module_user)
+- Basic usage (v1–v3): [basic](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_atlas_user_and_atlas_users/basic)
+- Module maintainer (v1–v3): [module_maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_atlas_user_and_atlas_users/module_maintainer)
+- Module user (v1–v3): [module_user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_atlas_user_and_atlas_users/module_user)
 
 ---
 

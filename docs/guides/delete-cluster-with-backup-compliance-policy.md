@@ -84,7 +84,7 @@ outline the adjustments required for each approach to successfully delete
 clusters under the constraints of a Backup Compliance Policy.
 
 1. **Using Resources Directly**\
-   [resource-based example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_backup_compliance_policy/resource).
+   [resource-based example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_backup_compliance_policy/resource).
 
 2. **Using Terraform Modules**\
-   [module-based example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_backup_compliance_policy/module).
+   [module-based example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_backup_compliance_policy/module).

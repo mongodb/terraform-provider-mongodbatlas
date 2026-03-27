@@ -62,6 +62,10 @@ func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schem
 		attr.PlanModifiers = []planmodifier.String{
 			stringplanmodifier.RequiresReplace(),
 		}
+		// Preserve stable planning for Optional+Computed replacement fields.
+		if name == "region" || name == "customer_endpoint_dns_name" {
+			attr.PlanModifiers = append(attr.PlanModifiers, stringplanmodifier.UseStateForUnknown())
+		}
 		baseSchema.Attributes[name] = attr
 	}
 

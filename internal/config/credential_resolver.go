@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
+const ErrPartialCreds = "Both client_id and client_secret must be provided together." //nolint:gosec // not a credential
+
 type CredentialResolver struct {
 	ProviderData *EphemeralResourceData
 }
@@ -23,7 +25,7 @@ func (cr *CredentialResolver) ResolveServiceAccountCredentials(argClientID, argC
 		return id, secret, cr.providerBaseURL(), diags
 	} else if id != "" || secret != "" {
 		diags.AddError("Invalid Service Account credentials",
-			"Both client_id and client_secret must be provided together.")
+			ErrPartialCreds)
 		return "", "", "", diags
 	}
 

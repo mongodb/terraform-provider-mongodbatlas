@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312016/admin"
-	"go.mongodb.org/atlas-sdk/v20250312016/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312017/admin"
+	"go.mongodb.org/atlas-sdk/v20250312017/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -1241,6 +1241,7 @@ func configBasic(orgID, projectName, projectOwnerID string, includeDataSource bo
 			}
 			data "mongodbatlas_projects" "test" {
 				depends_on = [mongodbatlas_project.test]
+				items_per_page = 250
 			}
 		`
 	}
