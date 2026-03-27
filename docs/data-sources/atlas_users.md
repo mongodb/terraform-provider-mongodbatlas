@@ -37,7 +37,7 @@ data "mongodbatlas_atlas_users" "test" {
 ## Argument Reference
 
 * `org_id` - (Optional) Unique 24-hexadecimal digit string that identifies the organization whose users you want to return. Also needed when `team_id` attributes is defined.
-* `project_id` - (Optional) Unique 24-hexadecimal digit string that identifies the project whose users you want to return, also known as `group_id` in the official documentation. 
+* `project_id` - (Optional) Unique 24-hexadecimal digit string that identifies the project whose users you want to return, also known as `groupId` in the official documentation. 
 * `team_id` - (Optional) Unique 24-hexadecimal digit string that identifies the team whose users you want to return.
 
 * `page_num` - (Optional) Number of the page that displays the current set of the total objects that the response returns. Defaults to `1`.

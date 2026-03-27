@@ -25,7 +25,7 @@ data "mongodbatlas_third_party_integration" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to get all Third-Party service integrations, also known as `group_id` in the official documentation
+* `project_id` - (Required) The unique ID for the project to get all Third-Party service integrations, also known as `groupId` in the official documentation
 * `type`       - (Required) Third-Party service integration type
      * PAGER_DUTY
      * DATADOG

@@ -69,7 +69,7 @@ Note: OIDC support is only avalible starting in [MongoDB 7.0](https://www.mongod
 ## Argument Reference
 
 * `username` - (Required) Username for authenticating to MongoDB.
-* `project_id` - (Required) The unique ID for the project to create the database user, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique ID for the project to create the database user, also known as `groupId` in the official documentation.
 * `auth_database_name` - (Required) The user’s authentication database. A user must provide both a username and authentication database to log into MongoDB. In Atlas deployments of MongoDB, the authentication database is almost always the admin database, for X509 it is $external.
 
 ## Attributes Reference

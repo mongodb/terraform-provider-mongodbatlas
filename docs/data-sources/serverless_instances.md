@@ -22,7 +22,7 @@ data "mongodbatlas_serverless_instances" "data_serverless" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the [project](https://docs.atlas.mongodb.com/organizations-projects/#std-label-projects) that contains the specified cluster, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Unique identifier for the [project](https://docs.atlas.mongodb.com/organizations-projects/#std-label-projects) that contains the specified cluster, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 * `results` - A list where each result represents a Serverless Instance. To learn more, see [Serverless Instance](#serverless-instance).

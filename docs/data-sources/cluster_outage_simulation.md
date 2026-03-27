@@ -23,7 +23,7 @@ data "mongodbatlas_cluster_outage_simulation" "outage_simulation" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project that contains the cluster that is undergoing outage simulation, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique ID for the project that contains the cluster that is undergoing outage simulation, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) Name of the Atlas Cluster that is undergoing outage simulation.
 
 ## Attributes Reference

@@ -27,7 +27,7 @@ data "mongodbatlas_cloud_backup_snapshot" "test" {
 
 * `snapshot_id` - (Required) The unique identifier of the snapshot you want to retrieve.
 * `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshot you want to retrieve.
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 

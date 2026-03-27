@@ -19,7 +19,7 @@ data "mongodbatlas_federated_query_limit" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create a Federated Database Instance, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique ID for the project to create a Federated Database Instance, also known as `groupId` in the official documentation.
 * `tenant_name` - (Required) Name of the Atlas Federated Database Instance.
 * `limit_name` - (Required) String enum that indicates whether the identity provider is active or not. Accepted values are:
     * `bytesProcessed.query`: Limit on the number of bytes processed during a single data federation query.

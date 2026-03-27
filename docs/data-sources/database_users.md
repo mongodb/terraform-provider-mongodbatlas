@@ -65,7 +65,7 @@ Note: OIDC support is only avalible starting in [MongoDB 7.0](https://www.mongod
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to get all database users, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique ID for the project to get all database users, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 
@@ -77,7 +77,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Database User
 
-* `project_id` - ID of the Atlas project the user belongs to, also known as `group_id` in the official documentation.
+* `project_id` - ID of the Atlas project the user belongs to, also known as `groupId` in the official documentation.
 * `username` - Username for authenticating to MongoDB.
 * `description` - Description of this database user.
 * `roles` - List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.

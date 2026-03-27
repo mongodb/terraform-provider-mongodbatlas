@@ -108,7 +108,7 @@ resource "mongodbatlas_online_archive" "test" {
 - [Online Archive Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_online_archive)
 
 ## Argument Reference
-* `project_id` - (Required) The unique ID for the project, also known as `group_id` in the official documentation
+* `project_id` - (Required) The unique ID for the project, also known as `groupId` in the official documentation
 * `cluster_name` - (Required) Name of the cluster that contains the collection.
 * `db_name` - (Required) Name of the database that contains the collection.
 * `coll_name` - (Required) Name of the collection.

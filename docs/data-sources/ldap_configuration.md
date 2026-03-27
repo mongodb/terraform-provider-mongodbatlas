@@ -31,7 +31,7 @@ data "mongodbatlas_ldap_configuration" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Identifier for the Atlas project associated with the LDAP over TLS/SSL configuration, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Identifier for the Atlas project associated with the LDAP over TLS/SSL configuration, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 

@@ -21,7 +21,7 @@ data "mongodbatlas_search_index" "test" {
 ## Argument Reference
 
 * `index_id` - (Required) The unique identifier of the Atlas Search index. Use the `mongodbatlas_search_indexes`datasource to find the IDs of all Atlas Search indexes.
-* `project_id` - (Required) The unique identifier for the [project](https://docs.atlas.mongodb.com/organizations-projects/#std-label-projects) that contains the specified cluster, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique identifier for the [project](https://docs.atlas.mongodb.com/organizations-projects/#std-label-projects) that contains the specified cluster, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) The name of the cluster containing the collection with one or more Atlas Search indexes.
 
 ## Attributes Reference

@@ -38,7 +38,7 @@ data "mongodbatlas_cloud_backup_snapshot_restore_jobs" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) The name of the Atlas cluster for which you want to retrieve restore jobs.
 * `page_num` - (Optional)  	The page to return. Defaults to `1`.
 * `items_per_page` - (Optional) Number of items to return per page, up to a maximum of 500. Defaults to `100`.

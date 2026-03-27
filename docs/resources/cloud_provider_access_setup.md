@@ -66,7 +66,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project, also known as `group_id` in the official documentation
+* `project_id` - (Required) The unique ID for the project, also known as `groupId` in the official documentation
 * `provider_name` - (Required) The cloud provider for which to create a new role. Currently, AWS, AZURE and GCP are supported. **WARNING** Changing the `provider_name` will result in destruction of the existing resource and the creation of a new resource.
 * `azure_config` - azure related configurations 
    * `atlas_azure_app_id` - Azure Active Directory Application ID of Atlas. This property is required when `provider_name = "AZURE".`

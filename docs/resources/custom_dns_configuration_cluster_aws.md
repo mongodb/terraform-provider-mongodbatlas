@@ -20,7 +20,7 @@ resource "mongodbatlas_custom_dns_configuration_cluster_aws" "test" {
 
 ## Argument Reference
 
-* `project_id` - Required 	Unique identifier for the project, also known as `group_id` in the official documentation.
+* `project_id` - Required 	Unique identifier for the project, also known as `groupId` in the official documentation.
 * `enabled` - (Required) Indicates whether the project's clusters deployed to AWS use custom DNS. If `true`, the `Get All Clusters` and `Get One Cluster` endpoints return the `connectionStrings.private` and `connectionStrings.privateSrv` fields for clusters deployed to AWS .
 
 

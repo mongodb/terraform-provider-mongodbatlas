@@ -47,7 +47,7 @@ data "mongodbatlas_project" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Optional) The unique ID for the project, also known as `group_id` in the official documentation.
+* `project_id` - (Optional) The unique ID for the project, also known as `groupId` in the official documentation.
 * `name` - (Optional) The unique ID for the project.
 
 ~> **IMPORTANT:** Either `project_id` or `name` must be configurated.

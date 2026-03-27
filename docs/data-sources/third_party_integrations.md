@@ -30,7 +30,7 @@ data "mongodbatlas_third_party_integrations" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to get all Third-Party service integrations, also known as `group_id` in the official documentation
+* `project_id` - (Required) The unique ID for the project to get all Third-Party service integrations, also known as `groupId` in the official documentation
 
 ## Attributes Reference
 
@@ -42,7 +42,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Third-Party Service Integration 
 
-* `project_id` - ID of the Atlas project the Third-Party Service Integration belongs to, also known as `group_id` in the official documentation.
+* `project_id` - ID of the Atlas project the Third-Party Service Integration belongs to, also known as `groupId` in the official documentation.
 * `type` - Thirt-Party service integration type.
 * `id` - Unique identifier of the integration.
 

@@ -47,7 +47,7 @@ data "mongodbatlas_federated_database_instance" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create a Federated Database Instance, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique ID for the project to create a Federated Database Instance, also known as `groupId` in the official documentation.
 * `name` - (Required) Name of the Atlas Federated Database Instance.
 
 ## Attributes Reference

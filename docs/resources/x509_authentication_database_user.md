@@ -85,7 +85,7 @@ resource "mongodbatlas_database_user" "user" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Identifier for the Atlas project associated with the X.509 configuration, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Identifier for the Atlas project associated with the X.509 configuration, also known as `groupId` in the official documentation.
 * `months_until_expiration` - (Required) A number of months that the created certificate is valid for before expiry, up to 24 months. By default is 3.
 * `username` - (Optional) Username of the database user to create a certificate for.
 * `customer_x509_cas` - (Optional) PEM string containing one or more customer CAs for database user authentication.

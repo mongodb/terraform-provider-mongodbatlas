@@ -23,7 +23,7 @@ data "mongodbatlas_shared_tier_snapshots" "test" {
 ## Argument Reference
 
 * `cluster_name` - (Required) Human-readable label that identifies the cluster.
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 

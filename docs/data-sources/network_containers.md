@@ -27,7 +27,7 @@ data "mongodbatlas_network_containers" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique ID for the project, also known as `groupId` in the official documentation.
 * `provider_name` - (Required) Cloud provider for this Network peering container. Accepted values are AWS, GCP, and Azure.
 
 

@@ -33,7 +33,7 @@ data "mongodbatlas_custom_db_roles" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to get all custom db roles, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique ID for the project to get all custom db roles, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 

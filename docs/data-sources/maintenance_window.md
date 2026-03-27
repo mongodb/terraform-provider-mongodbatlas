@@ -37,7 +37,7 @@ data "mongodbatlas_maintenance_window" "test" {
 
 ## Argument Reference
 
-* `project_id` - The unique identifier of the project for the Maintenance Window, also known as `group_id` in the official documentation.
+* `project_id` - The unique identifier of the project for the Maintenance Window, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 

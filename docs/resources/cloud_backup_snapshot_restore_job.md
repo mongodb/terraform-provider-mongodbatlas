@@ -147,7 +147,7 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster whose snapshot you want to restore, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster whose snapshot you want to restore, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) The name of the Atlas cluster whose snapshot you want to restore.
 * `delivery_type_config` - (Required) Type of restore job to create. Possible configurations are: **download**, **automated**, or **pointInTime** only one must be set it in ``true``.
 * `delivery_type_config.automated` - Set to `true` to use the automated configuration.

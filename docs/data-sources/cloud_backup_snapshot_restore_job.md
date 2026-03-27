@@ -37,7 +37,7 @@ data "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) The name of the Atlas cluster for which you want to retrieve the restore job.
 * `snapshot_restore_job_id` - (Required) The unique identifier of the restore job to retrieve.
 

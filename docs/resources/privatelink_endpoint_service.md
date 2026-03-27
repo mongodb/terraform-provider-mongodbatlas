@@ -216,7 +216,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "this" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the project, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Unique identifier for the project, also known as `groupId` in the official documentation.
 * `private_link_id` - (Required) Unique identifier of the `AWS`, `AZURE` or `GCP` PrivateLink connection which is created by `mongodbatlas_privatelink_endpoint` resource.
 * `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC. For `AWS` and `AZURE`, this is the interface endpoint identifier. For `GCP` port-mapped architecture, this is the forwarding rule name. For `GCP` legacy private endpoint architecture, this is the endpoint group name.
 * `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS`, `AZURE` or `GCP`.

@@ -36,7 +36,7 @@ Refer to the following for a full example on using this data_source as a tool to
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to get the alert configurations, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique ID for the project to get the alert configurations, also known as `groupId` in the official documentation.
 * `list_options` - (Optional) Arguments that dictate how many and which results are returned by the data source
 * `list_options.page_num` - Which page of results to retrieve (default to first page)
 * `list_options.items_per_page` - How many alerts to retrieve per page (default 100)
@@ -52,7 +52,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Alert Configuration
 
-* `project_id` - The ID of the project where the alert configuration exists, also known as `group_id` in the official documentation
+* `project_id` - The ID of the project where the alert configuration exists, also known as `groupId` in the official documentation
 * `alert_configuration_id` - The ID of the alert configuration
 * `created` - Timestamp in ISO 8601 date and time format in UTC when this alert configuration was created.
 * `updated` - Timestamp in ISO 8601 date and time format in UTC when this alert configuration was last updated.

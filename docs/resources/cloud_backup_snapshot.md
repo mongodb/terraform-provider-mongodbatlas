@@ -58,7 +58,7 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshots you want to retrieve.
 * `description` - (Required) Description of the on-demand snapshot.
 * `retention_in_days` - (Required) The number of days that Atlas should retain the on-demand snapshot. Must be at least 1.

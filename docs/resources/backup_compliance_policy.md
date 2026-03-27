@@ -139,7 +139,7 @@ resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `authorized_email` - (Required) Email address of a security or legal representative for the Backup Compliance Policy who is authorized to update the Backup Compliance Policy settings.
 * `authorized_user_first_name` - (Required) First name of the user who authorized to update the Backup Compliance Policy settings.
 * `authorized_user_last_name` - (Required) Last name of the user who authorized to update the Backup Compliance Policy settings.

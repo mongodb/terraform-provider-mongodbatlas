@@ -140,7 +140,7 @@ resource "mongodbatlas_alert_configuration" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The ID of the project where the alert configuration will create, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The ID of the project where the alert configuration will create, also known as `groupId` in the official documentation.
 * `enabled` - It is not required, but If the attribute is omitted, by default will be false, and the configuration would be disabled. You must set true to enable the configuration.
 * `event_type` - (Required) The type of event that will trigger an alert.
 

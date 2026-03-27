@@ -51,7 +51,7 @@ data "mongodbatlas_ldap_verify" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the Atlas project associated with the verification request, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Unique identifier for the Atlas project associated with the verification request, also known as `groupId` in the official documentation.
 * `request_id` - (Required) Unique identifier of a request to verify an LDAP configuration.
 
 ## Attributes Reference

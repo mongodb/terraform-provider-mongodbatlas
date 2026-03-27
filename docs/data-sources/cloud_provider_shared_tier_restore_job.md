@@ -21,7 +21,7 @@ data "mongodbatlas_shared_tier_restore_job" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) Unique 24-hexadecimal digit string that identifies your project.
 * `job_id` - (Required) Unique 24-hexadecimal digit string that identifies the restore job to return.
 

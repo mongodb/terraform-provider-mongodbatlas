@@ -25,7 +25,7 @@ data "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `groupId` in the official documentation.
 * `export_bucket_id` - (Required) Unique identifier of the snapshot export bucket.
 
 ## Attributes Reference

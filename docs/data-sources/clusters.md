@@ -44,7 +44,7 @@ data "mongodbatlas_clusters" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to get the clusters, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique ID for the project to get the clusters, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 

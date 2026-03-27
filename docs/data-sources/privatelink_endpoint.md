@@ -31,7 +31,7 @@ data "mongodbatlas_privatelink_endpoint" "this" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the project, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Unique identifier for the project, also known as `groupId` in the official documentation.
 * `private_link_id` - (Required) Unique identifier of the private endpoint that you want to retrieve.
 * `provider_name` - (Required) Cloud provider for which you want to retrieve a private endpoint service. Atlas accepts `AWS`, `AZURE`, or `GCP`.
 

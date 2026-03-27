@@ -20,7 +20,7 @@ data "mongodbatlas_search_indexes" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the [project](https://docs.atlas.mongodb.com/organizations-projects/#std-label-projects) that contains the specified cluster, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Unique identifier for the [project](https://docs.atlas.mongodb.com/organizations-projects/#std-label-projects) that contains the specified cluster, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) Name of the cluster containing the collection with one or more Atlas Search indexes.
 * `database_name` - (Required) Name of the database containing the collection with one or more Atlas Search indexes.
 * `collection_name` - (Required) Name of the collection with one or more Atlas Search indexes.

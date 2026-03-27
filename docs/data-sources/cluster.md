@@ -47,7 +47,7 @@ data "mongodbatlas_cluster" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the cluster, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique ID for the project to create the cluster, also known as `groupId` in the official documentation.
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed.
 
 ## Attributes Reference

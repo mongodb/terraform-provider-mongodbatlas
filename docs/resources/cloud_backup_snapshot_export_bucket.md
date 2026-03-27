@@ -41,7 +41,7 @@ resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `groupId` in the official documentation.
 * `bucket_name` - (Required) Name of the bucket that the provided role ID is authorized to access.
 * `cloud_provider` - (Required) Name of the provider of the cloud service where Atlas can access the S3 bucket.
 * `iam_role_id` - Unique identifier of the role that Atlas can use to access the bucket. Required if `cloud_provider` is set to `AWS`.

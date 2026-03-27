@@ -19,7 +19,7 @@ data "private_endpoint_regional_mode" "test" {
 ```
 
 ## Argument Reference
-* `project_id` - (Required) Unique identifier for the project, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Unique identifier for the project, also known as `groupId` in the official documentation.
 * `enabled` - (Optional) Flag that indicates whether the regionalized private endpoitn setting is enabled for the project.
 
 ## Attributes Reference

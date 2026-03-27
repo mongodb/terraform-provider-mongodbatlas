@@ -23,7 +23,7 @@ data "mongodbatlas_serverless_instance" "test_two" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project that contains your serverless instance, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project that contains your serverless instance, also known as `groupId` in the official documentation.
 * `name` - (Required) Human-readable label that identifies your serverless instance.
 
 ## Attributes Reference

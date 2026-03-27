@@ -70,7 +70,7 @@ data "mongodbatlas_x509_authentication_database_user" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Identifier for the Atlas project associated with the X.509 configuration, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Identifier for the Atlas project associated with the X.509 configuration, also known as `groupId` in the official documentation.
 * `username` - (Optional) Username of the database user to create a certificate for.
 
 ## Attributes Reference

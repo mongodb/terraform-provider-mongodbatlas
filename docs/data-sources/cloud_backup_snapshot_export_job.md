@@ -38,7 +38,7 @@ data "mongodbatlas_cloud_backup_snapshot_export_job" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project which contains the Atlas cluster whose snapshot you want to retrieve, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project which contains the Atlas cluster whose snapshot you want to retrieve, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) Name of the Atlas cluster whose export job you want to retrieve.
 * `export_job_id` -(Required) Unique identifier of the export job to retrieve.
 

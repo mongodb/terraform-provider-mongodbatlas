@@ -96,7 +96,7 @@ resource "mongodbatlas_global_cluster_config" "config" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique ID for the project, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) The name of the Global Cluster.
 
 ## Attributes Reference

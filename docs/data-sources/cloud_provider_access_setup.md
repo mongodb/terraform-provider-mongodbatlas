@@ -56,7 +56,7 @@ data "mongodbatlas_cloud_provider_access_setup" "single_setup" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to get all Cloud Provider Access, also known as `group_id` in the official documentation 
+* `project_id` - (Required) The unique ID for the project to get all Cloud Provider Access, also known as `groupId` in the official documentation 
 * `provider_name` - (Required) cloud provider name. Supported values: `AWS`, `AZURE`, and `GCP`.
 * `role_id` - (Required) unique role id among all the roles provided by MongoDB Atlas. 
 

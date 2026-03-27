@@ -25,7 +25,7 @@ data "mongodbatlas_project_invitation" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project to which you invited the user, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project to which you invited the user, also known as `groupId` in the official documentation.
 * `username` - (Required) Email address of the invited user. This is the address to which Atlas sends the invite. If the user accepts the invitation, they log in to Atlas with this username.
 * `invitation_id` - (Required) Unique 24-hexadecimal digit string that identifies the invitation in Atlas.
 

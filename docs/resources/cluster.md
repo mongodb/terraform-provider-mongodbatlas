@@ -262,7 +262,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create the cluster, also known as `group_id` in the official documentation.
+* `project_id` - (Required) The unique ID for the project to create the cluster, also known as `groupId` in the official documentation.
 * `provider_name` - (Required) Cloud service provider on which the servers are provisioned.
 
     The possible values are:
