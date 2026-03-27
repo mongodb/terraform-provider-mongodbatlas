@@ -87,6 +87,17 @@ func (d *pluralDS) PostReadAPICall(req autogen.HandleReadReq, result autogen.API
 	if err := json.Unmarshal(result.Body, &obj); err != nil {
 		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
 	}
+
+	// Mirror SDKv2 behavior for omitted optional strings
+	if results, ok := obj["results"].([]any); ok {
+		for i := range results {
+			if entry, ok := results[i].(map[string]any); ok {
+				normalizeOptionalStringFields(entry)
+				results[i] = entry
+			}
+		}
+		obj["results"] = results
+	}
 	obj["id"] = model.ProjectId.ValueString()
 
 	body, err := json.Marshal(obj)
