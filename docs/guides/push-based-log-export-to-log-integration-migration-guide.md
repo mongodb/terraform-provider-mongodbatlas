@@ -37,7 +37,7 @@ This migration uses a **create-before-destroy** pattern rather than a `moved` bl
 
 ## Migration Steps
 
-For complete working examples, see the [migration examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_push_based_log_export_to_log_integration/).
+For complete working examples, see the [migration examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_push_based_log_export_to_log_integration/).
 
 ### Step 1: Create the New Resource
 
@@ -106,8 +106,8 @@ Confirm the migration is complete:
 If you are using modules to manage log exports, the migration follows a similar create-before-destroy approach with a feature flag pattern.
 
 For complete working examples, see:
-- [Module maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_push_based_log_export_to_log_integration/module_maintainer)
-- [Module user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_push_based_log_export_to_log_integration/module_user)
+- [Module maintainer example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_push_based_log_export_to_log_integration/module_maintainer)
+- [Module user example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_push_based_log_export_to_log_integration/module_user)
 
 ### Module Maintainer Steps
 
@@ -208,7 +208,7 @@ The delay between creating the new resource and destroying the old one ensures:
 
 ## Further Resources
 
-- [Migration Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_push_based_log_export_to_log_integration)
+- [Migration Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_push_based_log_export_to_log_integration)
 - [Log Integration Resource Documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/log_integration)
 - [Log Integration Data Source Documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/log_integration)
 - [Push-Based Log Export Resource Documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/push_based_log_export)

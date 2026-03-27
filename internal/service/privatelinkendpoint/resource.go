@@ -213,6 +213,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsUpdate, privateLinkID, err))
 	}
+	if err := d.Set("supported_remote_regions", regions); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "supported_remote_regions", privateLinkID, err))
+	}
 	return resourceRead(ctx, d, meta)
 }
 
@@ -296,8 +299,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "port_mapping_enabled", privateLinkID, err))
 	}
 
-	if err := d.Set("supported_remote_regions", privateEndpoint.SupportedRemoteRegions); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "supported_remote_regions", privateLinkID, err))
+	if regions := privateEndpoint.GetSupportedRemoteRegions(); len(regions) > 0 {
+		if err := d.Set("supported_remote_regions", regions); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "supported_remote_regions", privateLinkID, err))
+		}
 	}
 
 	if privateEndpoint.GetErrorMessage() != "" {

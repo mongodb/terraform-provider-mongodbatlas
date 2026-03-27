@@ -136,7 +136,7 @@ After a successful import:
 
 ## Example: Complete Import Workflow
 
-For a complete example of importing an organization, including all configuration files and detailed instructions, see the [organization-import example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_organization/organization-import) in the provider repository.
+For a complete example of importing an organization, including all configuration files and detailed instructions, see the [organization-import example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_organization/organization-import) in the provider repository.
 
 ## Troubleshooting
 
@@ -149,5 +149,5 @@ For a complete example of importing an organization, including all configuration
 ## See Also
 
 - [mongodbatlas_organization Resource Documentation](../resources/organization)
-- [Example: Creating a New Organization](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_organization) 
+- [Example: Creating a New Organization](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_organization) 
 - [MongoDB Atlas Admin API Organization](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-organizations).

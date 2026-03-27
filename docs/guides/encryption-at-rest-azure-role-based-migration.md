@@ -157,4 +157,4 @@ Once applied, your encryption at rest configuration starts using role-based auth
 
 ## Additional Resources
 
-- [Azure Encryption at Rest Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest/azure)
+- [Azure Encryption at Rest Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_encryption_at_rest/azure)
