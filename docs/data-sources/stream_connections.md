@@ -17,7 +17,7 @@ data "mongodbatlas_stream_connections" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `instance_name` - (Deprecated) Label that identifies the stream processing workspace. Attribute is deprecated and will be removed in following major versions in favor of `workspace_name`.
 * `workspace_name` - (Optional) Label that identifies the stream processing workspace. Conflicts with `instance_name`.
 
@@ -36,7 +36,7 @@ In addition to all arguments above, it also exports the following attributes:
 
 ### Stream Connection
 
-* `project_id` - Unique 24-hexadecimal digit string that identifies your project.
+* `project_id` - Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `workspace_name` - Label that identifies the stream processing workspace.
 * `connection_name` - Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
 * `type` - Type of connection. `AWSLambda`, `Cluster`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.

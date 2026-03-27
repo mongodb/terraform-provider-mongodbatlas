@@ -37,7 +37,7 @@ data "mongodbatlas_stream_instance" "example" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `instance_name` - (Required) Human-readable label that identifies the stream instance.
 
 ## Attributes Reference

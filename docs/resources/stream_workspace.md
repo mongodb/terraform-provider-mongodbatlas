@@ -46,7 +46,7 @@ resource "mongodbatlas_stream_workspace" "example" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `workspace_name` - (Required) Label that identifies the stream workspace.
 * `data_process_region` - (Required) Cloud service provider and region where MongoDB Cloud performs stream processing. See [data process region](#data-process-region).
 * `stream_config` - (Optional) Configuration options for an Atlas Stream Processing Instance. See [stream config](#stream-config)
