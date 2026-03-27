@@ -21,6 +21,8 @@ TARGET_DIRS=(
   "./templates/resources"
   "./docs/data-sources"
   "./templates/data-sources"
+  "./docs/ephemeral-resources"
+  "./templates/ephemeral-resources"
   "./docs/guides"
 )
 
