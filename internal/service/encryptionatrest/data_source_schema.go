@@ -142,7 +142,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. It is also known as `groupId` in the official documentation.",
 			},
 			"id": schema.StringAttribute{
 				Computed: true,

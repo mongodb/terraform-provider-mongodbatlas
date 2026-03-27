@@ -19,7 +19,6 @@ See [Encryption at Rest](https://docs.atlas.mongodb.com/security-kms-encryption/
 
 ~> **IMPORTANT** Atlas limits this feature to dedicated cluster tiers of M10 and greater. For more information see: https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-encryption-at-rest-using-customer-key-management
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 
 -> **IMPORTANT NOTE** To disable encryption at rest with customer key management for a project, set `encryption_at_rest_provider` to `"NONE"` in all existing clusters in the project that use custom key management or delete said clusters.
@@ -178,7 +177,7 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 
 ### Required
 
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. It is also known as `groupId` in the official documentation.
 
 ### Optional
 

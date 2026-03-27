@@ -6,7 +6,6 @@ subcategory: "Projects"
 
 `mongodbatlas_project_ip_access_lists` returns all IP Access List entries for a project. The access list grants access from IPs, CIDRs or AWS Security Groups (if VPC Peering is enabled) to clusters within the Project.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 ## Example Usage
 ```terraform
@@ -33,7 +32,7 @@ data "mongodbatlas_project_ip_access_lists" "this" {
 
 ### Required
 
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. It is also known as `groupId` in the official documentation.
 
 ### Read-Only
 

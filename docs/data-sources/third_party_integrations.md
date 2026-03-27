@@ -43,7 +43,7 @@ In addition to all arguments above, the following attributes are exported:
 ### Third-Party Service Integration 
 
 * `project_id` - ID of the Atlas project the Third-Party Service Integration belongs to, also known as `groupId` in the official documentation.
-* `type` - Thirt-Party service integration type.
+* `type` - Third-Party service integration type.
 * `id` - Unique identifier of the integration.
 
      * PAGER_DUTY
