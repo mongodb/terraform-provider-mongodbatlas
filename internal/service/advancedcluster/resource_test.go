@@ -1123,8 +1123,9 @@ type basicReplicasetConfig struct {
 
 func configBasicReplicaset(t *testing.T, cfg *basicReplicasetConfig) string {
 	t.Helper()
-	if cfg.TimeoutStr == "" {
-		cfg.TimeoutStr = `
+	timeoutStr := cfg.TimeoutStr
+	if timeoutStr == "" {
+		timeoutStr = `
 			timeouts = {
 				create = "6000s"
 			}`
@@ -1154,7 +1155,7 @@ func configBasicReplicaset(t *testing.T, cfg *basicReplicasetConfig) string {
 			}]
 			%[3]s
 		}
-	`, cfg.ProjectID, cfg.ClusterName, cfg.Extra, cfg.TimeoutStr, cfg.InstanceSize) + dataSourcesConfig
+	`, cfg.ProjectID, cfg.ClusterName, cfg.Extra, timeoutStr, cfg.InstanceSize) + dataSourcesConfig
 }
 
 func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool) string {
@@ -2900,6 +2901,7 @@ func TestAccAdvancedCluster_updateDeleteTimeoutReplicaset(t *testing.T) {
 		timeoutConfig          = acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout)
 	)
 	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
