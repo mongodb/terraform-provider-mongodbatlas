@@ -13,12 +13,24 @@ import (
 var _ autogen.PostReadAPICallHook = (*ds)(nil)
 var _ autogen.DataSourceSchemaHook = (*ds)(nil)
 var _ autogen.PostReadAPICallHook = (*pluralDS)(nil)
+var _ autogen.DataSourceSchemaHook = (*pluralDS)(nil)
 
 type TFDSExpandedModel struct {
 	ID types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
 }
 
+type TFPluralDSExpandedModel struct {
+	ID types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
+}
+
 func (d *ds) DataSourceSchema(_ context.Context, baseSchema datasourceschema.Schema) datasourceschema.Schema {
+	baseSchema.Attributes["id"] = datasourceschema.StringAttribute{
+		Computed: true,
+	}
+	return baseSchema
+}
+
+func (d *pluralDS) DataSourceSchema(_ context.Context, baseSchema datasourceschema.Schema) datasourceschema.Schema {
 	baseSchema.Attributes["id"] = datasourceschema.StringAttribute{
 		Computed: true,
 	}

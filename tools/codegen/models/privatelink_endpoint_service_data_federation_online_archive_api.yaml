@@ -209,5 +209,286 @@ operations:
         http_method: POST
         path: /api/atlas/v2/groups/{projectId}/privateNetworkSettings/endpointIds
     version_header: application/vnd.atlas.2023-01-01+json
+data_sources:
+    singular:
+        description: Returns the specified private endpoint for Federated Database Instances or Online Archives in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only or Project Charts Admin roles.
+        attributes:
+            - string: {}
+              description: Link ID that identifies the Azure private endpoint connection.
+              computed_optional_required: computed
+              tf_schema_name: azure_link_id
+              tf_model_name: AzureLinkId
+              api_name: azureLinkId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Human-readable string to associate with this private endpoint.
+              computed_optional_required: computed
+              tf_schema_name: comment
+              tf_model_name: Comment
+              api_name: comment
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`.
+              computed_optional_required: computed
+              tf_schema_name: customer_endpoint_dns_name
+              tf_model_name: CustomerEndpointDNSName
+              api_name: customerEndpointDNSName
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: IP address used to connect to the Azure private endpoint.
+              computed_optional_required: computed
+              tf_schema_name: customer_endpoint_ip_address
+              tf_model_name: CustomerEndpointIPAddress
+              api_name: customerEndpointIPAddress
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 22-character alphanumeric string that identifies the private endpoint.
+              computed_optional_required: required
+              tf_schema_name: endpoint_id
+              tf_model_name: EndpointId
+              api_name: endpointId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Error message describing a failure approving the private endpoint request.
+              computed_optional_required: computed
+              tf_schema_name: error_message
+              tf_model_name: ErrorMessage
+              api_name: errorMessage
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string:
+                default: AWS
+              description: Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services only.
+              computed_optional_required: computed
+              tf_schema_name: provider_name
+              tf_model_name: ProviderName
+              api_name: provider
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`.
+              computed_optional_required: computed
+              tf_schema_name: region
+              tf_model_name: Region
+              api_name: region
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Status of the private endpoint connection request.
+              computed_optional_required: computed
+              tf_schema_name: status
+              tf_model_name: Status
+              api_name: status
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string:
+                default: DATA_LAKE
+              description: Human-readable label that identifies the resource type associated with this private endpoint.
+              computed_optional_required: computed
+              tf_schema_name: type
+              tf_model_name: Type
+              api_name: type
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+        expanded_model: true
+    plural:
+        description: Returns all private endpoints for Federated Database Instances and Online Archives in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only or Project Charts Admin roles.
+        attributes:
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies your project.
+              computed_optional_required: required
+              tf_schema_name: project_id
+              tf_model_name: ProjectId
+              api_name: groupId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - list_nested:
+                nested_object:
+                    attributes:
+                        - string: {}
+                          description: Link ID that identifies the Azure private endpoint connection.
+                          computed_optional_required: computed
+                          tf_schema_name: azure_link_id
+                          tf_model_name: AzureLinkId
+                          api_name: azureLinkId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Human-readable string to associate with this private endpoint.
+                          computed_optional_required: computed
+                          tf_schema_name: comment
+                          tf_model_name: Comment
+                          api_name: comment
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`.
+                          computed_optional_required: computed
+                          tf_schema_name: customer_endpoint_dns_name
+                          tf_model_name: CustomerEndpointDNSName
+                          api_name: customerEndpointDNSName
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: IP address used to connect to the Azure private endpoint.
+                          computed_optional_required: computed
+                          tf_schema_name: customer_endpoint_ip_address
+                          tf_model_name: CustomerEndpointIPAddress
+                          api_name: customerEndpointIPAddress
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Unique 22-character alphanumeric string that identifies the private endpoint.
+                          computed_optional_required: computed
+                          tf_schema_name: endpoint_id
+                          tf_model_name: EndpointId
+                          api_name: endpointId
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Error message describing a failure approving the private endpoint request.
+                          computed_optional_required: computed
+                          tf_schema_name: error_message
+                          tf_model_name: ErrorMessage
+                          api_name: errorMessage
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string:
+                            default: AWS
+                          description: Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services only.
+                          computed_optional_required: computed
+                          tf_schema_name: provider_name
+                          tf_model_name: ProviderName
+                          api_name: provider
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`.
+                          computed_optional_required: computed
+                          tf_schema_name: region
+                          tf_model_name: Region
+                          api_name: region
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string: {}
+                          description: Status of the private endpoint connection request.
+                          computed_optional_required: computed
+                          tf_schema_name: status
+                          tf_model_name: Status
+                          api_name: status
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - string:
+                            default: DATA_LAKE
+                          description: Human-readable label that identifies the resource type associated with this private endpoint.
+                          computed_optional_required: computed
+                          tf_schema_name: type
+                          tf_model_name: Type
+                          api_name: type
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+              description: List of returned documents that MongoDB Cloud provides when completing this request.
+              custom_type:
+                package: customtypes
+                name: Results
+                model: customtypes.NestedListValue[TFResultsModel]
+                schema: customtypes.NewNestedListType[TFResultsModel](ctx)
+              computed_optional_required: computed
+              tf_schema_name: results
+              tf_model_name: Results
+              api_name: results
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+        expanded_model: true
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/privateNetworkSettings/endpointIds/{endpointId}
+        list:
+            http_method: GET
+            path: /api/atlas/v2/groups/{projectId}/privateNetworkSettings/endpointIds
+        version_header: application/vnd.atlas.2023-01-01+json
 name: privatelink_endpoint_service_data_federation_online_archive_api
 packageName: privatelinkendpointservicedatafederationonlinearchiveapi
