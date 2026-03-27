@@ -18,6 +18,10 @@ type PostReadAPICallHook interface {
 	PostReadAPICall(HandleReadReq, APICallResult) APICallResult
 }
 
+type PostReadListAPICallHook interface {
+	PostReadListAPICall(HandleReadReq, APICallResult) APICallResult
+}
+
 type PreCreateAPICallHook interface {
 	PreCreateAPICall(callParams config.APICallParams, bodyReq []byte) (config.APICallParams, []byte)
 }
