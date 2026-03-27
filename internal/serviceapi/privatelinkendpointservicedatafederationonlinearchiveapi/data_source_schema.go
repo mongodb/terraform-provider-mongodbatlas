@@ -62,6 +62,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 }
 
 type TFDSModel struct {
+	TFDSExpandedModel
 	AzureLinkId               types.String `tfsdk:"azure_link_id" autogen:"omitjson"`
 	Comment                   types.String `tfsdk:"comment" autogen:"omitjson"`
 	CustomerEndpointDNSName   types.String `tfsdk:"customer_endpoint_dns_name" autogen:"omitjson"`

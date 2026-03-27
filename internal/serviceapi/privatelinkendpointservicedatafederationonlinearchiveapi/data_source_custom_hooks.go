@@ -12,7 +12,7 @@ import (
 
 var _ autogen.PostReadAPICallHook = (*ds)(nil)
 var _ autogen.DataSourceSchemaHook = (*ds)(nil)
-var _ autogen.PostReadAPICallHook = (*pluralDS)(nil)
+var _ autogen.PostReadListAPICallHook = (*pluralDS)(nil)
 var _ autogen.DataSourceSchemaHook = (*pluralDS)(nil)
 
 type TFDSExpandedModel struct {
@@ -71,8 +71,8 @@ func (d *ds) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 	}
 }
 
-// PostReadAPICall injects the project_id as the plural data source ID to mimic logic of manual resource.
-func (d *pluralDS) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
+// PostReadListAPICall injects the project_id as plural data source ID after list pagination has completed.
+func (d *pluralDS) PostReadListAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
 	if result.Err != nil {
 		return result
 	}

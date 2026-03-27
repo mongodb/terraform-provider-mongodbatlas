@@ -1204,6 +1204,7 @@ resources:
         path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
         method: GET
       schema:
+        expanded_model: true
         aliases:
           groupId: projectId
           provider: providerName
