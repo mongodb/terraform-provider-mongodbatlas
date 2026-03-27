@@ -18,7 +18,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	"go.mongodb.org/atlas-sdk/v20250312016/admin"
+	"go.mongodb.org/atlas-sdk/v20250312017/admin"
 )
 
 const (
@@ -207,7 +207,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	regions := conversion.ExpandStringList(d.Get("supported_remote_regions").(*schema.Set).List())
 	updateRequest := &admin.ApiAtlasModifyEndpointServiceRequest{
 		CloudProvider:          providerName,
-		SupportedRemoteRegions: regions,
+		SupportedRemoteRegions: &regions,
 	}
 	_, _, err := connV2.PrivateEndpointServicesApi.UpdatePrivateEndpointService(ctx, projectID, privateLinkID, updateRequest).Execute()
 	if err != nil {
