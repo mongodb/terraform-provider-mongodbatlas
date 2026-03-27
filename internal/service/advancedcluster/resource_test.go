@@ -962,15 +962,15 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasicReplicaset(t, projectID, clusterName, "", ""),
+				Config: configBasicReplicaset(t, &basicReplicasetConfig{ProjectID: projectID, ClusterName: clusterName, InstanceSize: "M10"}),
 				Check:  checks,
 			},
 			{
-				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate, ""),
+				Config: configBasicReplicaset(t, &basicReplicasetConfig{ProjectID: projectID, ClusterName: clusterName, Extra: fullUpdate, InstanceSize: "M10"}),
 				Check:  checksUpdate,
 			},
 			{
-				Config: configBasicReplicaset(t, projectID, clusterName, "", ""),
+				Config: configBasicReplicaset(t, &basicReplicasetConfig{ProjectID: projectID, ClusterName: clusterName, InstanceSize: "M10"}),
 				Check:  checks,
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -1052,7 +1052,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 		configCall             = func(timeoutSection string) string {
-			return configBasicReplicaset(t, projectID, clusterName, "", timeoutSection)
+			return configBasicReplicaset(t, &basicReplicasetConfig{ProjectID: projectID, ClusterName: clusterName, TimeoutStr: timeoutSection, InstanceSize: "M10"})
 		}
 		timeoutsStrShort = `
 			timeouts = {
@@ -1113,17 +1113,25 @@ func waitOnClusterDeleteDone(t *testing.T, projectID, clusterName string) {
 	time.Sleep(2 * time.Minute) // Decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name".
 }
 
-func configBasicReplicaset(t *testing.T, projectID, clusterName, extra, timeoutStr string) string {
+type basicReplicasetConfig struct {
+	ProjectID    string
+	ClusterName  string
+	Extra        string
+	TimeoutStr   string
+	InstanceSize string
+}
+
+func configBasicReplicaset(t *testing.T, cfg *basicReplicasetConfig) string {
 	t.Helper()
-	if timeoutStr == "" {
-		timeoutStr = `
+	if cfg.TimeoutStr == "" {
+		cfg.TimeoutStr = `
 			timeouts = {
 				create = "6000s"
 			}`
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
-			%[4]s		
+			%[4]s
 			project_id = %[1]q
 			name = %[2]q
 			cluster_type = "REPLICASET"
@@ -1139,14 +1147,14 @@ func configBasicReplicaset(t *testing.T, projectID, clusterName, extra, timeoutS
 					}
 					electable_specs = {
 						node_count = 3
-						instance_size = "M10"
+						instance_size = %[5]q
 						disk_size_gb = 10
 					}
 				}]
 			}]
 			%[3]s
 		}
-	`, projectID, clusterName, extra, timeoutStr) + dataSourcesConfig
+	`, cfg.ProjectID, cfg.ClusterName, cfg.Extra, cfg.TimeoutStr, cfg.InstanceSize) + dataSourcesConfig
 }
 
 func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool) string {
@@ -2884,31 +2892,30 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 	})
 }
 
-func TestAccAdvancedCluster_updateDeleteTimeoutFlex(t *testing.T) {
+func TestAccAdvancedCluster_updateDeleteTimeoutReplicaset(t *testing.T) {
 	var (
-		projectID     = acc.ProjectIDExecution(t)
-		clusterName   = acc.RandomName()
-		updateTimeout = "1s"
-		deleteTimeout = "1s"
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
+		updateTimeout          = "1s"
+		deleteTimeout          = "1s"
+		timeoutConfig          = acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout)
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyFlexCluster,
+		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout), false, nil),
+				Config: configBasicReplicaset(t, &basicReplicasetConfig{ProjectID: projectID, ClusterName: clusterName, TimeoutStr: timeoutConfig, InstanceSize: "M10"}),
 			},
 			{
-				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout), true, nil),
+				Config:      configBasicReplicaset(t, &basicReplicasetConfig{ProjectID: projectID, ClusterName: clusterName, TimeoutStr: timeoutConfig, InstanceSize: "M20"}),
 				ExpectError: regexp.MustCompile("timeout while waiting for state to become 'IDLE'"),
 			},
 			{
 				Config:      acc.ConfigEmpty(), // triggers delete and because delete timeout is 1s, it times out
-				ExpectError: regexp.MustCompile("Error in flex delete"),
+				ExpectError: regexp.MustCompile("Error in delete"),
 			},
 			{
-				// deletion of the flex cluster has been triggered, but has timed out in previous step, so this is needed in order to avoid "Error running post-test destroy, there may be dangling resource [...] Cluster already requested to be deleted"
+				// deletion of the cluster has been triggered, but has timed out in previous step, so this is needed in order to avoid "Error running post-test destroy, there may be dangling resource"
 				Config: acc.ConfigRemove(resourceName),
 			},
 		},
