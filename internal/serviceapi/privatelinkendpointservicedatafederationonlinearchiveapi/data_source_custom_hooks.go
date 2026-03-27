@@ -12,6 +12,7 @@ import (
 
 var _ autogen.PostReadAPICallHook = (*ds)(nil)
 var _ autogen.DataSourceSchemaHook = (*ds)(nil)
+var _ autogen.PostReadAPICallHook = (*pluralDS)(nil)
 
 type TFDSExpandedModel struct {
 	ID types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
@@ -45,6 +46,45 @@ func (d *ds) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
 	}
 	obj["id"] = craftedID
+
+	body, err := json.Marshal(obj)
+	if err != nil {
+		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
+	}
+
+	return autogen.APICallResult{
+		Body: body,
+		Err:  nil,
+		Resp: result.Resp,
+	}
+}
+
+// PostReadAPICall injects the project_id as the plural data source ID to mimic logic of manual resource.
+func (d *pluralDS) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
+	if result.Err != nil {
+		return result
+	}
+	model, ok := req.State.(*TFPluralDSModel)
+	if !ok || model.ProjectId.IsNull() {
+		return result
+	}
+
+	var obj map[string]any
+	if err := json.Unmarshal(result.Body, &obj); err != nil {
+		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
+	}
+
+	// Mirror SDKv2 behavior for omitted optional strings
+	if results, ok := obj["results"].([]any); ok {
+		for i := range results {
+			if entry, ok := results[i].(map[string]any); ok {
+				normalizeOptionalStringFields(entry)
+				results[i] = entry
+			}
+		}
+		obj["results"] = results
+	}
+	obj["id"] = model.ProjectId.ValueString()
 
 	body, err := json.Marshal(obj)
 	if err != nil {
