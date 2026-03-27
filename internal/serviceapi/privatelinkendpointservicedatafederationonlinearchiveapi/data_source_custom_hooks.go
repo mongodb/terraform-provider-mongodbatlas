@@ -57,6 +57,8 @@ func (d *ds) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 	if err := json.Unmarshal(result.Body, &obj); err != nil {
 		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
 	}
+	// Mirror SDKv2 behavior for omitted optional strings in state.
+	normalizeOptionalStringFields(obj)
 	obj["id"] = craftedID
 
 	body, err := json.Marshal(obj)
