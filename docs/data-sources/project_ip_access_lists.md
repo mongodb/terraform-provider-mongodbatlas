@@ -32,7 +32,7 @@ data "mongodbatlas_project_ip_access_lists" "this" {
 
 ### Required
 
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. It is also known as `groupId` in the official documentation.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
 
 ### Read-Only
 
