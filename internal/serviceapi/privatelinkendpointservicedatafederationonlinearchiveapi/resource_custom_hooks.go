@@ -120,19 +120,6 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 	}
 }
 
-// Mirrors logic of SDKv2 manual resource for "" values in state instead of null values
-func normalizeOptionalStringFields(obj map[string]any) {
-	setEmptyStringIfMissing(obj, "comment")
-	setEmptyStringIfMissing(obj, "region")
-	setEmptyStringIfMissing(obj, "customerEndpointDNSName")
-}
-
-func setEmptyStringIfMissing(obj map[string]any, responseKey string) {
-	if val, exists := obj[responseKey]; !exists || val == nil {
-		obj[responseKey] = ""
-	}
-}
-
 func (r *rs) PreImport(id string) (string, error) {
 	if strings.Contains(id, "/") {
 		return id, nil
