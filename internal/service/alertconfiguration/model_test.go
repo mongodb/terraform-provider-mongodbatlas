@@ -154,6 +154,52 @@ func TestThresholdConfigSDKToTFModel(t *testing.T) {
 				},
 			},
 		},
+		"SDK response with MetricName and Mode": {
+			SDKResp: &admin.StreamProcessorMetricThreshold{
+				Threshold:  new(100.0),
+				Operator:   new("GREATER_THAN"),
+				Units:      new("RAW"),
+				MetricName: new("STREAM_PROCESSOR_KAFKA_LAG"),
+				Mode:       new("AVERAGE"),
+			},
+			currentStateThresholdConfig: []alertconfiguration.TfThresholdConfigModel{
+				{
+					Threshold:  types.Float64Value(100.0),
+					Operator:   types.StringValue("GREATER_THAN"),
+					Units:      types.StringValue("RAW"),
+					MetricName: types.StringValue("STREAM_PROCESSOR_KAFKA_LAG"),
+					Mode:       types.StringValue("AVERAGE"),
+				},
+			},
+			expectedTFModel: []alertconfiguration.TfThresholdConfigModel{
+				{
+					Threshold:  types.Float64Value(100.0),
+					Operator:   types.StringValue("GREATER_THAN"),
+					Units:      types.StringValue("RAW"),
+					MetricName: types.StringValue("STREAM_PROCESSOR_KAFKA_LAG"),
+					Mode:       types.StringValue("AVERAGE"),
+				},
+			},
+		},
+		"Import: SDK response with MetricName and Mode (no current state)": {
+			SDKResp: &admin.StreamProcessorMetricThreshold{
+				Threshold:  new(50.0),
+				Operator:   new("LESS_THAN"),
+				Units:      new("RAW"),
+				MetricName: new("STREAM_PROCESSOR_DLQ_MESSAGE_COUNT"),
+				Mode:       new("AVERAGE"),
+			},
+			currentStateThresholdConfig: []alertconfiguration.TfThresholdConfigModel{},
+			expectedTFModel: []alertconfiguration.TfThresholdConfigModel{
+				{
+					Threshold:  types.Float64Value(50.0),
+					Operator:   types.StringValue("LESS_THAN"),
+					Units:      types.StringValue("RAW"),
+					MetricName: types.StringValue("STREAM_PROCESSOR_DLQ_MESSAGE_COUNT"),
+					Mode:       types.StringValue("AVERAGE"),
+				},
+			},
+		},
 	}
 
 	for name, tc := range testCases {
@@ -341,6 +387,24 @@ func TestThresholdTFModelToSDK(t *testing.T) {
 				Threshold: new(1.0),
 				Operator:  new("LESS_THAN"),
 				Units:     new("MINUTES"),
+			},
+		},
+		"TF model with MetricName and Mode": {
+			tfModel: []alertconfiguration.TfThresholdConfigModel{
+				{
+					Threshold:  types.Float64Value(100.0),
+					Operator:   types.StringValue("GREATER_THAN"),
+					Units:      types.StringValue("RAW"),
+					MetricName: types.StringValue("STREAM_PROCESSOR_KAFKA_LAG"),
+					Mode:       types.StringValue("AVERAGE"),
+				},
+			},
+			expectedSDKReq: &admin.StreamProcessorMetricThreshold{
+				Threshold:  new(100.0),
+				Operator:   new("GREATER_THAN"),
+				Units:      new("RAW"),
+				MetricName: new("STREAM_PROCESSOR_KAFKA_LAG"),
+				Mode:       new("AVERAGE"),
 			},
 		},
 	}
