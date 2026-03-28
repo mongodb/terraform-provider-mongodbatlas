@@ -80,9 +80,11 @@ type TfMetricThresholdConfigModel struct {
 }
 
 type TfThresholdConfigModel struct {
-	Threshold types.Float64 `tfsdk:"threshold"`
-	Operator  types.String  `tfsdk:"operator"`
-	Units     types.String  `tfsdk:"units"`
+	Threshold  types.Float64 `tfsdk:"threshold"`
+	MetricName types.String  `tfsdk:"metric_name"`
+	Operator   types.String  `tfsdk:"operator"`
+	Units      types.String  `tfsdk:"units"`
+	Mode       types.String  `tfsdk:"mode"`
 }
 
 type TfNotificationModel struct {
@@ -210,6 +212,25 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 				},
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
+						"metric_name": schema.StringAttribute{
+							Optional:    true,
+							Description: "Human-readable label that identifies the metric against which MongoDB Cloud checks the configured threshold. Applies to stream processor alert types.",
+							Validators: []validator.String{
+								stringvalidator.OneOf(
+									"STREAM_PROCESSOR_CHANGE_STREAM_LAG",
+									"STREAM_PROCESSOR_DLQ_MESSAGE_COUNT",
+									"STREAM_PROCESSOR_KAFKA_LAG",
+									"STREAM_PROCESSOR_OUTPUT_MESSAGE_COUNT",
+								),
+							},
+						},
+						"mode": schema.StringAttribute{
+							Optional:    true,
+							Description: "MongoDB Cloud computes the current metric value as an average.",
+							Validators: []validator.String{
+								stringvalidator.OneOf("AVERAGE"),
+							},
+						},
 						"operator": schema.StringAttribute{
 							Optional: true,
 						},

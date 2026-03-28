@@ -140,6 +140,12 @@ var alertConfigDSSchemaAttributes = map[string]schema.Attribute{
 		Computed: true,
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
+				"metric_name": schema.StringAttribute{
+					Computed: true,
+				},
+				"mode": schema.StringAttribute{
+					Computed: true,
+				},
 				"operator": schema.StringAttribute{
 					Computed: true,
 				},
@@ -383,9 +389,11 @@ func convertThresholdToCtyValues(threshold *admin.StreamProcessorMetricThreshold
 		t = *threshold.Threshold
 	}
 	return map[string]cty.Value{
-		"operator":  ctyStringPtrVal(threshold.Operator),
-		"units":     ctyStringPtrVal(threshold.Units),
-		"threshold": cty.NumberFloatVal(float64(t)), // int in new SDK but keeping float64 for backward compatibility
+		"metric_name": ctyStringPtrVal(threshold.MetricName),
+		"mode":        ctyStringPtrVal(threshold.Mode),
+		"operator":    ctyStringPtrVal(threshold.Operator),
+		"units":       ctyStringPtrVal(threshold.Units),
+		"threshold":   cty.NumberFloatVal(float64(t)), // int in new SDK but keeping float64 for backward compatibility
 	}
 }
 

@@ -52,9 +52,11 @@ func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.Stream
 
 	v := tfThresholdConfigSlice[0]
 	return &admin.StreamProcessorMetricThreshold{
-		Operator:  v.Operator.ValueStringPointer(),
-		Units:     v.Units.ValueStringPointer(),
-		Threshold: new(v.Threshold.ValueFloat64()),
+		MetricName: v.MetricName.ValueStringPointer(),
+		Mode:       v.Mode.ValueStringPointer(),
+		Operator:   v.Operator.ValueStringPointer(),
+		Units:      v.Units.ValueStringPointer(),
+		Threshold:  new(v.Threshold.ValueFloat64()),
 	}
 }
 
@@ -225,14 +227,22 @@ func NewTFThresholdConfigModel(t *admin.StreamProcessorMetricThreshold, currStat
 	if len(currStateSlice) == 0 { // threshold was created elsewhere from terraform, or import statement is being called
 		return []TfThresholdConfigModel{
 			{
-				Operator:  conversion.StringNullIfEmpty(t.GetOperator()),
-				Threshold: types.Float64Value(float64(t.GetThreshold())), // int in new SDK but keeping float64 for backward compatibility
-				Units:     conversion.StringNullIfEmpty(t.GetUnits()),
+				MetricName: conversion.StringNullIfEmpty(t.GetMetricName()),
+				Mode:       conversion.StringNullIfEmpty(t.GetMode()),
+				Operator:   conversion.StringNullIfEmpty(t.GetOperator()),
+				Threshold:  types.Float64Value(float64(t.GetThreshold())), // int in new SDK but keeping float64 for backward compatibility
+				Units:      conversion.StringNullIfEmpty(t.GetUnits()),
 			},
 		}
 	}
 	currState := currStateSlice[0]
 	newState := TfThresholdConfigModel{}
+	if !currState.MetricName.IsNull() {
+		newState.MetricName = conversion.StringNullIfEmpty(t.GetMetricName())
+	}
+	if !currState.Mode.IsNull() {
+		newState.Mode = conversion.StringNullIfEmpty(t.GetMode())
+	}
 	if !currState.Operator.IsNull() {
 		newState.Operator = conversion.StringNullIfEmpty(t.GetOperator())
 	}
