@@ -269,6 +269,36 @@ func TestAccConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSAlertConfiguration_withThresholdMetricName(t *testing.T) {
+	projectID := acc.ProjectIDExecution(t)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy(),
+		Steps: []resource.TestStep{
+			{
+				Config: configWithThresholdMetricName(projectID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "threshold_config.0.metric_name", "STREAM_PROCESSOR_KAFKA_LAG"),
+					resource.TestCheckResourceAttr(resourceName, "threshold_config.0.mode", "AVERAGE"),
+					resource.TestCheckResourceAttr(resourceName, "threshold_config.0.operator", "GREATER_THAN"),
+					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.0.metric_name", "STREAM_PROCESSOR_KAFKA_LAG"),
+					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.0.mode", "AVERAGE"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"updated"},
+			},
+		},
+	})
+}
+
 func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
@@ -1400,6 +1430,38 @@ func configWithThreshold(projectID string, enabled bool, threshold float64) stri
 			alert_configuration_id = mongodbatlas_alert_configuration.test.id
 		}
 	`, projectID, enabled, threshold)
+}
+
+func configWithThresholdMetricName(projectID string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = %[1]q
+			enabled    = true
+			event_type = "OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD"
+
+			notification {
+				type_name     = "GROUP"
+				interval_min  = 5
+				delay_min     = 0
+				sms_enabled   = false
+				email_enabled = true
+				roles = ["GROUP_DATA_ACCESS_READ_ONLY"]
+			}
+
+			threshold_config {
+				metric_name = "STREAM_PROCESSOR_KAFKA_LAG"
+				mode        = "AVERAGE"
+				operator    = "GREATER_THAN"
+				threshold   = 1000
+				units       = "RAW"
+			}
+		}
+
+		data "mongodbatlas_alert_configuration" "test" {
+			project_id             = mongodbatlas_alert_configuration.test.project_id
+			alert_configuration_id = mongodbatlas_alert_configuration.test.id
+		}
+	`, projectID)
 }
 
 func configWithOutputs(projectID, outputLabel string) string {
