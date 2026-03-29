@@ -10,7 +10,7 @@ subcategory: "Data Federation"
 
 -> **NOTE:** Updates are limited to the `comment` argument.
 
-## Example Usage
+## Example Usage: AWS provider
 
 ```terraform
 
@@ -44,12 +44,13 @@ The `service_name` value for the region in question can be found in the [MongoDB
 
 ## Argument Reference
 
-* `project_id` (Required) - Unique 24-hexadecimal digit string that identifies your project. 
-* `endpoint_id` (Required) - Unique 22-character alphanumeric string that identifies the private endpoint. See [Atlas Data Federation supports Amazon Web Services private endpoints using the AWS PrivateLink feature](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint).
-* `provider_name` (Required) - Human-readable label that identifies the cloud service provider. 
+* `project_id` (Required) - Unique 24-hexadecimal digit string that identifies your project.
+* `endpoint_id` (Required) - Unique 22-character alphanumeric string that identifies the private endpoint. See [Atlas Data Federation supports AWS and Azure private endpoints using the PrivateLink feature](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint).
+* `provider_name` (Required) - Human-readable label that identifies the cloud service provider. AWS and Azure are currently supported.
 * `timeouts` - (Optional) The duration to wait for the Private Endpoint Service resource for Data Federation and Online Archive to be created or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `2h`), `delete` (default: `2h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).  
-* `region` -  Human-readable label to identify the region of VPC endpoint.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/). If defined, you must also specify a value for `customer_endpoint_dns_name`.
-* `customer_endpoint_dns_name` - (Optional) Human-readable label to identify VPC endpoint DNS name. If defined, you must also specify a value for `region`.
+* `region` -  Human-readable label to identify the region of VPC endpoint.  Requires the **Atlas region name**, see the reference list for [each provider](https://www.mongodb.com/docs/atlas/data-federation/adf-overview/regions/?cloud-provider=azure&interface=atlas-ui). For `AWS`, if defined, you must also specify a value for `customer_endpoint_dns_name`.
+* `customer_endpoint_dns_name` - (Optional) Human-readable label to identify VPC endpoint DNS name in AWS. If defined, you must also specify a value for `region`.
+* `customer_endpoint_ip_address`: (Optional) Human-readable DNS name to identify the customer's endpoint in Azure. If defined, you must also specify a value for `region`.
 * `comment` - (Optional) Human-readable string to associate with this private endpoint.
 
 ## Attributes Reference
