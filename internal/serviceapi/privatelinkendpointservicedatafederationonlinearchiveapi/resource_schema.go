@@ -30,6 +30,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`.",
 			},
 			"customer_endpoint_ip_address": schema.StringAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "IP address used to connect to the Azure private endpoint.",
 			},

@@ -55,7 +55,7 @@ schema:
           request_only_required_on_create: false
         - string: {}
           description: IP address used to connect to the Azure private endpoint.
-          computed_optional_required: optional
+          computed_optional_required: computed_optional
           tf_schema_name: customer_endpoint_ip_address
           tf_model_name: CustomerEndpointIPAddress
           api_name: customerEndpointIPAddress
