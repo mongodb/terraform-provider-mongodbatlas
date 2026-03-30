@@ -458,10 +458,8 @@ func callReadWithHooksWithOptions(ctx context.Context, client *config.MongoDBCli
 		modifiedParams = preReadHook.PreReadAPICall(callParams)
 	}
 	callResult := callAPIWithoutBody(ctx, client, modifiedParams)
-	if applyPostRead {
-		if postReadHook, ok := hooks.(PostReadAPICallHook); ok {
-			return postReadHook.PostReadAPICall(req, callResult)
-		}
+	if postReadHook, ok := hooks.(PostReadAPICallHook); ok {
+		return postReadHook.PostReadAPICall(req, callResult)
 	}
 	return callResult
 }

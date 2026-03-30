@@ -6,13 +6,14 @@ import (
 
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 var _ autogen.PostReadAPICallHook = (*ds)(nil)
 var _ autogen.DataSourceSchemaHook = (*ds)(nil)
-var _ autogen.PostReadListAPICallHook = (*pluralDS)(nil)
+var _ autogen.PostReadAggregatedListAPICallHook = (*pluralDS)(nil)
 var _ autogen.DataSourceSchemaHook = (*pluralDS)(nil)
 
 type TFDSExpandedModel struct {
@@ -73,8 +74,8 @@ func (d *ds) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 	}
 }
 
-// PostReadListAPICall injects the project_id as plural data source ID after list pagination has completed.
-func (d *pluralDS) PostReadListAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
+// PostReadAggregatedListAPICall injects a generated ID after list pagination has completed.
+func (d *pluralDS) PostReadAggregatedListAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
 	if result.Err != nil {
 		return result
 	}
