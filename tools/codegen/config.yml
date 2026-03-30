@@ -1209,8 +1209,21 @@ resources:
             description: *project_id_description
           region:
             description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
+            # Mirrors logic of SDKv2 manual resource for "" values in state instead of null values
+            computability:
+              optional: true
+              computed: true
+          comment:
+            # Mirrors logic of SDKv2 manual resource for "" values in state instead of null values
+            computability:
+              optional: true
+              computed: true
           customer_endpoint_dns_name:
             description: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`."
+            # Mirrors logic of SDKv2 manual resource for "" values in state instead of null values
+            computability:
+              optional: true
+              computed: true
           provider_name:
             computability:
               required: true

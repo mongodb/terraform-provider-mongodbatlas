@@ -119,7 +119,7 @@ This may include:
 
 - **Step #3:** Even though there are no plan changes shown at this point, run `terraform apply`. This will update the `mongodbatlas_advanced_cluster` state to support the new schema.
 
-### Example for migrating a `SHARDED` cluster using `num_shards` (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster/v1.x.x/README.md)):
+### Example for migrating a `SHARDED` cluster using `num_shards` (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster/v1.x.x/README.md)):
 - Before:
 ```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
@@ -202,7 +202,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 ```
 
 
-### Example for migrating a `REPLICASET` cluster using `num_shards = 1` (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/replicaset/v1.x.x/README.md)):
+### Example for migrating a `REPLICASET` cluster using `num_shards = 1` (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_advanced_cluster/replicaset/v1.x.x/README.md)):
 - Before:
 ```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
@@ -405,7 +405,7 @@ At this point, you need to update the configuration by following all of below st
 
 - **Step #3:** Even though there are no plan changes shown at this point, run `terraform apply`. This will update the `mongodbatlas_advanced_cluster` state to support the new schema.
 
-### Example for migrating a `SHARDED` cluster using new sharding configuration (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster/main.tf)):
+### Example for migrating a `SHARDED` cluster using new sharding configuration (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster/main.tf)):
 - Before:
 ```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {

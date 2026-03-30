@@ -143,5 +143,5 @@ Running `terraform plan` should show a change similar to:
 Run `terraform apply` to complete the migration. Once applied, the migration is complete.
 
 ## Additional Resources
-- Complete role-based auth example that includes GCP KMS resource creation and IAM binding setup: [examples/mongodbatlas_encryption_at_rest/gcp](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest/gcp)
+- Complete role-based auth example that includes GCP KMS resource creation and IAM binding setup: [examples/mongodbatlas_encryption_at_rest/gcp](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_encryption_at_rest/gcp)
 
