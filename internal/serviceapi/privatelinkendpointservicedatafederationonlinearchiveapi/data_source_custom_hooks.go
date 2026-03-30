@@ -99,7 +99,8 @@ func (d *pluralDS) PostReadAggregatedListAPICall(req autogen.HandleReadReq, resu
 		}
 		obj["results"] = results
 	}
-	obj["id"] = model.ProjectId.ValueString()
+	// Injects a generated ID for the plural data source, keeps same behavior as SDKv2 manual data source
+	obj["id"] = id.UniqueId()
 
 	body, err := json.Marshal(obj)
 	if err != nil {
