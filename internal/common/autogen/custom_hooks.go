@@ -18,6 +18,7 @@ type PostReadAPICallHook interface {
 	PostReadAPICall(HandleReadReq, APICallResult) APICallResult
 }
 
+// Hook for handling aggregated list responses (plural data sources usage)
 type PostReadAggregatedListAPICallHook interface {
 	PostReadAggregatedListAPICall(HandleReadReq, APICallResult) APICallResult
 }
