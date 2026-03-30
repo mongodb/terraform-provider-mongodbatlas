@@ -1,6 +1,7 @@
 package advancedcluster_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
@@ -2900,6 +2902,15 @@ func TestAccAdvancedCluster_updateDeleteTimeoutReplicaset(t *testing.T) {
 		deleteTimeout          = "1s"
 		timeoutConfig          = acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout)
 	)
+	t.Cleanup(func() {
+		// Step 3 triggers cluster deletion but times out after 1s, leaving the cluster in DELETING state.
+		// We must wait for deletion to complete before test cleanup tries to delete the project.
+		stateConf := cluster.DeleteStateChangeConfig(context.Background(), acc.ConnV2(), projectID, clusterName, 15*time.Minute)
+		_, err := stateConf.WaitForStateContext(context.Background())
+		if err != nil {
+			t.Logf("Warning: error waiting for cluster %s deletion: %v", clusterName, err)
+		}
+	})
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
