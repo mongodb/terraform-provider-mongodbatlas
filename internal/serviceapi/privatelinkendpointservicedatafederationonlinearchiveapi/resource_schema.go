@@ -57,6 +57,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"status": schema.StringAttribute{
 				Computed:            true,
+				Optional:            true,
 				MarkdownDescription: "Status of the private endpoint connection request.",
 			},
 			"type": schema.StringAttribute{

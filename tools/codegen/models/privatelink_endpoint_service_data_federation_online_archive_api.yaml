@@ -122,7 +122,7 @@ schema:
           request_only_required_on_create: false
         - string: {}
           description: Status of the private endpoint connection request.
-          computed_optional_required: computed
+          computed_optional_required: computed_optional
           tf_schema_name: status
           tf_model_name: Status
           api_name: status

@@ -21,7 +21,7 @@ var (
 	comment      = "Terraform Acceptance Test"
 )
 
-func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicAWS(t *testing.T) {
 	var (
 		projectID  = acc.ProjectIDExecution(t)
 		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
@@ -66,7 +66,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 	})
 }
 
-func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateComment(t *testing.T) {
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateCommentAWS(t *testing.T) {
 	var (
 		projectID       = acc.ProjectIDExecution(t)
 		endpointID      = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
@@ -116,6 +116,53 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateC
 	})
 }
 
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicAzure(t *testing.T) {
+	var (
+		projectID  = acc.ProjectIDExecution(t)
+		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckPrivateEndpointAzure(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfigBasicAzure(projectID, endpointID),
+				Check:  checkExists(resourceName),
+			},
+		},
+	})
+}
+
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicAzureWithRegion(t *testing.T) {
+	var (
+		projectID  = acc.ProjectIDExecution(t)
+		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckPrivateEndpointAzure(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfigBasicAzureWithRegion(projectID, endpointID),
+				Check:  checkExists(resourceName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importNormalizedStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"delete_on_create_timeout",
+				},
+			},
+		},
+	})
+}
+
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_optionalStringEmptyState(t *testing.T) {
 	var (
 		projectID  = acc.ProjectIDExecution(t)
@@ -123,7 +170,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_optiona
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
+		PreCheck:                 func() { acc.PreCheckPrivateEndpointAzure(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -277,4 +324,27 @@ func resourceConfigBasicAWS(projectID, endpointID, comment string) string {
 	  comment					= %[3]q
 	}
 	`, projectID, endpointID, comment)
+}
+
+func resourceConfigBasicAzure(projectID, endpointID string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
+	  project_id				= %[1]q
+	  endpoint_id				= %[2]q
+	  provider_name				= "AZURE"
+	  status					= "PENDING"
+	}
+	`, projectID, endpointID)
+}
+
+func resourceConfigBasicAzureWithRegion(projectID, endpointID string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
+	  project_id				= %[1]q
+	  endpoint_id				= %[2]q
+	  provider_name				= "AZURE"
+	  region					= "US_EAST_2"
+	  status					= "PENDING"
+	}
+	`, projectID, endpointID)
 }

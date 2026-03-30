@@ -1241,6 +1241,7 @@ resources:
               computed: true
           status:
             computability:
+              optional: true # TODO: remove this once the API is updated
               computed: true
           error_message:
             computability:

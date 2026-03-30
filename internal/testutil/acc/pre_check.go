@@ -360,6 +360,14 @@ func PreCheckPrivateEndpoint(tb testing.TB) {
 	PreCheckBasic(tb)
 }
 
+func PreCheckPrivateEndpointAzure(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID") == "" {
+		tb.Fatal("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID` and `MONGODB_ATLAS_PRIVATE_ENDPOINT_REGION` must be set for Private Endpoint Service Data Federation and Online Archive acceptance testing")
+	}
+	PreCheckBasic(tb)
+}
+
 func PreCheckS3Bucket(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("AWS_S3_BUCKET") == "" {
