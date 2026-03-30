@@ -6,24 +6,23 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 const endpointType = "DATA_LAKE"
 
 var (
-	_ autogen.PreCreateAPICallHook    = (*rs)(nil)
-	_ autogen.PreUpdateAPICallHook    = (*rs)(nil)
-	_ autogen.PreImportHook           = (*rs)(nil)
-	_ autogen.ResourceSchemaHook      = (*rs)(nil)
-	_ resource.ResourceWithModifyPlan = (*rs)(nil)
+	_ autogen.PreCreateAPICallHook = (*rs)(nil)
+	_ autogen.PreUpdateAPICallHook = (*rs)(nil)
+	_ autogen.PreImportHook        = (*rs)(nil)
+	_ autogen.ResourceSchemaHook   = (*rs)(nil)
 )
 
 type TFExpandedModel struct {
@@ -46,31 +45,37 @@ func (r *rs) PreUpdateAPICall(callParams config.APICallParams, bodyReq []byte) (
 	return callParams, modifiedBody
 }
 
-func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.Plan.Raw.IsNull() {
-		return
-	}
-
-	var plan TFModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if plan.ProviderName.IsNull() || plan.ProviderName.IsUnknown() {
-		return
-	}
-
-	normalizedProvider := strings.ToUpper(plan.ProviderName.ValueString())
-	if normalizedProvider == plan.ProviderName.ValueString() {
-		return
-	}
-
-	plan.ProviderName = types.StringValue(normalizedProvider)
-	resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
-}
-
 func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schema.Schema {
+	requiresReplace := []string{
+		"project_id",
+		"endpoint_id",
+		"provider_name",
+		"region",
+		"customer_endpoint_dns_name",
+	}
+	for _, name := range requiresReplace {
+		attr, ok := baseSchema.Attributes[name].(schema.StringAttribute)
+		if !ok {
+			continue
+		}
+		// Override generated modifiers (CreateOnly) to mirror manual ForceNew behavior.
+		attr.PlanModifiers = []planmodifier.String{
+			stringplanmodifier.RequiresReplace(),
+		}
+		// Preserve stable planning for Optional+Computed replacement fields.
+		if name == "region" || name == "customer_endpoint_dns_name" {
+			attr.PlanModifiers = append(attr.PlanModifiers, stringplanmodifier.UseStateForUnknown())
+		}
+		baseSchema.Attributes[name] = attr
+	}
+
+	if regionAttr, ok := baseSchema.Attributes["region"].(schema.StringAttribute); ok {
+		regionAttr.Validators = append(regionAttr.Validators,
+			validate.ValidUppercaseString(),
+		)
+		baseSchema.Attributes["region"] = regionAttr
+	}
+
 	baseSchema.Attributes["id"] = schema.StringAttribute{
 		Computed: true,
 		PlanModifiers: []planmodifier.String{
@@ -100,6 +105,7 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 		return autogen.APICallResult{Body: nil, Err: err, Resp: result.Resp}
 	}
 
+	normalizeOptionalStringFields(obj)
 	obj["id"] = craftedID
 
 	body, err := json.Marshal(obj)
@@ -111,6 +117,19 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 		Body: body,
 		Err:  nil,
 		Resp: result.Resp,
+	}
+}
+
+// Mirrors logic of SDKv2 manual resource for "" values in state instead of null values
+func normalizeOptionalStringFields(obj map[string]any) {
+	setEmptyStringIfMissing(obj, "comment")
+	setEmptyStringIfMissing(obj, "region")
+	setEmptyStringIfMissing(obj, "customerEndpointDNSName")
+}
+
+func setEmptyStringIfMissing(obj map[string]any, responseKey string) {
+	if val, exists := obj[responseKey]; !exists || val == nil {
+		obj[responseKey] = ""
 	}
 }
 

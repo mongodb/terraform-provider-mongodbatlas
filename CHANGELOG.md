@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.9.0 (March 26, 2026)
+
 FEATURES:
 
 * **New Ephemeral Resource:** `ephemeral/mongodbatlas_service_account_jwt` ([#4274](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4274))

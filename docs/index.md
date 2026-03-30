@@ -174,7 +174,7 @@ The MongoDB Atlas Provider supports multiple operating systems and architectures
 
 ## Troubleshooting
 
-For common issues and networking diagnostics, see the [Troubleshooting Guide](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/troubleshooting).
+For common issues and networking diagnostics, see the [Troubleshooting Guide](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/troubleshooting).
 
 ## Helpful Links/Information
 
@@ -191,7 +191,7 @@ For common issues and networking diagnostics, see the [Troubleshooting Guide](ht
 ## Examples from MongoDB and the Community
 
 <!-- NOTE: the below examples link is updated during the release process, when doing changes in the following sentence verify scripts/update-examples-reference-in-docs.sh is not impacted-->
-We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.8.0/examples)
+We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples)
 in our GitHub repo that will help both beginner and more advanced users.
 
 Have a good example you've created and want to share?

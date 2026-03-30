@@ -7,7 +7,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -64,13 +68,106 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateComment(t *testing.T) {
 	var (
-		projectID      = acc.ProjectIDExecution(t)
-		endpointID     = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
-		commentUpdated = "Terraform Acceptance Test Updated"
+		projectID       = acc.ProjectIDExecution(t)
+		endpointID      = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+		commentValue    = "Terraform Acceptance Test"
+		commentUpdated2 = "Terraform Acceptance Test Updated Again"
+	)
+	checkWithComment := func(expectedComment string) resource.TestCheckFunc {
+		return resource.ComposeAggregateTestCheckFunc(
+			checkExists(resourceName),
+			checkEncodedID(resourceName, projectID, endpointID),
+			resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+			resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+			resource.TestCheckResourceAttr(resourceName, "comment", expectedComment),
+			resource.TestCheckResourceAttrSet(resourceName, "type"),
+			resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
+		)
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfigBasicAWS(projectID, endpointID, ""),
+				Check:  checkWithComment(""),
+			},
+			{
+				Config: resourceConfigBasicAWS(projectID, endpointID, commentValue),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+				},
+				Check: checkWithComment(commentValue),
+			},
+			{
+				Config: resourceConfigBasicAWS(projectID, endpointID, commentUpdated2),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+				},
+				Check: checkWithComment(commentUpdated2),
+			},
+		},
+	})
+}
+
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_optionalStringEmptyState(t *testing.T) {
+	var (
+		projectID  = acc.ProjectIDExecution(t)
+		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
 	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfigBasicAWS(projectID, endpointID, comment),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("region"), knownvalue.StringExact("")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("customer_endpoint_dns_name"), knownvalue.StringExact("")),
+				},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					checkEncodedID(resourceName, projectID, endpointID),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importNormalizedStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"delete_on_create_timeout",
+				},
+			},
+		},
+	})
+}
+
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_forceNewEndpointID(t *testing.T) {
+	acc.SkipTestForCI(t)
+
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		endpointID  = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+		endpointID2 = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_2")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			acc.PreCheckPrivateEndpoint(t)
+			if endpointID2 == "" {
+				t.Fatal("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_2` must be set for force-new endpoint_id acceptance testing")
+			}
+		},
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -82,31 +179,15 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateC
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-					resource.TestCheckResourceAttrSet(resourceName, "type"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 				),
 			},
 			{
-				Config: resourceConfigBasicAWS(projectID, endpointID, commentUpdated),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					checkEncodedID(resourceName, projectID, endpointID),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(resourceName, "comment", commentUpdated),
-					resource.TestCheckResourceAttrSet(resourceName, "type"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-				),
-			},
-			{
-				Config: resourceConfigBasicAWS(projectID, endpointID, ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					checkEncodedID(resourceName, projectID, endpointID),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(resourceName, "comment", ""),
-				),
+				Config: resourceConfigBasicAWS(projectID, endpointID2, comment),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionReplace),
+					},
+				},
 			},
 		},
 	})

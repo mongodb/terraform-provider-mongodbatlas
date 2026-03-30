@@ -41,7 +41,7 @@ The following table shows the mapping between organization-level PAK resources a
 
 ### Migration Steps
 
-For complete working examples, see the [organization-level migration example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_pak_to_service_account/org_level).
+For complete working examples, see the [organization-level migration example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_pak_to_service_account/org_level).
 
 ### Step 1: Initial Configuration - PAK Resources Only
 
@@ -182,7 +182,7 @@ The following table shows the mapping between project-level PAK resources and th
 
 ### Migration Steps
 
-For complete working examples, see the [project-level migration example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_pak_to_service_account/project_level).
+For complete working examples, see the [project-level migration example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/migrate_pak_to_service_account/project_level).
 
 ### Step 1: Initial Configuration - PAK Resources Only
 

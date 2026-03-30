@@ -20,10 +20,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Link ID that identifies the Azure private endpoint connection.",
 			},
 			"comment": schema.StringAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Human-readable string to associate with this private endpoint.",
 			},
 			"customer_endpoint_dns_name": schema.StringAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`.",
 			},
@@ -49,6 +51,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services only.",
 			},
 			"region": schema.StringAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`.",
 			},
