@@ -5,3 +5,7 @@ resource/mongodbatlas_alert_configuration: Adds `metric_name` and `mode` attribu
 ```release-note:enhancement
 data-source/mongodbatlas_alert_configuration: Adds `metric_name` and `mode` attributes to `threshold_config` block for stream processor alert types
 ```
+
+```release-note:enhancement
+data-source/mongodbatlas_alert_configurations: Adds `metric_name` and `mode` attributes to `threshold_config` block for stream processor alert types
+```
