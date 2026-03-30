@@ -143,6 +143,47 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateC
 	})
 }
 
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_providerNameLowercase(t *testing.T) {
+	var (
+		projectID      = acc.ProjectIDExecution(t)
+		endpointID     = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+		commentValue   = "Terraform Acceptance Test"
+		commentUpdated = "Terraform Acceptance Test Lowercase Updated"
+	)
+
+	checkWithComment := func(expectedComment string) resource.TestCheckFunc {
+		return resource.ComposeAggregateTestCheckFunc(
+			checkExists(resourceName),
+			checkEncodedID(resourceName, projectID, endpointID),
+			resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+			resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+			resource.TestCheckResourceAttr(resourceName, "provider_name", "aws"),
+			resource.TestCheckResourceAttr(resourceName, "comment", expectedComment),
+		)
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfigBasicAWSLowercase(projectID, endpointID, commentValue),
+				Check:  checkWithComment(commentValue),
+			},
+			{
+				Config: resourceConfigBasicAWSLowercase(projectID, endpointID, commentUpdated),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					},
+				},
+				Check: checkWithComment(commentUpdated),
+			},
+		},
+	})
+}
+
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_optionalStringEmptyState(t *testing.T) {
 	var (
 		projectID  = acc.ProjectIDExecution(t)
@@ -363,6 +404,17 @@ func resourceConfigBasicAWS(projectID, endpointID, comment string) string {
 	  project_id				= %[1]q
 	  endpoint_id				= %[2]q
 	  provider_name				= "AWS"
+	  comment					= %[3]q
+	}
+	`, projectID, endpointID, comment)
+}
+
+func resourceConfigBasicAWSLowercase(projectID, endpointID, comment string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
+	  project_id				= %[1]q
+	  endpoint_id				= %[2]q
+	  provider_name				= "aws"
 	  comment					= %[3]q
 	}
 	`, projectID, endpointID, comment)
