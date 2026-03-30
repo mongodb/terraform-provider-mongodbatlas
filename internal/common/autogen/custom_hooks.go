@@ -18,8 +18,8 @@ type PostReadAPICallHook interface {
 	PostReadAPICall(HandleReadReq, APICallResult) APICallResult
 }
 
-type PostReadListAPICallHook interface {
-	PostReadListAPICall(HandleReadReq, APICallResult) APICallResult
+type PostReadAggregatedListAPICallHook interface {
+	PostReadAggregatedListAPICall(HandleReadReq, APICallResult) APICallResult
 }
 
 type PreCreateAPICallHook interface {

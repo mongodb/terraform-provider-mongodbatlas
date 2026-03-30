@@ -199,8 +199,8 @@ func HandleDataSourceReadList(ctx context.Context, req HandleReadReq) {
 		addError(req.RespDiags, opRead, errUnmarshallingResponse, err)
 		return
 	}
-	if postReadListHook, ok := req.Hooks.(PostReadListAPICallHook); ok {
-		callResult := postReadListHook.PostReadListAPICall(req, APICallResult{
+	if postReadListHook, ok := req.Hooks.(PostReadAggregatedListAPICallHook); ok {
+		callResult := postReadListHook.PostReadAggregatedListAPICall(req, APICallResult{
 			Body: fullResponseBytes,
 			Resp: lastResp,
 		})
