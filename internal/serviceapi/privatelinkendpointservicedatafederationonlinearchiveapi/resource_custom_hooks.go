@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -69,6 +70,7 @@ func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schem
 		baseSchema.Attributes[name] = attr
 	}
 
+	// Preserve manual resource validation for region
 	if regionAttr, ok := baseSchema.Attributes["region"].(schema.StringAttribute); ok {
 		regionAttr.Validators = append(regionAttr.Validators,
 			validate.ValidUppercaseString(),
@@ -82,6 +84,16 @@ func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schem
 			stringplanmodifier.UseStateForUnknown(),
 		},
 	}
+
+	delete(baseSchema.Attributes, "timeouts")
+	if baseSchema.Blocks == nil {
+		baseSchema.Blocks = make(map[string]schema.Block)
+	}
+	baseSchema.Blocks["timeouts"] = timeouts.Block(ctx, timeouts.Opts{
+		Create: true,
+		Delete: true,
+		Update: true,
+	})
 	return baseSchema
 }
 

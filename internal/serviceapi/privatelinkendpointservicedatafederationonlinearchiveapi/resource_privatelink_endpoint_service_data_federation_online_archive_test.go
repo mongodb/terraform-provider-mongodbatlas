@@ -193,6 +193,32 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_forceNe
 	})
 }
 
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_timeouts(t *testing.T) {
+	var (
+		projectID  = acc.ProjectIDExecution(t)
+		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfigBasicAWSWithTimeouts(projectID, endpointID, "300s", "300s"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					checkEncodedID(resourceName, projectID, endpointID),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttr(resourceName, "timeouts.create", "300s"),
+					resource.TestCheckResourceAttr(resourceName, "timeouts.delete", "300s"),
+				),
+			},
+		},
+	})
+}
+
 func importLegacyStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -277,4 +303,19 @@ func resourceConfigBasicAWS(projectID, endpointID, comment string) string {
 	  comment					= %[3]q
 	}
 	`, projectID, endpointID, comment)
+}
+
+func resourceConfigBasicAWSWithTimeouts(projectID, endpointID, createTimeout, deleteTimeout string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
+	  project_id				= %[1]q
+	  endpoint_id				= %[2]q
+	  provider_name				= "AWS"
+
+		timeouts {
+			create = %[3]q
+			delete = %[4]q
+		}
+	}
+	`, projectID, endpointID, createTimeout, deleteTimeout)
 }
