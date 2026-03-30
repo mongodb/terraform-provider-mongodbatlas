@@ -52,9 +52,10 @@ func Resource() *schema.Resource {
 				ForceNew: true,
 			},
 			"bind_password": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				Sensitive: true,
+				ForceNew:  true,
 			},
 			"ca_certificate": {
 				Type:     schema.TypeString,
