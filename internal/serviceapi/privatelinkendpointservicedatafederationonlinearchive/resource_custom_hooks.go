@@ -52,6 +52,7 @@ func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schem
 		"provider_name",
 		"region",
 		"customer_endpoint_dns_name",
+		"customer_endpoint_ip_address",
 	}
 	for _, name := range requiresReplace {
 		attr, ok := baseSchema.Attributes[name].(schema.StringAttribute)
@@ -63,7 +64,7 @@ func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schem
 			stringplanmodifier.RequiresReplace(),
 		}
 		// Preserve stable planning for Optional+Computed replacement fields.
-		if name == "region" || name == "customer_endpoint_dns_name" {
+		if name == "region" || name == "customer_endpoint_dns_name" || name == "customer_endpoint_ip_address" {
 			attr.PlanModifiers = append(attr.PlanModifiers, stringplanmodifier.UseStateForUnknown())
 		}
 		baseSchema.Attributes[name] = attr

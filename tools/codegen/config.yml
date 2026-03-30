@@ -1246,6 +1246,11 @@ resources:
           error_message:
             computability:
               computed: true
+          customer_endpoint_ip_address:
+            computability:
+              # Mirrors logic of SDKv2 manual resource for "" values in state instead of null values
+              optional: true
+              computed: true
           region:
             description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
             # Mirrors logic of SDKv2 manual resource for "" values in state instead of null values
