@@ -50,13 +50,16 @@ The `service_name` value for the region in question can be found in the [MongoDB
 * `timeouts` - (Optional) The duration to wait for the Private Endpoint Service resource for Data Federation and Online Archive to be created or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `2h`), `delete` (default: `2h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).  
 * `region` -  Human-readable label to identify the region of VPC endpoint.  Requires the **Atlas region name**, see the reference list for [each provider](https://www.mongodb.com/docs/atlas/data-federation/adf-overview/regions/?cloud-provider=azure&interface=atlas-ui). For `AWS`, if defined, you must also specify a value for `customer_endpoint_dns_name`.
 * `customer_endpoint_dns_name` - (Optional) Human-readable label to identify VPC endpoint DNS name in AWS. If defined, you must also specify a value for `region`.
-* `customer_endpoint_ip_address`: (Optional) Human-readable DNS name to identify the customer's endpoint in Azure. If defined, you must also specify a value for `region`.
+* `customer_endpoint_ip_address`: (Optional) IP address used to connect the Azure private endpoint.
 * `comment` - (Optional) Human-readable string to associate with this private endpoint.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
+* `azure_link_id` - Link ID that identifies the Azure private endpoint connection.
+* `error_message` - Error message describing a failure approving the private endpoint request.
+* `status` - Status of the private endpoint connection request.
 * `type` - Human-readable label that identifies the resource type associated with this private endpoint.
 
 ## Import
