@@ -6,13 +6,14 @@ import (
 
 	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 var _ autogen.PostReadAPICallHook = (*ds)(nil)
 var _ autogen.DataSourceSchemaHook = (*ds)(nil)
-var _ autogen.PostReadAPICallHook = (*pluralDS)(nil)
+var _ autogen.PostReadAggregatedListAPICallHook = (*pluralDS)(nil)
 var _ autogen.DataSourceSchemaHook = (*pluralDS)(nil)
 
 type TFDSExpandedModel struct {
@@ -44,7 +45,7 @@ func (d *ds) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 	}
 
 	model, ok := req.State.(*TFDSModel)
-	if !ok || model.ProjectId.IsNull() || model.EndpointId.IsNull() {
+	if !ok || model.ProjectId.IsNull() || model.ProjectId.IsUnknown() || model.EndpointId.IsNull() || model.EndpointId.IsUnknown() {
 		return result
 	}
 
@@ -73,13 +74,13 @@ func (d *ds) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 	}
 }
 
-// PostReadAPICall injects the project_id as the plural data source ID to mimic logic of manual resource.
-func (d *pluralDS) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
+// PostReadAggregatedListAPICall injects a generated ID after list pagination has completed.
+func (d *pluralDS) PostReadAggregatedListAPICall(req autogen.HandleReadReq, result autogen.APICallResult) autogen.APICallResult {
 	if result.Err != nil {
 		return result
 	}
 	model, ok := req.State.(*TFPluralDSModel)
-	if !ok || model.ProjectId.IsNull() {
+	if !ok || model.ProjectId.IsNull() || model.ProjectId.IsUnknown() {
 		return result
 	}
 
@@ -98,7 +99,8 @@ func (d *pluralDS) PostReadAPICall(req autogen.HandleReadReq, result autogen.API
 		}
 		obj["results"] = results
 	}
-	obj["id"] = model.ProjectId.ValueString()
+	// Injects a generated ID for the plural data source, keeps same behavior as SDKv2 manual data source
+	obj["id"] = id.UniqueId()
 
 	body, err := json.Marshal(obj)
 	if err != nil {
