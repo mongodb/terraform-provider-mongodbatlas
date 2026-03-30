@@ -44,7 +44,7 @@ func (d *ds) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 	}
 
 	model, ok := req.State.(*TFDSModel)
-	if !ok || model.ProjectId.IsNull() || model.EndpointId.IsNull() {
+	if !ok || model.ProjectId.IsNull() || model.ProjectId.IsUnknown() || model.EndpointId.IsNull() || model.EndpointId.IsUnknown() {
 		return result
 	}
 
@@ -79,7 +79,7 @@ func (d *pluralDS) PostReadListAPICall(req autogen.HandleReadReq, result autogen
 		return result
 	}
 	model, ok := req.State.(*TFPluralDSModel)
-	if !ok || model.ProjectId.IsNull() {
+	if !ok || model.ProjectId.IsNull() || model.ProjectId.IsUnknown() {
 		return result
 	}
 
