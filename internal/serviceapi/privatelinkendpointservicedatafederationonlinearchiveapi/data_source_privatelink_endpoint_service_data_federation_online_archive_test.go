@@ -36,6 +36,15 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_basic
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(dataSourceName, tfjsonpath.New("region"), knownvalue.StringExact("")),
 					statecheck.ExpectKnownValue(dataSourceName, tfjsonpath.New("customer_endpoint_dns_name"), knownvalue.StringExact("")),
+					acc.PluralResultCheck(
+						pluralDSName,
+						"endpoint_id",
+						knownvalue.StringExact(endpointID),
+						map[string]knownvalue.Check{
+							"region":                     knownvalue.StringExact(""),
+							"customer_endpoint_dns_name": knownvalue.StringExact(""),
+						},
+					),
 				},
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -47,6 +56,9 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_basic
 					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "provider_name"),
 					checkDataSourceEncodedID(dataSourceName, projectID, endpointID),
+					resource.TestCheckResourceAttr(pluralDSName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
+					resource.TestCheckResourceAttr(pluralDSName, "id", projectID),
 				),
 			},
 		},
@@ -67,70 +79,6 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_Optio
 		Steps: []resource.TestStep{
 			{
 				Config: dataSourceConfigOptionalFieldsAWS(projectID, endpointID, comment, customerEndpointDNSName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
-					resource.TestCheckResourceAttr(dataSourceName, "region", AWSregion),
-					resource.TestCheckResourceAttr(dataSourceName, "customer_endpoint_dns_name", customerEndpointDNSName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "provider_name"),
-					checkDataSourceEncodedID(dataSourceName, projectID, endpointID),
-				),
-			},
-		},
-	})
-}
-
-func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchivesDSPlural_basicAWS(t *testing.T) {
-	var (
-		projectID  = acc.ProjectIDExecution(t)
-		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: pluralDataSourceConfigBasicAWS(projectID, endpointID, comment),
-				ConfigStateChecks: []statecheck.StateCheck{
-					acc.PluralResultCheck(
-						pluralDSName,
-						"endpoint_id",
-						knownvalue.StringExact(endpointID),
-						map[string]knownvalue.Check{
-							"region":                     knownvalue.StringExact(""),
-							"customer_endpoint_dns_name": knownvalue.StringExact(""),
-						},
-					),
-				},
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(pluralDSName, "project_id", projectID),
-					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
-					resource.TestCheckResourceAttr(pluralDSName, "id", projectID),
-				),
-			},
-		},
-	})
-}
-func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchivesDSPlural_OptionalFieldsAWS(t *testing.T) {
-	var (
-		projectID               = acc.ProjectIDExecution(t)
-		endpointID              = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
-		customerEndpointDNSName = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME")
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: pluralDataSourceConfigOptionalFieldsAWS(projectID, endpointID, comment, customerEndpointDNSName),
 				ConfigStateChecks: []statecheck.StateCheck{
 					acc.PluralResultCheck(
 						pluralDSName,
@@ -144,6 +92,14 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchivesDSPlura
 				},
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourceName, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
+					resource.TestCheckResourceAttr(dataSourceName, "region", AWSregion),
+					resource.TestCheckResourceAttr(dataSourceName, "customer_endpoint_dns_name", customerEndpointDNSName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "provider_name"),
+					checkDataSourceEncodedID(dataSourceName, projectID, endpointID),
 					resource.TestCheckResourceAttr(pluralDSName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
 					resource.TestCheckResourceAttr(pluralDSName, "id", projectID),
@@ -152,6 +108,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchivesDSPlura
 		},
 	})
 }
+
 func checkDataSourceEncodedID(resourceName, expectedProjectID, expectedEndpointID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -171,32 +128,19 @@ func checkDataSourceEncodedID(resourceName, expectedProjectID, expectedEndpointI
 }
 
 func dataSourceConfigBasicAWS(projectID, endpointID, comment string) string {
-	return buildConfigWithDataSource(projectID, endpointID, comment, "", false, false)
+	return buildConfigWithDataSource(projectID, endpointID, comment, "", false)
 }
 
 func dataSourceConfigOptionalFieldsAWS(projectID, endpointID, comment, customerEndpointDNSName string) string {
-	return buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointDNSName, false, true)
+	return buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointDNSName, true)
 }
 
-func pluralDataSourceConfigBasicAWS(projectID, endpointID, comment string) string {
-	return buildConfigWithDataSource(projectID, endpointID, comment, "", true, false)
-}
-
-func pluralDataSourceConfigOptionalFieldsAWS(projectID, endpointID, comment, customerEndpointDNSName string) string {
-	return buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointDNSName, true, true)
-}
-
-func buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointDNSName string, pluralDS, includeOptionalFields bool) string {
+func buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointDNSName string, includeOptionalFields bool) string {
 	optionalFields := ""
 	if includeOptionalFields {
 		optionalFields = fmt.Sprintf(`
 	  region						= %q
 	  customer_endpoint_dns_name	= %q`, AWSregion, customerEndpointDNSName)
-	}
-
-	dataSourceConfig := singularDataSourceConfig
-	if pluralDS {
-		dataSourceConfig = pluralDataSourceConfig
 	}
 
 	return fmt.Sprintf(`
@@ -209,7 +153,8 @@ func buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointD
 	}
 
 	%[5]s
-	`, projectID, endpointID, comment, optionalFields, dataSourceConfig)
+	%[6]s
+	`, projectID, endpointID, comment, optionalFields, singularDataSourceConfig, pluralDataSourceConfig)
 }
 
 const singularDataSourceConfig = `
