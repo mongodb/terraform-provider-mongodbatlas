@@ -2903,6 +2903,9 @@ func TestAccAdvancedCluster_updateDeleteTimeoutReplicaset(t *testing.T) {
 		timeoutConfig          = acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout)
 	)
 	t.Cleanup(func() {
+		if acc.InUnitTest() {
+			return
+		}
 		// Step 3 triggers cluster deletion but times out after 1s, leaving the cluster in DELETING state.
 		// We must wait for deletion to complete before test cleanup tries to delete the project.
 		stateConf := cluster.DeleteStateChangeConfig(context.Background(), acc.ConnV2(), projectID, clusterName, 15*time.Minute)
