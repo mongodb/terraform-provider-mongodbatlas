@@ -154,7 +154,6 @@ func handleReadCore(
 
 // HandleDataSourceReadList handles the read operation for a plural data source (list) with automatic pagination.
 func HandleDataSourceReadList(ctx context.Context, req HandleReadReq) {
-	_, hasListPostReadHook := req.Hooks.(PostReadListAPICallHook)
 	var lastResp *http.Response
 	// Fetch all pages using dsschema.AllPages
 	allResults, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[json.RawMessage], *http.Response, error) {
@@ -168,8 +167,7 @@ func HandleDataSourceReadList(ctx context.Context, req HandleReadReq) {
 			},
 			Method: req.CallParams.Method,
 		}
-		// Preserve existing behavior (per-page PostRead) unless list-specific hook is implemented.
-		callResult := callReadWithHooksWithOptions(ctx, req.Client, paginatedParams, req, req.Hooks, !hasListPostReadHook)
+		callResult := callReadWithHooksWithOptions(ctx, req.Client, paginatedParams, req, req.Hooks)
 		if callResult.Err != nil {
 			return nil, callResult.Resp, callResult.Err
 		}
@@ -451,19 +449,17 @@ func callCreateWithHooks(ctx context.Context, client *config.MongoDBClient, call
 }
 
 func callReadWithHooks(ctx context.Context, client *config.MongoDBClient, callParams config.APICallParams, req HandleReadReq, hooks any) APICallResult {
-	return callReadWithHooksWithOptions(ctx, client, callParams, req, hooks, true)
+	return callReadWithHooksWithOptions(ctx, client, callParams, req, hooks)
 }
 
-func callReadWithHooksWithOptions(ctx context.Context, client *config.MongoDBClient, callParams config.APICallParams, req HandleReadReq, hooks any, applyPostRead bool) APICallResult {
+func callReadWithHooksWithOptions(ctx context.Context, client *config.MongoDBClient, callParams config.APICallParams, req HandleReadReq, hooks any) APICallResult {
 	var modifiedParams = callParams
 	if preReadHook, ok := hooks.(PreReadAPICallHook); ok {
 		modifiedParams = preReadHook.PreReadAPICall(callParams)
 	}
 	callResult := callAPIWithoutBody(ctx, client, modifiedParams)
-	if applyPostRead {
-		if postReadHook, ok := hooks.(PostReadAPICallHook); ok {
-			return postReadHook.PostReadAPICall(req, callResult)
-		}
+	if postReadHook, ok := hooks.(PostReadAPICallHook); ok {
+		return postReadHook.PostReadAPICall(req, callResult)
 	}
 	return callResult
 }
