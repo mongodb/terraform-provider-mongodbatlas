@@ -17,8 +17,11 @@ import (
 )
 
 var (
-	resourceName = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test"
-	comment      = "Terraform Acceptance Test"
+	resourceName   = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test"
+	comment        = "Terraform Acceptance Test"
+	AWSregion      = "US_EAST_1"
+	dataSourceName = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test"
+	pluralDSName   = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archives_api.test"
 )
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
@@ -33,7 +36,20 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfigBasicAWS(projectID, endpointID, comment),
+				Config: dataSourceConfigBasicAWS(projectID, endpointID, comment),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(dataSourceName, tfjsonpath.New("region"), knownvalue.StringExact("")),
+					statecheck.ExpectKnownValue(dataSourceName, tfjsonpath.New("customer_endpoint_dns_name"), knownvalue.StringExact("")),
+					acc.PluralResultCheck(
+						pluralDSName,
+						"endpoint_id",
+						knownvalue.StringExact(endpointID),
+						map[string]knownvalue.Check{
+							"region":                     knownvalue.StringExact(""),
+							"customer_endpoint_dns_name": knownvalue.StringExact(""),
+						},
+					),
+				},
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					checkEncodedID(resourceName, projectID, endpointID),
@@ -42,6 +58,17 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 					resource.TestCheckResourceAttrSet(resourceName, "type"),
 					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourceName, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
+					resource.TestCheckResourceAttr(dataSourceName, "region", ""),
+					resource.TestCheckResourceAttr(dataSourceName, "customer_endpoint_dns_name", ""),
+					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "provider_name"),
+					checkDataSourceEncodedID(dataSourceName, projectID, endpointID),
+					resource.TestCheckResourceAttr(pluralDSName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
+					resource.TestCheckResourceAttrSet(pluralDSName, "id"),
 				),
 			},
 			{
@@ -193,6 +220,50 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_forceNe
 	})
 }
 
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_OptionalFieldsAWS(t *testing.T) {
+	var (
+		projectID               = acc.ProjectIDExecution(t)
+		endpointID              = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+		customerEndpointDNSName = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckPrivateEndpoint(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourceConfigOptionalFieldsAWS(projectID, endpointID, comment, customerEndpointDNSName),
+				ConfigStateChecks: []statecheck.StateCheck{
+					acc.PluralResultCheck(
+						pluralDSName,
+						"endpoint_id",
+						knownvalue.StringExact(endpointID),
+						map[string]knownvalue.Check{
+							"region":                     knownvalue.StringExact(AWSregion),
+							"customer_endpoint_dns_name": knownvalue.StringExact(customerEndpointDNSName),
+						},
+					),
+				},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourceName, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
+					resource.TestCheckResourceAttr(dataSourceName, "region", AWSregion),
+					resource.TestCheckResourceAttr(dataSourceName, "customer_endpoint_dns_name", customerEndpointDNSName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "provider_name"),
+					checkDataSourceEncodedID(dataSourceName, projectID, endpointID),
+					resource.TestCheckResourceAttr(pluralDSName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
+					resource.TestCheckResourceAttrSet(pluralDSName, "id"),
+				),
+			},
+		},
+	})
+}
+
 func importLegacyStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -268,6 +339,24 @@ func checkEncodedID(resourceName, expectedProjectID, expectedEndpointID string) 
 	}
 }
 
+func checkDataSourceEncodedID(resourceName, expectedProjectID, expectedEndpointID string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("id is empty")
+		}
+
+		ids := conversion.DecodeStateID(rs.Primary.ID)
+		if ids["project_id"] != expectedProjectID || ids["endpoint_id"] != expectedEndpointID {
+			return fmt.Errorf("unexpected decoded ID map: %+v", ids)
+		}
+		return nil
+	}
+}
+
 func resourceConfigBasicAWS(projectID, endpointID, comment string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
@@ -278,3 +367,44 @@ func resourceConfigBasicAWS(projectID, endpointID, comment string) string {
 	}
 	`, projectID, endpointID, comment)
 }
+
+func dataSourceConfigBasicAWS(projectID, endpointID, comment string) string {
+	return buildConfigWithDataSource(projectID, endpointID, comment, "", false)
+}
+
+func dataSourceConfigOptionalFieldsAWS(projectID, endpointID, comment, customerEndpointDNSName string) string {
+	return buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointDNSName, true)
+}
+
+func buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointDNSName string, includeOptionalFields bool) string {
+	optionalFields := ""
+	if includeOptionalFields {
+		optionalFields = fmt.Sprintf(`
+	  region						= %q
+	  customer_endpoint_dns_name	= %q`, AWSregion, customerEndpointDNSName)
+	}
+
+	return fmt.Sprintf(`
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
+	  project_id					= %[1]q
+	  endpoint_id					= %[2]q
+	  provider_name					= "AWS"
+	  comment						= %[3]q
+	  %[4]s
+	}
+
+	%[5]s
+	%[6]s
+	`, projectID, endpointID, comment, optionalFields, singularDataSourceConfig, pluralDataSourceConfig)
+}
+
+const singularDataSourceConfig = `
+data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
+  project_id				= mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test.project_id
+  endpoint_id				= mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test.endpoint_id
+}`
+
+const pluralDataSourceConfig = `
+data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archives_api" "test" {
+  project_id				= mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test.project_id
+}`
