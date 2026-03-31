@@ -19,6 +19,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
+			"is_cluster_ai_assistant_enabled": schema.BoolAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether the AI Cluster Assistant is enabled for the specified project.",
+			},
 			"is_collect_database_specifics_statistics_enabled": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
@@ -65,6 +70,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	ProjectId                                       types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	IsClusterAiAssistantEnabled                     types.Bool   `tfsdk:"is_cluster_ai_assistant_enabled"`
 	IsCollectDatabaseSpecificsStatisticsEnabled     types.Bool   `tfsdk:"is_collect_database_specifics_statistics_enabled"`
 	IsDataExplorerEnabled                           types.Bool   `tfsdk:"is_data_explorer_enabled"`
 	IsDataExplorerGenAIFeaturesEnabled              types.Bool   `tfsdk:"is_data_explorer_gen_ai_features_enabled"`
