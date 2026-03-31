@@ -135,7 +135,7 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 	}
 
 	model, ok := req.State.(*TFModel)
-	if !ok || model.ProjectId.IsNull() || model.ProjectId.IsUnknown() || model.EndpointId.IsNull() || model.EndpointId.IsUnknown() {
+	if !ok || model.ProjectId.IsNull() || model.EndpointId.IsNull() {
 		return result
 	}
 
