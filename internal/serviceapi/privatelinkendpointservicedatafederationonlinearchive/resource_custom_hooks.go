@@ -146,8 +146,6 @@ func prepareBody(bodyReq []byte) ([]byte, bool) {
 		body["provider"] = providerUpper
 	}
 
-	body["status"] = "PENDING" // TODO: remove this once the API is updated
-
 	modifiedBody, err := json.Marshal(body)
 	if err != nil {
 		return bodyReq, false
