@@ -432,7 +432,7 @@ func resourceConfigBasicAWS(projectID, endpointID, comment string) string {
 
 func resourceConfigBasicAWSLowercase(projectID, endpointID, comment string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
 	  project_id				= %[1]q
 	  endpoint_id				= %[2]q
 	  provider_name				= "aws"
@@ -443,7 +443,7 @@ func resourceConfigBasicAWSLowercase(projectID, endpointID, comment string) stri
 
 func resourceConfigBasicAWSWithTimeouts(projectID, endpointID, createTimeout, deleteTimeout string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
 	  project_id    = %[1]q
 	  endpoint_id   = %[2]q
 	  provider_name = "AWS"
