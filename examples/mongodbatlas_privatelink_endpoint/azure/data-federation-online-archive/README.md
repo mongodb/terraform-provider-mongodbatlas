@@ -29,8 +29,8 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 atlas_client_id     = "<ATLAS_CLIENT_ID>"
 atlas_client_secret = "<ATLAS_CLIENT_SECRET>"
 project_id          = "<ATLAS_PROJECT_ID>"
-atlas_region        = "eastus2"
 azure_location      = "East US 2"
+atlas_data_federation_private_link_service_resource_id = "<AZURE_RESOURCE_ID_OF_ATLAS_PRIVATE_LINK_SERVICE>"
 ```
 
 Optional variables let you customize resource group, VNet, and subnet names/CIDRs.
@@ -57,8 +57,7 @@ terraform destroy
 ## What This Example Creates
 
 - Azure Resource Group, Virtual Network, and Subnet
-- `mongodbatlas_privatelink_endpoint` for Azure
-- Azure `azurerm_private_endpoint` connected to Atlas private link service
+- Azure `azurerm_private_endpoint` connected to the Atlas-managed Data Federation Private Link Service
 - `mongodbatlas_privatelink_endpoint_service_data_federation_online_archive`
 - Singular and plural data source reads for verification
 

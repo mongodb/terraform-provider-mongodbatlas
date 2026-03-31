@@ -116,7 +116,6 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicAz
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AZURE"),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 					resource.TestCheckResourceAttr(resourceName, "customer_endpoint_ip_address", customerEndpointIPValue),
-					resource.TestCheckResourceAttr(resourceName, "region", azureRegion),
 				),
 			},
 		},
