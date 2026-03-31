@@ -133,6 +133,31 @@ resource "mongodbatlas_stream_connection" "test" {
 
 ```
 
+### Example GCPPubSub Connection
+
+```terraform
+resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
+    project_id    = var.project_id
+    provider_name = "GCP"
+}
+
+resource "mongodbatlas_cloud_provider_access_authorization" "gcp_auth" {
+    project_id = var.project_id
+    role_id    = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
+}
+
+resource "mongodbatlas_stream_connection" "example-gcp-pubsub" {
+    project_id      = var.project_id
+    workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+    connection_name = "GCPPubSubConnection"
+    type            = "GCPPubSub"
+    gcp = {
+      service_account_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.gcp_config[0].service_account_for_atlas
+    }
+    depends_on = [mongodbatlas_cloud_provider_access_authorization.gcp_auth]
+}
+```
+
 ### Example Https Connection
 
 ```terraform
@@ -241,7 +266,7 @@ resource "mongodbatlas_stream_processor" "example" {
 * `workspace_name` - (Optional) Label that identifies the stream processing workspace.
 * `instance_name` - (Optional, Deprecated) Label that identifies the stream processing workspace. Use `workspace_name` instead; this attribute will be removed in a future major version.
 * `connection_name` - (Required) Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - (Required) Type of connection. Can be `AWSLambda`, `Cluster`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
+* `type` - (Required) Type of connection. Can be `AWSLambda`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -257,6 +282,9 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 
 If `type` is of value `AWSLambda` the following additional arguments are defined:
 * `aws` - The configuration for AWS Lambda connection. See [AWS](#AWS)
+
+If `type` is of value `GCPPubSub` the following additional arguments are defined:
+* `gcp` - The configuration for GCP Pub/Sub connection. See [GCP](#GCP)
 
 If `type` is of value `Https` the following additional attributes are defined:
 * `url` - URL of the HTTPs endpoint that will be used for creating a connection.
@@ -298,6 +326,9 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
 
 ### AWS
 * `role_arn` - Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+
+### GCP
+* `service_account_id` - Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to GCP Pub/Sub resources.
 
 ### Schema Registry Authentication
 * `type` - Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry. Valid values are `USER_INFO` or `SASL_INHERIT`.

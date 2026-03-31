@@ -97,6 +97,16 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		}
 	}
 
+	if !plan.GCP.IsNull() {
+		gcpModel := &TFGCPModel{}
+		if diags := plan.GCP.As(ctx, gcpModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamConnection.Gcp = &admin.StreamsGCPConnectionConfig{
+			ServiceAccountId: gcpModel.ServiceAccountID.ValueStringPointer(),
+		}
+	}
+
 	if !plan.Headers.IsNull() {
 		headersMap := make(map[string]string)
 		if diags := plan.Headers.ElementsAs(ctx, &headersMap, true); diags.HasError() {
@@ -240,11 +250,20 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 		connectionModel.DBRoleToExecute = dbRoleToExecuteModel
 	}
 
+	// The API returns networking in either Networking (Kafka, S3) or PublicPrivateNetworking (GCPPubSub, Azure) depending on connection type.
 	connectionModel.Networking = types.ObjectNull(NetworkingObjectType.AttrTypes)
-	if apiResp.Networking != nil {
+	var networkingAccessType, networkingConnectionID *string
+	if apiResp.Networking != nil && apiResp.Networking.Access != nil {
+		networkingAccessType = apiResp.Networking.Access.Type
+		networkingConnectionID = apiResp.Networking.Access.ConnectionId
+	} else if apiResp.PublicPrivateNetworking != nil && apiResp.PublicPrivateNetworking.Access != nil {
+		networkingAccessType = apiResp.PublicPrivateNetworking.Access.Type
+		networkingConnectionID = apiResp.PublicPrivateNetworking.Access.ConnectionId
+	}
+	if networkingAccessType != nil {
 		networkingAccessModel, diags := types.ObjectValueFrom(ctx, NetworkingAccessObjectType.AttrTypes, TFNetworkingAccessModel{
-			Type:         types.StringPointerValue(apiResp.Networking.Access.Type),
-			ConnectionID: types.StringPointerValue(apiResp.Networking.Access.ConnectionId),
+			Type:         types.StringPointerValue(networkingAccessType),
+			ConnectionID: types.StringPointerValue(networkingConnectionID),
 		})
 		if diags.HasError() {
 			return nil, diags
@@ -267,6 +286,17 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 			return nil, diags
 		}
 		connectionModel.AWS = aws
+	}
+
+	connectionModel.GCP = types.ObjectNull(GCPObjectType.AttrTypes)
+	if apiResp.Gcp != nil {
+		gcp, diags := types.ObjectValueFrom(ctx, GCPObjectType.AttrTypes, TFGCPModel{
+			ServiceAccountID: types.StringPointerValue(apiResp.Gcp.ServiceAccountId),
+		})
+		if diags.HasError() {
+			return nil, diags
+		}
+		connectionModel.GCP = gcp
 	}
 
 	connectionModel.Headers = types.MapNull(types.StringType)
