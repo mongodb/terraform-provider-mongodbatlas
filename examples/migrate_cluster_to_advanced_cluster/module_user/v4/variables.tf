@@ -11,7 +11,7 @@ variable "atlas_client_secret" {
 }
 
 variable "project_id" {
-  description = "Unique 24-hexadecimal digit string that identifies your project. Use the `/groups` at https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listprojects endpoint to retrieve all projects to which the authenticated user has access. It is also known as groupId in the official documentation."
+  description = "Unique 24-hexadecimal digit string that identifies your project. It is also known as groupId in the official documentation."
   type        = string
 }
 

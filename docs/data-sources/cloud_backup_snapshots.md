@@ -11,14 +11,14 @@ subcategory: "Cloud Backups"
 
 ```terraform
 resource "mongodbatlas_cloud_backup_snapshots" "test" {
-  group_id          = "5d0f1f73cf09a29120e173cf"
+  project_id          = "5d0f1f73cf09a29120e173cf"
   cluster_name      = "MyClusterTest"
   description       = "SomeDescription"
   retention_in_days = 1
 }
 
 data "mongodbatlas_cloud_backup_snapshots" "test" {
-  group_id     = mongodbatlas_cloud_backup_snapshots.test.group_id
+  project_id     = mongodbatlas_cloud_backup_snapshots.test.project_id
   cluster_name = mongodbatlas_cloud_backup_snapshots.test.cluster_name
   page_num = 1
   items_per_page = 5
@@ -28,7 +28,7 @@ data "mongodbatlas_cloud_backup_snapshots" "test" {
 ## Argument Reference
 
 * `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshot you want to retrieve.
-* `group_id` - (Required) The unique identifier of the project for the Atlas cluster.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project which contains the Atlas cluster whose snapshot you want to retrieve, also known as `groupId` in the official documentation.
 * `page_num` - (Optional)  	The page to return. Defaults to `1`.
 * `items_per_page` - (Optional) Number of items to return per page, up to a maximum of 500. Defaults to `100`.
 
