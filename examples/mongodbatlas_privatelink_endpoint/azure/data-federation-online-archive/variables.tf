@@ -16,12 +16,6 @@ variable "project_id" {
   type        = string
 }
 
-variable "atlas_region" {
-  description = "Atlas region for the Azure private link endpoint (example: eastus2)."
-  type        = string
-  default     = "eastus2"
-}
-
 variable "azure_location" {
   description = "Azure location for the resource group and networking resources."
   type        = string
@@ -56,4 +50,9 @@ variable "subnet_cidr" {
   description = "CIDR block for the Azure subnet."
   type        = list(string)
   default     = ["10.0.1.0/24"]
+}
+
+variable "atlas_data_federation_private_link_service_resource_id" {
+  description = "Azure Resource ID of the Atlas-managed Data Federation Private Link Service for your region. See https://www.mongodb.com/docs/atlas/data-federation/tutorial/config-private-endpoint/ to find the value for your region."
+  type        = string
 }
