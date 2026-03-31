@@ -1268,6 +1268,7 @@ resources:
               optional: true
               computed: true
           provider_name:
+            description: "Human-readable label that identifies the cloud service provider. Atlas Data Federation supports `AWS` and `AZURE`."
             computability:
               required: true
 
