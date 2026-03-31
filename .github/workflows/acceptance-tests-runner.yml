@@ -158,6 +158,8 @@ on:
         required: true
       mongodb_atlas_private_endpoint_dns_name:
         required: true
+      mongodb_atlas_private_endpoint_id_replace:
+        required: true
       mongodb_atlas_gov_private_key:
         required: true
       mongodb_atlas_gov_public_key:
