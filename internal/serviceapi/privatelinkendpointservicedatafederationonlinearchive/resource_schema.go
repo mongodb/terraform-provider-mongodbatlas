@@ -56,7 +56,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`.",
 			},
 			"status": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Status of the private endpoint connection request.",
 			},
 			"type": schema.StringAttribute{
