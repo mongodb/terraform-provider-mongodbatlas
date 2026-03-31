@@ -693,7 +693,7 @@ jobs:
             ./internal/serviceapi/databaseuserapi
             ./internal/serviceapi/logintegration
             ./internal/serviceapi/maintenancewindowapi
-            ./internal/serviceapi/privatelinkendpointservicedatafederationonlinearchiveapi
+            ./internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/projectsettingsapi
             ./internal/serviceapi/streamconnectionapi
