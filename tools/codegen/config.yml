@@ -1183,7 +1183,7 @@ resources:
         target_states: ["OK"]
         timeout_seconds: 600
         min_timeout_seconds: 60
-        delay_seconds: 30
+        delay_seconds: 10
     update:
       path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
       method: POST
