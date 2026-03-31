@@ -20,6 +20,7 @@ var (
 	resourceName   = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
 	comment        = "Terraform Acceptance Test"
 	AWSregion      = "US_EAST_1"
+	azureRegion    = "US_EAST_2"
 	dataSourceName = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
 	pluralDSName   = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archives.test"
 )
@@ -88,6 +89,35 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 				ImportStateVerifyIgnore: []string{
 					"delete_on_create_timeout",
 				},
+			},
+		},
+	})
+}
+
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicAzure(t *testing.T) {
+	var (
+		projectID               = acc.ProjectIDExecution(t)
+		endpointID              = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_AZURE")
+		customerEndpointIPValue = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_IP_ADDRESS_AZURE")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckPrivateEndpointAzure(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfigBasicAzure(projectID, endpointID, customerEndpointIPValue, comment),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					checkEncodedID(resourceName, projectID, endpointID),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", "AZURE"),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+					resource.TestCheckResourceAttr(resourceName, "customer_endpoint_ip_address", customerEndpointIPValue),
+					resource.TestCheckResourceAttr(resourceName, "region", azureRegion),
+				),
 			},
 		},
 	})
@@ -326,6 +356,50 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_Optio
 	})
 }
 
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_BasicAzure(t *testing.T) {
+	var (
+		projectID               = acc.ProjectIDExecution(t)
+		endpointID              = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_AZURE")
+		customerEndpointIPValue = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_IP_ADDRESS_AZURE")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckPrivateEndpointAzure(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourceConfigBasicAzure(projectID, endpointID, customerEndpointIPValue, comment, azureRegion),
+				ConfigStateChecks: []statecheck.StateCheck{
+					acc.PluralResultCheck(
+						pluralDSName,
+						"endpoint_id",
+						knownvalue.StringExact(endpointID),
+						map[string]knownvalue.Check{
+							"region":                       knownvalue.StringExact(azureRegion),
+							"customer_endpoint_ip_address": knownvalue.StringExact(customerEndpointIPValue),
+						},
+					),
+				},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					checkEncodedID(resourceName, projectID, endpointID),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourceName, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttr(dataSourceName, "provider_name", "AZURE"),
+					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
+					resource.TestCheckResourceAttr(dataSourceName, "customer_endpoint_ip_address", customerEndpointIPValue),
+					resource.TestCheckResourceAttr(dataSourceName, "region", azureRegion),
+					checkDataSourceEncodedID(dataSourceName, projectID, endpointID),
+					resource.TestCheckResourceAttr(pluralDSName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
+					resource.TestCheckResourceAttrSet(pluralDSName, "id"),
+				),
+			},
+		},
+	})
+}
+
 func importLegacyStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -456,12 +530,44 @@ func resourceConfigBasicAWSWithTimeouts(projectID, endpointID, createTimeout, de
 	`, projectID, endpointID, createTimeout, deleteTimeout)
 }
 
+func resourceConfigBasicAzure(projectID, endpointID, customerEndpointIPAddress, comment string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
+	  project_id    = %[1]q
+	  endpoint_id   = %[2]q
+	  provider_name = "AZURE"
+	  customer_endpoint_ip_address = %[3]q
+	  comment       = %[4]q
+	}
+	`, projectID, endpointID, customerEndpointIPAddress, comment)
+}
+
 func dataSourceConfigBasicAWS(projectID, endpointID, comment string) string {
 	return buildConfigWithDataSource(projectID, endpointID, comment, "", false)
 }
 
 func dataSourceConfigOptionalFieldsAWS(projectID, endpointID, comment, customerEndpointDNSName string) string {
 	return buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointDNSName, true)
+}
+
+func dataSourceConfigBasicAzure(projectID, endpointID, customerEndpointIPAddress, comment, region string) string {
+	return buildConfigWithDataSourceAzure(projectID, endpointID, customerEndpointIPAddress, comment, region)
+}
+
+func buildConfigWithDataSourceAzure(projectID, endpointID, customerEndpointIPAddress, comment, region string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
+	  project_id                   = %[1]q
+	  endpoint_id                  = %[2]q
+	  provider_name                = "AZURE"
+	  customer_endpoint_ip_address = %[3]q
+	  comment                      = %[4]q
+	  region                       = %[5]q
+	}
+
+	%[6]s
+	%[7]s
+	`, projectID, endpointID, customerEndpointIPAddress, comment, region, singularDataSourceConfig, pluralDataSourceConfig)
 }
 
 func buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointDNSName string, includeOptionalFields bool) string {
