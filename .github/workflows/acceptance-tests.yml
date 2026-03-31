@@ -103,6 +103,8 @@ jobs:
       mongodb_atlas_private_endpoint_id: ${{ secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_ID }}
       mongodb_atlas_private_endpoint_dns_name: ${{ secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME }}
       mongodb_atlas_private_endpoint_id_replace: ${{ secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_REPLACE }}
+      mongodb_atlas_private_endpoint_id_azure: ${{ secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_AZURE }}
+      mongodb_atlas_private_endpoint_ip_address_azure: ${{ secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_IP_ADDRESS_AZURE }}
       azure_directory_id: ${{ secrets.AZURE_DIRECTORY_ID }}
       azure_resource_group_name: ${{ secrets.AZURE_RESOURCE_GROUP_NAME }}
       azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
