@@ -66,6 +66,20 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						ConnectionTypeAWSKinesisDataStreams,
+						ConnectionTypeAWSLambda,
+						ConnectionTypeAzureBlobStorage,
+						ConnectionTypeCluster,
+						ConnectionTypeGCPPubSub,
+						ConnectionTypeHTTPS,
+						ConnectionTypeKafka,
+						ConnectionTypeS3,
+						ConnectionTypeSample,
+						ConnectionTypeSchemaRegistry,
+					),
+				},
 			},
 
 			// cluster type specific
@@ -170,6 +184,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"role_arn": schema.StringAttribute{
 						Required: true,
+					},
+				},
+			},
+
+			// AzureBlobStorage type specific
+			"azure": schema.SingleNestedAttribute{
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"service_principal_id": schema.StringAttribute{
+						Required: true,
+					},
+					"storage_account_name": schema.StringAttribute{
+						Required: true,
+					},
+					"region": schema.StringAttribute{
+						Computed: true,
+						Optional: true,
 					},
 				},
 			},

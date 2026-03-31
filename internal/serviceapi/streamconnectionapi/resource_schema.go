@@ -209,7 +209,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"networking": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "Optional for type: AWSKinesisDataStreams, Kafka, S3. Networking configuration for Streams connections.",
+				MarkdownDescription: "Optional for type: AWSKinesisDataStreams, AzureBlobStorage, Kafka, S3. Networking configuration for Streams connections.",
 				CustomType:          customtypes.NewObjectType[TFNetworkingModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"access": schema.SingleNestedAttribute{

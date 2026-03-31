@@ -49,6 +49,21 @@ variable "other_cluster" {
   type        = string
 }
 
+variable "azure_service_principal_id" {
+  description = "UUID that identifies the Azure Service Principal used to access the Azure Blob Storage account"
+  type        = string
+}
+
+variable "azure_storage_account_name" {
+  description = "Name of the Azure Storage account to use for the Azure Blob Storage connection"
+  type        = string
+}
+
+variable "azure_region" {
+  description = "Azure region where the storage account is located"
+  type        = string
+}
+
 variable "schema_registry_username" {
   description = "Username for connecting to your Schema Registry"
   type        = string

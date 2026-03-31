@@ -1185,6 +1185,72 @@ func checkAWSLambdaAttributes(resourceName, workspaceName, connectionName string
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
 
+func TestAccStreamRSStreamConnection_AzureBlobStorage(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = acc.RandomName()
+		servicePrincipalID      = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
+		storageAccountName      = os.Getenv("AZURE_BLOB_STORAGE_ACCOUNT_NAME")
+		region                  = os.Getenv("AZURE_REGION")
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckStreamConnectionAzureBlobStorage(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourceConfig + configureAzureBlobStorage(projectID, instanceName, connectionName, servicePrincipalID, storageAccountName, region, networkingTypePublic),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAzureBlobStorageAttributes(resourceName, instanceName, connectionName, servicePrincipalID, storageAccountName, region),
+					checkAzureBlobStorageAttributes(dataSourceName, instanceName, connectionName, servicePrincipalID, storageAccountName, region),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func configureAzureBlobStorage(projectID, workspaceName, connectionName, servicePrincipalID, storageAccountName, region, networkingType string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_connection" "test" {
+		    project_id = %[1]q
+			workspace_name = %[2]q
+		 	connection_name = %[3]q
+		 	type = "AzureBlobStorage"
+			azure = {
+				service_principal_id = %[4]q
+				storage_account_name = %[5]q
+				region               = %[6]q
+			}
+			networking = {
+				access = {
+					type = %[7]q
+				}
+			}
+		}
+	`, projectID, workspaceName, connectionName, servicePrincipalID, storageAccountName, region, networkingType)
+}
+
+func checkAzureBlobStorageAttributes(resourceName, workspaceName, connectionName, servicePrincipalID, storageAccountName, region string) resource.TestCheckFunc {
+	resourceChecks := []resource.TestCheckFunc{
+		checkStreamConnectionExists(),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName),
+		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
+		resource.TestCheckResourceAttr(resourceName, "type", "AzureBlobStorage"),
+		resource.TestCheckResourceAttr(resourceName, "azure.service_principal_id", servicePrincipalID),
+		resource.TestCheckResourceAttr(resourceName, "azure.storage_account_name", storageAccountName),
+		resource.TestCheckResourceAttr(resourceName, "azure.region", region),
+		resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingTypePublic),
+	}
+	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
+}
+
 func streamConnectionsAttributeChecks(resourceName string, pageNum, itemsPerPage *int) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),

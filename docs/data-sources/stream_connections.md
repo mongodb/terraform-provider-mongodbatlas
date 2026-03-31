@@ -39,7 +39,7 @@ In addition to all arguments above, it also exports the following attributes:
 * `project_id` - Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `workspace_name` - Label that identifies the stream processing workspace.
 * `connection_name` - Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - Type of connection. `AWSLambda`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
+* `type` - Type of connection. `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -52,7 +52,11 @@ If `type` is of value `Kafka` the following additional attributes are defined:
 * `security` - Properties for the secure transport connection to Kafka. For SASL_SSL, this can include the trusted certificate to use. See [security](#security).
 * `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
 
-If `type` is of value `AWSLambda` the following additional attributes are defined::
+If `type` is of value `AzureBlobStorage` the following additional attributes are defined:
+* `azure` - The configuration for Azure Blob Storage connection. See [Azure](#Azure).
+* `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
+
+If `type` is of value `AWSLambda` the following additional attributes are defined:
 * `aws` - The configuration for AWS Lambda connection. See [AWS](#AWS)
 
 If `type` is of value `GCPPubSub` the following additional attributes are defined:
@@ -98,6 +102,11 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
 
 ### AWS
 * `role_arn` - Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+
+### Azure
+* `service_principal_id` - UUID that identifies the Azure Service Principal used to access the Azure Blob Storage account.
+* `storage_account_name` - Name of the Azure Storage account.
+* `region` - Azure region where the storage account is located.
 
 ### GCP
 * `service_account_id` - Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to GCP Pub/Sub resources.
