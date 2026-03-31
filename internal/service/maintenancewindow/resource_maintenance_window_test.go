@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20250312017/admin"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
