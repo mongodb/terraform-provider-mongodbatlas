@@ -1,4 +1,4 @@
-package privatelinkendpointservicedatafederationonlinearchiveapi_test
+package privatelinkendpointservicedatafederationonlinearchive_test
 
 import (
 	"context"
@@ -17,11 +17,11 @@ import (
 )
 
 var (
-	resourceName   = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test"
+	resourceName   = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
 	comment        = "Terraform Acceptance Test"
 	AWSregion      = "US_EAST_1"
-	dataSourceName = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test"
-	pluralDSName   = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archives_api.test"
+	dataSourceName = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
+	pluralDSName   = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archives.test"
 )
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
@@ -291,7 +291,7 @@ func importNormalizedStateIDFunc(resourceName string) resource.ImportStateIdFunc
 
 func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" {
+		if rs.Type != "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
@@ -359,11 +359,11 @@ func checkDataSourceEncodedID(resourceName, expectedProjectID, expectedEndpointI
 
 func resourceConfigBasicAWS(projectID, endpointID, comment string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
-	  project_id				= %[1]q
-	  endpoint_id				= %[2]q
-	  provider_name				= "AWS"
-	  comment					= %[3]q
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
+	  project_id    = %[1]q
+	  endpoint_id   = %[2]q
+	  provider_name = "AWS"
+	  comment       = %[3]q
 	}
 	`, projectID, endpointID, comment)
 }
@@ -380,16 +380,16 @@ func buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointD
 	optionalFields := ""
 	if includeOptionalFields {
 		optionalFields = fmt.Sprintf(`
-	  region						= %q
-	  customer_endpoint_dns_name	= %q`, AWSregion, customerEndpointDNSName)
+	  region                     = %q
+	  customer_endpoint_dns_name = %q`, AWSregion, customerEndpointDNSName)
 	}
 
 	return fmt.Sprintf(`
-	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
-	  project_id					= %[1]q
-	  endpoint_id					= %[2]q
-	  provider_name					= "AWS"
-	  comment						= %[3]q
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
+	  project_id    = %[1]q
+	  endpoint_id   = %[2]q
+	  provider_name = "AWS"
+	  comment       = %[3]q
 	  %[4]s
 	}
 
@@ -399,12 +399,12 @@ func buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointD
 }
 
 const singularDataSourceConfig = `
-data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api" "test" {
-  project_id				= mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test.project_id
-  endpoint_id				= mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test.endpoint_id
+data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
+  project_id  = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.project_id
+  endpoint_id = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.endpoint_id
 }`
 
 const pluralDataSourceConfig = `
-data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archives_api" "test" {
-  project_id				= mongodbatlas_privatelink_endpoint_service_data_federation_online_archive_api.test.project_id
+data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archives" "test" {
+  project_id = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.project_id
 }`

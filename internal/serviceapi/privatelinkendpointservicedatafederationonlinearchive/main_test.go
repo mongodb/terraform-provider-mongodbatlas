@@ -1,4 +1,4 @@
-package privatelinkendpointservicedatafederationonlinearchiveapi_test
+package privatelinkendpointservicedatafederationonlinearchive_test
 
 import (
 	"os"

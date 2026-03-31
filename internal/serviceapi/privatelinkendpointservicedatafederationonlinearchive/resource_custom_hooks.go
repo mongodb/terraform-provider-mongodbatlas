@@ -1,4 +1,4 @@
-package privatelinkendpointservicedatafederationonlinearchiveapi
+package privatelinkendpointservicedatafederationonlinearchive
 
 import (
 	"context"

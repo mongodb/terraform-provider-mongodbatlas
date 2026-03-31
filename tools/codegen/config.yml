@@ -1170,7 +1170,7 @@ resources:
           aws_security_group:
             description: "Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`."
 
-  privatelink_endpoint_service_data_federation_online_archive_api:
+  privatelink_endpoint_service_data_federation_online_archive:
     read:
       path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
       method: GET
