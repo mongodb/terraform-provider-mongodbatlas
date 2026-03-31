@@ -313,7 +313,7 @@ output "service_attachment_uris" {
 
 	* **Azure**: EVENTHUB and CONFLUENT
 
-	* **GCP**: CONFLUENT
+	* **GCP**: CONFLUENT and PUBSUB
 
 ### Optional
 

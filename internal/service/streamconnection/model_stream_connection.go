@@ -79,11 +79,20 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		if diags := networkingModel.Access.As(ctx, networkingAccessModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
 		}
-		streamConnection.Networking = &admin.StreamsKafkaNetworking{
-			Access: &admin.StreamsKafkaNetworkingAccess{
-				Type:         networkingAccessModel.Type.ValueStringPointer(),
-				ConnectionId: networkingAccessModel.ConnectionID.ValueStringPointer(),
-			},
+		if plan.Type.ValueString() == "GCPPubSub" {
+			streamConnection.PublicPrivateNetworking = &admin.StreamsPublicPrivateLinkNetworking{
+				Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
+					Type:         networkingAccessModel.Type.ValueStringPointer(),
+					ConnectionId: networkingAccessModel.ConnectionID.ValueStringPointer(),
+				},
+			}
+		} else {
+			streamConnection.Networking = &admin.StreamsKafkaNetworking{
+				Access: &admin.StreamsKafkaNetworkingAccess{
+					Type:         networkingAccessModel.Type.ValueStringPointer(),
+					ConnectionId: networkingAccessModel.ConnectionID.ValueStringPointer(),
+				},
+			}
 		}
 	}
 
