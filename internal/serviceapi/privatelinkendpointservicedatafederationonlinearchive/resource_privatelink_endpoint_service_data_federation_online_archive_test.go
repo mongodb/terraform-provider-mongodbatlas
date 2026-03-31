@@ -180,19 +180,17 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_optiona
 }
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_forceNewEndpointID(t *testing.T) {
-	acc.SkipTestForCI(t)
-
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		endpointID  = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
-		endpointID2 = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_2")
+		projectID         = acc.ProjectIDExecution(t)
+		endpointID        = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+		endpointIDReplace = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_REPLACE")
 	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			acc.PreCheckPrivateEndpoint(t)
-			if endpointID2 == "" {
-				t.Fatal("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_2` must be set for force-new endpoint_id acceptance testing")
+			if endpointIDReplace == "" {
+				t.Fatal("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_REPLACE` must be set for force-new endpoint_id acceptance testing")
 			}
 		},
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -209,7 +207,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_forceNe
 				),
 			},
 			{
-				Config: resourceConfigBasicAWS(projectID, endpointID2, comment),
+				Config: resourceConfigBasicAWS(projectID, endpointIDReplace, comment),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionReplace),
