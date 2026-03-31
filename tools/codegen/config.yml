@@ -551,6 +551,10 @@ resources:
           computability:
             optional: true
             computed: true
+        is_cluster_ai_assistant_enabled:
+          computability:
+            optional: true
+            computed: true
 
   project_api:
     read:

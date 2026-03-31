@@ -17,7 +17,7 @@ schema:
           request_only_required_on_create: false
         - bool: {}
           description: Flag that indicates whether the AI Cluster Assistant is enabled for the specified project.
-          computed_optional_required: optional
+          computed_optional_required: computed_optional
           tf_schema_name: is_cluster_ai_assistant_enabled
           tf_model_name: IsClusterAiAssistantEnabled
           api_name: isClusterAiAssistantEnabled
