@@ -126,13 +126,6 @@ func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schem
 		Update: true,
 		Delete: true,
 	})
-
-	if statusAttr, ok := baseSchema.Attributes["status"].(schema.StringAttribute); ok {
-		statusAttr.PlanModifiers = []planmodifier.String{
-			stringplanmodifier.UseStateForUnknown(),
-		}
-		baseSchema.Attributes["status"] = statusAttr
-	}
 	return baseSchema
 }
 
