@@ -176,7 +176,7 @@ operations:
                 - DELETING
             target_states:
                 - DELETED
-            timeout_seconds: 7200
+            timeout_seconds: 600
             min_timeout_seconds: 60
             delay_seconds: 30
         http_method: DELETE
@@ -188,7 +188,7 @@ operations:
                 - PENDING
             target_states:
                 - OK
-            timeout_seconds: 7200
+            timeout_seconds: 600
             min_timeout_seconds: 60
             delay_seconds: 30
         http_method: POST
@@ -203,7 +203,7 @@ operations:
                 - PENDING
             target_states:
                 - OK
-            timeout_seconds: 7200
+            timeout_seconds: 600
             min_timeout_seconds: 60
             delay_seconds: 30
         http_method: POST

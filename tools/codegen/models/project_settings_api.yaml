@@ -16,6 +16,17 @@ schema:
           present_in_any_response: false
           request_only_required_on_create: false
         - bool: {}
+          description: Flag that indicates whether the AI Cluster Assistant is enabled for the specified project.
+          computed_optional_required: computed_optional
+          tf_schema_name: is_cluster_ai_assistant_enabled
+          tf_model_name: IsClusterAiAssistantEnabled
+          api_name: isClusterAiAssistantEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - bool: {}
           description: Flag that indicates whether to collect database-specific metrics for the specified project.
           computed_optional_required: computed_optional
           tf_schema_name: is_collect_database_specifics_statistics_enabled

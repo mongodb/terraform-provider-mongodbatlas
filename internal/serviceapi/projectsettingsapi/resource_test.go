@@ -61,6 +61,7 @@ func config(projectID string, enabled bool) string {
 			is_performance_advisor_enabled = %[2]t
 			is_realtime_performance_panel_enabled = %[2]t
 			is_schema_advisor_enabled = %[2]t
+			is_cluster_ai_assistant_enabled = %[2]t
 		}
 	`, projectID, enabled)
 }
@@ -85,6 +86,7 @@ func check(projectID string, enabled bool) resource.TestCheckFunc {
 		"is_performance_advisor_enabled":                          expected,
 		"is_realtime_performance_panel_enabled":                   expected,
 		"is_schema_advisor_enabled":                               expected,
+		"is_cluster_ai_assistant_enabled":                         expected,
 	}
 	checks := acc.AddAttrChecks(resourceName, nil, attrChecks)
 	checks = append(checks, checkExists(resourceName))

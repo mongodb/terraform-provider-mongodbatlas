@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -19,10 +20,12 @@ import (
 const endpointType = "DATA_LAKE"
 
 var (
-	_ autogen.PreCreateAPICallHook = (*rs)(nil)
-	_ autogen.PreUpdateAPICallHook = (*rs)(nil)
-	_ autogen.PreImportHook        = (*rs)(nil)
-	_ autogen.ResourceSchemaHook   = (*rs)(nil)
+	_ autogen.PreCreateAPICallHook  = (*rs)(nil)
+	_ autogen.PreUpdateAPICallHook  = (*rs)(nil)
+	_ autogen.PostCreateAPICallHook = (*rs)(nil)
+	_ autogen.PostUpdateAPICallHook = (*rs)(nil)
+	_ autogen.PreImportHook         = (*rs)(nil)
+	_ autogen.ResourceSchemaHook    = (*rs)(nil)
 )
 
 type TFExpandedModel struct {
@@ -43,6 +46,37 @@ func (r *rs) PreUpdateAPICall(callParams config.APICallParams, bodyReq []byte) (
 		return callParams, bodyReq
 	}
 	return callParams, modifiedBody
+}
+
+func (r *rs) PostCreateAPICall(result autogen.APICallResult) autogen.APICallResult {
+	return stripProviderFromResult(result)
+}
+
+func (r *rs) PostUpdateAPICall(result autogen.APICallResult) autogen.APICallResult {
+	return stripProviderFromResult(result)
+}
+
+func stripProviderFromResult(result autogen.APICallResult) autogen.APICallResult {
+	if result.Err != nil || len(result.Body) == 0 {
+		return result
+	}
+
+	var obj map[string]any
+	if err := json.Unmarshal(result.Body, &obj); err != nil {
+		return result
+	}
+
+	// Keep configured provider_name casing from the plan by preventing create/update
+	// responses from overwriting it before read hooks have a chance to run.
+	delete(obj, "provider")
+
+	body, err := json.Marshal(obj)
+	if err != nil {
+		return result
+	}
+
+	result.Body = body
+	return result
 }
 
 func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schema.Schema {
@@ -82,6 +116,16 @@ func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schem
 			stringplanmodifier.UseStateForUnknown(),
 		},
 	}
+
+	delete(baseSchema.Attributes, "timeouts")
+	if baseSchema.Blocks == nil {
+		baseSchema.Blocks = map[string]schema.Block{}
+	}
+	baseSchema.Blocks["timeouts"] = timeouts.Block(ctx, timeouts.Opts{
+		Create: true,
+		Update: true,
+		Delete: true,
+	})
 	return baseSchema
 }
 
@@ -106,6 +150,7 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 	}
 
 	normalizeOptionalStringFields(obj)
+	preserveProviderCasing(obj, model.ProviderName)
 	obj["id"] = craftedID
 
 	body, err := json.Marshal(obj)
@@ -161,5 +206,19 @@ func normalizeOptionalStringFields(obj map[string]any) {
 func setEmptyStringIfMissing(obj map[string]any, responseKey string) {
 	if val, exists := obj[responseKey]; !exists || val == nil {
 		obj[responseKey] = ""
+	}
+}
+
+func preserveProviderCasing(obj map[string]any, stateProvider types.String) {
+	if stateProvider.IsNull() || stateProvider.IsUnknown() {
+		return
+	}
+	stateVal := stateProvider.ValueString()
+	apiVal, ok := obj["provider"].(string)
+	if !ok || stateVal == "" || apiVal == "" {
+		return
+	}
+	if strings.EqualFold(stateVal, apiVal) {
+		obj["provider"] = stateVal
 	}
 }

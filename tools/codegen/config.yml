@@ -551,6 +551,10 @@ resources:
           computability:
             optional: true
             computed: true
+        is_cluster_ai_assistant_enabled:
+          computability:
+            optional: true
+            computed: true
 
   project_api:
     read:
@@ -1181,9 +1185,9 @@ resources:
         state_property: status
         pending_states: ["PENDING"]
         target_states: ["OK"]
-        timeout_seconds: 7200
+        timeout_seconds: 600
         min_timeout_seconds: 60
-        delay_seconds: 30
+        delay_seconds: 10
     update:
       path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
       method: POST
