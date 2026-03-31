@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -115,6 +116,17 @@ func (r *rs) ResourceSchema(ctx context.Context, baseSchema schema.Schema) schem
 			stringplanmodifier.UseStateForUnknown(),
 		},
 	}
+
+	delete(baseSchema.Attributes, "timeouts")
+	if baseSchema.Blocks == nil {
+		baseSchema.Blocks = map[string]schema.Block{}
+	}
+	baseSchema.Blocks["timeouts"] = timeouts.Block(ctx, timeouts.Opts{
+		Create: true,
+		Update: true,
+		Delete: true,
+	})
+
 	if statusAttr, ok := baseSchema.Attributes["status"].(schema.StringAttribute); ok {
 		statusAttr.PlanModifiers = []planmodifier.String{
 			stringplanmodifier.UseStateForUnknown(),
