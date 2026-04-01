@@ -16,7 +16,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"azure_link_id": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Link ID that identifies the Azure private endpoint connection.",
 			},
 			"comment": schema.StringAttribute{
@@ -38,7 +38,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 22-character alphanumeric string that identifies the private endpoint.",
 			},
 			"error_message": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Error message describing a failure approving the private endpoint request.",
 			},
 			"project_id": schema.StringAttribute{

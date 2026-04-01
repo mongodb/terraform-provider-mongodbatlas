@@ -1264,6 +1264,12 @@ resources:
           status:
             computability:
               computed: true
+          azure_link_id:
+            computability:
+              computed: true
+          error_message:
+            computability:
+              computed: true
 
   log_integration:
     read:
