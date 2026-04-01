@@ -31,6 +31,7 @@ func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 		"storage_stores.0.read_preference.0.tag_sets.#":             "2",
 		"storage_stores.0.read_preference.0.tag_sets.0.tags.#":      "2",
 		"storage_databases.0.collections.0.data_sources.0.database": "sample_airbnb",
+		"private_endpoint_hostnames.#":                              "0",
 	}
 	setChecks := []string{"project_id", "storage_stores.0.read_preference.0.tag_sets.#"}
 	firstStepChecks := acc.AddAttrChecks(resourceName, nil, valueChecks)

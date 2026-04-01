@@ -32,6 +32,7 @@ func TestAccFederatedDatabaseInstanceDSPlural_basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
+					resource.TestCheckResourceAttr(resourceName, "results.0.private_endpoint_hostnames.#", "0"),
 				),
 			},
 		},
