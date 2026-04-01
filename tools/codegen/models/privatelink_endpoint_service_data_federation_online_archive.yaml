@@ -65,7 +65,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Unique 22-character alphanumeric string that identifies the private endpoint.
+          description: Unique string that identifies the private endpoint. For AWS, this is a 22-character alphanumeric string (e.g. `vpce-xxxxxxxxxxxxxxxxx`). For Azure, this is the full resource ID of the private endpoint (e.g. `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateEndpoints/{privateEndpointName}`).
           computed_optional_required: required
           tf_schema_name: endpoint_id
           tf_model_name: EndpointId
@@ -258,7 +258,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Unique 22-character alphanumeric string that identifies the private endpoint.
+              description: Unique string that identifies the private endpoint. For AWS, this is a 22-character alphanumeric string (e.g. `vpce-xxxxxxxxxxxxxxxxx`). For Azure, this is the full resource ID of the private endpoint (e.g. `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateEndpoints/{privateEndpointName}`).
               computed_optional_required: required
               tf_schema_name: endpoint_id
               tf_model_name: EndpointId
@@ -399,7 +399,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Unique 22-character alphanumeric string that identifies the private endpoint.
+                          description: Unique string that identifies the private endpoint. For AWS, this is a 22-character alphanumeric string (e.g. `vpce-xxxxxxxxxxxxxxxxx`). For Azure, this is the full resource ID of the private endpoint (e.g. `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateEndpoints/{privateEndpointName}`).
                           computed_optional_required: computed
                           tf_schema_name: endpoint_id
                           tf_model_name: EndpointId

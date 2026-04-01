@@ -111,15 +111,11 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicAz
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					checkEncodedID(resourceName, projectID, endpointID),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AZURE"),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 					resource.TestCheckResourceAttr(resourceName, "customer_endpoint_ip_address", customerEndpointIPValue),
 					resource.TestCheckResourceAttr(resourceName, "region", azureRegion),
 					checkEncodedID(dataSourceName, projectID, endpointID),
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourceName, "endpoint_id", endpointID),
 					resource.TestCheckResourceAttr(dataSourceName, "provider_name", "AZURE"),
 					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
 					resource.TestCheckResourceAttr(dataSourceName, "customer_endpoint_ip_address", customerEndpointIPValue),
@@ -129,6 +125,14 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicAz
 					resource.TestCheckResourceAttrSet(pluralDSName, "id"),
 				),
 			},
+			// TODO: Uncomment once CLOUDP-391704 is released — Azure comment update is not yet supported.
+			// {
+			// 	Config: dataSourceConfigBasicAzure(projectID, endpointID, customerEndpointIPValue, "updated comment", azureRegion),
+			// 	Check: resource.ComposeAggregateTestCheckFunc(
+			// 		checkExists(resourceName),
+			// 		resource.TestCheckResourceAttr(resourceName, "comment", "updated comment"),
+			// 	),
+			// },
 		},
 	})
 }

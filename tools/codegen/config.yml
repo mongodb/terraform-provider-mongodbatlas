@@ -1217,13 +1217,13 @@ resources:
           project_id:
             description: *project_id_description
           endpoint_id:
-            description: "Unique 22-character alphanumeric string that identifies the private endpoint."
+            description: &endpoint_id_description "Unique string that identifies the private endpoint. For AWS, this is a 22-character alphanumeric string (e.g. `vpce-xxxxxxxxxxxxxxxxx`). For Azure, this is the full resource ID of the private endpoint (e.g. `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateEndpoints/{privateEndpointName}`)."
           region:
             description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
           customer_endpoint_dns_name:
             description: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`."
           results.endpoint_id:
-            description: "Unique 22-character alphanumeric string that identifies the private endpoint."
+            description: *endpoint_id_description
           results.region:
             description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
           results.customer_endpoint_dns_name:
@@ -1240,6 +1240,8 @@ resources:
       overrides:
           project_id:
             description: *project_id_description
+          endpoint_id:
+            description: *endpoint_id_description
           region:
             description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
             # Mirrors logic of SDKv2 manual resource for "" values in state instead of null values

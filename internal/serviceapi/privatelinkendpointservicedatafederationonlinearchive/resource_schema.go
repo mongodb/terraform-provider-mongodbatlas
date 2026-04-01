@@ -35,7 +35,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"endpoint_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 22-character alphanumeric string that identifies the private endpoint.",
+				MarkdownDescription: "Unique string that identifies the private endpoint. For AWS, this is a 22-character alphanumeric string (e.g. `vpce-xxxxxxxxxxxxxxxxx`). For Azure, this is the full resource ID of the private endpoint (e.g. `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateEndpoints/{privateEndpointName}`).",
 			},
 			"error_message": schema.StringAttribute{
 				Computed:            true,
