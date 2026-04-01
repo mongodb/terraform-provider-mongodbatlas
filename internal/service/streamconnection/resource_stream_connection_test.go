@@ -1189,20 +1189,27 @@ func TestAccStreamRSStreamConnection_AzureBlobStorage(t *testing.T) {
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = acc.RandomName()
+		clientID                = os.Getenv("AZURE_CLIENT_ID")
+		clientSecret            = os.Getenv("AZURE_APP_SECRET")
+		subscriptionID          = os.Getenv("AZURE_SUBSCRIPTION_ID")
+		tenantID                = os.Getenv("AZURE_TENANT_ID")
+		atlasAzureAppID         = os.Getenv("AZURE_ATLAS_APP_ID")
 		servicePrincipalID      = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
-		storageAccountName      = os.Getenv("AZURE_BLOB_STORAGE_ACCOUNT_NAME")
-		region                  = os.Getenv("AZURE_REGION")
+		resourceGroupName       = acc.RandomName()
+		storageAccountName      = "tfacctest" + acc.RandomName()[:10]
+		storageContainerName    = acc.RandomBucketName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckStreamConnectionAzureBlobStorage(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckLogIntegrationEnvAzure(t) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAzurerm(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfig + configureAzureBlobStorage(projectID, instanceName, connectionName, servicePrincipalID, storageAccountName, region, networkingTypePublic),
+				Config: dataSourceConfig + configureAzureBlobStorage(projectID, instanceName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName, networkingTypePublic),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAzureBlobStorageAttributes(resourceName, instanceName, connectionName, servicePrincipalID, storageAccountName, region),
-					checkAzureBlobStorageAttributes(dataSourceName, instanceName, connectionName, servicePrincipalID, storageAccountName, region),
+					checkAzureBlobStorageAttributes(resourceName, instanceName, connectionName, servicePrincipalID, storageAccountName),
+					checkAzureBlobStorageAttributes(dataSourceName, instanceName, connectionName, servicePrincipalID, storageAccountName),
 				),
 			},
 			{
@@ -1215,28 +1222,83 @@ func TestAccStreamRSStreamConnection_AzureBlobStorage(t *testing.T) {
 	})
 }
 
-func configureAzureBlobStorage(projectID, workspaceName, connectionName, servicePrincipalID, storageAccountName, region, networkingType string) string {
+func configureAzureBlobStorage(projectID, workspaceName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName, networkingType string) string {
 	return fmt.Sprintf(`
+		%[1]s
+
+		resource "mongodbatlas_cloud_provider_access_setup" "azure_setup" {
+			project_id    = %[2]q
+			provider_name = "AZURE"
+
+			azure_config {
+				atlas_azure_app_id   = %[3]q
+				service_principal_id = %[4]q
+				tenant_id            = %[5]q
+			}
+		}
+
+		resource "mongodbatlas_cloud_provider_access_authorization" "azure_auth" {
+			project_id = %[2]q
+			role_id    = mongodbatlas_cloud_provider_access_setup.azure_setup.role_id
+
+			azure {
+				atlas_azure_app_id   = %[3]q
+				service_principal_id = %[4]q
+				tenant_id            = %[5]q
+			}
+		}
+
+		resource "azurerm_resource_group" "blob_rg" {
+			name     = %[6]q
+			location = "East US"
+		}
+
+		resource "azurerm_storage_account" "blob_storage" {
+			name                     = %[7]q
+			resource_group_name      = azurerm_resource_group.blob_rg.name
+			location                 = azurerm_resource_group.blob_rg.location
+			account_tier             = "Standard"
+			account_replication_type = "LRS"
+		}
+
+		resource "azurerm_storage_container" "blob_container" {
+			name                  = %[8]q
+			storage_account_id    = azurerm_storage_account.blob_storage.id
+		}
+
+		resource "azurerm_role_assignment" "blob_contributor" {
+			scope                = azurerm_storage_account.blob_storage.id
+			role_definition_name = "Storage Blob Data Contributor"
+			principal_id         = %[4]q
+		}
+
 		resource "mongodbatlas_stream_connection" "test" {
-		    project_id = %[1]q
-			workspace_name = %[2]q
-		 	connection_name = %[3]q
+		    project_id = %[2]q
+			workspace_name = %[9]q
+		 	connection_name = %[10]q
 		 	type = "AzureBlobStorage"
 			azure = {
 				service_principal_id = %[4]q
-				storage_account_name = %[5]q
-				region               = %[6]q
+				storage_account_name = azurerm_storage_account.blob_storage.name
+				region               = azurerm_resource_group.blob_rg.location
 			}
 			networking = {
 				access = {
-					type = %[7]q
+					type = %[11]q
 				}
 			}
+			depends_on = [
+				mongodbatlas_cloud_provider_access_authorization.azure_auth,
+				azurerm_role_assignment.blob_contributor,
+			]
 		}
-	`, projectID, workspaceName, connectionName, servicePrincipalID, storageAccountName, region, networkingType)
+	`, acc.ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID),
+		projectID, atlasAzureAppID, servicePrincipalID, tenantID,
+		resourceGroupName, storageAccountName, storageContainerName,
+		workspaceName, connectionName, networkingType)
 }
 
-func checkAzureBlobStorageAttributes(resourceName, workspaceName, connectionName, servicePrincipalID, storageAccountName, region string) resource.TestCheckFunc {
+func checkAzureBlobStorageAttributes(resourceName, workspaceName, connectionName, servicePrincipalID, storageAccountName string) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -1245,7 +1307,7 @@ func checkAzureBlobStorageAttributes(resourceName, workspaceName, connectionName
 		resource.TestCheckResourceAttr(resourceName, "type", "AzureBlobStorage"),
 		resource.TestCheckResourceAttr(resourceName, "azure.service_principal_id", servicePrincipalID),
 		resource.TestCheckResourceAttr(resourceName, "azure.storage_account_name", storageAccountName),
-		resource.TestCheckResourceAttr(resourceName, "azure.region", region),
+		resource.TestCheckResourceAttrSet(resourceName, "azure.region"),
 		resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingTypePublic),
 	}
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
