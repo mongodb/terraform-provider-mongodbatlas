@@ -185,10 +185,13 @@ func prepareBody(bodyReq []byte) ([]byte, bool) {
 	}
 
 	body["type"] = endpointType
-	delete(body, "status") // Send the status field as null on CREATE to prevent API rejection. Remove this once CLOUDP-391704 is released.
+
 	if providerRaw, ok := body["provider"].(string); ok && providerRaw != "" {
 		providerUpper := strings.ToUpper(providerRaw)
 		body["provider"] = providerUpper
+		if providerUpper == "AZURE" {
+			body["status"] = "PENDING"
+		}
 	}
 
 	modifiedBody, err := json.Marshal(body)
