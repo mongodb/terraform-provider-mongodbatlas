@@ -49,6 +49,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to enable extended storage sizes for the specified project.",
 			},
+			"is_native_reranking_enabled": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether to enable Native Reranking with Voyage AI models in the Aggregation Pipeline for the specified project.",
+			},
 			"is_performance_advisor_enabled": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
@@ -76,6 +80,7 @@ type TFModel struct {
 	IsDataExplorerGenAIFeaturesEnabled              types.Bool   `tfsdk:"is_data_explorer_gen_ai_features_enabled"`
 	IsDataExplorerGenAISampleDocumentPassingEnabled types.Bool   `tfsdk:"is_data_explorer_gen_ai_sample_document_passing_enabled"`
 	IsExtendedStorageSizesEnabled                   types.Bool   `tfsdk:"is_extended_storage_sizes_enabled"`
+	IsNativeRerankingEnabled                        types.Bool   `tfsdk:"is_native_reranking_enabled"`
 	IsPerformanceAdvisorEnabled                     types.Bool   `tfsdk:"is_performance_advisor_enabled"`
 	IsRealtimePerformancePanelEnabled               types.Bool   `tfsdk:"is_realtime_performance_panel_enabled"`
 	IsSchemaAdvisorEnabled                          types.Bool   `tfsdk:"is_schema_advisor_enabled"`
