@@ -38,6 +38,8 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 			{
 				Config: dataSourceConfigBasicAWS(projectID, endpointID, comment),
 				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("region"), knownvalue.StringExact("")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("customer_endpoint_dns_name"), knownvalue.StringExact("")),
 					statecheck.ExpectKnownValue(dataSourceName, tfjsonpath.New("region"), knownvalue.StringExact("")),
 					statecheck.ExpectKnownValue(dataSourceName, tfjsonpath.New("customer_endpoint_dns_name"), knownvalue.StringExact("")),
 					acc.PluralResultCheck(
@@ -50,22 +52,9 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 						},
 					),
 				},
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
+				Check: checkAggr(projectID, endpointID, comment, "", "",
 					checkEncodedID(resourceName, projectID, endpointID),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-					resource.TestCheckResourceAttrSet(resourceName, "type"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
-					resource.TestCheckResourceAttr(dataSourceName, "region", ""),
-					resource.TestCheckResourceAttr(dataSourceName, "customer_endpoint_dns_name", ""),
-					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "provider_name"),
-					checkDataSourceEncodedID(dataSourceName, projectID, endpointID),
+					checkEncodedID(dataSourceName, projectID, endpointID),
 					resource.TestCheckResourceAttr(pluralDSName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
 					resource.TestCheckResourceAttrSet(pluralDSName, "id"),
@@ -101,14 +90,8 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_updateC
 		commentUpdated2 = "Terraform Acceptance Test Updated Again"
 	)
 	checkWithComment := func(expectedComment string) resource.TestCheckFunc {
-		return resource.ComposeAggregateTestCheckFunc(
-			checkExists(resourceName),
-			checkEncodedID(resourceName, projectID, endpointID),
-			resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-			resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+		return checkResourceOnlyAggr(projectID, endpointID,
 			resource.TestCheckResourceAttr(resourceName, "comment", expectedComment),
-			resource.TestCheckResourceAttrSet(resourceName, "type"),
-			resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 		)
 	}
 
@@ -152,11 +135,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_provide
 	)
 
 	checkWithComment := func(expectedComment string) resource.TestCheckFunc {
-		return resource.ComposeAggregateTestCheckFunc(
-			checkExists(resourceName),
-			checkEncodedID(resourceName, projectID, endpointID),
-			resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-			resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+		return checkResourceOnlyAggr(projectID, endpointID,
 			resource.TestCheckResourceAttr(resourceName, "provider_name", "aws"),
 			resource.TestCheckResourceAttr(resourceName, "comment", expectedComment),
 		)
@@ -184,7 +163,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_provide
 	})
 }
 
-func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_optionalStringEmptyState(t *testing.T) {
+func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_optionalAttrsOmittedAWS(t *testing.T) {
 	var (
 		projectID  = acc.ProjectIDExecution(t)
 		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
@@ -196,25 +175,17 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_optiona
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfigBasicAWS(projectID, endpointID, comment),
+				Config: resourceConfigBasicAWSNoOptional(projectID, endpointID),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("region"), knownvalue.StringExact("")),
 					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("customer_endpoint_dns_name"), knownvalue.StringExact("")),
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("comment"), knownvalue.StringExact("")),
 				},
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					checkEncodedID(resourceName, projectID, endpointID),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+				Check: checkResourceOnlyAggr(projectID, endpointID,
+					resource.TestCheckResourceAttr(resourceName, "comment", ""),
+					resource.TestCheckResourceAttr(resourceName, "region", ""),
+					resource.TestCheckResourceAttr(resourceName, "customer_endpoint_dns_name", ""),
 				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importNormalizedStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"delete_on_create_timeout",
-				},
 			},
 		},
 	})
@@ -239,11 +210,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_forceNe
 		Steps: []resource.TestStep{
 			{
 				Config: resourceConfigBasicAWS(projectID, endpointID, comment),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					checkEncodedID(resourceName, projectID, endpointID),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+				Check: checkResourceOnlyAggr(projectID, endpointID,
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 				),
 			},
@@ -307,16 +274,8 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_Optio
 						},
 					),
 				},
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
-					resource.TestCheckResourceAttr(dataSourceName, "region", AWSregion),
-					resource.TestCheckResourceAttr(dataSourceName, "customer_endpoint_dns_name", customerEndpointDNSName),
-					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "provider_name"),
-					checkDataSourceEncodedID(dataSourceName, projectID, endpointID),
+				Check: checkAggr(projectID, endpointID, comment, AWSregion, customerEndpointDNSName,
+					checkEncodedID(dataSourceName, projectID, endpointID),
 					resource.TestCheckResourceAttr(pluralDSName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
 					resource.TestCheckResourceAttrSet(pluralDSName, "id"),
@@ -324,6 +283,33 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_Optio
 			},
 		},
 	})
+}
+
+func checkAggr(projectID, endpointID, commentValue, region, customerEndpointDNSName string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	attrsSet := []string{"type", "provider_name"}
+	attrsMap := map[string]string{
+		"project_id":                 projectID,
+		"endpoint_id":                endpointID,
+		"comment":                    commentValue,
+		"region":                     region,
+		"customer_endpoint_dns_name": customerEndpointDNSName,
+	}
+	extraChecks := extra
+	extraChecks = append(extraChecks, checkExists(resourceName))
+	return acc.CheckRSAndDS(resourceName, &dataSourceName, nil, attrsSet, attrsMap, extraChecks...)
+}
+
+func checkResourceOnlyAggr(projectID, endpointID string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{
+		checkExists(resourceName),
+		checkEncodedID(resourceName, projectID, endpointID),
+		resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+		resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+		resource.TestCheckResourceAttrSet(resourceName, "type"),
+		resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
+	}
+	checks = append(checks, extra...)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func importLegacyStateIDFunc(resourceName string) resource.ImportStateIdFunc {
@@ -401,24 +387,6 @@ func checkEncodedID(resourceName, expectedProjectID, expectedEndpointID string) 
 	}
 }
 
-func checkDataSourceEncodedID(resourceName, expectedProjectID, expectedEndpointID string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("id is empty")
-		}
-
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		if ids["project_id"] != expectedProjectID || ids["endpoint_id"] != expectedEndpointID {
-			return fmt.Errorf("unexpected decoded ID map: %+v", ids)
-		}
-		return nil
-	}
-}
-
 func resourceConfigBasicAWS(projectID, endpointID, comment string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
@@ -454,6 +422,16 @@ func resourceConfigBasicAWSWithTimeouts(projectID, endpointID, createTimeout, de
 	  }
 	}
 	`, projectID, endpointID, createTimeout, deleteTimeout)
+}
+
+func resourceConfigBasicAWSNoOptional(projectID, endpointID string) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
+  project_id    = %q
+  endpoint_id   = %q
+  provider_name = "AWS"
+}
+`, projectID, endpointID)
 }
 
 func dataSourceConfigBasicAWS(projectID, endpointID, comment string) string {
