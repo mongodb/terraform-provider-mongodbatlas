@@ -60,7 +60,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Private Endpoint Service resource for Data Federation and Online Archive can be imported using project ID and endpoint ID in either of the following formats:
+Import the Private Endpoint Service resource for Data Federation and Online Archive using the project ID and endpoint ID in either of the following formats:
 
 - `project_id--endpoint_id`
 - `project_id/endpoint_id`
