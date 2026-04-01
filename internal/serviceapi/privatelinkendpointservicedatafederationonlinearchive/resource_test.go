@@ -96,7 +96,18 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicAz
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfigBasicAzure(projectID, endpointID, customerEndpointIPValue, comment),
+				Config: dataSourceConfigBasicAzure(projectID, endpointID, customerEndpointIPValue, comment, azureRegion),
+				ConfigStateChecks: []statecheck.StateCheck{
+					acc.PluralResultCheck(
+						pluralDSName,
+						"endpoint_id",
+						knownvalue.StringExact(endpointID),
+						map[string]knownvalue.Check{
+							"region":                       knownvalue.StringExact(azureRegion),
+							"customer_endpoint_ip_address": knownvalue.StringExact(customerEndpointIPValue),
+						},
+					),
+				},
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					checkEncodedID(resourceName, projectID, endpointID),
@@ -105,6 +116,17 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicAz
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AZURE"),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 					resource.TestCheckResourceAttr(resourceName, "customer_endpoint_ip_address", customerEndpointIPValue),
+					resource.TestCheckResourceAttr(resourceName, "region", azureRegion),
+					checkEncodedID(dataSourceName, projectID, endpointID),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourceName, "endpoint_id", endpointID),
+					resource.TestCheckResourceAttr(dataSourceName, "provider_name", "AZURE"),
+					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
+					resource.TestCheckResourceAttr(dataSourceName, "customer_endpoint_ip_address", customerEndpointIPValue),
+					resource.TestCheckResourceAttr(dataSourceName, "region", azureRegion),
+					resource.TestCheckResourceAttr(pluralDSName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
+					resource.TestCheckResourceAttrSet(pluralDSName, "id"),
 				),
 			},
 		},
@@ -314,50 +336,6 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_Optio
 	})
 }
 
-func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_BasicAzure(t *testing.T) {
-	var (
-		projectID               = acc.ProjectIDExecution(t)
-		endpointID              = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_AZURE")
-		customerEndpointIPValue = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_IP_ADDRESS_AZURE")
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckPrivateEndpointAzure(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: dataSourceConfigBasicAzure(projectID, endpointID, customerEndpointIPValue, comment, azureRegion),
-				ConfigStateChecks: []statecheck.StateCheck{
-					acc.PluralResultCheck(
-						pluralDSName,
-						"endpoint_id",
-						knownvalue.StringExact(endpointID),
-						map[string]knownvalue.Check{
-							"region":                       knownvalue.StringExact(azureRegion),
-							"customer_endpoint_ip_address": knownvalue.StringExact(customerEndpointIPValue),
-						},
-					),
-				},
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					checkEncodedID(resourceName, projectID, endpointID),
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourceName, "endpoint_id", endpointID),
-					resource.TestCheckResourceAttr(dataSourceName, "provider_name", "AZURE"),
-					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
-					resource.TestCheckResourceAttr(dataSourceName, "customer_endpoint_ip_address", customerEndpointIPValue),
-					resource.TestCheckResourceAttr(dataSourceName, "region", azureRegion),
-					checkEncodedID(dataSourceName, projectID, endpointID),
-					resource.TestCheckResourceAttr(pluralDSName, "project_id", projectID),
-					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
-					resource.TestCheckResourceAttrSet(pluralDSName, "id"),
-				),
-			},
-		},
-	})
-}
-
 func checkAggr(projectID, endpointID, commentValue, region, customerEndpointDNSName string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	attrsSet := []string{"type", "provider_name"}
 	attrsMap := map[string]string{
@@ -495,18 +473,6 @@ func resourceConfigBasicAWSWithTimeouts(projectID, endpointID, createTimeout, de
 	  }
 	}
 	`, projectID, endpointID, createTimeout, deleteTimeout)
-}
-
-func resourceConfigBasicAzure(projectID, endpointID, customerEndpointIPAddress, comment string) string {
-	return fmt.Sprintf(`
-	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
-	  project_id    = %[1]q
-	  endpoint_id   = %[2]q
-	  provider_name = "AZURE"
-	  customer_endpoint_ip_address = %[3]q
-	  comment       = %[4]q
-	}
-	`, projectID, endpointID, customerEndpointIPAddress, comment)
 }
 
 func resourceConfigBasicAWSNoOptional(projectID, endpointID string) string {
