@@ -107,7 +107,7 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. It is also known as `groupId` in the official documentation.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 			},
 			"enabled_for_search_nodes": schema.BoolAttribute{
 				Optional:            true,

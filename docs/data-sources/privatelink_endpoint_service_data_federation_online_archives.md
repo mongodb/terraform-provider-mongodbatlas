@@ -31,7 +31,7 @@ data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archives"
 
 ## Argument Reference
 
-* `project_id` (Required) - Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation. 
+* `project_id` (Required) - Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 * `results` - A list where each represents a Private Endpoint Service

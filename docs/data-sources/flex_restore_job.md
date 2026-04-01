@@ -34,7 +34,7 @@ output "mongodbatlas_flex_restore_jobs" {
 ### Required
 
 - `name` (String) Human-readable label that identifies the flex cluster whose snapshot you want to restore.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access. It is also known as `groupId` in the official documentation.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `restore_job_id` (String) Unique 24-hexadecimal digit string that identifies the restore job.
 
 ### Read-Only

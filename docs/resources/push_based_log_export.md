@@ -62,7 +62,7 @@ output "test" {
 
 - `bucket_name` (String) The name of the bucket to which the agent sends the logs to.
 - `iam_role_id` (String) ID of the AWS IAM role that is used to write to the S3 bucket.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access. It is also known as `groupId` in the official documentation.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Optional
 

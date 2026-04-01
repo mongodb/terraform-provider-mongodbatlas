@@ -131,7 +131,7 @@ resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 

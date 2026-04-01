@@ -73,7 +73,7 @@ output "all_assignments_project_ids" {
 ### Required
 
 - `api_key_id` (String) Unique 24-hexadecimal digit string that identifies this organization API key that you want to assign to one project.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access. It is also known as `groupId` in the official documentation.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `roles` (Set of String) Human-readable label that identifies the collection of privileges that MongoDB Cloud grants a specific API key, MongoDB Cloud user, or MongoDB Cloud team. These roles include only the specific project-level roles.
 
 ## Import 

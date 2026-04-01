@@ -12,7 +12,7 @@ variable "atlas_client_secret" {
 
 # v1 & v2 variables
 variable "project_id" {
-  description = "Unique 24-hexadecimal digit string that identifies your project. It is also known as groupId in the official documentation."
+  description = "Unique 24-hexadecimal digit string that identifies your project."
   type        = string
 }
 
