@@ -53,6 +53,22 @@ func Resource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"private_endpoint_hostnames": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"hostname": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_endpoint": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			// Optional-only behavior from the API, but keeping O+C to avoid behavior changes.
 			"cloud_provider_config": cloudProviderConfig(false),
 			"data_process_region": {
