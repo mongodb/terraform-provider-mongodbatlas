@@ -1,29 +1,23 @@
-resource "azurerm_resource_group" "this" {
-  name     = var.azure_resource_group_name
-  location = var.azure_location
+data "azurerm_resource_group" "this" {
+  name = var.azure_resource_group_name
 }
 
-resource "azurerm_virtual_network" "this" {
+data "azurerm_virtual_network" "this" {
   name                = var.vnet_name
-  address_space       = var.vnet_cidr
-  location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = data.azurerm_resource_group.this.name
 }
 
-resource "azurerm_subnet" "this" {
+data "azurerm_subnet" "this" {
   name                 = var.subnet_name
-  resource_group_name  = azurerm_resource_group.this.name
-  virtual_network_name = azurerm_virtual_network.this.name
-  address_prefixes     = var.subnet_cidr
-
-  private_endpoint_network_policies = "Disabled"
+  virtual_network_name = data.azurerm_virtual_network.this.name
+  resource_group_name  = data.azurerm_resource_group.this.name
 }
 
 resource "azurerm_private_endpoint" "this" {
   name                = "pe-atlas-datafederation-onlinearchive"
-  location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
-  subnet_id           = azurerm_subnet.this.id
+  location            = data.azurerm_resource_group.this.location
+  resource_group_name = data.azurerm_resource_group.this.name
+  subnet_id           = data.azurerm_subnet.this.id
 
   private_service_connection {
     name                           = "atlas-df-connection"

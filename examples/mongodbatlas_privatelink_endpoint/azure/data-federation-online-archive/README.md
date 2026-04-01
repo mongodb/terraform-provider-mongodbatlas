@@ -29,11 +29,11 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 atlas_client_id     = "<ATLAS_CLIENT_ID>"
 atlas_client_secret = "<ATLAS_CLIENT_SECRET>"
 project_id          = "<ATLAS_PROJECT_ID>"
-azure_location      = "East US 2"
 atlas_data_federation_private_link_service_resource_id = "<AZURE_RESOURCE_ID_OF_ATLAS_PRIVATE_LINK_SERVICE>"
 ```
 
-Optional variables let you customize resource group, VNet, and subnet names/CIDRs.
+Optional variables let you customize the existing Azure resource names used by the example.
+Set `azure_resource_group_name`, `vnet_name`, and `subnet_name` to match your environment.
 
 4. Initialize and review the plan:
 
@@ -56,14 +56,15 @@ terraform destroy
 
 ## What This Example Creates
 
-- Azure Resource Group, Virtual Network, and Subnet
-- Azure `azurerm_private_endpoint` connected to the Atlas-managed Data Federation Private Link Service
+- Azure `azurerm_private_endpoint` in an existing Resource Group, VNet, and Subnet, connected to the Atlas-managed Data Federation Private Link Service
 - `mongodbatlas_privatelink_endpoint_service_data_federation_online_archive`
 - Singular and plural data source reads for verification
 
 ## Resource Dependency Chain
 
-1. `mongodbatlas_privatelink_endpoint` requires `project_id` and Atlas Azure region.
+1. `mongodbatlas_privatelink_endpoint_service_data_federation_online_archive` requires `project_id` and Atlas Azure region.
 2. `azurerm_private_endpoint` requires Atlas private link service metadata and Azure subnet.
 3. `mongodbatlas_privatelink_endpoint_service_data_federation_online_archive` requires:
    - Azure private endpoint ID (`endpoint_id`)
+   - Azure private endpoint private IP (`customer_endpoint_ip_address`)
+   - `provider_name = "AZURE"`
