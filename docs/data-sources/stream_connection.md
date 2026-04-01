@@ -37,7 +37,7 @@ data "mongodbatlas_stream_connection" "example" {
 
 ## Attributes Reference
 
-* `type` - Type of connection. Can be `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
+* `type` - Type of connection. Can be `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -105,7 +105,7 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
 ### Azure
 * `service_principal_id` - UUID that identifies the Azure Service Principal used to access the Azure Blob Storage account.
 * `storage_account_name` - Name of the Azure Storage account.
-* `region` - Azure region where the storage account is located.
+* `region` - Optional. Azure region where the storage account is deployed, specified as a valid Azure region name (for example, `eastus`, `westeurope`). Must match the region configured for the target Azure Storage account.
 
 ### GCP
 * `service_account_id` - Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to GCP Pub/Sub resources.
