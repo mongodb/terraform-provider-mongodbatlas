@@ -42,12 +42,16 @@ data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archives"
 ### Private Endpoint Service 
 In addition to all arguments above, the following attributes are exported:
 
-* `endpoint_id` - Unique 22-character alphanumeric string that identifies the private endpoint. See [Atlas Data Federation supports Amazon Web Services private endpoints using the AWS PrivateLink feature](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint).
+* `endpoint_id` - Unique string that identifies the private endpoint. For AWS, this is a 22-character alphanumeric string (e.g. `vpce-xxxxxxxxxxxxxxxxx`). For Azure, this is the full resource ID of the private endpoint (e.g. `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateEndpoints/{privateEndpointName}`). See [Atlas Data Federation supports AWS and Azure private endpoints using the PrivateLink feature](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint).
 * `type` - Human-readable label that identifies the resource type associated with this private endpoint.
 * `comment` - Human-readable string to associate with this private endpoint.
-* `provider_name` - Human-readable label that identifies the cloud service provider. 
-* `region` -  Human-readable label to identify the region of VPC endpoint.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
-* `customer_endpoint_dns_name` - (Optional) Human-readable label to identify VPC endpoint DNS name.
+* `provider_name` - Human-readable label that identifies the cloud service provider. Atlas Data Federation supports `AWS` and `AZURE`.
+* `region` - Human-readable region label for the customer's endpoint. For `AWS`, if defined, you must also specify a value for `customer_endpoint_dns_name`.
+* `customer_endpoint_dns_name` - (Optional) Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`.
+* `customer_endpoint_ip_address` - IP address used to connect to the Azure private endpoint.
+* `azure_link_id` - Link ID that identifies the Azure private endpoint connection.
+* `error_message` - Error message describing a failure approving the private endpoint request.
+* `status` - Status of the private endpoint connection request.
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint) Documentation for more information.
 
