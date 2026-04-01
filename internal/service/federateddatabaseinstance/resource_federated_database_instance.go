@@ -413,6 +413,14 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "hostnames", name, err))
 	}
 
+	if val, ok := dataFederationInstance.GetPrivateEndpointHostnamesOk(); ok {
+		if privateEndpointHostnamesField := flattenPrivateEndpointHostnames(*val); privateEndpointHostnamesField != nil {
+			if err := d.Set("private_endpoint_hostnames", privateEndpointHostnamesField); err != nil {
+				return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "private_endpoint_hostnames", name, err))
+			}
+		}
+	}
+
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       name,
@@ -528,6 +536,14 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 
 	if err := d.Set("hostnames", dataFederationInstance.GetHostnames()); err != nil {
 		return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "hostnames", name, err)
+	}
+
+	if val, ok := dataFederationInstance.GetPrivateEndpointHostnamesOk(); ok {
+		if privateEndpointHostnamesField := flattenPrivateEndpointHostnames(*val); privateEndpointHostnamesField != nil {
+			if err := d.Set("private_endpoint_hostnames", privateEndpointHostnamesField); err != nil {
+				return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "private_endpoint_hostnames", name, err)
+			}
+		}
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -877,6 +893,21 @@ func flattenDataFederationStores(stores []admin.DataLakeStoreSettings) []map[str
 	}
 
 	return store
+}
+
+func flattenPrivateEndpointHostnames(privateEndpointHostnames []admin.PrivateEndpointHostname) []map[string]any {
+	if len(privateEndpointHostnames) == 0 {
+		return nil
+	}
+
+	result := make([]map[string]any, len(privateEndpointHostnames))
+	for i, h := range privateEndpointHostnames {
+		result[i] = map[string]any{
+			"hostname":         h.GetHostname(),
+			"private_endpoint": h.GetPrivateEndpoint(),
+		}
+	}
+	return result
 }
 
 func newReadPreferenceField(atlasReadPreference *admin.DataLakeAtlasStoreReadPreference) []map[string]any {
