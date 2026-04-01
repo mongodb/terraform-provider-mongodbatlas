@@ -104,7 +104,7 @@ resource "mongodbatlas_encryption_at_rest_private_endpoint" "endpoint" {
 ### Required
 
 - `cloud_provider` (String) Label that identifies the cloud provider for the Encryption At Rest private endpoint.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `region_name` (String) Cloud provider region in which the Encryption At Rest private endpoint is located.
 
 ### Optional

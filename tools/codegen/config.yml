@@ -1,7 +1,7 @@
 variables:
   # API descriptions mention using the /orgs and /groups endpoints to fetch user's orgs/projects, removing that part.
   org_id_description: &org_id_description "Unique 24-hexadecimal digit string that identifies the organization that contains your projects."
-  project_id_description: &project_id_description "Unique 24-hexadecimal digit string that identifies your project."
+  project_id_description: &project_id_description "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation."
 
 resources:
   # Singleton resource in project.
@@ -522,6 +522,8 @@ resources:
       aliases:
         groupId: projectId
       overrides:
+        project_id:
+          description: *project_id_description
         # These attributes are optional but when not configured, Atlas returns a default value.
         is_collect_database_specifics_statistics_enabled:
           computability:

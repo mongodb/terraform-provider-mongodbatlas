@@ -11,8 +11,6 @@ Test Outage on Minority of Electable Nodes - Select fewer than half of your elec
 Test Outage on Majority of Electable Nodes - Select at least one more than half of your electable nodes and keep at least one electable node remaining. This operation not supported via Terraform Provider. Use the Atlas UI instead. 
 
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ## Example Usages
 
 
@@ -25,7 +23,7 @@ data "mongodbatlas_cluster_outage_simulation" "outage_simulation" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project that contains the cluster that is undergoing outage simulation.
+* `project_id` - (Required) The unique ID for the project that contains the cluster that is undergoing outage simulation, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) Name of the Atlas Cluster that is undergoing outage simulation.
 
 ## Attributes Reference

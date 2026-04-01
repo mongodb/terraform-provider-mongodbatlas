@@ -7,8 +7,6 @@ subcategory: "Cloud Backups"
 `mongodbatlas_cloud_backup_snapshot_export_bucket` datasource allows you to retrieve all the buckets for the specified project.
 
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -27,7 +25,7 @@ data "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `groupId` in the official documentation.
 * `export_bucket_id` - (Required) Unique identifier of the snapshot export bucket.
 
 ## Attributes Reference

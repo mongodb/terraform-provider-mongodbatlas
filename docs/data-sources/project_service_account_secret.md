@@ -50,7 +50,7 @@ output "secret_expires_at" {
 ### Required
 
 - `client_id` (String) The Client ID of the Service Account.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `secret_id` (String) Unique 24-hexadecimal digit string that identifies the secret.
 
 ### Read-Only
