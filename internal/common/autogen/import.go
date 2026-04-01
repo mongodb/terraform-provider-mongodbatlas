@@ -44,9 +44,8 @@ func HandleImport(ctx context.Context, idAttrs []string, req resource.ImportStat
 	}
 }
 
-// ProcessImportID is exported for testing purposes only and is not intended for direct usage.
 func ProcessImportID(importID string, idAttrs []string) (map[string]string, error) {
-	parts := strings.Split(importID, "/")
+	parts := strings.SplitN(importID, "/", len(idAttrs))
 	if len(parts) != len(idAttrs) {
 		return nil, fmt.Errorf(ExpectedErrorMsg, strings.Join(idAttrs, "/"))
 	}

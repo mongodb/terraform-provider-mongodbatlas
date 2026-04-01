@@ -66,13 +66,15 @@ In addition to all arguments above, the following attributes are exported:
 
 Import the Private Endpoint Service resource for Data Federation and Online Archive using the project ID and endpoint ID in either of the following formats:
 
-- `project_id--endpoint_id`
-- `project_id/endpoint_id`
+- `project_id--endpoint_id` (supported for AWS and Azure)
+- `project_id/endpoint_id` (supported for AWS only)
 
-```
+```shell
 $ terraform import mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.example 1112222b3bf99403840e8934--vpce-3bf78b0ddee411ba1
 
 $ terraform import mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.example 1112222b3bf99403840e8934/vpce-3bf78b0ddee411ba1
+
+$ terraform import mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.example 1112222b3bf99403840e8934--/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Network/privateEndpoints/my-pe
 ```
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint) Documentation for more information.

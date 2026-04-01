@@ -166,7 +166,8 @@ func (r *rs) PostReadAPICall(req autogen.HandleReadReq, result autogen.APICallRe
 }
 
 func (r *rs) PreImport(id string) (string, error) {
-	if strings.Contains(id, "/") {
+	// Normalized format: project_id/endpoint_id (AWS only).
+	if strings.Contains(id, "/") && !strings.Contains(id, "--") {
 		return id, nil
 	}
 
