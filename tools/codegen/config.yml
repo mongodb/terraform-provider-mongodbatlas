@@ -555,6 +555,10 @@ resources:
           computability:
             optional: true
             computed: true
+        is_native_reranking_enabled:
+          computability:
+            optional: true
+            computed: true
 
   project_api:
     read:
@@ -807,6 +811,9 @@ resources:
           "security.links",
         ]
       aliases:
+        # This is the resource's id in the API, renaming to keep consistency with other resources.
+        # Note that this resource has an `id` attribute, which we manually craft in the post read hook.
+        id: streamConnectionId
         name: connectionName # path param name does not match the API request property.
         groupId: projectId
         # align with curated resource

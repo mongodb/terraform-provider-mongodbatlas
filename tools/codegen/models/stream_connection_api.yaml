@@ -12,6 +12,12 @@ schema:
                 allowed:
                     - api_name: aws
                       tf_schema_name: aws
+            AzureBlobStorage:
+                allowed:
+                    - api_name: azure
+                      tf_schema_name: azure
+                    - api_name: publicPrivateNetworking
+                      tf_schema_name: public_private_networking
             Cluster:
                 allowed:
                     - api_name: clusterName
@@ -20,6 +26,12 @@ schema:
                       tf_schema_name: cluster_project_id
                     - api_name: dbRoleToExecute
                       tf_schema_name: db_role_to_execute
+            GCPPubSub:
+                allowed:
+                    - api_name: gcp
+                      tf_schema_name: gcp
+                    - api_name: publicPrivateNetworking
+                      tf_schema_name: public_private_networking
             Https:
                 allowed:
                     - api_name: headers
@@ -255,6 +267,97 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - list_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                  computed_optional_required: computed
+                                  tf_schema_name: href
+                                  tf_model_name: Href
+                                  api_name: href
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                  computed_optional_required: computed
+                                  tf_schema_name: rel
+                                  tf_model_name: Rel
+                                  api_name: rel
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                      custom_type:
+                        package: customtypes
+                        name: AzureLinks
+                        model: customtypes.NestedListValue[TFAzureLinksModel]
+                        schema: customtypes.NewNestedListType[TFAzureLinksModel](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: links
+                      tf_model_name: Links
+                      api_name: links
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Azure region where the storage account is located.
+                      computed_optional_required: optional
+                      tf_schema_name: region
+                      tf_model_name: Region
+                      api_name: region
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Unique ID of the Azure Service Principal that has access to the storage account.
+                      computed_optional_required: optional
+                      tf_schema_name: service_principal_id
+                      tf_model_name: ServicePrincipalId
+                      api_name: servicePrincipalId
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Name of the Azure Storage Account to connect to.
+                      computed_optional_required: optional
+                      tf_schema_name: storage_account_name
+                      tf_model_name: StorageAccountName
+                      api_name: storageAccountName
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: 'Optional for type: AzureBlobStorage. Azure-specific configuration for the connection.'
+          custom_type:
+            package: customtypes
+            name: Azure
+            model: customtypes.ObjectValue[TFAzureModel]
+            schema: customtypes.NewObjectType[TFAzureModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: azure
+          tf_model_name: Azure
+          api_name: azure
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: 'Optional for type: Kafka. Comma separated list of server addresses.'
           computed_optional_required: optional
@@ -344,6 +447,75 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - list_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                  computed_optional_required: computed
+                                  tf_schema_name: href
+                                  tf_model_name: Href
+                                  api_name: href
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                  computed_optional_required: computed
+                                  tf_schema_name: rel
+                                  tf_model_name: Rel
+                                  api_name: rel
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                      custom_type:
+                        package: customtypes
+                        name: GcpLinks
+                        model: customtypes.NestedListValue[TFGcpLinksModel]
+                        schema: customtypes.NewNestedListType[TFGcpLinksModel](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: links
+                      tf_model_name: Links
+                      api_name: links
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to the GCP Pub/Sub resources.
+                      computed_optional_required: optional
+                      tf_schema_name: service_account_id
+                      tf_model_name: ServiceAccountId
+                      api_name: serviceAccountId
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: 'Optional for type: GCPPubSub. GCP-specific configuration for the connection.'
+          custom_type:
+            package: customtypes
+            name: Gcp
+            model: customtypes.ObjectValue[TFGcpModel]
+            schema: customtypes.NewObjectType[TFGcpModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: gcp
+          tf_model_name: Gcp
+          api_name: gcp
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies your project.
           computed_optional_required: required
@@ -367,6 +539,17 @@ schema:
           tf_model_name: Headers
           api_name: headers
           req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique identifier of the connection.
+          computed_optional_required: computed
+          tf_schema_name: stream_connection_id
+          tf_model_name: StreamConnectionId
+          api_name: id
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
           present_in_any_response: true
@@ -468,6 +651,144 @@ schema:
           tf_schema_name: schema_registry_provider
           tf_model_name: SchemaRegistryProvider
           api_name: provider
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: The ID of the Private Link connection. Required for `PRIVATE_LINK` type.
+                                  computed_optional_required: optional
+                                  tf_schema_name: connection_id
+                                  tf_model_name: ConnectionId
+                                  api_name: connectionId
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - list_nested:
+                                    nested_object:
+                                        attributes:
+                                            - string: {}
+                                              description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                              computed_optional_required: computed
+                                              tf_schema_name: href
+                                              tf_model_name: Href
+                                              api_name: href
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                              computed_optional_required: computed
+                                              tf_schema_name: rel
+                                              tf_model_name: Rel
+                                              api_name: rel
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                  description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                                  custom_type:
+                                    package: customtypes
+                                    name: PublicPrivateNetworkingAccessLinks
+                                    model: customtypes.NestedListValue[TFPublicPrivateNetworkingAccessLinksModel]
+                                    schema: customtypes.NewNestedListType[TFPublicPrivateNetworkingAccessLinksModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: links
+                                  tf_model_name: Links
+                                  api_name: links
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Selected networking type. Either `PUBLIC` or `PRIVATE_LINK`. Defaults to `PUBLIC`.
+                                  computed_optional_required: optional
+                                  tf_schema_name: type
+                                  tf_model_name: Type
+                                  api_name: type
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: Information about networking access.
+                      custom_type:
+                        package: customtypes
+                        name: PublicPrivateNetworkingAccess
+                        model: customtypes.ObjectValue[TFPublicPrivateNetworkingAccessModel]
+                        schema: customtypes.NewObjectType[TFPublicPrivateNetworkingAccessModel](ctx)
+                      computed_optional_required: optional
+                      tf_schema_name: access
+                      tf_model_name: Access
+                      api_name: access
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - list_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                  computed_optional_required: computed
+                                  tf_schema_name: href
+                                  tf_model_name: Href
+                                  api_name: href
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                  computed_optional_required: computed
+                                  tf_schema_name: rel
+                                  tf_model_name: Rel
+                                  api_name: rel
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                      custom_type:
+                        package: customtypes
+                        name: PublicPrivateNetworkingLinks
+                        model: customtypes.NestedListValue[TFPublicPrivateNetworkingLinksModel]
+                        schema: customtypes.NewNestedListType[TFPublicPrivateNetworkingLinksModel](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: links
+                      tf_model_name: Links
+                      api_name: links
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: 'Optional for type: AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types.'
+          custom_type:
+            package: customtypes
+            name: PublicPrivateNetworking
+            model: customtypes.ObjectValue[TFPublicPrivateNetworkingModel]
+            schema: customtypes.NewObjectType[TFPublicPrivateNetworkingModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: public_private_networking
+          tf_model_name: PublicPrivateNetworking
+          api_name: publicPrivateNetworking
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false

@@ -74,7 +74,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			TargetStates:      []string{"OK"},
 			Timeout:           timeout,
 			MinTimeoutSeconds: 60,
-			DelaySeconds:      30,
+			DelaySeconds:      10,
 			CallParams:        readAPICallParams,
 		},
 	}
@@ -133,7 +133,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			TargetStates:      []string{"OK"},
 			Timeout:           timeout,
 			MinTimeoutSeconds: 60,
-			DelaySeconds:      30,
+			DelaySeconds:      10,
 			CallParams:        readAPICallParams,
 		},
 	}
@@ -158,7 +158,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		TargetStates:      []string{"DELETED"},
 		Timeout:           timeout,
 		MinTimeoutSeconds: 60,
-		DelaySeconds:      30,
+		DelaySeconds:      10,
 		CallParams:        readAPICallParams,
 	}
 	autogen.HandleDelete(ctx, *reqHandle)

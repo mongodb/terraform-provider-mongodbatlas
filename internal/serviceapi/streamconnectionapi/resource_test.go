@@ -37,6 +37,7 @@ func TestAccStreamConnectionAPI_basic(t *testing.T) {
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "stream_connection_id"),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName),
 					resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),

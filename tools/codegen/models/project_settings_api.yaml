@@ -83,6 +83,17 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - bool: {}
+          description: Flag that indicates whether to enable Native Reranking with Voyage AI models in the Aggregation Pipeline for the specified project.
+          computed_optional_required: computed_optional
+          tf_schema_name: is_native_reranking_enabled
+          tf_model_name: IsNativeRerankingEnabled
+          api_name: isNativeRerankingEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - bool: {}
           description: Flag that indicates whether to enable the Performance Advisor and Profiler for the specified project.
           computed_optional_required: computed_optional
           tf_schema_name: is_performance_advisor_enabled
