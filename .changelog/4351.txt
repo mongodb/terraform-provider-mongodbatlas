@@ -1,4 +1,3 @@
 ```release-note:enhancement
-resource/mongodbatlas_privatelink_endpoints
 resource/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive: Adds support for import using `{project_id}/{endpoint_id}` format
 ```

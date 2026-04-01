@@ -401,7 +401,6 @@ jobs:
             - 'internal/service/privateendpointregionalmode/*.go'
             - 'internal/service/privatelinkendpoint/*.go'
             - 'internal/service/privatelinkendpointservice/*.go'
-            - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go' 
           project:
             - 'internal/common/autogen/*.go'
             - 'internal/service/accesslistapikey/*.go'
@@ -1267,7 +1266,6 @@ jobs:
             ./internal/service/privateendpointregionalmode
             ./internal/service/privatelinkendpoint
             ./internal/service/privatelinkendpointservice
-            ./internal/service/privatelinkendpointservicedatafederationonlinearchive
         run: make testacc
       
   project: 

@@ -185,6 +185,7 @@ func prepareBody(bodyReq []byte) ([]byte, bool) {
 	}
 
 	body["type"] = endpointType
+
 	if providerRaw, ok := body["provider"].(string); ok && providerRaw != "" {
 		providerUpper := strings.ToUpper(providerRaw)
 		body["provider"] = providerUpper
