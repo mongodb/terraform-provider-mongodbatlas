@@ -413,12 +413,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "hostnames", name, err))
 	}
 
-	if val, ok := dataFederationInstance.GetPrivateEndpointHostnamesOk(); ok {
-		if privateEndpointHostnamesField := flattenPrivateEndpointHostnames(*val); privateEndpointHostnamesField != nil {
-			if err := d.Set("private_endpoint_hostnames", privateEndpointHostnamesField); err != nil {
-				return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "private_endpoint_hostnames", name, err))
-			}
-		}
+	if err := d.Set("private_endpoint_hostnames", flattenPrivateEndpointHostnames(dataFederationInstance.GetPrivateEndpointHostnames())); err != nil {
+		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "private_endpoint_hostnames", name, err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -538,12 +534,8 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "hostnames", name, err)
 	}
 
-	if val, ok := dataFederationInstance.GetPrivateEndpointHostnamesOk(); ok {
-		if privateEndpointHostnamesField := flattenPrivateEndpointHostnames(*val); privateEndpointHostnamesField != nil {
-			if err := d.Set("private_endpoint_hostnames", privateEndpointHostnamesField); err != nil {
-				return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "private_endpoint_hostnames", name, err)
-			}
-		}
+	if err := d.Set("private_endpoint_hostnames", flattenPrivateEndpointHostnames(dataFederationInstance.GetPrivateEndpointHostnames())); err != nil {
+		return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "private_endpoint_hostnames", name, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -896,10 +888,6 @@ func flattenDataFederationStores(stores []admin.DataLakeStoreSettings) []map[str
 }
 
 func flattenPrivateEndpointHostnames(privateEndpointHostnames []admin.PrivateEndpointHostname) []map[string]any {
-	if len(privateEndpointHostnames) == 0 {
-		return nil
-	}
-
 	result := make([]map[string]any, len(privateEndpointHostnames))
 	for i, h := range privateEndpointHostnames {
 		result[i] = map[string]any{
