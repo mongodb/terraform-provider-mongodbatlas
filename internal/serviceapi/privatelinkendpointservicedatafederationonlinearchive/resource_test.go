@@ -19,9 +19,20 @@ import (
 var (
 	resourceName   = "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
 	comment        = "Terraform Acceptance Test"
-	AWSregion      = "US_EAST_1"
+	AWSRegion      = "US_EAST_1"
 	dataSourceName = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test"
 	pluralDSName   = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archives.test"
+
+	singularDataSourceConfig = `
+	data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
+	  project_id  = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.project_id
+	  endpoint_id = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.endpoint_id
+	}`
+
+	pluralDataSourceConfig = `
+	data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archives" "test" {
+	  project_id = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.project_id
+	}`
 )
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
@@ -269,12 +280,12 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchiveDS_Optio
 						"endpoint_id",
 						knownvalue.StringExact(endpointID),
 						map[string]knownvalue.Check{
-							"region":                     knownvalue.StringExact(AWSregion),
+							"region":                     knownvalue.StringExact(AWSRegion),
 							"customer_endpoint_dns_name": knownvalue.StringExact(customerEndpointDNSName),
 						},
 					),
 				},
-				Check: checkAggr(projectID, endpointID, comment, AWSregion, customerEndpointDNSName,
+				Check: checkAggr(projectID, endpointID, comment, AWSRegion, customerEndpointDNSName,
 					checkEncodedID(dataSourceName, projectID, endpointID),
 					resource.TestCheckResourceAttr(pluralDSName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
@@ -447,7 +458,7 @@ func buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointD
 	if includeOptionalFields {
 		optionalFields = fmt.Sprintf(`
 	  region                     = %q
-	  customer_endpoint_dns_name = %q`, AWSregion, customerEndpointDNSName)
+	  customer_endpoint_dns_name = %q`, AWSRegion, customerEndpointDNSName)
 	}
 
 	return fmt.Sprintf(`
@@ -463,14 +474,3 @@ func buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointD
 	%[6]s
 	`, projectID, endpointID, comment, optionalFields, singularDataSourceConfig, pluralDataSourceConfig)
 }
-
-const singularDataSourceConfig = `
-data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
-  project_id  = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.project_id
-  endpoint_id = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.endpoint_id
-}`
-
-const pluralDataSourceConfig = `
-data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archives" "test" {
-  project_id = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.project_id
-}`
