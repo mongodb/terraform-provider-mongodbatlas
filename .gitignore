@@ -15,9 +15,21 @@ __debug_*
 compliance/sbom.json
 compliance/augmented-sbom-v*.json
 
+# Terraform files
 .terraform
 .terraform.lock.hcl
 terraform.tfvars
+terraform.tfvars.json
+*.tfstate
+*.tfstate.*
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+*.tfplan
+*.terraformrc
+terraform.rc
+.terraform.tfstate.lock.info
 
 #used for schema code generation but is not commited to avoid constant updates
 tools/codegen/open-api-spec.yml
