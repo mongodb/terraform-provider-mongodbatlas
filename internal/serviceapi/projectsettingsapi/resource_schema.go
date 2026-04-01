@@ -50,6 +50,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Flag that indicates whether to enable extended storage sizes for the specified project.",
 			},
 			"is_native_reranking_enabled": schema.BoolAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to enable Native Reranking with Voyage AI models in the Aggregation Pipeline for the specified project.",
 			},

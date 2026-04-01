@@ -546,8 +546,8 @@ schema:
         - string: {}
           description: Unique identifier of the connection.
           computed_optional_required: computed
-          tf_schema_name: id
-          tf_model_name: Id
+          tf_schema_name: stream_connection_id
+          tf_model_name: StreamConnectionId
           api_name: id
           req_body_usage: omit_always
           sensitive: false

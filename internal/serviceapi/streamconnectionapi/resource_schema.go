@@ -199,7 +199,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				CustomType:          customtypes.NewMapType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
-			"id": schema.StringAttribute{
+			"stream_connection_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique identifier of the connection.",
 			},
@@ -434,7 +434,7 @@ type TFModel struct {
 	Gcp                          customtypes.ObjectValue[TFGcpModel]                          `tfsdk:"gcp"`
 	ProjectId                    types.String                                                 `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	Headers                      customtypes.MapValue[types.String]                           `tfsdk:"headers"`
-	Id                           types.String                                                 `tfsdk:"id" autogen:"omitjson"`
+	StreamConnectionId           types.String                                                 `tfsdk:"stream_connection_id" apiname:"id" autogen:"omitjson"`
 	ConnectionName               types.String                                                 `tfsdk:"connection_name" apiname:"name"`
 	Networking                   customtypes.ObjectValue[TFNetworkingModel]                   `tfsdk:"networking"`
 	SchemaRegistryProvider       types.String                                                 `tfsdk:"schema_registry_provider" apiname:"provider"`
