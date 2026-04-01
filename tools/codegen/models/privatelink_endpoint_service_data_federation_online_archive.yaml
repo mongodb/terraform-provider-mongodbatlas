@@ -490,5 +490,5 @@ data_sources:
             http_method: GET
             path: /api/atlas/v2/groups/{projectId}/privateNetworkSettings/endpointIds
         version_header: application/vnd.atlas.2023-01-01+json
-name: privatelink_endpoint_service_data_federation_online_archive_api
-packageName: privatelinkendpointservicedatafederationonlinearchiveapi
+name: privatelink_endpoint_service_data_federation_online_archive
+packageName: privatelinkendpointservicedatafederationonlinearchive
