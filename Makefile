@@ -145,6 +145,13 @@ link-git-hooks: ## Install Git hooks
 	find .git/hooks -type l -exec rm {} \;
 	find .githooks -type f -exec ln -sf ../../{} .git/hooks/ \;
 
+.PHONY: link-skills
+link-skills: ## Create symlinks for AI agent skills
+	@echo "==> Linking skills directories..."
+	@mkdir -p .claude .cursor
+	@ln -sfn ../.agents/skills .claude/skills
+	@ln -sfn ../.agents/skills .cursor/skills
+
 .PHONY: update-atlas-sdk
 update-atlas-sdk: ## Update the Atlas SDK dependency
 	./scripts/update-sdk.sh

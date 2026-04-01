@@ -6,6 +6,7 @@ bin
 .windsurf
 CLAUDE.md
 .claude
+.cursor/skills
 *.env
 *.bak
 *.log

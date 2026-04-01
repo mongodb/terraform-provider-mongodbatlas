@@ -21,7 +21,8 @@
 ### Building
 - Enter the provider directory
 - Run `make tools` to install the needed tools for the provider
-- Run `make link-git-hooks` to install githooks 
+- Run `make link-git-hooks` to install githooks
+- Run `make link-skills` to set up AI agent skill symlinks
 - Run `make fix` to format (`gofmt`, `goimports`), lint, and build the binary in the `./bin` directory:
 - Use the local provider binary in the `./bin` folder:
   - Create the following `dev.trfc` file inside your directory 
