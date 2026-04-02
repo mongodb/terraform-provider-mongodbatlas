@@ -39,8 +39,23 @@ resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archi
 
 The `service_name` value for the region in question can be found in the [MongoDB Atlas Administration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createdatafederationprivateendpoint) documentation.
 
+## Example Usage: Azure provider
+
+```terraform
+
+resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
+  project_id                   = var.project_id
+  endpoint_id                  = azurerm_private_endpoint.test.id
+  provider_name                = "AZURE"
+  region                       = "US_EAST_2"
+  customer_endpoint_ip_address = azurerm_private_endpoint.test.private_service_connection[0].private_ip_address
+  comment                      = "Test"
+}
+```
+
 ### Further Examples
 - [AWS PrivateLink for Data Federation and Online Archive](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_privatelink_endpoint/aws/data-federation-online-archive)
+- [Azure PrivateLink for Data Federation and Online Archive](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive/azure)
 
 ## Argument Reference
 
