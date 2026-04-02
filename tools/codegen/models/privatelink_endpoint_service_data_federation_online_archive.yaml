@@ -178,7 +178,7 @@ operations:
                 - DELETED
             timeout_seconds: 600
             min_timeout_seconds: 60
-            delay_seconds: 30
+            delay_seconds: 10
         http_method: DELETE
         path: /api/atlas/v2/groups/{projectId}/privateNetworkSettings/endpointIds/{endpointId}
     create:
@@ -190,7 +190,7 @@ operations:
                 - OK
             timeout_seconds: 600
             min_timeout_seconds: 60
-            delay_seconds: 30
+            delay_seconds: 10
         http_method: POST
         path: /api/atlas/v2/groups/{projectId}/privateNetworkSettings/endpointIds
     read:
@@ -205,7 +205,7 @@ operations:
                 - OK
             timeout_seconds: 600
             min_timeout_seconds: 60
-            delay_seconds: 30
+            delay_seconds: 10
         http_method: POST
         path: /api/atlas/v2/groups/{projectId}/privateNetworkSettings/endpointIds
     version_header: application/vnd.atlas.2023-01-01+json
