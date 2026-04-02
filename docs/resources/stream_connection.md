@@ -65,7 +65,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ### Example Kafka SASL OAuthbearer Connection
 
 ```terraform
-resource "mongodbatlas_stream_connection" "example-kafka-oauthbearer" {
+resource "mongodbatlas_stream_connection" "example_kafka_oauthbearer" {
     project_id      = var.project_id
     workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
     connection_name = "KafkaOAuthbearerConnection"
@@ -146,7 +146,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "gcp_auth" {
     role_id    = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
 }
 
-resource "mongodbatlas_stream_connection" "example-gcp-pubsub" {
+resource "mongodbatlas_stream_connection" "example_gcp_pubsub" {
     project_id      = var.project_id
     workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
     connection_name = "GCPPubSubConnection"
@@ -161,7 +161,7 @@ resource "mongodbatlas_stream_connection" "example-gcp-pubsub" {
 ### Example Https Connection
 
 ```terraform
-resource "mongodbatlas_stream_connection" "example-https" {
+resource "mongodbatlas_stream_connection" "example_https" {
   project_id      = var.project_id
   workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
   connection_name = "https_connection_tf_new"
@@ -177,7 +177,7 @@ resource "mongodbatlas_stream_connection" "example-https" {
 ### Example Schema Registry Connection with USER_INFO Authentication
 
 ```terraform
-resource "mongodbatlas_stream_connection" "example-schema-registry" {
+resource "mongodbatlas_stream_connection" "example_schema_registry" {
   project_id               = var.project_id
   workspace_name           = mongodbatlas_stream_workspace.example.workspace_name
   connection_name          = "SchemaRegistryConnection"
@@ -195,7 +195,7 @@ resource "mongodbatlas_stream_connection" "example-schema-registry" {
 ### Example Schema Registry Connection with SASL_INHERIT Authentication
 
 ```terraform
-resource "mongodbatlas_stream_connection" "example-schema-registry-sasl" {
+resource "mongodbatlas_stream_connection" "example_schema_registry_sasl" {
   project_id               = var.project_id
   workspace_name           = mongodbatlas_stream_workspace.example.workspace_name
   connection_name          = "SchemaRegistryConnectionSASL"
