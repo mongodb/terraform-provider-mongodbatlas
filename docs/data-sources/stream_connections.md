@@ -52,7 +52,7 @@ If `type` is of value `Kafka` the following additional attributes are defined:
 * `security` - Properties for the secure transport connection to Kafka. For SASL_SSL, this can include the trusted certificate to use. See [security](#security).
 * `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
 
-If `type` is of value `AzureBlobStorage` the following additional attributes are defined:
+If `type` is `AzureBlobStorage` the configuration defines the following additional attributes:
 * `azure` - The configuration for Azure Blob Storage connection. See [Azure](#Azure).
 * `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
 

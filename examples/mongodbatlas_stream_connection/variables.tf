@@ -60,7 +60,7 @@ variable "azure_storage_account_name" {
 }
 
 variable "azure_region" {
-  description = "Azure region where the storage account is located"
+  description = "Azure region where you locate the storage account"
   type        = string
   default     = null
 }
