@@ -1455,6 +1455,12 @@ jobs:
             AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
             AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
             AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
+            AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
+            AZURE_APP_SECRET: ${{ secrets.azure_app_secret }}
+            AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
+            AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
+            AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
+            AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
             ACCTEST_PACKAGES: |
               ./internal/service/streamaccountdetails
               ./internal/service/streamconnection
