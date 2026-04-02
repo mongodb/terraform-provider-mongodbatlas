@@ -305,7 +305,7 @@ output "service_attachment_uris" {
 
 ### Required
 
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.<br>**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group or project id remains the same. The resource and corresponding endpoints use the term groups.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `provider_name` (String) Provider where the endpoint is deployed. Valid values are AWS, AZURE, and GCP.
 - `vendor` (String) Vendor that manages the endpoint. The following are the vendor values per provider:
 

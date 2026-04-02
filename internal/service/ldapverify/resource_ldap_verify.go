@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312017/admin"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 )
 
 const (
@@ -52,9 +52,10 @@ func Resource() *schema.Resource {
 				ForceNew: true,
 			},
 			"bind_password": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				Sensitive: true,
+				ForceNew:  true,
 			},
 			"ca_certificate": {
 				Type:     schema.TypeString,

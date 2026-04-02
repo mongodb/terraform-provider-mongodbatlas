@@ -6,8 +6,6 @@ subcategory: "Data Federation"
 
 `mongodbatlas_federated_database_instances` provides a Federated Database Instance data source.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ~> **IMPORTANT:** All arguments including the password will be stored in the raw state as plain text. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
 
 ## Example Usages
@@ -22,7 +20,7 @@ data "mongodbatlas_federated_database_instances" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create a Federated Database Instance.
+* `project_id` - (Required) The unique ID for the project to create a Federated Database Instance, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 

@@ -70,7 +70,7 @@ output "mongodbatlas_search_deployment_encryption_at_rest_provider" {
 ### Required
 
 - `cluster_name` (String) Label that identifies the cluster to return the search nodes for.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `specs` (Attributes List) List of settings that configure the search nodes for your cluster. This list is currently limited to defining a single element. (see [below for nested schema](#nestedatt--specs))
 
 ### Optional

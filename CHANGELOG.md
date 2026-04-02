@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* resource/mongodbatlas_ldap_verify: Fixes `bind_password` not being marked as sensitive ([#4349](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4349))
+
 ## 2.9.0 (March 26, 2026)
 
 FEATURES:

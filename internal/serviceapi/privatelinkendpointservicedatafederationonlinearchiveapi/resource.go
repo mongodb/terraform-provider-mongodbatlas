@@ -53,7 +53,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "POST",
 	}
-	timeout, localDiags := plan.Timeouts.Create(ctx, 7200*time.Second)
+	timeout, localDiags := plan.Timeouts.Create(ctx, 600*time.Second)
 	resp.Diagnostics.Append(localDiags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -74,7 +74,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			TargetStates:      []string{"OK"},
 			Timeout:           timeout,
 			MinTimeoutSeconds: 60,
-			DelaySeconds:      30,
+			DelaySeconds:      10,
 			CallParams:        readAPICallParams,
 		},
 	}
@@ -116,7 +116,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "POST",
 	}
-	timeout, localDiags := plan.Timeouts.Update(ctx, 7200*time.Second)
+	timeout, localDiags := plan.Timeouts.Update(ctx, 600*time.Second)
 	resp.Diagnostics.Append(localDiags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -133,7 +133,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			TargetStates:      []string{"OK"},
 			Timeout:           timeout,
 			MinTimeoutSeconds: 60,
-			DelaySeconds:      30,
+			DelaySeconds:      10,
 			CallParams:        readAPICallParams,
 		},
 	}
@@ -147,7 +147,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 	reqHandle := deleteRequest(r, r.Client, &state, &resp.Diagnostics)
-	timeout, diags := state.Timeouts.Delete(ctx, 7200*time.Second)
+	timeout, diags := state.Timeouts.Delete(ctx, 600*time.Second)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -158,7 +158,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		TargetStates:      []string{"DELETED"},
 		Timeout:           timeout,
 		MinTimeoutSeconds: 60,
-		DelaySeconds:      30,
+		DelaySeconds:      10,
 		CallParams:        readAPICallParams,
 	}
 	autogen.HandleDelete(ctx, *reqHandle)

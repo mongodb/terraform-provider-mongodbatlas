@@ -1,7 +1,7 @@
 variables:
   # API descriptions mention using the /orgs and /groups endpoints to fetch user's orgs/projects, removing that part.
   org_id_description: &org_id_description "Unique 24-hexadecimal digit string that identifies the organization that contains your projects."
-  project_id_description: &project_id_description "Unique 24-hexadecimal digit string that identifies your project."
+  project_id_description: &project_id_description "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation."
 
 resources:
   # Singleton resource in project.
@@ -522,6 +522,8 @@ resources:
       aliases:
         groupId: projectId
       overrides:
+        project_id:
+          description: *project_id_description
         # These attributes are optional but when not configured, Atlas returns a default value.
         is_collect_database_specifics_statistics_enabled:
           computability:
@@ -548,6 +550,14 @@ resources:
             optional: true
             computed: true
         is_data_explorer_gen_ai_features_enabled:
+          computability:
+            optional: true
+            computed: true
+        is_cluster_ai_assistant_enabled:
+          computability:
+            optional: true
+            computed: true
+        is_native_reranking_enabled:
           computability:
             optional: true
             computed: true
@@ -803,6 +813,9 @@ resources:
           "security.links",
         ]
       aliases:
+        # This is the resource's id in the API, renaming to keep consistency with other resources.
+        # Note that this resource has an `id` attribute, which we manually craft in the post read hook.
+        id: streamConnectionId
         name: connectionName # path param name does not match the API request property.
         groupId: projectId
         # align with curated resource
@@ -1181,9 +1194,9 @@ resources:
         state_property: status
         pending_states: ["PENDING"]
         target_states: ["OK"]
-        timeout_seconds: 7200
+        timeout_seconds: 600
         min_timeout_seconds: 60
-        delay_seconds: 30
+        delay_seconds: 10
     update:
       path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
       method: POST
@@ -1196,6 +1209,35 @@ resources:
         <<: *pe-create-wait
         pending_states: ["DELETING"]
         target_states: ["DELETED"]
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
+        method: GET
+      schema:
+        expanded_model: true
+        aliases:
+          groupId: projectId
+          provider: providerName
+          results.provider: providerName
+        overrides:
+          project_id:
+            description: *project_id_description
+          endpoint_id:
+            description: "Unique 22-character alphanumeric string that identifies the private endpoint."
+          region:
+            description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
+          customer_endpoint_dns_name:
+            description: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`."
+          results.endpoint_id:
+            description: "Unique 22-character alphanumeric string that identifies the private endpoint."
+          results.region:
+            description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
+          results.customer_endpoint_dns_name:
+            description: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`."
+        ignores: ["links", "results.links"]
     schema:
       expanded_model: true
       aliases:

@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"go.mongodb.org/atlas-sdk/v20250312017/admin"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 )
 
 func PluralDataSourceSchema(ctx context.Context) schema.Schema {

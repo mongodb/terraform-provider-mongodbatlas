@@ -8,7 +8,6 @@ subcategory: "Programmatic API Keys"
 
 ~> **IMPORTANT WARNING:** Managing Atlas Programmatic API Keys (PAKs) with Terraform will expose sensitive organizational secrets in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data). You may also want to consider managing your PAKs via a more secure method, such as the [HashiCorp Vault MongoDB Atlas Secrets Engine](https://developer.hashicorp.com/vault/docs/secrets/mongodbatlas).
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 ## Example Usage
 

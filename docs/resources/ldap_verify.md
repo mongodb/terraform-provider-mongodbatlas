@@ -45,7 +45,7 @@ resource "mongodbatlas_ldap_verify" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to configure LDAP.
+* `project_id` - (Required) The unique ID for the project to configure LDAP, also known as `groupId` in the official documentation.
 * `hostname` - (Required) The hostname or IP address of the LDAP server. The server must be visible to the internet or connected to your Atlas cluster with VPC Peering.
 * `port` - (Optional) The port to which the LDAP server listens for client connections. Default: `636`
 * `bind_username` - (Required) The user DN that Atlas uses to connect to the LDAP server. Must be the full DN, such as `CN=BindUser,CN=Users,DC=myldapserver,DC=mycompany,DC=com`.
