@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -1196,7 +1197,7 @@ func TestAccStreamRSStreamConnection_AzureBlobStorage(t *testing.T) {
 		atlasAzureAppID         = os.Getenv("AZURE_ATLAS_APP_ID")
 		servicePrincipalID      = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
 		resourceGroupName       = acc.RandomName()
-		storageAccountName      = "tfacctest" + acc.RandomName()[:10]
+		storageAccountName      = "tfacctest" + acctest.RandString(10)
 		storageContainerName    = acc.RandomBucketName()
 	)
 	resource.ParallelTest(t, resource.TestCase{

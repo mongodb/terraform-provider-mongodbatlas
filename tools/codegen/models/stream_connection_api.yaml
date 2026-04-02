@@ -630,7 +630,7 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
-          description: 'Optional for type: AWSKinesisDataStreams, AzureBlobStorage, Kafka, S3. Networking configuration for Streams connections.'
+          description: 'Optional for type: AWSKinesisDataStreams, Kafka, S3. Networking configuration for Streams connections.'
           custom_type:
             package: customtypes
             name: Networking
