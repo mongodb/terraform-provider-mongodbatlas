@@ -65,6 +65,13 @@ type sdkToTFModelTestCase struct {
 
 func sdkToTFModelTestCases(t *testing.T) []sdkToTFModelTestCase {
 	t.Helper()
+	cases := sdkToTFModelBasicTestCases(t)
+	cases = append(cases, sdkToTFModelAdditionalTestCases(t)...)
+	return cases
+}
+
+func sdkToTFModelBasicTestCases(t *testing.T) []sdkToTFModelTestCase {
+	t.Helper()
 	var authConfigWithPasswordDefined = tfAuthenticationObject(t, authMechanism, authUsername, "raw password")
 	var authConfigWithOAuth = tfAuthenticationObjectForOAuth(t, authMechanism, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions, method)
 
@@ -322,6 +329,12 @@ func sdkToTFModelTestCases(t *testing.T) []sdkToTFModelTestCase {
 				},
 			},
 		},
+	}
+}
+
+func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
+	t.Helper()
+	return []sdkToTFModelTestCase{
 		{
 			name: "AWSLambda connection type with roleArn",
 			SDKResp: &admin.StreamsConnection{
