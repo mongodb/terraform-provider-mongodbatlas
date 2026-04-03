@@ -37,6 +37,8 @@ const (
 	awslambdaConnectionName   = "aws_lambda_connection"
 	sampleRoleArn             = "rn:aws:iam::123456789123:role/sample"
 	httpsURL                  = "https://example.com"
+	gcpPubSubConnectionName   = "gcp_pubsub_connection"
+	sampleServiceAccountID    = "projects/my-project/serviceAccounts/streams@my-project.iam.gserviceaccount.com"
 )
 
 var (
@@ -90,6 +92,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -125,6 +128,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -163,6 +167,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -205,6 +210,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -232,6 +238,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -270,6 +277,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -296,6 +304,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -323,6 +332,35 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          tfAWSLambdaConfigObject(t, sampleRoleArn),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Headers:                      types.MapNull(types.StringType),
+					SchemaRegistryURLs:           types.ListNull(types.StringType),
+					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				},
+			},
+		},
+		{
+			name: "GCPPubSub connection type with serviceAccountId",
+			SDKResp: &admin.StreamsConnection{
+				Name: new(gcpPubSubConnectionName),
+				Type: new("GCPPubSub"),
+				Gcp:  &admin.StreamsGCPConnectionConfig{ServiceAccountId: new(sampleServiceAccountID)},
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:                    types.StringValue(dummyProjectID),
+					WorkspaceName:                types.StringValue(instanceName),
+					ConnectionName:               types.StringValue(gcpPubSubConnectionName),
+					Type:                         types.StringValue("GCPPubSub"),
+					Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+					Config:                       types.MapNull(types.StringType),
+					Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          tfGCPConfigObject(t, sampleServiceAccountID),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -359,6 +397,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:        types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:             types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                    types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                    types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 					Headers:                types.MapNull(types.StringType),
 					SchemaRegistryProvider: types.StringValue("CONFLUENT"),
 					SchemaRegistryURLs: types.ListValueMust(types.StringType, []attr.Value{
@@ -546,6 +585,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 							Networking:                   tfNetworkingObject(t, networkingType, nil),
 							AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 							Headers:                      types.MapNull(types.StringType),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
 							SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -565,6 +605,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							DBRoleToExecute:              tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
 							Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 							Headers:                      types.MapNull(types.StringType),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
 							SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -584,6 +625,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 							Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 							Headers:                      types.MapNull(types.StringType),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
 							SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -603,6 +645,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 							Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                          tfAWSLambdaConfigObject(t, sampleRoleArn),
+							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 							Headers:                      types.MapNull(types.StringType),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
 							SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -622,6 +665,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 							Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 							Headers:                      tfConfigMap(t, headersMap),
 							URL:                          types.StringValue(httpsURL),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
@@ -642,6 +686,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							DBRoleToExecute:        types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 							Networking:             types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                    types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+							GCP:                    types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
 							Headers:                types.MapNull(types.StringType),
 							SchemaRegistryProvider: types.StringValue("CONFLUENT"),
 							SchemaRegistryURLs: types.ListValueMust(types.StringType, []attr.Value{
@@ -814,6 +859,25 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				Type: new("AWSLambda"),
 				Aws: &admin.StreamsAWSConnectionConfig{
 					RoleArn: new(sampleRoleArn),
+				},
+			},
+		},
+		{
+			name: "GCPPubSub type TF state",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:      types.StringValue(dummyProjectID),
+					InstanceName:   types.StringValue(instanceName),
+					ConnectionName: types.StringValue(gcpPubSubConnectionName),
+					Type:           types.StringValue("GCPPubSub"),
+					GCP:            tfGCPConfigObject(t, sampleServiceAccountID),
+				},
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name: new(gcpPubSubConnectionName),
+				Type: new("GCPPubSub"),
+				Gcp: &admin.StreamsGCPConnectionConfig{
+					ServiceAccountId: new(sampleServiceAccountID),
 				},
 			},
 		},
@@ -1043,4 +1107,15 @@ func tfSchemaRegistryAuthObjectNoPassword(t *testing.T, authType, username strin
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
 	}
 	return auth
+}
+
+func tfGCPConfigObject(t *testing.T, serviceAccountID string) types.Object {
+	t.Helper()
+	gcp, diags := types.ObjectValueFrom(t.Context(), streamconnection.GCPObjectType.AttrTypes, streamconnection.TFGCPModel{
+		ServiceAccountID: types.StringValue(serviceAccountID),
+	})
+	if diags.HasError() {
+		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
+	}
+	return gcp
 }
