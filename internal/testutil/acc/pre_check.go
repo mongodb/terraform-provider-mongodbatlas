@@ -417,3 +417,19 @@ func PreCheckAccessToken(tb testing.TB) {
 		tb.Fatal("`MONGODB_ATLAS_ACCESS_TOKEN` must be set for Atlas Access Token acceptance testing")
 	}
 }
+
+func PreCheckStreamPrivateLinkEndpointAzureBlobStorage(tb testing.TB) {
+	tb.Helper()
+	PreCheckBasic(tb)
+	PreCheckAzureCredentials(tb)
+}
+
+func PreCheckAzureCredentials(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("AZURE_SUBSCRIPTION_ID") == "" ||
+		os.Getenv("AZURE_CLIENT_ID") == "" ||
+		os.Getenv("AZURE_APP_SECRET") == "" ||
+		os.Getenv("AZURE_TENANT_ID") == "" {
+		tb.Fatal("`AZURE_SUBSCRIPTION_ID`, `AZURE_CLIENT_ID`, `AZURE_APP_SECRET`, and `AZURE_TENANT_ID` must be set for Azure acceptance testing")
+	}
+}

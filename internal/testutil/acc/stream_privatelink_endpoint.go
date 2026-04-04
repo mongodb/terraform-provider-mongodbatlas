@@ -157,6 +157,46 @@ func GetCompleteMskConfig(projectID, clusterArn string) string {
 	}`, projectID, clusterArn)
 }
 
+func GetCompleteAzureBlobStorageConfig(projectID, subscriptionID, clientID, clientSecret, tenantID, resourceGroupName, storageAccountName string) string {
+	return fmt.Sprintf(`
+	%[1]s
+
+	resource "azurerm_resource_group" "blob_pl_rg" {
+		name     = %[3]q
+		location = "East US 2"
+	}
+
+	resource "azurerm_storage_account" "blob_pl_storage" {
+		name                     = %[4]q
+		resource_group_name      = azurerm_resource_group.blob_pl_rg.name
+		location                 = azurerm_resource_group.blob_pl_rg.location
+		account_tier             = "Standard"
+		account_replication_type = "LRS"
+	}
+
+	resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+		project_id          = %[2]q
+		provider_name       = "AZURE"
+		vendor              = "AZURE_BLOB_STORAGE"
+		region              = azurerm_resource_group.blob_pl_rg.location
+		service_endpoint_id = azurerm_storage_account.blob_pl_storage.id
+		dns_domain          = "${azurerm_storage_account.blob_pl_storage.name}.blob.core.windows.net"
+	}
+
+	data "mongodbatlas_stream_privatelink_endpoint" "test" {
+		project_id = %[2]q
+		id         = mongodbatlas_stream_privatelink_endpoint.test.id
+	}
+
+	data "mongodbatlas_stream_privatelink_endpoints" "test" {
+		project_id = %[2]q
+		depends_on = [
+			mongodbatlas_stream_privatelink_endpoint.test
+		]
+	}`, ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID),
+		projectID, resourceGroupName, storageAccountName)
+}
+
 func GetCompleteS3Config(projectID, region string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_stream_privatelink_endpoint" "test" {

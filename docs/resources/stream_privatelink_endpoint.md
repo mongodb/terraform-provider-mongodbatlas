@@ -344,6 +344,35 @@ output "dns_domain" {
 }
 ```
 
+### Azure Blob Storage Privatelink
+```terraform
+resource "mongodbatlas_stream_privatelink_endpoint" "azure_blob" {
+  project_id          = var.project_id
+  provider_name       = "AZURE"
+  vendor              = "AZURE_BLOB_STORAGE"
+  region              = var.azure_region
+  service_endpoint_id = "/subscriptions/${var.azure_subscription_id}/resourceGroups/${var.azure_resource_group}/providers/Microsoft.Storage/storageAccounts/${var.azure_storage_account_name}"
+  dns_domain          = "${var.azure_storage_account_name}.blob.core.windows.net"
+}
+
+data "mongodbatlas_stream_privatelink_endpoint" "azure_blob" {
+  project_id = var.project_id
+  id         = mongodbatlas_stream_privatelink_endpoint.azure_blob.id
+}
+
+data "mongodbatlas_stream_privatelink_endpoints" "all" {
+  project_id = var.project_id
+}
+
+output "privatelink_endpoint_id" {
+  value = mongodbatlas_stream_privatelink_endpoint.azure_blob.id
+}
+
+output "privatelink_endpoint_state" {
+  value = data.mongodbatlas_stream_privatelink_endpoint.azure_blob.state
+}
+```
+
 ### Further Examples
 - [AWS Confluent PrivateLink](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_stream_privatelink_endpoint/confluent_serverless)
 - [Confluent Dedicated Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_stream_privatelink_endpoint/confluent_dedicated_cluster)
@@ -364,7 +393,7 @@ output "dns_domain" {
 
 	* **AWS**: MSK, CONFLUENT, and S3
 
-	* **Azure**: EVENTHUB and CONFLUENT
+	* **Azure**: EVENTHUB, CONFLUENT, and AZURE_BLOB_STORAGE
 
 	* **GCP**: CONFLUENT and PUBSUB
 
@@ -375,13 +404,13 @@ output "dns_domain" {
 
 	* AWS provider with CONFLUENT vendor.
 
-	* AZURE provider with EVENTHUB or CONFLUENT vendor.
+	* AZURE provider with EVENTHUB, CONFLUENT, or AZURE_BLOB_STORAGE vendor. For AZURE_BLOB_STORAGE, this should follow the format '{storageAccount}.blob.core.windows.net'.
 
 	* For GCP provider with PUBSUB vendor, the API computes this process.
 - `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones. Required for AWS Provider and CONFLUENT vendor. If your AWS CONFLUENT cluster doesn't use subdomains, you must set this to the empty array [].
 - `region` (String) The region of the Provider’s cluster. See [AZURE](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances) and [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/#stream-processing-instances) supported regions. When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.
 - `service_attachment_uris` (List of String) List of GCP service attachment URIs for Confluent vendor. Required for GCP provider with CONFLUENT vendor.
-- `service_endpoint_id` (String) For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html).
+- `service_endpoint_id` (String) For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html). For AZURE AZURE_BLOB_STORAGE, this is the Azure Resource Manager path of the storage account in the format '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}'.
 
 ### Read-Only
 

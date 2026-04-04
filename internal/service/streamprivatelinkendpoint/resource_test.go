@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -146,6 +147,50 @@ func TestAccStreamPrivatelinkEndpointS3_basic(t *testing.T) {
 	tc := basicS3TestCase(t)
 	// Tests include testing of plural data source and so cannot be run in parallel
 	resource.Test(t, *tc)
+}
+
+func TestAccStreamPrivatelinkEndpointAzureBlobStorage_basic(t *testing.T) {
+	acc.SkipTestForCI(t) // skip for CI because provisioning the streams private networking infrastructure is slow and expensive
+
+	tc := basicAzureBlobStorageTestCase(t)
+	// Tests include testing of plural data source and so cannot be run in parallel
+	resource.Test(t, *tc)
+}
+
+func TestAccStreamPrivatelinkEndpointAzureBlobStorage_fields(t *testing.T) {
+	const (
+		projectID = "does-not-matter"
+		provider  = "AZURE"
+		vendor    = "AZURE_BLOB_STORAGE"
+	)
+
+	tests := []struct {
+		expectedError *regexp.Regexp
+		name          string
+		config        string
+	}{
+		{
+			name:          "missing all required fields",
+			config:        missingRequiredFieldsConfig(projectID, provider, vendor),
+			expectedError: regexp.MustCompile(`(?s)^.*?region is required for vendor AZURE_BLOB_STORAGE.*?service_endpoint_id is required for vendor AZURE_BLOB_STORAGE.*?dns_domain is required for vendor AZURE_BLOB_STORAGE.*$`),
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			resource.ParallelTest(t, resource.TestCase{
+				PreCheck:                 func() { acc.PreCheckBasic(t) },
+				CheckDestroy:             checkDestroy,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Steps: []resource.TestStep{
+					{
+						Config:      tc.config,
+						ExpectError: tc.expectedError,
+					},
+				},
+			})
+		})
+	}
 }
 
 func basicConfluentTestCase(t *testing.T, withDNSSubdomains bool) *resource.TestCase {
@@ -431,6 +476,63 @@ func checksStreamPrivatelinkEndpointS3(projectID, provider, vendor, region strin
 	attrSet := []string{
 		"id",
 		"state",
+	}
+	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
+	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
+}
+
+func basicAzureBlobStorageTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+
+	var (
+		projectID          = acc.ProjectIDExecution(t)
+		provider           = "AZURE"
+		vendor             = "AZURE_BLOB_STORAGE"
+		subscriptionID     = os.Getenv("AZURE_SUBSCRIPTION_ID")
+		clientID           = os.Getenv("AZURE_CLIENT_ID")
+		clientSecret       = os.Getenv("AZURE_APP_SECRET")
+		tenantID           = os.Getenv("AZURE_TENANT_ID")
+		resourceGroupName  = acc.RandomName()
+		storageAccountName = "tfacc" + acctest.RandString(10)
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckStreamPrivateLinkEndpointAzureBlobStorage(t) },
+		CheckDestroy:             checkDestroy,
+		ExternalProviders:        acc.ExternalProvidersOnlyAzurerm(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.GetCompleteAzureBlobStorageConfig(projectID, subscriptionID, clientID, clientSecret, tenantID, resourceGroupName, storageAccountName),
+				Check:  checksStreamPrivatelinkEndpointAzureBlobStorage(projectID, provider, vendor),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func checksStreamPrivatelinkEndpointAzureBlobStorage(projectID, provider, vendor string) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{checkExists()}
+	attrMap := map[string]string{
+		"project_id":    projectID,
+		"provider_name": provider,
+		"vendor":        vendor,
+	}
+	pluralMap := map[string]string{
+		"project_id": projectID,
+		"results.#":  "1",
+	}
+	attrSet := []string{
+		"id",
+		"state",
+		"region",
+		"dns_domain",
+		"service_endpoint_id",
 	}
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
 	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
