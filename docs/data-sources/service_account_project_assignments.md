@@ -61,6 +61,6 @@ output "service_account_assigned_projects" {
 
 Read-Only:
 
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 For more information, see [Return All Service Account Project Assignments](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorgserviceaccountgroups) in the MongoDB Atlas API documentation.

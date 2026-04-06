@@ -6,8 +6,6 @@ subcategory: "Projects"
 
 `mongodbatlas_third_party_integration` describes a Third-Party Integration Settings for the given type.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -27,7 +25,7 @@ data "mongodbatlas_third_party_integration" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to get all Third-Party service integrations
+* `project_id` - (Required) The unique ID for the project to get all Third-Party service integrations, also known as `groupId` in the official documentation
 * `type`       - (Required) Third-Party service integration type
      * PAGER_DUTY
      * DATADOG

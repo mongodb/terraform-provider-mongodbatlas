@@ -1,15 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Accepts a URL or a local file path to an OpenAPI spec.
+# If a local file is provided, it is copied directly; otherwise, it is downloaded from the given URL.
 # TODO: Use openapi dev branch, don't merge to master, remove in CLOUDP-372674
-SOURCE_SPEC_URL="${1:-https://raw.githubusercontent.com/mongodb/openapi/dev/openapi/v2.yaml}"
+SPEC_SOURCE="${1:-https://raw.githubusercontent.com/mongodb/openapi/dev/openapi/v2.yaml}"
 SPEC_PATH="tools/codegen/atlasapispec/raw-multi-version-api-spec.yml"
 FLATTENED_SPEC_PATH="tools/codegen/atlasapispec/multi-version-api-spec.flattened.yml"
 
 mkdir -p "$(dirname "${SPEC_PATH}")"
 
-echo "Downloading OpenAPI spec from ${SOURCE_SPEC_URL}..."
-curl -fsSL "${SOURCE_SPEC_URL}" -o "${SPEC_PATH}"
+if [[ -f "${SPEC_SOURCE}" ]]; then
+  echo "Copying local spec from ${SPEC_SOURCE}..."
+  cp "${SPEC_SOURCE}" "${SPEC_PATH}"
+else
+  echo "Downloading OpenAPI spec from ${SPEC_SOURCE}..."
+  curl -fsSL "${SPEC_SOURCE}" -o "${SPEC_PATH}"
+fi
 
 echo "Saved spec to ${SPEC_PATH}"
 

@@ -30,7 +30,7 @@ output "log_integration_type" {
 ### Required
 
 - `integration_id` (String) Unique identifier of the log integration configuration.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Read-Only
 

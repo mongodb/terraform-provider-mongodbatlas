@@ -28,6 +28,9 @@ type pluralDS struct {
 
 func (d *pluralDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = PluralDataSourceSchema(ctx)
+	if schemaHook, ok := any(d).(autogen.DataSourceSchemaHook); ok {
+		resp.Schema = schemaHook.DataSourceSchema(ctx, resp.Schema)
+	}
     conversion.UpdateSchemaDescription(&resp.Schema)
 }
 

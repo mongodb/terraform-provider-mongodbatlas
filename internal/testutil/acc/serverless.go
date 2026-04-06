@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312017/admin"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 )
 
 func ConfigServerlessInstance(projectID, name string, ignoreConnectionStrings bool, autoIndexing *bool, tags []admin.ResourceTag) string {

@@ -6,8 +6,6 @@ subcategory: "Data Federation"
 
 `mongodbatlas_federated_database_instance` provides a Federated Database Instance resource.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ## Example Usages with MongoDB Atlas Cluster as storage database
 
 
@@ -154,7 +152,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create a Federated Database Instance.
+* `project_id` - (Required) The unique ID for the project to create a Federated Database Instance, also known as `groupId` in the official documentation.
 * `name` - (Required) Name of the Atlas Federated Database Instance.
 * `cloud_provider_config` - (Optional) Cloud provider linked to this data federated instance.
   * `cloud_provider_config.aws` - AWS provider of the cloud service where the Federated Database Instance can access the S3 Bucket.

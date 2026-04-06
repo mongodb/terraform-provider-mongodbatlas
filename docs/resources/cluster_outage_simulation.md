@@ -13,8 +13,6 @@ Test Outage on Majority of Electable Nodes - Select at least one more than half 
 **IMPORTANT:** Test Outage on Majority of Electable Nodes will leave the Atlas cluster without a majority quorum. There will be no primary so write operations will not succeed, and reads will succeed only when configured with a suitable [readPreference](https://www.mongodb.com/docs/manual/core/read-preference/). To recover the majority quorum, you will have the option to manually reconfigure your cluster by adding new nodes to existing regions or adding new regions at the risk of losing recent writes, or end the simulation.   
 
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ~> **IMPORTANT:** This resource cannot be updated.
 ~> **IMPORTANT:** An existing Cluster Outage Simulation cannot be imported as this resource does not support import operation.
 
@@ -42,7 +40,7 @@ resource "mongodbatlas_cluster_outage_simulation" "outage_simulation" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project that contains the cluster that is/will undergoing outage simulation.
+* `project_id` - (Required) The unique ID for the project that contains the cluster that is/will undergoing outage simulation, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) Name of the Atlas Cluster that is/will undergoing outage simulation.
 * `outage_filters` - (Minimum one required) List of settings that specify the type of cluster outage simulation.
   * `cloud_provider` - (Required) The cloud provider of the region that undergoes the outage simulation. Following values are supported:

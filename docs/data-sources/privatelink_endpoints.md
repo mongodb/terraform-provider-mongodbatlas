@@ -6,8 +6,6 @@ subcategory: "Private Endpoint Services"
 
 `mongodbatlas_privatelink_endpoints` describes all Private Endpoints for a given cloud provider in an Atlas project.
 
--> **NOTE:** Groups and projects are synonymous terms. The official documentation uses `group_id`.
-
 ~> **IMPORTANT:** Before configuring a private endpoint for a new region in your cluster, review the [Multi-Region Private Endpoints](https://www.mongodb.com/docs/atlas/troubleshoot-private-endpoints/#multi-region-private-endpoints) troubleshooting documentation.
 
 ## Example Usage
@@ -33,7 +31,7 @@ data "mongodbatlas_privatelink_endpoints" "this" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the project.
+* `project_id` - (Required) Unique identifier for the project, also known as `groupId` in the official documentation.
 * `provider_name` - (Required) Cloud provider for which you want to retrieve private endpoint services. Atlas accepts `AWS`, `AZURE`, or `GCP`.
 
 ## Attributes Reference

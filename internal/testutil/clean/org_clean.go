@@ -3,7 +3,7 @@ package clean
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312017/admin"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 )
 
 // RemoveStreamInstances deletes all stream instances in the project.

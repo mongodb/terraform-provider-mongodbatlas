@@ -28,6 +28,9 @@ type ds struct {
 
 func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = DataSourceSchema(ctx)
+	if schemaHook, ok := any(d).(autogen.DataSourceSchemaHook); ok {
+		resp.Schema = schemaHook.DataSourceSchema(ctx, resp.Schema)
+	}
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
