@@ -1220,60 +1220,6 @@ func TestAccStreamRSStreamConnection_AzureBlobStorage(t *testing.T) {
 	})
 }
 
-func configAzureCloudProviderAccess(projectID, atlasAzureAppID, servicePrincipalID, tenantID string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_cloud_provider_access_setup" "azure_setup" {
-			project_id    = %[1]q
-			provider_name = "AZURE"
-
-			azure_config {
-				atlas_azure_app_id   = %[2]q
-				service_principal_id = %[3]q
-				tenant_id            = %[4]q
-			}
-		}
-
-		resource "mongodbatlas_cloud_provider_access_authorization" "azure_auth" {
-			project_id = %[1]q
-			role_id    = mongodbatlas_cloud_provider_access_setup.azure_setup.role_id
-
-			azure {
-				atlas_azure_app_id   = %[2]q
-				service_principal_id = %[3]q
-				tenant_id            = %[4]q
-			}
-		}
-	`, projectID, atlasAzureAppID, servicePrincipalID, tenantID)
-}
-
-func configAzureBlobStorageResources(resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID string) string {
-	return fmt.Sprintf(`
-		resource "azurerm_resource_group" "blob_rg" {
-			name     = %[1]q
-			location = "East US"
-		}
-
-		resource "azurerm_storage_account" "blob_storage" {
-			name                     = %[2]q
-			resource_group_name      = azurerm_resource_group.blob_rg.name
-			location                 = azurerm_resource_group.blob_rg.location
-			account_tier             = "Standard"
-			account_replication_type = "LRS"
-		}
-
-		resource "azurerm_storage_container" "blob_container" {
-			name               = %[3]q
-			storage_account_id = azurerm_storage_account.blob_storage.id
-		}
-
-		resource "azurerm_role_assignment" "blob_contributor" {
-			scope                = azurerm_storage_account.blob_storage.id
-			role_definition_name = "Storage Blob Data Contributor"
-			principal_id         = %[4]q
-		}
-	`, resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID)
-}
-
 func configAzureBlobStorageStreamConnection(projectID, workspaceName, connectionName, networkingType string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
@@ -1301,8 +1247,8 @@ func configAzureBlobStorageStreamConnection(projectID, workspaceName, connection
 
 func configureAzureBlobStorage(projectID, workspaceName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName, networkingType string) string {
 	return acc.ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID) +
-		configAzureCloudProviderAccess(projectID, atlasAzureAppID, servicePrincipalID, tenantID) +
-		configAzureBlobStorageResources(resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID) +
+		acc.ConfigAzureCloudProviderAccess(projectID, atlasAzureAppID, servicePrincipalID, tenantID) +
+		acc.ConfigAzureStorageResources("blob", resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID) +
 		configAzureBlobStorageStreamConnection(projectID, workspaceName, connectionName, networkingType)
 }
 
