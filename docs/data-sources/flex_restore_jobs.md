@@ -34,9 +34,7 @@ output "mongodbatlas_flex_restore_jobs" {
 ### Required
 
 - `name` (String) Human-readable label that identifies the flex cluster whose snapshot you want to restore.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
-**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Read-Only
 
@@ -50,9 +48,7 @@ Read-Only:
 - `delivery_type` (String) Means by which this resource returns the snapshot to the requesting MongoDB Cloud user.
 - `expiration_date` (String) Date and time when the download link no longer works. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 - `name` (String) Human-readable label that identifies the flex cluster whose snapshot you want to restore.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
-**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `restore_finished_date` (String) Date and time when MongoDB Cloud completed writing this snapshot. MongoDB Cloud changes the status of the restore job to `CLOSED`. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 - `restore_job_id` (String) Unique 24-hexadecimal digit string that identifies the restore job.
 - `restore_scheduled_date` (String) Date and time when MongoDB Cloud will restore this snapshot. This parameter expresses its value in the ISO 8601 timestamp format in UTC.

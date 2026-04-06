@@ -173,11 +173,76 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "ds-required-path-param",
 		},
+		"Expanded model embedding": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				DataSources: &codespec.DataSources{
+					Singular: &codespec.Schema{
+						ExpandedModel: true,
+						Attributes: codespec.Attributes{
+							{
+								TFSchemaName:             "project_id",
+								TFModelName:              "ProjectId",
+								String:                   &codespec.StringAttribute{},
+								Description:              new("project identifier"),
+								ComputedOptionalRequired: codespec.Required,
+							},
+						},
+					},
+				},
+			},
+			goldenFileName: "ds-expanded-model",
+		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
 			result, err := schema.GenerateDataSourceSchemaGoCode(&tc.inputModel)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
+			g.Assert(t, tc.goldenFileName, result)
+		})
+	}
+}
+
+func TestPluralDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
+	testCases := map[string]dsSchemaGenerationTestCase{
+		"Expanded model embedding": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				DataSources: &codespec.DataSources{
+					Plural: &codespec.Schema{
+						ExpandedModel: true,
+						Attributes: codespec.Attributes{
+							{
+								TFSchemaName:             "project_id",
+								TFModelName:              "ProjectId",
+								String:                   &codespec.StringAttribute{},
+								Description:              new("project identifier"),
+								ComputedOptionalRequired: codespec.Required,
+							},
+							{
+								TFSchemaName:             "name",
+								TFModelName:              "Name",
+								String:                   &codespec.StringAttribute{},
+								Description:              new("resource name"),
+								ComputedOptionalRequired: codespec.Computed,
+							},
+						},
+					},
+				},
+			},
+			goldenFileName: "plural-ds-expanded-model",
+		},
+	}
+
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			result, err := schema.GeneratePluralDataSourceSchemaGoCode(&tc.inputModel)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}

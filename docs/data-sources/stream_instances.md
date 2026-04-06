@@ -34,7 +34,7 @@ data "mongodbatlas_stream_instances" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 * `page_num` - (Optional) Number of the page that displays the current set of the total objects that the response returns. Defaults to `1`.
 * `items_per_page` - (Optional) Number of items that the response returns per page, up to a maximum of `500`. Defaults to `100`.
@@ -49,7 +49,7 @@ In addition to all arguments above, it also exports the following attributes:
 
 ### Stream Instance
 
-* `project_id` - Unique 24-hexadecimal digit string that identifies your project.
+* `project_id` - Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `instance_name` - Human-readable label that identifies the stream instance.
 * `data_process_region` - Defines the cloud service provider and region where MongoDB Cloud performs stream processing. See [data process region](#data-process-region).
 * `hostnames` - List that contains the hostnames assigned to the stream instance.

@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_ldap_verify: Fixes `bind_password` not being marked as sensitive
+```

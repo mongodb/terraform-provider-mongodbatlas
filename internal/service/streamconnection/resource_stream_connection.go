@@ -51,6 +51,7 @@ type TFStreamConnectionCommonModel struct {
 	DBRoleToExecute  types.Object `tfsdk:"db_role_to_execute"`
 	Networking       types.Object `tfsdk:"networking"`
 	AWS              types.Object `tfsdk:"aws"`
+	GCP              types.Object `tfsdk:"gcp"`
 	// https connection
 	Headers types.Map    `tfsdk:"headers"`
 	URL     types.String `tfsdk:"url"`
@@ -157,6 +158,14 @@ type TFAWSModel struct {
 
 var AWSObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"role_arn": types.StringType,
+}}
+
+type TFGCPModel struct {
+	ServiceAccountID types.String `tfsdk:"service_account_id"`
+}
+
+var GCPObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"service_account_id": types.StringType,
 }}
 
 func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

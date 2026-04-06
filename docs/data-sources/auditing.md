@@ -6,8 +6,6 @@ subcategory: "Auditing"
 
 `mongodbatlas_auditing` describes a Auditing.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
-
 
 ## Example Usage
 
@@ -26,7 +24,7 @@ data "mongodbatlas_auditing" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project.
+* `project_id` - (Required) The unique ID for the project, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 

@@ -31,7 +31,7 @@ resource "mongodbatlas_privatelink_endpoint" "this" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the project, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Unique identifier for the project, also known as `groupId` in the official documentation.
 * `provider_name` - (Required) Name of the cloud provider for which you want to create the private endpoint service. Atlas accepts `AWS`, `AZURE`, `GCP`.
 * `region` - (Required) Cloud provider region in which you want to create the private endpoint connection.
 Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws), [AZURE regions](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure) and [GCP regions](https://docs.atlas.mongodb.com/reference/google-gcp/#std-label-google-gcp)

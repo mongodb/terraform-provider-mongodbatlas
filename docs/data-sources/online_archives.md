@@ -6,8 +6,6 @@ subcategory: "Online Archive"
 
 `mongodbatlas_online_archive` Describes the list of all the online archives for a cluster
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 
 ## Example Usage
 
@@ -20,7 +18,7 @@ data "mongodbatlas_online_archives" "test" {
 
 ## Argument Reference
 
-* `project_id`    - (Required) The unique ID for the project.
+* `project_id`    - (Required) The unique ID for the project, also known as `groupId` in the official documentation.
 * `cluster_name`  - (Required) Name of the cluster that contains the collection.
 
 # Attributes Reference

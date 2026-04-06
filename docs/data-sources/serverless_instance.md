@@ -11,8 +11,6 @@ subcategory: "Clusters"
 For a full list of unsupported features, see [Serverless Instance Limitations](https://docs.atlas.mongodb.com/reference/serverless-instance-limitations/).
  
 
-> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 ## Example Usage
 
 ### Basic
@@ -25,7 +23,7 @@ data "mongodbatlas_serverless_instance" "test_two" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project that contains your serverless instance.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project that contains your serverless instance, also known as `groupId` in the official documentation.
 * `name` - (Required) Human-readable label that identifies your serverless instance.
 
 ## Attributes Reference

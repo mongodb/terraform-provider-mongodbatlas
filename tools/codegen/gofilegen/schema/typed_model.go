@@ -14,11 +14,11 @@ func GenerateTypedModels(attributes codespec.Attributes, expandedModel bool) Cod
 
 // GenerateDataSourceTypedModels generates the TFDSModel struct for data sources.
 // DS models are simpler: no autogen tags (no request body marshaling).
-func GenerateDataSourceTypedModels(attributes codespec.Attributes, isPlural bool) CodeStatement {
+func GenerateDataSourceTypedModels(attributes codespec.Attributes, isPlural, expandedModel bool) CodeStatement {
 	if isPlural {
-		return generateTypedModelsWithPrefix(attributes, "PluralDS", true, false)
+		return generateTypedModelsWithPrefix(attributes, "PluralDS", true, expandedModel)
 	}
-	return generateTypedModelsWithPrefix(attributes, "DS", true, false)
+	return generateTypedModelsWithPrefix(attributes, "DS", true, expandedModel)
 }
 
 // generateTypedModelsWithPrefix starts the generation process.
@@ -56,6 +56,9 @@ func generateStructOfTypedModel(attributes codespec.Attributes, name string, isD
 	structProperties := []string{}
 	if expandedModel && !isDataSource && name == "" {
 		structProperties = append(structProperties, "TFExpandedModel")
+	}
+	if expandedModel && isDataSource && name == dsPrefix {
+		structProperties = append(structProperties, fmt.Sprintf("TF%sExpandedModel", dsPrefix))
 	}
 	for i := range attributes {
 		structProperties = append(structProperties, typedModelProperty(&attributes[i], isDataSource, dsPrefix))
