@@ -106,7 +106,7 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
 ### Azure
 * `service_principal_id` - Required. UUID that identifies the Azure Service Principal used to access the Azure Blob Storage account.
 * `storage_account_name` - Required. Name of the Azure Storage account. Must follow Azure storage account naming rules: 3 to 24 characters in length, and use only lowercase letters and numbers.
-* `region` - Optional. Azure region where the storage account is located.
+* `region` - Optional. Azure region where the storage account is located, specified as a valid Azure region name (for example, `eastus`, `westeurope`).
 
 ### GCP
 * `service_account_id` - Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to GCP Pub/Sub resources.

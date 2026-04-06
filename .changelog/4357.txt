@@ -9,7 +9,3 @@ data-source/mongodbatlas_stream_connection: Adds `AzureBlobStorage` connection
 ```release-note:enhancement
 data-source/mongodbatlas_stream_connections: Adds `AzureBlobStorage` connection
 ```
-
-```release-note:enhancement
-resource/mongodbatlas_stream_connection: Adds `PRIVATE_LINK` networking access type for `AzureBlobStorage` connections
-```

@@ -358,7 +358,7 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
 ### Azure
 * `service_principal_id` - (Required) UUID that identifies the Azure Service Principal used to access the Azure Blob Storage account.
 * `storage_account_name` - (Required) Name of the Azure Storage account to use. Must be lowercase, 3-24 characters, and contain only letters and numbers.
-* `region` - (Optional) Azure region where the storage account is located.
+* `region` - (Optional) Azure region where the storage account is located, specified as a valid Azure region name (for example, `eastus`, `westeurope`).
 
 ### Schema Registry Authentication
 * `type` - Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry. Valid values are `USER_INFO` or `SASL_INHERIT`.
