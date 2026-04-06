@@ -96,7 +96,7 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		}
 	}
 	if plan.Vendor.ValueString() == VendorAzureBlobStorage {
-		if plan.Region.IsNull() || plan.Region.IsUnknown() {
+		if plan.Region.IsNull() {
 			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorAzureBlobStorage), "")
 		}
 		if plan.ServiceEndpointId.IsNull() {

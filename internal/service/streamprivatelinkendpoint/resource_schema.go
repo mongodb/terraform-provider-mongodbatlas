@@ -63,7 +63,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"service_endpoint_id": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html). For AZURE AZURE_BLOB_STORAGE, this is the Azure Resource Manager path of the storage account in the format '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}'.",
+				MarkdownDescription: "For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html). For AZURE_BLOB_STORAGE, this is the Azure Resource Manager path of the storage account in the format '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}'.",
 			},
 			"service_attachment_uris": schema.ListAttribute{
 				Optional:            true,
