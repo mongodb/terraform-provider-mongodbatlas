@@ -287,7 +287,7 @@ resource "mongodbatlas_stream_processor" "example" {
 * `workspace_name` - (Optional) Label that identifies the stream processing workspace.
 * `instance_name` - (Optional, Deprecated) Label that identifies the stream processing workspace. Use `workspace_name` instead; this attribute will be removed in a future major version.
 * `connection_name` - (Required) Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - (Required) Type of connection. Can be `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
+* `type` - (Required) Type of connection. Can be `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -352,13 +352,13 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
 ### AWS
 * `role_arn` - Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
 
+### GCP
+* `service_account_id` - Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to GCP Pub/Sub resources.
+
+### Azure
 * `service_principal_id` - (Required) UUID that identifies the Azure Service Principal used to access the Azure Blob Storage account.
 * `storage_account_name` - (Required) Name of the Azure Storage account to use. Must be lowercase, 3-24 characters, and contain only letters and numbers.
 * `region` - (Optional) Azure region where the storage account is located.
-
-### GCP
-* `service_account_id` - Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to GCP Pub/Sub resources.
-### Azure
 
 ### Schema Registry Authentication
 * `type` - Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry. Valid values are `USER_INFO` or `SASL_INHERIT`.

@@ -127,7 +127,7 @@ func TestAccLogIntegration_basicAzure(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckLogIntegrationEnvAzure(t) },
+		PreCheck:                 func() { acc.PreCheckAzureEnvWithServicePrincipal(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAzurerm(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,

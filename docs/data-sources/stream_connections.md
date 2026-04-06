@@ -39,7 +39,7 @@ In addition to all arguments above, it also exports the following attributes:
 * `project_id` - Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `workspace_name` - Label that identifies the stream processing workspace.
 * `connection_name` - Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - Type of connection. `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
+* `type` - Type of connection. `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.

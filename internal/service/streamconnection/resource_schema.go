@@ -66,20 +66,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						ConnectionTypeAWSKinesisDataStreams,
-						ConnectionTypeAWSLambda,
-						ConnectionTypeAzureBlobStorage,
-						ConnectionTypeCluster,
-						ConnectionTypeGCPPubSub,
-						ConnectionTypeHTTPS,
-						ConnectionTypeKafka,
-						ConnectionTypeS3,
-						ConnectionTypeSample,
-						ConnectionTypeSchemaRegistry,
-					),
-				},
 			},
 
 			// cluster type specific

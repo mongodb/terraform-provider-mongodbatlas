@@ -1201,17 +1201,14 @@ func TestAccStreamRSStreamConnection_AzureBlobStorage(t *testing.T) {
 		storageContainerName    = acc.RandomBucketName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckLogIntegrationEnvAzure(t) },
+		PreCheck:                 func() { acc.PreCheckAzureEnvWithServicePrincipal(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAzurerm(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
 				Config: dataSourceConfig + configureAzureBlobStorage(projectID, instanceName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName, networkingTypePublic),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAzureBlobStorageAttributes(resourceName, instanceName, connectionName, servicePrincipalID, storageAccountName),
-					checkAzureBlobStorageAttributes(dataSourceName, instanceName, connectionName, servicePrincipalID, storageAccountName),
-				),
+				Check:  checkAzureBlobStorageAttributes(resourceName, dataSourceName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -1223,39 +1220,41 @@ func TestAccStreamRSStreamConnection_AzureBlobStorage(t *testing.T) {
 	})
 }
 
-func configureAzureBlobStorage(projectID, workspaceName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName, networkingType string) string {
+func configAzureCloudProviderAccess(projectID, atlasAzureAppID, servicePrincipalID, tenantID string) string {
 	return fmt.Sprintf(`
-		%[1]s
-
 		resource "mongodbatlas_cloud_provider_access_setup" "azure_setup" {
-			project_id    = %[2]q
+			project_id    = %[1]q
 			provider_name = "AZURE"
 
 			azure_config {
-				atlas_azure_app_id   = %[3]q
-				service_principal_id = %[4]q
-				tenant_id            = %[5]q
+				atlas_azure_app_id   = %[2]q
+				service_principal_id = %[3]q
+				tenant_id            = %[4]q
 			}
 		}
 
 		resource "mongodbatlas_cloud_provider_access_authorization" "azure_auth" {
-			project_id = %[2]q
+			project_id = %[1]q
 			role_id    = mongodbatlas_cloud_provider_access_setup.azure_setup.role_id
 
 			azure {
-				atlas_azure_app_id   = %[3]q
-				service_principal_id = %[4]q
-				tenant_id            = %[5]q
+				atlas_azure_app_id   = %[2]q
+				service_principal_id = %[3]q
+				tenant_id            = %[4]q
 			}
 		}
+	`, projectID, atlasAzureAppID, servicePrincipalID, tenantID)
+}
 
+func configAzureBlobStorageResources(resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID string) string {
+	return fmt.Sprintf(`
 		resource "azurerm_resource_group" "blob_rg" {
-			name     = %[6]q
+			name     = %[1]q
 			location = "East US"
 		}
 
 		resource "azurerm_storage_account" "blob_storage" {
-			name                     = %[7]q
+			name                     = %[2]q
 			resource_group_name      = azurerm_resource_group.blob_rg.name
 			location                 = azurerm_resource_group.blob_rg.location
 			account_tier             = "Standard"
@@ -1263,8 +1262,8 @@ func configureAzureBlobStorage(projectID, workspaceName, connectionName, clientI
 		}
 
 		resource "azurerm_storage_container" "blob_container" {
-			name                  = %[8]q
-			storage_account_id    = azurerm_storage_account.blob_storage.id
+			name               = %[3]q
+			storage_account_id = azurerm_storage_account.blob_storage.id
 		}
 
 		resource "azurerm_role_assignment" "blob_contributor" {
@@ -1272,20 +1271,24 @@ func configureAzureBlobStorage(projectID, workspaceName, connectionName, clientI
 			role_definition_name = "Storage Blob Data Contributor"
 			principal_id         = %[4]q
 		}
+	`, resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID)
+}
 
+func configAzureBlobStorageStreamConnection(projectID, workspaceName, connectionName, networkingType string) string {
+	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
-		    project_id = %[2]q
-			workspace_name = %[9]q
-		 	connection_name = %[10]q
-		 	type = "AzureBlobStorage"
+			project_id      = %[1]q
+			workspace_name  = %[2]q
+			connection_name = %[3]q
+			type            = "AzureBlobStorage"
 			azure = {
-				service_principal_id = %[4]q
+				service_principal_id = mongodbatlas_cloud_provider_access_setup.azure_setup.azure_config[0].service_principal_id
 				storage_account_name = azurerm_storage_account.blob_storage.name
 				region               = azurerm_resource_group.blob_rg.location
 			}
 			networking = {
 				access = {
-					type = %[11]q
+					type = %[4]q
 				}
 			}
 			depends_on = [
@@ -1293,25 +1296,25 @@ func configureAzureBlobStorage(projectID, workspaceName, connectionName, clientI
 				azurerm_role_assignment.blob_contributor,
 			]
 		}
-	`, acc.ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID),
-		projectID, atlasAzureAppID, servicePrincipalID, tenantID,
-		resourceGroupName, storageAccountName, storageContainerName,
-		workspaceName, connectionName, networkingType)
+	`, projectID, workspaceName, connectionName, networkingType)
 }
 
-func checkAzureBlobStorageAttributes(resourceName, workspaceName, connectionName, servicePrincipalID, storageAccountName string) resource.TestCheckFunc {
-	resourceChecks := []resource.TestCheckFunc{
-		checkStreamConnectionExists(),
-		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName),
-		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
-		resource.TestCheckResourceAttr(resourceName, "type", "AzureBlobStorage"),
-		resource.TestCheckResourceAttr(resourceName, "azure.service_principal_id", servicePrincipalID),
-		resource.TestCheckResourceAttr(resourceName, "azure.storage_account_name", storageAccountName),
-		resource.TestCheckResourceAttrSet(resourceName, "azure.region"),
-		resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingTypePublic),
+func configureAzureBlobStorage(projectID, workspaceName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName, networkingType string) string {
+	return acc.ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID) +
+		configAzureCloudProviderAccess(projectID, atlasAzureAppID, servicePrincipalID, tenantID) +
+		configAzureBlobStorageResources(resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID) +
+		configAzureBlobStorageStreamConnection(projectID, workspaceName, connectionName, networkingType)
+}
+
+func checkAzureBlobStorageAttributes(resourceNames ...string) resource.TestCheckFunc {
+	var checks []resource.TestCheckFunc
+	for _, name := range resourceNames {
+		checks = append(checks,
+			checkStreamConnectionExists(),
+			resource.TestCheckResourceAttrSet(name, "azure.region"),
+		)
 	}
-	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func streamConnectionsAttributeChecks(resourceName string, pageNum, itemsPerPage *int) resource.TestCheckFunc {

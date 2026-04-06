@@ -37,7 +37,7 @@ data "mongodbatlas_stream_connection" "example" {
 
 ## Attributes Reference
 
-* `type` - Type of connection. Can be `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
+* `type` - Type of connection. Can be `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -51,7 +51,7 @@ If `type` is of value `Kafka` the following additional attributes are defined:
 * `security` - Properties for the secure transport connection to Kafka. For SASL_SSL, this can include the trusted certificate to use. See [security](#security).
 * `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
 
-If `type` is `AzureBlobStorage` the the configuration defines the following additional attributes:
+If `type` is `AzureBlobStorage` the configuration defines the following additional attributes:
 * `azure` - The configuration for Azure Blob Storage connection. See [Azure](#Azure).
 * `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
 
