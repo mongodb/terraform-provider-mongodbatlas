@@ -79,11 +79,26 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		if diags := networkingModel.Access.As(ctx, networkingAccessModel, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
 		}
-		streamConnection.Networking = &admin.StreamsKafkaNetworking{
-			Access: &admin.StreamsKafkaNetworkingAccess{
-				Type:         networkingAccessModel.Type.ValueStringPointer(),
-				ConnectionId: networkingAccessModel.ConnectionID.ValueStringPointer(),
-			},
+		switch plan.Type.ValueString() {
+		case ConnectionTypeAzureBlobStorage, ConnectionTypeGCPPubSub:
+			streamConnection.PublicPrivateNetworking = &admin.StreamsPublicPrivateLinkNetworking{
+				Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
+					Type:         networkingAccessModel.Type.ValueStringPointer(),
+					ConnectionId: networkingAccessModel.ConnectionID.ValueStringPointer(),
+				},
+			}
+		case ConnectionTypeKafka, ConnectionTypeAWSKinesisDataStreams, ConnectionTypeS3:
+			streamConnection.Networking = &admin.StreamsKafkaNetworking{
+				Access: &admin.StreamsKafkaNetworkingAccess{
+					Type:         networkingAccessModel.Type.ValueStringPointer(),
+					ConnectionId: networkingAccessModel.ConnectionID.ValueStringPointer(),
+				},
+			}
+		default:
+			return nil, diag.Diagnostics{diag.NewErrorDiagnostic(
+				"invalid connection type with networking",
+				fmt.Sprintf("connection type %q does not support networking configuration", plan.Type.ValueString()),
+			)}
 		}
 	}
 
@@ -104,6 +119,18 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		}
 		streamConnection.Gcp = &admin.StreamsGCPConnectionConfig{
 			ServiceAccountId: gcpModel.ServiceAccountID.ValueStringPointer(),
+		}
+	}
+
+	if !plan.Azure.IsNull() {
+		azureModel := &TFAzureModel{}
+		if diags := plan.Azure.As(ctx, azureModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamConnection.Azure = &admin.AzureConnection{
+			ServicePrincipalId: azureModel.ServicePrincipalID.ValueStringPointer(),
+			StorageAccountName: azureModel.StorageAccountName.ValueStringPointer(),
+			Region:             azureModel.Region.ValueStringPointer(),
 		}
 	}
 
@@ -275,6 +302,19 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceN
 			return nil, diags
 		}
 		connectionModel.Networking = networkingModel
+	}
+
+	connectionModel.Azure = types.ObjectNull(AzureObjectType.AttrTypes)
+	if apiResp.Azure != nil {
+		azure, diags := types.ObjectValueFrom(ctx, AzureObjectType.AttrTypes, TFAzureModel{
+			ServicePrincipalID: types.StringPointerValue(apiResp.Azure.ServicePrincipalId),
+			StorageAccountName: types.StringPointerValue(apiResp.Azure.StorageAccountName),
+			Region:             types.StringPointerValue(apiResp.Azure.Region),
+		})
+		if diags.HasError() {
+			return nil, diags
+		}
+		connectionModel.Azure = azure
 	}
 
 	connectionModel.AWS = types.ObjectNull(AWSObjectType.AttrTypes)

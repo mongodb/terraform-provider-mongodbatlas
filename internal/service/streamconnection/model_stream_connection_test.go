@@ -39,6 +39,9 @@ const (
 	httpsURL                  = "https://example.com"
 	gcpPubSubConnectionName   = "gcp_pubsub_connection"
 	sampleServiceAccountID    = "projects/my-project/serviceAccounts/streams@my-project.iam.gserviceaccount.com"
+	azureServicePrincipalID   = "12345678-1234-1234-1234-123456789012"
+	azureStorageAccountName   = "mystorageaccount"
+	azureRegion               = "eastus2"
 )
 
 var (
@@ -60,11 +63,19 @@ type sdkToTFModelTestCase struct {
 	name                             string
 }
 
-func TestStreamConnectionSDKToTFModel(t *testing.T) {
+func sdkToTFModelTestCases(t *testing.T) []sdkToTFModelTestCase {
+	t.Helper()
+	cases := sdkToTFModelBasicTestCases(t)
+	cases = append(cases, sdkToTFModelAdditionalTestCases(t)...)
+	return cases
+}
+
+func sdkToTFModelBasicTestCases(t *testing.T) []sdkToTFModelTestCase {
+	t.Helper()
 	var authConfigWithPasswordDefined = tfAuthenticationObject(t, authMechanism, authUsername, "raw password")
 	var authConfigWithOAuth = tfAuthenticationObjectForOAuth(t, authMechanism, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions, method)
 
-	testCases := []sdkToTFModelTestCase{
+	return []sdkToTFModelTestCase{
 		{
 			name: "Cluster connection type SDK response",
 			SDKResp: &admin.StreamsConnection{
@@ -93,6 +104,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -129,6 +141,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -168,6 +181,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -211,6 +225,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -239,6 +254,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -278,6 +294,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -305,12 +322,19 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 				},
 			},
 		},
+	}
+}
+
+func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
+	t.Helper()
+	return []sdkToTFModelTestCase{
 		{
 			name: "AWSLambda connection type with roleArn",
 			SDKResp: &admin.StreamsConnection{
@@ -333,6 +357,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          tfAWSLambdaConfigObject(t, sampleRoleArn),
 					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -361,6 +386,41 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 					GCP:                          tfGCPConfigObject(t, sampleServiceAccountID),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
+					Headers:                      types.MapNull(types.StringType),
+					SchemaRegistryURLs:           types.ListNull(types.StringType),
+					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				},
+			},
+		},
+		{
+			name: "AzureBlobStorage connection type with publicPrivateNetworking",
+			SDKResp: &admin.StreamsConnection{
+				Name:  new(connectionName),
+				Type:  new("AzureBlobStorage"),
+				Azure: &admin.AzureConnection{ServicePrincipalId: new(azureServicePrincipalID), StorageAccountName: new(azureStorageAccountName), Region: new(azureRegion)},
+				PublicPrivateNetworking: &admin.StreamsPublicPrivateLinkNetworking{
+					Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
+						Type: new(networkingType),
+					},
+				},
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:                    types.StringValue(dummyProjectID),
+					WorkspaceName:                types.StringValue(instanceName),
+					ConnectionName:               types.StringValue(connectionName),
+					Type:                         types.StringValue("AzureBlobStorage"),
+					Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+					Config:                       types.MapNull(types.StringType),
+					Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+					Networking:                   tfNetworkingObject(t, networkingType, nil),
+					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        tfAzureConfigObject(t, azureServicePrincipalID, azureStorageAccountName, azureRegion),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -398,6 +458,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					Networking:             types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                    types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 					GCP:                    types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                  types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                types.MapNull(types.StringType),
 					SchemaRegistryProvider: types.StringValue("CONFLUENT"),
 					SchemaRegistryURLs: types.ListValueMust(types.StringType, []attr.Value{
@@ -409,8 +470,10 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			},
 		},
 	}
+}
 
-	for _, tc := range testCases {
+func TestStreamConnectionSDKToTFModel(t *testing.T) {
+	for _, tc := range sdkToTFModelTestCases(t) {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel, diags := streamconnection.NewTFStreamConnection(t.Context(), tc.providedProjID, "", tc.providedInstanceName, tc.providedAuthConfig, tc.providedSchemaRegistryAuthConfig, tc.SDKResp, nil)
 			if diags.HasError() {
@@ -586,6 +649,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							Networking:                   tfNetworkingObject(t, networkingType, nil),
 							AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+							Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 							Headers:                      types.MapNull(types.StringType),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
 							SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -606,6 +670,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+							Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 							Headers:                      types.MapNull(types.StringType),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
 							SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -626,6 +691,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+							Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 							Headers:                      types.MapNull(types.StringType),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
 							SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -646,6 +712,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                          tfAWSLambdaConfigObject(t, sampleRoleArn),
 							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+							Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 							Headers:                      types.MapNull(types.StringType),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
 							SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -666,6 +733,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+							Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 							Headers:                      tfConfigMap(t, headersMap),
 							URL:                          types.StringValue(httpsURL),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
@@ -687,6 +755,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							Networking:             types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                    types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 							GCP:                    types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+							Azure:                  types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 							Headers:                types.MapNull(types.StringType),
 							SchemaRegistryProvider: types.StringValue("CONFLUENT"),
 							SchemaRegistryURLs: types.ListValueMust(types.StringType, []attr.Value{
@@ -882,6 +951,33 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 			},
 		},
 		{
+			name: "AzureBlobStorage type TF state",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:      types.StringValue(dummyProjectID),
+					InstanceName:   types.StringValue(instanceName),
+					ConnectionName: types.StringValue(connectionName),
+					Type:           types.StringValue("AzureBlobStorage"),
+					Azure:          tfAzureConfigObject(t, azureServicePrincipalID, azureStorageAccountName, azureRegion),
+					Networking:     tfNetworkingObject(t, networkingType, nil),
+				},
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name: new(connectionName),
+				Type: new("AzureBlobStorage"),
+				Azure: &admin.AzureConnection{
+					ServicePrincipalId: new(azureServicePrincipalID),
+					StorageAccountName: new(azureStorageAccountName),
+					Region:             new(azureRegion),
+				},
+				PublicPrivateNetworking: &admin.StreamsPublicPrivateLinkNetworking{
+					Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
+						Type: new(networkingType),
+					},
+				},
+			},
+		},
+		{
 			name: "Https type TF state",
 			tfModel: &streamconnection.TFStreamConnectionModel{
 				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
@@ -1066,6 +1162,19 @@ func tfNetworkingObject(t *testing.T, networkingType string, connectionID *strin
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
 	}
 	return networking
+}
+
+func tfAzureConfigObject(t *testing.T, servicePrincipalID, storageAccountName, region string) types.Object {
+	t.Helper()
+	azure, diags := types.ObjectValueFrom(t.Context(), streamconnection.AzureObjectType.AttrTypes, streamconnection.TFAzureModel{
+		ServicePrincipalID: types.StringValue(servicePrincipalID),
+		StorageAccountName: types.StringValue(storageAccountName),
+		Region:             types.StringValue(region),
+	})
+	if diags.HasError() {
+		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
+	}
+	return azure
 }
 
 func tfAWSLambdaConfigObject(t *testing.T, roleArn string) types.Object {
