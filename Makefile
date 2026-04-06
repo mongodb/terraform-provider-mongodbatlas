@@ -145,6 +145,18 @@ link-git-hooks: ## Install Git hooks
 	find .git/hooks -type l -exec rm {} \;
 	find .githooks -type f -exec ln -sf ../../{} .git/hooks/ \;
 
+.PHONY: link-skills
+link-skills: ## Create symlinks for AI agent skills
+	@echo "==> Linking skills directories..."
+	@mkdir -p .claude .cursor
+	@for dir in .claude/skills .cursor/skills; do \
+		if [ -d "$$dir" ] && [ ! -L "$$dir" ]; then \
+			echo "Error: $$dir is an existing directory. Remove it manually before running this command." >&2; \
+			exit 1; \
+		fi; \
+		ln -sfn ../.agents/skills "$$dir"; \
+	done
+
 .PHONY: update-atlas-sdk
 update-atlas-sdk: ## Update the Atlas SDK dependency
 	./scripts/update-sdk.sh
