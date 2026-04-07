@@ -254,6 +254,25 @@ func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidRegion(t *testin
 	})
 }
 
+func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidLowercaseRegion(t *testing.T) {
+	var (
+		projectID    = acc.ProjectIDExecution(t)
+		providerName = constant.AWS
+		region       = "AP_SOUTHEAST_1" // Different region to avoid project conflicts.
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      configWithSupportedRemoteRegions(projectID, providerName, region, []string{"us-east-1"}),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
+			},
+		},
+	})
+}
+
 func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidProvider(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
