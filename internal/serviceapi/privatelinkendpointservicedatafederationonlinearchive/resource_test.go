@@ -85,41 +85,46 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicAzure(t *testing.T) {
 	var (
-		projectID               = acc.ProjectIDExecution(t)
-		endpointID              = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_AZURE")
-		customerEndpointIPValue = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_IP_ADDRESS_AZURE")
+		projectID                    = acc.ProjectIDExecution(t)
+		subscriptionID               = os.Getenv("AZURE_SUBSCRIPTION_ID")
+		clientID                     = os.Getenv("AZURE_CLIENT_ID")
+		clientSecret                 = os.Getenv("AZURE_APP_SECRET")
+		tenantID                     = os.Getenv("AZURE_TENANT_ID")
+		privateLinkServiceResourceID = os.Getenv("MONGODB_ATLAS_DATA_FEDERATION_PRIVATE_LINK_SERVICE_RESOURCE_ID_AZURE")
+		resourceGroupName            = acc.RandomName()
 	)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckPrivateEndpointAzure(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		ExternalProviders:        acc.ExternalProvidersOnlyAzurerm(),
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfigBasicAzure(projectID, endpointID, customerEndpointIPValue, comment, azureRegion),
+				Config: dataSourceConfigBasicAzure(projectID, subscriptionID, clientID, clientSecret, tenantID, privateLinkServiceResourceID, resourceGroupName, comment, azureRegion),
 				ConfigStateChecks: []statecheck.StateCheck{
 					acc.PluralResultCheck(
 						pluralDSName,
-						"endpoint_id",
-						knownvalue.StringExact(endpointID),
+						"provider_name",
+						knownvalue.StringExact("AZURE"),
 						map[string]knownvalue.Check{
 							"region":                       knownvalue.StringExact(azureRegion),
-							"customer_endpoint_ip_address": knownvalue.StringExact(customerEndpointIPValue),
+							"endpoint_id":                  knownvalue.NotNull(),
+							"customer_endpoint_ip_address": knownvalue.NotNull(),
 						},
 					),
 				},
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					checkEncodedID(resourceName, projectID, endpointID),
 					resource.TestCheckResourceAttr(resourceName, "provider_name", "AZURE"),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-					resource.TestCheckResourceAttr(resourceName, "customer_endpoint_ip_address", customerEndpointIPValue),
 					resource.TestCheckResourceAttr(resourceName, "region", azureRegion),
-					checkEncodedID(dataSourceName, projectID, endpointID),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoint_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "customer_endpoint_ip_address"),
 					resource.TestCheckResourceAttr(dataSourceName, "provider_name", "AZURE"),
 					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
-					resource.TestCheckResourceAttr(dataSourceName, "customer_endpoint_ip_address", customerEndpointIPValue),
 					resource.TestCheckResourceAttr(dataSourceName, "region", azureRegion),
+					resource.TestCheckResourceAttrSet(dataSourceName, "endpoint_id"),
 					resource.TestCheckResourceAttr(pluralDSName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
 					resource.TestCheckResourceAttrSet(pluralDSName, "id"),
@@ -127,7 +132,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicAz
 			},
 			// TODO: Uncomment once CLOUDP-391704 is released — Azure comment update is not yet supported.
 			// {
-			// 	Config: dataSourceConfigBasicAzure(projectID, endpointID, customerEndpointIPValue, "updated comment", azureRegion),
+			// 	Config: dataSourceConfigBasicAzure(projectID, subscriptionID, clientID, clientSecret, tenantID, privateLinkServiceResourceID, resourceGroupName, "updated comment", azureRegion),
 			// 	Check: resource.ComposeAggregateTestCheckFunc(
 			// 		checkExists(resourceName),
 			// 		resource.TestCheckResourceAttr(resourceName, "comment", "updated comment"),
@@ -497,24 +502,69 @@ func dataSourceConfigOptionalFieldsAWS(projectID, endpointID, comment, customerE
 	return buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointDNSName, true)
 }
 
-func dataSourceConfigBasicAzure(projectID, endpointID, customerEndpointIPAddress, comment, region string) string {
-	return buildConfigWithDataSourceAzure(projectID, endpointID, customerEndpointIPAddress, comment, region)
-}
-
-func buildConfigWithDataSourceAzure(projectID, endpointID, customerEndpointIPAddress, comment, region string) string {
+func dataSourceConfigBasicAzure(projectID, subscriptionID, clientID, clientSecret, tenantID, privateLinkServiceResourceID, resourceGroupName, comment, region string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
-	  project_id                   = %[1]q
-	  endpoint_id                  = %[2]q
-	  provider_name                = "AZURE"
-	  customer_endpoint_ip_address = %[3]q
-	  comment                      = %[4]q
-	  region                       = %[5]q
+	%[1]s
+
+	resource "azurerm_resource_group" "test" {
+	  name     = %[8]q
+	  location = "East US 2"
 	}
 
-	%[6]s
-	%[7]s
-	`, projectID, endpointID, customerEndpointIPAddress, comment, region, singularDataSourceConfig, pluralDataSourceConfig)
+	resource "azurerm_virtual_network" "test" {
+	  name                = "vnet-df-pe-test"
+	  address_space       = ["10.0.0.0/16"]
+	  location            = azurerm_resource_group.test.location
+	  resource_group_name = azurerm_resource_group.test.name
+	}
+
+	resource "azurerm_subnet" "test" {
+	  name                              = "snet-df-pe-test"
+	  resource_group_name               = azurerm_resource_group.test.name
+	  virtual_network_name              = azurerm_virtual_network.test.name
+	  address_prefixes                  = ["10.0.1.0/24"]
+	  private_endpoint_network_policies = "Disabled"
+	}
+
+	resource "azurerm_private_endpoint" "test" {
+	  name                = "pe-df-test"
+	  location            = azurerm_resource_group.test.location
+	  resource_group_name = azurerm_resource_group.test.name
+	  subnet_id           = azurerm_subnet.test.id
+
+	  private_service_connection {
+	    name                           = "atlas-df-connection"
+	    private_connection_resource_id = %[7]q
+	    is_manual_connection           = true
+	    request_message                = "Terraform Acceptance Test"
+	  }
+	}
+
+	resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
+	  project_id                   = %[2]q
+	  endpoint_id                  = azurerm_private_endpoint.test.id
+	  provider_name                = "AZURE"
+	  customer_endpoint_ip_address = azurerm_private_endpoint.test.private_service_connection[0].private_ip_address
+	  comment                      = %[9]q
+	  region                       = %[10]q
+	}
+
+	%[11]s
+	%[12]s
+	`,
+		acc.ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID),
+		projectID,
+		subscriptionID,
+		clientID,
+		clientSecret,
+		tenantID,
+		privateLinkServiceResourceID,
+		resourceGroupName,
+		comment,
+		region,
+		singularDataSourceConfig,
+		pluralDataSourceConfig,
+	)
 }
 
 func buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointDNSName string, includeOptionalFields bool) string {

@@ -362,9 +362,8 @@ func PreCheckPrivateEndpoint(tb testing.TB) {
 
 func PreCheckPrivateEndpointAzure(tb testing.TB) {
 	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_AZURE") == "" ||
-		os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_IP_ADDRESS_AZURE") == "" {
-		tb.Fatal("`MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_AZURE` and `MONGODB_ATLAS_PRIVATE_ENDPOINT_IP_ADDRESS_AZURE` must be set for Azure Private Endpoint Service Data Federation and Online Archive acceptance testing")
+	if os.Getenv("MONGODB_ATLAS_DATA_FEDERATION_PRIVATE_LINK_SERVICE_RESOURCE_ID_AZURE") == "" {
+		tb.Fatal("`MONGODB_ATLAS_DATA_FEDERATION_PRIVATE_LINK_SERVICE_RESOURCE_ID_AZURE` must be set for Azure Private Endpoint Service Data Federation and Online Archive acceptance testing")
 	}
 	PreCheckBasic(tb)
 }

@@ -160,9 +160,7 @@ on:
         required: true
       mongodb_atlas_private_endpoint_id_replace:
         required: true
-      mongodb_atlas_private_endpoint_id_azure:
-        required: true
-      mongodb_atlas_private_endpoint_ip_address_azure:
+      mongodb_atlas_data_federation_private_link_service_resource_id_azure:
         required: true
       mongodb_atlas_gov_private_key:
         required: true
@@ -684,8 +682,7 @@ jobs:
           MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME: ${{ secrets.mongodb_atlas_private_endpoint_dns_name }}
           MONGODB_ATLAS_PRIVATE_ENDPOINT_ID: ${{ secrets.mongodb_atlas_private_endpoint_id }}
           MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_REPLACE: ${{ secrets.mongodb_atlas_private_endpoint_id_replace }}
-          MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_AZURE: ${{ secrets.mongodb_atlas_private_endpoint_id_azure }}
-          MONGODB_ATLAS_PRIVATE_ENDPOINT_IP_ADDRESS_AZURE: ${{ secrets.mongodb_atlas_private_endpoint_ip_address_azure }}
+          MONGODB_ATLAS_DATA_FEDERATION_PRIVATE_LINK_SERVICE_RESOURCE_ID_AZURE: ${{ secrets.mongodb_atlas_data_federation_private_link_service_resource_id_azure }}
           AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
           AZURE_APP_SECRET: ${{ secrets.azure_app_secret }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
@@ -1240,8 +1237,6 @@ jobs:
         env:
           MONGODB_ATLAS_PRIVATE_ENDPOINT_ID: ${{ secrets.mongodb_atlas_private_endpoint_id }}
           MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME: ${{ secrets.mongodb_atlas_private_endpoint_dns_name }}
-          MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_AZURE: ${{ secrets.mongodb_atlas_private_endpoint_id_azure }}
-          MONGODB_ATLAS_PRIVATE_ENDPOINT_IP_ADDRESS_AZURE: ${{ secrets.mongodb_atlas_private_endpoint_ip_address_azure }}
           AWS_ACCOUNT_ID: ${{ secrets.aws_account_id }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
