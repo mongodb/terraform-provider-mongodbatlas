@@ -213,7 +213,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Terraform's unique identifier used internally for state management.
 * `hostnames` - The list of hostnames assigned to the Federated Database Instance. Each string in the array is a hostname assigned to the Federated Database Instance.
-* `private_endpoint_hostnames` - The list of private endpoint hostnames assiged to the Federated Database Instance.
+* `private_endpoint_hostnames` - The list of private endpoint hostnames assigned to the Federated Database Instance.
   * `private_endpoint_hostnames.#.hostname` - Human-readable label identifying the hostname.
   * `private_endpoint_hostnames.#.private_endpoint` - Human-readable label identifying the private endpoint.
 * `state` - Current state of the Federated Database Instance:
