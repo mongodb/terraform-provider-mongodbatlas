@@ -235,7 +235,7 @@ func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegions(t *testing.T) {
 	})
 }
 
-func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidRegion(t *testing.T) {
+func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidSameRegion(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
 		providerName = constant.AWS
@@ -286,7 +286,7 @@ func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidProvider(t *test
 		Steps: []resource.TestStep{
 			{
 				Config:      configWithSupportedRemoteRegions(projectID, providerName, region, []string{region}),
-				ExpectError: regexp.MustCompile("PROVIDER_UNSUPPORTED"),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 		},
 	})
