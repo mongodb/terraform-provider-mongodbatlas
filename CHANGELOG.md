@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.10.0 (April 08, 2026)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_stream_connection: Adds `AzureBlobStorage` connection ([#4357](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4357))
