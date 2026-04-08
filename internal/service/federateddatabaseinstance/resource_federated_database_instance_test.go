@@ -5,6 +5,7 @@ import (
 	"maps"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -594,6 +595,75 @@ data "mongodbatlas_federated_database_instance" "test" {
 	name = mongodbatlas_federated_database_instance.test.name
 }
 	`, federatedInstanceName, projectName, orgID)
+}
+
+func TestAccFederatedDatabaseInstance_withPrivateEndpoint(t *testing.T) {
+	var (
+		projectID       = acc.ProjectIDExecution(t)
+		name            = acc.RandomName()
+		vpcID           = os.Getenv("AWS_VPC_ID")
+		subnetID        = os.Getenv("AWS_SUBNET_ID")
+		securityGroupID = os.Getenv("AWS_SECURITY_GROUP_ID")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckAwsEnvPrivateLinkEndpointService(t) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyFederatedDatabaseInstance,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPrivateEndpoint(projectID, name, vpcID, subnetID, securityGroupID),
+			},
+			{
+				PreConfig:    waitForStatusUpdate,
+				RefreshState: true,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "private_endpoint_hostnames.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "private_endpoint_hostnames.0.hostname"),
+					resource.TestCheckResourceAttrSet(resourceName, "private_endpoint_hostnames.0.private_endpoint"),
+				),
+			},
+		},
+	})
+}
+
+func waitForStatusUpdate() {
+	time.Sleep(1 * time.Minute)
+}
+
+func configWithPrivateEndpoint(projectID, name, vpcID, subnetID, securityGroupID string) string {
+	return fmt.Sprintf(`
+resource "aws_vpc_endpoint" "test" {
+  vpc_id              = %[3]q
+  service_name        = "com.amazonaws.vpce.us-east-1.vpce-svc-0a7247db33497082e"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = [%[4]q]
+  security_group_ids  = [%[5]q]
+  private_dns_enabled = true
+}
+
+resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
+  project_id                 = %[1]q
+  endpoint_id                = aws_vpc_endpoint.test.id
+  provider_name              = "AWS"
+  comment                    = "Terraform Acceptance Test"
+  customer_endpoint_dns_name = aws_vpc_endpoint.test.dns_entry[0].dns_name
+  region                     = "US_EAST_1"
+}
+
+resource "mongodbatlas_federated_database_instance" "test" {
+  project_id = %[1]q
+  name       = %[2]q
+
+  data_process_region {
+    cloud_provider = "AWS"
+    region         = "VIRGINIA_USA"
+  }
+
+  depends_on = [mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test]
+}
+`, projectID, name, vpcID, subnetID, securityGroupID)
 }
 
 func configFirstStepsUpdate(federatedInstanceName, projectName, orgID string) string {
