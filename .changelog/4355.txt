@@ -1,5 +1,11 @@
 ```release-note:enhancement
 resource/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive: Adds Azure support, including `customer_endpoint_ip_address`, `azure_link_id`, `error_message`, and `status`
+```
+
+```release-note:enhancement
 data-source/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive: Adds Azure field support, including `customer_endpoint_ip_address`, `azure_link_id`, `error_message`, and `status`
+```
+
+```release-note:enhancement
 data-source/mongodbatlas_privatelink_endpoint_service_data_federation_online_archives: Adds Azure field support, including `customer_endpoint_ip_address`, `azure_link_id`, `error_message`, and `status`
 ```
