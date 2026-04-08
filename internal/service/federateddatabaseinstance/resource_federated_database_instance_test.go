@@ -599,21 +599,18 @@ data "mongodbatlas_federated_database_instance" "test" {
 
 func TestAccFederatedDatabaseInstance_withPrivateEndpoint(t *testing.T) {
 	var (
-		projectID       = acc.ProjectIDExecution(t)
-		name            = acc.RandomName()
-		vpcID           = os.Getenv("AWS_VPC_ID")
-		subnetID        = os.Getenv("AWS_SUBNET_ID")
-		securityGroupID = os.Getenv("AWS_SECURITY_GROUP_ID")
+		projectID = acc.ProjectIDExecution(t)
+		name      = acc.RandomName()
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckAwsEnvPrivateLinkEndpointService(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAwsEnvBasic(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithPrivateEndpoint(projectID, name, vpcID, subnetID, securityGroupID),
+				Config: configWithPrivateEndpoint(projectID, name),
 			},
 			{
 				PreConfig:    waitForStatusUpdate,
@@ -632,14 +629,41 @@ func waitForStatusUpdate() {
 	time.Sleep(1 * time.Minute)
 }
 
-func configWithPrivateEndpoint(projectID, name, vpcID, subnetID, securityGroupID string) string {
+func configWithPrivateEndpoint(projectID, name string) string {
 	return fmt.Sprintf(`
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_vpc" "test" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+}
+
+resource "aws_subnet" "test" {
+  vpc_id            = aws_vpc.test.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-east-1a"
+}
+
+resource "aws_security_group" "test" {
+  vpc_id = aws_vpc.test.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_vpc_endpoint" "test" {
-  vpc_id              = %[3]q
+  vpc_id              = aws_vpc.test.id
   service_name        = "com.amazonaws.vpce.us-east-1.vpce-svc-0a7247db33497082e"
   vpc_endpoint_type   = "Interface"
-  subnet_ids          = [%[4]q]
-  security_group_ids  = [%[5]q]
+  subnet_ids          = [aws_subnet.test.id]
+  security_group_ids  = [aws_security_group.test.id]
   private_dns_enabled = true
 }
 
@@ -663,7 +687,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
 
   depends_on = [mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test]
 }
-`, projectID, name, vpcID, subnetID, securityGroupID)
+`, projectID, name)
 }
 
 func configFirstStepsUpdate(federatedInstanceName, projectName, orgID string) string {
