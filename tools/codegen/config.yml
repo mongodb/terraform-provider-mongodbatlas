@@ -1263,6 +1263,7 @@ resources:
             description: "Human-readable label that identifies the cloud service provider. Atlas Data Federation supports `AWS` and `AZURE`."
             computability:
               required: true
+          # Override needed as these values are marked as Optional in Open API spec, they should be Computed
           status:
             computability:
               computed: true
