@@ -647,15 +647,9 @@ resource "aws_subnet" "test" {
   availability_zone = "us-east-1a"
 }
 
-resource "aws_security_group" "test" {
+data "aws_security_group" "default" {
+  name   = "default"
   vpc_id = aws_vpc.test.id
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 
 resource "aws_vpc_endpoint" "test" {
@@ -663,8 +657,7 @@ resource "aws_vpc_endpoint" "test" {
   service_name        = "com.amazonaws.vpce.us-east-1.vpce-svc-0a7247db33497082e"
   vpc_endpoint_type   = "Interface"
   subnet_ids          = [aws_subnet.test.id]
-  security_group_ids  = [aws_security_group.test.id]
-  private_dns_enabled = true
+  security_group_ids  = [data.aws_security_group.default.id]
 }
 
 resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
