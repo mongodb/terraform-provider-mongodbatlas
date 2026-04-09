@@ -203,6 +203,9 @@ func TestAccFederatedDatabaseInstance_withPrivateEndpoint(t *testing.T) {
 				Config: configWithPrivateEndpoint(projectID, name),
 			},
 			{
+				// privateEndpointHostnames is populated asynchronously after the endpoint is registered.
+				// PreConfig waits for Atlas to finish, and RefreshState is needed so the Check runs against
+				// the latest API state instead of the cached state (hostnames were empty).
 				PreConfig:    waitForStatusUpdate,
 				RefreshState: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
