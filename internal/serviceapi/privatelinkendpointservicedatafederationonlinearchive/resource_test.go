@@ -25,6 +25,17 @@ var (
 	pluralDSName   = "data.mongodbatlas_privatelink_endpoint_service_data_federation_online_archives.test"
 )
 
+const singularDataSourceConfig = `
+data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
+  project_id  = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.project_id
+  endpoint_id = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.endpoint_id
+}`
+
+const pluralDataSourceConfig = `
+data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archives" "test" {
+  project_id = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.project_id
+}`
+
 func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t *testing.T) {
 	var (
 		projectID  = acc.ProjectIDExecution(t)
@@ -114,17 +125,7 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicAz
 						},
 					),
 				},
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "provider_name", "AZURE"),
-					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-					resource.TestCheckResourceAttr(resourceName, "region", azureRegion),
-					resource.TestCheckResourceAttrSet(resourceName, "endpoint_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "customer_endpoint_ip_address"),
-					resource.TestCheckResourceAttr(dataSourceName, "provider_name", "AZURE"),
-					resource.TestCheckResourceAttr(dataSourceName, "comment", comment),
-					resource.TestCheckResourceAttr(dataSourceName, "region", azureRegion),
-					resource.TestCheckResourceAttrSet(dataSourceName, "endpoint_id"),
+				Check: checkAggrAzure(projectID, comment, azureRegion,
 					resource.TestCheckResourceAttr(pluralDSName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
 					resource.TestCheckResourceAttrSet(pluralDSName, "id"),
@@ -353,6 +354,19 @@ func checkAggr(projectID, endpointID, commentValue, region, customerEndpointDNSN
 		"comment":                    commentValue,
 		"region":                     region,
 		"customer_endpoint_dns_name": customerEndpointDNSName,
+	}
+	extraChecks := extra
+	extraChecks = append(extraChecks, checkExists(resourceName))
+	return acc.CheckRSAndDS(resourceName, &dataSourceName, nil, attrsSet, attrsMap, extraChecks...)
+}
+
+func checkAggrAzure(projectID, commentValue, region string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	attrsSet := []string{"type", "endpoint_id", "customer_endpoint_ip_address"}
+	attrsMap := map[string]string{
+		"project_id":    projectID,
+		"provider_name": "AZURE",
+		"comment":       commentValue,
+		"region":        region,
 	}
 	extraChecks := extra
 	extraChecks = append(extraChecks, checkExists(resourceName))
@@ -588,14 +602,3 @@ func buildConfigWithDataSource(projectID, endpointID, comment, customerEndpointD
 	%[6]s
 	`, projectID, endpointID, comment, optionalFields, singularDataSourceConfig, pluralDataSourceConfig)
 }
-
-const singularDataSourceConfig = `
-data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" "test" {
-  project_id  = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.project_id
-  endpoint_id = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.endpoint_id
-}`
-
-const pluralDataSourceConfig = `
-data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archives" "test" {
-  project_id = mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.test.project_id
-}`
