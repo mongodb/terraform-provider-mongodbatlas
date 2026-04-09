@@ -24,7 +24,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```
 
 ### Further Examples
-- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_stream_connection)
+- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.10.0/examples/mongodbatlas_stream_connection)
 
 ### Example Cross Project Cluster Connection
 
@@ -115,6 +115,27 @@ resource "mongodbatlas_stream_connection" "test" {
         "auto.offset.reset": "latest"
     }
     bootstrap_servers = "localhost:9091,localhost:9092"
+}
+```
+
+### Example Azure Blob Storage Connection
+
+```terraform
+resource "mongodbatlas_stream_connection" "test" {
+    project_id      = var.project_id
+    workspace_name  = "NewWorkspace"
+    connection_name = "AzureBlobStorageConnection"
+    type            = "AzureBlobStorage"
+    azure = {
+      service_principal_id = "<AZURE_SERVICE_PRINCIPAL_ID>"
+      storage_account_name = "<AZURE_STORAGE_ACCOUNT_NAME>"
+      region               = "<AZURE_REGION>"
+    }
+    networking = {
+      access = {
+        type = "PUBLIC"
+      }
+    }
 }
 ```
 
@@ -266,7 +287,7 @@ resource "mongodbatlas_stream_processor" "example" {
 * `workspace_name` - (Optional) Label that identifies the stream processing workspace.
 * `instance_name` - (Optional, Deprecated) Label that identifies the stream processing workspace. Use `workspace_name` instead; this attribute will be removed in a future major version.
 * `connection_name` - (Required) Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - (Required) Type of connection. Can be `AWSLambda`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
+* `type` - (Required) Type of connection. Can be `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -279,6 +300,10 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 * `config` - A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
 * `security` - Properties for the secure transport connection to Kafka. For SASL_SSL, this can include the trusted certificate to use. See [security](#security).
 * `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
+
+If `type` is `AzureBlobStorage` the configuration defines the following additional attributes:
+* `azure` - The configuration for Azure Blob Storage connection. See [Azure](#Azure).
+* `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
 
 If `type` is of value `AWSLambda` the following additional arguments are defined:
 * `aws` - The configuration for AWS Lambda connection. See [AWS](#AWS)
@@ -329,6 +354,11 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
 
 ### GCP
 * `service_account_id` - Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to GCP Pub/Sub resources.
+
+### Azure
+* `service_principal_id` - (Required) UUID that identifies the Azure Service Principal used to access the Azure Blob Storage account.
+* `storage_account_name` - (Required) Name of the Azure Storage account to use. Must be lowercase, 3-24 characters, and contain only letters and numbers.
+* `region` - (Optional) Azure region where the storage account is located, specified as a valid Azure region name (for example, `eastus`, `westeurope`).
 
 ### Schema Registry Authentication
 * `type` - Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry. Valid values are `USER_INFO` or `SASL_INHERIT`.
