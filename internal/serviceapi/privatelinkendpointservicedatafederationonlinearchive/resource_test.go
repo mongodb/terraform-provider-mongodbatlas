@@ -131,14 +131,13 @@ func TestAccNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basicAz
 					resource.TestCheckResourceAttrSet(pluralDSName, "id"),
 				),
 			},
-			// TODO: Uncomment once CLOUDP-391704 is released — Azure comment update is not yet supported.
-			// {
-			// 	Config: dataSourceConfigBasicAzure(projectID, subscriptionID, clientID, clientSecret, tenantID, privateLinkServiceResourceID, resourceGroupName, "updated comment", azureRegion),
-			// 	Check: resource.ComposeAggregateTestCheckFunc(
-			// 		checkExists(resourceName),
-			// 		resource.TestCheckResourceAttr(resourceName, "comment", "updated comment"),
-			// 	),
-			// },
+			{
+				Config: dataSourceConfigBasicAzure(projectID, subscriptionID, clientID, clientSecret, tenantID, privateLinkServiceResourceID, resourceGroupName, "updated comment", azureRegion),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "comment", "updated comment"),
+				),
+			},
 		},
 	})
 }
