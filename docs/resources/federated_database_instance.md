@@ -214,6 +214,9 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The Terraform's unique identifier used internally for state management.
 * `hostnames` - The list of hostnames assigned to the Federated Database Instance. Each string in the array is a hostname assigned to the Federated Database Instance.
 * `private_endpoint_hostnames` - The list of private endpoint hostnames assigned to the Federated Database Instance.
+
+  -> **NOTE:** This field is populated asynchronously by Atlas after the private endpoint is registered and may be empty immediately after `apply`. Use a [`time_sleep`](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) resource if you need to reference this value in downstream resources.
+
   * `private_endpoint_hostnames.#.hostname` -  Human-readable label that identifies the host.
   * `private_endpoint_hostnames.#.private_endpoint` - Human-readable label that identifies the private endpoint.
 * `state` - Current state of the Federated Database Instance:
