@@ -1,5 +1,16 @@
 ## (Unreleased)
 
+## 2.10.0 (April 08, 2026)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection: Adds `AzureBlobStorage` connection ([#4357](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4357))
+* data-source/mongodbatlas_stream_connection: Adds support for `GCPPubSub` connection type with `gcp` attribute ([#4354](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4354))
+* data-source/mongodbatlas_stream_connections: Adds `AzureBlobStorage` connection ([#4357](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4357))
+* data-source/mongodbatlas_stream_connections: Adds support for `GCPPubSub` connection type with `gcp` attribute ([#4354](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4354))
+* resource/mongodbatlas_stream_connection: Adds `AzureBlobStorage` connection ([#4357](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4357))
+* resource/mongodbatlas_stream_connection: Adds support for `GCPPubSub` connection type with `gcp` attribute ([#4354](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4354))
+
 BUG FIXES:
 
 * resource/mongodbatlas_ldap_verify: Fixes `bind_password` not being marked as sensitive ([#4349](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4349))

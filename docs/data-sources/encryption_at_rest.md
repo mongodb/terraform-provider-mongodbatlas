@@ -15,7 +15,6 @@ subcategory: "Encryption at Rest using Customer Key Management"
 
 ~> **IMPORTANT** Atlas limits this feature to dedicated cluster tiers of M10 and greater. For more information see: https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-encryption-at-rest-using-customer-key-management
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 
 ## Example Usages
@@ -135,7 +134,7 @@ output "is_gcp_encryption_at_rest_valid" {
 
 ### Required
 
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Read-Only
 

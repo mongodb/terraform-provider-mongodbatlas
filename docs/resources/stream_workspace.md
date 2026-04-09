@@ -22,7 +22,7 @@ resource "mongodbatlas_stream_workspace" "test" {
 ```
 
 ### Further Examples
-- [Atlas Stream Workspace](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_stream_workspace)
+- [Atlas Stream Workspace](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.10.0/examples/mongodbatlas_stream_workspace)
 
 ## Migration from stream_instance
 
@@ -46,7 +46,7 @@ resource "mongodbatlas_stream_workspace" "example" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `workspace_name` - (Required) Label that identifies the stream workspace.
 * `data_process_region` - (Required) Cloud service provider and region where MongoDB Cloud performs stream processing. See [data process region](#data-process-region).
 * `stream_config` - (Optional) Configuration options for an Atlas Stream Processing Instance. See [stream config](#stream-config)

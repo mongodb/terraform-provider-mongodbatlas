@@ -6,8 +6,6 @@ subcategory: "Projects"
 
 `mongodbatlas_project` describes a MongoDB Atlas Project. This represents a project that has been created.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ## Example Usage
 
 ### Using project_id attribute to query
@@ -49,7 +47,7 @@ data "mongodbatlas_project" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Optional) The unique ID for the project.
+* `project_id` - (Optional) The unique ID for the project, also known as `groupId` in the official documentation.
 * `name` - (Optional) The unique ID for the project.
 
 ~> **IMPORTANT:** Either `project_id` or `name` must be configurated.

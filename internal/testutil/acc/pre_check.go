@@ -186,7 +186,7 @@ func PreCheckPeeringEnvAWS(tb testing.TB) {
 	PreCheckBasic(tb)
 }
 
-func PreCheckLogIntegrationEnvAzure(tb testing.TB) {
+func PreCheckAzureEnvWithServicePrincipal(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("AZURE_CLIENT_ID") == "" ||
 		os.Getenv("AZURE_APP_SECRET") == "" ||
@@ -196,6 +196,7 @@ func PreCheckLogIntegrationEnvAzure(tb testing.TB) {
 		os.Getenv("AZURE_SERVICE_PRINCIPAL_ID") == "" {
 		tb.Fatal(`'AZURE_CLIENT_ID', 'AZURE_APP_SECRET', 'AZURE_TENANT_ID', 'AZURE_SUBSCRIPTION_ID', 'AZURE_ATLAS_APP_ID' and 'AZURE_SERVICE_PRINCIPAL_ID' must be set for acceptance testing`)
 	}
+	PreCheckBasic(tb)
 }
 
 func PreCheckPeeringEnvAzure(tb testing.TB) {

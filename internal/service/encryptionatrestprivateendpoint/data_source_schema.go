@@ -19,7 +19,7 @@ func DSAttributes(withArguments bool) map[string]schema.Attribute {
 		"project_id": schema.StringAttribute{
 			Required:            withArguments,
 			Computed:            !withArguments,
-			MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+			MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 		},
 		"id": schema.StringAttribute{
 			Required:            withArguments,

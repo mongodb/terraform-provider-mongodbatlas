@@ -28,7 +28,7 @@ resource "mongodbatlas_serverless_instance" "test" {
 ## Argument Reference
 
 * `name` - (Required) Human-readable label that identifies the serverless instance.
-* `project_id` - (Required) The ID of the organization or project you want to create the serverless instance within.
+* `project_id` - (Required) The ID of the organization or project you want to create the serverless instance within, also known as `groupId` in the official documentation.
 * `provider_settings_backing_provider_name` - (Required) Cloud service provider on which MongoDB Cloud provisioned the serverless instance.
 * `provider_settings_provider_name` - (Required) Cloud service provider that applies to the provisioned the serverless instance.
 * `provider_settings_region_name` - (Required) 	

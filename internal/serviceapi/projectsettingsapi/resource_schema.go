@@ -16,7 +16,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"project_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"is_cluster_ai_assistant_enabled": schema.BoolAttribute{
@@ -49,6 +49,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to enable extended storage sizes for the specified project.",
 			},
+			"is_native_reranking_enabled": schema.BoolAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether to enable Native Reranking with Voyage AI models in the Aggregation Pipeline for the specified project.",
+			},
 			"is_performance_advisor_enabled": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
@@ -76,6 +81,7 @@ type TFModel struct {
 	IsDataExplorerGenAIFeaturesEnabled              types.Bool   `tfsdk:"is_data_explorer_gen_ai_features_enabled"`
 	IsDataExplorerGenAISampleDocumentPassingEnabled types.Bool   `tfsdk:"is_data_explorer_gen_ai_sample_document_passing_enabled"`
 	IsExtendedStorageSizesEnabled                   types.Bool   `tfsdk:"is_extended_storage_sizes_enabled"`
+	IsNativeRerankingEnabled                        types.Bool   `tfsdk:"is_native_reranking_enabled"`
 	IsPerformanceAdvisorEnabled                     types.Bool   `tfsdk:"is_performance_advisor_enabled"`
 	IsRealtimePerformancePanelEnabled               types.Bool   `tfsdk:"is_realtime_performance_panel_enabled"`
 	IsSchemaAdvisorEnabled                          types.Bool   `tfsdk:"is_schema_advisor_enabled"`

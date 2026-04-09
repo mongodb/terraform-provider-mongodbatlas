@@ -11,8 +11,6 @@ subcategory: "Database Users"
 | Atlas  | Atlas manages your Certificate Authority and can generate certificates for your MongoDB users. No additional X.509 configuration is required.  |
 | Customer  |  You must provide a Certificate Authority and generate certificates for your MongoDB users. |
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 -> **NOTE:** Before provider version 1.14.0, Self-managed X.509 Authentication was disabled for the project when this resource was deleted. Starting from that version onward, it will not be disabled, allowing other users to continue using X.509 within the same project.
 
 ## Example Usages
@@ -87,7 +85,7 @@ resource "mongodbatlas_database_user" "user" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Identifier for the Atlas project associated with the X.509 configuration.
+* `project_id` - (Required) Identifier for the Atlas project associated with the X.509 configuration, also known as `groupId` in the official documentation.
 * `months_until_expiration` - (Required) A number of months that the created certificate is valid for before expiry, up to 24 months. By default is 3.
 * `username` - (Optional) Username of the database user to create a certificate for.
 * `customer_x509_cas` - (Optional) PEM string containing one or more customer CAs for database user authentication.

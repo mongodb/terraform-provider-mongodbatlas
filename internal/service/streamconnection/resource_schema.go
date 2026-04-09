@@ -174,6 +174,33 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 
+			// AzureBlobStorage type specific
+			"azure": schema.SingleNestedAttribute{
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"service_principal_id": schema.StringAttribute{
+						Required: true,
+					},
+					"storage_account_name": schema.StringAttribute{
+						Required: true,
+					},
+					"region": schema.StringAttribute{
+						Computed: true,
+						Optional: true,
+					},
+				},
+			},
+
+			// GCPPubSub type specific
+			"gcp": schema.SingleNestedAttribute{
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"service_account_id": schema.StringAttribute{
+						Required: true,
+					},
+				},
+			},
+
 			// https type specific
 			"url": schema.StringAttribute{
 				Optional: true,

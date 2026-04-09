@@ -19,6 +19,20 @@ import (
 
 const streamConnectionName = "stream_connection"
 
+// Connection type constants used to differentiate API field mapping by connection type.
+const (
+	ConnectionTypeAWSKinesisDataStreams = "AWSKinesisDataStreams"
+	ConnectionTypeAWSLambda             = "AWSLambda"
+	ConnectionTypeAzureBlobStorage      = "AzureBlobStorage"
+	ConnectionTypeGCPPubSub             = "GCPPubSub"
+	ConnectionTypeCluster               = "Cluster"
+	ConnectionTypeHTTPS                 = "Https"
+	ConnectionTypeKafka                 = "Kafka"
+	ConnectionTypeS3                    = "S3"
+	ConnectionTypeSample                = "Sample"
+	ConnectionTypeSchemaRegistry        = "SchemaRegistry"
+)
+
 var _ resource.ResourceWithConfigure = &streamConnectionRS{}
 var _ resource.ResourceWithImportState = &streamConnectionRS{}
 
@@ -51,6 +65,8 @@ type TFStreamConnectionCommonModel struct {
 	DBRoleToExecute  types.Object `tfsdk:"db_role_to_execute"`
 	Networking       types.Object `tfsdk:"networking"`
 	AWS              types.Object `tfsdk:"aws"`
+	GCP              types.Object `tfsdk:"gcp"`
+	Azure            types.Object `tfsdk:"azure"`
 	// https connection
 	Headers types.Map    `tfsdk:"headers"`
 	URL     types.String `tfsdk:"url"`
@@ -157,6 +173,26 @@ type TFAWSModel struct {
 
 var AWSObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"role_arn": types.StringType,
+}}
+
+type TFGCPModel struct {
+	ServiceAccountID types.String `tfsdk:"service_account_id"`
+}
+
+var GCPObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"service_account_id": types.StringType,
+}}
+
+type TFAzureModel struct {
+	ServicePrincipalID types.String `tfsdk:"service_principal_id"`
+	StorageAccountName types.String `tfsdk:"storage_account_name"`
+	Region             types.String `tfsdk:"region"`
+}
+
+var AzureObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"service_principal_id": types.StringType,
+	"storage_account_name": types.StringType,
+	"region":               types.StringType,
 }}
 
 func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

@@ -16,8 +16,6 @@ subcategory: "Cloud Backups"
 -> **Important:** If you specify `deliveryType` : `automated` or `deliveryType` : `pointInTime` in your
 `mongodbatlas_cloud_backup_snapshot_restore_job` resource, you won't be able to delete the snapshot resource in MongoDB Atlas as the Atlas Admin API doesn't support this. The provider will remove the Terraform resource from the state file but won't destroy the MongoDB Atlas resource.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 ## Example Usage
 
 ### Example automated delivery type
@@ -144,12 +142,12 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 ```
 
 ### Further Examples
-- [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time)
-- [Restore from backup snapshot using an advanced cluster resource](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time-advanced-cluster)
+- [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.10.0/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time)
+- [Restore from backup snapshot using an advanced cluster resource](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.10.0/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time-advanced-cluster)
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster whose snapshot you want to restore.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster whose snapshot you want to restore, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) The name of the Atlas cluster whose snapshot you want to restore.
 * `delivery_type_config` - (Required) Type of restore job to create. Possible configurations are: **download**, **automated**, or **pointInTime** only one must be set it in ``true``.
 * `delivery_type_config.automated` - Set to `true` to use the automated configuration.

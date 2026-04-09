@@ -42,7 +42,7 @@ resource "mongodbatlas_project_api_key" "test" {
 ```
 
 ### Further Examples
-- [Legacy Module: Create and Assign Project API Key](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_api_key_assignment/module/old_module)
+- [Legacy Module: Create and Assign Project API Key](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.10.0/examples/mongodbatlas_api_key_assignment/module/old_module)
 
 ## Argument Reference
 
@@ -53,7 +53,7 @@ resource "mongodbatlas_project_api_key" "test" {
 ### project_assignment
 List of Project roles that the Programmatic API key needs to have. At least one `project_assignment` block must be defined.
 
-* `project_id` - (Required) Project ID to assign to Access Key
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `role_names` - (Required) List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project. You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned.
 
 ## Attributes Reference
