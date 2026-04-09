@@ -187,6 +187,34 @@ func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 	})
 }
 
+func TestAccFederatedDatabaseInstance_withPrivateEndpoint(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		name      = acc.RandomName()
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAwsEnvBasic(t) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyFederatedDatabaseInstance,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPrivateEndpoint(projectID, name),
+			},
+			{
+				PreConfig:    waitForStatusUpdate,
+				RefreshState: true,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "private_endpoint_hostnames.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "private_endpoint_hostnames.0.hostname"),
+					resource.TestCheckResourceAttrSet(resourceName, "private_endpoint_hostnames.0.private_endpoint"),
+				),
+			},
+		},
+	})
+}
+
 func configWithCluster(terraformStr, projectID, cluster1ResourceName, cluster2ResourceName, name string) string {
 	return fmt.Sprintf(`
 	  %[1]s
@@ -595,34 +623,6 @@ data "mongodbatlas_federated_database_instance" "test" {
 	name = mongodbatlas_federated_database_instance.test.name
 }
 	`, federatedInstanceName, projectName, orgID)
-}
-
-func TestAccFederatedDatabaseInstance_withPrivateEndpoint(t *testing.T) {
-	var (
-		projectID = acc.ProjectIDExecution(t)
-		name      = acc.RandomName()
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAwsEnvBasic(t) },
-		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyFederatedDatabaseInstance,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithPrivateEndpoint(projectID, name),
-			},
-			{
-				PreConfig:    waitForStatusUpdate,
-				RefreshState: true,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "private_endpoint_hostnames.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "private_endpoint_hostnames.0.hostname"),
-					resource.TestCheckResourceAttrSet(resourceName, "private_endpoint_hostnames.0.private_endpoint"),
-				),
-			},
-		},
-	})
 }
 
 func waitForStatusUpdate() {
