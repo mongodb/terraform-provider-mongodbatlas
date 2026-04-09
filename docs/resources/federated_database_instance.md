@@ -43,50 +43,67 @@ resource "mongodbatlas_federated_database_instance" "test" {
 
 ## Example Usages with Amazon S3 bucket as storage database
 
+Before creating a Federated Database Instance with an S3 bucket, you must authorize Atlas to access the S3 bucket using `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization`. The `role_id` in `cloud_provider_config` must reference the authorized role.
 
 ```terraform
+resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+  project_id    = "<PROJECT_ID>"
+  provider_name = "AWS"
+}
+
+resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+  project_id = "<PROJECT_ID>"
+  role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+
+  aws {
+    iam_assumed_role_arn = "<AWS_IAM_ROLE_ARN>"
+  }
+}
+
 resource "mongodbatlas_federated_database_instance" "test" {
-  project_id         = "PROJECT ID"
-  name = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
+  project_id = "<PROJECT_ID>"
+  name       = "<TENANT_NAME_OF_THE_FEDERATED_DATABASE_INSTANCE>"
+
   cloud_provider_config {
     aws {
-      role_id = "AWS ROLE ID"
-      test_s3_bucket = "S3 BUCKET NAME"
+      role_id        = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+      test_s3_bucket = "<S3_BUCKET_NAME>"
     }
-	}
+  }
+
   storage_databases {
     name = "VirtualDatabase0"
     collections {
       name = "NAME OF THE COLLECTION"
       data_sources {
-          collection = "COLLECTION IN THE CLUSTER"
-          database = "DB IN THE CLUSTER"
-          store_name =  "CLUSTER NAME"
+        collection = "COLLECTION IN THE CLUSTER"
+        database   = "DB IN THE CLUSTER"
+        store_name = "CLUSTER NAME"
       }
       data_sources {
-          store_name = "S3 BUCKET NAME"
-          path = "S3 BUCKET PATH"
+        store_name = "<S3_BUCKET_NAME>"
+        path       = "<S3_BUCKET_PATH>"
       }
     }
   }
 
   storage_stores {
-    name = "STORE 1 NAME"
+    name         = "STORE 1 NAME"
     cluster_name = "CLUSTER NAME"
-    project_id = "PROJECT ID"
-    provider = "atlas"
+    project_id   = "<PROJECT_ID>"
+    provider     = "atlas"
     read_preference {
       mode = "secondary"
     }
   }
 
   storage_stores {
-    bucket = "STORE 2 NAME"
+    bucket    = "STORE 2 NAME"
     delimiter = "/"
-    name = "S3 BUCKET NAME"
-    prefix = "S3 BUCKET PREFIX"
-    provider = "s3"
-    region = "AWS REGION"
+    name      = "<S3_BUCKET_NAME>"
+    prefix    = "<S3_BUCKET_PREFIX>"
+    provider  = "s3"
+    region    = "<AWS_REGION>"
   }
 }
 ```
