@@ -215,7 +215,7 @@ In addition to all arguments above, the following attributes are exported:
 * `hostnames` - The list of hostnames assigned to the Federated Database Instance. Each string in the array is a hostname assigned to the Federated Database Instance.
 * `private_endpoint_hostnames` - The list of private endpoint hostnames assigned to the Federated Database Instance.
 
-  -> **NOTE:** This field is populated asynchronously by Atlas after the private endpoint is registered and may be empty immediately after `apply`. Use a [`time_sleep`](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) resource if you need to reference this value in downstream resources.
+  -> **NOTE:** When the private endpoint and the federated database instance are created in the same `apply`, this field may be empty as Atlas populates it asynchronously. In that case, run `terraform apply -refresh-only` after the initial apply to update the state with the populated hostnames, then run `terraform apply` again if you have downstream resources that consume this value.
 
   * `private_endpoint_hostnames.#.hostname` -  Human-readable label that identifies the host.
   * `private_endpoint_hostnames.#.private_endpoint` - Human-readable label that identifies the private endpoint.
