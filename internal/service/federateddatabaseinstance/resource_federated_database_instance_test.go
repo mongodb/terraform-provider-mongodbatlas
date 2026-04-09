@@ -626,7 +626,7 @@ func TestAccFederatedDatabaseInstance_withPrivateEndpoint(t *testing.T) {
 }
 
 func waitForStatusUpdate() {
-	time.Sleep(1 * time.Minute)
+	time.Sleep(2 * time.Minute)
 }
 
 func configWithPrivateEndpoint(projectID, name string) string {
