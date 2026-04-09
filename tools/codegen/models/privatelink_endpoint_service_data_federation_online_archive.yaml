@@ -21,17 +21,6 @@ schema:
          To use this resource, the requesting Service Account or API Key must have the Project Owner or Project Charts Admin roles.
     attributes:
         - string: {}
-          description: Link ID that identifies the Azure private endpoint connection.
-          computed_optional_required: optional
-          tf_schema_name: azure_link_id
-          tf_model_name: AzureLinkId
-          api_name: azureLinkId
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
           description: Human-readable string to associate with this private endpoint.
           computed_optional_required: computed_optional
           tf_schema_name: comment
@@ -54,33 +43,11 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: IP address used to connect to the Azure private endpoint.
-          computed_optional_required: optional
-          tf_schema_name: customer_endpoint_ip_address
-          tf_model_name: CustomerEndpointIPAddress
-          api_name: customerEndpointIPAddress
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
           description: Unique 22-character alphanumeric string that identifies the private endpoint.
           computed_optional_required: required
           tf_schema_name: endpoint_id
           tf_model_name: EndpointId
           api_name: endpointId
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
-          description: Error message describing a failure approving the private endpoint request.
-          computed_optional_required: optional
-          tf_schema_name: error_message
-          tf_model_name: ErrorMessage
-          api_name: errorMessage
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -115,17 +82,6 @@ schema:
           tf_schema_name: region
           tf_model_name: Region
           api_name: region
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
-          description: Status of the private endpoint connection request.
-          computed_optional_required: computed
-          tf_schema_name: status
-          tf_model_name: Status
-          api_name: status
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false

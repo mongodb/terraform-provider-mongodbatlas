@@ -1235,7 +1235,7 @@ resources:
         groupId: projectId
         provider: providerName
       ignores: [
-        "results"
+        "results", "customer_endpoint_ip_address", "status", "azure_link_id", "error_message"
       ]
       overrides:
           project_id:
@@ -1260,9 +1260,6 @@ resources:
           provider_name:
             computability:
               required: true
-          status:
-            computability:
-              computed: true
 
   log_integration:
     read:
