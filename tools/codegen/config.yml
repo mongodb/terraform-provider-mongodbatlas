@@ -1270,6 +1270,9 @@ resources:
             description: "Human-readable label that identifies the cloud service provider. Atlas Data Federation supports `AWS`."
             computability:
               required: true
+          type:
+            computability:
+              computed: true
 
   log_integration:
     read:

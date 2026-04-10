@@ -71,7 +71,7 @@ schema:
         - string:
             default: DATA_LAKE
           description: Human-readable label that identifies the resource type associated with this private endpoint.
-          computed_optional_required: computed_optional
+          computed_optional_required: computed
           tf_schema_name: type
           tf_model_name: Type
           api_name: type

@@ -45,7 +45,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"type": schema.StringAttribute{
 				Computed:            true,
-				Optional:            true,
 				MarkdownDescription: "Human-readable label that identifies the resource type associated with this private endpoint.",
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
