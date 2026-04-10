@@ -2,7 +2,7 @@ output "private_endpoint_hostnames" {
   description = "Private endpoint hostnames assigned to the Federated Database Instance"
   value       = mongodbatlas_federated_database_instance.this.private_endpoint_hostnames
 }
-output "mongodbatlas_fdata_federation_instance_name" {
+output "mongodbatlas_data_federation_instance_name" {
   description = "Name of the MongoDB Atlas Federated Database Instance"
   value       = mongodbatlas_federated_database_instance.this.name
 }
