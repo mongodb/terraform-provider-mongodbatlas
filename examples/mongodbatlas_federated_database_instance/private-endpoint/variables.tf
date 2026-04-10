@@ -29,7 +29,7 @@ variable "aws_region" {
 }
 
 variable "atlas_region" {
-  description = "Atlas region (e.g. US_EAST_1). Must match the AWS region."
+  description = "Atlas region for the private endpoint in uppercase underscore format (e.g. US_EAST_1). Must match the AWS region. See https://www.mongodb.com/docs/atlas/data-federation/adf-overview/regions/ for the mapping between AWS and Atlas regions."
   type        = string
 }
 
