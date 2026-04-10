@@ -36,7 +36,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"provider_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services only.",
+				MarkdownDescription: "Human-readable label that identifies the cloud service provider. Atlas Data Federation supports `AWS`.",
 			},
 			"region": schema.StringAttribute{
 				Computed:            true,
