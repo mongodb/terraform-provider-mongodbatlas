@@ -286,7 +286,7 @@ func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidProvider(t *test
 		Steps: []resource.TestStep{
 			{
 				Config:      configWithSupportedRemoteRegions(projectID, providerName, region, []string{region}),
-				ExpectError: regexp.MustCompile(fmt.Sprintf("Invalid attribute %s specified", region)),
+				ExpectError: regexp.MustCompile("PROVIDER_UNSUPPORTED"),
 			},
 		},
 	})
