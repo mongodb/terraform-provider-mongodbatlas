@@ -127,7 +127,7 @@ func TestAccLogIntegration_basicAzure(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckLogIntegrationEnvAzure(t) },
+		PreCheck:                 func() { acc.PreCheckAzureEnvWithServicePrincipal(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAzurerm(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -345,21 +345,23 @@ func configBasicAzure(projectID string, logTypes []string, config *azureConfig, 
 	return fmt.Sprintf(`
 		%[1]s
 		%[2]s
+		%[3]s
 
 		resource "mongodbatlas_log_integration" "test" {
-			project_id             = %[3]q
+			project_id             = %[4]q
 		    type                   = "AZURE_LOG_EXPORT"
-			log_types              = %[4]s
+			log_types              = %[5]s
 		    role_id                = mongodbatlas_cloud_provider_access_authorization.azure_auth.role_id
 		    storage_account_name   = azurerm_storage_account.log_storage.name
 		    storage_container_name = azurerm_storage_container.log_container.name
-			prefix_path            = %[5]q
+			prefix_path            = %[6]q
 		}
 
-		%[6]s
+		%[7]s
 	`,
 		acc.ConfigAzurermProvider(config.subscriptionID, config.clientID, config.clientSecret, config.tenantID),
-		azureStorageContainerConfig(projectID, config),
+		acc.ConfigAzureCloudProviderAccess(projectID, config.atlasAzureAppID, config.servicePrincipalID, config.tenantID),
+		acc.ConfigAzureStorageResources("log", config.resourceGroupName, config.storageAccountName, config.storageContainerName, config.servicePrincipalID),
 		projectID, logTypesStr, config.prefixPath, dsConfig,
 	)
 }
@@ -686,50 +688,6 @@ func awsIAMRoleAuthAndS3Config(projectID string, config *s3Config) string {
 				EOF
 		}
 	`, projectID, config.bucketName, config.iamRoleName, config.iamRolePolicyName, config.bucketPolicyName)
-}
-
-func azureStorageContainerConfig(projectID string, config *azureConfig) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_cloud_provider_access_setup" "azure_setup" {
-			project_id    = %[1]q
-			provider_name = "AZURE"
-
-			azure_config {
-				atlas_azure_app_id   = %[2]q
-				service_principal_id = %[3]q
-				tenant_id            = %[4]q
-			}
-		}
-
-		resource "mongodbatlas_cloud_provider_access_authorization" "azure_auth" {
-			project_id = %[1]q
-			role_id    = mongodbatlas_cloud_provider_access_setup.azure_setup.role_id
-
-			azure {
-				atlas_azure_app_id   = %[2]q
-				service_principal_id = %[3]q
-				tenant_id            = %[4]q
-			}
-		}
-
-		resource "azurerm_resource_group" "log_rg" {
-			name     = %[5]q
-			location = "East US"
-		}
-
-		resource "azurerm_storage_account" "log_storage" {
-			name                     = %[6]q
-			resource_group_name      = azurerm_resource_group.log_rg.name
-			location                 = azurerm_resource_group.log_rg.location
-			account_tier             = "Standard"
-			account_replication_type = "LRS"
-		}
-
-		resource "azurerm_storage_container" "log_container" {
-			name                  = %[7]q
-			storage_account_id    = azurerm_storage_account.log_storage.id
-		}
-	`, projectID, config.atlasAzureAppID, config.servicePrincipalID, config.tenantID, config.resourceGroupName, config.storageAccountName, config.storageContainerName)
 }
 
 func gcsStorageBucketConfig(projectID string, config *gcsConfig) string {

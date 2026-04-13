@@ -135,6 +135,7 @@ func Resource() *schema.Resource {
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Hour),
+			Update: schema.DefaultTimeout(1 * time.Hour),
 			Delete: schema.DefaultTimeout(1 * time.Hour),
 		},
 	}
@@ -168,7 +169,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, err))
 	}
 
-	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, providerName, privateEndpoint.GetId(), d.Timeout(schema.TimeoutCreate))
+	stateConf := waitStateChangeConfig(ctx, connV2, projectID, providerName, privateEndpoint.GetId(), d.Timeout(schema.TimeoutCreate))
 	_, errWait := stateConf.WaitForStateContext(ctx)
 	deleteOnCreateTimeout := true // default value when not set
 	if v, ok := d.GetOkExists("delete_on_create_timeout"); ok {
@@ -213,6 +214,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsUpdate, privateLinkID, err))
 	}
+
+	stateConf := waitStateChangeConfig(ctx, connV2, projectID, providerName, privateLinkID, d.Timeout(schema.TimeoutUpdate))
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsUpdate, privateLinkID, err))
+	}
+
 	if err := d.Set("supported_remote_regions", regions); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "supported_remote_regions", privateLinkID, err))
 	}
@@ -329,7 +336,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	log.Println("[INFO] Waiting for MongoDB Private Endpoints Connection to be destroyed")
 
-	stateConf := DeleteStateChangeConfig(ctx, connV2, projectID, providerName, privateLinkID, d.Timeout(schema.TimeoutDelete))
+	stateConf := deleteStateChangeConfig(ctx, connV2, projectID, providerName, privateLinkID, d.Timeout(schema.TimeoutDelete))
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsDelete, privateLinkID, err))
@@ -401,7 +408,7 @@ func refreshFunc(ctx context.Context, client *admin.APIClient, projectID, provid
 	}
 }
 
-func CreateStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, providerName, privateLinkID string, timeout time.Duration) retry.StateChangeConf {
+func waitStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, providerName, privateLinkID string, timeout time.Duration) retry.StateChangeConf {
 	return retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "DELETING"},
 		Target:     []string{"WAITING_FOR_USER", "FAILED", "DELETED", "AVAILABLE"},
@@ -412,7 +419,7 @@ func CreateStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, proje
 	}
 }
 
-func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, providerName, privateLinkID string, timeout time.Duration) retry.StateChangeConf {
+func deleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, providerName, privateLinkID string, timeout time.Duration) retry.StateChangeConf {
 	return retry.StateChangeConf{
 		Pending:    []string{"DELETING"},
 		Target:     []string{"DELETED", "FAILED"},
