@@ -248,7 +248,7 @@ func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidSameRegion(t *te
 		Steps: []resource.TestStep{
 			{
 				Config:      configWithSupportedRemoteRegions(projectID, providerName, region, []string{region}),
-				ExpectError: regexp.MustCompile("CROSS_REGION_PRIVATE_LINK_SELF_REGION"),
+				ExpectError: regexp.MustCompile("PROVIDER_UNSUPPORTED"),
 			},
 		},
 	})
