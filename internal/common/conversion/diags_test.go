@@ -66,3 +66,13 @@ func TestFromTPFDiagsToSDKV2Diags(t *testing.T) {
 		})
 	}
 }
+
+func TestSDKV2DiagsToError(t *testing.T) {
+	diags := sdkv2diag.Diagnostics{
+		{Severity: sdkv2diag.Warning, Summary: "just a warning"},
+		{Severity: sdkv2diag.Error, Summary: "first error", Detail: "detail about first"},
+		{Severity: sdkv2diag.Error, Summary: "second error"},
+	}
+	err := conversion.SDKV2DiagsToError(diags)
+	assert.EqualError(t, err, "first error: detail about first\nsecond error")
+}

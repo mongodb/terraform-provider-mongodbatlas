@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_cloud_provider_access_setup: Fixes import reporting wrong error when read fails
+```
