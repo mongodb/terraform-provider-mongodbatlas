@@ -33,6 +33,22 @@ func DataSource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"private_endpoint_hostnames": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"hostname": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_endpoint": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"cloud_provider_config": cloudProviderConfig(true),
 			"data_process_region": {
 				Type:     schema.TypeList,
@@ -318,6 +334,10 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d 
 
 	if err := d.Set("hostnames", dataFederationInstance.Hostnames); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "hostnames", name, err))
+	}
+
+	if err := d.Set("private_endpoint_hostnames", flattenPrivateEndpointHostnames(dataFederationInstance.GetPrivateEndpointHostnames())); err != nil {
+		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "private_endpoint_hostnames", name, err))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
