@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* resource/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive: Adds support for import using `{project_id}/{endpoint_id}` format ([#4351](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4351))
+
 ## 2.10.0 (April 08, 2026)
 
 ENHANCEMENTS:
