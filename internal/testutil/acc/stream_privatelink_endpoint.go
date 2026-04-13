@@ -178,7 +178,7 @@ func GetCompleteAzureBlobStorageConfig(projectID, subscriptionID, clientID, clie
 		project_id          = %[2]q
 		provider_name       = "AZURE"
 		vendor              = "AZURE_BLOB_STORAGE"
-		region              = azurerm_resource_group.blob_pl_rg.location
+		region              = "eastus2"
 		service_endpoint_id = azurerm_storage_account.blob_pl_storage.id
 		dns_domain          = "${azurerm_storage_account.blob_pl_storage.name}.blob.core.windows.net"
 	}

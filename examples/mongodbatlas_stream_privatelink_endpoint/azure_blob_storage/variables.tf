@@ -1,6 +1,6 @@
 # Azure variables
 variable "azure_region" {
-  description = "The Azure region where resources will be created."
+  description = "The Azure region where you create resources."
   type        = string
 }
 
@@ -20,7 +20,7 @@ variable "vnet_name" {
 }
 
 variable "subnet_name" {
-  description = "Name for the Azure Subnet that will host the Private Endpoint."
+  description = "The Azure Subnet name for the Private Endpoint host."
   type        = string
 }
 

@@ -1416,10 +1416,10 @@ func configureAzureBlobStoragePrivateLink(projectID, workspaceName, connectionNa
 	return acc.ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID) +
 		acc.ConfigAzureCloudProviderAccess(projectID, atlasAzureAppID, servicePrincipalID, tenantID) +
 		acc.ConfigAzureStorageResources("blob", resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID) +
-		configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, connectionName, servicePrincipalID)
+		configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, connectionName)
 }
 
-func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, connectionName, servicePrincipalID string) string {
+func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, connectionName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_privatelink_endpoint" "test" {
 			project_id          = %[1]q
@@ -1436,7 +1436,7 @@ func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, connec
 			connection_name = %[3]q
 			type            = "AzureBlobStorage"
 			azure = {
-				service_principal_id = %[4]q
+				service_principal_id = mongodbatlas_cloud_provider_access_setup.azure_setup.azure_config[0].service_principal_id
 				storage_account_name = azurerm_storage_account.blob_storage.name
 				region               = azurerm_resource_group.blob_rg.location
 			}
@@ -1451,7 +1451,7 @@ func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, connec
 				azurerm_role_assignment.blob_contributor,
 			]
 		}
-	`, projectID, workspaceName, connectionName, servicePrincipalID)
+	`, projectID, workspaceName, connectionName)
 }
 
 func checkAzureBlobStoragePrivateLinkAttributes(resourceName, workspaceName, connectionName, servicePrincipalID, storageAccountName string) resource.TestCheckFunc {
