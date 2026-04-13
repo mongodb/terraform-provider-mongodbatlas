@@ -50,7 +50,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"with_default_alerts_settings": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether to create the project with default alert settings. This setting cannot be updated after project creation.",
+				MarkdownDescription: "Flag that indicates whether to create the project with default alert settings.",
 			},
 		},
 	}
@@ -64,5 +64,5 @@ type TFModel struct {
 	OrgId                     types.String                       `tfsdk:"org_id" autogen:"omitjsonupdate"`
 	RegionUsageRestrictions   types.String                       `tfsdk:"region_usage_restrictions" autogen:"omitjsonupdate"`
 	Tags                      customtypes.MapValue[types.String] `tfsdk:"tags" autogen:"listasmap,sendnullasemptyonupdate"`
-	WithDefaultAlertsSettings types.Bool                         `tfsdk:"with_default_alerts_settings" autogen:"omitjsonupdate"`
+	WithDefaultAlertsSettings types.Bool                         `tfsdk:"with_default_alerts_settings"`
 }

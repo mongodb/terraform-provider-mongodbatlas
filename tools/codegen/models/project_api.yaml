@@ -96,12 +96,12 @@ schema:
           list_type_as_map: true
         - bool:
             default: true
-          description: Flag that indicates whether to create the project with default alert settings. This setting cannot be updated after project creation.
+          description: Flag that indicates whether to create the project with default alert settings.
           computed_optional_required: computed_optional
           tf_schema_name: with_default_alerts_settings
           tf_model_name: WithDefaultAlertsSettings
           api_name: withDefaultAlertsSettings
-          req_body_usage: omit_in_update_body
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
           present_in_any_response: true
