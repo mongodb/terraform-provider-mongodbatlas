@@ -2,6 +2,8 @@ package conversion
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	sdkv2diag "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -21,6 +23,23 @@ func FromTPFDiagsToSDKV2Diags(diagsTpf []diag.Diagnostic) sdkv2diag.Diagnostics 
 		})
 	}
 	return results
+}
+
+// SDKv2DiagnosticsToError converts SDKv2 diagnostics to a single error joining all error-level entries.
+// Returns nil when there are no errors.
+func SDKv2DiagnosticsToError(diags sdkv2diag.Diagnostics) error {
+	var errs []error
+	for _, d := range diags {
+		if d.Severity != sdkv2diag.Error {
+			continue
+		}
+		if d.Detail != "" {
+			errs = append(errs, fmt.Errorf("%s: %s", d.Summary, d.Detail))
+		} else {
+			errs = append(errs, errors.New(d.Summary))
+		}
+	}
+	return errors.Join(errs...)
 }
 
 type ErrBody interface {

@@ -353,10 +353,8 @@ func resourceCloudProviderAccessSetupImportState(ctx context.Context, d *schema.
 		"provider_name": providerName,
 	}))
 
-	err2 := resourceCloudProviderAccessSetupRead(ctx, d, meta)
-
-	if err2 != nil {
-		return nil, fmt.Errorf(errorImporter, err)
+	if diags := resourceCloudProviderAccessSetupRead(ctx, d, meta); diags.HasError() {
+		return nil, fmt.Errorf(errorImporter, conversion.SDKv2DiagnosticsToError(diags))
 	}
 
 	// case of not found
