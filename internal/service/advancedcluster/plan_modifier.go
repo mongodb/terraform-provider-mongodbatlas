@@ -21,6 +21,7 @@ var (
 		"custom_openssl_cipher_config_tls12": {"custom_openssl_cipher_config_tls13"},
 		"custom_openssl_cipher_config_tls13": {"custom_openssl_cipher_config_tls12"},
 		"cluster_type":                       {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
+		"config_server_management_mode":      {"config_server_type"},                                  // config_server_type changes when switching config server management mode
 	}
 )
 
