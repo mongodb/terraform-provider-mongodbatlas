@@ -348,9 +348,9 @@ resource "mongodbatlas_stream_privatelink_endpoint" "this" {
   vendor        = "AZURE_BLOB_STORAGE"
   provider_name = "AZURE"
   region        = var.atlas_region
-  # dns_domain follows the format '{storageAccount}.blob.core.windows.net'
+  # dns_domain follows the format `{storageAccount}.blob.core.windows.net`
   dns_domain = "${var.storage_account_name}.blob.core.windows.net"
-  # service_endpoint_id follows the format '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}'
+  # service_endpoint_id follows the format `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}`
   service_endpoint_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${var.azure_resource_group}/providers/Microsoft.Storage/storageAccounts/${var.storage_account_name}"
   depends_on          = [azurerm_private_endpoint.blob_endpoint]
 }
@@ -381,7 +381,7 @@ Read-Only:
 
 	* AWS provider with CONFLUENT vendor.
 
-	* AZURE provider with EVENTHUB, CONFLUENT, or AZURE_BLOB_STORAGE vendor. For AZURE_BLOB_STORAGE, this should follow the format '{storageAccount}.blob.core.windows.net'.
+	* AZURE provider with EVENTHUB, CONFLUENT, or AZURE_BLOB_STORAGE vendor. For AZURE_BLOB_STORAGE, this should follow the format `{storageAccount}.blob.core.windows.net`.
 
 	* For GCP provider with PUBSUB vendor, the API computes this process.
 - `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones. Required for AWS Provider and CONFLUENT vendor. If your AWS CONFLUENT cluster doesn't use subdomains, you must set this to the empty array [].
@@ -394,7 +394,7 @@ Read-Only:
 - `provider_name` (String) Provider where the endpoint is deployed. Valid values are AWS, AZURE, and GCP.
 - `region` (String) The region of the Provider’s cluster. See [AZURE](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances) and [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/#stream-processing-instances) supported regions. When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.
 - `service_attachment_uris` (List of String) List of GCP service attachment URIs for Confluent vendor. Required for GCP provider with CONFLUENT vendor.
-- `service_endpoint_id` (String) For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html). For AZURE_BLOB_STORAGE, this is the Azure Resource Manager path of the storage account in the format '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}'.
+- `service_endpoint_id` (String) For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html). For AZURE_BLOB_STORAGE, this is the Azure Resource Manager path of the storage account in the format `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}`.
 - `state` (String) Status of the connection.
 - `vendor` (String) Vendor that manages the endpoint. The following are the vendor values per provider:
 
