@@ -25,23 +25,6 @@ func FromTPFDiagsToSDKV2Diags(diagsTpf []diag.Diagnostic) sdkv2diag.Diagnostics 
 	return results
 }
 
-// SDKV2DiagsToError converts SDKv2 diagnostics to a single error joining all error-level entries.
-// Returns nil when there are no errors.
-func SDKV2DiagsToError(diags sdkv2diag.Diagnostics) error {
-	var errs []error
-	for _, d := range diags {
-		if d.Severity != sdkv2diag.Error {
-			continue
-		}
-		if d.Detail != "" {
-			errs = append(errs, fmt.Errorf("%s: %s", d.Summary, d.Detail))
-		} else {
-			errs = append(errs, errors.New(d.Summary))
-		}
-	}
-	return errors.Join(errs...)
-}
-
 type ErrBody interface {
 	Body() []byte
 }
