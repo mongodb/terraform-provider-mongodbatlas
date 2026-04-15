@@ -45,6 +45,22 @@ func PluralDataSource() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
+						"private_endpoint_hostnames": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"hostname": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"private_endpoint": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 						"cloud_provider_config": cloudProviderConfig(true),
 						"data_process_region": {
 							Type:     schema.TypeList,
@@ -100,14 +116,15 @@ func flattenFederatedDatabaseInstances(d *schema.ResourceData, projectID string,
 
 		for i := range federatedDatabaseInstances {
 			federatedDatabaseInstancesMap[i] = map[string]any{
-				"project_id":            projectID,
-				"name":                  federatedDatabaseInstances[i].GetName(),
-				"state":                 federatedDatabaseInstances[i].GetState(),
-				"hostnames":             federatedDatabaseInstances[i].GetHostnames(),
-				"cloud_provider_config": flattenCloudProviderConfig(d, federatedDatabaseInstances[i].CloudProviderConfig),
-				"data_process_region":   flattenDataProcessRegion(federatedDatabaseInstances[i].DataProcessRegion),
-				"storage_databases":     flattenDataFederationDatabase(federatedDatabaseInstances[i].Storage.GetDatabases()),
-				"storage_stores":        flattenDataFederationStores(federatedDatabaseInstances[i].Storage.GetStores()),
+				"project_id":                 projectID,
+				"name":                       federatedDatabaseInstances[i].GetName(),
+				"state":                      federatedDatabaseInstances[i].GetState(),
+				"hostnames":                  federatedDatabaseInstances[i].GetHostnames(),
+				"cloud_provider_config":      flattenCloudProviderConfig(d, federatedDatabaseInstances[i].CloudProviderConfig),
+				"data_process_region":        flattenDataProcessRegion(federatedDatabaseInstances[i].DataProcessRegion),
+				"storage_databases":          flattenDataFederationDatabase(federatedDatabaseInstances[i].Storage.GetDatabases()),
+				"storage_stores":             flattenDataFederationStores(federatedDatabaseInstances[i].Storage.GetStores()),
+				"private_endpoint_hostnames": flattenPrivateEndpointHostnames(federatedDatabaseInstances[i].GetPrivateEndpointHostnames()),
 			}
 		}
 	}

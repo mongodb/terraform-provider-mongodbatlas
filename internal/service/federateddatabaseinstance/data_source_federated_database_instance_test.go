@@ -39,6 +39,7 @@ func TestAccFederatedDatabaseInstanceDS_s3Bucket(t *testing.T) {
 					checkAttributes(&federatedInstance, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "private_endpoint_hostnames.#", "0"),
 				),
 			},
 		},

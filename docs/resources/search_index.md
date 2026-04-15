@@ -451,3 +451,11 @@ Synonyms mapping definition to use in the index.
 ```
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/atlas-search/) - [and MongoDB Atlas API - Search](https://docs.atlas.mongodb.com/reference/api/atlas-search/) Documentation for more information.
+
+## Import
+
+You can import search indexes using `project_id`, `cluster_name`, and `index_id` as in the following example:
+
+```shell
+terraform import mongodbatlas_search_index.test {project_id}--{cluster_name}--{index_id}
+```

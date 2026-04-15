@@ -53,6 +53,22 @@ func Resource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"private_endpoint_hostnames": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"hostname": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_endpoint": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			// Optional-only behavior from the API, but keeping O+C to avoid behavior changes.
 			"cloud_provider_config": cloudProviderConfig(false),
 			"data_process_region": {
@@ -397,6 +413,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "hostnames", name, err))
 	}
 
+	if err := d.Set("private_endpoint_hostnames", flattenPrivateEndpointHostnames(dataFederationInstance.GetPrivateEndpointHostnames())); err != nil {
+		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "private_endpoint_hostnames", name, err))
+	}
+
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"project_id": projectID,
 		"name":       name,
@@ -512,6 +532,10 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 
 	if err := d.Set("hostnames", dataFederationInstance.GetHostnames()); err != nil {
 		return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "hostnames", name, err)
+	}
+
+	if err := d.Set("private_endpoint_hostnames", flattenPrivateEndpointHostnames(dataFederationInstance.GetPrivateEndpointHostnames())); err != nil {
+		return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "private_endpoint_hostnames", name, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -861,6 +885,17 @@ func flattenDataFederationStores(stores []admin.DataLakeStoreSettings) []map[str
 	}
 
 	return store
+}
+
+func flattenPrivateEndpointHostnames(privateEndpointHostnames []admin.PrivateEndpointHostname) []map[string]any {
+	result := make([]map[string]any, len(privateEndpointHostnames))
+	for i, h := range privateEndpointHostnames {
+		result[i] = map[string]any{
+			"hostname":         h.GetHostname(),
+			"private_endpoint": h.GetPrivateEndpoint(),
+		}
+	}
+	return result
 }
 
 func newReadPreferenceField(atlasReadPreference *admin.DataLakeAtlasStoreReadPreference) []map[string]any {
