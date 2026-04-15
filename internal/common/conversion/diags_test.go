@@ -70,8 +70,8 @@ func TestFromTPFDiagsToSDKV2Diags(t *testing.T) {
 func TestSDKV2DiagsToError(t *testing.T) {
 	tests := []struct {
 		name        string
-		diags       sdkv2diag.Diagnostics
 		expectedErr string
+		diags       sdkv2diag.Diagnostics
 	}{
 		{
 			name:        "empty diagnostics",
