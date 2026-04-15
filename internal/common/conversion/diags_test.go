@@ -68,11 +68,55 @@ func TestFromTPFDiagsToSDKV2Diags(t *testing.T) {
 }
 
 func TestSDKV2DiagsToError(t *testing.T) {
-	diags := sdkv2diag.Diagnostics{
-		{Severity: sdkv2diag.Warning, Summary: "just a warning"},
-		{Severity: sdkv2diag.Error, Summary: "first error", Detail: "detail about first"},
-		{Severity: sdkv2diag.Error, Summary: "second error"},
+	tests := []struct {
+		name        string
+		diags       sdkv2diag.Diagnostics
+		expectedErr string
+	}{
+		{
+			name:        "empty diagnostics",
+			diags:       sdkv2diag.Diagnostics{},
+			expectedErr: "",
+		},
+		{
+			name: "warnings only returns nil",
+			diags: sdkv2diag.Diagnostics{
+				{Severity: sdkv2diag.Warning, Summary: "just a warning"},
+			},
+			expectedErr: "",
+		},
+		{
+			name: "single error without detail",
+			diags: sdkv2diag.Diagnostics{
+				{Severity: sdkv2diag.Error, Summary: "only error"},
+			},
+			expectedErr: "only error",
+		},
+		{
+			name: "single error with detail",
+			diags: sdkv2diag.Diagnostics{
+				{Severity: sdkv2diag.Error, Summary: "summary", Detail: "detail info"},
+			},
+			expectedErr: "summary: detail info",
+		},
+		{
+			name: "mixed warnings and errors joins error entries",
+			diags: sdkv2diag.Diagnostics{
+				{Severity: sdkv2diag.Warning, Summary: "just a warning"},
+				{Severity: sdkv2diag.Error, Summary: "first error", Detail: "detail about first"},
+				{Severity: sdkv2diag.Error, Summary: "second error"},
+			},
+			expectedErr: "first error: detail about first\nsecond error",
+		},
 	}
-	err := conversion.SDKV2DiagsToError(diags)
-	assert.EqualError(t, err, "first error: detail about first\nsecond error")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := conversion.SDKV2DiagsToError(tc.diags)
+			if tc.expectedErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.EqualError(t, err, tc.expectedErr)
+			}
+		})
+	}
 }
