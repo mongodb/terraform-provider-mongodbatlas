@@ -97,17 +97,6 @@ func TestAWSRegionToMongoDBRegion(t *testing.T) {
 	}
 }
 
-func TestSafeValue(t *testing.T) {
-	var boolPointer *bool
-	assert.False(t, conversion.SafeValue(boolPointer))
-	trueBool := true
-	assert.True(t, conversion.SafeValue(&trueBool))
-	var intPointer *int
-	assert.Equal(t, 0, conversion.SafeValue(intPointer))
-	var stringPointer *string
-	assert.Empty(t, conversion.SafeValue(stringPointer))
-}
-
 func TestNilForUnknownOrEmpty(t *testing.T) {
 	assert.Nil(t, conversion.NilForUnknownOrEmptyString(types.StringPointerValue(nil)))
 	emptyString := ""

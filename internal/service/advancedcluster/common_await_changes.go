@@ -27,11 +27,10 @@ var (
 )
 
 type ClusterWaitParams struct {
-	ProjectID          string
-	ClusterName        string
-	Timeout            time.Duration
-	IsDelete           bool
-	UseEffectiveFields bool
+	ProjectID   string
+	ClusterName string
+	Timeout     time.Duration
+	IsDelete    bool
 }
 
 func AwaitChangesUpgrade(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
@@ -98,7 +97,7 @@ func createStateChangeConfig(ctx context.Context, api admin.ClustersApi, waitPar
 
 func ResourceRefreshFunc(ctx context.Context, waitParams *ClusterWaitParams, api admin.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		cluster, resp, err := api.GetCluster(ctx, waitParams.ProjectID, waitParams.ClusterName).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
+		cluster, resp, err := api.GetCluster(ctx, waitParams.ProjectID, waitParams.ClusterName).UseEffectiveFieldsReplicationSpecs(true).Execute()
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, retrystrategy.RetryStrategyRepeatingState, nil
 		}

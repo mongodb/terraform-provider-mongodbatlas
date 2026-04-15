@@ -20,9 +20,9 @@ import (
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
+var _ resource.ResourceWithModifyPlan = &rs{}
 var _ resource.ResourceWithMoveState = &rs{}
 var _ resource.ResourceWithUpgradeState = &rs{}
-var _ resource.ResourceWithModifyPlan = &rs{}
 
 const (
 	resourceName             = "advanced_cluster"
@@ -73,35 +73,6 @@ func Resource() resource.Resource {
 
 type rs struct {
 	config.RSCommon
-}
-
-// ModifyPlan is called before plan is shown to the user and right before the plan is applied.
-// Why do we need this? Why can't we use planmodifier.UseStateForUnknown in different fields?
-// 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
-// 2. Adding the different UseStateForUnknown is very verbose.
-func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update
-		return
-	}
-	var plan, state TFModel
-	diags := &resp.Diagnostics
-	diags.Append(req.Plan.Get(ctx, &plan)...)
-	diags.Append(req.State.Get(ctx, &state)...)
-	if diags.HasError() {
-		return
-	}
-	// The replication specs can be unknown if the cluster depends on another resource.
-	// handleModifyPlan will try to convert the field to `Target Type: []advancedcluster.TFReplicationSpecsModel`.
-	// But since the field is unknown the user gets an error: `Error: Value Conversion Error`.
-	if plan.ReplicationSpecs.IsUnknown() {
-		return
-	}
-
-	handleModifyPlan(ctx, diags, &state, &plan)
-	if diags.HasError() {
-		return
-	}
-	diags.Append(resp.Plan.Set(ctx, plan)...)
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -170,7 +141,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	modelOut := getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan)
+	modelOut := getBasicClusterModel(ctx, diags, clusterResp, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -179,7 +150,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
 		ArgsDefault:           advConfig,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
-	})
+	}, plan.AdvancedConfiguration)
 	if diags.HasError() {
 		return
 	}
@@ -195,7 +166,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 	clusterName := state.Name.ValueString()
 	projectID := state.ProjectID.ValueString()
-	cluster, flexCluster := GetClusterDetails(ctx, diags, projectID, clusterName, r.Client, !state.PinnedFCV.IsNull(), state.UseEffectiveFields.ValueBool())
+	cluster, flexCluster := GetClusterDetails(ctx, diags, projectID, clusterName, r.Client, !state.PinnedFCV.IsNull())
 	if diags.HasError() {
 		return
 	}
@@ -211,14 +182,14 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
-	modelOut := getBasicClusterModel(ctx, diags, r.Client, cluster, &state)
+	modelOut := getBasicClusterModel(ctx, diags, cluster, &state)
 	if diags.HasError() {
 		return
 	}
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
 		ArgsDefault:           nil,
 		ClusterAdvancedConfig: cluster.AdvancedConfiguration,
-	})
+	}, state.AdvancedConfiguration)
 	if diags.HasError() {
 		return
 	}
@@ -265,7 +236,17 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		case diff.upgradeTenantReq != nil:
 			clusterResp = upgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
 		case diff.clusterPatchOnlyReq != nil:
-			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
+			// Recalculate the cluster patch against current API values to avoid unnecessary PATCH calls.
+			// After a state upgrade (v1→v3), Optional-only attributes like backup_enabled may be null in state
+			// but the API already has the correct values, producing false diffs. Recalculating against the API
+			// filters out these no-op changes.
+			recalculated := recalculateClusterPatch(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, diff.planReq)
+			if diags.HasError() {
+				return
+			}
+			if recalculated != nil {
+				clusterResp = r.applyClusterChanges(ctx, diags, recalculated, waitParams)
+			}
 		}
 		if diags.HasError() {
 			return
@@ -274,7 +255,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	// clusterResp can be nil if there are no changes to the cluster, for example when `delete_on_create_timeout` is changed or only advanced configuration is changed
 	if clusterResp == nil {
 		var flexResp *admin.FlexClusterDescription20241113
-		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false, waitParams.UseEffectiveFields)
+		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false)
 		if diags.HasError() {
 			return
 		}
@@ -287,7 +268,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			return
 		}
 	}
-	modelOut := getBasicClusterModel(ctx, diags, r.Client, clusterResp, &plan)
+	modelOut := getBasicClusterModel(ctx, diags, clusterResp, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -303,15 +284,23 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	if advConfigChanged {
+	switch {
+	case advConfigChanged:
 		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
 			ArgsDefault:           advConfig,
 			ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
-		})
+		}, plan.AdvancedConfiguration)
 		if diags.HasError() {
 			return
 		}
-	} else {
+	case !plan.AdvancedConfiguration.Equal(state.AdvancedConfiguration):
+		// No real API change, but plan and state disagree (e.g. migration from null to configured).
+		// Populate model from API so state matches plan.
+		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, p, plan.AdvancedConfiguration)
+		if diags.HasError() {
+			return
+		}
+	default:
 		modelOut.AdvancedConfiguration = state.AdvancedConfiguration
 	}
 	diags.Append(resp.State.Set(ctx, modelOut)...)
@@ -390,16 +379,12 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, p
 	return result
 }
 
-func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
-	containerIDs := resolveContainerIDsOrError(ctx, diags, clusterResp, client.AtlasV2.NetworkPeeringApi)
+func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
+	modelOut := newTFModel(ctx, clusterResp, diags)
 	if diags.HasError() {
 		return nil
 	}
-	modelOut := newTFModel(ctx, clusterResp, diags, containerIDs)
-	if diags.HasError() {
-		return nil
-	}
-	overrideAttributesWithPrevStateValue(modelIn, modelOut)
+	overrideAttributesWithPrevStateValue(ctx, modelIn, modelOut)
 	return modelOut
 }
 
@@ -422,11 +407,25 @@ func readAdvancedConfigIfUnset(ctx context.Context, diags *diag.Diagnostics, cli
 	p.ArgsDefault = advConfig
 }
 
-func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, p *ProcessArgs) {
-	readAdvancedConfigIfUnset(ctx, diags, client, model.ProjectID.ValueString(), model.Name.ValueString(), p)
-	if !diags.HasError() {
-		model.AdvancedConfiguration = buildAdvancedConfigObjType(ctx, p, diags)
+// updateModelAdvancedConfig populates the model's AdvancedConfiguration from the API response.
+// configuredAdvConfig is the plan/state's advanced_configuration value used to determine whether
+// the user configured it. When null, AdvancedConfiguration stays null in the model. When not null,
+// the model is populated from the API and then null sub-fields from configuredAdvConfig are preserved.
+func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, p *ProcessArgs, configuredAdvConfig types.Object) {
+	if configuredAdvConfig.IsNull() {
+		model.AdvancedConfiguration = types.ObjectNull(advancedConfigurationObjType.AttrTypes)
+		return
 	}
+	readAdvancedConfigIfUnset(ctx, diags, client, model.ProjectID.ValueString(), model.Name.ValueString(), p)
+	if diags.HasError() {
+		return
+	}
+	model.AdvancedConfiguration = buildAdvancedConfigObjType(ctx, p, diags)
+	if diags.HasError() {
+		return
+	}
+	// Preserve null values for sub-fields the user didn't configure (e.g. only javascript_enabled was set).
+	model.AdvancedConfiguration = overrideAdvancedConfigurationWithPrevStateValue(ctx, configuredAdvConfig, model.AdvancedConfiguration)
 }
 
 func updateModelAdvancedConfigDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModelDS, p *ProcessArgs) {
@@ -441,7 +440,7 @@ func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	if pauseAfter {
 		req.Paused = nil
 	}
-	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
+	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).UseEffectiveFieldsReplicationSpecs(true).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationCreate, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
@@ -457,7 +456,7 @@ func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 }
 
 func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, operationName string) *admin.ClusterDescription20240805 {
-	_, _, err := client.AtlasV2.ClustersApi.UpdateCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, req).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
+	_, _, err := client.AtlasV2.ClustersApi.UpdateCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, req).UseEffectiveFieldsReplicationSpecs(true).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationName, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
@@ -473,24 +472,20 @@ func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.D
 		return nil
 	}
 	return &ClusterWaitParams{
-		ProjectID:          projectID,
-		ClusterName:        clusterName,
-		Timeout:            operationTimeout,
-		IsDelete:           operation == operationDelete,
-		UseEffectiveFields: model.UseEffectiveFields.ValueBool(),
+		ProjectID:   projectID,
+		ClusterName: clusterName,
+		Timeout:     operationTimeout,
+		IsDelete:    operation == operationDelete,
 	}
 }
 
 type clusterDiff struct {
 	clusterPatchOnlyReq       *admin.ClusterDescription20240805
+	planReq                   *admin.ClusterDescription20240805 // full plan SDK request, used to recalculate patch against API.
 	upgradeTenantReq          *admin.LegacyAtlasTenantClusterUpgradeRequest
 	upgradeFlexToDedicatedReq *admin.AtlasTenantClusterUpgradeRequest20240805
 	isUpgradeTenantToFlex     bool
 	isUpdateOfFlex            bool
-}
-
-func (c *clusterDiff) isAnyUpgrade() bool {
-	return c.isUpgradeTenantToFlex || c.upgradeTenantReq != nil || c.upgradeFlexToDedicatedReq != nil
 }
 
 // findClusterDiff should be called only in Update, e.g. it will fail for a flex cluster with no changes.
@@ -529,7 +524,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	if upgradeTenantReq := getUpgradeTenantRequest(stateReq, patchReq); upgradeTenantReq != nil {
 		return clusterDiff{upgradeTenantReq: upgradeTenantReq}
 	}
-	return clusterDiff{clusterPatchOnlyReq: patchReq}
+	return clusterDiff{clusterPatchOnlyReq: patchReq, planReq: planReq}
 }
 
 func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {

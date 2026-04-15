@@ -105,34 +105,3 @@ func (v RegionSpecPriorityOrderDecreasingValidator) ValidateList(ctx context.Con
 		}
 	}
 }
-
-// UseEffectiveFieldsValidator validates that use_effective_fields is not set for Flex or Tenant clusters
-type UseEffectiveFieldsValidator struct{}
-
-func (v UseEffectiveFieldsValidator) Description(ctx context.Context) string {
-	return v.MarkdownDescription(ctx)
-}
-
-func (v UseEffectiveFieldsValidator) MarkdownDescription(_ context.Context) string {
-	return "use_effective_fields cannot be set for Flex or Tenant clusters."
-}
-
-func (v UseEffectiveFieldsValidator) ValidateBool(ctx context.Context, req validator.BoolRequest, resp *validator.BoolResponse) {
-	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
-		return
-	}
-	diags := &resp.Diagnostics
-	var replicationSpecsList types.List
-	diags.Append(req.Config.GetAttribute(ctx, path.Root("replication_specs"), &replicationSpecsList)...)
-	if diags.HasError() {
-		return
-	}
-	replicationSpecs := newReplicationSpec(ctx, replicationSpecsList, &resp.Diagnostics)
-	if diags.HasError() || replicationSpecs == nil {
-		return
-	}
-	if isFlex(replicationSpecs) || isTenant(replicationSpecs) {
-		diags.AddAttributeError(req.Path, "Invalid Attribute Configuration",
-			"use_effective_fields cannot be set for Flex or Tenant clusters, it is only supported for dedicated clusters.")
-	}
-}

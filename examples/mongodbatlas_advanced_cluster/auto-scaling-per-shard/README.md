@@ -2,32 +2,26 @@
 
 This example creates a Sharded Cluster with 2 shards defining electable and analytics nodes. Compute auto-scaling is enabled for both `electable_specs` and `analytics_specs`, while also leveraging the [New Sharding Configuration](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema) by defining each shard with its individual `replication_specs`. This enables scaling of each shard to be independent. Please reference the [Use Auto-Scaling Per Shard](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema#use-auto-scaling-per-shard) section for more details.
 
-## Enhanced Auto-Scaling with use_effective_fields
+## Auto-Scaling Configuration
 
-This example uses the recommended approach with `use_effective_fields = true` to manage auto-scaling configurations. This approach offers several benefits:
-
-- **No lifecycle.ignore_changes needed**: Eliminates the need for `lifecycle.ignore_changes` blocks to prevent Terraform from reverting Atlas-managed auto-scaling changes.
-- **Visibility into scaled values**: Includes a data source and output to show both configured and actual (effective) instance sizes after Atlas auto-scales.
-- **Simplified configuration**: You only specify the attributes you want to manage; Atlas handles auto-scaling independently.
-
-The example demonstrates:
-- Setting `use_effective_fields = true` on the cluster resource
-- Using the `mongodbatlas_advanced_cluster` data source with `depends_on` to read effective values
+This example demonstrates:
+- Configuring compute auto-scaling for both electable and analytics nodes
+- Using the `mongodbatlas_advanced_cluster` data source to read effective values
 - An output that displays configured vs. actual instance sizes for each shard
 
-For more information, see [Auto-Scaling with Effective Fields](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#auto-scaling-with-effective-fields).
+In v3.0.0+, `replication_specs` children are Optional-only (not Computed), so your configured values stay constant in Terraform state. Use `effective_replication_specs` in the data source to see actual running values after Atlas auto-scales.
 
 ## Migrating from v1.x to v2.0.0 or later
 If you are migrating from v1.x of our provider to v2.0.0 or later, the `v1.x.x/` sub-directory shows how your current configuration might look like (with added inline comments to demonstrate what has changed in v2.0.0+ for migration reference).
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v2.0.0 or later
-* A MongoDB Atlas account 
+* Terraform MongoDB Atlas Provider v3.0.0 or later
+* A MongoDB Atlas account
 
 ```
 Terraform >= 0.13
-+ provider registry.terraform.io/terraform-providers/mongodbatlas v2.0.0
++ provider registry.terraform.io/terraform-providers/mongodbatlas v3.0.0
 ```
 
 

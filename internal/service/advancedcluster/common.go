@@ -89,10 +89,6 @@ func isFlex(replicationSpecs *[]admin.ReplicationSpec20240805) bool {
 	return getProviderName(replicationSpecs) == flexcluster.FlexClusterType
 }
 
-func isTenant(replicationSpecs *[]admin.ReplicationSpec20240805) bool {
-	return getProviderName(replicationSpecs) == constant.TENANT
-}
-
 func getProviderName(replicationSpecs *[]admin.ReplicationSpec20240805) string {
 	regionConfig := getRegionConfig(replicationSpecs)
 	if regionConfig == nil {

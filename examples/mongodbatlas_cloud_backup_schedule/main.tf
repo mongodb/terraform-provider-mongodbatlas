@@ -38,6 +38,12 @@ resource "mongodbatlas_advanced_cluster" "automated_backup_test_cluster" {
 }
 
 
+data "mongodbatlas_advanced_cluster" "automated_backup_test_cluster" {
+  for_each   = local.atlas_clusters
+  project_id = mongodbatlas_advanced_cluster.automated_backup_test_cluster[each.key].project_id
+  name       = mongodbatlas_advanced_cluster.automated_backup_test_cluster[each.key].name
+}
+
 resource "mongodbatlas_cloud_backup_schedule" "test" {
   for_each                 = local.atlas_clusters
   project_id               = mongodbatlas_project.atlas-project.id
@@ -55,7 +61,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
       "YEARLY",
     "ON_DEMAND"]
     region_name        = "US_WEST_1"
-    zone_id            = mongodbatlas_advanced_cluster.automated_backup_test_cluster[each.key].replication_specs[0].zone_id
+    zone_id            = data.mongodbatlas_advanced_cluster.automated_backup_test_cluster[each.key].effective_replication_specs[0].zone_id
     should_copy_oplogs = true
   }
 
