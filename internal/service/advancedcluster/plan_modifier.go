@@ -21,7 +21,6 @@ var (
 		"custom_openssl_cipher_config_tls12": {"custom_openssl_cipher_config_tls13"},
 		"custom_openssl_cipher_config_tls13": {"custom_openssl_cipher_config_tls12"},
 		"cluster_type":                       {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
-		"config_server_management_mode":      {"config_server_type"},                                  // config_server_type changes when switching config server management mode
 	}
 )
 
@@ -55,7 +54,7 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 		return
 	}
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
-	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version"} // Volatile attributes, should not be copied from state
+	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version", "config_server_type"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
