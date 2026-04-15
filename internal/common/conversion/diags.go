@@ -2,8 +2,6 @@ package conversion
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	sdkv2diag "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
