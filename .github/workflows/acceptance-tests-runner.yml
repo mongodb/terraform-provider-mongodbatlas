@@ -158,6 +158,8 @@ on:
         required: true
       mongodb_atlas_private_endpoint_dns_name:
         required: true
+      mongodb_atlas_private_endpoint_id_replace:
+        required: true
       mongodb_atlas_gov_private_key:
         required: true
       mongodb_atlas_gov_public_key:
@@ -319,7 +321,7 @@ jobs:
             - 'internal/serviceapi/customdbroleapi/*.go'
             - 'internal/serviceapi/databaseuserapi/*.go'
             - 'internal/serviceapi/maintenancewindowapi/*.go'
-            - 'internal/serviceapi/privatelinkendpointservicedatafederationonlinearchiveapi/*.go'
+            - 'internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive/*.go'
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/projectsettingsapi/*.go'
             - 'internal/serviceapi/resourcepolicyapi/*.go'
@@ -399,7 +401,6 @@ jobs:
             - 'internal/service/privateendpointregionalmode/*.go'
             - 'internal/service/privatelinkendpoint/*.go'
             - 'internal/service/privatelinkendpointservice/*.go'
-            - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go' 
           project:
             - 'internal/common/autogen/*.go'
             - 'internal/service/accesslistapikey/*.go'
@@ -682,6 +683,7 @@ jobs:
           AWS_KMS_KEY_ID: ${{ secrets.aws_kms_key_id }}
           MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME: ${{ secrets.mongodb_atlas_private_endpoint_dns_name }}
           MONGODB_ATLAS_PRIVATE_ENDPOINT_ID: ${{ secrets.mongodb_atlas_private_endpoint_id }}
+          MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_REPLACE: ${{ secrets.mongodb_atlas_private_endpoint_id_replace }}
           AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
           AZURE_APP_SECRET: ${{ secrets.azure_app_secret }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
@@ -700,7 +702,7 @@ jobs:
             ./internal/serviceapi/databaseuserapi
             ./internal/serviceapi/logintegration
             ./internal/serviceapi/maintenancewindowapi
-            ./internal/serviceapi/privatelinkendpointservicedatafederationonlinearchiveapi
+            ./internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/projectsettingsapi
             ./internal/serviceapi/streamconnectionapi
@@ -1263,7 +1265,6 @@ jobs:
             ./internal/service/privateendpointregionalmode
             ./internal/service/privatelinkendpoint
             ./internal/service/privatelinkendpointservice
-            ./internal/service/privatelinkendpointservicedatafederationonlinearchive
         run: make testacc
       
   project: 
