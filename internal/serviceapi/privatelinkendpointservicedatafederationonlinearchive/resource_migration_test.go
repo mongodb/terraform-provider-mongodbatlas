@@ -13,7 +13,7 @@ func TestMigNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 	var (
 		projectID  = acc.ProjectIDExecution(t)
 		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
-		config     = resourceConfigBasic(projectID, endpointID, comment)
+		config     = resourceConfigBasicAWS(projectID, endpointID, comment)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -23,14 +23,30 @@ func TestMigNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_basic(t
 			{
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            config,
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "endpoint_id", endpointID),
+				Check: checkResourceOnlyAggr(projectID, endpointID,
 					resource.TestCheckResourceAttrSet(resourceName, "comment"),
-					resource.TestCheckResourceAttrSet(resourceName, "type"),
-					resource.TestCheckResourceAttrSet(resourceName, "provider_name"),
 				),
+			},
+			mig.TestStepCheckEmptyPlan(config),
+		},
+	})
+}
+
+func TestMigNetworkPrivatelinkEndpointServiceDataFederationOnlineArchive_optionalAttrsOmitted(t *testing.T) {
+	var (
+		projectID  = acc.ProjectIDExecution(t)
+		endpointID = os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID")
+		config     = resourceConfigBasicAWSNoOptional(projectID, endpointID)
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { mig.PreCheckPrivateEndpoint(t) },
+		CheckDestroy: checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            config,
+				Check:             checkResourceOnlyAggr(projectID, endpointID),
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},

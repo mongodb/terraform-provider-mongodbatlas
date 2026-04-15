@@ -1183,7 +1183,7 @@ resources:
           aws_security_group:
             description: "Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`."
 
-  privatelink_endpoint_service_data_federation_online_archive_api:
+  privatelink_endpoint_service_data_federation_online_archive:
     read:
       path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
       method: GET
@@ -1237,14 +1237,14 @@ resources:
             description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
           results.customer_endpoint_dns_name:
             description: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`."
-        ignores: ["links", "results.links"]
+        ignores: ["links", "results.links", "customer_endpoint_ip_address", "azure_link_id", "error_message", "status", "results.customer_endpoint_ip_address", "results.azure_link_id", "results.error_message", "results.status", "delete_on_create_timeout"]
     schema:
       expanded_model: true
       aliases:
         groupId: projectId
         provider: providerName
       ignores: [
-        "results"
+        "results", "customer_endpoint_ip_address", "status", "azure_link_id", "error_message"
       ]
       overrides:
           project_id:
@@ -1267,9 +1267,10 @@ resources:
               optional: true
               computed: true
           provider_name:
+            description: "Human-readable label that identifies the cloud service provider. Atlas Data Federation supports `AWS`."
             computability:
               required: true
-          status:
+          type:
             computability:
               computed: true
 
