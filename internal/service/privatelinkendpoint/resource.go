@@ -121,7 +121,7 @@ func Resource() *schema.Resource {
 			"supported_remote_regions": {
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "List of additional AWS regions that can connect to the endpoint service. Only applicable for AWS provider. The region_name is supported by default and must not be included.",
+				Description: "List of additional AWS regions that can connect to the endpoint service. Regions must be specified in Atlas format (e.g., `US_EAST_1`). Only applicable for AWS provider. The `region_name` is supported by default and must not be included.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
