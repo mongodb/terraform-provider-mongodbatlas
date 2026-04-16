@@ -310,10 +310,12 @@ Read-Only:
 
 - `arn` (String) Amazon Resource Name (ARN). Required for AWS Provider and MSK vendor.
 - `dns_domain` (String) The domain hostname. Required for the following provider and vendor combinations:
-				
+
 	* AWS provider with CONFLUENT vendor.
 
 	* AZURE provider with EVENTHUB or CONFLUENT vendor.
+
+	For GCP provider with PUBSUB vendor, this is computed by the API.
 - `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones. Required for AWS Provider and CONFLUENT vendor. If your AWS CONFLUENT cluster doesn't use subdomains, you must set this to the empty array [].
 - `error_message` (String) Error message if the connection is in a failed state.
 - `id` (String) The ID of the Private Link connection.
@@ -332,6 +334,6 @@ Read-Only:
 
 	* **Azure**: EVENTHUB and CONFLUENT
 
-	* **GCP**: CONFLUENT
+	* **GCP**: CONFLUENT and PUBSUB
 
 For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprivatelinkconnection) Documentation.
