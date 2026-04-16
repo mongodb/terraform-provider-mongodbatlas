@@ -63,7 +63,7 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		if hasServiceEndpointID && hasServiceAttachmentUris {
 			diags.AddError("Only one of service_endpoint_id or service_attachment_uris can be provided", "")
 		}
-		if plan.DnsDomain.IsNull() {
+		if plan.DnsDomain.IsNull() || plan.DnsDomain.IsUnknown() {
 			diags.AddError(fmt.Sprintf("dns_domain is required for vendor %s", VendorConfluent), "")
 		}
 		if plan.Region.IsNull() {

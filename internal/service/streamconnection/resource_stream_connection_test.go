@@ -523,6 +523,31 @@ func TestAccStreamRSStreamConnection_GCPPubSub(t *testing.T) {
 	})
 }
 
+func TestAccStreamRSStreamConnection_GCPPubSubPrivateLink(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = acc.RandomName()
+		region                  = "us-east1"
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: configureGCPPubSubPrivateLink(projectID, instanceName, connectionName, region),
+				Check:  checkGCPPubSubPrivateLinkAttributes(resourceName, instanceName, connectionName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccStreamRSStreamConnection_instanceName(t *testing.T) {
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
@@ -1170,6 +1195,58 @@ func checkGCPPubSubAttributes(resourceName, workspaceName, connectionName string
 		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 		resource.TestCheckResourceAttr(resourceName, "type", "GCPPubSub"),
 		resource.TestCheckResourceAttrSet(resourceName, "gcp.service_account_id"),
+	}
+	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
+}
+
+func configureGCPPubSubPrivateLink(projectID, instanceName, connectionName, region string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+			project_id    = %[1]q
+			provider_name = "GCP"
+			vendor        = "PUBSUB"
+			region        = %[4]q
+		}
+
+		resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
+			project_id    = %[1]q
+			provider_name = "GCP"
+		}
+
+		resource "mongodbatlas_cloud_provider_access_authorization" "gcp_auth" {
+			project_id = %[1]q
+			role_id    = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
+		}
+
+		resource "mongodbatlas_stream_connection" "test" {
+			project_id      = %[1]q
+			workspace_name  = %[2]q
+			connection_name = %[3]q
+			type            = "GCPPubSub"
+			gcp = {
+				service_account_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.gcp_config[0].service_account_for_atlas
+			}
+			networking = {
+				access = {
+					type          = "PRIVATE_LINK"
+					connection_id = mongodbatlas_stream_privatelink_endpoint.test.id
+				}
+			}
+			depends_on = [mongodbatlas_cloud_provider_access_authorization.gcp_auth]
+		}
+	`, projectID, instanceName, connectionName, region)
+}
+
+func checkGCPPubSubPrivateLinkAttributes(resourceName, workspaceName, connectionName string) resource.TestCheckFunc {
+	resourceChecks := []resource.TestCheckFunc{
+		checkStreamConnectionExists(),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName),
+		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
+		resource.TestCheckResourceAttr(resourceName, "type", "GCPPubSub"),
+		resource.TestCheckResourceAttrSet(resourceName, "gcp.service_account_id"),
+		resource.TestCheckResourceAttr(resourceName, "networking.access.type", "PRIVATE_LINK"),
+		resource.TestCheckResourceAttrSet(resourceName, "networking.access.connection_id"),
 	}
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
