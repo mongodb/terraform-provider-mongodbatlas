@@ -356,7 +356,7 @@ output "dns_domain" {
 
 	* AZURE provider with EVENTHUB or CONFLUENT vendor.
 
-	For GCP provider with PUBSUB vendor, this is computed by the API.
+	* For GCP provider with PUBSUB vendor, this is computed by the API.
 - `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones. Required for AWS Provider and CONFLUENT vendor. If your AWS CONFLUENT cluster doesn't use subdomains, you must set this to the empty array [].
 - `region` (String) The region of the Provider’s cluster. See [AZURE](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances) and [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/#stream-processing-instances) supported regions. When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.
 - `service_attachment_uris` (List of String) List of GCP service attachment URIs for Confluent vendor. Required for GCP provider with CONFLUENT vendor.
