@@ -90,7 +90,7 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 	}
 
 	if plan.Vendor.ValueString() == VendorPubSub {
-		if plan.Region.IsNull() {
+		if plan.Region.IsNull() || plan.Region.IsUnknown() {
 			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorPubSub), "")
 		}
 	}
