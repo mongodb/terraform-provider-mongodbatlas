@@ -4,7 +4,11 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_federated_database_instance: Adds `private_endpoint_hostnames` attribute ([#4358](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4358))
 * data-source/mongodbatlas_federated_database_instances: Adds `private_endpoint_hostnames` attribute ([#4358](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4358))
+* data-source/mongodbatlas_privatelink_endpoint: Adds `supported_remote_regions` attribute to support reading additional AWS regions that can connect to the endpoint service ([#4315](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4315))
+* data-source/mongodbatlas_privatelink_endpoints: Adds `supported_remote_regions` attribute to support reading additional AWS regions that can connect to the endpoint service ([#4315](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4315))
 * resource/mongodbatlas_federated_database_instance: Adds `private_endpoint_hostnames` attribute ([#4358](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4358))
+* resource/mongodbatlas_privatelink_endpoint: Adds `supported_remote_regions` attribute to configure additional AWS regions that can connect to the endpoint service ([#4315](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4315))
+* resource/mongodbatlas_privatelink_endpoint: Adds update timeout support ([#4373](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4373))
 * resource/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive: Adds support for import using `{project_id}/{endpoint_id}` format ([#4351](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4351))
 
 BUG FIXES:
