@@ -394,6 +394,41 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 			},
 		},
 		{
+			name: "GCPPubSub connection type with publicPrivateNetworking",
+			SDKResp: &admin.StreamsConnection{
+				Name: new(gcpPubSubConnectionName),
+				Type: new("GCPPubSub"),
+				Gcp:  &admin.StreamsGCPConnectionConfig{ServiceAccountId: new(sampleServiceAccountID)},
+				PublicPrivateNetworking: &admin.StreamsPublicPrivateLinkNetworking{
+					Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
+						Type:         new("PRIVATE_LINK"),
+						ConnectionId: new("plc-12345"),
+					},
+				},
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:                    types.StringValue(dummyProjectID),
+					WorkspaceName:                types.StringValue(instanceName),
+					ConnectionName:               types.StringValue(gcpPubSubConnectionName),
+					Type:                         types.StringValue("GCPPubSub"),
+					Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+					Config:                       types.MapNull(types.StringType),
+					Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+					Networking:                   tfNetworkingObject(t, "PRIVATE_LINK", new("plc-12345")),
+					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          tfGCPConfigObject(t, sampleServiceAccountID),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
+					Headers:                      types.MapNull(types.StringType),
+					SchemaRegistryURLs:           types.ListNull(types.StringType),
+					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				},
+			},
+		},
+		{
 			name: "AzureBlobStorage connection type with publicPrivateNetworking",
 			SDKResp: &admin.StreamsConnection{
 				Name:  new(connectionName),
@@ -947,6 +982,32 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				Type: new("GCPPubSub"),
 				Gcp: &admin.StreamsGCPConnectionConfig{
 					ServiceAccountId: new(sampleServiceAccountID),
+				},
+			},
+		},
+		{
+			name: "GCPPubSub type TF state with PRIVATE_LINK networking",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:      types.StringValue(dummyProjectID),
+					InstanceName:   types.StringValue(instanceName),
+					ConnectionName: types.StringValue(gcpPubSubConnectionName),
+					Type:           types.StringValue("GCPPubSub"),
+					GCP:            tfGCPConfigObject(t, sampleServiceAccountID),
+					Networking:     tfNetworkingObject(t, "PRIVATE_LINK", new("plc-12345")),
+				},
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name: new(gcpPubSubConnectionName),
+				Type: new("GCPPubSub"),
+				Gcp: &admin.StreamsGCPConnectionConfig{
+					ServiceAccountId: new(sampleServiceAccountID),
+				},
+				PublicPrivateNetworking: &admin.StreamsPublicPrivateLinkNetworking{
+					Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
+						Type:         new("PRIVATE_LINK"),
+						ConnectionId: new("plc-12345"),
+					},
 				},
 			},
 		},

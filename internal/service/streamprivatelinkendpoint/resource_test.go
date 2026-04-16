@@ -96,6 +96,50 @@ func TestAccStreamPrivatelinkEndpointMsk_fields(t *testing.T) {
 	}
 }
 
+func TestAccStreamPrivatelinkEndpointPubSub_fields(t *testing.T) {
+	const (
+		projectID = "does-not-matter"
+		provider  = "GCP"
+		vendor    = "PUBSUB"
+	)
+
+	tests := []struct {
+		expectedError *regexp.Regexp
+		name          string
+		config        string
+	}{
+		{
+			name:          "missing region",
+			config:        missingRequiredFieldsConfig(projectID, provider, vendor),
+			expectedError: regexp.MustCompile(`(?s)^.*?region is required for vendor PUBSUB.*?$`),
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			resource.ParallelTest(t, resource.TestCase{
+				PreCheck:                 func() { acc.PreCheckBasic(t) },
+				CheckDestroy:             checkDestroy,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Steps: []resource.TestStep{
+					{
+						Config:      tc.config,
+						ExpectError: tc.expectedError,
+					},
+				},
+			})
+		})
+	}
+}
+
+func TestAccStreamPrivatelinkEndpointPubSub_basic(t *testing.T) {
+	acc.SkipTestForCI(t) // needs GCP Pub/Sub resources
+
+	tc := basicPubSubTestCase(t)
+	// Tests include testing of plural data source and so cannot be run in parallel
+	resource.Test(t, *tc)
+}
+
 func TestAccStreamPrivatelinkEndpointS3_basic(t *testing.T) {
 	acc.SkipTestForCI(t) // skip for CI because provisioning the streams private networking infrastructure is slow and expensive
 
@@ -319,6 +363,56 @@ func basicS3TestCase(t *testing.T) *resource.TestCase {
 			},
 		},
 	}
+}
+
+func basicPubSubTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		provider  = "GCP"
+		vendor    = "PUBSUB"
+		region    = "us-east1"
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.GetCompletePubSubConfig(projectID, region),
+				Check:  checksStreamPrivatelinkEndpointPubSub(projectID, provider, vendor, region),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func checksStreamPrivatelinkEndpointPubSub(projectID, provider, vendor, region string) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{checkExists()}
+	attrMap := map[string]string{
+		"project_id":    projectID,
+		"provider_name": provider,
+		"vendor":        vendor,
+		"region":        region,
+	}
+	pluralMap := map[string]string{
+		"project_id": projectID,
+		"results.#":  "1",
+	}
+	attrSet := []string{
+		"id",
+		"state",
+		"dns_domain",
+	}
+	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
+	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
 }
 
 func checksStreamPrivatelinkEndpointS3(projectID, provider, vendor, region string) resource.TestCheckFunc {

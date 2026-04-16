@@ -18,11 +18,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"dns_domain": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 				MarkdownDescription: `The domain hostname. Required for the following provider and vendor combinations:
-				
+
 	* AWS provider with CONFLUENT vendor.
 
-	* AZURE provider with EVENTHUB or CONFLUENT vendor.`,
+	* AZURE provider with EVENTHUB or CONFLUENT vendor.
+
+	For GCP provider with PUBSUB vendor, this is computed by the API.`,
 			},
 			"dns_sub_domain": schema.ListAttribute{
 				Optional:            true,
@@ -82,7 +85,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 	* **Azure**: EVENTHUB and CONFLUENT
 
-	* **GCP**: CONFLUENT`,
+	* **GCP**: CONFLUENT and PUBSUB`,
 			},
 			"arn": schema.StringAttribute{
 				Optional:            true,

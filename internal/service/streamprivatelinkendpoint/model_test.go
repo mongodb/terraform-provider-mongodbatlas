@@ -32,6 +32,7 @@ var (
 	serviceEndpointIDS3   = "com.amazonaws.us-east-1.s3"
 	state                 = "DONE"
 	vendorConfluent       = "CONFLUENT"
+	vendorPubSub          = "PUBSUB"
 	vendorS3              = "S3"
 )
 
@@ -177,6 +178,28 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				Region:    types.StringValue(region),
 				State:     types.StringValue(state),
 				Vendor:    types.StringValue(vendorConfluent),
+			},
+		},
+		"SDK response with GCP PubSub": {
+			SDKResp: &admin.StreamsPrivateLinkConnection{
+				Id:        &id,
+				DnsDomain: &dnsDomain,
+				Provider:  constant.GCP,
+				Region:    &region,
+				State:     &state,
+				Vendor:    &vendorPubSub,
+			},
+			projectID: projectID,
+			expectedTFModel: &streamprivatelinkendpoint.TFModel{
+				Id:                    types.StringValue(id),
+				DnsDomain:             types.StringValue(dnsDomain),
+				DnsSubDomain:          types.ListNull(types.StringType),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+				ProjectId:             types.StringValue(projectID),
+				Provider:              types.StringValue(constant.GCP),
+				Region:                types.StringValue(region),
+				State:                 types.StringValue(state),
+				Vendor:                types.StringValue(vendorPubSub),
 			},
 		},
 		"Empty SDK response": {
@@ -335,6 +358,20 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 				Vendor:                   &vendorConfluent,
 			},
 		},
+		"TF state with GCP PubSub": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Id:                    types.StringValue(id),
+				Provider:              types.StringValue(constant.GCP),
+				Vendor:                types.StringValue(vendorPubSub),
+				Region:                types.StringValue(region),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+			},
+			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
+				Provider: constant.GCP,
+				Vendor:   &vendorPubSub,
+				Region:   &region,
+			},
+		},
 	}
 
 	for testName, tc := range testCases {
@@ -431,6 +468,26 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 				ServiceEndpointId: types.StringNull(),
 				DnsDomain:         types.StringValue("example.com"),
 				Region:            types.StringValue("us-west1"),
+			},
+			expectError: true,
+			errorCount:  1,
+		},
+		"GCP PubSub with all required fields": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:              types.StringValue(constant.GCP),
+				Vendor:                types.StringValue(streamprivatelinkendpoint.VendorPubSub),
+				Region:                types.StringValue("us-west1"),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+			},
+			expectError: false,
+			errorCount:  0,
+		},
+		"GCP PubSub missing region": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:              types.StringValue(constant.GCP),
+				Vendor:                types.StringValue(streamprivatelinkendpoint.VendorPubSub),
+				Region:                types.StringNull(),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
 			},
 			expectError: true,
 			errorCount:  1,
