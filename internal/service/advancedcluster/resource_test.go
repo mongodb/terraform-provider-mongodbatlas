@@ -3,8 +3,10 @@ package advancedcluster_test
 import (
 	"context"
 	"fmt"
+	"maps"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -1457,9 +1459,9 @@ func configIWMPolicyOverrides(t *testing.T, projectID, clusterName string, overr
 	var overridesBlock string
 	if overrides != nil {
 		var entries strings.Builder
-		for key, jsonValue := range overrides {
+		for _, key := range slices.Sorted(maps.Keys(overrides)) {
 			fmt.Fprintf(&entries, `
-			%[1]s = jsonencode(%[2]s)`, key, jsonValue)
+			%[1]s = jsonencode(%[2]s)`, key, overrides[key])
 		}
 		overridesBlock = fmt.Sprintf(`
 		intelligent_workload_management_policy_overrides = {%[1]s
