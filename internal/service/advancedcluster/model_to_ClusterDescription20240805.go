@@ -64,7 +64,7 @@ func newIWMPolicyOverrides(diags *diag.Diagnostics, input customtypes.MapValue[j
 	for key, val := range elements {
 		normalized, ok := val.(jsontypes.Normalized)
 		if !ok {
-			diags.AddError("error converting intelligent workload management policy override", fmt.Sprintf("key %q: unexpected type %T", key, val))
+			diags.AddError("error converting intelligent_workload_management_policy_overrides", fmt.Sprintf("invalid value for %q", key))
 			return nil
 		}
 		if normalized.IsNull() || normalized.IsUnknown() {
@@ -72,7 +72,7 @@ func newIWMPolicyOverrides(diags *diag.Diagnostics, input customtypes.MapValue[j
 		}
 		var decoded any
 		if err := json.Unmarshal([]byte(normalized.ValueString()), &decoded); err != nil {
-			diags.AddError("error unmarshalling intelligent workload management policy override", fmt.Sprintf("key %q: %v", key, err))
+			diags.AddError("error converting intelligent_workload_management_policy_overrides", fmt.Sprintf("invalid JSON for %q: %s", key, normalized.ValueString()))
 			return nil
 		}
 		result[key] = decoded
