@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
@@ -44,15 +45,17 @@ func Resource() *schema.Resource {
 				},
 			},
 			"data_access_identity_provider_ids": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:             schema.TypeList,
+				Optional:         true,
+				DiffSuppressFunc: schemafunc.EqualStringListsIgnoringOrder,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
 			"post_auth_role_grants": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:             schema.TypeList,
+				Optional:         true,
+				DiffSuppressFunc: schemafunc.EqualStringListsIgnoringOrder,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
