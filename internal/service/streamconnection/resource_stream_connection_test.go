@@ -524,8 +524,10 @@ func TestAccStreamRSStreamConnection_GCPPubSub(t *testing.T) {
 }
 
 func TestAccStreamRSStreamConnection_GCPPubSubPrivateLink(t *testing.T) {
+	acc.SkipTestForCI(t) // requires a GCP cluster in the same region for privatelink provisioning, too slow for CI
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		clusterName             = acc.RandomClusterName()
 		connectionName          = acc.RandomName()
 		region                  = "us-east1"
 	)
@@ -535,7 +537,7 @@ func TestAccStreamRSStreamConnection_GCPPubSubPrivateLink(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: configureGCPPubSubPrivateLink(projectID, instanceName, connectionName, region),
+				Config: configureGCPPubSubPrivateLink(projectID, instanceName, clusterName, connectionName, region),
 				Check:  checkGCPPubSubPrivateLinkAttributes(resourceName, instanceName, connectionName),
 			},
 			{
@@ -1199,13 +1201,31 @@ func checkGCPPubSubAttributes(resourceName, workspaceName, connectionName string
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
 
-func configureGCPPubSubPrivateLink(projectID, instanceName, connectionName, region string) string {
+func configureGCPPubSubPrivateLink(projectID, instanceName, clusterName, connectionName, region string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[3]q
+			cluster_type = "REPLICASET"
+			replication_specs = [{
+				region_configs = [{
+					priority      = 7
+					provider_name = "GCP"
+					region_name   = "US_EAST_4"
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+					}
+				}]
+			}]
+		}
+
 		resource "mongodbatlas_stream_privatelink_endpoint" "test" {
 			project_id    = %[1]q
 			provider_name = "GCP"
 			vendor        = "PUBSUB"
-			region        = %[4]q
+			region        = %[5]q
+			depends_on    = [mongodbatlas_advanced_cluster.test]
 		}
 
 		resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
@@ -1221,7 +1241,7 @@ func configureGCPPubSubPrivateLink(projectID, instanceName, connectionName, regi
 		resource "mongodbatlas_stream_connection" "test" {
 			project_id      = %[1]q
 			workspace_name  = %[2]q
-			connection_name = %[3]q
+			connection_name = %[4]q
 			type            = "GCPPubSub"
 			gcp = {
 				service_account_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.gcp_config[0].service_account_for_atlas
@@ -1234,7 +1254,7 @@ func configureGCPPubSubPrivateLink(projectID, instanceName, connectionName, regi
 			}
 			depends_on = [mongodbatlas_cloud_provider_access_authorization.gcp_auth]
 		}
-	`, projectID, instanceName, connectionName, region)
+	`, projectID, instanceName, clusterName, connectionName, region)
 }
 
 func checkGCPPubSubPrivateLinkAttributes(resourceName, workspaceName, connectionName string) resource.TestCheckFunc {
