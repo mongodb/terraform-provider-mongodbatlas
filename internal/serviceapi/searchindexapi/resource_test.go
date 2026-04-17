@@ -66,7 +66,6 @@ func TestAccSearchIndexAPI_withSynonymsUpdatedToEmpty(t *testing.T) {
 	})
 }
 
-// EJECUTAR ESTE
 func TestAccSearchIndexAPI_MappingWithAnalyzersUpdatedToEmptyAnalyzers(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
@@ -257,7 +256,7 @@ func configFieldMappingOptionalAnalyzers(projectID, clusterName, indexName strin
 					]
 				}]`
 	}
-	ret := fmt.Sprintf(`
+	return fmt.Sprintf(`
         resource "mongodbatlas_search_index_api" "test" {
             group_id        = %[1]q
             cluster_name    = %[2]q
@@ -304,8 +303,6 @@ func configFieldMappingOptionalAnalyzers(projectID, clusterName, indexName strin
             }
         }
     `, projectID, clusterName, indexName, database, collection, analyzers)
-	fmt.Println(ret)
-	panic("stop here")
 }
 
 func checkBasic(projectID, clusterName, indexName string) resource.TestCheckFunc {
