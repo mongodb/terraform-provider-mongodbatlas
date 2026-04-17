@@ -112,7 +112,7 @@ func TestAccFederatedSettingsOrg_noDriftOnListFields(t *testing.T) {
 	config := configNoDrift(federationSettingsID, orgID, associatedDomain, idpID, oidcIDP1, oidcIDP2)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckFederatedSettingsIdentityProvider(t) },
+		PreCheck:                 func() { acc.PreCheckFederatedSettingsOIDCWorkloadIDPs(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
