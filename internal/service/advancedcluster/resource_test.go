@@ -555,6 +555,68 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 	})
 }
 
+func TestAccClusterAdvancedCluster_intelligentWorkloadManagementPolicyOverridesSetOnCreate(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // fresh project to make plural data source results deterministic
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configIWMPolicyOverrides(t, orgID, projectName, clusterName, map[string]string{"LOAD_SHEDDING": "true"}),
+				Check:  checkIWMPolicyOverrides(map[string]string{"LOAD_SHEDDING": "true"}),
+			},
+			{
+				Config: configIWMPolicyOverrides(t, orgID, projectName, clusterName, nil),
+				Check:  checkIWMPolicyOverrides(nil),
+			},
+			{
+				Config: configIWMPolicyOverrides(t, orgID, projectName, clusterName, map[string]string{"LOAD_SHEDDING": "false"}),
+				Check:  checkIWMPolicyOverrides(map[string]string{"LOAD_SHEDDING": "false"}),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
+func TestAccClusterAdvancedCluster_intelligentWorkloadManagementPolicyOverridesSetOnUpdate(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // fresh project to make plural data source results deterministic
+		clusterName = acc.RandomClusterName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configIWMPolicyOverrides(t, orgID, projectName, clusterName, nil),
+				Check:  checkIWMPolicyOverrides(nil),
+			},
+			{
+				Config: configIWMPolicyOverrides(t, orgID, projectName, clusterName, map[string]string{"LOAD_SHEDDING": "true"}),
+				Check:  checkIWMPolicyOverrides(map[string]string{"LOAD_SHEDDING": "true"}),
+			},
+			{
+				Config: configIWMPolicyOverrides(t, orgID, projectName, clusterName, map[string]string{"LOAD_SHEDDING": "false"}),
+				Check:  checkIWMPolicyOverrides(map[string]string{"LOAD_SHEDDING": "false"}),
+			},
+			{
+				Config: configIWMPolicyOverrides(t, orgID, projectName, clusterName, nil),
+				Check:  checkIWMPolicyOverrides(nil),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
 func TestAccClusterAdvancedCluster_withLabelIgnored(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -1396,6 +1458,81 @@ func checksDedicatedNVMeBackupEnabled(projectID, name string, checkPlural bool) 
 		"replication_specs.0.region_configs.0.provider_name":                   "AWS",
 	}
 	return checkAggr(nil, checkMap, originalChecks)
+}
+
+func configIWMPolicyOverrides(t *testing.T, orgID, projectName, clusterName string, overrides map[string]string) string {
+	t.Helper()
+	var overridesBlock string
+	if overrides != nil {
+		var entries strings.Builder
+		for key, jsonValue := range overrides {
+			fmt.Fprintf(&entries, `
+			%[1]s = jsonencode(%[2]s)`, key, jsonValue)
+		}
+		overridesBlock = fmt.Sprintf(`
+		intelligent_workload_management_policy_overrides = {%[1]s
+		}`, entries.String())
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "cluster_project" {
+			org_id = %[1]q
+			name   = %[2]q
+		}
+
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = mongodbatlas_project.cluster_project.id
+			name         = %[3]q
+			cluster_type = "REPLICASET"
+
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+				}]
+			}]
+			%[4]s
+		}
+	`, orgID, projectName, clusterName, overridesBlock) + dataSourcesConfig
+}
+
+func checkIWMPolicyOverrides(overrides map[string]string) resource.TestCheckFunc {
+	const pluralPrefix = "results.0."
+	const effectiveAttr = "effective_intelligent_workload_management_policies.%"
+	const overridesAttr = "intelligent_workload_management_policy_overrides.%"
+	checks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttrSet(resourceName, effectiveAttr),
+		resource.TestCheckResourceAttrSet(dataSourceName, effectiveAttr),
+		resource.TestCheckResourceAttrSet(dataSourcePluralName, pluralPrefix+effectiveAttr),
+	}
+	if overrides == nil {
+		checks = append(checks,
+			resource.TestCheckNoResourceAttr(resourceName, overridesAttr),
+			resource.TestCheckNoResourceAttr(dataSourceName, overridesAttr),
+			resource.TestCheckNoResourceAttr(dataSourcePluralName, pluralPrefix+overridesAttr),
+		)
+	} else {
+		lenStr := strconv.Itoa(len(overrides))
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, overridesAttr, lenStr),
+			resource.TestCheckResourceAttr(dataSourceName, overridesAttr, lenStr),
+			resource.TestCheckResourceAttr(dataSourcePluralName, pluralPrefix+overridesAttr, lenStr),
+		)
+		for key, jsonValue := range overrides {
+			entryKey := "intelligent_workload_management_policy_overrides." + key
+			checks = append(checks,
+				resource.TestCheckResourceAttr(resourceName, entryKey, jsonValue),
+				resource.TestCheckResourceAttr(dataSourceName, entryKey, jsonValue),
+				resource.TestCheckResourceAttr(dataSourcePluralName, pluralPrefix+entryKey, jsonValue),
+			)
+		}
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func configWithKeyValueBlocks(t *testing.T, orgID, projectName, clusterName, blockName string, blocks ...map[string]string) string {

@@ -2,14 +2,17 @@ package advancedcluster
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
@@ -48,7 +51,33 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		UseAwsTimeBasedSnapshotCopyForFastInitialSync: conversion.NilForUnknown(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync, input.UseAwsTimeBasedSnapshotCopyForFastInitialSync.ValueBoolPointer()),
 		VersionReleaseSystem:                          conversion.NilForUnknown(input.VersionReleaseSystem, input.VersionReleaseSystem.ValueStringPointer()),
 		AdvancedConfiguration:                         newClusterAdvancedConfiguration(ctx, &input.AdvancedConfiguration, diags),
+		IntelligentWorkloadManagementPolicyOverrides:  newIWMPolicyOverrides(diags, input.IntelligentWorkloadManagementPolicyOverrides),
 	}
+}
+
+func newIWMPolicyOverrides(diags *diag.Diagnostics, input customtypes.MapValue[jsontypes.Normalized]) any {
+	if input.IsNull() || input.IsUnknown() {
+		return nil
+	}
+	elements := input.Elements()
+	result := make(map[string]any, len(elements))
+	for key, val := range elements {
+		normalized, ok := val.(jsontypes.Normalized)
+		if !ok {
+			diags.AddError("error converting intelligent workload management policy override", fmt.Sprintf("key %q: unexpected type %T", key, val))
+			return nil
+		}
+		if normalized.IsNull() || normalized.IsUnknown() {
+			continue
+		}
+		var decoded any
+		if err := json.Unmarshal([]byte(normalized.ValueString()), &decoded); err != nil {
+			diags.AddError("error unmarshalling intelligent workload management policy override", fmt.Sprintf("key %q: %v", key, err))
+			return nil
+		}
+		result[key] = decoded
+	}
+	return result
 }
 
 func newClusterAdvancedConfiguration(ctx context.Context, objInput *types.Object, diags *diag.Diagnostics) *admin.ApiAtlasClusterAdvancedConfiguration {

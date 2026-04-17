@@ -2,12 +2,17 @@ package advancedcluster
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
@@ -22,6 +27,8 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 	replicationSpecs := newReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
 	tags := newTagsObjType(ctx, diags, input.Tags)
 	pinnedFCV := newPinnedFCVObjType(ctx, input, diags)
+	iwmOverrides := newIWMPoliciesMap(ctx, diags, input.IntelligentWorkloadManagementPolicyOverrides)
+	effectiveIWM := newIWMPoliciesMap(ctx, diags, input.EffectiveIntelligentWorkloadManagementPolicies)
 	if diags.HasError() {
 		return nil
 	}
@@ -51,10 +58,33 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 		StateName:                        types.StringValue(conversion.SafeValue(input.StateName)),
 		Tags:                             tags,
 		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
-		UseAwsTimeBasedSnapshotCopyForFastInitialSync: types.BoolValue(conversion.SafeValue(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync)),
-		VersionReleaseSystem:                          types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
-		PinnedFCV:                                     pinnedFCV,
+		UseAwsTimeBasedSnapshotCopyForFastInitialSync:  types.BoolValue(conversion.SafeValue(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync)),
+		VersionReleaseSystem:                           types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
+		PinnedFCV:                                      pinnedFCV,
+		IntelligentWorkloadManagementPolicyOverrides:   iwmOverrides,
+		EffectiveIntelligentWorkloadManagementPolicies: effectiveIWM,
 	}
+}
+
+func newIWMPoliciesMap(ctx context.Context, diags *diag.Diagnostics, input any) customtypes.MapValue[jsontypes.Normalized] {
+	if input == nil {
+		return customtypes.NewMapValueNull[jsontypes.Normalized](ctx)
+	}
+	m, ok := input.(map[string]any)
+	if !ok {
+		diags.AddError("error converting intelligent workload management policies", fmt.Sprintf("expected map[string]any, got %T", input))
+		return customtypes.NewMapValueNull[jsontypes.Normalized](ctx)
+	}
+	elements := make(map[string]attr.Value, len(m))
+	for key, val := range m {
+		raw, err := json.Marshal(val)
+		if err != nil {
+			diags.AddError("error marshaling intelligent workload management policy value", fmt.Sprintf("key %q: %v", key, err))
+			return customtypes.NewMapValueNull[jsontypes.Normalized](ctx)
+		}
+		elements[key] = jsontypes.NewNormalizedValue(string(raw))
+	}
+	return customtypes.NewMapValue[jsontypes.Normalized](ctx, elements)
 }
 
 func newTFModelDS(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, containerIDs map[string]string) *TFModelDS {

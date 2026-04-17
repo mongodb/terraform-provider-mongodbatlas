@@ -175,6 +175,8 @@ In addition to all arguments above, the following attributes are exported:
 * `cluster_type` - Type of the cluster that you want to create.
 * `encryption_at_rest_provider` - Possible values are AWS, GCP, AZURE or NONE. 
 * `tags` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
+* `intelligent_workload_management_policy_overrides` - Map of Intelligent Workload Management (IWM) policy overrides. Each key is an IWM policy name (for example, `LOAD_SHEDDING`) and each value is a JSON-encoded override.
+* `effective_intelligent_workload_management_policies` - Effective Intelligent Workload Management (IWM) policies applied to the cluster after any overrides are merged with defaults. Each value is a JSON-encoded policy.
 * `labels` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels). **(DEPRECATED)** Use `tags` instead.
 * `mongo_db_major_version` - Version of the cluster to deploy.
 * `pinned_fcv` - The pinned Feature Compatibility Version (FCV) with its associated expiration date. See [below](#pinned_fcv).
