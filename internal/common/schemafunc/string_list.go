@@ -23,6 +23,6 @@ func StringSlicesEqualIgnoringOrder(a, b []string) bool {
 // DiffSuppressFunc that suppresses diffs on a TypeList of strings when the only difference is element order.
 func EqualStringListsIgnoringOrder(k, oldValue, newValue string, d *schema.ResourceData) bool {
 	baseKey := k[:strings.LastIndex(k, ".")]
-	old, new := d.GetChange(baseKey)
-	return StringSlicesEqualIgnoringOrder(cast.ToStringSlice(old), cast.ToStringSlice(new))
+	oldVal, newVal := d.GetChange(baseKey)
+	return StringSlicesEqualIgnoringOrder(cast.ToStringSlice(oldVal), cast.ToStringSlice(newVal))
 }
