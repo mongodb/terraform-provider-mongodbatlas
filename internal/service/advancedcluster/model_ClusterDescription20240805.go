@@ -28,7 +28,6 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 	tags := newTagsObjType(ctx, diags, input.Tags)
 	pinnedFCV := newPinnedFCVObjType(ctx, input, diags)
 	iwmOverrides := newIWMPoliciesMap(ctx, diags, input.IntelligentWorkloadManagementPolicyOverrides)
-	effectiveIWM := newIWMPoliciesMap(ctx, diags, input.EffectiveIntelligentWorkloadManagementPolicies)
 	if diags.HasError() {
 		return nil
 	}
@@ -58,11 +57,10 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 		StateName:                        types.StringValue(conversion.SafeValue(input.StateName)),
 		Tags:                             tags,
 		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
-		UseAwsTimeBasedSnapshotCopyForFastInitialSync:  types.BoolValue(conversion.SafeValue(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync)),
-		VersionReleaseSystem:                           types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
-		PinnedFCV:                                      pinnedFCV,
-		IntelligentWorkloadManagementPolicyOverrides:   iwmOverrides,
-		EffectiveIntelligentWorkloadManagementPolicies: effectiveIWM,
+		UseAwsTimeBasedSnapshotCopyForFastInitialSync: types.BoolValue(conversion.SafeValue(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync)),
+		VersionReleaseSystem:                          types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
+		PinnedFCV:                                     pinnedFCV,
+		IntelligentWorkloadManagementPolicyOverrides:  iwmOverrides,
 	}
 }
 
@@ -94,6 +92,7 @@ func newTFModelDS(ctx context.Context, input *admin.ClusterDescription20240805, 
 	}
 	dsModel := conversion.CopyModel[TFModelDS](resourceModel)
 	dsModel.ReplicationSpecs = newReplicationSpecsDSObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
+	dsModel.EffectiveIntelligentWorkloadManagementPolicies = newIWMPoliciesMap(ctx, diags, input.EffectiveIntelligentWorkloadManagementPolicies)
 	return dsModel
 }
 

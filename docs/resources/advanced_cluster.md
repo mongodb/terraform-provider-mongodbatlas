@@ -876,7 +876,6 @@ In addition to all arguments above, the following attributes are exported:
 * `replication_specs[#].container_id` - A key-value map of the Network Peering Container ID(s) for the configuration specified in `region_configs`. The Container ID is the id of the container created when the first cluster in the region (AWS/Azure) or project (GCP) was created.  The syntax is `"providerName:regionName" = "containerId"`. Example `AWS:US_EAST_1" = "61e0797dde08fb498ca11a71`.
 * `config_server_type` Describes a sharded cluster's config server type. Valid values are `DEDICATED` and `EMBEDDED`. To learn more, see the [Sharded Cluster Config Servers documentation](https://dochub.mongodb.org/docs/manual/core/sharded-cluster-config-servers/).
 * `pinned_fcv.version` - Feature compatibility version of the cluster.
-* `effective_intelligent_workload_management_policies` - Effective Intelligent Workload Management (IWM) policies applied to the cluster after any overrides are merged with defaults. Each value is a JSON-encoded policy.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`

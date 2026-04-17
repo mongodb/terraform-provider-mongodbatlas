@@ -1506,7 +1506,6 @@ func checkIWMPolicyOverrides(overrides map[string]string) resource.TestCheckFunc
 	const effectiveAttr = "effective_intelligent_workload_management_policies.%"
 	const overridesAttr = "intelligent_workload_management_policy_overrides.%"
 	checks := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttrSet(resourceName, effectiveAttr),
 		resource.TestCheckResourceAttrSet(dataSourceName, effectiveAttr),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, pluralPrefix+effectiveAttr),
 	}

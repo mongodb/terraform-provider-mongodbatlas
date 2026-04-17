@@ -18,10 +18,9 @@ var (
 		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12", "custom_openssl_cipher_config_tls13"},
 		// When changing custom_openssl_cipher_config_tls12 -> custom_openssl_cipher_config_tls13 and vice versa, we CANNOT use the state value
 		// it needs to be unknown to avoid sending a PATCH with both values included.
-		"custom_openssl_cipher_config_tls12":               {"custom_openssl_cipher_config_tls13"},
-		"custom_openssl_cipher_config_tls13":               {"custom_openssl_cipher_config_tls12"},
-		"cluster_type":                                     {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
-		"intelligent_workload_management_policy_overrides": {"effective_intelligent_workload_management_policies"},  // effective policies depend on user-provided overrides
+		"custom_openssl_cipher_config_tls12": {"custom_openssl_cipher_config_tls13"},
+		"custom_openssl_cipher_config_tls13": {"custom_openssl_cipher_config_tls12"},
+		"cluster_type":                       {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
 	}
 )
 
