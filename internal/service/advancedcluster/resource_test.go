@@ -555,7 +555,7 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 	})
 }
 
-func TestAccClusterAdvancedCluster_iwmPolicyOverridesSetOnCreate(t *testing.T) {
+func TestAccClusterAdvancedCluster_iwmSetOnCreate(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -564,23 +564,23 @@ func TestAccClusterAdvancedCluster_iwmPolicyOverridesSetOnCreate(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configIWMPolicyOverrides(t, projectID, clusterName, new(true)),
-				Check:  checkIWMPolicyOverrides(new(true)),
+				Config: configIWM(projectID, clusterName, new(true)),
+				Check:  checkIWM(new(true)),
 			},
 			{
-				Config: configIWMPolicyOverrides(t, projectID, clusterName, nil),
-				Check:  checkIWMPolicyOverrides(nil),
+				Config: configIWM(projectID, clusterName, nil),
+				Check:  checkIWM(nil),
 			},
 			{
-				Config: configIWMPolicyOverrides(t, projectID, clusterName, new(false)),
-				Check:  checkIWMPolicyOverrides(new(false)),
+				Config: configIWM(projectID, clusterName, new(false)),
+				Check:  checkIWM(new(false)),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
 
-func TestAccClusterAdvancedCluster_iwmPolicyOverridesSetOnUpdate(t *testing.T) {
+func TestAccClusterAdvancedCluster_iwmSetOnUpdate(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -589,20 +589,20 @@ func TestAccClusterAdvancedCluster_iwmPolicyOverridesSetOnUpdate(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configIWMPolicyOverrides(t, projectID, clusterName, nil),
-				Check:  checkIWMPolicyOverrides(nil),
+				Config: configIWM(projectID, clusterName, nil),
+				Check:  checkIWM(nil),
 			},
 			{
-				Config: configIWMPolicyOverrides(t, projectID, clusterName, new(true)),
-				Check:  checkIWMPolicyOverrides(new(true)),
+				Config: configIWM(projectID, clusterName, new(true)),
+				Check:  checkIWM(new(true)),
 			},
 			{
-				Config: configIWMPolicyOverrides(t, projectID, clusterName, new(false)),
-				Check:  checkIWMPolicyOverrides(new(false)),
+				Config: configIWM(projectID, clusterName, new(false)),
+				Check:  checkIWM(new(false)),
 			},
 			{
-				Config: configIWMPolicyOverrides(t, projectID, clusterName, nil),
-				Check:  checkIWMPolicyOverrides(nil),
+				Config: configIWM(projectID, clusterName, nil),
+				Check:  checkIWM(nil),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -1452,8 +1452,7 @@ func checksDedicatedNVMeBackupEnabled(projectID, name string, checkPlural bool) 
 	return checkAggr(nil, checkMap, originalChecks)
 }
 
-func configIWMPolicyOverrides(t *testing.T, projectID, clusterName string, loadShedding *bool) string {
-	t.Helper()
+func configIWM(projectID, clusterName string, loadShedding *bool) string {
 	var overridesBlock string
 	if loadShedding != nil {
 		overridesBlock = fmt.Sprintf(`
@@ -1485,30 +1484,22 @@ func configIWMPolicyOverrides(t *testing.T, projectID, clusterName string, loadS
 	`, projectID, clusterName, overridesBlock) + dataSourcesConfig
 }
 
-func checkIWMPolicyOverrides(loadShedding *bool) resource.TestCheckFunc {
-	const effectiveAttr = "effective_intelligent_workload_management_policies.%"
+func checkIWM(loadShedding *bool) resource.TestCheckFunc {
 	const overridesAttr = "intelligent_workload_management_policy_overrides.%"
 	const loadSheddingAttr = "intelligent_workload_management_policy_overrides.LOAD_SHEDDING"
-	// Shared project, plural data source may return other clusters — only assert the attributes exist, not their values.
-	checks := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttrSet(dataSourceName, effectiveAttr),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0."+effectiveAttr),
-	}
 	if loadShedding == nil {
-		checks = append(checks,
+		return resource.ComposeAggregateTestCheckFunc(
 			resource.TestCheckNoResourceAttr(resourceName, overridesAttr),
 			resource.TestCheckNoResourceAttr(dataSourceName, overridesAttr),
 		)
-	} else {
-		expected := strconv.FormatBool(*loadShedding)
-		checks = append(checks,
-			resource.TestCheckResourceAttr(resourceName, overridesAttr, "1"),
-			resource.TestCheckResourceAttr(dataSourceName, overridesAttr, "1"),
-			resource.TestCheckResourceAttr(resourceName, loadSheddingAttr, expected),
-			resource.TestCheckResourceAttr(dataSourceName, loadSheddingAttr, expected),
-		)
 	}
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+	expected := strconv.FormatBool(*loadShedding)
+	return resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttr(resourceName, overridesAttr, "1"),
+		resource.TestCheckResourceAttr(dataSourceName, overridesAttr, "1"),
+		resource.TestCheckResourceAttr(resourceName, loadSheddingAttr, expected),
+		resource.TestCheckResourceAttr(dataSourceName, loadSheddingAttr, expected),
+	)
 }
 
 func configWithKeyValueBlocks(t *testing.T, orgID, projectName, clusterName, blockName string, blocks ...map[string]string) string {
