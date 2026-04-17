@@ -3,10 +3,8 @@ package advancedcluster_test
 import (
 	"context"
 	"fmt"
-	"maps"
 	"os"
 	"regexp"
-	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -566,16 +564,16 @@ func TestAccClusterAdvancedCluster_iwmPolicyOverridesSetOnCreate(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configIWMPolicyOverrides(t, projectID, clusterName, map[string]string{"LOAD_SHEDDING": "true"}),
-				Check:  checkIWMPolicyOverrides(map[string]string{"LOAD_SHEDDING": "true"}),
+				Config: configIWMPolicyOverrides(t, projectID, clusterName, new(true)),
+				Check:  checkIWMPolicyOverrides(new(true)),
 			},
 			{
 				Config: configIWMPolicyOverrides(t, projectID, clusterName, nil),
 				Check:  checkIWMPolicyOverrides(nil),
 			},
 			{
-				Config: configIWMPolicyOverrides(t, projectID, clusterName, map[string]string{"LOAD_SHEDDING": "false"}),
-				Check:  checkIWMPolicyOverrides(map[string]string{"LOAD_SHEDDING": "false"}),
+				Config: configIWMPolicyOverrides(t, projectID, clusterName, new(false)),
+				Check:  checkIWMPolicyOverrides(new(false)),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -595,12 +593,12 @@ func TestAccClusterAdvancedCluster_iwmPolicyOverridesSetOnUpdate(t *testing.T) {
 				Check:  checkIWMPolicyOverrides(nil),
 			},
 			{
-				Config: configIWMPolicyOverrides(t, projectID, clusterName, map[string]string{"LOAD_SHEDDING": "true"}),
-				Check:  checkIWMPolicyOverrides(map[string]string{"LOAD_SHEDDING": "true"}),
+				Config: configIWMPolicyOverrides(t, projectID, clusterName, new(true)),
+				Check:  checkIWMPolicyOverrides(new(true)),
 			},
 			{
-				Config: configIWMPolicyOverrides(t, projectID, clusterName, map[string]string{"LOAD_SHEDDING": "false"}),
-				Check:  checkIWMPolicyOverrides(map[string]string{"LOAD_SHEDDING": "false"}),
+				Config: configIWMPolicyOverrides(t, projectID, clusterName, new(false)),
+				Check:  checkIWMPolicyOverrides(new(false)),
 			},
 			{
 				Config: configIWMPolicyOverrides(t, projectID, clusterName, nil),
@@ -1454,18 +1452,14 @@ func checksDedicatedNVMeBackupEnabled(projectID, name string, checkPlural bool) 
 	return checkAggr(nil, checkMap, originalChecks)
 }
 
-func configIWMPolicyOverrides(t *testing.T, projectID, clusterName string, overrides map[string]string) string {
+func configIWMPolicyOverrides(t *testing.T, projectID, clusterName string, loadShedding *bool) string {
 	t.Helper()
 	var overridesBlock string
-	if overrides != nil {
-		var entries strings.Builder
-		for _, key := range slices.Sorted(maps.Keys(overrides)) {
-			fmt.Fprintf(&entries, `
-			%[1]s = jsonencode(%[2]s)`, key, overrides[key])
-		}
+	if loadShedding != nil {
 		overridesBlock = fmt.Sprintf(`
-		intelligent_workload_management_policy_overrides = {%[1]s
-		}`, entries.String())
+		intelligent_workload_management_policy_overrides = {
+			LOAD_SHEDDING = %[1]t
+		}`, *loadShedding)
 	}
 
 	return fmt.Sprintf(`
@@ -1491,32 +1485,28 @@ func configIWMPolicyOverrides(t *testing.T, projectID, clusterName string, overr
 	`, projectID, clusterName, overridesBlock) + dataSourcesConfig
 }
 
-func checkIWMPolicyOverrides(overrides map[string]string) resource.TestCheckFunc {
+func checkIWMPolicyOverrides(loadShedding *bool) resource.TestCheckFunc {
 	const effectiveAttr = "effective_intelligent_workload_management_policies.%"
 	const overridesAttr = "intelligent_workload_management_policy_overrides.%"
+	const loadSheddingAttr = "intelligent_workload_management_policy_overrides.LOAD_SHEDDING"
 	// Shared project, plural data source may return other clusters — only assert the attributes exist, not their values.
 	checks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(dataSourceName, effectiveAttr),
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0."+effectiveAttr),
 	}
-	if overrides == nil {
+	if loadShedding == nil {
 		checks = append(checks,
 			resource.TestCheckNoResourceAttr(resourceName, overridesAttr),
 			resource.TestCheckNoResourceAttr(dataSourceName, overridesAttr),
 		)
 	} else {
-		lenStr := strconv.Itoa(len(overrides))
+		expected := strconv.FormatBool(*loadShedding)
 		checks = append(checks,
-			resource.TestCheckResourceAttr(resourceName, overridesAttr, lenStr),
-			resource.TestCheckResourceAttr(dataSourceName, overridesAttr, lenStr),
+			resource.TestCheckResourceAttr(resourceName, overridesAttr, "1"),
+			resource.TestCheckResourceAttr(dataSourceName, overridesAttr, "1"),
+			resource.TestCheckResourceAttr(resourceName, loadSheddingAttr, expected),
+			resource.TestCheckResourceAttr(dataSourceName, loadSheddingAttr, expected),
 		)
-		for key, jsonValue := range overrides {
-			entryKey := "intelligent_workload_management_policy_overrides." + key
-			checks = append(checks,
-				resource.TestCheckResourceAttr(resourceName, entryKey, jsonValue),
-				resource.TestCheckResourceAttr(dataSourceName, entryKey, jsonValue),
-			)
-		}
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
