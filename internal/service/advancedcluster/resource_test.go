@@ -1470,9 +1470,10 @@ func configIWMPolicyOverrides(t *testing.T, projectID, clusterName string, overr
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id   = %[1]q
-			name         = %[2]q
-			cluster_type = "REPLICASET"
+			project_id             = %[1]q
+			name                   = %[2]q
+			cluster_type           = "REPLICASET"
+			version_release_system = "CONTINUOUS" # IWM policy overrides require non-sharded + CONTINUOUS releases
 
 			replication_specs = [{
 				region_configs = [{

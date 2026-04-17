@@ -344,7 +344,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				CustomType:          customtypes.NewMapType[jsontypes.Normalized](ctx),
 				ElementType:         jsontypes.NormalizedType{},
-				MarkdownDescription: "Map of Intelligent Workload Management (IWM) policy overrides. Each key is an IWM policy name (for example, `LOAD_SHEDDING`) and each value is a JSON-encoded override. Use `jsonencode` to construct each value.",
+				MarkdownDescription: "Map of Intelligent Workload Management (IWM) policy overrides applied on top of Atlas defaults. Each key is an IWM policy name and each value is a JSON literal.",
 			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
@@ -392,11 +392,17 @@ func dataSourceOverridenFields(ctx context.Context) map[string]dsschema.Attribut
 			MarkdownDescription: descUseEffectiveFields,
 		},
 		"replication_specs": replicationSpecsSchemaDS(),
+		"intelligent_workload_management_policy_overrides": dsschema.MapAttribute{
+			Computed:            true,
+			CustomType:          customtypes.NewMapType[jsontypes.Normalized](ctx),
+			ElementType:         jsontypes.NormalizedType{},
+			MarkdownDescription: "Map of Intelligent Workload Management (IWM) policy overrides applied on top of Atlas defaults. Each key is an IWM policy name and each value is a JSON literal.",
+		},
 		"effective_intelligent_workload_management_policies": dsschema.MapAttribute{
 			Computed:            true,
 			CustomType:          customtypes.NewMapType[jsontypes.Normalized](ctx),
 			ElementType:         jsontypes.NormalizedType{},
-			MarkdownDescription: "Effective Intelligent Workload Management (IWM) policies applied to the cluster after any overrides are merged with defaults. Each value is a JSON-encoded policy.",
+			MarkdownDescription: "Effective Intelligent Workload Management (IWM) policies applied to the cluster. Each key is an IWM policy name and each value is a JSON literal.",
 		},
 	}
 }
