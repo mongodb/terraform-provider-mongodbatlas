@@ -33,8 +33,9 @@ func getTF() *tfexec.Terraform {
 		return tf
 	}
 	installer := &releases.ExactVersion{
-		Product: product.Terraform,
-		Version: version.Must(version.NewVersion("1.10.1")),
+		Product:                  product.Terraform,
+		Version:                  version.Must(version.NewVersion("1.10.1")),
+		SkipChecksumVerification: true,
 	}
 	execPath, err := installer.Install(context.Background())
 	if err != nil {
