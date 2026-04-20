@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_encryption_at_rest_private_endpoint: Fixes inconsistent state error when adding `timeouts` block to an existing resource
+```

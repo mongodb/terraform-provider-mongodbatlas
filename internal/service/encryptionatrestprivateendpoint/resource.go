@@ -124,6 +124,23 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 }
 
 func (r *encryptionAtRestPrivateEndpointRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var state TFEarPrivateEndpointModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	var plan TFEarPrivateEndpointModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	// Only copy Terraform-managed fields (Timeouts) from plan into prior state.
+	// Writing the full plan would hide API-owned attribute drift from future plans.
+	state.Timeouts = plan.Timeouts
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.AddWarning(warnUnsupportedOperation, "Updating the private endpoint for encryption at rest is not supported. To modify your infrastructure, please delete the existing mongodbatlas_encryption_at_rest_private_endpoint resource and create a new one with the necessary updates")
 }
 
