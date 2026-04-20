@@ -346,7 +346,7 @@ Read-Only:
 
 	* AZURE provider with EVENTHUB or CONFLUENT vendor.
 
-	* For GCP provider with PUBSUB vendor, this is computed by the API.
+	* For GCP provider with PUBSUB vendor, the API computes this process.
 - `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones. Required for AWS Provider and CONFLUENT vendor. If your AWS CONFLUENT cluster doesn't use subdomains, you must set this to the empty array [].
 - `error_message` (String) Error message if the connection is in a failed state.
 - `id` (String) The ID of the Private Link connection.

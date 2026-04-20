@@ -25,7 +25,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 	* AZURE provider with EVENTHUB or CONFLUENT vendor.
 
-	* For GCP provider with PUBSUB vendor, this is computed by the API.`,
+	* For GCP provider with PUBSUB vendor, the API computes this process.`,
 			},
 			"dns_sub_domain": schema.ListAttribute{
 				Optional:            true,

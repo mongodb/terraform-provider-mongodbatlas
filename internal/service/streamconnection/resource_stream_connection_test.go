@@ -1211,7 +1211,7 @@ func configureGCPPubSubPrivateLink(projectID, instanceName, clusterName, connect
 				region_configs = [{
 					priority      = 7
 					provider_name = "GCP"
-					region_name   = "US_EAST_4"
+					region_name   = "US_EAST_1"
 					electable_specs = {
 						instance_size = "M10"
 						node_count    = 3
