@@ -1,0 +1,3 @@
+```release-note:bug
+`mongodbatlas_alert_configuration`: Fixed apply failure and drift when `email_enabled = true` or `sms_enabled = true` is set on a notification type other than `ORG`, `GROUP`, or `USER` (Atlas API does not support these fields for other types).
+```
