@@ -11,19 +11,19 @@ import (
 
 var validEmailSMSEnabledTypes = []string{"ORG", "GROUP", "USER"}
 
-type BoolEnabledValidator struct {
+type boolEnabledValidator struct {
 	fieldName string
 }
 
-func (v BoolEnabledValidator) Description(_ context.Context) string {
+func (v boolEnabledValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("'%s' is only valid if 'type_name' is set to 'ORG', 'GROUP', or 'USER'", v.fieldName)
 }
 
-func (v BoolEnabledValidator) MarkdownDescription(ctx context.Context) string {
+func (v boolEnabledValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-func (v BoolEnabledValidator) ValidateBool(ctx context.Context, req validator.BoolRequest, resp *validator.BoolResponse) {
+func (v boolEnabledValidator) ValidateBool(ctx context.Context, req validator.BoolRequest, resp *validator.BoolResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() || !req.ConfigValue.ValueBool() {
 		return
 	}
@@ -49,10 +49,10 @@ func (v BoolEnabledValidator) ValidateBool(ctx context.Context, req validator.Bo
 	))
 }
 
-func ValidEmailEnabled() validator.Bool {
-	return BoolEnabledValidator{fieldName: "email_enabled"}
+func validEmailEnabled() validator.Bool {
+	return boolEnabledValidator{fieldName: "email_enabled"}
 }
 
-func ValidSMSEnabled() validator.Bool {
-	return BoolEnabledValidator{fieldName: "sms_enabled"}
+func validSMSEnabled() validator.Bool {
+	return boolEnabledValidator{fieldName: "sms_enabled"}
 }

@@ -332,7 +332,6 @@ func TestAccConfigRSAlertConfiguration_emailEnabledInvalidType(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				// email_enabled = true is only valid for ORG, GROUP, or USER (not EMAIL type).
 				Config:      configEmailEnabledNotification(projectID),
 				ExpectError: regexp.MustCompile(`(?s).*'email_enabled'.*only valid.*type_name.*ORG.*GROUP.*USER`),
 			},
@@ -1552,21 +1551,13 @@ func configEmailEnabledNotification(projectID string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_alert_configuration" "test" {
 			project_id = %[1]q
-			event_type = "CPS_SNAPSHOT_BEHIND"
 			enabled    = true
+			event_type = "NO_PRIMARY"
 
 			notification {
 				type_name     = "EMAIL"
 				email_address = "test@mongodb.com"
-				interval_min  = 5
-				delay_min     = 0
 				email_enabled = true
-			}
-
-			threshold_config {
-				operator  = "GREATER_THAN"
-				threshold = 48
-				units     = "HOURS"
 			}
 		}
 	`, projectID)

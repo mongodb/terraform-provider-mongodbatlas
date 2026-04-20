@@ -273,7 +273,7 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 							Optional: true,
 							Computed: true,
 							Validators: []validator.Bool{
-								ValidEmailEnabled(),
+								validEmailEnabled(),
 							},
 						},
 						"interval_min": schema.Int64Attribute{
@@ -304,7 +304,7 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 							Optional: true,
 							Computed: true,
 							Validators: []validator.Bool{
-								ValidSMSEnabled(),
+								validSMSEnabled(),
 							},
 						},
 						"team_id": schema.StringAttribute{
