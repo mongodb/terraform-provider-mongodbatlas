@@ -30,7 +30,6 @@ TEMPLATE_FOLDER_PATH="${TEMPLATE_FOLDER_PATH:-"templates"}" # PATH to the templa
 
 trap 'rm -R docs-out/' EXIT # temp dir cleanup when script exits
 
-# TODO: restore --tf-version once HashiCorp fixes expired PGP key in hc-install (hashicorp/hc-install#370), tracked in CLOUDP-398527.
 tfplugindocs generate --website-source-dir "${TEMPLATE_FOLDER_PATH}"  --rendered-website-dir "docs-out" --provider-name "mongodbatlas"
 
 printf "\nStarting file move\n\n"
