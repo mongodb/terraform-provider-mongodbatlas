@@ -16,6 +16,7 @@ func CheckDestroyDeleteProjectSAs(s *terraform.State) error {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	var errs []error
 	for name, rs := range s.RootModule().Resources {
+		// Prefix includes `.` to avoid matching other resources such as project_service_account_access_list_entry.
 		if !strings.HasPrefix(name, "mongodbatlas_project_service_account.") {
 			continue
 		}
