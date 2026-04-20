@@ -74,10 +74,6 @@ func newIWMPoliciesMap(ctx context.Context, diags *diag.Diagnostics, attrName st
 		diags.AddError(errSummary, fmt.Sprintf("unexpected value: %v", input))
 		return customtypes.NewMapValueNull[jsontypes.Normalized](ctx)
 	}
-	if len(m) == 0 {
-		// Atlas may return an empty object when no policies are set; map that to null so Optional config with no value stays null in state.
-		return customtypes.NewMapValueNull[jsontypes.Normalized](ctx)
-	}
 	elements := make(map[string]attr.Value, len(m))
 	for key, val := range m {
 		raw, err := json.Marshal(val)
