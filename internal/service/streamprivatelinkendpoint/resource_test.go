@@ -369,10 +369,11 @@ func basicPubSubTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	var (
-		projectID = acc.ProjectIDExecution(t)
-		provider  = "GCP"
-		vendor    = "PUBSUB"
-		region    = "us-east1"
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+		provider    = "GCP"
+		vendor      = "PUBSUB"
+		region      = "us-east4"
 	)
 
 	return &resource.TestCase{
@@ -381,7 +382,7 @@ func basicPubSubTestCase(t *testing.T) *resource.TestCase {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.GetCompletePubSubConfig(projectID, region),
+				Config: acc.GetCompletePubSubConfig(projectID, clusterName, region),
 				Check:  checksStreamPrivatelinkEndpointPubSub(projectID, provider, vendor, region),
 			},
 			{

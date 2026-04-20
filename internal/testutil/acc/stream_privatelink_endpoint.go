@@ -180,13 +180,31 @@ func GetCompleteS3Config(projectID, region string) string {
 	}`, projectID, region)
 }
 
-func GetCompletePubSubConfig(projectID, region string) string {
+func GetCompletePubSubConfig(projectID, clusterName, region string) string {
 	return fmt.Sprintf(`
+	resource "mongodbatlas_advanced_cluster" "test" {
+		project_id   = %[1]q
+		name         = %[3]q
+		cluster_type = "REPLICASET"
+		replication_specs = [{
+			region_configs = [{
+				priority      = 7
+				provider_name = "GCP"
+				region_name   = "US_EAST_4"
+				electable_specs = {
+					instance_size = "M10"
+					node_count    = 3
+				}
+			}]
+		}]
+	}
+
 	resource "mongodbatlas_stream_privatelink_endpoint" "test" {
 		project_id    = %[1]q
 		provider_name = "GCP"
 		vendor        = "PUBSUB"
 		region        = %[2]q
+		depends_on    = [mongodbatlas_advanced_cluster.test]
 	}
 
 	data "mongodbatlas_stream_privatelink_endpoint" "test" {
@@ -199,5 +217,5 @@ func GetCompletePubSubConfig(projectID, region string) string {
 		depends_on = [
 			mongodbatlas_stream_privatelink_endpoint.test
 		]
-	}`, projectID, region)
+	}`, projectID, region, clusterName)
 }

@@ -526,10 +526,11 @@ func TestAccStreamRSStreamConnection_GCPPubSub(t *testing.T) {
 func TestAccStreamRSStreamConnection_GCPPubSubPrivateLink(t *testing.T) {
 	acc.SkipTestForCI(t) // requires a GCP cluster in the same region for privatelink provisioning, too slow for CI
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		clusterName             = acc.RandomClusterName()
-		connectionName          = acc.RandomName()
-		region                  = "us-east1"
+		projectID      = acc.ProjectIDExecution(t)
+		instanceName   = acc.RandomStreamInstanceName()
+		clusterName    = acc.RandomClusterName()
+		connectionName = acc.RandomName()
+		region         = "us-east4"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -1211,7 +1212,7 @@ func configureGCPPubSubPrivateLink(projectID, instanceName, clusterName, connect
 				region_configs = [{
 					priority      = 7
 					provider_name = "GCP"
-					region_name   = "US_EAST_1"
+					region_name   = "US_EAST_4"
 					electable_specs = {
 						instance_size = "M10"
 						node_count    = 3
@@ -1220,12 +1221,13 @@ func configureGCPPubSubPrivateLink(projectID, instanceName, clusterName, connect
 			}]
 		}
 
-		resource "mongodbatlas_stream_privatelink_endpoint" "test" {
-			project_id    = %[1]q
-			provider_name = "GCP"
-			vendor        = "PUBSUB"
-			region        = %[5]q
-			depends_on    = [mongodbatlas_advanced_cluster.test]
+		resource "mongodbatlas_stream_workspace" "test" {
+			project_id     = %[1]q
+			workspace_name = %[2]q
+			data_process_region = {
+				region         = "US_EAST4"
+				cloud_provider = "GCP"
+			}
 		}
 
 		resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
@@ -1238,9 +1240,17 @@ func configureGCPPubSubPrivateLink(projectID, instanceName, clusterName, connect
 			role_id    = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
 		}
 
+		resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+			project_id    = %[1]q
+			provider_name = "GCP"
+			vendor        = "PUBSUB"
+			region        = %[5]q
+			depends_on    = [mongodbatlas_advanced_cluster.test, mongodbatlas_cloud_provider_access_authorization.gcp_auth]
+		}
+
 		resource "mongodbatlas_stream_connection" "test" {
 			project_id      = %[1]q
-			workspace_name  = %[2]q
+			workspace_name  = mongodbatlas_stream_workspace.test.workspace_name
 			connection_name = %[4]q
 			type            = "GCPPubSub"
 			gcp = {
@@ -1252,7 +1262,6 @@ func configureGCPPubSubPrivateLink(projectID, instanceName, clusterName, connect
 					connection_id = mongodbatlas_stream_privatelink_endpoint.test.id
 				}
 			}
-			depends_on = [mongodbatlas_cloud_provider_access_authorization.gcp_auth]
 		}
 	`, projectID, instanceName, clusterName, connectionName, region)
 }
