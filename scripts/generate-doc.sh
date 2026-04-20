@@ -78,8 +78,8 @@ fi
 
 trap 'rm -R docs-out/' EXIT # temp dir cleanup when script exits
 
-# TODO: revert to --tf-version once HashiCorp fixes expired PGP key in hc-install (hashicorp/hc-install#370), tracked in CLOUDP-398527.
-tfplugindocs generate --tfpath "$(which terraform)" --website-source-dir "${TEMPLATE_FOLDER_PATH}"  --rendered-website-dir "docs-out"
+# TODO: restore --tf-version once HashiCorp fixes expired PGP key in hc-install (hashicorp/hc-install#370), tracked in CLOUDP-398527.
+tfplugindocs generate --website-source-dir "${TEMPLATE_FOLDER_PATH}"  --rendered-website-dir "docs-out"
 
 if [ "${is_ephemeral}" = true ]; then
     if [ ! -f "docs-out/ephemeral-resources/${resource_name}.md" ]; then
