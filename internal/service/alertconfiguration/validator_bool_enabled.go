@@ -33,6 +33,9 @@ func (v BoolEnabledValidator) ValidateBool(ctx context.Context, req validator.Bo
 	if diags.HasError() {
 		return
 	}
+	if notification.TypeName.IsNull() || notification.TypeName.IsUnknown() {
+		return
+	}
 	typeNameValue := notification.TypeName.ValueString()
 	for _, validType := range validEmailSMSEnabledTypes {
 		if strings.EqualFold(typeNameValue, validType) {

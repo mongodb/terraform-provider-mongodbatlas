@@ -332,7 +332,7 @@ func TestAccConfigRSAlertConfiguration_emailEnabledInvalidType(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				// email_enabled = true is only valid for ORG, GROUP, or USER — not EMAIL type.
+				// email_enabled = true is only valid for ORG, GROUP, or USER (not EMAIL type).
 				Config:      configEmailEnabledNotification(projectID),
 				ExpectError: regexp.MustCompile(`(?s).*'email_enabled'.*only valid.*type_name.*ORG.*GROUP.*USER`),
 			},
