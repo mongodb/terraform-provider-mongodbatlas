@@ -21,6 +21,9 @@ subcategory: "Streams"
 {{ tffile (printf "examples/%s/gcp_confluent/main.tf" .Name )}}
 
 ### GCP Pub/Sub Private Service Connect
+
+~> **NOTE:** A GCP cluster must be provisioned in the same region before creating a GCP Pub/Sub private endpoint.
+
 {{ tffile (printf "examples/%s/gcp_pubsub/main.tf" .Name )}}
 
 ### Further Examples

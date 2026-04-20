@@ -299,7 +299,7 @@ output "service_attachment_uris" {
 ```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
   project_id   = var.project_id
-  name         = "gcp-cluster"
+  name         = var.cluster_name
   cluster_type = "REPLICASET"
   replication_specs = [{
     region_configs = [{
