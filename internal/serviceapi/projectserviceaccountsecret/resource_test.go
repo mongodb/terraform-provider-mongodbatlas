@@ -3,7 +3,6 @@ package projectserviceaccountsecret_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"testing"
 
@@ -108,6 +107,7 @@ func TestAccProjectServiceAccountSecret_dataSourceErrors(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyDeleteProjectSAs,
 		Steps: []resource.TestStep{
 			{
 				Config:      configDataSourceInvalidClientID(projectID, name),
@@ -217,7 +217,10 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	err := acc.CheckDestroyDeleteProjectSAs(s)
+	if err != nil {
+		return err
+	}
 	for name, rs := range s.RootModule().Resources {
 		if name != resourceName {
 			continue
@@ -232,9 +235,6 @@ func checkDestroy(s *terraform.State) error {
 		if exists, _ := secretExists(projectID, clientID, id); exists {
 			return fmt.Errorf("project service account secret (%s/%s/%s) still exists", id, projectID, clientID)
 		}
-
-		// Delete the service account (project_service_account DELETE only removes the project assignment)
-		_, _ = acc.ConnV2().ServiceAccountsApi.DeleteOrgServiceAccount(context.Background(), clientID, orgID).Execute()
 	}
 	return nil
 }

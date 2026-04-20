@@ -3,7 +3,6 @@ package projectserviceaccount_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -148,7 +147,10 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	err := acc.CheckDestroyDeleteProjectSAs(s)
+	if err != nil {
+		return err
+	}
 	for name, rs := range s.RootModule().Resources {
 		if name != resourceName {
 			continue
@@ -162,12 +164,6 @@ func checkDestroy(s *terraform.State) error {
 		_, _, err := acc.ConnV2().ServiceAccountsApi.GetGroupServiceAccount(context.Background(), projectID, clientID).Execute()
 		if err == nil {
 			return fmt.Errorf("project service account (%s/%s) still exists", projectID, clientID)
-		}
-
-		// Delete the service account (project_service_account DELETE only removes the project assignment)
-		_, err = acc.ConnV2().ServiceAccountsApi.DeleteOrgServiceAccount(context.Background(), clientID, orgID).Execute()
-		if err != nil {
-			return fmt.Errorf("failed to cleanup service account (%s/%s): %w", orgID, clientID, err)
 		}
 	}
 	return nil
