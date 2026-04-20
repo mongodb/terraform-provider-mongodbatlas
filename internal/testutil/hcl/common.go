@@ -32,9 +32,11 @@ func getTF() *tfexec.Terraform {
 	if tf != nil {
 		return tf
 	}
+	// TODO: revert SkipChecksumVerification once HashiCorp fixes expired PGP key in hc-install (hashicorp/hc-install#370), tracked in CLOUDP-398527.
 	installer := &releases.ExactVersion{
-		Product: product.Terraform,
-		Version: version.Must(version.NewVersion("1.10.1")),
+		Product:                  product.Terraform,
+		Version:                  version.Must(version.NewVersion("1.10.1")),
+		SkipChecksumVerification: true,
 	}
 	execPath, err := installer.Install(context.Background())
 	if err != nil {
@@ -101,6 +103,14 @@ func GetBlockBody(t *testing.T, block *hclwrite.Block) *hclsyntax.Body {
 	return body
 }
 
+// StringSliceToHCL converts a Go string slice to an HCL literal.
+// Returns "null" for nil, "[]" for empty, or a quoted list like `["a", "b"]`.
 func StringSliceToHCL(slice []string) string {
+	if slice == nil {
+		return "null"
+	}
+	if len(slice) == 0 {
+		return "[]"
+	}
 	return fmt.Sprintf("[%s]", `"`+strings.Join(slice, `", "`)+`"`)
 }

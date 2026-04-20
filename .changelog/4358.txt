@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_federated_database_instance: Adds `private_endpoint_hostnames` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_federated_database_instance: Adds `private_endpoint_hostnames` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_federated_database_instances: Adds `private_endpoint_hostnames` attribute
+```

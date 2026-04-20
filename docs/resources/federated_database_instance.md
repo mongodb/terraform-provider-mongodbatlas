@@ -211,6 +211,12 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Terraform's unique identifier used internally for state management.
 * `hostnames` - The list of hostnames assigned to the Federated Database Instance. Each string in the array is a hostname assigned to the Federated Database Instance.
+* `private_endpoint_hostnames` - The list of private endpoint hostnames assigned to the Federated Database Instance.
+
+  -> **NOTE:** When the private endpoint and the federated database instance are created in the same `apply`, this field may be empty as Atlas populates it asynchronously. In that case, run `terraform apply -refresh-only` after the initial apply to update the state with the populated hostnames, then run `terraform apply` again if you have downstream resources that consume this value.
+
+  * `private_endpoint_hostnames.#.hostname` -  Human-readable label that identifies the host.
+  * `private_endpoint_hostnames.#.private_endpoint` - Human-readable label that identifies the private endpoint.
 * `state` - Current state of the Federated Database Instance:
   * `ACTIVE` - The Federated Database Instance is active and verified. You can query the data stores associated with the Federated Database Instance.
   * `DELETED` - The Federated Database Instance was deleted.

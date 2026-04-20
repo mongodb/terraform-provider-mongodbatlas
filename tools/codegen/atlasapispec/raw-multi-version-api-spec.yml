@@ -14746,6 +14746,7 @@ components:
                             - GROUP_CHARTS_ACTIVATED
                             - GROUP_CHARTS_UPGRADED
                             - GROUP_CHARTS_RESET
+                            - GROUP_DEFAULT_ALERTS_SETTINGS_CHANGED
                           title: Group Audit Types
                           type: string
                         - enum:
@@ -17847,6 +17848,7 @@ components:
                     - GROUP_CHARTS_ACTIVATED
                     - GROUP_CHARTS_UPGRADED
                     - GROUP_CHARTS_RESET
+                    - GROUP_DEFAULT_ALERTS_SETTINGS_CHANGED
                   title: Group Audit Types
                   type: string
                 - enum:
@@ -21898,7 +21900,7 @@ components:
                     type: array
                 withDefaultAlertsSettings:
                     default: true
-                    description: Flag that indicates whether to create the project with default alert settings. This setting cannot be updated after project creation.
+                    description: Flag that indicates whether to create the project with default alert settings.
                     type: boolean
             required:
                 - clusterCount
@@ -22443,6 +22445,9 @@ components:
                     items:
                         $ref: '#/components/schemas/ResourceTag'
                     type: array
+                withDefaultAlertsSettings:
+                    description: Flag that indicates whether the project can automatically create default alerts.
+                    type: boolean
             type: object
         GroupUserRequest:
             properties:
@@ -42412,7 +42417,7 @@ info:
     termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
     title: MongoDB Atlas Administration API
     version: "2.0"
-    x-xgen-sha: 9171fbde7d1056bc16d16c54d9d9fedf301462d9
+    x-xgen-sha: 89ed99cad2b18e0be76ec5ab02184ba4c31b13c7
 openapi: 3.0.1
 paths:
     /api/atlas/v2:
@@ -69251,6 +69256,10 @@ tags:
       name: Access Tracking
     - description: Returns pre-filtered activity feed links for projects and organizations. The returned links can be shared and opened to view the activity feed with the specified filters applied.
       name: Activity Feed
+    - description: Returns, adds, edits, and removes API Keys for your AI Models.
+      name: AI Model API Keys
+    - description: Returns, adds, edits, and removes Rate Limits for your AI Models.
+      name: AI Model Rate Limits
     - description: Returns and edits the conditions that trigger alerts and how MongoDB Cloud notifies users. This collection remains under revision and may change.
       name: Alert Configurations
     - description: Returns and acknowledges alerts that MongoDB Cloud triggers based on the alert conditions that you define. This collection remains under revision and may change.
@@ -69308,6 +69317,8 @@ tags:
       name: Legacy Backup
     - description: Returns, creates, updates, and removes lifecycle management policies for a cluster within a specified project.
       name: Lifecycle Management
+    - description: Returns User-Configurable Project Limits.
+      name: Limit Description
     - description: Returns, edits, and removes maintenance windows. The maintenance procedure that MongoDB Cloud performs requires at least one replica set election during the maintenance window per replica set. You can defer a scheduled maintenance event for a project up to two times. Deferred maintenance events occur during your preferred maintenance window exactly one week after the previously scheduled date and time.
       name: Maintenance Windows
     - description: Returns, adds, and edits MongoDB Cloud users.
