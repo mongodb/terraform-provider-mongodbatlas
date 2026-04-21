@@ -47,15 +47,18 @@ func Resource() *schema.Resource {
 			"role_assignments": {
 				Type:     schema.TypeSet,
 				Required: true,
+				Set:      hashRoleAssignment,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"group_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 						},
 						"org_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "",
 						},
 						"roles": {
 							Type:     schema.TypeSet,
