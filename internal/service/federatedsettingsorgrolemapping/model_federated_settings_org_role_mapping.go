@@ -16,7 +16,7 @@ import (
 // serialization instability in SDKv2, which causes all outer elements
 // to show as remove+add when the set size changes.
 // See CLOUDP-397797 for more details.
-func hashRoleAssignment(v interface{}) int {
+func hashRoleAssignment(v any) int {
 	m := v.(map[string]any)
 	orgID := m["org_id"].(string)
 	groupID := m["group_id"].(string)
