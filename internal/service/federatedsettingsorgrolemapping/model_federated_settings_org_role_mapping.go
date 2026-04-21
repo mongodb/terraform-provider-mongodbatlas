@@ -17,9 +17,13 @@ import (
 // to show as remove+add when the set size changes.
 // See CLOUDP-397797 for more details.
 func hashRoleAssignment(v any) int {
-	m := v.(map[string]any)
-	orgID := m["org_id"].(string)
-	groupID := m["group_id"].(string)
+	m, ok := v.(map[string]any)
+	if !ok {
+		return schema.HashString("")
+	}
+
+	orgID, _ := m["org_id"].(string)
+	groupID, _ := m["group_id"].(string)
 	var roles []string
 	if rolesSet, ok := m["roles"].(*schema.Set); ok {
 		for _, r := range rolesSet.List() {
