@@ -45,6 +45,7 @@ func Resource() *schema.Resource {
 				},
 			},
 			"data_access_identity_provider_ids": {
+				// CLOUDP-398552 will deal with update to TypeSet for this field
 				Type:             schema.TypeList,
 				Optional:         true,
 				DiffSuppressFunc: schemafunc.EqualStringListsIgnoringOrder,
@@ -53,6 +54,7 @@ func Resource() *schema.Resource {
 				},
 			},
 			"post_auth_role_grants": {
+				// CLOUDP-398552 will deal with update to TypeSet for this field
 				Type:             schema.TypeList,
 				Optional:         true,
 				DiffSuppressFunc: schemafunc.EqualStringListsIgnoringOrder,
