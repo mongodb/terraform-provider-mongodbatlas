@@ -179,6 +179,37 @@ resource "mongodbatlas_stream_connection" "example_gcp_pubsub" {
 }
 ```
 
+### Example GCPPubSub Connection with Private Service Connect
+
+```terraform
+resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
+    project_id    = var.project_id
+    provider_name = "GCP"
+}
+
+resource "mongodbatlas_cloud_provider_access_authorization" "gcp_auth" {
+    project_id = var.project_id
+    role_id    = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
+}
+
+resource "mongodbatlas_stream_connection" "example_gcp_pubsub_psc" {
+    project_id      = var.project_id
+    workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+    connection_name = "GCPPubSubPSCConnection"
+    type            = "GCPPubSub"
+    gcp = {
+      service_account_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.gcp_config[0].service_account_for_atlas
+    }
+    networking = {
+      access = {
+        type          = "PRIVATE_LINK"
+        connection_id = mongodbatlas_stream_privatelink_endpoint.gcp_pubsub.id
+      }
+    }
+    depends_on = [mongodbatlas_cloud_provider_access_authorization.gcp_auth]
+}
+```
+
 ### Example Https Connection
 
 ```terraform
@@ -310,6 +341,7 @@ If `type` is of value `AWSLambda` the following additional arguments are defined
 
 If `type` is of value `GCPPubSub` the following additional arguments are defined:
 * `gcp` - The configuration for GCP Pub/Sub connection. See [GCP](#GCP)
+* `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
 
 If `type` is of value `Https` the following additional attributes are defined:
 * `url` - URL of the HTTPs endpoint that will be used for creating a connection.
@@ -383,7 +415,7 @@ resource "mongodbatlas_stream_connection" "example" {
 
 * `create` - (Optional) The maximum time to wait for the stream connection to be fully provisioned after creation. Defaults to `20m` (20 minutes).
 * `update` - (Optional) The maximum time to wait for the stream connection to be fully provisioned after an update. Defaults to `20m` (20 minutes).
-* `delete` - (Optional) The maximum time to wait for the stream connection to be fully deleted. Defaults to `10m` (10 minutes).
+* `delete` - (Optional) The maximum time to wait for the stream connection to be fully deleted. Defaults to `20m` (20 minutes).
 
 ## Import
 
