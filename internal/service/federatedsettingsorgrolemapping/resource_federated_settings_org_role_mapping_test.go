@@ -7,10 +7,54 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
+
+func TestAccFederatedSettingsOrgRoleMapping_NoDriftOnRoleAssignments(t *testing.T) {
+	acc.SkipTestForCI(t)
+
+	var (
+		resourceName         = "mongodbatlas_federated_settings_org_role_mapping.test"
+		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
+		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
+		groupID              = os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID")
+		oneRoleConfig        = configOneRoleAssignment(federationSettingsID, orgID)
+		twoRolesConfig       = configTwoRoleAssignments(federationSettingsID, orgID, groupID)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckFederatedSettingsRoleMapping(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: oneRoleConfig,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "role_assignments.#", "1"),
+				),
+			},
+			{
+				Config: twoRolesConfig,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "role_assignments.#", "2"),
+				),
+			},
+			{
+				Config: twoRolesConfig,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+			},
+		},
+	})
+}
 
 func TestAccFederatedSettingsOrgRoleMapping_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
@@ -148,4 +192,36 @@ func configBasic(federationSettingsID, orgID, groupID, externalGroupName string)
 		items_per_page = 100
 	}
 	  `, federationSettingsID, orgID, groupID, externalGroupName)
+}
+
+func configOneRoleAssignment(federationSettingsID, orgID string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_federated_settings_org_role_mapping" "test" {
+		federation_settings_id = %[1]q
+		org_id                 = %[2]q
+		external_group_name    = "testgroup"
+		role_assignments {
+			org_id = %[2]q
+			roles  = ["ORG_MEMBER"]
+		}
+	}
+	`, federationSettingsID, orgID)
+}
+
+func configTwoRoleAssignments(federationSettingsID, orgID, groupID string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_federated_settings_org_role_mapping" "test" {
+		federation_settings_id = %[1]q
+		org_id                 = %[2]q
+		external_group_name    = "testgroup"
+		role_assignments {
+			org_id = %[2]q
+			roles  = ["ORG_MEMBER"]
+		}
+		role_assignments {
+			group_id = %[3]q
+			roles    = ["GROUP_OWNER"]
+		}
+	}
+	`, federationSettingsID, orgID, groupID)
 }

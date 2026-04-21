@@ -343,6 +343,14 @@ func PreCheckFederatedSettings(tb testing.TB) {
 	}
 }
 
+func PreCheckFederatedSettingsRoleMapping(tb testing.TB) {
+	tb.Helper()
+	PreCheckFederatedSettings(tb)
+	if os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID") == "" {
+		tb.Fatal("`MONGODB_ATLAS_FEDERATED_GROUP_ID` must be set for federated settings role mapping acceptance testing")
+	}
+}
+
 func PreCheckFederatedSettingsIdentityProvider(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID") == "" ||
