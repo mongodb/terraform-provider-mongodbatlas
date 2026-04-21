@@ -20,6 +20,7 @@ BUG FIXES:
 * resource/mongodbatlas_advanced_cluster: Fixes `config_server_type` inconsistent result after apply when `config_server_management_mode` is `ATLAS_MANAGED` ([#4380](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4380))
 * resource/mongodbatlas_cloud_provider_access_setup: Fixes import reporting wrong error when read fails ([#4378](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4378))
 * resource/mongodbatlas_encryption_at_rest_private_endpoint: Fixes inconsistent state error when adding `timeouts` block to an existing resource ([#4377](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4377))
+* resource/mongodbatlas_federated_settings_org_config: Fixes perpetual plan drift on `post_auth_role_grants` and `data_access_identity_provider_ids` caused by non-deterministic API response ordering ([#4384](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4384))
 * resource/mongodbatlas_stream_connection: Fixes default timeout for create, update, and delete operations to use 20 minutes instead of the generic 3-hour fallback ([#4382](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4382))
 
 ## 2.10.0 (April 08, 2026)
