@@ -11,6 +11,9 @@ import (
 
 // Returns true if both slices contain the same elements regardless of order.
 func StringSlicesEqualIgnoringOrder(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
 	sortedA := make([]string, len(a))
 	copy(sortedA, a)
 	sort.Strings(sortedA)
