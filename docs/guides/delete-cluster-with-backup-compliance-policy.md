@@ -70,7 +70,7 @@ Terraform when a Backup Compliance Policy is enabled?**.
 
 ### Option 1: Use `skip_on_delete` (recommended)
 
-Set `skip_on_delete = true` on the `mongodbatlas_cloud_backup_schedule` resource. When `terraform destroy` runs, the provider removes the backup schedule from Terraform state without calling the Atlas API, so the Backup Compliance Policy is not triggered. The subsequent cluster delete then proceeds normally, and Atlas removes the schedule together with the cluster (unless `retain_backups_enabled` is set on the cluster).
+Set `skip_on_delete = true` on the `mongodbatlas_cloud_backup_schedule` resource. When `terraform destroy` runs, the provider removes the backup schedule from Terraform state without calling the Atlas API, so the Backup Compliance Policy is not triggered. The subsequent cluster delete then proceeds normally, and Atlas removes the schedule together with the cluster.
 
 ```terraform
 resource "mongodbatlas_cloud_backup_schedule" "this" {
