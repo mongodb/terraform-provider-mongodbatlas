@@ -82,7 +82,7 @@ resource "mongodbatlas_cloud_backup_schedule" "this" {
 Run `terraform apply` to persist the new attribute, then run `terraform destroy`.
 
 #### 2. Use a `removed` block to avoid the DELETE call for `mongodbatlas_cloud_backup_schedule`
-**Note**: If you are using a Terraform Module, we recommend using method 4 if you can access to the terraform state, or follow the [module example](../module/README.md#how-to-delete-the-cluster-and-retain-their-backup-snapshots).
+**Note**: If you are using a Terraform Module, we recommend using method 4 if you have access to the Terraform state, or follow the [module example](../module/README.md#how-to-delete-the-cluster-and-retain-its-backup-snapshots).
 
 This method requires Terraform CLI [1.7 or later](https://developer.hashicorp.com/terraform/language/resources/syntax#removing-resources).
 

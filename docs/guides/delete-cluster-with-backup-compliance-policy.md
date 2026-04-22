@@ -81,7 +81,7 @@ resource "mongodbatlas_cloud_backup_schedule" "this" {
 }
 ```
 
-With this flag set, you can run `terraform destroy` directly without any additional steps.
+Run `terraform apply` first so `skip_on_delete = true` is persisted in state, then run `terraform destroy`. If you skip the apply step, Terraform will use the prior state (without the flag) and call the Atlas delete API for the backup schedule.
 
 ### Option 2: Remove the backup schedule from state manually
 
