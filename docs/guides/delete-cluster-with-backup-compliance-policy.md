@@ -9,6 +9,8 @@ a Backup Compliance Policy (BCP) is enabled and how the following Terraform
 resources are related to each other: `mongodbatlas_backup_compliance_policy`,
 `mongodbatlas_cloud_backup_schedule`, and `mongodbatlas_advanced_cluster`.
 
+-> **Quick answer:** Set `skip_on_delete = true` on the `mongodbatlas_cloud_backup_schedule` resource, run `terraform apply` to persist the flag, then run `terraform destroy`. See [Option 1](#option-1-use-skip_on_delete-recommended) below for the full example. The rest of this guide explains why the default destroy flow fails and lists alternatives for cases where you cannot modify the configuration.
+
 ## Why Do You Need a Backup Compliance Policy?
 
 You must use a Backup Compliance policy if you have strict data protection
