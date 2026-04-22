@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_cloud_backup_schedule: Adds `skip_on_delete` attribute to skip the API delete call on `terraform destroy`, useful for clusters with an active Backup Compliance Policy
+```
