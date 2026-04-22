@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.11.0 (April 22, 2026)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_federated_database_instance: Adds `private_endpoint_hostnames` attribute ([#4358](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4358))
