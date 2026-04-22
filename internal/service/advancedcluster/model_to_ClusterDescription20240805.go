@@ -56,8 +56,11 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 }
 
 func newIWMPolicyOverrides(diags *diag.Diagnostics, input customtypes.MapValue[jsontypes.Normalized]) any {
-	if input.IsNull() || input.IsUnknown() {
+	if input.IsUnknown() {
 		return nil
+	}
+	if input.IsNull() {
+		return json.RawMessage("null")
 	}
 	elements := input.Elements()
 	result := make(map[string]any, len(elements))
