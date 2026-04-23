@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 
@@ -112,7 +113,15 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 }
 
 func ShouldUsePreviousMongoDBMajorVersion(beforeVersion, afterVersion string) bool {
-	return beforeVersion != afterVersion && FormatMongoDBMajorVersion(beforeVersion) == FormatMongoDBMajorVersion(afterVersion)
+	if beforeVersion == afterVersion {
+		return false
+	}
+	return majorComponent(beforeVersion) == majorComponent(afterVersion)
+}
+
+func majorComponent(version string) string {
+	major, _, _ := strings.Cut(FormatMongoDBMajorVersion(version), ".")
+	return major
 }
 
 func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {

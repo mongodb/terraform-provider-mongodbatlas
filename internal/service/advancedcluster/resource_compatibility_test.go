@@ -26,6 +26,12 @@ func TestAdvancedCluster_ShouldUsePreviousMongoDBMajorVersion(t *testing.T) {
 			after:    "8.0",
 			expected: false,
 		},
+		{
+			name:     "keeps previous version when minor version differs within same major",
+			before:   "8.0",
+			after:    "8.2",
+			expected: true,
+		},
 	}
 
 	for _, tc := range testCases {
