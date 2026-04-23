@@ -67,15 +67,15 @@ terraform apply
 
 To proceed with the deletion you can choose one of the methods below:
 
-#### 1. (Recommended) Set `skip_on_delete = true` on `mongodbatlas_cloud_backup_schedule`
-When `skip_on_delete` is set to `true`, `terraform destroy` removes `mongodbatlas_cloud_backup_schedule` from the Terraform state without calling the Atlas API, so the Backup Compliance Policy is not triggered. The schedule is then removed automatically when the cluster is deleted.
+#### 1. (Recommended) Set `skip_destroy = true` on `mongodbatlas_cloud_backup_schedule`
+When `skip_destroy` is set to `true`, `terraform destroy` removes `mongodbatlas_cloud_backup_schedule` from the Terraform state without calling the Atlas API, so the Backup Compliance Policy is not triggered. The schedule is then removed automatically when the cluster is deleted.
 
 Update the resource:
 ```terraform
 resource "mongodbatlas_cloud_backup_schedule" "this" {
   project_id     = var.project_id
   cluster_name   = resource.mongodbatlas_advanced_cluster.this.name
-  skip_on_delete = true
+  skip_destroy = true
   ...
 }
 ```

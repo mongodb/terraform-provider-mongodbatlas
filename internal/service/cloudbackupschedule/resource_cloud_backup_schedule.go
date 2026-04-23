@@ -58,7 +58,7 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"skip_on_delete": {
+			"skip_destroy": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -455,7 +455,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	if d.Get("skip_on_delete").(bool) {
+	if d.Get("skip_destroy").(bool) {
 		d.SetId("")
 		return nil
 	}

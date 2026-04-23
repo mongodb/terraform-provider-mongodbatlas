@@ -11,7 +11,7 @@ To do that, we'll use:
 
 ## How to delete the cluster and retain its backup snapshots
 
--> **Recommended alternative:** If the module exposes `skip_on_delete` on `mongodbatlas_cloud_backup_schedule` (or forwards it through the module interface), set it to `true`, run `terraform apply`, and then `terraform destroy`. The provider removes the schedule from state without calling the Atlas API, so the Backup Compliance Policy is not triggered and the two-block workaround below is not needed. Use the steps below only if the module does not expose this attribute.
+-> **Recommended alternative:** If the module exposes `skip_destroy` on `mongodbatlas_cloud_backup_schedule` (or forwards it through the module interface), set it to `true`, run `terraform apply`, and then `terraform destroy`. The provider removes the schedule from state without calling the Atlas API, so the Backup Compliance Policy is not triggered and the two-block workaround below is not needed. Use the steps below only if the module does not expose this attribute.
 
 Let's begin by assuming you've created a module instance with the following configuration:
 
