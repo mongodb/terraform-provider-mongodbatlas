@@ -10,7 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 )
 
@@ -153,14 +155,18 @@ func diffSuppressJSON(k, old, newStr string, d *schema.ResourceData) bool {
 	return schemafunc.EqualJSON(old, newStr, "vector search index")
 }
 
+var searchIndexPendingStates = []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING", "DELETING"}
+
 func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		searchIndex, _, err := connV2.AtlasSearchApi.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+		searchIndex, resp, err := connV2.AtlasSearchApi.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 		if err != nil {
+			if validate.StatusNotFound(resp) {
+				return "", retrystrategy.RetryStrategyDeletedState, nil
+			}
 			return nil, "ERROR", err
 		}
-		status := conversion.SafeValue(searchIndex.Status)
-		return searchIndex, status, nil
+		return searchIndex, conversion.SafeValue(searchIndex.Status), nil
 	}
 }
 

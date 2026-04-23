@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20250312018/admin"
@@ -245,6 +246,18 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.Errorf("error deleting search index (%s): %s", d.Get("name").(string), err)
 	}
+
+	stateConf := &retry.StateChangeConf{
+		Pending:    searchIndexPendingStates,
+		Target:     []string{retrystrategy.RetryStrategyDeletedState},
+		Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
+		Timeout:    d.Timeout(schema.TimeoutDelete),
+		MinTimeout: 5 * time.Second,
+		Delay:      5 * time.Second,
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return diag.Errorf("error waiting for search index (%s) to be deleted: %s", d.Get("name").(string), err)
+	}
 	return nil
 }
 
@@ -370,7 +383,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.Get("wait_for_index_build_completion").(bool) {
 		timeout := d.Timeout(schema.TimeoutUpdate)
 		stateConf := &retry.StateChangeConf{
-			Pending:    []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING"},
+			Pending:    searchIndexPendingStates,
 			Target:     []string{"READY", "STEADY"},
 			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
 			Timeout:    timeout,
@@ -577,7 +590,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.Get("wait_for_index_build_completion").(bool) {
 		timeout := d.Timeout(schema.TimeoutCreate)
 		stateConf := &retry.StateChangeConf{
-			Pending:    []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING"},
+			Pending:    searchIndexPendingStates,
 			Target:     []string{"READY", "STEADY"},
 			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
 			Timeout:    timeout,
