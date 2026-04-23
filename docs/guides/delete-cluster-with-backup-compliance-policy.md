@@ -9,7 +9,7 @@ a Backup Compliance Policy (BCP) is enabled and how the following Terraform
 resources are related to each other: `mongodbatlas_backup_compliance_policy`,
 `mongodbatlas_cloud_backup_schedule`, and `mongodbatlas_advanced_cluster`.
 
--> **NOTE:** The `mongodbatlas_cloud_backup_schedule` resource now supports a new `skip_destroy` attribute, which is the recommended way to delete a cluster when a Backup Compliance Policy is enabled. See [Option 1](#option-1-use-skip_destroy-recommended) for the complete example. The remainder of this guide explains the underlying behavior and covers alternative approaches for configurations that cannot be modified.
+~> **DEPRECATION:** This guide is deprecated as of provider version 2.12.0. The recommended way to delete a cluster when a Backup Compliance Policy is enabled is to set `skip_destroy = true` on the `mongodbatlas_cloud_backup_schedule` resource and run `terraform destroy`. Nothing else is needed. The rest of this guide is kept for customers on provider versions earlier than 2.12.0 that do not support `skip_destroy`.
 
 ## Why Do You Need a Backup Compliance Policy?
 
@@ -68,26 +68,7 @@ Terraform when a Backup Compliance Policy is enabled?**.
 
 ## Steps to Delete a MongoDB Atlas Cluster with BCP Enabled and Retain Snapshots
 
-### Option 1: Use `skip_destroy` (recommended)
-
-Set `skip_destroy = true` on the `mongodbatlas_cloud_backup_schedule` resource. When `terraform destroy` runs, the provider removes the backup schedule from Terraform state without calling the Atlas API, so the Backup Compliance Policy is not triggered. The subsequent cluster delete then proceeds normally, and Atlas removes the schedule together with the cluster.
-
-```terraform
-resource "mongodbatlas_cloud_backup_schedule" "this" {
-  project_id   = mongodbatlas_advanced_cluster.this.project_id
-  cluster_name = mongodbatlas_advanced_cluster.this.name
-
-  skip_destroy = true
-
-  ...
-}
-```
-
-Run `terraform apply` first so `skip_destroy = true` is persisted in state, then run `terraform destroy`. If you skip the apply step, Terraform will use the prior state (without the flag) and call the Atlas delete API for the backup schedule.
-
-### Option 2: Remove the backup schedule from state manually
-
-If you cannot add the flag to your configuration, follow a two-step process that aligns with the requirements of your enabled Backup Compliance Policy.
+On provider versions earlier than 2.12.0, follow a two-step process that aligns with the requirements of your enabled Backup Compliance Policy.
 
 - **Step 1: Update Terraform to remove `mongodbatlas_cloud_backup_schedule` from
   the state**. Before deleting the cluster, instruct Terraform to "ignore" the
