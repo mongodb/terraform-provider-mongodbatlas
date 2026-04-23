@@ -34,7 +34,6 @@
 
 set -euo pipefail
 
-TF_VERSION="${TF_VERSION:-"1.14.8"}" # TF version to use when running tfplugindocs. Default: 1.14.8
 TEMPLATE_FOLDER_PATH="${TEMPLATE_FOLDER_PATH:-"templates"}" # PATH to the templates folder. Default: templates
 
 
@@ -78,7 +77,7 @@ fi
 
 trap 'rm -R docs-out/' EXIT # temp dir cleanup when script exits
 
-tfplugindocs generate --tf-version "${TF_VERSION}" --website-source-dir "${TEMPLATE_FOLDER_PATH}"  --rendered-website-dir "docs-out"
+tfplugindocs generate --website-source-dir "${TEMPLATE_FOLDER_PATH}"  --rendered-website-dir "docs-out"
 
 if [ "${is_ephemeral}" = true ]; then
     if [ ! -f "docs-out/ephemeral-resources/${resource_name}.md" ]; then

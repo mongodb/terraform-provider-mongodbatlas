@@ -629,7 +629,7 @@ data "mongodbatlas_federated_database_instance" "test" {
 }
 
 func waitForStatusUpdate() {
-	time.Sleep(2 * time.Minute)
+	time.Sleep(4 * time.Minute)
 }
 
 func configWithPrivateEndpoint(projectID, name string) string {
