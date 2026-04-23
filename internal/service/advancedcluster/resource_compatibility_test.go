@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAdvancedCluster_overrideMongoDBMajorVersion(t *testing.T) {
+func TestAdvancedCluster_ShouldUsePreviousMongoDBMajorVersion(t *testing.T) {
 	testCases := []struct {
 		name     string
 		before   string
