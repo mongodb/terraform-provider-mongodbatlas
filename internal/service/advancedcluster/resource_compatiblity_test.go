@@ -1,50 +1,36 @@
-package advancedcluster
+package advancedcluster_test
 
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestOverrideAttributesWithPrevStateValueMongoDBMajorVersion(t *testing.T) {
+func TestAdvancedCluster_overrideMongoDBMajorVersion(t *testing.T) {
 	testCases := []struct {
 		name     string
 		before   string
 		after    string
-		expected string
+		expected bool
 	}{
 		{
 			name:     "keeps previous version when only formatting differs",
 			before:   "8",
 			after:    "8.0",
-			expected: "8",
+			expected: true,
 		},
 		{
 			name:     "uses API value when major version actually changed",
 			before:   "7.0",
 			after:    "8.0",
-			expected: "8.0",
+			expected: false,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			modelIn := &TFModel{
-				MongoDBMajorVersion: types.StringValue(tc.before),
-				Labels:              types.MapNull(types.StringType),
-				Tags:                types.MapNull(types.StringType),
-			}
-			modelOut := &TFModel{
-				MongoDBMajorVersion: types.StringValue(tc.after),
-				Labels:              types.MapNull(types.StringType),
-				Tags:                types.MapNull(types.StringType),
-			}
-
-			overrideAttributesWithPrevStateValue(modelIn, modelOut)
-
-			if got := modelOut.MongoDBMajorVersion.ValueString(); got != tc.expected {
-				t.Fatalf("unexpected mongo_db_major_version: got %q want %q", got, tc.expected)
-			}
+			assert.Equal(t, tc.expected, advancedcluster.ShouldUsePreviousMongoDBMajorVersion(tc.before, tc.after))
 		})
 	}
 }

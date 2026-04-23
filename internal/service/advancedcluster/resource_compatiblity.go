@@ -95,7 +95,8 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	}
 	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())
 	afterVersion := conversion.NilForUnknown(modelOut.MongoDBMajorVersion, modelOut.MongoDBMajorVersion.ValueStringPointer())
-	if beforeVersion != nil && afterVersion != nil && shouldUsePreviousMongoDBMajorVersion(*beforeVersion, *afterVersion) {
+	// Only preserve prior state value for formatting differences (e.g. "8" vs "8.0"), not real version transitions.
+	if beforeVersion != nil && afterVersion != nil && ShouldUsePreviousMongoDBMajorVersion(*beforeVersion, *afterVersion) {
 		modelOut.MongoDBMajorVersion = types.StringPointerValue(beforeVersion)
 	}
 	overrideMapStringWithPrevStateValue(&modelIn.Labels, &modelOut.Labels)
@@ -110,7 +111,7 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	modelOut.UseEffectiveFields = modelIn.UseEffectiveFields
 }
 
-func shouldUsePreviousMongoDBMajorVersion(beforeVersion, afterVersion string) bool {
+func ShouldUsePreviousMongoDBMajorVersion(beforeVersion, afterVersion string) bool {
 	return beforeVersion != afterVersion && FormatMongoDBMajorVersion(beforeVersion) == FormatMongoDBMajorVersion(afterVersion)
 }
 
