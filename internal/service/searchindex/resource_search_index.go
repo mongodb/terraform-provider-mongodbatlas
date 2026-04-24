@@ -19,7 +19,9 @@ import (
 )
 
 const (
-	vectorSearch = "vectorSearch"
+	vectorSearch                  = "vectorSearch"
+	indexBuildDelayAndMinTimeout  = 1 * time.Minute
+	indexDeleteDelayAndMinTimeout = 5 * time.Second
 )
 
 func Resource() *schema.Resource {
@@ -252,8 +254,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Target:     []string{retrystrategy.RetryStrategyDeletedState},
 		Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
-		MinTimeout: 5 * time.Second,
-		Delay:      5 * time.Second,
+		MinTimeout: indexDeleteDelayAndMinTimeout,
+		Delay:      indexDeleteDelayAndMinTimeout,
 	}
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.Errorf("error waiting for search index (%s) to be deleted: %s", d.Get("name").(string), err)
@@ -387,8 +389,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			Target:     []string{"READY", "STEADY"},
 			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
 			Timeout:    timeout,
-			MinTimeout: 1 * time.Minute,
-			Delay:      1 * time.Minute,
+			MinTimeout: indexBuildDelayAndMinTimeout,
+			Delay:      indexBuildDelayAndMinTimeout,
 		}
 
 		// Wait, catching any errors
@@ -594,8 +596,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			Target:     []string{"READY", "STEADY"},
 			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
 			Timeout:    timeout,
-			MinTimeout: 1 * time.Minute,
-			Delay:      1 * time.Minute,
+			MinTimeout: indexBuildDelayAndMinTimeout,
+			Delay:      indexBuildDelayAndMinTimeout,
 		}
 
 		// Wait, catching any errors
