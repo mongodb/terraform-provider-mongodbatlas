@@ -53,12 +53,14 @@ func Resource() *schema.Resource {
 						"group_id": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "",
+							// Default ensures SDKv2 uses "" instead of null for unset fields, matching state representation and preventing hash mismatches. See CLOUDP-397797.
+							Default: "",
 						},
 						"org_id": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "",
+							// Default ensures SDKv2 uses "" instead of null for unset fields, matching state representation and preventing hash mismatches. See CLOUDP-397797.
+							Default: "",
 						},
 						"roles": {
 							Type:     schema.TypeSet,
