@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_search_index: Wait for deletion to complete before returning from destroy
+```
