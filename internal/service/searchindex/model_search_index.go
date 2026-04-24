@@ -155,8 +155,7 @@ func diffSuppressJSON(k, old, newStr string, d *schema.ResourceData) bool {
 	return schemafunc.EqualJSON(old, newStr, "vector search index")
 }
 
-// searchIndexPendingStates is shared across all operations to be inclusive,
-// e.g., a customer might destroy an index while IN_PROGRESS if wait_for_index_build_completion was not used.
+// searchIndexPendingStates is used for all operations. Over-inclusion is safe; only reaching a target state matters (e.g., an index can be IN_PROGRESS when delete is called).
 var searchIndexPendingStates = []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING", "DELETING"}
 
 func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
