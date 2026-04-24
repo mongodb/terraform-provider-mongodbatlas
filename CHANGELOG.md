@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * resource/mongodbatlas_cloud_backup_schedule: Adds `skip_destroy` attribute to skip the API delete call on `terraform destroy`, allowing `terraform destroy` to remove a cluster when a Backup Compliance Policy (BCP) is enabled ([#4397](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4397))
 
+BUG FIXES:
+
+* resource/mongodbatlas_search_index: Wait for deletion to complete before returning from destroy ([#4401](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4401))
+
 ## 2.11.0 (April 22, 2026)
 
 ENHANCEMENTS:
