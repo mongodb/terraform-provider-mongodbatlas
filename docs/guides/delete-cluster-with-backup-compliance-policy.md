@@ -9,7 +9,7 @@ a Backup Compliance Policy (BCP) is enabled and how the following Terraform
 resources are related to each other: `mongodbatlas_backup_compliance_policy`,
 `mongodbatlas_cloud_backup_schedule`, and `mongodbatlas_advanced_cluster`.
 
-~> **DEPRECATION:** This guide is deprecated as of provider version 2.12.0. The recommended way to delete a cluster when a Backup Compliance Policy is enabled is to set `skip_destroy = true` on the `mongodbatlas_cloud_backup_schedule` resource and run `terraform destroy`. Nothing else is needed. The rest of this guide is kept for customers on provider versions earlier than 2.12.0 that do not support `skip_destroy`.
+~> **DEPRECATION:** This guide is deprecated. The recommended way to delete a cluster when a Backup Compliance Policy is enabled is to set `skip_destroy = true` on the `mongodbatlas_cloud_backup_schedule` resource and run `terraform destroy`. Nothing else is needed. The rest of this guide is kept for customers on earlier provider versions that do not support `skip_destroy`.
 
 ## Why Do You Need a Backup Compliance Policy?
 
@@ -68,7 +68,7 @@ Terraform when a Backup Compliance Policy is enabled?**.
 
 ## Steps to Delete a MongoDB Atlas Cluster with BCP Enabled and Retain Snapshots
 
-On provider versions earlier than 2.12.0, follow a two-step process that aligns with the requirements of your enabled Backup Compliance Policy.
+On earlier provider versions that do not support `skip_destroy`, follow a two-step process that aligns with the requirements of your enabled Backup Compliance Policy.
 
 - **Step 1: Update Terraform to remove `mongodbatlas_cloud_backup_schedule` from
   the state**. Before deleting the cluster, instruct Terraform to "ignore" the

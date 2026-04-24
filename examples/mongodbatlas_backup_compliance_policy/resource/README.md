@@ -1,7 +1,7 @@
 # Example - MongoDB Atlas Backup Compliance Policy
 
 > [!WARNING]
-> **Deprecated:** the destroy workaround shown in this example is superseded by the `skip_destroy` attribute on `mongodbatlas_cloud_backup_schedule`, available from provider version 2.12.0. Setting `skip_destroy = true` lets `terraform destroy` remove the cluster without being blocked by the Backup Compliance Policy, and no extra steps are needed. This example is kept for customers on provider versions earlier than 2.12.0 that do not support `skip_destroy`.
+> **Deprecated:** the destroy workaround shown in this example is superseded by the `skip_destroy` attribute on `mongodbatlas_cloud_backup_schedule`. Setting `skip_destroy = true` lets `terraform destroy` remove the cluster without being blocked by the Backup Compliance Policy, and no extra steps are needed. This example is kept for customers on earlier provider versions that do not support `skip_destroy`.
 
 This example shows how to configure the `mongodbatlas_backup_compliance_policy` and the [lifecycle impact](#backup-compliance-policy-impact-on-a-cluster-with-cloud-backup-schedule) on the `mongodbatlas_advanced_cluster` and `mongodbatlas_cloud_backup_schedule`. With Backup Compliance Policy enabled, cluster backups are retained after a cluster is deleted (remember to set `retainBackups=true`) and backups can be used until retention expiration.
 

@@ -1,7 +1,7 @@
 # Example - MongoDB Atlas Backup Compliance Policy with a module
 
 > [!WARNING]
-> **Deprecated:** the destroy workaround shown in this example is superseded by the `skip_destroy` attribute on `mongodbatlas_cloud_backup_schedule`, available from provider version 2.12.0. Setting `skip_destroy = true` (forwarded through the module interface if needed) lets `terraform destroy` remove the cluster without being blocked by the Backup Compliance Policy, and the `moved`/`removed` workaround below is not needed. This example is kept for customers on provider versions earlier than 2.12.0 that do not support `skip_destroy`.
+> **Deprecated:** the destroy workaround shown in this example is superseded by the `skip_destroy` attribute on `mongodbatlas_cloud_backup_schedule`. Setting `skip_destroy = true` (forwarded through the module interface if needed) lets `terraform destroy` remove the cluster without being blocked by the Backup Compliance Policy, and the `moved`/`removed` workaround below is not needed. This example is kept for customers on earlier provider versions that do not support `skip_destroy`.
 
 We recommend first to read the [resource example](../resource/README.md) as it contains all the relevant information. This example module is identical to it except that it is designed to serve as a reference for platform teams who have created their own module and make it available to internal teams for leveraging the MongoDB Atlas Terraform provider. Typically, these users do not have the ability to execute `terraform state` commands or modify the Terraform state manually.
 
