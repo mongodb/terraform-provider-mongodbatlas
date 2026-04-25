@@ -27,7 +27,7 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 	replicationSpecs := newReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
 	tags := newTagsObjType(ctx, diags, input.Tags)
 	pinnedFCV := newPinnedFCVObjType(ctx, input, diags)
-	iwmOverrides := newIWMPoliciesMap(ctx, diags, "intelligent_workload_management_policy_overrides", input.IntelligentWorkloadManagementPolicyOverrides)
+	iwmOverrides := newIWMPoliciesMap(ctx, diags, "intelligent_workload_management_policy_overrides", input.GetIntelligentWorkloadManagementPolicyOverrides())
 	if diags.HasError() {
 		return nil
 	}
@@ -64,21 +64,15 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 	}
 }
 
-func newIWMPoliciesMap(ctx context.Context, diags *diag.Diagnostics, attrName string, input any) customtypes.MapValue[jsontypes.Normalized] {
+func newIWMPoliciesMap(ctx context.Context, diags *diag.Diagnostics, attrName string, input map[string]any) customtypes.MapValue[jsontypes.Normalized] {
 	if input == nil {
 		return customtypes.NewMapValueNull[jsontypes.Normalized](ctx)
 	}
-	errSummary := "error reading " + attrName
-	m, ok := input.(map[string]any)
-	if !ok {
-		diags.AddError(errSummary, fmt.Sprintf("unexpected value: %v", input))
-		return customtypes.NewMapValueNull[jsontypes.Normalized](ctx)
-	}
-	elements := make(map[string]attr.Value, len(m))
-	for key, val := range m {
+	elements := make(map[string]attr.Value, len(input))
+	for key, val := range input {
 		raw, err := json.Marshal(val)
 		if err != nil {
-			diags.AddError(errSummary, fmt.Sprintf("invalid value for %q: %v", key, err))
+			diags.AddError("error reading "+attrName, fmt.Sprintf("invalid value for %q: %v", key, err))
 			return customtypes.NewMapValueNull[jsontypes.Normalized](ctx)
 		}
 		elements[key] = jsontypes.NewNormalizedValue(string(raw))
@@ -93,7 +87,7 @@ func newTFModelDS(ctx context.Context, input *admin.ClusterDescription20240805, 
 	}
 	dsModel := conversion.CopyModel[TFModelDS](resourceModel)
 	dsModel.ReplicationSpecs = newReplicationSpecsDSObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
-	dsModel.EffectiveIntelligentWorkloadManagementPolicies = newIWMPoliciesMap(ctx, diags, "effective_intelligent_workload_management_policies", input.EffectiveIntelligentWorkloadManagementPolicies)
+	dsModel.EffectiveIntelligentWorkloadManagementPolicies = newIWMPoliciesMap(ctx, diags, "effective_intelligent_workload_management_policies", input.GetEffectiveIntelligentWorkloadManagementPolicies())
 	return dsModel
 }
 

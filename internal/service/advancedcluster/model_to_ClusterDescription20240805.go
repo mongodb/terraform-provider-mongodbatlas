@@ -29,7 +29,7 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		majorVersion = &majorVersionFormatted
 	}
 
-	return &admin.ClusterDescription20240805{
+	req := &admin.ClusterDescription20240805{
 		AcceptDataRisksAndForceReplicaSetReconfig: acceptDataRisksAndForceReplicaSetReconfig,
 		BackupEnabled:                    conversion.NilForUnknown(input.BackupEnabled, input.BackupEnabled.ValueBoolPointer()),
 		BiConnector:                      newBiConnector(ctx, input.BiConnectorConfig, diags),
@@ -51,17 +51,15 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		UseAwsTimeBasedSnapshotCopyForFastInitialSync: conversion.NilForUnknown(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync, input.UseAwsTimeBasedSnapshotCopyForFastInitialSync.ValueBoolPointer()),
 		VersionReleaseSystem:                          conversion.NilForUnknown(input.VersionReleaseSystem, input.VersionReleaseSystem.ValueStringPointer()),
 		AdvancedConfiguration:                         newClusterAdvancedConfiguration(ctx, &input.AdvancedConfiguration, diags),
-		IntelligentWorkloadManagementPolicyOverrides:  newIWMPolicyOverrides(diags, input.IntelligentWorkloadManagementPolicyOverrides),
 	}
+	if !input.IntelligentWorkloadManagementPolicyOverrides.IsNull() && !input.IntelligentWorkloadManagementPolicyOverrides.IsUnknown() {
+		iwm := newIWMPolicyOverrides(diags, input.IntelligentWorkloadManagementPolicyOverrides)
+		req.IntelligentWorkloadManagementPolicyOverrides = &iwm
+	}
+	return req
 }
 
-func newIWMPolicyOverrides(diags *diag.Diagnostics, input customtypes.MapValue[jsontypes.Normalized]) any {
-	if input.IsUnknown() {
-		return nil
-	}
-	if input.IsNull() {
-		return json.RawMessage("null")
-	}
+func newIWMPolicyOverrides(diags *diag.Diagnostics, input customtypes.MapValue[jsontypes.Normalized]) map[string]any {
 	elements := input.Elements()
 	result := make(map[string]any, len(elements))
 	for key, val := range elements {
