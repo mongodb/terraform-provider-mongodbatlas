@@ -234,8 +234,8 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "mongodbatlas_service_account_access_list_entry" {
+	for name, rs := range s.RootModule().Resources {
+		if !strings.HasPrefix(name, resourceName) {
 			continue
 		}
 
@@ -251,7 +251,6 @@ func checkDestroy(s *terraform.State) error {
 		if entry != nil {
 			return fmt.Errorf("access list entry (%s/%s/%s) still exists", orgID, clientID, cidrOrIP)
 		}
-		return nil
 	}
 	return nil
 }

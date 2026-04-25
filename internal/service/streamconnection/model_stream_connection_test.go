@@ -394,6 +394,41 @@ func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
 			},
 		},
 		{
+			name: "GCPPubSub connection type with publicPrivateNetworking",
+			SDKResp: &admin.StreamsConnection{
+				Name: new(gcpPubSubConnectionName),
+				Type: new("GCPPubSub"),
+				Gcp:  &admin.StreamsGCPConnectionConfig{ServiceAccountId: new(sampleServiceAccountID)},
+				PublicPrivateNetworking: &admin.StreamsPublicPrivateLinkNetworking{
+					Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
+						Type:         new("PRIVATE_LINK"),
+						ConnectionId: new("plc-12345"),
+					},
+				},
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:                    types.StringValue(dummyProjectID),
+					WorkspaceName:                types.StringValue(instanceName),
+					ConnectionName:               types.StringValue(gcpPubSubConnectionName),
+					Type:                         types.StringValue("GCPPubSub"),
+					Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+					Config:                       types.MapNull(types.StringType),
+					Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+					Networking:                   tfNetworkingObject(t, "PRIVATE_LINK", new("plc-12345")),
+					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          tfGCPConfigObject(t, sampleServiceAccountID),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
+					Headers:                      types.MapNull(types.StringType),
+					SchemaRegistryURLs:           types.ListNull(types.StringType),
+					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				},
+			},
+		},
+		{
 			name: "AzureBlobStorage connection type with publicPrivateNetworking",
 			SDKResp: &admin.StreamsConnection{
 				Name:  new(connectionName),
@@ -492,11 +527,10 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 // This ensures users can configure longer timeouts for slow-provisioning connections or
 // shorter timeouts to fail fast.
 func TestNewTFStreamConnectionCustomTimeoutsOverrideDefault(t *testing.T) {
-	defaultTimeout := 20 * time.Minute
 	customCreateTimeout := 30 * time.Minute
 	customUpdateTimeout := 45 * time.Minute
+	customDeleteTimeout := 10 * time.Minute
 
-	// User specifies custom timeouts in their Terraform config
 	userConfiguredTimeouts := timeouts.Value{
 		Object: types.ObjectValueMust(
 			map[string]attr.Type{
@@ -509,7 +543,7 @@ func TestNewTFStreamConnectionCustomTimeoutsOverrideDefault(t *testing.T) {
 				"create": types.StringValue("30m"),
 				"read":   types.StringNull(),
 				"update": types.StringValue("45m"),
-				"delete": types.StringNull(),
+				"delete": types.StringValue("10m"),
 			},
 		),
 	}
@@ -527,23 +561,25 @@ func TestNewTFStreamConnectionCustomTimeoutsOverrideDefault(t *testing.T) {
 		nil,          // currAuthConfig
 		nil,          // currSchemaRegistryAuthConfig
 		apiResp,
-		&userConfiguredTimeouts, // planTimeouts - user configured custom timeouts
+		&userConfiguredTimeouts,
 	)
 
 	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
 	require.NotNil(t, resultModel)
 
-	// Verify user-configured timeouts are preserved in the model
 	assert.Equal(t, userConfiguredTimeouts, resultModel.Timeouts)
 
-	// Verify custom timeouts override the default (20m) when extracted
-	createTimeout, localDiags := resultModel.Timeouts.Create(t.Context(), defaultTimeout)
+	createTimeout, localDiags := resultModel.Timeouts.Create(t.Context(), streamconnection.DefaultConnectionTimeout)
 	require.False(t, localDiags.HasError())
 	assert.Equal(t, customCreateTimeout, createTimeout, "user-configured create timeout (30m) should override default (20m)")
 
-	updateTimeout, localDiags := resultModel.Timeouts.Update(t.Context(), defaultTimeout)
+	updateTimeout, localDiags := resultModel.Timeouts.Update(t.Context(), streamconnection.DefaultConnectionTimeout)
 	require.False(t, localDiags.HasError())
 	assert.Equal(t, customUpdateTimeout, updateTimeout, "user-configured update timeout (45m) should override default (20m)")
+
+	deleteTimeout, localDiags := resultModel.Timeouts.Delete(t.Context(), streamconnection.DefaultConnectionTimeout)
+	require.False(t, localDiags.HasError())
+	assert.Equal(t, customDeleteTimeout, deleteTimeout, "user-configured delete timeout (10m) should override default (20m)")
 }
 
 type paginatedConnectionsSDKToTFModelTestCase struct {
@@ -947,6 +983,32 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				Type: new("GCPPubSub"),
 				Gcp: &admin.StreamsGCPConnectionConfig{
 					ServiceAccountId: new(sampleServiceAccountID),
+				},
+			},
+		},
+		{
+			name: "GCPPubSub type TF state with PRIVATE_LINK networking",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:      types.StringValue(dummyProjectID),
+					InstanceName:   types.StringValue(instanceName),
+					ConnectionName: types.StringValue(gcpPubSubConnectionName),
+					Type:           types.StringValue("GCPPubSub"),
+					GCP:            tfGCPConfigObject(t, sampleServiceAccountID),
+					Networking:     tfNetworkingObject(t, "PRIVATE_LINK", new("plc-12345")),
+				},
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name: new(gcpPubSubConnectionName),
+				Type: new("GCPPubSub"),
+				Gcp: &admin.StreamsGCPConnectionConfig{
+					ServiceAccountId: new(sampleServiceAccountID),
+				},
+				PublicPrivateNetworking: &admin.StreamsPublicPrivateLinkNetworking{
+					Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
+						Type:         new("PRIVATE_LINK"),
+						ConnectionId: new("plc-12345"),
+					},
 				},
 			},
 		},

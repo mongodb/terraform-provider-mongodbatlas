@@ -58,6 +58,10 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			"skip_destroy": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"use_org_and_group_names_in_export_prefix": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -451,13 +455,17 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	if d.Get("skip_destroy").(bool) {
+		d.SetId("")
+		return nil
+	}
+
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, _, err := connV2.CloudBackupsApi.DeleteClusterBackupSchedule(ctx, projectID, clusterName).Execute()
-	if err != nil {
+	if _, _, err := connV2.CloudBackupsApi.DeleteClusterBackupSchedule(ctx, projectID, clusterName).Execute(); err != nil {
 		return diag.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 

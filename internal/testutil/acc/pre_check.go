@@ -352,6 +352,16 @@ func PreCheckFederatedSettingsIdentityProvider(tb testing.TB) {
 	}
 }
 
+func PreCheckFederatedSettingsOIDCWorkloadIDPs(tb testing.TB) {
+	tb.Helper()
+	PreCheckFederatedSettingsIdentityProvider(tb)
+	if os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID") == "" ||
+		os.Getenv("MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID_1") == "" ||
+		os.Getenv("MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID_2") == "" {
+		tb.Fatal("`MONGODB_ATLAS_FEDERATED_IDP_ID`, `MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID_1`, and `MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID_2` must be set for federated settings OIDC drift testing")
+	}
+}
+
 func PreCheckPrivateEndpoint(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_PRIVATE_ENDPOINT_ID") == "" ||

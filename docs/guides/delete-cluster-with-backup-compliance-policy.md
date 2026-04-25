@@ -9,6 +9,8 @@ a Backup Compliance Policy (BCP) is enabled and how the following Terraform
 resources are related to each other: `mongodbatlas_backup_compliance_policy`,
 `mongodbatlas_cloud_backup_schedule`, and `mongodbatlas_advanced_cluster`.
 
+~> **DEPRECATION:** This guide is deprecated. The recommended way to delete a cluster when a Backup Compliance Policy is enabled is to set `skip_destroy = true` on the `mongodbatlas_cloud_backup_schedule` resource and run `terraform destroy`. Nothing else is needed. The rest of this guide is kept for customers on earlier provider versions that do not support `skip_destroy`.
+
 ## Why Do You Need a Backup Compliance Policy?
 
 You must use a Backup Compliance policy if you have strict data protection
@@ -66,9 +68,7 @@ Terraform when a Backup Compliance Policy is enabled?**.
 
 ## Steps to Delete a MongoDB Atlas Cluster with BCP Enabled and Retain Snapshots
 
-To delete a MongoDB Atlas cluster in this scenario, follow a two-step process.
-This approach aligns with the requirements of your enabled Backup Compliance
-Policy.
+On earlier provider versions that do not support `skip_destroy`, follow a two-step process that aligns with the requirements of your enabled Backup Compliance Policy.
 
 - **Step 1: Update Terraform to remove `mongodbatlas_cloud_backup_schedule` from
   the state**. Before deleting the cluster, instruct Terraform to "ignore" the
@@ -84,7 +84,7 @@ outline the adjustments required for each approach to successfully delete
 clusters under the constraints of a Backup Compliance Policy.
 
 1. **Using Resources Directly**\
-   [resource-based example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.10.0/examples/mongodbatlas_backup_compliance_policy/resource).
+   [resource-based example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_backup_compliance_policy/resource).
 
 2. **Using Terraform Modules**\
-   [module-based example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.10.0/examples/mongodbatlas_backup_compliance_policy/module).
+   [module-based example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_backup_compliance_policy/module).
