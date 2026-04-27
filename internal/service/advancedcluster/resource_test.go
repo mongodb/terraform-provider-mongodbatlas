@@ -555,6 +555,71 @@ func TestAccClusterAdvancedCluster_withLabels(t *testing.T) {
 	})
 }
 
+func TestAccClusterAdvancedCluster_iwmSetOnCreate(t *testing.T) {
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configIWM(projectID, clusterName, new(true), nil),
+				Check:  checkIWM(new(true)),
+			},
+			{
+				Config: configIWM(projectID, clusterName, nil, nil),
+				Check:  checkIWM(nil),
+			},
+			{
+				Config: configIWM(projectID, clusterName, new(false), nil),
+				Check:  checkIWM(new(false)),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
+func TestAccClusterAdvancedCluster_iwmSetOnUpdate(t *testing.T) {
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configIWM(projectID, clusterName, nil, nil),
+				Check:  checkIWM(nil),
+			},
+			{
+				Config: configIWM(projectID, clusterName, new(true), nil),
+				Check:  checkIWM(new(true)),
+			},
+			{
+				Config: configIWM(projectID, clusterName, new(true), new(false)),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkIWM(new(true)),
+					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "false"),
+				),
+			},
+			{
+				Config: configIWMEmptyOverrides(projectID, clusterName),
+				Check:  checkIWMEmptyOverrides(),
+			},
+			{
+				Config: configIWM(projectID, clusterName, new(false), nil),
+				Check:  checkIWM(new(false)),
+			},
+			{
+				Config: configIWM(projectID, clusterName, nil, nil),
+				Check:  checkIWM(nil),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
 func TestAccClusterAdvancedCluster_withLabelIgnored(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -1396,6 +1461,99 @@ func checksDedicatedNVMeBackupEnabled(projectID, name string, checkPlural bool) 
 		"replication_specs.0.region_configs.0.provider_name":                   "AWS",
 	}
 	return checkAggr(nil, checkMap, originalChecks)
+}
+
+func configIWM(projectID, clusterName string, loadShedding, backupEnabled *bool) string {
+	var extraConfig string
+	if loadShedding != nil {
+		extraConfig += fmt.Sprintf(`
+		intelligent_workload_management_policy_overrides = {
+			LOAD_SHEDDING = %t
+		}`, *loadShedding)
+	}
+	if backupEnabled != nil {
+		extraConfig += fmt.Sprintf("\n\t\tbackup_enabled = %t", *backupEnabled)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id             = %[1]q
+			name                   = %[2]q
+			cluster_type           = "REPLICASET"
+			version_release_system = "CONTINUOUS" # IWM policy overrides require non-sharded + CONTINUOUS releases
+
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+				}]
+			}]
+			%[3]s
+		}
+	`, projectID, clusterName, extraConfig) + dataSourcesConfig
+}
+
+func configIWMEmptyOverrides(projectID, clusterName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id             = %[1]q
+			name                   = %[2]q
+			cluster_type           = "REPLICASET"
+			version_release_system = "CONTINUOUS"
+
+			intelligent_workload_management_policy_overrides = {}
+
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+				}]
+			}]
+		}
+	`, projectID, clusterName) + dataSourcesConfig
+}
+
+func checkIWMEmptyOverrides() resource.TestCheckFunc {
+	const overridesAttr = "intelligent_workload_management_policy_overrides.%"
+	const effectiveAttr = "effective_intelligent_workload_management_policies.%"
+	return resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttr(resourceName, overridesAttr, "0"),
+		resource.TestCheckResourceAttr(dataSourceName, overridesAttr, "0"),
+		resource.TestCheckResourceAttrSet(dataSourceName, effectiveAttr),
+	)
+}
+
+func checkIWM(loadShedding *bool) resource.TestCheckFunc {
+	const overridesAttr = "intelligent_workload_management_policy_overrides.%"
+	const loadSheddingAttr = "intelligent_workload_management_policy_overrides.LOAD_SHEDDING"
+	const effectiveAttr = "effective_intelligent_workload_management_policies.%"
+	const effectiveLoadSheddingAttr = "effective_intelligent_workload_management_policies.LOAD_SHEDDING"
+	if loadShedding == nil {
+		return resource.ComposeAggregateTestCheckFunc(
+			resource.TestCheckNoResourceAttr(resourceName, overridesAttr),
+			resource.TestCheckNoResourceAttr(dataSourceName, overridesAttr),
+			resource.TestCheckResourceAttrSet(dataSourceName, effectiveAttr),
+		)
+	}
+	expected := strconv.FormatBool(*loadShedding)
+	return resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttr(resourceName, overridesAttr, "1"),
+		resource.TestCheckResourceAttr(dataSourceName, overridesAttr, "1"),
+		resource.TestCheckResourceAttr(resourceName, loadSheddingAttr, expected),
+		resource.TestCheckResourceAttr(dataSourceName, loadSheddingAttr, expected),
+		resource.TestCheckResourceAttrSet(dataSourceName, effectiveAttr),
+		resource.TestCheckResourceAttr(dataSourceName, effectiveLoadSheddingAttr, expected),
+	)
 }
 
 func configWithKeyValueBlocks(t *testing.T, orgID, projectName, clusterName, blockName string, blocks ...map[string]string) string {

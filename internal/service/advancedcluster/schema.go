@@ -4,6 +4,7 @@ import (
 	"context"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
@@ -338,6 +340,12 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.",
 			},
+			"intelligent_workload_management_policy_overrides": schema.MapAttribute{
+				Optional:            true,
+				CustomType:          customtypes.NewMapType[jsontypes.Normalized](ctx),
+				ElementType:         jsontypes.NormalizedType{},
+				MarkdownDescription: "Map of Intelligent Workload Management (IWM) policy overrides applied on top of Atlas defaults. Each key is an IWM setting and each value is a JSON literal.",
+			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
 				Update: true,
@@ -357,14 +365,14 @@ func resourceSchema(ctx context.Context) schema.Schema {
 func dataSourceSchema(ctx context.Context) dsschema.Schema {
 	return conversion.DataSourceSchemaFromResource(resourceSchema(ctx), &conversion.DataSourceSchemaRequest{
 		RequiredFields:  []string{"project_id", "name"},
-		OverridenFields: dataSourceOverridenFields(),
+		OverridenFields: dataSourceOverridenFields(ctx),
 	})
 }
 
 func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 	return conversion.PluralDataSourceSchemaFromResource(resourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
 		RequiredFields:  []string{"project_id"},
-		OverridenFields: dataSourceOverridenFields(),
+		OverridenFields: dataSourceOverridenFields(ctx),
 		OverridenRootFields: map[string]dsschema.Attribute{
 			"use_effective_fields": dsschema.BoolAttribute{
 				Optional:            true,
@@ -374,7 +382,7 @@ func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 	})
 }
 
-func dataSourceOverridenFields() map[string]dsschema.Attribute {
+func dataSourceOverridenFields(ctx context.Context) map[string]dsschema.Attribute {
 	return map[string]dsschema.Attribute{
 		"accept_data_risks_and_force_replica_set_reconfig": nil,
 		"delete_on_create_timeout":                         nil,
@@ -384,6 +392,18 @@ func dataSourceOverridenFields() map[string]dsschema.Attribute {
 			MarkdownDescription: descUseEffectiveFields,
 		},
 		"replication_specs": replicationSpecsSchemaDS(),
+		"intelligent_workload_management_policy_overrides": dsschema.MapAttribute{
+			Computed:            true,
+			CustomType:          customtypes.NewMapType[jsontypes.Normalized](ctx),
+			ElementType:         jsontypes.NormalizedType{},
+			MarkdownDescription: "Map of Intelligent Workload Management (IWM) policy overrides applied on top of Atlas defaults. Each key is an IWM setting and each value is a JSON literal.",
+		},
+		"effective_intelligent_workload_management_policies": dsschema.MapAttribute{
+			Computed:            true,
+			CustomType:          customtypes.NewMapType[jsontypes.Normalized](ctx),
+			ElementType:         jsontypes.NormalizedType{},
+			MarkdownDescription: "Effective Intelligent Workload Management (IWM) policies applied to the cluster. Each key is an IWM setting and each value is a JSON literal.",
+		},
 	}
 }
 
@@ -673,72 +693,75 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 }
 
 type TFModel struct {
-	Labels                                        types.Map      `tfsdk:"labels"`
-	ReplicationSpecs                              types.List     `tfsdk:"replication_specs"`
-	Tags                                          types.Map      `tfsdk:"tags"`
-	StateName                                     types.String   `tfsdk:"state_name"`
-	ConnectionStrings                             types.Object   `tfsdk:"connection_strings"`
-	CreateDate                                    types.String   `tfsdk:"create_date"`
-	AcceptDataRisksAndForceReplicaSetReconfig     types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
-	EncryptionAtRestProvider                      types.String   `tfsdk:"encryption_at_rest_provider"`
-	Timeouts                                      timeouts.Value `tfsdk:"timeouts"`
-	ProjectID                                     types.String   `tfsdk:"project_id"`
-	ClusterID                                     types.String   `tfsdk:"cluster_id"`
-	ConfigServerManagementMode                    types.String   `tfsdk:"config_server_management_mode"`
-	MongoDBMajorVersion                           types.String   `tfsdk:"mongo_db_major_version"`
-	MongoDBVersion                                types.String   `tfsdk:"mongo_db_version"`
-	Name                                          types.String   `tfsdk:"name"`
-	VersionReleaseSystem                          types.String   `tfsdk:"version_release_system"`
-	BiConnectorConfig                             types.Object   `tfsdk:"bi_connector_config"`
-	ConfigServerType                              types.String   `tfsdk:"config_server_type"`
-	ReplicaSetScalingStrategy                     types.String   `tfsdk:"replica_set_scaling_strategy"`
-	ClusterType                                   types.String   `tfsdk:"cluster_type"`
-	RootCertType                                  types.String   `tfsdk:"root_cert_type"`
-	AdvancedConfiguration                         types.Object   `tfsdk:"advanced_configuration"`
-	PinnedFCV                                     types.Object   `tfsdk:"pinned_fcv"`
-	TerminationProtectionEnabled                  types.Bool     `tfsdk:"termination_protection_enabled"`
-	Paused                                        types.Bool     `tfsdk:"paused"`
-	RetainBackupsEnabled                          types.Bool     `tfsdk:"retain_backups_enabled"`
-	BackupEnabled                                 types.Bool     `tfsdk:"backup_enabled"`
-	GlobalClusterSelfManagedSharding              types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
-	RedactClientLogData                           types.Bool     `tfsdk:"redact_client_log_data"`
-	PitEnabled                                    types.Bool     `tfsdk:"pit_enabled"`
-	UseAwsTimeBasedSnapshotCopyForFastInitialSync types.Bool     `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
-	DeleteOnCreateTimeout                         types.Bool     `tfsdk:"delete_on_create_timeout"`
-	UseEffectiveFields                            types.Bool     `tfsdk:"use_effective_fields"`
+	IntelligentWorkloadManagementPolicyOverrides  customtypes.MapValue[jsontypes.Normalized] `tfsdk:"intelligent_workload_management_policy_overrides"`
+	Labels                                        types.Map                                  `tfsdk:"labels"`
+	ReplicationSpecs                              types.List                                 `tfsdk:"replication_specs"`
+	Tags                                          types.Map                                  `tfsdk:"tags"`
+	StateName                                     types.String                               `tfsdk:"state_name"`
+	ConnectionStrings                             types.Object                               `tfsdk:"connection_strings"`
+	CreateDate                                    types.String                               `tfsdk:"create_date"`
+	AcceptDataRisksAndForceReplicaSetReconfig     types.String                               `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
+	EncryptionAtRestProvider                      types.String                               `tfsdk:"encryption_at_rest_provider"`
+	Timeouts                                      timeouts.Value                             `tfsdk:"timeouts"`
+	ProjectID                                     types.String                               `tfsdk:"project_id"`
+	ClusterID                                     types.String                               `tfsdk:"cluster_id"`
+	ConfigServerManagementMode                    types.String                               `tfsdk:"config_server_management_mode"`
+	MongoDBMajorVersion                           types.String                               `tfsdk:"mongo_db_major_version"`
+	MongoDBVersion                                types.String                               `tfsdk:"mongo_db_version"`
+	Name                                          types.String                               `tfsdk:"name"`
+	VersionReleaseSystem                          types.String                               `tfsdk:"version_release_system"`
+	BiConnectorConfig                             types.Object                               `tfsdk:"bi_connector_config"`
+	ConfigServerType                              types.String                               `tfsdk:"config_server_type"`
+	ReplicaSetScalingStrategy                     types.String                               `tfsdk:"replica_set_scaling_strategy"`
+	ClusterType                                   types.String                               `tfsdk:"cluster_type"`
+	RootCertType                                  types.String                               `tfsdk:"root_cert_type"`
+	AdvancedConfiguration                         types.Object                               `tfsdk:"advanced_configuration"`
+	PinnedFCV                                     types.Object                               `tfsdk:"pinned_fcv"`
+	TerminationProtectionEnabled                  types.Bool                                 `tfsdk:"termination_protection_enabled"`
+	Paused                                        types.Bool                                 `tfsdk:"paused"`
+	RetainBackupsEnabled                          types.Bool                                 `tfsdk:"retain_backups_enabled"`
+	BackupEnabled                                 types.Bool                                 `tfsdk:"backup_enabled"`
+	GlobalClusterSelfManagedSharding              types.Bool                                 `tfsdk:"global_cluster_self_managed_sharding"`
+	RedactClientLogData                           types.Bool                                 `tfsdk:"redact_client_log_data"`
+	PitEnabled                                    types.Bool                                 `tfsdk:"pit_enabled"`
+	UseAwsTimeBasedSnapshotCopyForFastInitialSync types.Bool                                 `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
+	DeleteOnCreateTimeout                         types.Bool                                 `tfsdk:"delete_on_create_timeout"`
+	UseEffectiveFields                            types.Bool                                 `tfsdk:"use_effective_fields"`
 }
 
 // TFModelDS differs from TFModel: removes resource-only fields like timeouts, accept_data_risks_and_force_replica_set_reconfig, retain_backups_enabled
 type TFModelDS struct {
-	Labels                                        types.Map    `tfsdk:"labels"`
-	ReplicationSpecs                              types.List   `tfsdk:"replication_specs"`
-	Tags                                          types.Map    `tfsdk:"tags"`
-	ReplicaSetScalingStrategy                     types.String `tfsdk:"replica_set_scaling_strategy"`
-	Name                                          types.String `tfsdk:"name"`
-	AdvancedConfiguration                         types.Object `tfsdk:"advanced_configuration"`
-	BiConnectorConfig                             types.Object `tfsdk:"bi_connector_config"`
-	RootCertType                                  types.String `tfsdk:"root_cert_type"`
-	ClusterType                                   types.String `tfsdk:"cluster_type"`
-	MongoDBMajorVersion                           types.String `tfsdk:"mongo_db_major_version"`
-	ConfigServerType                              types.String `tfsdk:"config_server_type"`
-	VersionReleaseSystem                          types.String `tfsdk:"version_release_system"`
-	ConnectionStrings                             types.Object `tfsdk:"connection_strings"`
-	StateName                                     types.String `tfsdk:"state_name"`
-	MongoDBVersion                                types.String `tfsdk:"mongo_db_version"`
-	CreateDate                                    types.String `tfsdk:"create_date"`
-	EncryptionAtRestProvider                      types.String `tfsdk:"encryption_at_rest_provider"`
-	ProjectID                                     types.String `tfsdk:"project_id"`
-	ClusterID                                     types.String `tfsdk:"cluster_id"`
-	ConfigServerManagementMode                    types.String `tfsdk:"config_server_management_mode"`
-	PinnedFCV                                     types.Object `tfsdk:"pinned_fcv"`
-	RedactClientLogData                           types.Bool   `tfsdk:"redact_client_log_data"`
-	GlobalClusterSelfManagedSharding              types.Bool   `tfsdk:"global_cluster_self_managed_sharding"`
-	BackupEnabled                                 types.Bool   `tfsdk:"backup_enabled"`
-	Paused                                        types.Bool   `tfsdk:"paused"`
-	TerminationProtectionEnabled                  types.Bool   `tfsdk:"termination_protection_enabled"`
-	PitEnabled                                    types.Bool   `tfsdk:"pit_enabled"`
-	UseAwsTimeBasedSnapshotCopyForFastInitialSync types.Bool   `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
-	UseEffectiveFields                            types.Bool   `tfsdk:"use_effective_fields"`
+	IntelligentWorkloadManagementPolicyOverrides   customtypes.MapValue[jsontypes.Normalized] `tfsdk:"intelligent_workload_management_policy_overrides"`
+	EffectiveIntelligentWorkloadManagementPolicies customtypes.MapValue[jsontypes.Normalized] `tfsdk:"effective_intelligent_workload_management_policies"`
+	Labels                                         types.Map                                  `tfsdk:"labels"`
+	ReplicationSpecs                               types.List                                 `tfsdk:"replication_specs"`
+	Tags                                           types.Map                                  `tfsdk:"tags"`
+	ReplicaSetScalingStrategy                      types.String                               `tfsdk:"replica_set_scaling_strategy"`
+	Name                                           types.String                               `tfsdk:"name"`
+	AdvancedConfiguration                          types.Object                               `tfsdk:"advanced_configuration"`
+	BiConnectorConfig                              types.Object                               `tfsdk:"bi_connector_config"`
+	RootCertType                                   types.String                               `tfsdk:"root_cert_type"`
+	ClusterType                                    types.String                               `tfsdk:"cluster_type"`
+	MongoDBMajorVersion                            types.String                               `tfsdk:"mongo_db_major_version"`
+	ConfigServerType                               types.String                               `tfsdk:"config_server_type"`
+	VersionReleaseSystem                           types.String                               `tfsdk:"version_release_system"`
+	ConnectionStrings                              types.Object                               `tfsdk:"connection_strings"`
+	StateName                                      types.String                               `tfsdk:"state_name"`
+	MongoDBVersion                                 types.String                               `tfsdk:"mongo_db_version"`
+	CreateDate                                     types.String                               `tfsdk:"create_date"`
+	EncryptionAtRestProvider                       types.String                               `tfsdk:"encryption_at_rest_provider"`
+	ProjectID                                      types.String                               `tfsdk:"project_id"`
+	ClusterID                                      types.String                               `tfsdk:"cluster_id"`
+	ConfigServerManagementMode                     types.String                               `tfsdk:"config_server_management_mode"`
+	PinnedFCV                                      types.Object                               `tfsdk:"pinned_fcv"`
+	RedactClientLogData                            types.Bool                                 `tfsdk:"redact_client_log_data"`
+	GlobalClusterSelfManagedSharding               types.Bool                                 `tfsdk:"global_cluster_self_managed_sharding"`
+	BackupEnabled                                  types.Bool                                 `tfsdk:"backup_enabled"`
+	Paused                                         types.Bool                                 `tfsdk:"paused"`
+	TerminationProtectionEnabled                   types.Bool                                 `tfsdk:"termination_protection_enabled"`
+	PitEnabled                                     types.Bool                                 `tfsdk:"pit_enabled"`
+	UseAwsTimeBasedSnapshotCopyForFastInitialSync  types.Bool                                 `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
+	UseEffectiveFields                             types.Bool                                 `tfsdk:"use_effective_fields"`
 }
 
 type TFModelPluralDS struct {

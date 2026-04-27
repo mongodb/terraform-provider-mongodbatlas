@@ -2,14 +2,17 @@ package advancedcluster
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
@@ -24,6 +27,13 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 	if majorVersion != nil {
 		majorVersionFormatted := FormatMongoDBMajorVersion(*majorVersion)
 		majorVersion = &majorVersionFormatted
+	}
+
+	var iwmOverrides *map[string]any
+	if !input.IntelligentWorkloadManagementPolicyOverrides.IsNull() && !input.IntelligentWorkloadManagementPolicyOverrides.IsUnknown() {
+		if result := normalizedMapToAny(diags, "intelligent_workload_management_policy_overrides", input.IntelligentWorkloadManagementPolicyOverrides); result != nil {
+			iwmOverrides = &result
+		}
 	}
 
 	return &admin.ClusterDescription20240805{
@@ -48,7 +58,29 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		UseAwsTimeBasedSnapshotCopyForFastInitialSync: conversion.NilForUnknown(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync, input.UseAwsTimeBasedSnapshotCopyForFastInitialSync.ValueBoolPointer()),
 		VersionReleaseSystem:                          conversion.NilForUnknown(input.VersionReleaseSystem, input.VersionReleaseSystem.ValueStringPointer()),
 		AdvancedConfiguration:                         newClusterAdvancedConfiguration(ctx, &input.AdvancedConfiguration, diags),
+		IntelligentWorkloadManagementPolicyOverrides:  iwmOverrides,
 	}
+}
+
+func normalizedMapToAny(diags *diag.Diagnostics, attrName string, input customtypes.MapValue[jsontypes.Normalized]) map[string]any {
+	result := make(map[string]any)
+	for key, val := range input.Elements() {
+		normalized, ok := val.(jsontypes.Normalized)
+		if !ok {
+			diags.AddError("error converting "+attrName, fmt.Sprintf("invalid value for %q", key))
+			return nil
+		}
+		if normalized.IsNull() || normalized.IsUnknown() {
+			continue
+		}
+		var decoded any
+		if err := json.Unmarshal([]byte(normalized.ValueString()), &decoded); err != nil {
+			diags.AddError("error converting "+attrName, fmt.Sprintf("invalid JSON for %q: %s", key, normalized.ValueString()))
+			return nil
+		}
+		result[key] = decoded
+	}
+	return result
 }
 
 func newClusterAdvancedConfiguration(ctx context.Context, objInput *types.Object, diags *diag.Diagnostics) *admin.ApiAtlasClusterAdvancedConfiguration {

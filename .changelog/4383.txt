@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_advanced_cluster: Adds `intelligent_workload_management_policy_overrides` attribute to override Intelligent Workload Management policies
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_cluster: Adds `intelligent_workload_management_policy_overrides` and `effective_intelligent_workload_management_policies` attributes
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_clusters: Adds `intelligent_workload_management_policy_overrides` and `effective_intelligent_workload_management_policies` attributes
+```
