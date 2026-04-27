@@ -27,6 +27,9 @@ subcategory: "Streams"
 {{ tffile (printf "examples/%s/gcp_pubsub/main.tf" .Name )}}
 
 ### Azure Blob Storage Privatelink
+
+~> **NOTE:** An Azure cluster must be provisioned in the same region before creating an Azure Blob Storage private endpoint.
+
 {{ tffile (printf "examples/%s/azure_blob_storage/main.tf" .Name )}}
 
 ### Further Examples
@@ -37,7 +40,7 @@ subcategory: "Streams"
 - [GCP Confluent PrivateLink](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_stream_privatelink_endpoint/gcp_confluent)
 - [GCP Pub/Sub Private Service Connect](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_stream_privatelink_endpoint/gcp_pubsub)
 - [Azure PrivateLink](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_stream_privatelink_endpoint/azure)
-- [Azure Blob Storage PrivateLink](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.10.0/examples/mongodbatlas_stream_privatelink_endpoint/azure_blob_storage)
+- [Azure Blob Storage PrivateLink](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_stream_privatelink_endpoint/azure_blob_storage)
 
 {{ .SchemaMarkdown | trimspace }}
 

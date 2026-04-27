@@ -157,9 +157,26 @@ func GetCompleteMskConfig(projectID, clusterArn string) string {
 	}`, projectID, clusterArn)
 }
 
-func GetCompleteAzureBlobStorageConfig(projectID, subscriptionID, clientID, clientSecret, tenantID, resourceGroupName, storageAccountName string) string {
+func GetCompleteAzureBlobStorageConfig(projectID, clusterName, subscriptionID, clientID, clientSecret, tenantID, resourceGroupName, storageAccountName string) string {
 	return fmt.Sprintf(`
 	%[1]s
+
+	resource "mongodbatlas_advanced_cluster" "test" {
+		project_id   = %[2]q
+		name         = %[5]q
+		cluster_type = "REPLICASET"
+		replication_specs = [{
+			region_configs = [{
+				priority      = 7
+				provider_name = "AZURE"
+				region_name   = "US_EAST_2"
+				electable_specs = {
+					instance_size = "M10"
+					node_count    = 3
+				}
+			}]
+		}]
+	}
 
 	resource "azurerm_resource_group" "blob_pl_rg" {
 		name     = %[3]q
@@ -181,6 +198,7 @@ func GetCompleteAzureBlobStorageConfig(projectID, subscriptionID, clientID, clie
 		region              = "eastus2"
 		service_endpoint_id = azurerm_storage_account.blob_pl_storage.id
 		dns_domain          = "${azurerm_storage_account.blob_pl_storage.name}.blob.core.windows.net"
+		depends_on          = [mongodbatlas_advanced_cluster.test]
 	}
 
 	data "mongodbatlas_stream_privatelink_endpoint" "test" {
@@ -194,7 +212,7 @@ func GetCompleteAzureBlobStorageConfig(projectID, subscriptionID, clientID, clie
 			mongodbatlas_stream_privatelink_endpoint.test
 		]
 	}`, ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID),
-		projectID, resourceGroupName, storageAccountName)
+		projectID, resourceGroupName, storageAccountName, clusterName)
 }
 
 func GetCompleteS3Config(projectID, region string) string {

@@ -23,7 +23,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 	* AWS provider with CONFLUENT vendor.
 
-	* AZURE provider with EVENTHUB, CONFLUENT, or AZURE_BLOB_STORAGE vendor. For AZURE_BLOB_STORAGE, this should follow the format '{storageAccount}.blob.core.windows.net'.
+	* AZURE provider with EVENTHUB or CONFLUENT vendor.
+
+	* AZURE provider with AZURE_BLOB_STORAGE vendor. This should follow the format ` + "`{storageAccount}.blob.core.windows.net`" + `.
 
 	* For GCP provider with PUBSUB vendor, the API computes this process.`,
 			},

@@ -342,7 +342,27 @@ output "dns_domain" {
 ```
 
 ### Azure Blob Storage Privatelink
+
+~> **NOTE:** An Azure cluster must be provisioned in the same region before creating an Azure Blob Storage private endpoint.
+
 ```terraform
+resource "mongodbatlas_advanced_cluster" "cluster" {
+  project_id   = var.project_id
+  name         = var.cluster_name
+  cluster_type = "REPLICASET"
+  replication_specs = [{
+    region_configs = [{
+      priority      = 7
+      provider_name = "AZURE"
+      region_name   = "US_EAST_2"
+      electable_specs = {
+        instance_size = "M10"
+        node_count    = 3
+      }
+    }]
+  }]
+}
+
 resource "mongodbatlas_stream_privatelink_endpoint" "this" {
   project_id    = var.project_id
   vendor        = "AZURE_BLOB_STORAGE"
@@ -352,7 +372,7 @@ resource "mongodbatlas_stream_privatelink_endpoint" "this" {
   dns_domain = "${var.storage_account_name}.blob.core.windows.net"
   # service_endpoint_id follows the format `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}`
   service_endpoint_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${var.azure_resource_group}/providers/Microsoft.Storage/storageAccounts/${var.storage_account_name}"
-  depends_on          = [azurerm_private_endpoint.blob_endpoint]
+  depends_on          = [mongodbatlas_advanced_cluster.cluster, azurerm_private_endpoint.blob_endpoint]
 }
 
 output "privatelink_endpoint_id" {
@@ -381,7 +401,9 @@ Read-Only:
 
 	* AWS provider with CONFLUENT vendor.
 
-	* AZURE provider with EVENTHUB, CONFLUENT, or AZURE_BLOB_STORAGE vendor. For AZURE_BLOB_STORAGE, this should follow the format `{storageAccount}.blob.core.windows.net`.
+	* AZURE provider with EVENTHUB or CONFLUENT vendor.
+
+	* AZURE provider with AZURE_BLOB_STORAGE vendor. This should follow the format `{storageAccount}.blob.core.windows.net`.
 
 	* For GCP provider with PUBSUB vendor, the API computes this process.
 - `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones. Required for AWS Provider and CONFLUENT vendor. If your AWS CONFLUENT cluster doesn't use subdomains, you must set this to the empty array [].

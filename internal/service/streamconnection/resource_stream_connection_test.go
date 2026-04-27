@@ -1329,6 +1329,7 @@ func TestAccStreamRSStreamConnection_AzureBlobStorage(t *testing.T) {
 func TestAccStreamRSStreamConnection_AzureBlobStoragePrivateLink(t *testing.T) {
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		clusterName             = acc.RandomClusterName()
 		connectionName          = acc.RandomName()
 		clientID                = os.Getenv("AZURE_CLIENT_ID")
 		clientSecret            = os.Getenv("AZURE_APP_SECRET")
@@ -1347,7 +1348,7 @@ func TestAccStreamRSStreamConnection_AzureBlobStoragePrivateLink(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfig + configureAzureBlobStoragePrivateLink(projectID, instanceName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName),
+				Config: dataSourceConfig + configureAzureBlobStoragePrivateLink(projectID, instanceName, clusterName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAzureBlobStoragePrivateLinkAttributes(resourceName, instanceName, connectionName, servicePrincipalID, storageAccountName),
 					checkAzureBlobStoragePrivateLinkAttributes(dataSourceName, instanceName, connectionName, servicePrincipalID, storageAccountName),
@@ -1412,15 +1413,32 @@ func checkAzureBlobStorageAttributes(resourceNames ...string) resource.TestCheck
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func configureAzureBlobStoragePrivateLink(projectID, workspaceName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName string) string {
+func configureAzureBlobStoragePrivateLink(projectID, workspaceName, clusterName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName string) string {
 	return acc.ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID) +
 		acc.ConfigAzureCloudProviderAccess(projectID, atlasAzureAppID, servicePrincipalID, tenantID) +
 		acc.ConfigAzureStorageResources("blob", resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID) +
-		configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, connectionName)
+		configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, clusterName, connectionName)
 }
 
-func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, connectionName string) string {
+func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, clusterName, connectionName string) string {
 	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[4]q
+			cluster_type = "REPLICASET"
+			replication_specs = [{
+				region_configs = [{
+					priority      = 7
+					provider_name = "AZURE"
+					region_name   = "US_EAST_2"
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+					}
+				}]
+			}]
+		}
+
 		resource "mongodbatlas_stream_privatelink_endpoint" "test" {
 			project_id          = %[1]q
 			provider_name       = "AZURE"
@@ -1428,6 +1446,7 @@ func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, connec
 			region              = azurerm_resource_group.blob_rg.location
 			service_endpoint_id = azurerm_storage_account.blob_storage.id
 			dns_domain          = "${azurerm_storage_account.blob_storage.name}.blob.core.windows.net"
+			depends_on          = [mongodbatlas_advanced_cluster.test]
 		}
 
 		resource "mongodbatlas_stream_connection" "test" {
@@ -1451,7 +1470,7 @@ func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, connec
 				azurerm_role_assignment.blob_contributor,
 			]
 		}
-	`, projectID, workspaceName, connectionName)
+	`, projectID, workspaceName, connectionName, clusterName)
 }
 
 func checkAzureBlobStoragePrivateLinkAttributes(resourceName, workspaceName, connectionName, servicePrincipalID, storageAccountName string) resource.TestCheckFunc {

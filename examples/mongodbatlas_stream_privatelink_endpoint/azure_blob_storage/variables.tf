@@ -40,6 +40,11 @@ variable "project_id" {
   type        = string
 }
 
+variable "cluster_name" {
+  description = "Name of the Azure cluster required for private link provisioning."
+  type        = string
+}
+
 variable "atlas_region" {
   description = "The Atlas region of the Provider's cluster. See [AZURE](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances)"
   type        = string

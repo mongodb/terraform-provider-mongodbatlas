@@ -170,9 +170,33 @@ func TestAccStreamPrivatelinkEndpointAzureBlobStorage_fields(t *testing.T) {
 		config        string
 	}{
 		{
-			name:          "missing all required fields",
+			name:          "missing region",
 			config:        missingRequiredFieldsConfig(projectID, provider, vendor),
-			expectedError: regexp.MustCompile(`(?s)^.*?region is required for vendor AZURE_BLOB_STORAGE.*?service_endpoint_id is required for vendor AZURE_BLOB_STORAGE.*?dns_domain is required for vendor AZURE_BLOB_STORAGE.*$`),
+			expectedError: regexp.MustCompile(`region is required for vendor AZURE_BLOB_STORAGE`),
+		},
+		{
+			name: "missing service_endpoint_id",
+			config: fmt.Sprintf(`
+			resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+				project_id    = %[1]q
+				provider_name = %[2]q
+				vendor        = %[3]q
+				region        = "eastus2"
+				dns_domain    = "acct.blob.core.windows.net"
+			}`, projectID, provider, vendor),
+			expectedError: regexp.MustCompile(`service_endpoint_id is required for vendor AZURE_BLOB_STORAGE`),
+		},
+		{
+			name: "missing dns_domain",
+			config: fmt.Sprintf(`
+			resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+				project_id          = %[1]q
+				provider_name       = %[2]q
+				vendor              = %[3]q
+				region              = "eastus2"
+				service_endpoint_id = "/subscriptions/x/resourceGroups/y/providers/Microsoft.Storage/storageAccounts/acct"
+			}`, projectID, provider, vendor),
+			expectedError: regexp.MustCompile(`dns_domain is required for vendor AZURE_BLOB_STORAGE`),
 		},
 	}
 
@@ -486,6 +510,7 @@ func basicAzureBlobStorageTestCase(t *testing.T) *resource.TestCase {
 
 	var (
 		projectID          = acc.ProjectIDExecution(t)
+		clusterName        = acc.RandomClusterName()
 		provider           = "AZURE"
 		vendor             = "AZURE_BLOB_STORAGE"
 		subscriptionID     = os.Getenv("AZURE_SUBSCRIPTION_ID")
@@ -503,7 +528,7 @@ func basicAzureBlobStorageTestCase(t *testing.T) *resource.TestCase {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.GetCompleteAzureBlobStorageConfig(projectID, subscriptionID, clientID, clientSecret, tenantID, resourceGroupName, storageAccountName),
+				Config: acc.GetCompleteAzureBlobStorageConfig(projectID, clusterName, subscriptionID, clientID, clientSecret, tenantID, resourceGroupName, storageAccountName),
 				Check:  checksStreamPrivatelinkEndpointAzureBlobStorage(projectID, provider, vendor),
 			},
 			{

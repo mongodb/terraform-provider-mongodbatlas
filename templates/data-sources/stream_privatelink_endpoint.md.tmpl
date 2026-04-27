@@ -24,6 +24,9 @@ subcategory: "Streams"
 {{ tffile (printf "examples/%s/gcp_pubsub/main.tf" .Name )}}
 
 ### Azure Blob Storage Privatelink
+
+~> **NOTE:** An Azure cluster must be provisioned in the same region before creating an Azure Blob Storage private endpoint.
+
 {{ tffile (printf "examples/%s/azure_blob_storage/main.tf" .Name )}}
 
 {{ .SchemaMarkdown | trimspace }}
