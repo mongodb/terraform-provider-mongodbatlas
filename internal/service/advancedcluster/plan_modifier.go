@@ -65,8 +65,7 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 }
 
 // emitWarningIfSpecChangedWithAutoScaling warns when use_effective_fields=true and auto-scaling is enabled but the user
-// changed instance_size, disk_size_gb, or disk_iops. Atlas silently ignores these changes in that combination —
-// the new values are stored in state but the cluster is not modified, producing a false "1 changed" result with no feedback.
+// changed instance_size, disk_size_gb, or disk_iops. Atlas silently ignores these changes in that combination.
 func emitWarningIfSpecChangedWithAutoScaling(diags *diag.Diagnostics, plan *TFModel, attributeChanges schemafunc.AttributeChanges, autoScalingFields []string) {
 	if !plan.UseEffectiveFields.ValueBool() || len(autoScalingFields) == 0 {
 		return
