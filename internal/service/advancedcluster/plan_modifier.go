@@ -14,6 +14,9 @@ import (
 )
 
 var (
+	// Spec fields that Atlas controls when auto-scaling is active.
+	autoScalingManagedSpecFields = []string{"instance_size", "disk_size_gb", "disk_iops"}
+
 	// Change mappings uses `attribute_name`, it doesn't care about the nested level.
 	attributeRootChangeMapping = map[string][]string{
 		"replication_specs":      {},
@@ -71,7 +74,7 @@ func emitWarningIfSpecChangedWithAutoScaling(ctx context.Context, diags *diag.Di
 		return
 	}
 	var changedFields []string
-	for _, field := range []string{"instance_size", "disk_size_gb", "disk_iops"} {
+	for _, field := range autoScalingManagedSpecFields {
 		if attributeChanges.AttributeChanged(field) {
 			changedFields = append(changedFields, field)
 		}
@@ -197,7 +200,7 @@ func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnosti
 		return nil
 	}
 	// When either compute or disk auto-scaling is enabled, all three fields may be adjusted by Atlas
-	return []string{"instance_size", "disk_size_gb", "disk_iops"}
+	return autoScalingManagedSpecFields
 }
 
 // autoScalingUsed checks if auto-scaling is enabled in the given cluster model.
