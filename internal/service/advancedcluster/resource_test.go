@@ -564,15 +564,15 @@ func TestAccClusterAdvancedCluster_iwmSetOnCreate(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configIWM(projectID, clusterName, new(true)),
+				Config: configIWM(projectID, clusterName, new(true), nil),
 				Check:  checkIWM(new(true)),
 			},
 			{
-				Config: configIWM(projectID, clusterName, nil),
+				Config: configIWM(projectID, clusterName, nil, nil),
 				Check:  checkIWM(nil),
 			},
 			{
-				Config: configIWM(projectID, clusterName, new(false)),
+				Config: configIWM(projectID, clusterName, new(false), nil),
 				Check:  checkIWM(new(false)),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -589,19 +589,26 @@ func TestAccClusterAdvancedCluster_iwmSetOnUpdate(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configIWM(projectID, clusterName, nil),
+				Config: configIWM(projectID, clusterName, nil, nil),
 				Check:  checkIWM(nil),
 			},
 			{
-				Config: configIWM(projectID, clusterName, new(true)),
+				Config: configIWM(projectID, clusterName, new(true), nil),
 				Check:  checkIWM(new(true)),
 			},
 			{
-				Config: configIWM(projectID, clusterName, new(false)),
+				Config: configIWM(projectID, clusterName, new(true), new(false)),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkIWM(new(true)),
+					resource.TestCheckResourceAttr(resourceName, "backup_enabled", "false"),
+				),
+			},
+			{
+				Config: configIWM(projectID, clusterName, new(false), nil),
 				Check:  checkIWM(new(false)),
 			},
 			{
-				Config: configIWM(projectID, clusterName, nil),
+				Config: configIWM(projectID, clusterName, nil, nil),
 				Check:  checkIWM(nil),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -1452,13 +1459,16 @@ func checksDedicatedNVMeBackupEnabled(projectID, name string, checkPlural bool) 
 	return checkAggr(nil, checkMap, originalChecks)
 }
 
-func configIWM(projectID, clusterName string, loadShedding *bool) string {
-	var overridesBlock string
+func configIWM(projectID, clusterName string, loadShedding, backupEnabled *bool) string {
+	var extraConfig string
 	if loadShedding != nil {
-		overridesBlock = fmt.Sprintf(`
+		extraConfig += fmt.Sprintf(`
 		intelligent_workload_management_policy_overrides = {
-			LOAD_SHEDDING = %[1]t
+			LOAD_SHEDDING = %t
 		}`, *loadShedding)
+	}
+	if backupEnabled != nil {
+		extraConfig += fmt.Sprintf("\n\t\tbackup_enabled = %t", *backupEnabled)
 	}
 
 	return fmt.Sprintf(`
@@ -1481,7 +1491,7 @@ func configIWM(projectID, clusterName string, loadShedding *bool) string {
 			}]
 			%[3]s
 		}
-	`, projectID, clusterName, overridesBlock) + dataSourcesConfig
+	`, projectID, clusterName, extraConfig) + dataSourcesConfig
 }
 
 func checkIWM(loadShedding *bool) resource.TestCheckFunc {
