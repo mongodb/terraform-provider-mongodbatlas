@@ -2,6 +2,8 @@ package advancedcluster
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -56,8 +58,36 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version", "config_server_type"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
-	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
+	autoScalingFields := determineKeepUnknownsAutoScaling(ctx, diags, state, plan)
+	keepUnknown = append(keepUnknown, autoScalingFields...)
+	emitWarningIfSpecChangedWithAutoScaling(diags, plan, attributeChanges, autoScalingFields)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
+}
+
+// emitWarningIfSpecChangedWithAutoScaling warns when use_effective_fields=true and auto-scaling is enabled but the user
+// changed instance_size, disk_size_gb, or disk_iops. Atlas silently ignores these changes in that combination —
+// the new values are stored in state but the cluster is not modified, producing a false "1 changed" result with no feedback.
+func emitWarningIfSpecChangedWithAutoScaling(diags *diag.Diagnostics, plan *TFModel, attributeChanges schemafunc.AttributeChanges, autoScalingFields []string) {
+	if !plan.UseEffectiveFields.ValueBool() || len(autoScalingFields) == 0 {
+		return
+	}
+	var changedFields []string
+	for _, field := range autoScalingFields {
+		if attributeChanges.AttributeChanged(field) {
+			changedFields = append(changedFields, field)
+		}
+	}
+	if len(changedFields) == 0 {
+		return
+	}
+	diags.AddWarning(
+		"Spec change ignored due to auto-scaling",
+		fmt.Sprintf("The change to %s will be stored in Terraform state but will not modify the actual cluster in Atlas. "+
+			"When use_effective_fields is true and auto-scaling is enabled, Atlas controls instance_size, disk_size_gb, and disk_iops values. "+
+			"To apply this change, temporarily disable auto-scaling. "+
+			"See: https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#manually-updating-specs-with-use_effective_fields",
+			strings.Join(changedFields, ", ")),
+	)
 }
 
 // adjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
