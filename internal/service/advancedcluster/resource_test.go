@@ -1487,10 +1487,13 @@ func configIWM(projectID, clusterName string, loadShedding *bool) string {
 func checkIWM(loadShedding *bool) resource.TestCheckFunc {
 	const overridesAttr = "intelligent_workload_management_policy_overrides.%"
 	const loadSheddingAttr = "intelligent_workload_management_policy_overrides.LOAD_SHEDDING"
+	const effectiveAttr = "effective_intelligent_workload_management_policies.%"
+	const effectiveLoadSheddingAttr = "effective_intelligent_workload_management_policies.LOAD_SHEDDING"
 	if loadShedding == nil {
 		return resource.ComposeAggregateTestCheckFunc(
 			resource.TestCheckNoResourceAttr(resourceName, overridesAttr),
 			resource.TestCheckNoResourceAttr(dataSourceName, overridesAttr),
+			resource.TestCheckResourceAttrSet(dataSourceName, effectiveAttr),
 		)
 	}
 	expected := strconv.FormatBool(*loadShedding)
@@ -1499,6 +1502,8 @@ func checkIWM(loadShedding *bool) resource.TestCheckFunc {
 		resource.TestCheckResourceAttr(dataSourceName, overridesAttr, "1"),
 		resource.TestCheckResourceAttr(resourceName, loadSheddingAttr, expected),
 		resource.TestCheckResourceAttr(dataSourceName, loadSheddingAttr, expected),
+		resource.TestCheckResourceAttrSet(dataSourceName, effectiveAttr),
+		resource.TestCheckResourceAttr(dataSourceName, effectiveLoadSheddingAttr, expected),
 	)
 }
 
