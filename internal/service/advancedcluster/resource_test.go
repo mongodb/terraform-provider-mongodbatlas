@@ -604,6 +604,10 @@ func TestAccClusterAdvancedCluster_iwmSetOnUpdate(t *testing.T) {
 				),
 			},
 			{
+				Config: configIWMEmptyOverrides(projectID, clusterName),
+				Check:  checkIWMEmptyOverrides(),
+			},
+			{
 				Config: configIWM(projectID, clusterName, new(false), nil),
 				Check:  checkIWM(new(false)),
 			},
@@ -1492,6 +1496,41 @@ func configIWM(projectID, clusterName string, loadShedding, backupEnabled *bool)
 			%[3]s
 		}
 	`, projectID, clusterName, extraConfig) + dataSourcesConfig
+}
+
+func configIWMEmptyOverrides(projectID, clusterName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id             = %[1]q
+			name                   = %[2]q
+			cluster_type           = "REPLICASET"
+			version_release_system = "CONTINUOUS"
+
+			intelligent_workload_management_policy_overrides = {}
+
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+				}]
+			}]
+		}
+	`, projectID, clusterName) + dataSourcesConfig
+}
+
+func checkIWMEmptyOverrides() resource.TestCheckFunc {
+	const overridesAttr = "intelligent_workload_management_policy_overrides.%"
+	const effectiveAttr = "effective_intelligent_workload_management_policies.%"
+	return resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttr(resourceName, overridesAttr, "0"),
+		resource.TestCheckResourceAttr(dataSourceName, overridesAttr, "0"),
+		resource.TestCheckResourceAttrSet(dataSourceName, effectiveAttr),
+	)
 }
 
 func checkIWM(loadShedding *bool) resource.TestCheckFunc {
