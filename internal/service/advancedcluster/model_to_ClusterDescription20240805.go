@@ -29,7 +29,14 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		majorVersion = &majorVersionFormatted
 	}
 
-	req := &admin.ClusterDescription20240805{
+	var iwmOverrides *map[string]any
+	if !input.IntelligentWorkloadManagementPolicyOverrides.IsNull() && !input.IntelligentWorkloadManagementPolicyOverrides.IsUnknown() {
+		if result := normalizedMapToAny(diags, "intelligent_workload_management_policy_overrides", input.IntelligentWorkloadManagementPolicyOverrides); result != nil {
+			iwmOverrides = &result
+		}
+	}
+
+	return &admin.ClusterDescription20240805{
 		AcceptDataRisksAndForceReplicaSetReconfig: acceptDataRisksAndForceReplicaSetReconfig,
 		BackupEnabled:                    conversion.NilForUnknown(input.BackupEnabled, input.BackupEnabled.ValueBoolPointer()),
 		BiConnector:                      newBiConnector(ctx, input.BiConnectorConfig, diags),
@@ -51,21 +58,16 @@ func newAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		UseAwsTimeBasedSnapshotCopyForFastInitialSync: conversion.NilForUnknown(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync, input.UseAwsTimeBasedSnapshotCopyForFastInitialSync.ValueBoolPointer()),
 		VersionReleaseSystem:                          conversion.NilForUnknown(input.VersionReleaseSystem, input.VersionReleaseSystem.ValueStringPointer()),
 		AdvancedConfiguration:                         newClusterAdvancedConfiguration(ctx, &input.AdvancedConfiguration, diags),
+		IntelligentWorkloadManagementPolicyOverrides:  iwmOverrides,
 	}
-	if !input.IntelligentWorkloadManagementPolicyOverrides.IsNull() && !input.IntelligentWorkloadManagementPolicyOverrides.IsUnknown() {
-		iwm := newIWMPolicyOverrides(diags, input.IntelligentWorkloadManagementPolicyOverrides)
-		req.IntelligentWorkloadManagementPolicyOverrides = &iwm
-	}
-	return req
 }
 
-func newIWMPolicyOverrides(diags *diag.Diagnostics, input customtypes.MapValue[jsontypes.Normalized]) map[string]any {
-	elements := input.Elements()
-	result := make(map[string]any, len(elements))
-	for key, val := range elements {
+func normalizedMapToAny(diags *diag.Diagnostics, attrName string, input customtypes.MapValue[jsontypes.Normalized]) map[string]any {
+	result := make(map[string]any)
+	for key, val := range input.Elements() {
 		normalized, ok := val.(jsontypes.Normalized)
 		if !ok {
-			diags.AddError("error converting intelligent_workload_management_policy_overrides", fmt.Sprintf("invalid value for %q", key))
+			diags.AddError("error converting "+attrName, fmt.Sprintf("invalid value for %q", key))
 			return nil
 		}
 		if normalized.IsNull() || normalized.IsUnknown() {
@@ -73,7 +75,7 @@ func newIWMPolicyOverrides(diags *diag.Diagnostics, input customtypes.MapValue[j
 		}
 		var decoded any
 		if err := json.Unmarshal([]byte(normalized.ValueString()), &decoded); err != nil {
-			diags.AddError("error converting intelligent_workload_management_policy_overrides", fmt.Sprintf("invalid JSON for %q: %s", key, normalized.ValueString()))
+			diags.AddError("error converting "+attrName, fmt.Sprintf("invalid JSON for %q: %s", key, normalized.ValueString()))
 			return nil
 		}
 		result[key] = decoded
