@@ -520,12 +520,18 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 		diags.AddError(errorPatchPayload, err.Error())
 		return clusterDiff{}
 	}
-	// User removed IWM from config: force JSON null in the PATCH so the server resets the value.
-	if plan.IntelligentWorkloadManagementPolicyOverrides.IsNull() && !state.IntelligentWorkloadManagementPolicyOverrides.IsNull() {
-		if patchReq == nil {
+	// IWM: PatchPayload misses key removals inside the map, so force the field explicitly.
+	if !plan.IntelligentWorkloadManagementPolicyOverrides.Equal(state.IntelligentWorkloadManagementPolicyOverrides) {
+		isNull := plan.IntelligentWorkloadManagementPolicyOverrides.IsNull()
+		isZeroLen := len(plan.IntelligentWorkloadManagementPolicyOverrides.Elements()) == 0
+		if (isNull || isZeroLen) && patchReq == nil {
 			patchReq = &admin.ClusterDescription20240805{}
 		}
-		patchReq.IntelligentWorkloadManagementPolicyOverrides = new(map[string]any)
+		if isNull {
+			patchReq.IntelligentWorkloadManagementPolicyOverrides = new(map[string]any) // JSON null
+		} else if isZeroLen {
+			patchReq.IntelligentWorkloadManagementPolicyOverrides = &map[string]any{} // JSON {}
+		}
 	}
 	if update.IsZeroValues(patchReq) { // No changes to cluster
 		return clusterDiff{}
