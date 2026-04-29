@@ -72,6 +72,9 @@ func WarnIgnoredSpecChange(ctx context.Context, diags *diag.Diagnostics, plan *T
 	if !plan.UseEffectiveFields.ValueBool() || !autoScalingUsed(ctx, diags, plan) {
 		return
 	}
+	if attributeChanges.ListLenChanges("replication_specs") || attributeChanges.ListLenChanges("region_configs") {
+		return
+	}
 	var changedFields []string
 	for _, field := range autoScalingManagedSpecFields {
 		if attributeChanges.AttributeChanged(field) {
