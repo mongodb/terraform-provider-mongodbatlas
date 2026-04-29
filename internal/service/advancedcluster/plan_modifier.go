@@ -69,11 +69,10 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 }
 
 // WarnIgnoredSpecChange warns when use_effective_fields=true and auto-scaling is enabled but the user
-// changed instance_size, disk_size_gb, or disk_iops. Atlas silently ignores these changes in that combination.
-// The check is scoped per region config: compute_enabled governs electable/read_only instance_size,
-// analytics_auto_scaling.compute_enabled governs analytics instance_size, and disk_gb_enabled governs disk fields for all specs.
+// changed instance_size, disk_size_gb, or disk_iops — Atlas silently ignores these in that combination.
+// Per-tier scoping is implemented in addIgnoredSpecChangesForRegionConfig.
 func WarnIgnoredSpecChange(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	if !plan.UseEffectiveFields.ValueBool() {
+	if !state.UseEffectiveFields.ValueBool() || !plan.UseEffectiveFields.ValueBool() {
 		return
 	}
 	ignoredFields := collectIgnoredSpecChanges(ctx, diags, state, plan)
@@ -90,8 +89,7 @@ func WarnIgnoredSpecChange(ctx context.Context, diags *diag.Diagnostics, state, 
 	)
 }
 
-// collectIgnoredSpecChanges returns sorted field names that changed in plan vs state but will be ignored by Atlas due to auto-scaling.
-// New replication specs or region configs added in plan (no state counterpart) are naturally skipped via minLen iteration.
+// collectIgnoredSpecChanges returns sorted field names changed in plan but ignored by Atlas due to auto-scaling.
 func collectIgnoredSpecChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) []string {
 	stateRepSpecs := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
 	planRepSpecs := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
@@ -115,6 +113,8 @@ func collectIgnoredSpecChanges(ctx context.Context, diags *diag.Diagnostics, sta
 	return slices.Sorted(maps.Keys(ignoredSet))
 }
 
+// addIgnoredSpecChangesForRegionConfig adds field names that will be silently ignored by Atlas.
+// auto_scaling and analytics_auto_scaling are independent in the Atlas API, so each block only governs its own tier.
 func addIgnoredSpecChangesForRegionConfig(ctx context.Context, stateRC, planRC *TFRegionConfigsModel, ignored map[string]struct{}) {
 	planAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRC.AutoScaling)
 	planAnalyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRC.AnalyticsAutoScaling)
@@ -136,12 +136,14 @@ func addIgnoredSpecChangesForRegionConfig(ctx context.Context, stateRC, planRC *
 	if planAutoScaling != nil && planAutoScaling.DiskGBEnabled.ValueBool() {
 		checkDiskDiff(stateElectable, planElectable, ignored)
 		checkDiskDiff(stateReadOnly, planReadOnly, ignored)
+	}
+	if planAnalyticsAutoScaling != nil && planAnalyticsAutoScaling.DiskGBEnabled.ValueBool() {
 		checkDiskDiff(stateAnalytics, planAnalytics, ignored)
 	}
 }
 
 func checkInstanceSizeDiff(state, plan *TFSpecsModel, ignored map[string]struct{}) {
-	if state != nil && plan != nil && !state.InstanceSize.Equal(plan.InstanceSize) {
+	if state != nil && plan != nil && !plan.InstanceSize.IsUnknown() && !state.InstanceSize.Equal(plan.InstanceSize) {
 		ignored["instance_size"] = struct{}{}
 	}
 }
@@ -150,10 +152,10 @@ func checkDiskDiff(state, plan *TFSpecsModel, ignored map[string]struct{}) {
 	if state == nil || plan == nil {
 		return
 	}
-	if !state.DiskSizeGb.Equal(plan.DiskSizeGb) {
+	if !plan.DiskSizeGb.IsUnknown() && !state.DiskSizeGb.Equal(plan.DiskSizeGb) {
 		ignored["disk_size_gb"] = struct{}{}
 	}
-	if !state.DiskIops.Equal(plan.DiskIops) {
+	if !plan.DiskIops.IsUnknown() && !state.DiskIops.Equal(plan.DiskIops) {
 		ignored["disk_iops"] = struct{}{}
 	}
 }
@@ -266,7 +268,7 @@ func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnosti
 		return nil
 	}
 	// When either compute or disk auto-scaling is enabled, all three fields may be adjusted by Atlas
-	return autoScalingManagedSpecFields
+	return slices.Clone(autoScalingManagedSpecFields)
 }
 
 // autoScalingUsed checks if auto-scaling is enabled in the given cluster model.
