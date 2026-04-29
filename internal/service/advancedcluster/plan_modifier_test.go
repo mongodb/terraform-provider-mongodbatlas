@@ -13,14 +13,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
 
-// Attr type maps mirrors the unexported vars in schema.go to avoid uppercasing them.
-// They are redeclared here because this package is advancedcluster_test and cannot access package-private symbols.
-// Done in order to be able to add unit tests for WarnIgnoredSpecChange function, as they allow to test the function without depending on acceptance tests
 var (
 	autoScalingAttrTypes = map[string]attr.Type{
 		"compute_enabled":            types.BoolType,
@@ -127,24 +123,66 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 	}
 }
 
-func buildPlanWithAutoScaling(t *testing.T, useEffectiveFields, computeEnabled, diskGBEnabled bool) *advancedcluster.TFModel {
+type regionConfigTestParams struct {
+	electableInstanceSize   string // empty = null analytics_specs
+	analyticsInstanceSize   string
+	diskSizeGb              float64
+	diskIops                int64
+	computeEnabled          bool
+	analyticsComputeEnabled bool
+	diskGBEnabled           bool
+}
+
+func buildModelForWarnTest(t *testing.T, useEffectiveFields bool, rcParams regionConfigTestParams) *advancedcluster.TFModel {
 	t.Helper()
 	ctx := context.Background()
 
 	autoScaling, diags := types.ObjectValueFrom(ctx, autoScalingAttrTypes, advancedcluster.TFAutoScalingModel{
-		ComputeEnabled:          types.BoolValue(computeEnabled),
-		DiskGBEnabled:           types.BoolValue(diskGBEnabled),
+		ComputeEnabled:          types.BoolValue(rcParams.computeEnabled),
+		DiskGBEnabled:           types.BoolValue(rcParams.diskGBEnabled),
 		ComputeScaleDownEnabled: types.BoolValue(false),
 		ComputeMinInstanceSize:  types.StringValue("M10"),
 		ComputeMaxInstanceSize:  types.StringValue("M40"),
 	})
 	require.Empty(t, diags)
 
+	analyticsAutoScaling, diags := types.ObjectValueFrom(ctx, autoScalingAttrTypes, advancedcluster.TFAutoScalingModel{
+		ComputeEnabled:          types.BoolValue(rcParams.analyticsComputeEnabled),
+		DiskGBEnabled:           types.BoolValue(false),
+		ComputeScaleDownEnabled: types.BoolValue(false),
+		ComputeMinInstanceSize:  types.StringValue("M10"),
+		ComputeMaxInstanceSize:  types.StringValue("M40"),
+	})
+	require.Empty(t, diags)
+
+	electableSpecs, diags := types.ObjectValueFrom(ctx, specsAttrTypes, advancedcluster.TFSpecsModel{
+		InstanceSize:  types.StringValue(rcParams.electableInstanceSize),
+		NodeCount:     types.Int64Value(3),
+		DiskSizeGb:    types.Float64Value(rcParams.diskSizeGb),
+		DiskIops:      types.Int64Value(rcParams.diskIops),
+		EbsVolumeType: types.StringNull(),
+	})
+	require.Empty(t, diags)
+
+	var analyticsSpecs types.Object
+	if rcParams.analyticsInstanceSize != "" {
+		analyticsSpecs, diags = types.ObjectValueFrom(ctx, specsAttrTypes, advancedcluster.TFSpecsModel{
+			InstanceSize:  types.StringValue(rcParams.analyticsInstanceSize),
+			NodeCount:     types.Int64Value(1),
+			DiskSizeGb:    types.Float64Value(rcParams.diskSizeGb),
+			DiskIops:      types.Int64Value(rcParams.diskIops),
+			EbsVolumeType: types.StringNull(),
+		})
+		require.Empty(t, diags)
+	} else {
+		analyticsSpecs = types.ObjectNull(specsAttrTypes)
+	}
+
 	regionConfig := advancedcluster.TFRegionConfigsModel{
 		AutoScaling:          autoScaling,
-		AnalyticsAutoScaling: types.ObjectNull(autoScalingAttrTypes),
-		AnalyticsSpecs:       types.ObjectNull(specsAttrTypes),
-		ElectableSpecs:       types.ObjectNull(specsAttrTypes),
+		AnalyticsAutoScaling: analyticsAutoScaling,
+		AnalyticsSpecs:       analyticsSpecs,
+		ElectableSpecs:       electableSpecs,
 		ReadOnlySpecs:        types.ObjectNull(specsAttrTypes),
 		ProviderName:         types.StringValue("AWS"),
 		RegionName:           types.StringValue("US_EAST_1"),
@@ -175,67 +213,72 @@ func buildPlanWithAutoScaling(t *testing.T, useEffectiveFields, computeEnabled, 
 func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
 	testCases := []struct {
 		name               string
-		changedFields      schemafunc.AttributeChanges
+		stateRC            regionConfigTestParams
+		planRC             regionConfigTestParams
 		useEffectiveFields bool
-		computeEnabled     bool
-		diskGBEnabled      bool
 		expectWarning      bool
 	}{
 		{
-			name:               "warns when compute auto-scaling on and instance_size changed",
+			name:               "warns when compute auto-scaling on and electable instance_size changed",
 			useEffectiveFields: true,
-			computeEnabled:     true,
-			changedFields:      schemafunc.AttributeChanges{"instance_size"},
+			stateRC:            regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
+			planRC:             regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"},
 			expectWarning:      true,
 		},
 		{
 			name:               "warns when disk auto-scaling on and disk_size_gb changed",
 			useEffectiveFields: true,
-			diskGBEnabled:      true,
-			changedFields:      schemafunc.AttributeChanges{"disk_size_gb"},
+			stateRC:            regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", diskSizeGb: 10},
+			planRC:             regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", diskSizeGb: 20},
 			expectWarning:      true,
 		},
 		{
-			name:               "warns when compute auto-scaling on and disk_iops changed",
+			name:               "warns when disk auto-scaling on and disk_iops changed",
 			useEffectiveFields: true,
-			computeEnabled:     true,
-			changedFields:      schemafunc.AttributeChanges{"disk_iops"},
+			stateRC:            regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", diskIops: 3000},
+			planRC:             regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", diskIops: 4000},
+			expectWarning:      true,
+		},
+		{
+			name:               "warns when analytics compute auto-scaling on and analytics instance_size changed",
+			useEffectiveFields: true,
+			stateRC:            regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10"},
+			planRC:             regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M20"},
 			expectWarning:      true,
 		},
 		{
 			name:               "no warning when use_effective_fields is false",
 			useEffectiveFields: false,
-			computeEnabled:     true,
-			changedFields:      schemafunc.AttributeChanges{"instance_size"},
+			stateRC:            regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
+			planRC:             regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"},
 			expectWarning:      false,
 		},
 		{
 			name:               "no warning when auto-scaling is disabled",
 			useEffectiveFields: true,
-			computeEnabled:     false,
-			diskGBEnabled:      false,
-			changedFields:      schemafunc.AttributeChanges{"instance_size"},
+			stateRC:            regionConfigTestParams{electableInstanceSize: "M10"},
+			planRC:             regionConfigTestParams{electableInstanceSize: "M20"},
 			expectWarning:      false,
 		},
 		{
 			name:               "no warning when auto-scaling is on but no managed spec fields changed",
 			useEffectiveFields: true,
-			computeEnabled:     true,
-			changedFields:      schemafunc.AttributeChanges{"node_count"},
+			stateRC:            regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
+			planRC:             regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
 			expectWarning:      false,
 		},
 		{
-			name:               "no warning when replication_specs list length changes (avoid false positive on new spec)",
+			name:               "no warning when only analytics compute auto-scaling on but electable instance_size changed",
 			useEffectiveFields: true,
-			computeEnabled:     true,
-			changedFields:      schemafunc.AttributeChanges{"replication_specs[+1]", "replication_specs[1].region_configs[0].instance_size", "instance_size"},
+			stateRC:            regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10"},
+			planRC:             regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M20"},
 			expectWarning:      false,
 		},
 		{
-			name:               "no warning when region_configs list length changes (avoid false positive on new region config)",
+			name:               "no warning when only compute auto-scaling on but analytics instance_size changed",
 			useEffectiveFields: true,
-			computeEnabled:     true,
-			changedFields:      schemafunc.AttributeChanges{"replication_specs[0].region_configs[+1]", "replication_specs[0].region_configs[1].instance_size", "instance_size"},
+			stateRC:            regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10"},
+			planRC:             regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M20"},
 			expectWarning:      false,
 		},
 	}
@@ -243,10 +286,11 @@ func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
-			plan := buildPlanWithAutoScaling(t, tc.useEffectiveFields, tc.computeEnabled, tc.diskGBEnabled)
+			state := buildModelForWarnTest(t, tc.useEffectiveFields, tc.stateRC)
+			plan := buildModelForWarnTest(t, tc.useEffectiveFields, tc.planRC)
 			var diags diag.Diagnostics
 
-			advancedcluster.WarnIgnoredSpecChange(ctx, &diags, plan, tc.changedFields)
+			advancedcluster.WarnIgnoredSpecChange(ctx, &diags, state, plan)
 
 			assert.False(t, diags.HasError())
 			if tc.expectWarning {
@@ -256,4 +300,84 @@ func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
 			}
 		})
 	}
+
+	// List length changes: new specs/region_configs added in plan have no state counterpart,
+	// so minLen iteration naturally skips them — no false positive warning.
+	t.Run("no warning when replication_specs list length changes", func(t *testing.T) {
+		ctx := context.Background()
+		state := buildModelForWarnTest(t, true, regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"})
+		// plan has 2 rep specs; first is unchanged, second is new (no state counterpart)
+		plan := addExtraRepSpec(t, buildModelForWarnTest(t, true, regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"}),
+			regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"})
+		var diags diag.Diagnostics
+		advancedcluster.WarnIgnoredSpecChange(ctx, &diags, state, plan)
+		assert.False(t, diags.HasError())
+		assert.Equal(t, 0, diags.WarningsCount())
+	})
+
+	t.Run("no warning when region_configs list length changes", func(t *testing.T) {
+		ctx := context.Background()
+		state := buildModelForWarnTest(t, true, regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"})
+		// plan has 2 region configs; first is unchanged, second is new (no state counterpart)
+		plan := addExtraRegionConfig(t, buildModelForWarnTest(t, true, regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"}),
+			regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"})
+		var diags diag.Diagnostics
+		advancedcluster.WarnIgnoredSpecChange(ctx, &diags, state, plan)
+		assert.False(t, diags.HasError())
+		assert.Equal(t, 0, diags.WarningsCount())
+	})
+}
+
+// addExtraRepSpec appends a new replication spec to the model's ReplicationSpecs list.
+func addExtraRepSpec(t *testing.T, model *advancedcluster.TFModel, rcParams regionConfigTestParams) *advancedcluster.TFModel {
+	t.Helper()
+	extra := buildModelForWarnTest(t, model.UseEffectiveFields.ValueBool(), rcParams)
+	ctx := context.Background()
+
+	existing := make([]advancedcluster.TFReplicationSpecsModel, 0)
+	diags := model.ReplicationSpecs.ElementsAs(ctx, &existing, false)
+	require.Empty(t, diags)
+
+	extra1 := make([]advancedcluster.TFReplicationSpecsModel, 0)
+	diags = extra.ReplicationSpecs.ElementsAs(ctx, &extra1, false)
+	require.Empty(t, diags)
+
+	combined, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: replicationSpecAttrTypes}, append(existing, extra1...))
+	require.Empty(t, diags)
+
+	model.ReplicationSpecs = combined
+	return model
+}
+
+// addExtraRegionConfig appends a new region config to the first replication spec of the model.
+func addExtraRegionConfig(t *testing.T, model *advancedcluster.TFModel, rcParams regionConfigTestParams) *advancedcluster.TFModel {
+	t.Helper()
+	extra := buildModelForWarnTest(t, model.UseEffectiveFields.ValueBool(), rcParams)
+	ctx := context.Background()
+
+	repSpecs := make([]advancedcluster.TFReplicationSpecsModel, 0)
+	diags := model.ReplicationSpecs.ElementsAs(ctx, &repSpecs, false)
+	require.Empty(t, diags)
+
+	existingRCs := make([]advancedcluster.TFRegionConfigsModel, 0)
+	diags = repSpecs[0].RegionConfigs.ElementsAs(ctx, &existingRCs, false)
+	require.Empty(t, diags)
+
+	extraRepSpecs := make([]advancedcluster.TFReplicationSpecsModel, 0)
+	diags = extra.ReplicationSpecs.ElementsAs(ctx, &extraRepSpecs, false)
+	require.Empty(t, diags)
+
+	extraRCs := make([]advancedcluster.TFRegionConfigsModel, 0)
+	diags = extraRepSpecs[0].RegionConfigs.ElementsAs(ctx, &extraRCs, false)
+	require.Empty(t, diags)
+
+	combined, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: regionConfigAttrTypes}, append(existingRCs, extraRCs...))
+	require.Empty(t, diags)
+
+	repSpecs[0].RegionConfigs = combined
+	repSpecsList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: replicationSpecAttrTypes}, repSpecs)
+	require.Empty(t, diags)
+
+	model.ReplicationSpecs = repSpecsList
+	return model
 }
