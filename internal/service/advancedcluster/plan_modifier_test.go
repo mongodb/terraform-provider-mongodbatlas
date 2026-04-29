@@ -335,16 +335,4 @@ func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
 		assert.False(t, diags.HasError())
 		assert.Equal(t, 0, diags.WarningsCount())
 	})
-
-	// Toggle case: state=false, plan=true. handleModifyPlan returns early on toggle so WarnIgnoredSpecChange
-	// is never reached from production, but the dual use_effective_fields guard makes it safe independently.
-	t.Run("no warning when toggling use_effective_fields from false to true", func(t *testing.T) {
-		ctx := context.Background()
-		state := buildModelForWarnTest(t, false, regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"})
-		plan := buildModelForWarnTest(t, true, regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"})
-		var diags diag.Diagnostics
-		advancedcluster.WarnIgnoredSpecChange(ctx, &diags, state, plan)
-		assert.False(t, diags.HasError())
-		assert.Equal(t, 0, diags.WarningsCount())
-	})
 }

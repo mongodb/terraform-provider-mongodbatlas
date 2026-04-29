@@ -69,10 +69,9 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 }
 
 // WarnIgnoredSpecChange warns when use_effective_fields=true and auto-scaling is enabled but the user
-// changed instance_size, disk_size_gb, or disk_iops — Atlas silently ignores these in that combination.
-// Per-tier scoping is implemented in addIgnoredSpecChangesForRegionConfig.
+// changed instance_size, disk_size_gb, or disk_iops
 func WarnIgnoredSpecChange(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	if !state.UseEffectiveFields.ValueBool() || !plan.UseEffectiveFields.ValueBool() {
+	if !plan.UseEffectiveFields.ValueBool() {
 		return
 	}
 	ignoredFields := collectIgnoredSpecChanges(ctx, diags, state, plan)
