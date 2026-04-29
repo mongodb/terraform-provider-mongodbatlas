@@ -1,17 +1,13 @@
 package hcl
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 	"sync"
 	"testing"
-
-	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/hc-install/product"
-	"github.com/hashicorp/hc-install/releases"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclparse"
@@ -32,13 +28,9 @@ func getTF() *tfexec.Terraform {
 	if tf != nil {
 		return tf
 	}
-	installer := &releases.ExactVersion{
-		Product: product.Terraform,
-		Version: version.Must(version.NewVersion("1.10.1")),
-	}
-	execPath, err := installer.Install(context.Background())
+	execPath, err := exec.LookPath("terraform")
 	if err != nil {
-		panic(err)
+		panic("terraform not found in PATH: " + err.Error())
 	}
 	tempDir, err := os.Getwd()
 	if err != nil {
