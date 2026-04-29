@@ -82,10 +82,10 @@ func WarnIgnoredSpecChange(ctx context.Context, diags *diag.Diagnostics, plan *T
 		return
 	}
 	diags.AddWarning(
-		"Spec change ignored due to auto-scaling",
-		fmt.Sprintf("The change to %s will be stored in Terraform state but will not modify the actual cluster in Atlas. "+
+		"Spec change ignored when use_effective_fields is true and auto-scaling is enabled",
+		fmt.Sprintf("Your changes to %s will be stored in Terraform state but will not modify the actual cluster in Atlas. "+
 			"When use_effective_fields is true and auto-scaling is enabled, Atlas controls instance_size, disk_size_gb, and disk_iops values. "+
-			"To apply this change, temporarily disable auto-scaling. "+
+			"To apply your changes, disable auto-scaling and apply, then re-enable auto-scaling in a separate apply. "+
 			"See: https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#manually-updating-specs-with-use_effective_fields",
 			strings.Join(changedFields, ", ")),
 	)
