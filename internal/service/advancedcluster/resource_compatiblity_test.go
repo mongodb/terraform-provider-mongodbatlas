@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
-func TestAdvancedCluster_OverrideAttributesWithPrevStateValue_mongoDBMajorVersionWarning(t *testing.T) {
+func TestAdvancedCluster_warnIfMajorVersionChanged(t *testing.T) {
 	testCases := []struct {
 		name          string
 		beforeVersion string
