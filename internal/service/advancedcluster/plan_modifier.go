@@ -21,6 +21,9 @@ var (
 		"custom_openssl_cipher_config_tls12": {"custom_openssl_cipher_config_tls13"},
 		"custom_openssl_cipher_config_tls13": {"custom_openssl_cipher_config_tls12"},
 		"cluster_type":                       {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
+		// Atlas may recompute oplog when storage or effective tier changes; do not copy stale oplog from state.
+		"disk_size_gb":  {"oplog_size_mb"},
+		"instance_size": {"oplog_size_mb"},
 	}
 )
 
