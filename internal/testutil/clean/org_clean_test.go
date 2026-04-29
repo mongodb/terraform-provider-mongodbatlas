@@ -32,7 +32,8 @@ const (
 
 var (
 	botProjectPrefixes = []string{
-		"cfn-test-bot-",
+		"cfn-", // general CFN tests
+		"ct-",  // CFN contract tests
 		"test-acc-tf-p-",
 	}
 	// keptPrefixes has the prefix of the projects that we want to delete their resources but keep the projects themselves.
