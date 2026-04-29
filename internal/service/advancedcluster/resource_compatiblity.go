@@ -99,12 +99,11 @@ func OverrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel, diags *dia
 	afterVersion := conversion.NilForUnknown(modelOut.MongoDBMajorVersion, modelOut.MongoDBMajorVersion.ValueStringPointer())
 	if beforeVersion != nil {
 		if afterVersion != nil && *beforeVersion != *afterVersion {
-			// Downgrade is not possible in Atlas, so a major component difference always means an out-of-band upgrade.
 			if majorComponent(*beforeVersion) != majorComponent(*afterVersion) {
 				diags.AddWarning(
-					"MongoDB major version upgraded outside of Terraform",
+					"MongoDB major version modified outside of Terraform",
 					fmt.Sprintf("Atlas reports mongo_db_major_version as %q but your Terraform state has %q. "+
-						"Your cluster may have been upgraded outside of Terraform. "+
+						"Your cluster's major version may have been modified outside of Terraform. "+
 						"Consider setting mongo_db_major_version = %q in your configuration and applying the changes. "+
 						"This warning will continue until you update your configuration.", *afterVersion, *beforeVersion, *afterVersion),
 				)

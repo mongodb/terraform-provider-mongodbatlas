@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
-func TestAdvancedCluster_overrideAttributesWithPrevStateValue_mongoDBMajorVersionWarning(t *testing.T) {
+func TestAdvancedCluster_OverrideAttributesWithPrevStateValue_mongoDBMajorVersionWarning(t *testing.T) {
 	testCases := []struct {
 		name          string
 		beforeVersion string
@@ -18,7 +18,7 @@ func TestAdvancedCluster_overrideAttributesWithPrevStateValue_mongoDBMajorVersio
 		expectWarning bool
 	}{
 		{
-			name:          "warns when major version upgraded outside of Terraform",
+			name:          "warns when major version changed outside of Terraform",
 			beforeVersion: "7.0",
 			afterVersion:  "8.0",
 			expectWarning: true,
@@ -40,6 +40,12 @@ func TestAdvancedCluster_overrideAttributesWithPrevStateValue_mongoDBMajorVersio
 			beforeVersion: "8.0",
 			afterVersion:  "8.0",
 			expectWarning: false,
+		},
+		{
+			name:          "warns when major version downgraded outside of Terraform",
+			beforeVersion: "8.0",
+			afterVersion:  "7.0",
+			expectWarning: true,
 		},
 	}
 
