@@ -63,13 +63,13 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	autoScalingFields := determineKeepUnknownsAutoScaling(ctx, diags, state, plan)
 	keepUnknown = append(keepUnknown, autoScalingFields...)
-	emitWarningIfSpecChangedWithAutoScaling(ctx, diags, plan, attributeChanges)
+	WarnIgnoredSpecChange(ctx, diags, plan, attributeChanges)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
 }
 
-// emitWarningIfSpecChangedWithAutoScaling warns when use_effective_fields=true and auto-scaling is enabled but the user
+// WarnIgnoredSpecChange warns when use_effective_fields=true and auto-scaling is enabled but the user
 // changed instance_size, disk_size_gb, or disk_iops. Atlas silently ignores these changes in that combination
-func emitWarningIfSpecChangedWithAutoScaling(ctx context.Context, diags *diag.Diagnostics, plan *TFModel, attributeChanges schemafunc.AttributeChanges) {
+func WarnIgnoredSpecChange(ctx context.Context, diags *diag.Diagnostics, plan *TFModel, attributeChanges schemafunc.AttributeChanges) {
 	if !plan.UseEffectiveFields.ValueBool() || !autoScalingUsed(ctx, diags, plan) {
 		return
 	}
