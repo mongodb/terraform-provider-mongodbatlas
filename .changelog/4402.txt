@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_advanced_cluster: Mark advanced_configuration.oplog_size_mb as unknown in the plan when disk_size_gb or instance_size change to avoid inconsistent result errors
-```
