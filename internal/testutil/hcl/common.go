@@ -32,11 +32,9 @@ func getTF() *tfexec.Terraform {
 	if tf != nil {
 		return tf
 	}
-	// TODO: revert SkipChecksumVerification once HashiCorp fixes expired PGP key in hc-install (hashicorp/hc-install#370), tracked in CLOUDP-398527.
 	installer := &releases.ExactVersion{
-		Product:                  product.Terraform,
-		Version:                  version.Must(version.NewVersion("1.10.1")),
-		SkipChecksumVerification: true,
+		Product: product.Terraform,
+		Version: version.Must(version.NewVersion("1.10.1")),
 	}
 	execPath, err := installer.Install(context.Background())
 	if err != nil {
