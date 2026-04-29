@@ -61,10 +61,9 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version", "config_server_type"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
-	autoScalingFields := determineKeepUnknownsAutoScaling(ctx, diags, state, plan)
-	keepUnknown = append(keepUnknown, autoScalingFields...)
-	WarnIgnoredSpecChange(ctx, diags, plan, attributeChanges)
+	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
+	WarnIgnoredSpecChange(ctx, diags, plan, attributeChanges)
 }
 
 // WarnIgnoredSpecChange warns when use_effective_fields=true and auto-scaling is enabled but the user
