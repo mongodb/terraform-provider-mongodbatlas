@@ -2,7 +2,10 @@
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_stream_privatelink_endpoint: Adds `AZURE_BLOB_STORAGE` as a vendor type for AZURE provider ([#4366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4366))
+* data-source/mongodbatlas_stream_privatelink_endpoints: Adds `AZURE_BLOB_STORAGE` as a vendor type for AZURE provider ([#4366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4366))
 * resource/mongodbatlas_cloud_backup_schedule: Adds `skip_destroy` attribute to skip the API delete call on `terraform destroy`, allowing `terraform destroy` to remove a cluster when a Backup Compliance Policy (BCP) is enabled ([#4397](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4397))
+* resource/mongodbatlas_stream_privatelink_endpoint: Adds `AZURE_BLOB_STORAGE` as a vendor type for AZURE provider ([#4366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4366))
 
 BUG FIXES:
 
