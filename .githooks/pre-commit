@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-STAGED_GO_FILES=$(git diff --cached --name-only | grep '\.go$' | tr '\n' ' ' || true)
+STAGED_GO_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.go$' | tr '\n' ' ' || true)
 
 if [[ -n "${STAGED_GO_FILES}" ]]; then
     make verify files="${STAGED_GO_FILES}"

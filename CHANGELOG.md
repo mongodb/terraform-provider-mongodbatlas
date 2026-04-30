@@ -6,6 +6,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* resource/mongodbatlas_federated_settings_org_role_mapping: Fixes plan churn on `role_assignments` fields when adding/removing a new block ([#4394](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4394))
 * resource/mongodbatlas_search_index: Wait for deletion to complete before returning from destroy ([#4401](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4401))
 
 ## 2.11.0 (April 22, 2026)
