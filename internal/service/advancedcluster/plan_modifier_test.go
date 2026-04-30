@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
@@ -320,9 +321,10 @@ func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
 			ctx := context.Background()
 			state := buildModelForWarnTest(t, tc.useEffectiveFields, tc.stateRC)
 			plan := buildModelForWarnTest(t, tc.useEffectiveFields, tc.planRC)
+			attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 			var diags diag.Diagnostics
 
-			advancedcluster.WarnIgnoredSpecChange(ctx, &diags, state, plan)
+			advancedcluster.WarnIgnoredSpecChange(ctx, &diags, attributeChanges, plan)
 
 			assert.False(t, diags.HasError())
 			if tc.expectWarning {
@@ -334,25 +336,29 @@ func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
 		})
 	}
 
-	// List length changes: new entries added in plan have no state counterpart, so minLen iteration skips them.
+	// List length changes: new entries added in plan have no state counterpart, so attributeChanges marks them as added and skips them.
 	t.Run("no warning when replication_specs list length changes", func(t *testing.T) {
+		ctx := context.Background()
 		rc1 := buildRegionConfig(t, regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"})
 		rc2 := buildRegionConfig(t, regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"})
 		state := buildModel(t, true, buildRepSpec(t, rc1))
 		plan := buildModel(t, true, buildRepSpec(t, rc1), buildRepSpec(t, rc2))
+		attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 		var diags diag.Diagnostics
-		advancedcluster.WarnIgnoredSpecChange(context.Background(), &diags, state, plan)
+		advancedcluster.WarnIgnoredSpecChange(ctx, &diags, attributeChanges, plan)
 		assert.False(t, diags.HasError())
 		assert.Equal(t, 0, diags.WarningsCount())
 	})
 
 	t.Run("no warning when region_configs list length changes", func(t *testing.T) {
+		ctx := context.Background()
 		rc1 := buildRegionConfig(t, regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"})
 		rc2 := buildRegionConfig(t, regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"})
 		state := buildModel(t, true, buildRepSpec(t, rc1))
 		plan := buildModel(t, true, buildRepSpec(t, rc1, rc2))
+		attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 		var diags diag.Diagnostics
-		advancedcluster.WarnIgnoredSpecChange(context.Background(), &diags, state, plan)
+		advancedcluster.WarnIgnoredSpecChange(ctx, &diags, attributeChanges, plan)
 		assert.False(t, diags.HasError())
 		assert.Equal(t, 0, diags.WarningsCount())
 	})
