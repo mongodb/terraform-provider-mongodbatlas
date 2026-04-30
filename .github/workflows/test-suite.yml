@@ -154,12 +154,7 @@ jobs:
                 }
               ]
             }
-      - name: Fallback ping if AI summary unavailable
-        # Fires whenever any prior step in this job failed: the AI step itself,
-        # the Slack post (e.g., oversized message rejected with errors: true),
-        # or any future addition. Broad failure() coverage is intentional —
-        # narrowing this to summary-only would silently swallow Slack-post
-        # failures (no message lands in the channel, on-call has no idea).
+      - name: Fallback ping if any prior step failed
         if: ${{ failure() }}
         uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c
         with:
