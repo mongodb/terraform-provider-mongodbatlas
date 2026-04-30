@@ -178,15 +178,15 @@ func GetCompleteAzureBlobStorageConfig(projectID, clusterName, subscriptionID, c
 		}]
 	}
 
-	resource "azurerm_resource_group" "blob_pl_rg" {
+	resource "azurerm_resource_group" "this" {
 		name     = %[3]q
 		location = "East US 2"
 	}
 
-	resource "azurerm_storage_account" "blob_pl_storage" {
+	resource "azurerm_storage_account" "this" {
 		name                     = %[4]q
-		resource_group_name      = azurerm_resource_group.blob_pl_rg.name
-		location                 = azurerm_resource_group.blob_pl_rg.location
+		resource_group_name      = azurerm_resource_group.this.name
+		location                 = azurerm_resource_group.this.location
 		account_tier             = "Standard"
 		account_replication_type = "LRS"
 	}
@@ -196,8 +196,8 @@ func GetCompleteAzureBlobStorageConfig(projectID, clusterName, subscriptionID, c
 		provider_name       = "AZURE"
 		vendor              = "AZURE_BLOB_STORAGE"
 		region              = "eastus2"
-		service_endpoint_id = azurerm_storage_account.blob_pl_storage.id
-		dns_domain          = "${azurerm_storage_account.blob_pl_storage.name}.blob.core.windows.net"
+		service_endpoint_id = azurerm_storage_account.this.id
+		dns_domain          = azurerm_storage_account.this.primary_blob_host
 		depends_on          = [mongodbatlas_advanced_cluster.test]
 	}
 
