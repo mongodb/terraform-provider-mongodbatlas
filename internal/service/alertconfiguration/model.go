@@ -320,6 +320,9 @@ func NewTFAlertConfigurationDSModelList(alerts []admin.GroupAlertsConfig, projec
 // newTFThresholdModels returns metricThreshold and threshold models, giving precedence to metricThreshold when both are set.
 // This is necessary to avoid inconsistent applies for the OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD event type, for which
 // the API returns both metricThreshold and threshold in the response for backwards compatibility. See HELP-91242.
+// We apply this logic for all types to catch other inconsistencies if they come up, without requiring a new provider version.
+// If in the future a type that requires different logic is introduced, like threshold taking precedence over metricThreshold,
+// we will have to ensure both the new type and OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD are handled correctly.
 func newTFThresholdModels(
 	metricThreshold *admin.FlexClusterMetricThreshold,
 	threshold *admin.StreamProcessorMetricThreshold,
