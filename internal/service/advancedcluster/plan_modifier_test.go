@@ -272,18 +272,18 @@ func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
 			expectWarning:      false,
 		},
 		{
-			name:               "warns when analytics disk auto-scaling on and analytics disk fields changed",
+			name:               "no warning when analytics disk auto-scaling on but electable disk_size_gb changed",
 			useEffectiveFields: true,
 			stateRC:            regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10},
 			planRC:             regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 20},
-			expectWarning:      true,
+			expectWarning:      false,
 		},
 		{
 			name:               "no warning when only electable disk auto-scaling on but analytics disk_size_gb changed",
 			useEffectiveFields: true,
 			stateRC:            regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10, analyticsDiskSizeGb: 10},
 			planRC:             regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10, analyticsDiskSizeGb: 20},
-			expectWarning:      false, // auto_scaling.disk_gb_enabled only governs electable/read_only disk
+			expectWarning:      false,
 		},
 		{
 			name:               "no warning when only analytics disk auto-scaling on but electable disk_size_gb changed",
@@ -291,6 +291,27 @@ func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
 			stateRC:            regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10, analyticsDiskSizeGb: 10},
 			planRC:             regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 20, analyticsDiskSizeGb: 10},
 			expectWarning:      false,
+		},
+		{
+			name:               "warns when compute auto-scaling on and electable disk_size_gb changed",
+			useEffectiveFields: true,
+			stateRC:            regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", diskSizeGb: 10},
+			planRC:             regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", diskSizeGb: 20},
+			expectWarning:      true, // compute_enabled also causes Atlas to ignore disk changes
+		},
+		{
+			name:               "no warning when analytics compute auto-scaling on and analytics disk_size_gb changed",
+			useEffectiveFields: true,
+			stateRC:            regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", analyticsDiskSizeGb: 10},
+			planRC:             regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", analyticsDiskSizeGb: 20},
+			expectWarning:      false, // docs: analytics auto-scaling only ignores instanceSize, not disk fields
+		},
+		{
+			name:               "warns when disk auto-scaling on and electable instance_size changed",
+			useEffectiveFields: true,
+			stateRC:            regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", diskSizeGb: 10},
+			planRC:             regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M20", diskSizeGb: 10},
+			expectWarning:      true, // docs: compute OR disk auto-scaling causes all three fields to be ignored for electable/read-only
 		},
 	}
 

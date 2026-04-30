@@ -125,19 +125,17 @@ func addIgnoredSpecChangesForRegionConfig(ctx context.Context, stateRC, planRC *
 	stateAnalytics := TFModelObject[TFSpecsModel](ctx, stateRC.AnalyticsSpecs)
 	planAnalytics := TFModelObject[TFSpecsModel](ctx, planRC.AnalyticsSpecs)
 
-	if planAutoScaling != nil && planAutoScaling.ComputeEnabled.ValueBool() {
+	// Per Atlas docs: when compute OR disk auto-scaling is enabled, Atlas ignores instanceSize, diskSizeGB, and diskIOPS
+	// for electable and read-only nodes. For analytics nodes, only instanceSize is ignored.
+	// https://www.mongodb.com/docs/atlas/cluster-autoscaling/#enhance-auto-scaling-with-effective-fields-in-terraform
+	if planAutoScaling != nil && (planAutoScaling.ComputeEnabled.ValueBool() || planAutoScaling.DiskGBEnabled.ValueBool()) {
 		checkInstanceSizeDiff(stateElectable, planElectable, ignored)
 		checkInstanceSizeDiff(stateReadOnly, planReadOnly, ignored)
-	}
-	if planAnalyticsAutoScaling != nil && planAnalyticsAutoScaling.ComputeEnabled.ValueBool() {
-		checkInstanceSizeDiff(stateAnalytics, planAnalytics, ignored)
-	}
-	if planAutoScaling != nil && planAutoScaling.DiskGBEnabled.ValueBool() {
 		checkDiskDiff(stateElectable, planElectable, ignored)
 		checkDiskDiff(stateReadOnly, planReadOnly, ignored)
 	}
-	if planAnalyticsAutoScaling != nil && planAnalyticsAutoScaling.DiskGBEnabled.ValueBool() {
-		checkDiskDiff(stateAnalytics, planAnalytics, ignored)
+	if planAnalyticsAutoScaling != nil && (planAnalyticsAutoScaling.ComputeEnabled.ValueBool() || planAnalyticsAutoScaling.DiskGBEnabled.ValueBool()) {
+		checkInstanceSizeDiff(stateAnalytics, planAnalytics, ignored)
 	}
 }
 
