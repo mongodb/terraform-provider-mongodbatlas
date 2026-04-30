@@ -125,10 +125,12 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 }
 
 type regionConfigTestParams struct {
-	electableInstanceSize   string  // empty = null electable_specs
-	analyticsInstanceSize   string  // empty = null analytics_specs
-	diskSizeGb              float64 // applied to both electable and analytics specs unless analyticsDiskSizeGb is set
-	analyticsDiskSizeGb     float64 // when non-zero, overrides diskSizeGb for analytics_specs
+	electableInstanceSize   string
+	analyticsInstanceSize   string
+	readOnlyInstanceSize    string
+	diskSizeGb              float64
+	analyticsDiskSizeGb     float64
+	readOnlyDiskSizeGb      float64
 	diskIops                int64
 	computeEnabled          bool
 	analyticsComputeEnabled bool
@@ -165,18 +167,22 @@ func buildSpecs(t *testing.T, instanceSize string, nodeCount int64, diskSizeGb f
 	return obj
 }
 
-func buildRegionConfig(t *testing.T, rcParams regionConfigTestParams) advancedcluster.TFRegionConfigsModel {
+func buildRegionConfig(t *testing.T, rcParams *regionConfigTestParams) advancedcluster.TFRegionConfigsModel {
 	t.Helper()
 	analyticsDiskSizeGb := rcParams.diskSizeGb
 	if rcParams.analyticsDiskSizeGb != 0 {
 		analyticsDiskSizeGb = rcParams.analyticsDiskSizeGb
+	}
+	readOnlyDiskSizeGb := rcParams.diskSizeGb
+	if rcParams.readOnlyDiskSizeGb != 0 {
+		readOnlyDiskSizeGb = rcParams.readOnlyDiskSizeGb
 	}
 	return advancedcluster.TFRegionConfigsModel{
 		AutoScaling:          buildAutoScaling(t, rcParams.computeEnabled, rcParams.diskGBEnabled),
 		AnalyticsAutoScaling: buildAutoScaling(t, rcParams.analyticsComputeEnabled, rcParams.analyticsDiskGBEnabled),
 		ElectableSpecs:       buildSpecs(t, rcParams.electableInstanceSize, 3, rcParams.diskSizeGb, rcParams.diskIops),
 		AnalyticsSpecs:       buildSpecs(t, rcParams.analyticsInstanceSize, 1, analyticsDiskSizeGb, rcParams.diskIops),
-		ReadOnlySpecs:        types.ObjectNull(specsAttrTypes),
+		ReadOnlySpecs:        buildSpecs(t, rcParams.readOnlyInstanceSize, 2, readOnlyDiskSizeGb, rcParams.diskIops),
 		ProviderName:         types.StringValue("AWS"),
 		RegionName:           types.StringValue("US_EAST_1"),
 		Priority:             types.Int64Value(7),
@@ -210,117 +216,94 @@ func buildModel(t *testing.T, useEffectiveFields bool, repSpecs ...advancedclust
 }
 
 // buildModelForWarnTest builds a TFModel with a single replication spec containing a single region config.
-func buildModelForWarnTest(t *testing.T, useEffectiveFields bool, rcParams regionConfigTestParams) *advancedcluster.TFModel {
+func buildModelForWarnTest(t *testing.T, useEffectiveFields bool, rcParams *regionConfigTestParams) *advancedcluster.TFModel {
 	t.Helper()
 	return buildModel(t, useEffectiveFields, buildRepSpec(t, buildRegionConfig(t, rcParams)))
 }
 
 func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
-	testCases := []struct {
-		name               string
-		stateRC            regionConfigTestParams
-		planRC             regionConfigTestParams
-		useEffectiveFields bool
-		expectWarning      bool
+	testCases := map[string]struct {
+		stateRC       regionConfigTestParams
+		planRC        regionConfigTestParams
+		expectWarning bool
 	}{
-		{
-			name:               "warns when compute auto-scaling on and electable instance_size changed",
-			useEffectiveFields: true,
-			stateRC:            regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
-			planRC:             regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"},
-			expectWarning:      true,
+		"warns when compute auto-scaling on and electable instance_size changed": {
+			stateRC:       regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
+			planRC:        regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"},
+			expectWarning: true,
 		},
-		{
-			name:               "warns when disk auto-scaling on and disk fields changed",
-			useEffectiveFields: true,
-			stateRC:            regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", diskSizeGb: 10, diskIops: 3000},
-			planRC:             regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", diskSizeGb: 20, diskIops: 4000},
-			expectWarning:      true,
+		"warns when disk auto-scaling on and disk fields changed": {
+			stateRC:       regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", diskSizeGb: 10, diskIops: 3000},
+			planRC:        regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", diskSizeGb: 20, diskIops: 4000},
+			expectWarning: true,
 		},
-		{
-			name:               "warns when analytics compute auto-scaling on and analytics instance_size changed",
-			useEffectiveFields: true,
-			stateRC:            regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10"},
-			planRC:             regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M20"},
-			expectWarning:      true,
+		"warns when analytics compute auto-scaling on and analytics instance_size changed": {
+			stateRC:       regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10"},
+			planRC:        regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M20"},
+			expectWarning: true,
 		},
-		{
-			name:               "no warning when use_effective_fields is false",
-			useEffectiveFields: false,
-			stateRC:            regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
-			planRC:             regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"},
-			expectWarning:      false,
+		"no warning when auto-scaling is disabled": {
+			stateRC:       regionConfigTestParams{electableInstanceSize: "M10"},
+			planRC:        regionConfigTestParams{electableInstanceSize: "M20"},
+			expectWarning: false,
 		},
-		{
-			name:               "no warning when auto-scaling is disabled",
-			useEffectiveFields: true,
-			stateRC:            regionConfigTestParams{electableInstanceSize: "M10"},
-			planRC:             regionConfigTestParams{electableInstanceSize: "M20"},
-			expectWarning:      false,
+		"no warning when auto-scaling is on but no managed spec fields changed": {
+			stateRC:       regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
+			planRC:        regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
+			expectWarning: false,
 		},
-		{
-			name:               "no warning when auto-scaling is on but no managed spec fields changed",
-			useEffectiveFields: true,
-			stateRC:            regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
-			planRC:             regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
-			expectWarning:      false,
+		"no warning when only analytics compute auto-scaling on but electable instance_size changed": {
+			stateRC:       regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10"},
+			planRC:        regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M20"},
+			expectWarning: false,
 		},
-		{
-			name:               "no warning when only analytics compute auto-scaling on but electable instance_size changed",
-			useEffectiveFields: true,
-			stateRC:            regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10"},
-			planRC:             regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M20"},
-			expectWarning:      false,
+		"no warning when analytics disk auto-scaling on but electable disk_size_gb changed": {
+			stateRC:       regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10},
+			planRC:        regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 20},
+			expectWarning: false,
 		},
-		{
-			name:               "no warning when analytics disk auto-scaling on but electable disk_size_gb changed",
-			useEffectiveFields: true,
-			stateRC:            regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10},
-			planRC:             regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 20},
-			expectWarning:      false,
+		"no warning when only electable disk auto-scaling on but analytics disk_size_gb changed": {
+			stateRC:       regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10, analyticsDiskSizeGb: 10},
+			planRC:        regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10, analyticsDiskSizeGb: 20},
+			expectWarning: false,
 		},
-		{
-			name:               "no warning when only electable disk auto-scaling on but analytics disk_size_gb changed",
-			useEffectiveFields: true,
-			stateRC:            regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10, analyticsDiskSizeGb: 10},
-			planRC:             regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10, analyticsDiskSizeGb: 20},
-			expectWarning:      false,
+		"no warning when only analytics disk auto-scaling on but electable disk_size_gb changed": {
+			stateRC:       regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10, analyticsDiskSizeGb: 10},
+			planRC:        regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 20, analyticsDiskSizeGb: 10},
+			expectWarning: false,
 		},
-		{
-			name:               "no warning when only analytics disk auto-scaling on but electable disk_size_gb changed",
-			useEffectiveFields: true,
-			stateRC:            regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10, analyticsDiskSizeGb: 10},
-			planRC:             regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 20, analyticsDiskSizeGb: 10},
-			expectWarning:      false,
+		"warns when compute auto-scaling on and electable disk_size_gb changed": {
+			stateRC:       regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", diskSizeGb: 10},
+			planRC:        regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", diskSizeGb: 20},
+			expectWarning: true,
 		},
-		{
-			name:               "warns when compute auto-scaling on and electable disk_size_gb changed",
-			useEffectiveFields: true,
-			stateRC:            regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", diskSizeGb: 10},
-			planRC:             regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", diskSizeGb: 20},
-			expectWarning:      true, // compute_enabled also causes Atlas to ignore disk changes
+		"no warning when analytics compute auto-scaling on and analytics disk_size_gb changed": {
+			stateRC:       regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", analyticsDiskSizeGb: 10},
+			planRC:        regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", analyticsDiskSizeGb: 20},
+			expectWarning: false,
 		},
-		{
-			name:               "no warning when analytics compute auto-scaling on and analytics disk_size_gb changed",
-			useEffectiveFields: true,
-			stateRC:            regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", analyticsDiskSizeGb: 10},
-			planRC:             regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", analyticsDiskSizeGb: 20},
-			expectWarning:      false, // docs: analytics auto-scaling only ignores instanceSize, not disk fields
+		"warns when disk auto-scaling on and electable instance_size changed": {
+			stateRC:       regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", diskSizeGb: 10},
+			planRC:        regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M20", diskSizeGb: 10},
+			expectWarning: true,
 		},
-		{
-			name:               "warns when disk auto-scaling on and electable instance_size changed",
-			useEffectiveFields: true,
-			stateRC:            regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", diskSizeGb: 10},
-			planRC:             regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M20", diskSizeGb: 10},
-			expectWarning:      true, // docs: compute OR disk auto-scaling causes all three fields to be ignored for electable/read-only
+		"warns when compute auto-scaling on and read_only instance_size changed": {
+			stateRC:       regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", readOnlyInstanceSize: "M10"},
+			planRC:        regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", readOnlyInstanceSize: "M20"},
+			expectWarning: true,
+		},
+		"warns when analytics disk auto-scaling on and analytics instance_size changed": {
+			stateRC:       regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10"},
+			planRC:        regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M20"},
+			expectWarning: true,
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
 			ctx := context.Background()
-			state := buildModelForWarnTest(t, tc.useEffectiveFields, tc.stateRC)
-			plan := buildModelForWarnTest(t, tc.useEffectiveFields, tc.planRC)
+			state := buildModelForWarnTest(t, true, &tc.stateRC)
+			plan := buildModelForWarnTest(t, true, &tc.planRC)
 			attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 			var diags diag.Diagnostics
 
@@ -336,11 +319,22 @@ func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
 		})
 	}
 
+	t.Run("no warning when use_effective_fields is false", func(t *testing.T) {
+		ctx := context.Background()
+		state := buildModelForWarnTest(t, false, &regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"})
+		plan := buildModelForWarnTest(t, false, &regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"})
+		attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
+		var diags diag.Diagnostics
+		advancedcluster.WarnIgnoredSpecChange(ctx, &diags, attributeChanges, plan)
+		assert.False(t, diags.HasError())
+		assert.Equal(t, 0, diags.WarningsCount())
+	})
+
 	// List length changes: new entries added in plan have no state counterpart, so attributeChanges marks them as added and skips them.
 	t.Run("no warning when replication_specs list length changes", func(t *testing.T) {
 		ctx := context.Background()
-		rc1 := buildRegionConfig(t, regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"})
-		rc2 := buildRegionConfig(t, regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"})
+		rc1 := buildRegionConfig(t, &regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"})
+		rc2 := buildRegionConfig(t, &regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"})
 		state := buildModel(t, true, buildRepSpec(t, rc1))
 		plan := buildModel(t, true, buildRepSpec(t, rc1), buildRepSpec(t, rc2))
 		attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
@@ -352,8 +346,8 @@ func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
 
 	t.Run("no warning when region_configs list length changes", func(t *testing.T) {
 		ctx := context.Background()
-		rc1 := buildRegionConfig(t, regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"})
-		rc2 := buildRegionConfig(t, regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"})
+		rc1 := buildRegionConfig(t, &regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"})
+		rc2 := buildRegionConfig(t, &regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"})
 		state := buildModel(t, true, buildRepSpec(t, rc1))
 		plan := buildModel(t, true, buildRepSpec(t, rc1, rc2))
 		attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
