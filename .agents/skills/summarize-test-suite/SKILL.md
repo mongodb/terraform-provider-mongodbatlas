@@ -124,7 +124,7 @@ Assign each failing test (or aggregated subtest group) to exactly one category, 
 | 2 | **Cloud capacity** | `OUT_OF_CAPACITY`, `NO_CAPACITY`, `No Capacity` |
 | 3 | **API errors** | Generic HTTP 4xx/5xx with API error codes (only when not covered by category 1; raw API errors that are not provider bugs go here) |
 | 3a | **API contract errors** | API rejects a request the test thought was valid: `INVALID_ATTRIBUTE` for fields that should exist, `PROVIDER_UNSUPPORTED` for combinations that used to work, `CANNOT_ASSUME_ROLE`, region/cross-region constraint errors. Sub-bucket of category 3, still yellow, but worth surfacing separately so on-call can triage instead of treating it as plain capacity noise |
-| 4 | **Timeout / flake** | `timeout while waiting for state`, eventual-consistency assertion failures, **Go test deadline panics** of the form `panic: test timed out after <duration>` (e.g. `panic: test timed out after 5h0m0s`) — these are emitted by the `go test` runner when a test exceeds its `-timeout` flag, not by code under test |
+| 4 | **Timeout / flake** | `timeout while waiting for state`, `context deadline exceeded`, eventual-consistency assertion failures, **Go test deadline panics** of the form `panic: test timed out after <duration>` (e.g. `panic: test timed out after 5h0m0s`) — these are emitted by the `go test` runner when a test exceeds its `-timeout` flag, not by code under test |
 | 5 | **Cleanup** | `still exists` after destroy, `CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS`, plus everything in cleanup jobs from Step 1 |
 
 **Discipline rule**: any "error in the provider" message (priority 1 patterns) is *always* a code regression. Never reclassify as flake, capacity, or cleanup. The canonical example: provider state-handling that diverges from the API (e.g., a `config_server_type`-style attribute that resolves to a different value than was applied), which is easy to miss for days because the underlying error gets buried among capacity / timeout failures.
@@ -253,4 +253,3 @@ If `wc -c` reports more than 2900, compress in this order, re-measuring after ea
 - Subtests of the form `Parent/<id>` are one logical test with N children. Never inflate the failure count by listing them separately.
 - Capacity, timeout, and cleanup categories are noisy by nature in cloud-dev; root-cause aggregation across jobs keeps the message scannable while preserving the count.
 - Log output is large; always filter with `grep` rather than reading raw logs.
-- Always request `"all"` permissions for `gh api` calls — TLS verification fails otherwise.
