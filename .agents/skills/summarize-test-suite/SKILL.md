@@ -1,89 +1,252 @@
 ---
 name: summarize-test-suite
-description: Summarize GitHub Actions test suite execution results from a workflow run URL. Fetches job logs, identifies failing tests, and categorizes root causes. Use when the user shares a GitHub Actions run URL and asks about test failures, flaky tests, or CI results.
+description: Summarize a GitHub Actions test suite run for the mongodb/terraform-provider-mongodbatlas repo — fetches job logs, classifies failures, and produces a Slack summary led by an explicit code-regression verdict. Use when the user shares a workflow run URL or run_id, or when triggered by the test-suite webhook to decide whether on-call should investigate.
 ---
 
 # Summarize Test Suite Execution
 
-## When to Use
+## Inputs
 
-The user provides a GitHub Actions workflow run or job URL, e.g.:
-- `https://github.com/mongodb/terraform-provider-mongodbatlas/actions/runs/<run_id>`
-- `https://github.com/mongodb/terraform-provider-mongodbatlas/actions/runs/<run_id>/job/<job_id>`
+The only input is a `run_id` (GitHub Actions run identifier). The repo is always `mongodb/terraform-provider-mongodbatlas`, and the run URL is `https://github.com/mongodb/terraform-provider-mongodbatlas/actions/runs/<run_id>` — derive both from `run_id`.
+
+`run_id` can arrive as a workflow run or job URL the user pastes (extract the numeric ID from `…/actions/runs/<run_id>` or `…/actions/runs/<run_id>/job/<job_id>`), as a number passed by the test-suite webhook, or as a value the caller spells out directly.
+
+## Output
+
+The output is **always Slack-flavoured markdown (mrkdwn)** — `*bold*` (never `**bold**`), backticks for code, `•` for bullets, `<url|label>` for links. The caller is responsible for posting it to Slack; the skill only produces the text.
+
+The skill operates only on the run it is given — do not look at prior runs or other workflows.
+
+## Goal
+
+The first character of the output is one of three emojis that telegraph urgency to on-call at a glance:
+
+- `:red_circle:` — at least one code regression. Investigate now.
+- `:yellow_circle:` — only infrastructure noise (capacity / timeout / cleanup / API contract). No on-call action.
+- `:green_circle:` — all tests passed. No on-call action; this is the daily heartbeat.
+
+## Confidence
+
+Decide a confidence level for your verdict and embed it on the second line of the summary (templates below). Always show it — high confidence is useful information for on-call, not just low.
+
+- **high** — the failure pattern maps cleanly onto the rules in Step 4, the categorisation matches the logs you read, and you are sure about the verdict.
+- **medium** — the verdict is clear, but some category counts are estimated (you didn't enumerate every package's logs) or one failure type didn't fit any category cleanly.
+- **low** — the failure pattern is novel, the logs were incomplete or truncated, you had to make a judgement call between two categories for ≥1 failure, or the rules in this skill don't cover something you saw.
+
+Confidence modulates urgency on the second line: lower confidence on a yellow or green verdict raises the action from "no immediate action" to "please review", because the agent is signalling it might have missed something. Red is always "investigate immediately" regardless of confidence — but the confidence prefix still appears so the on-call knows whether to fully trust the regression call.
+
+**When confidence is medium or low**, the summary must end with one extra line explaining the call:
+
+- `*Why <confidence> confidence*: <one or two sentences naming the specific ambiguity>` — e.g., *"saw an `INVALID_REGION` API error that doesn't match the category 3a indicators"*, *"a `flex_cluster` package failed with no `--- RUN`/`--- PASS` and an unfamiliar `unable to start dispatcher` line, ambiguous between build error and cleanup"*, or *"two failing tests share a deferred-test-helper panic that doesn't match any category 1 example"*. Be concrete; vague phrases like *"complex output"* aren't useful. The line is omitted on high confidence.
+
+Skill-improvement suggestions based on these "why" lines are generated offline by the skill maintainer (batching across multiple medium / low runs, with no length budget), not inside the Slack summary.
+
+## Provider repo layout
+
+When you cite "code regressions in <packages>", use the actual Go package path, not the test-job display name. The job name maps to a Go package by **dropping underscores, lowercasing, and prefixing with `internal/service/`** — e.g., `advanced_cluster` → `internal/service/advancedcluster`, `global_cluster_config` → `internal/service/globalclusterconfig`. Apply this rule for any job not covered by the special cases below.
+
+Special cases (do not apply the simple rule):
+
+- `network` is a super-job covering several packages (`networkcontainer`, `networkpeering`, `privatelinkendpoint*`, `privateendpointregionalmode`). Cite the specific package the failing test lives in, not "network".
+- `autogen_fast` / `autogen_slow` run the autogenerated resources under `internal/serviceapi/`.
+- `config_sa_mig` runs the same packages as the `config` group, but only the migration tests, in SA-auth mode.
+- `clean-before` / `clean-after` are cleanup utilities under `internal/testutil/clean/`, **not** provider code. Failures in these never count as code regressions.
 
 ## Workflow
 
-### Step 1: Identify Failed Jobs
+### Step 1: Run context and failed jobs
 
-Use `gh api` with the `--paginate` flag and `"all"` permissions (needed for network access).
-
-```bash
-gh api repos/{owner}/{repo}/actions/runs/{run_id}/jobs --paginate
-```
-
-Parse the JSON to list jobs with `conclusion: "failure"` and their failed steps. Record each failed job's `id`.
-
-### Step 2: Fetch Logs for Each Failed Job
-
-For each failed job ID, fetch and filter logs in parallel:
+First, fetch the run metadata so the summary can cite which environment was tested:
 
 ```bash
-gh api repos/{owner}/{repo}/actions/jobs/{job_id}/logs 2>&1 | grep -i -E "(FAIL|panic|Error|---)" | tail -60
+gh api repos/mongodb/terraform-provider-mongodbatlas/actions/runs/{run_id} \
+  --jq '{head_sha, display_title, name, run_number}'
 ```
 
-Then extract the test-level results to identify which tests actually failed vs passed:
+Extract:
+- `commit`: first 7 chars of `head_sha`.
+- `env`: parse from `display_title` — `qa` if it contains "qa", otherwise `dev`.
+- `auth`: parse from `display_title` — `sa` or `pak`.
+
+Then list jobs:
 
 ```bash
-gh api repos/{owner}/{repo}/actions/jobs/{job_id}/logs 2>&1 | grep -E "(=== RUN|--- PASS|--- FAIL|FAIL\t)" | grep -v "    ---"
+gh api repos/mongodb/terraform-provider-mongodbatlas/actions/runs/{run_id}/jobs --paginate
 ```
 
-**Important**: Many `[ERROR]` log lines come from tests that intentionally exercise error paths and ultimately PASS. Always cross-reference error logs against the `--- FAIL` / `--- PASS` verdicts.
+Split jobs with `conclusion: "failure"` into two buckets:
 
-### Step 3: Get Error Details for Each Failing Test
+- **Cleanup jobs**: any job whose name starts with `clean-before` or `clean-after`. Treat all failures inside these collectively as **category 5 (cleanup)** — surface as a single line ("Cleanup: N stuck projects from prior runs"), do not enumerate the `TestCleanProjectAndClusters/<id>` subtests in the *Failing tests* list. Cleanup-job failures are leftovers from previous runs, never signals of a code regression in the current run.
+- **Test jobs**: everything else. These go through Steps 2 to 4.
 
-For each `--- FAIL: TestName` found, fetch surrounding context:
+If both buckets are empty, emit the green template (`:green_circle:`) immediately and return.
+
+### Step 2: Fetch failure verdicts strictly
+
+For each test job, fetch the per-test verdicts using a strict filter. Do **not** grep for `Error` or generic `FAIL` — `[ERROR] sdk.proto:` lines and `Error in create/update/delete` are emitted by many tests that ultimately PASS:
 
 ```bash
-gh api repos/{owner}/{repo}/actions/jobs/{job_id}/logs 2>&1 | grep -B10 "FAIL: TestName"
+gh api repos/mongodb/terraform-provider-mongodbatlas/actions/jobs/{job_id}/logs 2>&1 \
+  | grep -E "(--- FAIL|^FAIL\t|panic:)"
 ```
 
-### Step 4: Categorize and Summarize
+The `--- FAIL: TestName` line is the source of truth for an individual test failure. Never classify a test as failed without one.
 
-Group failures into root cause categories. Common categories for this repo:
+**Package-level `FAIL\t<package>` without any `--- FAIL: TestName` for that package** is not a test failure. Sub-classify it before counting:
 
-| Category | Indicators |
-|----------|-----------|
-| **Cloud capacity** | `OUT_OF_CAPACITY`, `NO_CAPACITY`, `No Capacity` |
-| **API errors** | `HTTP 400`, `HTTP 409`, `HTTP 500` with specific error codes |
-| **Timeout / flake** | `timeout while waiting for state`, eventual consistency assertions |
-| **Cleanup race** | `still exists` after destroy, `CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS` |
-| **Code regression** | Assertion failures on attribute values, unexpected plan diffs |
+- If the job log shows tests *started* for that package (any `--- RUN` or `--- PASS` lines for it), the failure is post-test teardown (deferred TestMain, cleanup) — **category 5 (cleanup)**.
+- If no tests started for that package (no `--- RUN` or `--- PASS` lines, just compile errors like `# <package>` followed by line:column errors, or `cannot find module`, `command not found`, `undefined:`, dependency-resolution failures, or `panic:` during `go test` startup, dependency download, or binary installation), it is a **build / tooling error** that prevents the runner from executing any tests in that package — **category 1 (code regression)**. Examples: a recent provider commit broke a transitive import, a dependency yanked a version, a test-infra change broke binary discovery, a third-party installer panicked verifying a signature or checksum. These warrant immediate investigation regardless of whether the root cause is internal or upstream — the runner can't verify provider behaviour at all.
 
-### Step 5: Produce Output
+In neither case should the package name go in the *Failing tests* list — instead, surface a build error as its own bullet under code regressions ("Build error in `<package>`: <reason>") and a cleanup-only package failure as part of the cleanup count.
 
-Provide two versions:
+**Subtest aggregation**: a `--- FAIL: Parent/<subname>` line is one subtest of `Parent`. If multiple subtests of the same parent fail in the same job, list `Parent` once with the count (`Parent (×N subtests)`), not N separate entries.
 
-1. **Detailed summary** — table with test names, error messages, and root cause categories.
-2. **Slack-ready summary** — concise format the user can paste directly, structured as:
+### Step 3: Get error context for each failed test
+
+For each unique parent test (after subtest aggregation), fetch the surrounding context:
+
+```bash
+gh api repos/mongodb/terraform-provider-mongodbatlas/actions/jobs/{job_id}/logs 2>&1 \
+  | grep -B10 "FAIL: TestName"
+```
+
+### Step 4: Classify failures
+
+Assign each failing test (or aggregated subtest group) to exactly one category, first match wins:
+
+| Priority | Category | Indicators |
+|---|---|---|
+| 1 | **Code regression** (high-signal) | `Error: Provider produced inconsistent result after apply` / `provider produced an unexpected new value` / `This is a bug in the provider` / **any `panic:` line** (in test execution, in `TestMain`, during dependency install, or during binary-installer signature/checksum verification) **EXCEPT** the Go test framework's deadline panic (see exception below) / `Plugin did not respond` / `rpc error:` / non-empty plan after a successful apply / assertion failures on attribute values / unexpected plan diffs / **build or tooling errors that prevented any tests from running** in a package (per the Step 2 sub-classification) |
+| 2 | **Cloud capacity** | `OUT_OF_CAPACITY`, `NO_CAPACITY`, `No Capacity` |
+| 3 | **API errors** | Generic HTTP 4xx/5xx with API error codes (only when not covered by category 1; raw API errors that are not provider bugs go here) |
+| 3a | **API contract errors** | API rejects a request the test thought was valid: `INVALID_ATTRIBUTE` for fields that should exist, `PROVIDER_UNSUPPORTED` for combinations that used to work, `CANNOT_ASSUME_ROLE`, region/cross-region constraint errors. Sub-bucket of category 3, still yellow, but worth surfacing separately so on-call can triage instead of treating it as plain capacity noise |
+| 4 | **Timeout / flake** | `timeout while waiting for state`, eventual-consistency assertion failures, **Go test deadline panics** of the form `panic: test timed out after <duration>` (e.g. `panic: test timed out after 5h0m0s`) — these are emitted by the `go test` runner when a test exceeds its `-timeout` flag, not by code under test |
+| 5 | **Cleanup** | `still exists` after destroy, `CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS`, plus everything in cleanup jobs from Step 1 |
+
+**Discipline rule**: any "error in the provider" message (priority 1 patterns) is *always* a code regression. Never reclassify as flake, capacity, or cleanup. The canonical example: provider state-handling that diverges from the API (e.g., a `config_server_type`-style attribute that resolves to a different value than was applied), which is easy to miss for days because the underlying error gets buried among capacity / timeout failures.
+
+**Discipline rule**: the leading emoji must match the worst category seen — any category 1 failure → `:red_circle:`; category 2–5 only → `:yellow_circle:`; no failures → `:green_circle:`. Never inflate (e.g. don't return `:red_circle:` for capacity-only failures even if 22 tests failed) and never deflate (don't return `:yellow_circle:` if even one provider-inconsistency error exists).
+
+**Root-cause aggregation across jobs**: when ≥3 failing tests share an identical root-cause string (the same `OUT_OF_CAPACITY`, the same HTTP 4xx error code, the same `timeout while waiting for state`), report once as "N tests, all <root cause> (in <env>)" rather than enumerating each test's identical short error. Compress noise without losing the count.
+
+**Common misclassifications to avoid** (these have happened in the past, do not repeat):
+
+- **Do not invent categories.** The five buckets above (1, 2, 3, 3a, 4, 5) are exhaustive. Never create new ones like "CI infrastructure", "tooling noise", "third-party panic", "Go toolchain", or similar. If you find yourself wanting to do that, the failure already belongs in an existing category — usually category 1 (a panic or build error) or category 5 (cleanup).
+- **Do not downgrade `panic:` based on root cause.** A `panic:` is *always* category 1, regardless of where the panic originated (provider code, test setup, `TestMain`, an installer like `hc-install`, a dependency download, signature/checksum verification, an SDK initialiser). The criterion for category 1 is **"tests cannot run or cannot be trusted"**, not "provider code is at fault". On-call needs to investigate any panic immediately, even when the root cause turns out to be upstream — the action is to revert / pin / patch the offending dependency or test infra. A run with three jobs panicking on the same toolchain issue is `:red_circle:`, not `:yellow_circle:`.
+- **One exception to the panic rule: Go test deadline panics.** A line of the form `panic: test timed out after <duration>` (e.g. `panic: test timed out after 5h0m0s`) is *not* a runtime panic — it is the `go test` runner enforcing the `-timeout` flag. It signals "this test/binary exceeded its deadline", which is a category 4 (timeout / flake) concern: the action is to investigate the test's runtime, not to triage a code regression. Classify these as category 4, list them under *Timeout* in the body, and do not enumerate them in the code-regressions section. The "any panic" rule still applies to every other `panic:` line.
+- **Do not downgrade build errors based on root cause.** Same principle: if no tests ran in a package because of a compile error, missing binary, or installer panic, that's category 1. The fix may be in test infra rather than provider code, but the urgency is the same: the runner can't verify behaviour.
+- **Do not reclassify a category 1 finding to make the message look "less alarming".** If even one panic or `Provider produced inconsistent` exists, the verdict is `:red_circle:` and the header is `CODE REGRESSION DETECTED`, full stop. Never deflate.
+
+### Step 5: Produce output
+
+Build the summary in Slack mrkdwn from the templates below and return it. Never emit GitHub-flavoured markdown — `**bold**`, `# heading`, `[label](url)` will not render correctly. The TL;DR line appears only in the red template; green and yellow have no TL;DR (the header and categorisation say everything).
+
+#### Template — code regression detected
+
+Use this when at least one failure is category 1.
 
 ```
-**Test Suite #N — Failure Summary**
+:red_circle: *Test Suite #<run_number> — CODE REGRESSION DETECTED* (`<commit>` on `<env>`, `<auth>`)
+<confidence> confidence — investigate immediately — <run_url|view run>
 
-**X jobs failed, Y tests total across Z packages**
+*<N> code regressions* in <packages>:
+• `TestName1` — <one-line root cause, e.g. "Provider produced inconsistent result: .config_server_type was EMBEDDED, now DEDICATED">
+• `TestName2` — <one-line root cause>
+• Build error in `<package>` — <reason, e.g. "checksum mismatch installing terraform" or "cannot find module ...">
 
-**Category 1 (N tests)** — brief explanation:
-- `TestName1` — short error
-- `TestName2` — short error
+*Other failures*:
+• Cloud capacity: <N> tests
+• API contract: <N> tests
+• Timeout: <N> tests
+• Cleanup: <N> tests (incl. clean-before / clean-after)
 
-**Category 2 (N tests):**
-- `TestName3` — short error
+*Failing tests* (first 10): `TestName1`, `TestName2`, `TestA`, `TestB`, …, and 7 more
 
-**TL;DR**: One-sentence overall assessment.
+[only when confidence is medium or low:]
+*Why <confidence> confidence*: <specific ambiguity in this run>
+
+*TL;DR*: <one sentence on the suspected regression>. <if any failure took >30 min, mention "longest failure: TestX 75 min">. Check recent atlas-sdk-go bumps and upstream Atlas deployments around <approximate failure window>.
 ```
+
+#### Template — infrastructure noise only
+
+Use this when every failure is category 2–5.
+
+```
+:yellow_circle: *Test Suite #<run_number> — Infrastructure noise only* (`<commit>` on `<env>`, `<auth>`)
+<confidence> confidence — <urgency> — <run_url|view run>
+
+<N> tests failed, all classified as flake / capacity / cleanup / API contract:
+• Cloud capacity: <N> tests (e.g., all `OUT_OF_CAPACITY` in cloud-<env>)
+• API contract: <N> tests (list test names if ≤3 — these are worth a triage glance)
+• Timeout: <N> tests
+• Cleanup: <N> tests (incl. clean-before / clean-after)
+
+*Failing tests* (first 10): `TestA`, `TestB`, …, and 4 more
+
+[only when confidence is medium or low:]
+*Why <confidence> confidence*: <specific ambiguity in this run>
+```
+
+#### Template — all tests passed
+
+Use this when step 1 finds no failed jobs (test or cleanup).
+
+```
+:green_circle: *Test Suite #<run_number> — All tests passed* (`<commit>` on `<env>`, `<auth>`)
+<confidence> confidence — <urgency> — <run_url|view run>
+
+[only when confidence is medium or low:]
+*Why <confidence> confidence*: <specific ambiguity in this run>
+```
+
+Short by design — green days don't need a body.
+
+#### Urgency phrase, by verdict and confidence
+
+Substitute `<urgency>` in the second line according to this table. The `<confidence>` placeholder is always one of `high` / `medium` / `low` (lowercase).
+
+| Verdict | high confidence | medium confidence | low confidence |
+|---|---|---|---|
+| red | `investigate immediately` | `investigate immediately` | `investigate immediately` |
+| yellow | `no immediate on-call action needed` | `please review when time allows` | `please review the run manually` |
+| green | `no on-call action` | `please verify the run` | `please review the run manually` |
+
+The shape of the second line is therefore always: `<confidence> confidence — <urgency> — <run_url|view run>`.
+
+#### Formatting rules
+
+- Use `*text*` for bold (Slack mrkdwn), never `**text**` (markdown).
+- Use backticks around test names and code identifiers.
+- Use `•` for bullet points.
+- **Never reproduce internal ticket IDs** (`HELP-*`, `CLOUDP-*`, etc.) or internal artefact names in the output, even when they appear in logs or anywhere in this skill text. Describe the failure in its own technical terms (e.g. "provider produced inconsistent result for `config_server_type`").
+- Code regressions: enumerate every failing test (after subtest aggregation) with its short error.
+- Categories 2 to 5 (infrastructure noise): collapse to a single count line per category. Apply root-cause aggregation when ≥3 tests share the same error string.
+- Cap the *Failing tests* line at the first 10 test names, comma-separated (no bullets), positioned below the summary. If more than 10 failed, suffix with `, and N more` where N is the remaining count.
+- Use `<url|label>` for links.
+- Length budget is enforced by Step 6 below — see that step for the target, the hard cap, and the drop-priority list.
+
+### Step 6: Length check (mandatory before returning)
+
+Measure the exact length of your `summary` before returning it via Bash:
+
+```bash
+printf '%s' "<your summary>" | wc -c
+```
+
+**Hard cap: 2900 chars.** The caller prepends an on-call tag (≈30 chars) and posts the result inside a single Slack section block (Slack-side hard limit: 3000 chars); over-budget messages are rejected by Slack and the workflow step fails — on-call still sees no summary, just a red workflow run.
+
+If `wc -c` reports more than 2900, compress in this order, re-measuring after each step until the count is under the cap:
+
+1. Drop the *Why confidence* line if confidence is medium (keep it on low — that's where it matters most).
+2. Compress the *TL;DR* to one short sentence.
+3. Reduce the *Failing tests* cap from 10 to 5 (suffix with `, and N more`).
+4. Collapse *Other failures* bullets onto a single line, e.g., `*Other failures*: Cloud capacity 5, Timeout 12, Cleanup 3`.
 
 ## Key Learnings
 
-- Always request `"all"` permissions for `gh api` calls — TLS certificate verification fails in the default sandbox.
+- The `--- PASS` / `--- FAIL` verdict is the source of truth — many ERROR-level lines come from tests that pass.
+- Subtests of the form `Parent/<id>` are one logical test with N children. Never inflate the failure count by listing them separately.
+- Capacity, timeout, and cleanup categories are noisy by nature in cloud-dev; root-cause aggregation across jobs keeps the message scannable while preserving the count.
 - Log output is large; always filter with `grep` rather than reading raw logs.
-- The `--- PASS` / `--- FAIL` verdict is the source of truth — many ERROR-level log lines are from tests that pass (they test error handling paths).
-- Package-level `FAIL` without a corresponding `--- FAIL` test line can indicate cleanup failures or build errors rather than individual test failures.
+- Always request `"all"` permissions for `gh api` calls — TLS verification fails otherwise.

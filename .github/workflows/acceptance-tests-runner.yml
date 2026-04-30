@@ -263,7 +263,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     env:
-      mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '' )  }}
+      # TEMP CLOUDP-397870: force mustTrigger to false so scheduled runs only execute the
+      # `config` group (forced to 'true' below) while validating the AI summary path.
+      # Will be reverted in the last commit before merging.
+      mustTrigger: ${{ false }}
     outputs: # ensure resources are sorted alphabetically
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
@@ -275,7 +278,9 @@ jobs:
       cloud_user: ${{ steps.filter.outputs.cloud_user == 'true' || env.mustTrigger == 'true' }}
       cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
-      config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
+      # TEMP CLOUDP-397870: force the `config` group to run while validating the AI
+      # summary path. Will be reverted in the last commit before merging.
+      config: 'true'
       encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
       event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
       federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
