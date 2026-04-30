@@ -11,38 +11,32 @@ import (
 )
 
 func TestAdvancedCluster_warnIfMajorVersionChanged(t *testing.T) {
-	testCases := []struct {
-		name          string
+	testCases := map[string]struct {
 		beforeVersion string
 		afterVersion  string
 		expectWarning bool
 	}{
-		{
-			name:          "warns when major version changed outside of Terraform",
+		"warns when major version changed outside of Terraform": {
 			beforeVersion: "7.0",
 			afterVersion:  "8.0",
 			expectWarning: true,
 		},
-		{
-			name:          "no warning for formatting difference",
+		"no warning for formatting difference": {
 			beforeVersion: "8",
 			afterVersion:  "8.0",
 			expectWarning: false,
 		},
-		{
-			name:          "no warning when Atlas version differs within same major",
+		"no warning when Atlas version differs within same major": {
 			beforeVersion: "8.0",
 			afterVersion:  "8.2",
 			expectWarning: false,
 		},
-		{
-			name:          "no warning when versions are equal",
+		"no warning when versions are equal": {
 			beforeVersion: "8.0",
 			afterVersion:  "8.0",
 			expectWarning: false,
 		},
-		{
-			name:          "warns when major version downgraded outside of Terraform",
+		"warns when major version downgraded outside of Terraform": {
 			beforeVersion: "8.0",
 			afterVersion:  "7.0",
 			expectWarning: true,
@@ -88,8 +82,8 @@ func TestAdvancedCluster_warnIfMajorVersionChanged(t *testing.T) {
 		assert.Equal(t, "8.0", modelOut.MongoDBMajorVersion.ValueString())
 	})
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
 			modelIn := &advancedcluster.TFModel{
 				MongoDBMajorVersion: types.StringValue(tc.beforeVersion),
 				Labels:              types.MapNull(types.StringType),
