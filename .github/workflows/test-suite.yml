@@ -80,16 +80,12 @@ jobs:
         run: |
           echo "DAY=$(date +'%a')"
           echo "DAY=$(date +'%a')" >> "$GITHUB_OUTPUT"
-  # TEMP CLOUDP-397870: skip clean-before / clean-after to shorten validation cycles.
-  # Will be restored in the last commit before merging.
-  # clean-before:
-  #   secrets: inherit
-  #   uses: ./.github/workflows/cleanup-test-env.yml
+  clean-before:
+    secrets: inherit
+    uses: ./.github/workflows/cleanup-test-env.yml
 
   tests:
-    # TEMP CLOUDP-397870: dropped `clean-before` from needs while it is commented out.
-    # Will be restored in the last commit before merging.
-    needs: [variables]
+    needs: [clean-before, variables]
     if: ${{ !cancelled() }}
     strategy:
       max-parallel: 1
@@ -108,18 +104,14 @@ jobs:
       use_sa: ${{ needs.variables.outputs.use_sa == 'true' }}
       send_notification: ${{ needs.variables.outputs.send_notification == 'true' }}
 
-  # TEMP CLOUDP-397870: skip clean-before / clean-after to shorten validation cycles.
-  # Will be restored in the last commit before merging.
-  # clean-after:
-  #   needs: tests
-  #   if: ${{ !cancelled() }}
-  #   secrets: inherit
-  #   uses: ./.github/workflows/cleanup-test-env.yml
+  clean-after:
+    needs: tests
+    if: ${{ !cancelled() }}
+    secrets: inherit
+    uses: ./.github/workflows/cleanup-test-env.yml
 
   trigger-test-summary:
-    # TEMP CLOUDP-397870: dropped `clean-after` from needs while it is commented out.
-    # Will be restored in the last commit before merging.
-    needs: [tests, variables]
+    needs: [tests, variables, clean-after]
     if: ${{ !cancelled() && needs.variables.outputs.trigger_test_summary == 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -146,10 +138,7 @@ jobs:
       - name: Post summary to Slack
         uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c
         with:
-          # TEMP CLOUDP-397870: send the AI summary to SLACK_WEBHOOK_URL_TEST while
-          # validating the path so the production channel stays clean. Will be reverted
-          # to SLACK_WEBHOOK_URL in the last commit before merging.
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           errors: true
           payload: |
@@ -174,10 +163,7 @@ jobs:
         if: ${{ failure() }}
         uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c
         with:
-          # TEMP CLOUDP-397870: send the fallback to SLACK_WEBHOOK_URL_TEST while validating
-          # the AI summary path so the production channel stays clean. Will be reverted
-          # to SLACK_WEBHOOK_URL in the last commit before merging.
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
             {
