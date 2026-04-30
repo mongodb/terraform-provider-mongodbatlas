@@ -131,7 +131,7 @@ There are two types of criteria, `DATE` to select documents for archiving based 
 The following fields are required for criteria type `DATE`
 
 * `date_field`   - Indexed database parameter that stores the date that determines when data moves to the online archive. MongoDB Cloud archives the data when the current date exceeds the date in this database parameter plus the number of days specified through the expireAfterDays parameter.
-* `date_format`   - Syntax used to write the date after which data moves to the online archive. Date can be expressed as ISO 8601 or Epoch timestamps. The Epoch timestamp can be expressed as nanoseconds, milliseconds, or seconds. You must set `type` to `DATE` if `collectionType` is `TIMESERIES`. Valid values:  ISODATE (default), EPOCH_SECONDS, EPOCH_MILLIS, EPOCH_NANOSECONDS.
+* `date_format`   - Syntax used to write the date after which data moves to the online archive. Date can be expressed as ISO 8601, Epoch timestamps, or Object ID. The Epoch timestamp can be expressed as nanoseconds, milliseconds, or seconds. You must set `type` to `DATE` if `collectionType` is `TIMESERIES`. Values are `ISODATE`, `EPOCH_SECONDS`, `EPOCH_MILLIS`, `EPOCH_NANOSECONDS`, or `OBJECT_ID`. Default is `ISODATE`.
 * `expire_after_days` - Number of days after the value in the criteria.dateField when MongoDB Cloud archives data in the specified cluster.
 
     **_NOTE: if `DATE` is selected, the `partition_fields.field_name` must be completed with the `date_field` value_**
