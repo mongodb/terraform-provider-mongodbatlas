@@ -1,3 +1,3 @@
 ```release-note:bug
-resource/mongodbatlas_advanced_cluster: A warning is now emitted when `mongo_db_major_version` is modified outside of Terraform
+resource/mongodbatlas_advanced_cluster: Emits a warning when `mongo_db_major_version` is modified outside of Terraform
 ```
