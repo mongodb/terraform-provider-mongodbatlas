@@ -60,19 +60,23 @@ First, fetch the run metadata so the summary can cite which environment was test
 
 ```bash
 gh api repos/mongodb/terraform-provider-mongodbatlas/actions/runs/{run_id} \
-  --jq '{head_sha, display_title, name, run_number}'
+  --jq '{head_sha, run_number}'
 ```
 
-Extract:
-- `commit`: first 7 chars of `head_sha`.
-- `env`: parse from `display_title` — `qa` if it contains "qa", otherwise `dev`.
-- `auth`: parse from `display_title` — `sa` or `pak`.
+Extract `commit`: first 7 chars of `head_sha`.
 
 Then list jobs:
 
 ```bash
 gh api repos/mongodb/terraform-provider-mongodbatlas/actions/runs/{run_id}/jobs --paginate
 ```
+
+Derive `env` and `auth` from job names (the test-suite run's `display_title` is always just `"Test Suite"` and does not embed them):
+
+- `auth`: any test-job name has the matrix prefix `<terraform_version>-<provider_version>-<auth>` (e.g. `1.14.x-latest-pak / ...` or `1.14.x-latest-sa / ...`). Extract the third dash-separated token of the prefix (`pak` or `sa`).
+- `env`: nested called-workflow jobs are named `tests-<terraform_version>-<provider_version>-<env> / ...` (e.g. `tests-1.14.x-latest-dev` or `tests-1.14.x-latest-qa`). Extract the suffix after the last dash of that segment (`dev` or `qa`).
+
+If no test jobs exist (only cleanup ran), default `env`/`auth` to "n/a".
 
 Split jobs with `conclusion: "failure"` into two buckets:
 
