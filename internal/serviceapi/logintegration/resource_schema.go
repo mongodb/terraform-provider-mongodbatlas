@@ -126,7 +126,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								Required: []string{"otel_endpoint", "otel_supplied_headers"},
 							},
 							"S3_LOG_EXPORT": {
-								Allowed:  []string{"bucket_name", "iam_role_id", "kms_key", "prefix_path"},
+								Allowed:  []string{"bucket_name", "iam_role_id", "kms_key", "prefix_path", "use_legacy_path_structure"},
 								Required: []string{"bucket_name", "iam_role_id", "prefix_path"},
 							},
 							"SPLUNK_LOG_EXPORT": {
@@ -137,28 +137,33 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					}),
 				},
 			},
+			"use_legacy_path_structure": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Optional for type: S3_LOG_EXPORT. When true, uses the legacy daily-folder path structure compatible with Push-Based Log Export: `{prefix}/{cluster}/{hostname}/{logType}/{YYYY-MM-DD}/{timestamp}-{logType}.log`. When false (default), uses the flat timestamped structure: `{prefix}/{cluster}/{hostname}/{logType}/{timestamp}-{logType}.log`.",
+			},
 		},
 	}
 }
 
 type TFModel struct {
-	ApiKey               types.String                                            `tfsdk:"api_key" autogen:"sensitive"`
-	BucketName           types.String                                            `tfsdk:"bucket_name"`
-	ProjectId            types.String                                            `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	HecToken             types.String                                            `tfsdk:"hec_token" autogen:"sensitive"`
-	HecUrl               types.String                                            `tfsdk:"hec_url"`
-	IamRoleId            types.String                                            `tfsdk:"iam_role_id"`
-	IntegrationId        types.String                                            `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
-	KmsKey               types.String                                            `tfsdk:"kms_key"`
-	LogTypes             customtypes.SetValue[types.String]                      `tfsdk:"log_types"`
-	OtelEndpoint         types.String                                            `tfsdk:"otel_endpoint"`
-	OtelSuppliedHeaders  customtypes.NestedListValue[TFOtelSuppliedHeadersModel] `tfsdk:"otel_supplied_headers" autogen:"sensitive"`
-	PrefixPath           types.String                                            `tfsdk:"prefix_path"`
-	Region               types.String                                            `tfsdk:"region"`
-	RoleId               types.String                                            `tfsdk:"role_id"`
-	StorageAccountName   types.String                                            `tfsdk:"storage_account_name"`
-	StorageContainerName types.String                                            `tfsdk:"storage_container_name"`
-	Type                 types.String                                            `tfsdk:"type"`
+	ApiKey                 types.String                                            `tfsdk:"api_key" autogen:"sensitive"`
+	BucketName             types.String                                            `tfsdk:"bucket_name"`
+	ProjectId              types.String                                            `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	HecToken               types.String                                            `tfsdk:"hec_token" autogen:"sensitive"`
+	HecUrl                 types.String                                            `tfsdk:"hec_url"`
+	IamRoleId              types.String                                            `tfsdk:"iam_role_id"`
+	IntegrationId          types.String                                            `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
+	KmsKey                 types.String                                            `tfsdk:"kms_key"`
+	LogTypes               customtypes.SetValue[types.String]                      `tfsdk:"log_types"`
+	OtelEndpoint           types.String                                            `tfsdk:"otel_endpoint"`
+	OtelSuppliedHeaders    customtypes.NestedListValue[TFOtelSuppliedHeadersModel] `tfsdk:"otel_supplied_headers" autogen:"sensitive"`
+	PrefixPath             types.String                                            `tfsdk:"prefix_path"`
+	Region                 types.String                                            `tfsdk:"region"`
+	RoleId                 types.String                                            `tfsdk:"role_id"`
+	StorageAccountName     types.String                                            `tfsdk:"storage_account_name"`
+	StorageContainerName   types.String                                            `tfsdk:"storage_container_name"`
+	Type                   types.String                                            `tfsdk:"type"`
+	UseLegacyPathStructure types.Bool                                              `tfsdk:"use_legacy_path_structure"`
 }
 type TFOtelSuppliedHeadersModel struct {
 	Name  types.String `tfsdk:"name"`

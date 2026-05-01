@@ -1,5 +1,5 @@
 schema:
-    description: Creates a new log integration configuration identified by a unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+    description: Creates a new log integration configuration identified by a unique ID.
     discriminator:
         mapping:
             AZURE_LOG_EXPORT:
@@ -68,6 +68,8 @@ schema:
                       tf_schema_name: kms_key
                     - api_name: prefixPath
                       tf_schema_name: prefix_path
+                    - api_name: useLegacyPathStructure
+                      tf_schema_name: use_legacy_path_structure
                 required:
                     - api_name: bucketName
                       tf_schema_name: bucket_name
@@ -312,6 +314,17 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+        - bool: {}
+          description: 'Optional for type: S3_LOG_EXPORT. When true, uses the legacy daily-folder path structure compatible with Push-Based Log Export: `{prefix}/{cluster}/{hostname}/{logType}/{YYYY-MM-DD}/{timestamp}-{logType}.log`. When false (default), uses the flat timestamped structure: `{prefix}/{cluster}/{hostname}/{logType}/{timestamp}-{logType}.log`.'
+          computed_optional_required: optional
+          tf_schema_name: use_legacy_path_structure
+          tf_model_name: UseLegacyPathStructure
+          api_name: useLegacyPathStructure
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
 operations:
     delete:
         http_method: DELETE
@@ -328,7 +341,7 @@ operations:
     version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
     singular:
-        description: Returns the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+        description: Returns the configuration for one log integration identified by its unique ID.
         discriminator:
             mapping:
                 AZURE_LOG_EXPORT:
@@ -397,6 +410,8 @@ data_sources:
                           tf_schema_name: kms_key
                         - api_name: prefixPath
                           tf_schema_name: prefix_path
+                        - api_name: useLegacyPathStructure
+                          tf_schema_name: use_legacy_path_structure
                     required:
                         - api_name: bucketName
                           tf_schema_name: bucket_name
@@ -641,8 +656,19 @@ data_sources:
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
+            - bool: {}
+              description: 'Applies to type: S3_LOG_EXPORT. When true, uses the legacy daily-folder path structure compatible with Push-Based Log Export: `{prefix}/{cluster}/{hostname}/{logType}/{YYYY-MM-DD}/{timestamp}-{logType}.log`. When false (default), uses the flat timestamped structure: `{prefix}/{cluster}/{hostname}/{logType}/{timestamp}-{logType}.log`.'
+              computed_optional_required: computed
+              tf_schema_name: use_legacy_path_structure
+              tf_model_name: UseLegacyPathStructure
+              api_name: useLegacyPathStructure
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
     plural:
-        description: Returns all log integration configurations for the project. Optionally filter by integration type. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+        description: Returns all log integration configurations for the project. Optionally filter by integration type.
         attributes:
             - string: {}
               description: Optional filter by integration type (e.g., `S3_LOG_EXPORT`).
@@ -736,6 +762,8 @@ data_sources:
                                       tf_schema_name: kms_key
                                     - api_name: prefixPath
                                       tf_schema_name: prefix_path
+                                    - api_name: useLegacyPathStructure
+                                      tf_schema_name: use_legacy_path_structure
                                 required:
                                     - api_name: bucketName
                                       tf_schema_name: bucket_name
@@ -964,6 +992,17 @@ data_sources:
                           tf_schema_name: type
                           tf_model_name: Type
                           api_name: type
+                          req_body_usage: omit_always
+                          sensitive: false
+                          create_only: false
+                          present_in_any_response: false
+                          request_only_required_on_create: false
+                        - bool: {}
+                          description: 'Applies to type: S3_LOG_EXPORT. When true, uses the legacy daily-folder path structure compatible with Push-Based Log Export: `{prefix}/{cluster}/{hostname}/{logType}/{YYYY-MM-DD}/{timestamp}-{logType}.log`. When false (default), uses the flat timestamped structure: `{prefix}/{cluster}/{hostname}/{logType}/{timestamp}-{logType}.log`.'
+                          computed_optional_required: computed
+                          tf_schema_name: use_legacy_path_structure
+                          tf_model_name: UseLegacyPathStructure
+                          api_name: useLegacyPathStructure
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
