@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customvalidator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
@@ -18,7 +17,7 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"aggregation_temporality": schema.StringAttribute{ //
+			"aggregation_temporality": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The temporality to send to the metric integration.",
 			},
@@ -26,7 +25,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.",
 			},
-			"group_id": schema.StringAttribute{ //
+			"group_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
@@ -50,10 +49,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"id": schema.StringAttribute{
-				Required:            true,	// id is listed as required in MetricIntegrationUpdateRequest (API spec), this should be computed-only
+				Required:            true,
 				MarkdownDescription: "Unique 24-character hexadecimal digit string that identifies the metric integration configuration.",
 			},
-			"integration_type": schema.StringAttribute{ //
+			"integration_type": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Type of metric integration. Identifies which protocol will be used for the integration. This value cannot be modified after the integration is created.",
 				Validators: []validator.String{
@@ -67,13 +66,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					}),
 				},
 			},
-			"metric_selection": schema.SetAttribute{ //
+			"metric_selection": schema.SetAttribute{
 				Required:            true,
 				MarkdownDescription: "Array of metric categories to export. Determines which types of metrics are sent to the integration.",
 				CustomType:          customtypes.NewSetType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
-			"provider_type": schema.StringAttribute{ //
+			"provider_type": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The provider type for the metric integration. Identifies the third-party service provider.",
 			},
