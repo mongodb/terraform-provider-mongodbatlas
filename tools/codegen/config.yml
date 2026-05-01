@@ -1,7 +1,7 @@
 variables:
   # API descriptions mention using the /orgs and /groups endpoints to fetch user's orgs/projects, removing that part.
   org_id_description: &org_id_description "Unique 24-hexadecimal digit string that identifies the organization that contains your projects."
-  project_id_description: &project_id_description "Unique 24-hexadecimal digit string that identifies your project."
+  project_id_description: &project_id_description "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation."
 
 resources:
   # Singleton resource in project.
@@ -20,6 +20,7 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/auditLog
       method: PATCH
       static_request_body: '{"enabled": "false"}'
+      resets_to_defaults: true
     version_header: application/vnd.atlas.2023-01-01+json
 
   cluster_old_api:
@@ -489,6 +490,7 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
       method: DELETE
+      resets_to_defaults: true
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
       overrides:
@@ -520,6 +522,8 @@ resources:
       aliases:
         groupId: projectId
       overrides:
+        project_id:
+          description: *project_id_description
         # These attributes are optional but when not configured, Atlas returns a default value.
         is_collect_database_specifics_statistics_enabled:
           computability:
@@ -546,6 +550,14 @@ resources:
             optional: true
             computed: true
         is_data_explorer_gen_ai_features_enabled:
+          computability:
+            optional: true
+            computed: true
+        is_cluster_ai_assistant_enabled:
+          computability:
+            optional: true
+            computed: true
+        is_native_reranking_enabled:
           computability:
             optional: true
             computed: true
@@ -663,9 +675,16 @@ resources:
       method: PATCH
       wait:
         <<: *search-index-create-wait
-    delete: # Not a LRO (long-running operation).
+    delete:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
       method: DELETE
+      wait:
+        <<: *search-index-create-wait
+        pending_states: ["DELETING"]
+        target_states: ["DELETED"]
+        delay_seconds: 5 # Lower delay than create/update
+        timeout_seconds: 300 # 5 minutes
+        min_timeout_seconds: 5
     version_header: application/vnd.atlas.2024-05-30+json
     schema:
       aliases:
@@ -714,12 +733,6 @@ resources:
         ]
       aliases:
         tenantName: name # path param name does not match the API request property
-      overrides:
-        # discriminator is nested in an attribute that is fully computed, follow up in CLOUDP-383599 so this filtering is done automatically
-        connections.type:
-          ignore_validators: [discriminator]
-        connections.schema_registry_authentication.type:
-          ignore_validators: [discriminator]
 
   # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
   # Custom methods :startWith and :stop are not called so state attribute is not supported as Optional like in the curated resource, only as Computed.
@@ -800,6 +813,9 @@ resources:
           "security.links",
         ]
       aliases:
+        # This is the resource's id in the API, renaming to keep consistency with other resources.
+        # Note that this resource has an `id` attribute, which we manually craft in the post read hook.
+        id: streamConnectionId
         name: connectionName # path param name does not match the API request property.
         groupId: projectId
         # align with curated resource
@@ -843,6 +859,13 @@ resources:
         # Curated schema models URLs as list (autogen defaults to set)
         schema_registry_urls:
           type: list
+
+        # API returns a default region (e.g. VIRGINIA_USA) even when not set in config.
+        # Without computed, Terraform sees null->value drift and fails with "inconsistent result after apply".
+        region:
+          computability:
+            optional: true
+            computed: true
 
   alert_configuration_api:
     read:
@@ -1160,6 +1183,97 @@ resources:
           aws_security_group:
             description: "Unique identifier of the AWS security group to add to the access list. Mutually exclusive with `cidr_block` and `ip_address`."
 
+  privatelink_endpoint_service_data_federation_online_archive:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
+      method: POST
+      wait: &pe-create-wait
+        state_property: status
+        pending_states: ["PENDING"]
+        target_states: ["OK"]
+        timeout_seconds: 600
+        min_timeout_seconds: 60
+        delay_seconds: 10
+    update:
+      path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
+      method: POST
+      wait:
+        <<: *pe-create-wait
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
+      method: DELETE
+      wait:
+        <<: *pe-create-wait
+        pending_states: ["DELETING"]
+        target_states: ["DELETED"]
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
+        method: GET
+      schema:
+        expanded_model: true
+        aliases:
+          groupId: projectId
+          provider: providerName
+          results.provider: providerName
+        overrides:
+          project_id:
+            description: *project_id_description
+          endpoint_id:
+            description: "Unique 22-character alphanumeric string that identifies the private endpoint."
+          region:
+            description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
+          customer_endpoint_dns_name:
+            description: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`."
+          results.endpoint_id:
+            description: "Unique 22-character alphanumeric string that identifies the private endpoint."
+          results.region:
+            description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
+          results.customer_endpoint_dns_name:
+            description: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`."
+        ignores: ["links", "results.links", "customer_endpoint_ip_address", "azure_link_id", "error_message", "status", "results.customer_endpoint_ip_address", "results.azure_link_id", "results.error_message", "results.status", "delete_on_create_timeout"]
+    schema:
+      expanded_model: true
+      aliases:
+        groupId: projectId
+        provider: providerName
+      ignores: [
+        "results", "customer_endpoint_ip_address", "status", "azure_link_id", "error_message"
+      ]
+      overrides:
+          project_id:
+            description: *project_id_description
+          region:
+            description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
+            # Mirrors logic of SDKv2 manual resource for "" values in state instead of null values
+            computability:
+              optional: true
+              computed: true
+          comment:
+            # Mirrors logic of SDKv2 manual resource for "" values in state instead of null values
+            computability:
+              optional: true
+              computed: true
+          customer_endpoint_dns_name:
+            description: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`."
+            # Mirrors logic of SDKv2 manual resource for "" values in state instead of null values
+            computability:
+              optional: true
+              computed: true
+          provider_name:
+            description: "Human-readable label that identifies the cloud service provider. Atlas Data Federation supports `AWS`."
+            computability:
+              required: true
+          type:
+            computability:
+              computed: true
+
   log_integration:
     read:
       path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
@@ -1183,9 +1297,8 @@ resources:
             description: *project_id_description
           integration_id:
             immutable_computed: true
-          # no need for discriminator as there is currently only a single type, keep prod code exactly as is
-          type:
-            ignore_validators: [discriminator]
+          otel_supplied_headers:
+            sensitive: true
     datasources:
       read:
         path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
@@ -1198,12 +1311,14 @@ resources:
           groupId: projectId
           alertConfigId: integrationId
           id: integrationId
-          results.id: integrationId 
+          results.id: integrationId
         overrides:
           project_id:
             description: *project_id_description
+          otel_supplied_headers:
+            sensitive: true
 
-  metric_integration:
+metric_integration:
     read:
       path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
       method: GET

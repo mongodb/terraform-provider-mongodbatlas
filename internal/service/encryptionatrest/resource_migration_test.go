@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
@@ -87,7 +87,7 @@ func TestMigEncryptionAtRest_basicGCP(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckGCPEnv(t) },
+		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckEncryptionAtRestEnvGCP(t) },
 		CheckDestroy: acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{

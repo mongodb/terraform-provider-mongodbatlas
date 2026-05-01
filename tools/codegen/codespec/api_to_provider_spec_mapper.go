@@ -243,6 +243,7 @@ func operationConfigToModel(opConfig *config.APIOperation) *APIOperation {
 		Path:              opConfig.Path,
 		Wait:              waitConfigToModel(opConfig.Wait),
 		StaticRequestBody: opConfig.StaticRequestBody,
+		ResetsToDefaults:  opConfig.ResetsToDefaults,
 	}
 }
 
@@ -470,6 +471,7 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 		}
 
 		ds.Singular = &Schema{
+			ExpandedModel:      dsConfig.SchemaOptions.ExpandedModel,
 			Description:        &oasReadOp.Description,
 			DeprecationMessage: resourceConfig.DeprecationMessage,
 			Discriminator:      singularDisc,
@@ -498,6 +500,7 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 		}
 
 		ds.Plural = &Schema{
+			ExpandedModel:      dsConfig.SchemaOptions.ExpandedModel,
 			Description:        &oasListOp.Description,
 			DeprecationMessage: resourceConfig.DeprecationMessage,
 			Discriminator:      pluralDisc,

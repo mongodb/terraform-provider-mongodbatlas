@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -55,6 +55,10 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 			"auto_export_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"skip_destroy": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -395,6 +399,14 @@ func setSchemaFields(d *schema.ResourceData, backupSchedule *admin.DiskBackupSna
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "use_org_and_group_names_in_export_prefix", clusterName, err)
 	}
 
+	if err := d.Set("auto_export_enabled", backupSchedule.GetAutoExportEnabled()); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
+	}
+
+	if err := d.Set("export", FlattenExport(backupSchedule)); err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleSetting, "export", clusterName, err)
+	}
+
 	if err := d.Set("policy_item_hourly", FlattenPolicyItem(backupSchedule.GetPolicies()[0].GetPolicyItems(), Hourly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_hourly", clusterName, err)
 	}
@@ -443,13 +455,17 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	if d.Get("skip_destroy").(bool) {
+		d.SetId("")
+		return nil
+	}
+
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, _, err := connV2.CloudBackupsApi.DeleteClusterBackupSchedule(ctx, projectID, clusterName).Execute()
-	if err != nil {
+	if _, _, err := connV2.CloudBackupsApi.DeleteClusterBackupSchedule(ctx, projectID, clusterName).Execute(); err != nil {
 		return diag.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 
@@ -513,8 +529,8 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		policiesItem = append(policiesItem, *ExpandPolicyItems(v.([]any), Yearly)...)
 	}
 
-	if d.HasChange("auto_export_enabled") {
-		req.AutoExportEnabled = new(d.Get("auto_export_enabled").(bool))
+	if v, ok := d.GetOkExists("auto_export_enabled"); ok {
+		req.AutoExportEnabled = new(v.(bool))
 	}
 
 	if v, ok := d.GetOk("export"); ok {
@@ -631,15 +647,15 @@ func isCopySettingsNonEmptyOrChanged(d *schema.ResourceData) bool {
 	return len(copySettings) > 0 || d.HasChange("copy_settings")
 }
 
-func getRequestPolicies(policiesItem []admin.DiskBackupApiPolicyItem, respPolicies []admin.AdvancedDiskBackupSnapshotSchedulePolicy) *[]admin.AdvancedDiskBackupSnapshotSchedulePolicy {
+func getRequestPolicies(policiesItem []admin.DiskBackupApiPolicyItem, respPolicies []admin.AdvancedDiskBackupSnapshotSchedulePolicy) []admin.AdvancedDiskBackupSnapshotSchedulePolicy {
 	if len(policiesItem) > 0 {
 		policy := admin.AdvancedDiskBackupSnapshotSchedulePolicy{
-			PolicyItems: &policiesItem,
+			PolicyItems: policiesItem,
 		}
 		if len(respPolicies) == 1 {
 			policy.Id = respPolicies[0].Id
 		}
-		return &[]admin.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
+		return []admin.AdvancedDiskBackupSnapshotSchedulePolicy{policy}
 	}
 	return nil
 }

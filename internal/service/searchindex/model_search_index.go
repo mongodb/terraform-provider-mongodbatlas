@@ -10,8 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 )
 
 func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]any {
@@ -108,7 +110,11 @@ func expandSearchIndexTypeSets(d *schema.ResourceData) ([]admin.SearchTypeSets, 
 			if diags != nil {
 				return nil, diags
 			}
-			ts.Types = conversion.ToAnySlicePointer(&arr)
+			types := make([]any, len(arr))
+			for idx, elem := range arr {
+				types[idx] = elem
+			}
+			ts.Types = types
 		}
 
 		result = append(result, ts)
@@ -149,14 +155,19 @@ func diffSuppressJSON(k, old, newStr string, d *schema.ResourceData) bool {
 	return schemafunc.EqualJSON(old, newStr, "vector search index")
 }
 
+// searchIndexPendingStates is used for all operations. Over-inclusion is safe; only reaching a target state matters (e.g., an index can be IN_PROGRESS when delete is called).
+var searchIndexPendingStates = []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING", "DELETING"}
+
 func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		searchIndex, _, err := connV2.AtlasSearchApi.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+		searchIndex, resp, err := connV2.AtlasSearchApi.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 		if err != nil {
+			if validate.StatusNotFound(resp) {
+				return "", retrystrategy.RetryStrategyDeletedState, nil
+			}
 			return nil, "ERROR", err
 		}
-		status := conversion.SafeValue(searchIndex.Status)
-		return searchIndex, status, nil
+		return searchIndex, conversion.SafeValue(searchIndex.Status), nil
 	}
 }
 

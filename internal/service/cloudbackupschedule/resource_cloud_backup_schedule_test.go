@@ -3,9 +3,11 @@ package cloudbackupschedule_test
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -153,12 +155,42 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 	var (
 		// A snapshot export bucket can't be deleted it there exist a cluster that is still using it. So the cluster resource needs to depend on it
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
-		policyName  = acc.RandomName()
-		roleName    = acc.RandomIAMRole()
-		bucketName  = acc.RandomS3BucketName()
+		clusterInfo              = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, PitEnabled: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
+		policyName               = acc.RandomName()
+		roleName                 = acc.RandomIAMRole()
+		bucketName               = acc.RandomBucketName()
+		configWithExport         = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, true, true)
+		configWithoutExport      = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, false, false)
+		invalidRestoreWindowDays = "restore_window_days      = 99" // cannot be longer than the configured retention period of 4 days
+		configWithExportInvalid  = strings.ReplaceAll(
+			configWithExport,
+			"restore_window_days      = 4",
+			invalidRestoreWindowDays,
+		)
+		checksWithExport = resource.ComposeAggregateTestCheckFunc(
+			checkExists(resourceName),
+			resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+			resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "true"),
+			resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "20"),
+			resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "5"),
+			resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
+			resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
+			resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
+			resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
+			resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_value", "4"),
+			resource.TestCheckResourceAttr(resourceName, "export.#", "1"),
+		)
+		checksNoExport = resource.ComposeAggregateTestCheckFunc(
+			checkExists(resourceName),
+			resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+			resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "false"),
+			resource.TestCheckResourceAttr(resourceName, "export.#", "0"),
+		)
 	)
-
+	// Sanity check in case formatting changes below
+	if !strings.Contains(configWithExportInvalid, invalidRestoreWindowDays) {
+		t.Fatalf("configWithExportInvalid does not contain invalidRestoreWindowDays: %s\n%s", invalidRestoreWindowDays, configWithExportInvalid)
+	}
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
@@ -166,29 +198,19 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			{
-				Config: configExportPolicies(&clusterInfo, policyName, roleName, bucketName, true, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
-					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "reference_hour_of_day", "20"),
-					resource.TestCheckResourceAttr(resourceName, "reference_minute_of_hour", "5"),
-					resource.TestCheckResourceAttr(resourceName, "restore_window_days", "4"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
-					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_value", "4"),
-				),
+				Config: configWithExport,
+				Check:  checksWithExport,
 			},
 			{
-				Config: configExportPolicies(&clusterInfo, policyName, roleName, bucketName, false, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
-					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "export.#", "0"),
-				),
+				Config: configWithoutExport,
+				Check:  checksNoExport,
 			},
+			// rejected PATCH must not pollute state; empty plan confirms setSchemaFields syncs auto_export_enabled+export from API
+			{
+				Config:      configWithExportInvalid,
+				ExpectError: regexp.MustCompile(".* policy item retention cannot be less than restore window"),
+			},
+			acc.TestStepCheckEmptyPlan(configWithoutExport),
 		},
 	})
 }
@@ -449,6 +471,48 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 	})
 }
 
+func TestAccBackupRSCloudBackupSchedule_skipDestroy(t *testing.T) {
+	clusterInfo := acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
+	schedule := fmt.Sprintf(`
+		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
+			cluster_name             = %[1]s
+			project_id               = %[2]q
+			skip_destroy             = true
+			reference_hour_of_day    = 3
+			reference_minute_of_hour = 45
+			restore_window_days      = 4
+		}
+	`, clusterInfo.TerraformNameRef, clusterInfo.ProjectID)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: clusterInfo.TerraformStr + schedule,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "skip_destroy", "true"),
+				),
+			},
+			{
+				Config: clusterInfo.TerraformStr, // Drop the schedule from config but Atlas resource should remain.
+				Check:  checkExistsInAtlas(clusterInfo.ProjectID, clusterInfo.Name),
+			},
+		},
+	})
+}
+
+func checkExistsInAtlas(projectID, clusterName string) resource.TestCheckFunc {
+	return func(_ *terraform.State) error {
+		if _, _, err := acc.ConnV2().CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute(); err != nil {
+			return fmt.Errorf("cloud backup schedule for cluster %s/%s does not exist: %w", projectID, clusterName, err)
+		}
+		return nil
+	}
+}
+
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -459,13 +523,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		projectID := ids["project_id"]
-		clusterName := ids["cluster_name"]
-		_, _, err := acc.ConnV2().CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
-		if err != nil {
-			return fmt.Errorf("cloud Provider Snapshot Schedule (%s) does not exist: %s", rs.Primary.ID, err)
-		}
-		return nil
+		return checkExistsInAtlas(ids["project_id"], ids["cluster_name"])(s)
 	}
 }
 
@@ -481,11 +539,8 @@ func checkDestroy(s *terraform.State) error {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		projectID := ids["project_id"]
-		clusterName := ids["cluster_name"]
-		_, _, err := acc.ConnV2().CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
-		if err == nil {
-			return fmt.Errorf("cloud Provider Snapshot Schedule (%s) still exists", rs.Primary.ID)
+		if err := checkExistsInAtlas(ids["project_id"], ids["cluster_name"])(s); err == nil {
+			return fmt.Errorf("cloud backup schedule (%s) still exists", rs.Primary.ID)
 		}
 	}
 

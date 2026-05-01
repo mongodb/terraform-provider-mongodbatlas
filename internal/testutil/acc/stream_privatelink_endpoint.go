@@ -157,6 +157,64 @@ func GetCompleteMskConfig(projectID, clusterArn string) string {
 	}`, projectID, clusterArn)
 }
 
+func GetCompleteAzureBlobStorageConfig(projectID, clusterName, subscriptionID, clientID, clientSecret, tenantID, resourceGroupName, storageAccountName string) string {
+	return fmt.Sprintf(`
+	%[1]s
+
+	resource "mongodbatlas_advanced_cluster" "test" {
+		project_id   = %[2]q
+		name         = %[5]q
+		cluster_type = "REPLICASET"
+		replication_specs = [{
+			region_configs = [{
+				priority      = 7
+				provider_name = "AZURE"
+				region_name   = "US_EAST_2"
+				electable_specs = {
+					instance_size = "M10"
+					node_count    = 3
+				}
+			}]
+		}]
+	}
+
+	resource "azurerm_resource_group" "this" {
+		name     = %[3]q
+		location = "East US 2"
+	}
+
+	resource "azurerm_storage_account" "this" {
+		name                     = %[4]q
+		resource_group_name      = azurerm_resource_group.this.name
+		location                 = azurerm_resource_group.this.location
+		account_tier             = "Standard"
+		account_replication_type = "LRS"
+	}
+
+	resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+		project_id          = %[2]q
+		provider_name       = "AZURE"
+		vendor              = "AZURE_BLOB_STORAGE"
+		region              = "eastus2"
+		service_endpoint_id = azurerm_storage_account.this.id
+		dns_domain          = azurerm_storage_account.this.primary_blob_host
+		depends_on          = [mongodbatlas_advanced_cluster.test]
+	}
+
+	data "mongodbatlas_stream_privatelink_endpoint" "test" {
+		project_id = %[2]q
+		id         = mongodbatlas_stream_privatelink_endpoint.test.id
+	}
+
+	data "mongodbatlas_stream_privatelink_endpoints" "test" {
+		project_id = %[2]q
+		depends_on = [
+			mongodbatlas_stream_privatelink_endpoint.test
+		]
+	}`, ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID),
+		projectID, resourceGroupName, storageAccountName, clusterName)
+}
+
 func GetCompleteS3Config(projectID, region string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_stream_privatelink_endpoint" "test" {
@@ -178,4 +236,44 @@ func GetCompleteS3Config(projectID, region string) string {
 			mongodbatlas_stream_privatelink_endpoint.test
 		]
 	}`, projectID, region)
+}
+
+func GetCompletePubSubConfig(projectID, clusterName, region string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_advanced_cluster" "test" {
+		project_id   = %[1]q
+		name         = %[3]q
+		cluster_type = "REPLICASET"
+		replication_specs = [{
+			region_configs = [{
+				priority      = 7
+				provider_name = "GCP"
+				region_name   = "US_EAST_4"
+				electable_specs = {
+					instance_size = "M10"
+					node_count    = 3
+				}
+			}]
+		}]
+	}
+
+	resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+		project_id    = %[1]q
+		provider_name = "GCP"
+		vendor        = "PUBSUB"
+		region        = %[2]q
+		depends_on    = [mongodbatlas_advanced_cluster.test]
+	}
+
+	data "mongodbatlas_stream_privatelink_endpoint" "test" {
+		project_id = %[1]q
+		id         = mongodbatlas_stream_privatelink_endpoint.test.id
+	}
+
+	data "mongodbatlas_stream_privatelink_endpoints" "test" {
+		project_id = %[1]q
+		depends_on = [
+			mongodbatlas_stream_privatelink_endpoint.test
+		]
+	}`, projectID, region, clusterName)
 }

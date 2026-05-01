@@ -6,8 +6,6 @@ subcategory: "Data Federation"
 
 `mongodbatlas_federated_database_instance` provides a Federated Database Instance data source.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ~> **IMPORTANT:** All arguments including the password will be stored in the raw state as plain text. [Read more about sensitive data in state.](https://www.terraform.io/docs/state/sensitive-data.html)
 
 ## Example Usages with MongoDB Atlas Cluster as storage database
@@ -49,7 +47,7 @@ data "mongodbatlas_federated_database_instance" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create a Federated Database Instance.
+* `project_id` - (Required) The unique ID for the project to create a Federated Database Instance, also known as `groupId` in the official documentation.
 * `name` - (Required) Name of the Atlas Federated Database Instance.
 
 ## Attributes Reference
@@ -58,6 +56,9 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Terraform's unique identifier used internally for state management.
 * `hostnames` - The list of hostnames assigned to the Federated Database Instance. Each string in the array is a hostname assigned to the Federated Database Instance.
+* `private_endpoint_hostnames` - The list of private endpoint hostnames assigned to the Federated Database Instance.
+  * `private_endpoint_hostnames.#.hostname` -  Human-readable label that identifies the host.
+  * `private_endpoint_hostnames.#.private_endpoint` - Human-readable label that identifies the private endpoint.
 * `state` - Current state of the Federated Database Instance:
   * `ACTIVE` - The Federated Database Instance is active and verified. You can query the data stores associated with the Federated Database Instance.
   * `DELETED` - The Federated Database Instance was deleted.

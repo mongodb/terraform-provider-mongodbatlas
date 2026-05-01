@@ -24,7 +24,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```
 
 ### Further Examples
-- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_stream_connection)
+- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_stream_connection)
 
 ### Example Cross Project Cluster Connection
 
@@ -65,7 +65,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ### Example Kafka SASL OAuthbearer Connection
 
 ```terraform
-resource "mongodbatlas_stream_connection" "example-kafka-oauthbearer" {
+resource "mongodbatlas_stream_connection" "example_kafka_oauthbearer" {
     project_id      = var.project_id
     workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
     connection_name = "KafkaOAuthbearerConnection"
@@ -118,6 +118,27 @@ resource "mongodbatlas_stream_connection" "test" {
 }
 ```
 
+### Example Azure Blob Storage Connection
+
+```terraform
+resource "mongodbatlas_stream_connection" "test" {
+    project_id      = var.project_id
+    workspace_name  = "NewWorkspace"
+    connection_name = "AzureBlobStorageConnection"
+    type            = "AzureBlobStorage"
+    azure = {
+      service_principal_id = "<AZURE_SERVICE_PRINCIPAL_ID>"
+      storage_account_name = "<AZURE_STORAGE_ACCOUNT_NAME>"
+      region               = "<AZURE_REGION>"
+    }
+    networking = {
+      access = {
+        type = "PUBLIC"
+      }
+    }
+}
+```
+
 ### Example AWSLambda Connection
 
 ```terraform
@@ -133,10 +154,90 @@ resource "mongodbatlas_stream_connection" "test" {
 
 ```
 
+### Example GCPPubSub Connection
+
+```terraform
+resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
+    project_id    = var.project_id
+    provider_name = "GCP"
+}
+
+resource "mongodbatlas_cloud_provider_access_authorization" "gcp_auth" {
+    project_id = var.project_id
+    role_id    = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
+}
+
+resource "mongodbatlas_stream_connection" "example_gcp_pubsub" {
+    project_id      = var.project_id
+    workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+    connection_name = "GCPPubSubConnection"
+    type            = "GCPPubSub"
+    gcp = {
+      service_account_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.gcp_config[0].service_account_for_atlas
+    }
+    depends_on = [mongodbatlas_cloud_provider_access_authorization.gcp_auth]
+}
+```
+
+### Example GCPPubSub Connection with Private Service Connect
+
+```terraform
+resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
+    project_id    = var.project_id
+    provider_name = "GCP"
+}
+
+resource "mongodbatlas_cloud_provider_access_authorization" "gcp_auth" {
+    project_id = var.project_id
+    role_id    = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
+}
+
+resource "mongodbatlas_stream_connection" "example_gcp_pubsub_psc" {
+    project_id      = var.project_id
+    workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+    connection_name = "GCPPubSubPSCConnection"
+    type            = "GCPPubSub"
+    gcp = {
+      service_account_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.gcp_config[0].service_account_for_atlas
+    }
+    networking = {
+      access = {
+        type          = "PRIVATE_LINK"
+        connection_id = mongodbatlas_stream_privatelink_endpoint.gcp_pubsub.id
+      }
+    }
+    depends_on = [mongodbatlas_cloud_provider_access_authorization.gcp_auth]
+}
+```
+
+### Example Azure Blob Storage Connection with Private Link
+
+~> **NOTE:** An Azure cluster must be provisioned in the same region before creating an Azure Blob Storage private endpoint.
+
+```terraform
+resource "mongodbatlas_stream_connection" "example_azure_blob_private_link" {
+    project_id      = var.project_id
+    workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+    connection_name = "AzureBlobStoragePLConnection"
+    type            = "AzureBlobStorage"
+    azure = {
+      service_principal_id = "<AZURE_SERVICE_PRINCIPAL_ID>"
+      storage_account_name = "<AZURE_STORAGE_ACCOUNT_NAME>"
+      region               = "<AZURE_REGION>"
+    }
+    networking = {
+      access = {
+        type          = "PRIVATE_LINK"
+        connection_id = mongodbatlas_stream_privatelink_endpoint.azure_blob.id
+      }
+    }
+}
+```
+
 ### Example Https Connection
 
 ```terraform
-resource "mongodbatlas_stream_connection" "example-https" {
+resource "mongodbatlas_stream_connection" "example_https" {
   project_id      = var.project_id
   workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
   connection_name = "https_connection_tf_new"
@@ -152,7 +253,7 @@ resource "mongodbatlas_stream_connection" "example-https" {
 ### Example Schema Registry Connection with USER_INFO Authentication
 
 ```terraform
-resource "mongodbatlas_stream_connection" "example-schema-registry" {
+resource "mongodbatlas_stream_connection" "example_schema_registry" {
   project_id               = var.project_id
   workspace_name           = mongodbatlas_stream_workspace.example.workspace_name
   connection_name          = "SchemaRegistryConnection"
@@ -170,7 +271,7 @@ resource "mongodbatlas_stream_connection" "example-schema-registry" {
 ### Example Schema Registry Connection with SASL_INHERIT Authentication
 
 ```terraform
-resource "mongodbatlas_stream_connection" "example-schema-registry-sasl" {
+resource "mongodbatlas_stream_connection" "example_schema_registry_sasl" {
   project_id               = var.project_id
   workspace_name           = mongodbatlas_stream_workspace.example.workspace_name
   connection_name          = "SchemaRegistryConnectionSASL"
@@ -237,11 +338,11 @@ resource "mongodbatlas_stream_processor" "example" {
 
 **NOTE:** Either `workspace_name` or `instance_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is an alias for `instance_name`. `workspace_name` should be used instead of `instance_name`.
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `workspace_name` - (Optional) Label that identifies the stream processing workspace.
 * `instance_name` - (Optional, Deprecated) Label that identifies the stream processing workspace. Use `workspace_name` instead; this attribute will be removed in a future major version.
 * `connection_name` - (Required) Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - (Required) Type of connection. Can be `AWSLambda`, `Cluster`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
+* `type` - (Required) Type of connection. Can be `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -255,8 +356,16 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 * `security` - Properties for the secure transport connection to Kafka. For SASL_SSL, this can include the trusted certificate to use. See [security](#security).
 * `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
 
+If `type` is `AzureBlobStorage` the configuration defines the following additional attributes:
+* `azure` - The configuration for Azure Blob Storage connection. See [Azure](#Azure).
+* `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
+
 If `type` is of value `AWSLambda` the following additional arguments are defined:
 * `aws` - The configuration for AWS Lambda connection. See [AWS](#AWS)
+
+If `type` is of value `GCPPubSub` the following additional arguments are defined:
+* `gcp` - The configuration for GCP Pub/Sub connection. See [GCP](#GCP)
+* `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
 
 If `type` is of value `Https` the following additional attributes are defined:
 * `url` - URL of the HTTPs endpoint that will be used for creating a connection.
@@ -299,6 +408,14 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
 ### AWS
 * `role_arn` - Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
 
+### GCP
+* `service_account_id` - Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to GCP Pub/Sub resources.
+
+### Azure
+* `service_principal_id` - (Required) UUID that identifies the Azure Service Principal used to access the Azure Blob Storage account.
+* `storage_account_name` - (Required) Name of the Azure Storage account to use. Must be lowercase, 3-24 characters, and contain only letters and numbers.
+* `region` - (Optional) Azure region where the storage account is located, specified as a valid Azure region name (for example, `eastus`, `westeurope`).
+
 ### Schema Registry Authentication
 * `type` - Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry. Valid values are `USER_INFO` or `SASL_INHERIT`.
   * `USER_INFO` - Uses username and password authentication for Confluent Schema Registry.
@@ -322,7 +439,7 @@ resource "mongodbatlas_stream_connection" "example" {
 
 * `create` - (Optional) The maximum time to wait for the stream connection to be fully provisioned after creation. Defaults to `20m` (20 minutes).
 * `update` - (Optional) The maximum time to wait for the stream connection to be fully provisioned after an update. Defaults to `20m` (20 minutes).
-* `delete` - (Optional) The maximum time to wait for the stream connection to be fully deleted. Defaults to `10m` (10 minutes).
+* `delete` - (Optional) The maximum time to wait for the stream connection to be fully deleted. Defaults to `20m` (20 minutes).
 
 ## Import
 

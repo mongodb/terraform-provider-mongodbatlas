@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 )
 
 func Resource() *schema.Resource {
@@ -47,15 +47,20 @@ func Resource() *schema.Resource {
 			"role_assignments": {
 				Type:     schema.TypeSet,
 				Required: true,
+				Set:      hashRoleAssignment,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"group_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							// Default ensures SDKv2 uses "" instead of null for unset fields, matching state representation and preventing hash mismatches. See CLOUDP-397797.
+							Default: "",
 						},
 						"org_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							// Default ensures SDKv2 uses "" instead of null for unset fields, matching state representation and preventing hash mismatches. See CLOUDP-397797.
+							Default: "",
 						},
 						"roles": {
 							Type:     schema.TypeSet,

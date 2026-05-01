@@ -80,6 +80,39 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSAlertConfiguration_outsideStreamProcessorMetricThreshold(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy(),
+		Steps: []resource.TestStep{
+			{
+				Config: configOutsideStreamProcessorMetricThresholdAlert(projectID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "event_type", "OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD"),
+					resource.TestCheckResourceAttr(resourceName, "metric_threshold_config.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "threshold_config.#", "0"),
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "0"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"updated"},
+			},
+		},
+	})
+}
+
 func TestAccConfigRSAlertConfiguration_withEmptyMetricThresholdConfig(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
@@ -285,6 +318,40 @@ func TestAccConfigRSAlertConfiguration_withoutRoles(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
+			},
+		},
+	})
+}
+
+func TestAccConfigRSAlertConfiguration_addNotification(t *testing.T) {
+	projectID := acc.ProjectIDExecution(t)
+	step1Checks := []resource.TestCheckFunc{
+		checkExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "notification.0.type_name", "EMAIL"),
+		resource.TestCheckResourceAttr(resourceName, "notification.0.email_address", "test@mongodb.com"),
+		resource.TestCheckResourceAttr(resourceName, "notification.0.email_enabled", "false"),
+		resource.TestCheckResourceAttr(resourceName, "notification.0.sms_enabled", "false"),
+	}
+	step2Checks := step1Checks
+	step2Checks = append(step2Checks,
+		resource.TestCheckResourceAttr(resourceName, "notification.1.type_name", "EMAIL"),
+		resource.TestCheckResourceAttr(resourceName, "notification.1.email_address", "ops-team@example.com"),
+		resource.TestCheckResourceAttr(resourceName, "notification.1.email_enabled", "false"),
+		resource.TestCheckResourceAttr(resourceName, "notification.1.sms_enabled", "false"),
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy(),
+		Steps: []resource.TestStep{
+			{
+				Config: configAddNotification(projectID, false),
+				Check:  resource.ComposeAggregateTestCheckFunc(step1Checks...),
+			},
+			{
+				Config: configAddNotification(projectID, true),
+				Check:  resource.ComposeAggregateTestCheckFunc(step2Checks...),
 			},
 		},
 	})
@@ -737,6 +804,37 @@ func configBasic(projectID string, enabled bool) string {
 		alert_configuration_id = mongodbatlas_alert_configuration.test.id
 	}
 	`, projectID, enabled)
+}
+
+func configOutsideStreamProcessorMetricThresholdAlert(projectID string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_alert_configuration" "test" {
+		project_id = %[1]q
+		enabled    = true
+		event_type = "OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD"
+
+		notification {
+			type_name     = "GROUP"
+			interval_min  = 5
+			delay_min     = 0
+			sms_enabled   = false
+			email_enabled = true
+		}
+
+		metric_threshold_config {
+			metric_name = "STREAM_PROCESSOR_CHANGE_STREAM_LAG"
+			operator    = "GREATER_THAN"
+			threshold   = 0.0
+			units       = "NANOSECONDS"
+			mode        = "AVERAGE"
+		}
+	}
+
+	data "mongodbatlas_alert_configuration" "test" {
+		project_id             = mongodbatlas_alert_configuration.test.project_id
+		alert_configuration_id = mongodbatlas_alert_configuration.test.id
+	}
+	`, projectID)
 }
 
 func configWithNotifications(projectID string, enabled, smsEnabled, emailEnabled bool) string {
@@ -1496,4 +1594,35 @@ func checkCount(resourceName string) resource.TestCheckFunc {
 
 		return nil
 	}
+}
+
+func configAddNotification(projectID string, twoNotifications bool) string {
+	secondNotification := ""
+	if twoNotifications {
+		secondNotification = `
+			notification {
+				type_name     = "EMAIL"
+				email_address = "ops-team@example.com"
+			}`
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = %[1]q
+			event_type = "CPS_SNAPSHOT_BEHIND"
+			enabled    = true
+
+			notification {
+				type_name     = "EMAIL"
+				email_address = "test@mongodb.com"
+			}
+
+			threshold_config {
+				operator  = "GREATER_THAN"
+				threshold = 48
+				units     = "HOURS"
+			}
+
+			%[2]s
+		}
+	`, projectID, secondNotification)
 }

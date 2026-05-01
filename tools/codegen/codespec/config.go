@@ -26,9 +26,11 @@ func ApplyTransformationsToResource(resourceConfig *config.Resource, resource *R
 	}
 	applyAliasToDiscriminator(resourceConfig.SchemaOptions.Aliases, resource.Schema.Discriminator, &resource.Schema.Attributes)
 	applyIgnoreValidatorsToDiscriminators(resource.Schema.Discriminator, resource.Schema.Attributes, resourceConfig.SchemaOptions)
+	skipValidationForComputedDiscriminators(resource.Schema.Discriminator, resource.Schema.Attributes)
 	applyAliasToPathParams(&resource.Operations, resourceConfig.SchemaOptions.Aliases)
 	ApplyDeleteOnCreateTimeoutTransformation(resource)
 	ApplyTimeoutTransformation(resource)
+	EnhanceDescriptionsWithDiscriminator(resource.Schema.Attributes, resource.Schema.Discriminator, false)
 	return nil
 }
 
@@ -60,6 +62,7 @@ func applyDSSchemaTransformations(schemaOptions config.SchemaOptions, schema *Sc
 	applyAliasToDiscriminator(schemaOptions.Aliases, schema.Discriminator, &schema.Attributes)
 	skipDiscriminator(schema.Discriminator)
 	skipValidationForAllNestedDiscriminators(&schema.Attributes)
+	EnhanceDescriptionsWithDiscriminator(schema.Attributes, schema.Discriminator, true)
 	return nil
 }
 
@@ -154,22 +157,8 @@ func applyAttributeTransformationsList(schemaOptions config.SchemaOptions, attri
 			}
 		}
 
-		// apply transformations to nested attributes recursively with the same transformation list
-		switch {
-		case attr.ListNested != nil:
-			if err := applyAttributeTransformationsList(schemaOptions, &attr.ListNested.NestedObject.Attributes, &paths, transformationList); err != nil {
-				return err
-			}
-		case attr.SingleNested != nil:
-			if err := applyAttributeTransformationsList(schemaOptions, &attr.SingleNested.NestedObject.Attributes, &paths, transformationList); err != nil {
-				return err
-			}
-		case attr.SetNested != nil:
-			if err := applyAttributeTransformationsList(schemaOptions, &attr.SetNested.NestedObject.Attributes, &paths, transformationList); err != nil {
-				return err
-			}
-		case attr.MapNested != nil:
-			if err := applyAttributeTransformationsList(schemaOptions, &attr.MapNested.NestedObject.Attributes, &paths, transformationList); err != nil {
+		if nested := attr.NestedObject(); nested != nil {
+			if err := applyAttributeTransformationsList(schemaOptions, &nested.Attributes, &paths, transformationList); err != nil {
 				return err
 			}
 		}
@@ -418,19 +407,9 @@ func applyAliasesToNestedDiscriminators(attributes Attributes, aliases map[strin
 		attr := &attributes[i]
 		apiPath := buildPath(parentAPIPath, attr.APIName)
 
-		switch {
-		case attr.ListNested != nil:
-			applyAliasesToDiscriminator(attr.ListNested.NestedObject.Discriminator, aliases, apiPath)
-			applyAliasesToNestedDiscriminators(attr.ListNested.NestedObject.Attributes, aliases, apiPath)
-		case attr.SingleNested != nil:
-			applyAliasesToDiscriminator(attr.SingleNested.NestedObject.Discriminator, aliases, apiPath)
-			applyAliasesToNestedDiscriminators(attr.SingleNested.NestedObject.Attributes, aliases, apiPath)
-		case attr.SetNested != nil:
-			applyAliasesToDiscriminator(attr.SetNested.NestedObject.Discriminator, aliases, apiPath)
-			applyAliasesToNestedDiscriminators(attr.SetNested.NestedObject.Attributes, aliases, apiPath)
-		case attr.MapNested != nil:
-			applyAliasesToDiscriminator(attr.MapNested.NestedObject.Discriminator, aliases, apiPath)
-			applyAliasesToNestedDiscriminators(attr.MapNested.NestedObject.Attributes, aliases, apiPath)
+		if nested := attr.NestedObject(); nested != nil {
+			applyAliasesToDiscriminator(nested.Discriminator, aliases, apiPath)
+			applyAliasesToNestedDiscriminators(nested.Attributes, aliases, apiPath)
 		}
 	}
 }
@@ -495,19 +474,30 @@ func applyIgnoreValidatorsToNestedDiscriminators(attributes Attributes, schemaOp
 		attr := &attributes[i]
 		schemaPath := buildPath(parentSchemaPath, attr.TFSchemaName)
 
-		switch {
-		case attr.ListNested != nil:
-			applyIgnoreValidatorsToDiscriminator(attr.ListNested.NestedObject.Discriminator, schemaOptions, schemaPath)
-			applyIgnoreValidatorsToNestedDiscriminators(attr.ListNested.NestedObject.Attributes, schemaOptions, schemaPath)
-		case attr.SingleNested != nil:
-			applyIgnoreValidatorsToDiscriminator(attr.SingleNested.NestedObject.Discriminator, schemaOptions, schemaPath)
-			applyIgnoreValidatorsToNestedDiscriminators(attr.SingleNested.NestedObject.Attributes, schemaOptions, schemaPath)
-		case attr.SetNested != nil:
-			applyIgnoreValidatorsToDiscriminator(attr.SetNested.NestedObject.Discriminator, schemaOptions, schemaPath)
-			applyIgnoreValidatorsToNestedDiscriminators(attr.SetNested.NestedObject.Attributes, schemaOptions, schemaPath)
-		case attr.MapNested != nil:
-			applyIgnoreValidatorsToDiscriminator(attr.MapNested.NestedObject.Discriminator, schemaOptions, schemaPath)
-			applyIgnoreValidatorsToNestedDiscriminators(attr.MapNested.NestedObject.Attributes, schemaOptions, schemaPath)
+		if nested := attr.NestedObject(); nested != nil {
+			applyIgnoreValidatorsToDiscriminator(nested.Discriminator, schemaOptions, schemaPath)
+			applyIgnoreValidatorsToNestedDiscriminators(nested.Attributes, schemaOptions, schemaPath)
+		}
+	}
+}
+
+func skipValidationForComputedDiscriminators(disc *Discriminator, attrs Attributes) {
+	skipValidationIfComputed(disc, attrs)
+	for i := range attrs {
+		if nested := attrs[i].NestedObject(); nested != nil {
+			skipValidationForComputedDiscriminators(nested.Discriminator, nested.Attributes)
+		}
+	}
+}
+
+func skipValidationIfComputed(disc *Discriminator, attrs Attributes) {
+	if disc == nil {
+		return
+	}
+	for i := range attrs {
+		if attrs[i].TFSchemaName == disc.PropertyName.TFSchemaName && attrs[i].ComputedOptionalRequired == Computed {
+			disc.SkipValidation = true
+			return
 		}
 	}
 }
@@ -520,19 +510,9 @@ func skipValidationForAllNestedDiscriminators(attributes *Attributes) {
 	}
 	for i := range *attributes {
 		attr := &(*attributes)[i]
-		switch {
-		case attr.ListNested != nil:
-			skipDiscriminator(attr.ListNested.NestedObject.Discriminator)
-			skipValidationForAllNestedDiscriminators(&attr.ListNested.NestedObject.Attributes)
-		case attr.SingleNested != nil:
-			skipDiscriminator(attr.SingleNested.NestedObject.Discriminator)
-			skipValidationForAllNestedDiscriminators(&attr.SingleNested.NestedObject.Attributes)
-		case attr.SetNested != nil:
-			skipDiscriminator(attr.SetNested.NestedObject.Discriminator)
-			skipValidationForAllNestedDiscriminators(&attr.SetNested.NestedObject.Attributes)
-		case attr.MapNested != nil:
-			skipDiscriminator(attr.MapNested.NestedObject.Discriminator)
-			skipValidationForAllNestedDiscriminators(&attr.MapNested.NestedObject.Attributes)
+		if nested := attr.NestedObject(); nested != nil {
+			skipDiscriminator(nested.Discriminator)
+			skipValidationForAllNestedDiscriminators(&nested.Attributes)
 		}
 	}
 }

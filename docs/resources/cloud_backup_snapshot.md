@@ -7,8 +7,6 @@ subcategory: "Cloud Backups"
 `mongodbatlas_cloud_backup_snapshot` provides a resource to take a cloud backup snapshot on demand.
 On-demand snapshots happen immediately, unlike scheduled snapshots which occur at regular intervals. If there is already an on-demand snapshot with a status of queued or inProgress, you must wait until Atlas has completed the on-demand snapshot before taking another.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot delete a backup snapshot or decrease the retention time for a snapshot after it's taken.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
 ## Example Usage
@@ -55,12 +53,12 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 ```
 
 ### Further Examples
-- [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time)
-- [Restore from backup snapshot using an advanced cluster resource](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time-advanced-cluster)
+- [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time)
+- [Restore from backup snapshot using an advanced cluster resource](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time-advanced-cluster)
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshots you want to retrieve.
 * `description` - (Required) Description of the on-demand snapshot.
 * `retention_in_days` - (Required) The number of days that Atlas should retain the on-demand snapshot. Must be at least 1.

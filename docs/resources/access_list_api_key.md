@@ -8,7 +8,6 @@ subcategory: "Programmatic API Keys"
     
 -> **Note:** The `mongodbatlas_access_list_api_key` resource can be used to manage all Programmatic API Keys, regardless of whether they were created at the Organization level or Project level. 
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 ~> **IMPORTANT:**
 When you remove an entry from the access list, existing connections from the removed address(es) may remain open for a variable amount of time. How much time passes before Atlas closes the connection depends on several factors, including how the connection was established, the particular behavior of the application or driver using the address, and the connection protocol (e.g., TCP or UDP). This is particularly important to consider when changing an existing IP address or CIDR block as they cannot be updated via the Provider, hence a change will force the destruction and recreation of entries.  
@@ -37,7 +36,7 @@ resource "mongodbatlas_access_list_api_key" "test" {
 ```
 
 ### Further Examples
-- [Create Programmatic API Key](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_api_key)
+- [Create Programmatic API Key](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_api_key)
 
 ## Argument Reference
 

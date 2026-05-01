@@ -8,8 +8,6 @@ subcategory: "Network Peering"
 
 ~> **IMPORTANT:** This resource creates one Network Peering container into which Atlas can deploy Network Peering connections. An Atlas project can have a maximum of one container for each cloud provider. You must have either the Project Owner or Organization Owner role to successfully call this endpoint.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
-
 
 ## Example Usage
 
@@ -31,7 +29,7 @@ data "mongodbatlas_network_container" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project.
+* `project_id` - (Required) The unique ID for the project, also known as `groupId` in the official documentation.
 * `container_id` - (Required) The Network Peering Container ID.
 
 

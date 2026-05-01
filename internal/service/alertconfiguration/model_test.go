@@ -7,7 +7,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 )
 
 const (
@@ -236,6 +236,61 @@ func TestAlertConfigurationSDKToTFModel(t *testing.T) {
 				ThresholdConfig:       []alertconfiguration.TfThresholdConfigModel{},
 				Notification:          []alertconfiguration.TfNotificationModel{},
 				Enabled:               types.BoolValue(true),
+			},
+		},
+		"Response with both threshold and metricThreshold sets only metric_threshold": {
+			SDKResp: &admin.GroupAlertsConfig{
+				Enabled:       new(true),
+				EventTypeName: new("OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD"),
+				GroupId:       new("projectId"),
+				Id:            new("alertConfigurationId"),
+				MetricThreshold: &admin.FlexClusterMetricThreshold{
+					MetricName: "STREAM_PROCESSOR_CHANGE_STREAM_LAG",
+					Operator:   new("GREATER_THAN"),
+					Threshold:  new(5.0),
+					Units:      new("NANOSECONDS"),
+					Mode:       new("AVERAGE"),
+				},
+				Threshold: &admin.StreamProcessorMetricThreshold{
+					Operator:  new("GREATER_THAN"),
+					Threshold: new(5.0),
+					Units:     new("NANOSECONDS"),
+				},
+			},
+			currentStateAlertConfiguration: &alertconfiguration.TfAlertConfigurationRSModel{
+				ID:        types.StringValue("id"),
+				ProjectID: types.StringValue("projectId"),
+				MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{
+					{
+						MetricName: types.StringValue("STREAM_PROCESSOR_CHANGE_STREAM_LAG"),
+						Operator:   types.StringValue("GREATER_THAN"),
+						Threshold:  types.Float64Value(5.0),
+						Units:      types.StringValue("NANOSECONDS"),
+						Mode:       types.StringValue("AVERAGE"),
+					},
+				},
+				ThresholdConfig: []alertconfiguration.TfThresholdConfigModel{},
+				Notification:    []alertconfiguration.TfNotificationModel{},
+				Matcher:         []alertconfiguration.TfMatcherModel{},
+			},
+			expectedTFModel: alertconfiguration.TfAlertConfigurationRSModel{
+				ID:        types.StringValue("id"),
+				ProjectID: types.StringValue("projectId"),
+				MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{
+					{
+						MetricName: types.StringValue("STREAM_PROCESSOR_CHANGE_STREAM_LAG"),
+						Operator:   types.StringValue("GREATER_THAN"),
+						Threshold:  types.Float64Value(5.0),
+						Units:      types.StringValue("NANOSECONDS"),
+						Mode:       types.StringValue("AVERAGE"),
+					},
+				},
+				ThresholdConfig:      []alertconfiguration.TfThresholdConfigModel{},
+				Notification:         []alertconfiguration.TfNotificationModel{},
+				Matcher:              []alertconfiguration.TfMatcherModel{},
+				EventType:            types.StringValue("OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD"),
+				AlertConfigurationID: types.StringValue("alertConfigurationId"),
+				Enabled:              types.BoolValue(true),
 			},
 		},
 		"Complete SDK response with SeverityOverride": {

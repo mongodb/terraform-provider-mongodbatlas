@@ -15,7 +15,7 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v2.10.1
+GOLANGCI_VERSION=v2.11.4
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -145,6 +145,18 @@ link-git-hooks: ## Install Git hooks
 	find .git/hooks -type l -exec rm {} \;
 	find .githooks -type f -exec ln -sf ../../{} .git/hooks/ \;
 
+.PHONY: link-skills
+link-skills: ## Create symlinks for AI agent skills
+	@echo "==> Linking skills directories..."
+	@mkdir -p .claude .cursor
+	@for dir in .claude/skills .cursor/skills; do \
+		if [ -d "$$dir" ] && [ ! -L "$$dir" ]; then \
+			echo "Error: $$dir is an existing directory. Remove it manually before running this command." >&2; \
+			exit 1; \
+		fi; \
+		ln -sfn ../.agents/skills "$$dir"; \
+	done
+
 .PHONY: update-atlas-sdk
 update-atlas-sdk: ## Update the Atlas SDK dependency
 	./scripts/update-sdk.sh
@@ -158,10 +170,12 @@ scaffold: ## Create scaffolding for a new resource
 	@echo "Reminder: configure the new $(type) in provider.go"
 
 # Generate flattened API spec used by codegen
-# api_spec_url (optional) - URL to the OpenAPI spec (default: https://raw.githubusercontent.com/mongodb/openapi/main/openapi/v2.yaml).
+# spec_source (optional) - URL or local file path to the OpenAPI spec (default: https://raw.githubusercontent.com/mongodb/openapi/main/openapi/v2.yaml).
+# e.g. make autogen-update-api-spec spec_source=https://raw.githubusercontent.com/mongodb/openapi/dev/openapi/v2.yaml
+# e.g. make autogen-update-api-spec spec_source=/tmp/mms-spec.json
 .PHONY: autogen-update-api-spec
 autogen-update-api-spec:
-	@scripts/generate-autogen-api-spec.sh $(api_spec_url)
+	@scripts/generate-autogen-api-spec.sh $(spec_source)
 
 # Generate resources using API spec present in tools/codegen/atlasapispec/multi-version-api-spec.flattened.yml
 # resource_name (optional) - If not provided all configured resource models will be generated.
@@ -173,7 +187,7 @@ autogen-generate-resources:
 	@go run ./tools/codegen/main.go $(if $(resource_name),--resource-name $(resource_name),) $(if $(resource_tier),--resource-tier $(resource_tier),) $(if $(step),--step $(step),)
 
 # Complete generation pipeline: Fetch latest API Spec -> update resource models -> generate resource code
-# api_spec_url (optional) - URL to the OpenAPI spec (default: https://raw.githubusercontent.com/mongodb/openapi/main/openapi/v2.yaml).
+# spec_source (optional) - URL or local file path to the OpenAPI spec (default: https://raw.githubusercontent.com/mongodb/openapi/main/openapi/v2.yaml).
 # resource_name (optional) - If not provided all configured resources code will be generated
 # resource_tier (optional) - Valid values: `prod`, `internal` (default: all)
 # step (optional) - Valid values: `model-gen`, `code-gen` (default: both).

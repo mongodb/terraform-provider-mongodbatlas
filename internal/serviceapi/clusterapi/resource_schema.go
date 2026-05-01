@@ -197,7 +197,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								Attributes: map[string]schema.Attribute{
 									"analytics_auto_scaling": schema.SingleNestedAttribute{
 										Computed:            true,
-										MarkdownDescription: "Options that determine how this cluster handles resource scaling.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.",
 										CustomType:          customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"compute": schema.SingleNestedAttribute{
@@ -238,7 +238,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"analytics_specs": schema.SingleNestedAttribute{
 										Computed:            true,
-										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. The current hardware specifications for read only nodes in the region.",
 										CustomType:          customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsAnalyticsSpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
@@ -265,7 +265,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"auto_scaling": schema.SingleNestedAttribute{
 										Computed:            true,
-										MarkdownDescription: "Options that determine how this cluster handles resource scaling.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.",
 										CustomType:          customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsAutoScalingModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"compute": schema.SingleNestedAttribute{
@@ -306,11 +306,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"backing_provider_name": schema.StringAttribute{
 										Computed:            true,
-										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when `providerName` is `TENANT` and `electableSpecs.instanceSize` is `M0`, `M2` or `M5`. \n\nPlease note that  using an `instanceSize` of `M2` or `M5` will create a Flex cluster instead. Support for the `instanceSize` of `M2` or `M5` will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward.",
+										MarkdownDescription: "Optional for provider_name: TENANT. Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when `providerName` is `TENANT` and `electableSpecs.instanceSize` is `M0`, `M2` or `M5`. \n\nPlease note that  using an `instanceSize` of `M2` or `M5` will create a Flex cluster instead. Support for the `instanceSize` of `M2` or `M5` will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward.",
 									},
 									"effective_analytics_specs": schema.SingleNestedAttribute{
 										Computed:            true,
-										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. The current hardware specifications for read only nodes in the region.",
 										CustomType:          customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsEffectiveAnalyticsSpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
@@ -337,7 +337,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"effective_electable_specs": schema.SingleNestedAttribute{
 										Computed:            true,
-										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. The current hardware specifications for read only nodes in the region.",
 										CustomType:          customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsEffectiveElectableSpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
@@ -364,7 +364,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"effective_read_only_specs": schema.SingleNestedAttribute{
 										Computed:            true,
-										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. The current hardware specifications for read only nodes in the region.",
 										CustomType:          customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsEffectiveReadOnlySpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
@@ -427,28 +427,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"provider_name": schema.StringAttribute{
 										Computed:            true,
 										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisions the hosts. Set dedicated clusters to `AWS`, `GCP`, `AZURE` or `TENANT`.",
-										Validators: []validator.String{
-											customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
-												Mapping: map[string]customvalidator.VariantDefinition{
-													"AWS": {
-														Allowed: []string{"analytics_auto_scaling", "analytics_specs", "auto_scaling", "effective_analytics_specs", "effective_electable_specs", "effective_read_only_specs", "read_only_specs"},
-													},
-													"AZURE": {
-														Allowed: []string{"analytics_auto_scaling", "analytics_specs", "auto_scaling", "effective_analytics_specs", "effective_electable_specs", "effective_read_only_specs", "read_only_specs"},
-													},
-													"GCP": {
-														Allowed: []string{"analytics_auto_scaling", "analytics_specs", "auto_scaling", "effective_analytics_specs", "effective_electable_specs", "effective_read_only_specs", "read_only_specs"},
-													},
-													"TENANT": {
-														Allowed: []string{"backing_provider_name"},
-													},
-												},
-											}),
-										},
 									},
 									"read_only_specs": schema.SingleNestedAttribute{
 										Computed:            true,
-										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. The current hardware specifications for read only nodes in the region.",
 										CustomType:          customtypes.NewObjectType[TFEffectiveReplicationSpecsRegionConfigsReadOnlySpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
@@ -594,7 +576,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								Attributes: map[string]schema.Attribute{
 									"analytics_auto_scaling": schema.SingleNestedAttribute{
 										Optional:            true,
-										MarkdownDescription: "Options that determine how this cluster handles resource scaling.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"compute": schema.SingleNestedAttribute{
@@ -636,7 +618,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"analytics_specs": schema.SingleNestedAttribute{
 										Computed:            true,
 										Optional:            true,
-										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. The current hardware specifications for read only nodes in the region.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsSpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
@@ -668,7 +650,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"auto_scaling": schema.SingleNestedAttribute{
 										Computed:            true,
 										Optional:            true,
-										MarkdownDescription: "Options that determine how this cluster handles resource scaling.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAutoScalingModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"compute": schema.SingleNestedAttribute{
@@ -716,11 +698,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"backing_provider_name": schema.StringAttribute{
 										Optional:            true,
-										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when `providerName` is `TENANT` and `electableSpecs.instanceSize` is `M0`, `M2` or `M5`. \n\nPlease note that  using an `instanceSize` of `M2` or `M5` will create a Flex cluster instead. Support for the `instanceSize` of `M2` or `M5` will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward.",
+										MarkdownDescription: "Optional for provider_name: TENANT. Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when `providerName` is `TENANT` and `electableSpecs.instanceSize` is `M0`, `M2` or `M5`. \n\nPlease note that  using an `instanceSize` of `M2` or `M5` will create a Flex cluster instead. Support for the `instanceSize` of `M2` or `M5` will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward.",
 									},
 									"effective_analytics_specs": schema.SingleNestedAttribute{
 										Computed:            true,
-										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. The current hardware specifications for read only nodes in the region.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsEffectiveAnalyticsSpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
@@ -747,7 +729,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"effective_electable_specs": schema.SingleNestedAttribute{
 										Computed:            true,
-										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. The current hardware specifications for read only nodes in the region.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsEffectiveElectableSpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
@@ -774,7 +756,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"effective_read_only_specs": schema.SingleNestedAttribute{
 										Computed:            true,
-										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. The current hardware specifications for read only nodes in the region.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsEffectiveReadOnlySpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
@@ -863,7 +845,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"read_only_specs": schema.SingleNestedAttribute{
 										Computed:            true,
 										Optional:            true,
-										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. The current hardware specifications for read only nodes in the region.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsReadOnlySpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{

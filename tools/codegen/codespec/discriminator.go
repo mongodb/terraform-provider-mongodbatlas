@@ -23,11 +23,12 @@ func NewDiscriminatorAttrName(apiName string) DiscriminatorAttrName {
 // excludes the discriminator property itself from variant mappings,
 // and filters readOnly properties from the required list (keeping them in allowed).
 //
-// Returns nil when all variant mappings have empty allowed lists. This happens when
-// polymorphism is at the value level (different enum values for a specific property
-// like `units`) rather than at the structural level (different properties per variant).
-// In such cases the discriminator acts as a pure enum constraint on the discriminator
-// property itself and carries no actionable per-variant metadata for Terraform.
+// Returns nil when the discriminator does not provide actionable per-variant metadata
+// for Terraform. This includes cases where all variant mappings have empty allowed
+// lists (polymorphism is at the value level, e.g. different enum values for a single
+// property like `units`, rather than structural differences), or when the mapping has
+// fewer than two variants (0 or 1 entry), so there is effectively no meaningful
+// polymorphism to capture.
 func extractDiscriminator(schema *APISpecSchema) *Discriminator {
 	if schema == nil {
 		return nil
@@ -71,7 +72,7 @@ func extractDiscriminator(schema *APISpecSchema) *Discriminator {
 		}
 	}
 
-	if AllVariantsEmpty(mapping) {
+	if ShouldSkipDiscriminator(mapping) {
 		return nil
 	}
 
@@ -175,7 +176,10 @@ func clearRequired(disc *Discriminator) *Discriminator {
 	return result
 }
 
-func AllVariantsEmpty(mapping map[string]DiscriminatorType) bool {
+func ShouldSkipDiscriminator(mapping map[string]DiscriminatorType) bool {
+	if len(mapping) <= 1 {
+		return true
+	}
 	for _, variant := range mapping {
 		if len(variant.Allowed) > 0 {
 			return false

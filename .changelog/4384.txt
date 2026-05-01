@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_federated_settings_org_config: Fixes perpetual plan drift on `post_auth_role_grants` and `data_access_identity_provider_ids` caused by non-deterministic API response ordering
+```

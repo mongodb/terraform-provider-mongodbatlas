@@ -97,6 +97,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							},
 						},
 					},
+					"nested_root": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "Top-level path to the array that contains vector fields. When provided, vector fields under this path are treated as nested.",
+					},
 					"num_partitions": schema.Int64Attribute{
 						Computed:            true,
 						Optional:            true,
@@ -156,7 +160,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									MarkdownDescription: "Label that identifies the type set name. Each `typeSets.name` must be unique within the same index definition.",
 								},
 								"types": schema.ListAttribute{
-									Optional:            true,
+									Required:            true,
 									MarkdownDescription: "List of types associated with the type set. Each type definition must include a `type` field specifying the search field type (`autocomplete`, `boolean`, `date`, `geo`, `number`, `objectId`, `string`, `token`, or `uuid`) and may include additional configuration properties specific to that type.",
 									CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 									ElementType:         jsontypes.NormalizedType{},
@@ -237,6 +241,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								ElementType:         jsontypes.NormalizedType{},
 							},
 						},
+					},
+					"nested_root": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "Top-level path to the array that contains vector fields. When provided, vector fields under this path are treated as nested.",
 					},
 					"num_partitions": schema.Int64Attribute{
 						Computed:            true,
@@ -359,6 +367,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 											ElementType:         jsontypes.NormalizedType{},
 										},
+										"nested_root": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Top-level path to the array that contains vector fields. When provided, vector fields under this path are treated as nested.",
+										},
 										"num_partitions": schema.Int64Attribute{
 											Computed:            true,
 											MarkdownDescription: "Number of index partitions. Allowed values are [1, 2, 4].",
@@ -419,6 +431,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 											ElementType:         jsontypes.NormalizedType{},
 										},
+										"nested_root": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Top-level path to the array that contains vector fields. When provided, vector fields under this path are treated as nested.",
+										},
 										"num_partitions": schema.Int64Attribute{
 											Computed:            true,
 											MarkdownDescription: "Number of index partitions. Allowed values are [1, 2, 4].",
@@ -468,11 +484,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"synonym_mapping_status": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Status that describes this index's synonym mappings. This status appears only if the index has synonyms defined.",
+				MarkdownDescription: "Optional for type: search. Status that describes this index's synonym mappings. This status appears only if the index has synonyms defined.",
 			},
 			"synonym_mapping_status_detail": schema.ListAttribute{
 				Computed:            true,
-				MarkdownDescription: "A list of documents describing the status of the index's synonym mappings on each search host. Only appears if the index has synonyms defined.",
+				MarkdownDescription: "Optional for type: search. A list of documents describing the status of the index's synonym mappings on each search host. Only appears if the index has synonyms defined.",
 				CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 				ElementType:         jsontypes.NormalizedType{},
 			},
@@ -490,6 +506,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
 				Update: true,
+				Delete: true,
 			}),
 		},
 	}
@@ -519,6 +536,7 @@ type TFDefinitionModel struct {
 	Analyzers      customtypes.NestedListValue[TFDefinitionAnalyzersModel] `tfsdk:"analyzers"`
 	Fields         customtypes.ListValue[jsontypes.Normalized]             `tfsdk:"fields"`
 	Mappings       customtypes.ObjectValue[TFDefinitionMappingsModel]      `tfsdk:"mappings"`
+	NestedRoot     types.String                                            `tfsdk:"nested_root"`
 	NumPartitions  types.Int64                                             `tfsdk:"num_partitions"`
 	SearchAnalyzer types.String                                            `tfsdk:"search_analyzer"`
 	Sort           jsontypes.Normalized                                    `tfsdk:"sort"`
@@ -553,6 +571,7 @@ type TFLatestDefinitionModel struct {
 	Analyzers      customtypes.NestedListValue[TFLatestDefinitionAnalyzersModel] `tfsdk:"analyzers" autogen:"omitjson"`
 	Fields         customtypes.ListValue[jsontypes.Normalized]                   `tfsdk:"fields" autogen:"omitjson"`
 	Mappings       customtypes.ObjectValue[TFLatestDefinitionMappingsModel]      `tfsdk:"mappings" autogen:"omitjson"`
+	NestedRoot     types.String                                                  `tfsdk:"nested_root" autogen:"omitjson"`
 	NumPartitions  types.Int64                                                   `tfsdk:"num_partitions" autogen:"omitjson"`
 	SearchAnalyzer types.String                                                  `tfsdk:"search_analyzer" autogen:"omitjson"`
 	Sort           jsontypes.Normalized                                          `tfsdk:"sort" autogen:"omitjson"`
@@ -602,6 +621,7 @@ type TFStatusDetailMainIndexModel struct {
 }
 type TFStatusDetailMainIndexDefinitionModel struct {
 	Fields        customtypes.ListValue[jsontypes.Normalized] `tfsdk:"fields" autogen:"omitjson"`
+	NestedRoot    types.String                                `tfsdk:"nested_root" autogen:"omitjson"`
 	NumPartitions types.Int64                                 `tfsdk:"num_partitions" autogen:"omitjson"`
 	StoredSource  jsontypes.Normalized                        `tfsdk:"stored_source" autogen:"omitjson"`
 }
@@ -618,6 +638,7 @@ type TFStatusDetailStagedIndexModel struct {
 }
 type TFStatusDetailStagedIndexDefinitionModel struct {
 	Fields        customtypes.ListValue[jsontypes.Normalized] `tfsdk:"fields" autogen:"omitjson"`
+	NestedRoot    types.String                                `tfsdk:"nested_root" autogen:"omitjson"`
 	NumPartitions types.Int64                                 `tfsdk:"num_partitions" autogen:"omitjson"`
 	StoredSource  jsontypes.Normalized                        `tfsdk:"stored_source" autogen:"omitjson"`
 }

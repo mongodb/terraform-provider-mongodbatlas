@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 
 	"github.com/stretchr/testify/require"
 
@@ -32,7 +32,8 @@ const (
 
 var (
 	botProjectPrefixes = []string{
-		"cfn-test-bot-",
+		"cfn-", // general CFN tests
+		"ct-",  // CFN contract tests
 		"test-acc-tf-p-",
 	}
 	// keptPrefixes has the prefix of the projects that we want to delete their resources but keep the projects themselves.
@@ -88,7 +89,9 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		require.NoError(t, err)
 		runRetries = attempts
 	}
-	projects := readAllProjects(t.Context(), t, client)
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	require.NotEmpty(t, orgID, "MONGODB_ATLAS_ORG_ID must be set")
+	projects := readAllProjects(t.Context(), t, client, orgID)
 	projectsBefore := len(projects)
 	t.Logf("found %d projects (DRY_RUN=%t)", projectsBefore, dryRun)
 	projectsToClean := map[string]string{}
@@ -146,15 +149,15 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		})
 	}
 	t.Cleanup(func() {
-		projectsAfter := readAllProjects(context.Background(), t, client) // reason: using context.Background() here intentionally because t.Context() is canceled at cleanup
+		projectsAfter := readAllProjects(context.Background(), t, client, orgID) // reason: using context.Background() here intentionally because t.Context() is canceled at cleanup
 		t.Logf("SUMMARY\nProjects changed from %d to %d\ndelete_errors=%d\nempty_project_count=%d\nDRY_RUN=%t", projectsBefore, len(projectsAfter), deleteErrors, emptyProjectCount, dryRun)
 	})
 }
 
-func readAllProjects(ctx context.Context, t *testing.T, client *admin.APIClient) []admin.Group {
+func readAllProjects(ctx context.Context, t *testing.T, client *admin.APIClient, orgID string) []admin.Group {
 	t.Helper()
 	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {
-		return client.ProjectsApi.ListGroups(ctx).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
+		return client.OrganizationsApi.GetOrgGroups(ctx, orgID).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
 	})
 	require.NoError(t, err)
 	return projects
@@ -185,10 +188,6 @@ func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, clie
 	clustersRemoved := removeClusters(ctx, t, dryRun, client, projectID)
 	if clustersRemoved > 0 {
 		changes = append(changes, fmt.Sprintf("removed %d clusters", clustersRemoved))
-	}
-	serverlessClustersRemoved := removeServerlessClusters(ctx, t, dryRun, client, projectID)
-	if serverlessClustersRemoved > 0 {
-		changes = append(changes, fmt.Sprintf("removed %d serverless clusters", serverlessClustersRemoved))
 	}
 	peeringsRemoved := removeNetworkPeering(ctx, t, dryRun, client, projectID)
 	if peeringsRemoved > 0 {
@@ -276,27 +275,6 @@ func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admi
 		}
 	}
 	require.Empty(t, deleteFailures, strings.Join(deleteFailures, "\n"))
-	return len(clustersResults)
-}
-
-func removeServerlessClusters(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
-	t.Helper()
-	clusters, _, err := client.ServerlessInstancesApi.ListServerlessInstances(ctx, projectID).ItemsPerPage(itemsPerPage).Execute()
-	require.NoError(t, err)
-	clustersResults := clusters.GetResults()
-	for i := range clustersResults {
-		c := clustersResults[i]
-		cName := c.GetName()
-		t.Logf("delete serverless cluster %s", cName)
-		if !dryRun {
-			_, _, err = client.ServerlessInstancesApi.DeleteServerlessInstance(ctx, projectID, cName).Execute()
-			if admin.IsErrorCode(err, "SERVERLESS_INSTANCE_ALREADY_REQUESTED_DELETION") {
-				t.Logf("serverless cluster %s already requested deletion", cName)
-				continue
-			}
-			require.NoError(t, err)
-		}
-	}
 	return len(clustersResults)
 }
 

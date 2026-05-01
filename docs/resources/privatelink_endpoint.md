@@ -24,18 +24,30 @@ resource "mongodbatlas_privatelink_endpoint" "this" {
 }
 ```
 
+### AWS Cross-Region Private Endpoint
+
+```terraform
+resource "mongodbatlas_privatelink_endpoint" "cross_region" {
+  project_id                = var.project_id
+  provider_name             = "AWS"
+  region                    = "US_EAST_1"
+  supported_remote_regions  = ["EU_WEST_1", "AP_SOUTHEAST_1"]
+}
+```
+
 ### Further Examples
-- [AWS PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_privatelink_endpoint/aws)
-- [Azure PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_privatelink_endpoint/azure)
-- [GCP Private Service Connect Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
+- [AWS PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_privatelink_endpoint/aws)
+- [Azure PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_privatelink_endpoint/azure)
+- [GCP Private Service Connect Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the project, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Unique identifier for the project, also known as `groupId` in the official documentation.
 * `provider_name` - (Required) Name of the cloud provider for which you want to create the private endpoint service. Atlas accepts `AWS`, `AZURE`, `GCP`.
 * `region` - (Required) Cloud provider region in which you want to create the private endpoint connection.
 Accepted values are: [AWS regions](https://docs.atlas.mongodb.com/reference/amazon-aws/#amazon-aws), [AZURE regions](https://docs.atlas.mongodb.com/reference/microsoft-azure/#microsoft-azure) and [GCP regions](https://docs.atlas.mongodb.com/reference/google-gcp/#std-label-google-gcp)
-* `timeouts` - (Optional) The duration to wait for Private Endpoint to be created or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `1h`), `delete` (default: `1h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
+* `supported_remote_regions` - (Optional) List of additional AWS regions that can connect to the endpoint service. Regions must be specified in Atlas format (e.g., `US_EAST_1`). Only applicable for AWS provider. The `region_name` is supported by default and must not be included.
+* `timeouts` - (Optional) The duration to wait for Private Endpoint to be created, updated, or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `1h`), `update` (default: `1h`), `delete` (default: `1h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
 * `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 * `port_mapping_enabled` - (Optional) Flag that indicates whether this resource uses GCP port-mapping. When `true`, the resource uses port-mapped architecture. When `false` or unset, the resource uses GCP legacy private endpoint architecture. Only applicable for GCP provider.
 

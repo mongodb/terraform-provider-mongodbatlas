@@ -134,6 +134,7 @@ operations:
     delete:
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
+        resets_to_defaults: true
     create:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/maintenanceWindow

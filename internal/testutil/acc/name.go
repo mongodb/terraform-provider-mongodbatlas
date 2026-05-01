@@ -52,10 +52,6 @@ func RandomLDAPName() string {
 	return fmt.Sprintf("CN=%s-%s@example.com,OU=users,DC=example,DC=com", prefixName, acctest.RandString(10))
 }
 
-func RandomS3BucketName() string {
+func RandomBucketName() string {
 	return fmt.Sprintf("%s-%s", prefixS3Bucket, acctest.RandString(10))
-}
-
-func RandonNameWithSuffix(name string) string {
-	return name + acctest.RandString(5)
 }

@@ -102,6 +102,7 @@ jobs:
       mongodb_atlas_ldap_ca_certificate: ${{ secrets.MONGODB_ATLAS_LDAP_CA_CERTIFICATE }}
       mongodb_atlas_private_endpoint_id: ${{ secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_ID }}
       mongodb_atlas_private_endpoint_dns_name: ${{ secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME }}
+      mongodb_atlas_private_endpoint_id_replace: ${{ secrets.MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_REPLACE }}
       azure_directory_id: ${{ secrets.AZURE_DIRECTORY_ID }}
       azure_resource_group_name: ${{ secrets.AZURE_RESOURCE_GROUP_NAME }}
       azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -119,6 +120,9 @@ jobs:
       slack_oncall_tag: ${{ secrets.SLACK_ONCALL_TAG }}
       slack_oncall_tag_stream: ${{ secrets.SLACK_ONCALL_TAG_STREAM }}
       slack_webhook_url_stream: ${{ secrets.SLACK_WEBHOOK_URL_STREAM }}
+      gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      gcp_workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      gcp_service_account_email: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
 
     with:
       terraform_version: ${{ inputs.terraform_version || '1.14.x' }}

@@ -151,5 +151,6 @@ func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *d
 			Method:        "PATCH",
 		},
 		StaticRequestBody: `{"enabled": "false"}`,
+		ResetsToDefaults:  true,
 	}
 }

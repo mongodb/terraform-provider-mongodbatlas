@@ -8,7 +8,6 @@ subcategory: "Teams"
 
 > **IMPORTANT:** MongoDB Atlas Team are limited to a maximum of 250 teams in an organization and 100 teams per project.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
 ## Example Usage
 
@@ -21,8 +20,8 @@ resource "mongodbatlas_team" "test" {
 ```
 
 ### Further Examples
-- [Team and user assignment (module maintainer) v1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/migrate_user_team_assignment/module_maintainer/v1)
-- [Team and user assignment (module maintainer) v2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/migrate_user_team_assignment/module_maintainer/v2)
+- [Team and user assignment (module maintainer) v1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/migrate_user_team_assignment/module_maintainer/v1)
+- [Team and user assignment (module maintainer) v2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/migrate_user_team_assignment/module_maintainer/v2)
 
 ## Argument Reference
 

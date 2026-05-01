@@ -12,6 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 )
 
 const (
@@ -21,7 +22,7 @@ const (
 )
 
 func TestAccPrivateLinkEndpoint_basicAWS(t *testing.T) {
-	resource.ParallelTest(t, *basicAWSTestCase(t, "us-east-1", true))
+	resource.ParallelTest(t, *basicAWSTestCase(t, "us-east-1", true)) // Different region to avoid project conflicts.
 }
 
 func basicAWSTestCase(tb testing.TB, region string, withPluralDS bool) *resource.TestCase {
@@ -53,7 +54,7 @@ func basicAWSTestCase(tb testing.TB, region string, withPluralDS bool) *resource
 func TestAccPrivateLinkEndpoint_basicAzure(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
-		region       = "US_EAST_2"
+		region       = "US_EAST_2" // Different region to avoid project conflicts.
 		providerName = constant.AZURE
 		withPluralDS = true
 	)
@@ -80,7 +81,7 @@ func TestAccPrivateLinkEndpoint_basicAzure(t *testing.T) {
 func TestAccPrivateLinkEndpoint_basicGCP(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
-		region       = "us-central1"
+		region       = "us-central1" // Different region to avoid project conflicts.
 		providerName = constant.GCP
 		withPluralDS = true
 	)
@@ -107,7 +108,7 @@ func TestAccPrivateLinkEndpoint_basicGCP(t *testing.T) {
 func TestAccPrivateLinkEndpoint_deleteOnCreateTimeout(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
-		region       = "eu-west-1"
+		region       = "eu-west-1" // Different region to avoid project conflicts.
 		providerName = constant.AWS
 	)
 
@@ -137,7 +138,7 @@ func basicGCPTestCaseWithPortMapping(tb testing.TB, portMappingEnabled bool) *re
 	var (
 		projectID    = acc.ProjectIDExecution(tb)
 		providerName = constant.GCP
-		region       = "us-west3"
+		region       = "us-west3" // Different region to avoid project conflicts.
 		withPluralDS = true
 	)
 
@@ -158,6 +159,137 @@ func basicGCPTestCaseWithPortMapping(tb testing.TB, portMappingEnabled bool) *re
 			},
 		},
 	}
+}
+
+func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegions(t *testing.T) {
+	var (
+		projectID    = acc.ProjectIDExecution(t)
+		providerName = constant.AWS
+		region       = "US_WEST_1" // Different region to avoid project conflicts.
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithSupportedRemoteRegions(projectID, providerName, region, []string{"US_EAST_1", "EU_WEST_1"}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "provider_name", providerName),
+					resource.TestCheckResourceAttr(resourceName, "region", region),
+					resource.TestCheckResourceAttr(resourceName, "supported_remote_regions.#", "2"),
+					resource.TestCheckResourceAttr(dataSourceName, "supported_remote_regions.#", "2"),
+				),
+			},
+			{
+				Config: configWithSupportedRemoteRegions(projectID, providerName, region, []string{"US_EAST_1", "EU_WEST_1", "EU_WEST_2"}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "supported_remote_regions.#", "3"),
+					resource.TestCheckResourceAttr(dataSourceName, "supported_remote_regions.#", "3"),
+				),
+			},
+			{
+				// Empty set removes all regions.
+				Config: configWithSupportedRemoteRegions(projectID, providerName, region, []string{}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "supported_remote_regions.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "supported_remote_regions.#", "0"),
+				),
+			},
+			{
+				Config: configWithSupportedRemoteRegions(projectID, providerName, region, []string{"US_EAST_1"}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "supported_remote_regions.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "supported_remote_regions.#", "1"),
+				),
+			},
+			{
+				// nil set also removes all regions.
+				Config: configWithSupportedRemoteRegions(projectID, providerName, region, nil),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "supported_remote_regions.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "supported_remote_regions.#", "0"),
+				),
+			},
+			{
+				Config: configWithSupportedRemoteRegions(projectID, providerName, region, []string{"US_EAST_1", "EU_WEST_1"}),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "supported_remote_regions.#", "2"),
+					resource.TestCheckResourceAttr(dataSourceName, "supported_remote_regions.#", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidSameRegion(t *testing.T) {
+	var (
+		projectID    = acc.ProjectIDExecution(t)
+		providerName = constant.AWS
+		region       = "EU_NORTH_1" // Different region to avoid project conflicts.
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      configWithSupportedRemoteRegions(projectID, providerName, region, []string{region}),
+				ExpectError: regexp.MustCompile("CROSS_REGION_PRIVATE_LINK_SELF_REGION"),
+			},
+		},
+	})
+}
+
+func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidLowercaseRegion(t *testing.T) {
+	var (
+		projectID    = acc.ProjectIDExecution(t)
+		providerName = constant.AWS
+		region       = "AP_SOUTHEAST_1" // Different region to avoid project conflicts.
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      configWithSupportedRemoteRegions(projectID, providerName, region, []string{"us-east-1"}),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
+			},
+		},
+	})
+}
+
+func TestAccPrivateLinkEndpoint_awsSupportedRemoteRegionsInvalidProvider(t *testing.T) {
+	var (
+		projectID    = acc.ProjectIDExecution(t)
+		providerName = constant.AZURE
+		region       = "EUROPE_NORTH" // Different region to avoid project conflicts.
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      configWithSupportedRemoteRegions(projectID, providerName, region, []string{region}),
+				ExpectError: regexp.MustCompile("PROVIDER_UNSUPPORTED"),
+			},
+		},
+	})
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
@@ -211,7 +343,7 @@ func configDeleteOnCreateTimeout(projectID, providerName, region, timeout string
 			provider_name = %[2]q
 			region        = %[3]q
 			delete_on_create_timeout = %[5]t
-			
+
 			timeouts {
 				create = %[4]q
 			}
@@ -253,6 +385,30 @@ func configBasic(projectID, providerName, region string, portMappingEnabled *boo
 
 		%[5]s
 	`, projectID, providerName, region, portMappingEnabledStr, pluralDSStr)
+}
+
+func configWithSupportedRemoteRegions(projectID, providerName, region string, supportedRemoteRegions []string) string {
+	regionsStr := hcl.StringSliceToHCL(supportedRemoteRegions)
+	return fmt.Sprintf(`
+		resource "mongodbatlas_privatelink_endpoint" "this" {
+			project_id                = %[1]q
+			provider_name             = %[2]q
+			region                    = %[3]q
+			supported_remote_regions  = %[4]s
+		}
+
+		data "mongodbatlas_privatelink_endpoint" "this" {
+			project_id      = mongodbatlas_privatelink_endpoint.this.project_id
+			private_link_id = mongodbatlas_privatelink_endpoint.this.private_link_id
+			provider_name   = mongodbatlas_privatelink_endpoint.this.provider_name
+		}
+
+		data "mongodbatlas_privatelink_endpoints" "this" {
+			project_id      = mongodbatlas_privatelink_endpoint.this.project_id
+			provider_name   = mongodbatlas_privatelink_endpoint.this.provider_name
+			depends_on      = [mongodbatlas_privatelink_endpoint.this]
+		}
+	`, projectID, providerName, region, regionsStr)
 }
 
 func checkBasic(providerName, region string, portMappingEnabled *bool, withPluralDS bool) resource.TestCheckFunc {

@@ -7,6 +7,10 @@ updates:
       day: sunday
     allow:
       - dependency-type: "all"
+    groups:
+      gomod:
+        patterns:
+          - "*"
     commit-message:
       prefix: "chore"
   - package-ecosystem: github-actions
@@ -14,6 +18,10 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    groups:
+      github-actions:
+        patterns:
+          - "*"
     commit-message:
       prefix: "chore"
   - package-ecosystem: github-actions
@@ -21,5 +29,9 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+    groups:
+      github-actions:
+        patterns:
+          - "*"
     commit-message:
       prefix: "chore"

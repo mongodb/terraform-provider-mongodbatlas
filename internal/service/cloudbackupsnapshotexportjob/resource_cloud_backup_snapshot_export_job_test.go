@@ -27,7 +27,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 
 	var (
 		clusterInfo = acc.GetClusterInfo(tb, &acc.ClusterRequest{CloudBackup: true})
-		bucketName  = acc.RandomS3BucketName()
+		bucketName  = acc.RandomBucketName()
 		roleName    = acc.RandomIAMRole()
 		policyName  = acc.RandomName()
 		projectID   = clusterInfo.ProjectID

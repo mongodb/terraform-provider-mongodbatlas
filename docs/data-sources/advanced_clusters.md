@@ -7,8 +7,6 @@ subcategory: "Clusters"
 `mongodbatlas_advanced_clusters` describes all Advanced Clusters, including Flex clusters, for a project_id.
 
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -197,7 +195,7 @@ data "mongodbatlas_advanced_clusters" "this" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to get the clusters.
+* `project_id` - (Required) The unique ID for the project to get the clusters, also known as `groupId` in the official documentation.
 * `use_effective_fields` - (Optional) Controls how hardware specification fields are returned in the response. When set to true, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to false (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications. This attribute applies to dedicated clusters, not to tenant or flex clusters. **Note:** Effective specs (`effective_electable_specs`, `effective_read_only_specs`, `effective_analytics_specs`) are always returned for dedicated clusters regardless of the flag value and always report the **current** hardware specifications. See the resource documentation for [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields) for more details.
 
 ## Attributes Reference
@@ -313,7 +311,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
   - TLS1_3
 * `no_table_scan` - When true, the cluster disables the execution of any query that requires a collection scan to return results. When false, the cluster allows the execution of those operations.
 * `oplog_size_mb` - The custom oplog size of the cluster. Without a value that indicates that the cluster uses the default oplog size calculated by Atlas.
-* `oplog_min_retention_hours` - Minimum retention window for cluster's oplog expressed in hours. A value of null indicates that the cluster uses the default minimum oplog window that MongoDB Cloud calculates.
+* `oplog_min_retention_hours` - Minimum retention window for cluster's oplog expressed in hours.
 * `sample_size_bi_connector` - Number of documents per database to sample when gathering schema information. Defaults to 100. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `sample_refresh_interval_bi_connector` - Interval in seconds at which the mongosqld process re-samples data to create its relational schema. The default value is 300. The specified value must be a positive integer. Available only for Atlas deployments in which BI Connector for Atlas is enabled.
 * `default_max_time_ms` - Default time limit in milliseconds for individual read operations to complete. This option corresponds to the [defaultMaxTimeMS](https://www.mongodb.com/docs/upcoming/reference/cluster-parameters/defaultMaxTimeMS/) cluster parameter. This parameter is supported only for MongoDB version 8.0 and above.

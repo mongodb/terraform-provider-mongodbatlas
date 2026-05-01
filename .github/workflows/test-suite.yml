@@ -18,7 +18,11 @@ on:
         description: 'Previous MongoDB Atlas Provider version matrix for migration tests (JSON array)'
         default: '[""]' # "" for latest version
       send_notification:
-        description: 'Send a Slack notification if some tests fail.'
+        description: 'Send a Slack notification to the streams team if stream tests fail.'
+        type: boolean
+        default: false
+      trigger_test_summary:
+        description: 'Generate an AI summary of the run and post it to Slack.'
         type: boolean
         default: false
       use_sa:
@@ -39,7 +43,11 @@ on:
         type: string
         required: false
       send_notification:
-        description: 'Send the Slack notification if any of the tests fail.'
+        description: 'Send a Slack notification to the streams team if stream tests fail.'
+        type: boolean
+        default: false
+      trigger_test_summary:
+        description: 'Generate an AI summary of the run and post it to Slack.'
         type: boolean
         default: false
       use_sa:
@@ -65,6 +73,7 @@ jobs:
       is_sun: ${{ steps.set_day.outputs.DAY == 'Sun' }}
       use_sa: ${{ inputs.use_sa == true || (github.event_name == 'schedule' && (steps.set_day.outputs.DAY == 'Tue' || steps.set_day.outputs.DAY == 'Thu' || steps.set_day.outputs.DAY == 'Sat')) }}
       send_notification: ${{ github.event_name == 'schedule' || inputs.send_notification == true }}
+      trigger_test_summary: ${{ github.event_name == 'schedule' || inputs.trigger_test_summary == true }}
     steps:
       - name: set day
         id: set_day
@@ -100,28 +109,66 @@ jobs:
     if: ${{ !cancelled() }}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
-  
-  slack-notification:
+
+  trigger-test-summary:
     needs: [tests, variables, clean-after]
-    # tests.result can have execution result of 'failure' or 'cancelled', independently of the test suite not being cancelled. For any form of error we want a notification.
-    if: ${{ !cancelled() && (needs.tests.result == 'failure' || needs.tests.result == 'cancelled') && needs.variables.outputs.send_notification == 'true' }}
+    if: ${{ !cancelled() && needs.variables.outputs.trigger_test_summary == 'true' }}
     runs-on: ubuntu-latest
-    permissions: {}
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
     steps:
-      - name: Send Slack message
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Summarize test run
+        id: summary
+        uses: anthropics/claude-code-action@ef50f123a3a9be95b60040d042717517407c7256
+        with:
+          anthropic_api_key: ${{ secrets.AI_GATEWAY_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            Follow the skill at .agents/skills/summarize-test-suite/SKILL.md to summarize GitHub Actions run_id ${{ github.run_id }}. Return the final Slack mrkdwn summary as the `summary` field of the structured output, with no preamble and no fenced code block.
+          claude_args: --max-turns 25 --allowedTools Bash,Read,Glob,Grep,Task --model claude-opus-4-7 --json-schema '{"type":"object","properties":{"summary":{"type":"string"}},"required":["summary"]}'
+        env:
+          ANTHROPIC_BASE_URL: ${{ secrets.AI_GATEWAY_ANTHROPIC_URL }}
+          ANTHROPIC_CUSTOM_HEADERS: "api-key: ${{ secrets.AI_GATEWAY_API_KEY }}"
+          CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS: "1"
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Post summary to Slack
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
+          errors: true
           payload: |
             {
-              "text": "${{ github.event.repository.name }}: Test Suite failed",
+              "text": "Test Suite #${{ github.run_number }} summary",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "❌ *${{ github.event.repository.name }}: Test Suite failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
+                    "text": ${{ toJSON(format('{0} {1}', secrets.SLACK_ONCALL_TAG, fromJSON(steps.summary.outputs.structured_output).summary)) }}
+                  }
+                }
+              ]
+            }
+      - name: Fallback ping if any prior step failed
+        if: ${{ failure() }}
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "Test Suite #${{ github.run_number }} AI summary unavailable",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ secrets.SLACK_ONCALL_TAG }} :red_circle: Test Suite #${{ github.run_number }} — AI summary unavailable, check the run manually: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|view run>."
                   }
                 }
               ]

@@ -3,7 +3,7 @@ package cloudbackupschedule_test
 import (
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -54,7 +54,7 @@ func TestMigBackupRSCloudBackupSchedule_export(t *testing.T) {
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
 		policyName  = acc.RandomName()
 		roleName    = acc.RandomIAMRole()
-		bucketName  = acc.RandomS3BucketName()
+		bucketName  = acc.RandomBucketName()
 
 		configWithExport    = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, true, true)
 		configWithoutExport = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, false, false)

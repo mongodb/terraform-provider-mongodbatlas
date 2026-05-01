@@ -50,7 +50,7 @@ resource "mongodbatlas_ldap_configuration" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to configure LDAP.
+* `project_id` - (Required) The unique ID for the project to configure LDAP, also known as `groupId` in the official documentation.
 * `authentication_enabled` - (Required) Specifies whether user authentication with LDAP is enabled.
 * `authorization_enabled` - (Optional) Specifies whether user authorization with LDAP is enabled. You cannot enable user authorization with LDAP without first enabling user authentication with LDAP.
 * `hostname` - (Required) The hostname or IP address of the LDAP server. The server must be visible to the internet or connected to your Atlas cluster with VPC Peering.

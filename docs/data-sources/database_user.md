@@ -8,8 +8,6 @@ subcategory: "Database Users"
 
 Each user has a set of roles that provide access to the project’s databases. User's roles apply to all the clusters in the project: if two clusters have a `products` database and a user has a role granting `read` access on the products database, the user has that access on both clusters.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -71,7 +69,7 @@ Note: OIDC support is only avalible starting in [MongoDB 7.0](https://www.mongod
 ## Argument Reference
 
 * `username` - (Required) Username for authenticating to MongoDB.
-* `project_id` - (Required) The unique ID for the project to create the database user.
+* `project_id` - (Required) The unique ID for the project to create the database user, also known as `groupId` in the official documentation.
 * `auth_database_name` - (Required) The user’s authentication database. A user must provide both a username and authentication database to log into MongoDB. In Atlas deployments of MongoDB, the authentication database is almost always the admin database, for X509 it is $external.
 
 ## Attributes Reference

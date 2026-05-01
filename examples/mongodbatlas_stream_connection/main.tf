@@ -104,6 +104,23 @@ resource "mongodbatlas_stream_connection" "example-kafka-ssl" {
   }
 }
 
+resource "mongodbatlas_stream_connection" "example-azure-blob-storage" {
+  project_id      = var.project_id
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "AzureBlobStorageConnection"
+  type            = "AzureBlobStorage"
+  azure = {
+    service_principal_id = var.azure_service_principal_id
+    storage_account_name = var.azure_storage_account_name
+    region               = var.azure_region == "" ? null : var.azure_region
+  }
+  networking = {
+    access = {
+      type = "PUBLIC"
+    }
+  }
+}
+
 resource "mongodbatlas_stream_connection" "example-sample" {
   project_id      = var.project_id
   workspace_name  = mongodbatlas_stream_instance.example.instance_name

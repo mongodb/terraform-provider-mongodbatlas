@@ -45,7 +45,7 @@ output "status" {
 
 - `cloud_provider` (String) Label that identifies the cloud provider for the Encryption At Rest private endpoint.
 - `id` (String) Unique 24-hexadecimal digit string that identifies the Private Endpoint Service.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Read-Only
 

@@ -6,13 +6,9 @@ subcategory: "Online Archive"
 
 `mongodbatlas_online_archive` resource provides access to create, edit, pause and resume an online archive for a collection. 
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ~> **IMPORTANT:** The collection must exists before performing an online archive.
 
 ~> **IMPORTANT:** There are fields that are immutable after creation, i.e if `date_field` value does not exist in the collection, the online archive state will be pending forever, and this field cannot be updated, that means a destroy is required, known error `ONLINE_ARCHIVE_CANNOT_MODIFY_FIELD`
-
-~> **IMPORTANT:** Support for Online Archive on `GCP` is available in Private Preview. To request access and participate in the Private Preview release of this feature, complete the [sign-up form](https://www.mongodb.com/products/platform/atlas-online-archive#promo).
 
 ## Example Usages
 ```terraform
@@ -107,10 +103,10 @@ resource "mongodbatlas_online_archive" "test" {
 }
 ```
 ### Further Examples
-- [Online Archive Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_online_archive)
+- [Online Archive Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_online_archive)
 
 ## Argument Reference
-* `project_id` - (Required) The unique ID for the project
+* `project_id` - (Required) The unique ID for the project, also known as `groupId` in the official documentation
 * `cluster_name` - (Required) Name of the cluster that contains the collection.
 * `db_name` - (Required) Name of the database that contains the collection.
 * `coll_name` - (Required) Name of the collection.

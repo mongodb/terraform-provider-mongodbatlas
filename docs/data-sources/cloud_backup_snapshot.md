@@ -6,8 +6,6 @@ subcategory: "Cloud Backups"
 
 `mongodbatlas_cloud_backup_snapshot` provides an Cloud Backup Snapshot datasource. Atlas Cloud Backup Snapshots provide localized backup storage using the native snapshot functionality of the cluster’s cloud service.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -29,7 +27,7 @@ data "mongodbatlas_cloud_backup_snapshot" "test" {
 
 * `snapshot_id` - (Required) The unique identifier of the snapshot you want to retrieve.
 * `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshot you want to retrieve.
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 

@@ -148,7 +148,7 @@ func PreCheckPublicKey2(tb testing.TB) {
 	}
 }
 
-func PreCheckGCPEnv(tb testing.TB) {
+func PreCheckEncryptionAtRestEnvGCP(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("GCP_SERVICE_ACCOUNT_KEY") == "" || os.Getenv("GCP_KEY_VERSION_RESOURCE_ID") == "" {
 		tb.Fatal("`GCP_SERVICE_ACCOUNT_KEY` and `GCP_KEY_VERSION_RESOURCE_ID` must be set for acceptance testing")
@@ -159,6 +159,19 @@ func PreCheckGCPEnvWithRole(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("GCP_ROLE_ID") == "" || os.Getenv("GCP_KEY_VERSION_RESOURCE_ID") == "" {
 		tb.Fatal("`GCP_ROLE_ID` and `GCP_KEY_VERSION_RESOURCE_ID` must be set for acceptance testing")
+	}
+}
+
+func PreCheckEncryptionAtRestEnvAzureWithRole(tb testing.TB) {
+	tb.Helper()
+	PreCheckBasic(tb)
+
+	if os.Getenv("AZURE_CPA_ROLE_ID") == "" ||
+		os.Getenv("AZURE_SUBSCRIPTION_ID") == "" ||
+		os.Getenv("AZURE_RESOURCE_GROUP_NAME") == "" ||
+		os.Getenv("AZURE_KEY_VAULT_NAME") == "" ||
+		os.Getenv("AZURE_KEY_IDENTIFIER") == "" {
+		tb.Fatal("`AZURE_CPA_ROLE_ID`, `AZURE_SUBSCRIPTION_ID`, `AZURE_RESOURCE_GROUP_NAME`, `AZURE_KEY_VAULT_NAME`, and `AZURE_KEY_IDENTIFIER` must be set for acceptance testing")
 	}
 }
 
@@ -173,6 +186,16 @@ func PreCheckPeeringEnvAWS(tb testing.TB) {
 	PreCheckBasic(tb)
 }
 
+func PreCheckAzureEnvWithServicePrincipal(tb testing.TB) {
+	tb.Helper()
+	PreCheckBasic(tb)
+	PreCheckAzureCredentials(tb)
+	if os.Getenv("AZURE_ATLAS_APP_ID") == "" ||
+		os.Getenv("AZURE_SERVICE_PRINCIPAL_ID") == "" {
+		tb.Fatal("`AZURE_ATLAS_APP_ID` and `AZURE_SERVICE_PRINCIPAL_ID` must be set for acceptance testing")
+	}
+}
+
 func PreCheckPeeringEnvAzure(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("AZURE_DIRECTORY_ID") == "" ||
@@ -185,15 +208,11 @@ func PreCheckPeeringEnvAzure(tb testing.TB) {
 
 func PreCheckEncryptionAtRestEnvAzure(tb testing.TB) {
 	tb.Helper()
-	if os.Getenv("AZURE_CLIENT_ID") == "" ||
-		os.Getenv("AZURE_SUBSCRIPTION_ID") == "" ||
-		os.Getenv("AZURE_RESOURCE_GROUP_NAME") == "" ||
-		os.Getenv("AZURE_APP_SECRET") == "" ||
+	PreCheckAzureCredentials(tb)
+	if os.Getenv("AZURE_RESOURCE_GROUP_NAME") == "" ||
 		os.Getenv("AZURE_KEY_VAULT_NAME") == "" ||
-		os.Getenv("AZURE_KEY_IDENTIFIER") == "" ||
-		os.Getenv("AZURE_TENANT_ID") == "" {
-		tb.Fatal(`'AZURE_CLIENT_ID', 'AZURE_SUBSCRIPTION_ID',
-		'AZURE_RESOURCE_GROUP_NAME', 'AZURE_APP_SECRET', 'AZURE_KEY_VAULT_NAME', 'AZURE_KEY_IDENTIFIER', and 'AZURE_TENANT_ID' must be set for Encryption At Rest acceptance testing`)
+		os.Getenv("AZURE_KEY_IDENTIFIER") == "" {
+		tb.Fatal("`AZURE_RESOURCE_GROUP_NAME`, `AZURE_KEY_VAULT_NAME`, and `AZURE_KEY_IDENTIFIER` must be set for Encryption At Rest acceptance testing")
 	}
 }
 
@@ -203,10 +222,14 @@ func PreCheckEncryptionAtRestEnvAzureWithUpdate(tb testing.TB) {
 
 	if os.Getenv("AZURE_KEY_VAULT_NAME_UPDATED") == "" ||
 		os.Getenv("AZURE_KEY_IDENTIFIER_UPDATED") == "" {
-		tb.Fatal(`'AZURE_CLIENT_ID', 'AZURE_SUBSCRIPTION_ID',
-		'AZURE_RESOURCE_GROUP_NAME', 'AZURE_APP_SECRET',
-		, 'AZURE_KEY_VAULT_NAME', 'AZURE_KEY_IDENTIFIER', 'AZURE_KEY_VAULT_NAME_UPDATED',
-		'AZURE_KEY_IDENTIFIER_UPDATED', and 'AZURE_TENANT_ID' must be set for Encryption At Rest acceptance testing`)
+		tb.Fatal("`AZURE_KEY_VAULT_NAME_UPDATED` and `AZURE_KEY_IDENTIFIER_UPDATED` must be set for Encryption At Rest acceptance testing")
+	}
+}
+
+func PreCheckGCPEnvBasic(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("GCP_PROJECT_ID") == "" {
+		tb.Fatal(`'GCP_PROJECT_ID' must be set for acceptance testing`)
 	}
 }
 
@@ -310,12 +333,30 @@ func PreCheckFederatedSettings(tb testing.TB) {
 	}
 }
 
+func PreCheckFederatedSettingsRoleMapping(tb testing.TB) {
+	tb.Helper()
+	PreCheckFederatedSettings(tb)
+	if os.Getenv("MONGODB_ATLAS_FEDERATED_GROUP_ID") == "" {
+		tb.Fatal("`MONGODB_ATLAS_FEDERATED_GROUP_ID` must be set for federated settings role mapping acceptance testing")
+	}
+}
+
 func PreCheckFederatedSettingsIdentityProvider(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID") == "" ||
 		os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN") == "" ||
 		os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID") == "" {
 		tb.Fatal("`MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN`, MONGODB_ATLAS_FEDERATED_ORG_ID`, and `MONGODB_ATLAS_FEDERATION_SETTINGS_ID` must be set for federated settings acceptance testing")
+	}
+}
+
+func PreCheckFederatedSettingsOIDCWorkloadIDPs(tb testing.TB) {
+	tb.Helper()
+	PreCheckFederatedSettingsIdentityProvider(tb)
+	if os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID") == "" ||
+		os.Getenv("MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID_1") == "" ||
+		os.Getenv("MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID_2") == "" {
+		tb.Fatal("`MONGODB_ATLAS_FEDERATED_IDP_ID`, `MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID_1`, and `MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID_2` must be set for federated settings OIDC drift testing")
 	}
 }
 
@@ -364,5 +405,21 @@ func PreCheckAccessToken(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_ACCESS_TOKEN") == "" {
 		tb.Fatal("`MONGODB_ATLAS_ACCESS_TOKEN` must be set for Atlas Access Token acceptance testing")
+	}
+}
+
+func PreCheckStreamPrivateLinkEndpointAzureBlobStorage(tb testing.TB) {
+	tb.Helper()
+	PreCheckBasic(tb)
+	PreCheckAzureCredentials(tb)
+}
+
+func PreCheckAzureCredentials(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("AZURE_SUBSCRIPTION_ID") == "" ||
+		os.Getenv("AZURE_CLIENT_ID") == "" ||
+		os.Getenv("AZURE_APP_SECRET") == "" ||
+		os.Getenv("AZURE_TENANT_ID") == "" {
+		tb.Fatal("`AZURE_SUBSCRIPTION_ID`, `AZURE_CLIENT_ID`, `AZURE_APP_SECRET`, and `AZURE_TENANT_ID` must be set for Azure acceptance testing")
 	}
 }

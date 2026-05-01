@@ -33,7 +33,7 @@ data "mongodbatlas_project_api_key" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `api_key_id` - (Required) Unique identifier for this Project API key.
 
 ## Attributes Reference
@@ -47,7 +47,7 @@ In addition to all arguments above, the following attributes are exported:
 ### project_assignment
 List of Project roles that the Programmatic API key needs to have.
 
-* `project_id` -  Project ID to assign to Access Key
+* `project_id` - Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `role_names` -  List of Project roles that the Programmatic API key needs to have. Ensure you provide: at least one role and ensure all roles are valid for the Project. You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the valid roles that can be assigned.
     
 

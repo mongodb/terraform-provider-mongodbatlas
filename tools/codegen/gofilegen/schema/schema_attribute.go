@@ -262,7 +262,6 @@ func planModifierStatement(attr *codespec.Attribute, planModifierType string) (*
 	const (
 		importCustomPlanModifier = "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 		importPlanModifier       = "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-		importStringPlanModifier = "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	)
 	var modifiers []string
 	imports := make(map[string]struct{})
@@ -280,11 +279,10 @@ func planModifierStatement(attr *codespec.Attribute, planModifierType string) (*
 		imports[importCustomPlanModifier] = struct{}{}
 	}
 	if attr.ImmutableComputed {
-		if attr.String == nil {
-			return nil, fmt.Errorf("immutableComputed is only supported for string attributes, found non-string type for attribute '%s'", attr.TFSchemaName)
-		}
-		modifiers = append(modifiers, "stringplanmodifier.UseStateForUnknown()")
-		imports[importStringPlanModifier] = struct{}{}
+		typeName := strings.TrimPrefix(planModifierType, "planmodifier.")
+		lowerTypeName := strings.ToLower(typeName)
+		modifiers = append(modifiers, fmt.Sprintf("%splanmodifier.UseStateForUnknown()", lowerTypeName))
+		imports[fmt.Sprintf("github.com/hashicorp/terraform-plugin-framework/resource/schema/%splanmodifier", lowerTypeName)] = struct{}{}
 	}
 
 	if len(modifiers) == 0 {

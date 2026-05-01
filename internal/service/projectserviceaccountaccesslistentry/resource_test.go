@@ -3,7 +3,6 @@ package projectserviceaccountaccesslistentry_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -12,7 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 )
 
 const (
@@ -155,8 +155,7 @@ func configBasic(projectID, name string, entries []testEntry) string {
 		`, i, projectID, entry.hclStr())
 		resourceNames = append(resourceNames, fmt.Sprintf("%s_%d", resourceName, i))
 	}
-
-	resourceNamesStr := fmt.Sprintf("[%s]", `"`+strings.Join(resourceNames, `", "`)+`"`)
+	resourceNamesStr := hcl.StringSliceToHCL(resourceNames)
 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project_service_account" "test" {
@@ -234,9 +233,12 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(s *terraform.State) error {
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	err := acc.CheckDestroyDeleteProjectSAs(s)
+	if err != nil {
+		return err
+	}
 	for name, rs := range s.RootModule().Resources {
-		if name != resourceName {
+		if !strings.HasPrefix(name, resourceName) {
 			continue
 		}
 
@@ -252,10 +254,6 @@ func checkDestroy(s *terraform.State) error {
 		if entry != nil {
 			return fmt.Errorf("access list entry (%s/%s/%s) still exists", projectID, clientID, cidrOrIP)
 		}
-
-		// Delete the service account (project_service_account DELETE only removes the project assignment)
-		_, _ = acc.ConnV2().ServiceAccountsApi.DeleteOrgServiceAccount(context.Background(), clientID, orgID).Execute()
-		return nil
 	}
 	return nil
 }

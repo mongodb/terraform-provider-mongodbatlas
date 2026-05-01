@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 )
 
 // newStreamWorkspaceCreateReq creates an API request for creating a stream workspace.
@@ -74,6 +74,7 @@ func (m *TFModel) FromInstanceModel(instanceModel *streaminstance.TFStreamInstan
 	} else {
 		instanceStreamConfigAttrs := instanceModel.StreamConfig.Attributes()
 		tierValue := instanceStreamConfigAttrs["tier"]
+		maxTierSizeValue := instanceStreamConfigAttrs["max_tier_size"]
 
 		workspaceStreamConfig, _ := types.ObjectValue(
 			map[string]attr.Type{
@@ -81,7 +82,7 @@ func (m *TFModel) FromInstanceModel(instanceModel *streaminstance.TFStreamInstan
 				"tier":          types.StringType,
 			},
 			map[string]attr.Value{
-				"max_tier_size": types.StringNull(),
+				"max_tier_size": maxTierSizeValue,
 				"tier":          tierValue,
 			},
 		)

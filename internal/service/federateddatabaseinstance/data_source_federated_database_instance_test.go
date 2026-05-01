@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 )
 
 func TestAccFederatedDatabaseInstanceDS_s3Bucket(t *testing.T) {
@@ -39,6 +39,7 @@ func TestAccFederatedDatabaseInstanceDS_s3Bucket(t *testing.T) {
 					checkAttributes(&federatedInstance, name),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "private_endpoint_hostnames.#", "0"),
 				),
 			},
 		},
