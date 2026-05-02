@@ -14,10 +14,11 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth" {
 }
 
 resource "mongodbatlas_log_integration" "example" {
-  project_id  = mongodbatlas_project.project.id
-  type        = "S3_LOG_EXPORT"
-  log_types   = ["MONGOD_AUDIT"]
-  bucket_name = aws_s3_bucket.log_bucket.bucket
-  iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth.role_id
-  prefix_path = "atlas-logs"
+  project_id                = mongodbatlas_project.project.id
+  type                      = "S3_LOG_EXPORT"
+  log_types                 = ["MONGOD_AUDIT"]
+  bucket_name               = aws_s3_bucket.log_bucket.bucket
+  iam_role_id               = mongodbatlas_cloud_provider_access_authorization.auth.role_id
+  prefix_path               = "atlas-logs"
+  use_legacy_path_structure = var.use_legacy_path_structure
 }
