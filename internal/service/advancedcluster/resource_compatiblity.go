@@ -98,7 +98,7 @@ func OverrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel, diags *dia
 	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())
 	afterVersion := conversion.NilForUnknown(modelOut.MongoDBMajorVersion, modelOut.MongoDBMajorVersion.ValueStringPointer())
 	if beforeVersion != nil {
-		warnIfMajorVersionChanged(beforeVersion, afterVersion, diags)
+		warnIfMajorVersionChanged(*beforeVersion, afterVersion, diags)
 		modelOut.MongoDBMajorVersion = types.StringPointerValue(beforeVersion)
 	}
 	overrideMapStringWithPrevStateValue(&modelIn.Labels, &modelOut.Labels)
@@ -113,8 +113,8 @@ func OverrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel, diags *dia
 	modelOut.UseEffectiveFields = modelIn.UseEffectiveFields
 }
 
-func warnIfMajorVersionChanged(before, after *string, diags *diag.Diagnostics) {
-	if after == nil || *before == *after || majorComponent(*before) == majorComponent(*after) {
+func warnIfMajorVersionChanged(before string, after *string, diags *diag.Diagnostics) {
+	if after == nil || before == *after || majorComponent(before) == majorComponent(*after) {
 		return
 	}
 	diags.AddWarning(
@@ -123,7 +123,7 @@ func warnIfMajorVersionChanged(before, after *string, diags *diag.Diagnostics) {
 			"Your cluster's major version may have been modified outside of Terraform. "+
 			"Consider setting mongo_db_major_version = %q in your configuration and applying the changes. "+
 			"This warning will continue until you update your configuration. "+
-			"In an upcoming major version of the provider, this drift will result in a non-empty plan.", *after, *before, *after),
+			"In an upcoming major version of the provider, this drift will result in a non-empty plan.", *after, before, *after),
 	)
 }
 
