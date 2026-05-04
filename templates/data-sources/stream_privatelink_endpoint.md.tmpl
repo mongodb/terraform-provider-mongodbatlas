@@ -23,6 +23,12 @@ subcategory: "Streams"
 ### GCP Pub/Sub Private Service Connect
 {{ tffile (printf "examples/%s/gcp_pubsub/main.tf" .Name )}}
 
+### Azure Blob Storage Privatelink
+
+~> **NOTE:** An Azure cluster must be provisioned in the same region before creating an Azure Blob Storage private endpoint.
+
+{{ tffile (printf "examples/%s/azure_blob_storage/main.tf" .Name )}}
+
 {{ .SchemaMarkdown | trimspace }}
 
 For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprivatelinkconnection) Documentation.

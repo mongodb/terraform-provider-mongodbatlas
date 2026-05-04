@@ -11,10 +11,11 @@ import (
 )
 
 const (
-	VendorConfluent = "CONFLUENT"
-	VendorMSK       = "MSK"
-	VendorPubSub    = "PUBSUB"
-	VendorS3        = "S3"
+	VendorConfluent        = "CONFLUENT"
+	VendorMSK              = "MSK"
+	VendorPubSub           = "PUBSUB"
+	VendorS3               = "S3"
+	VendorAzureBlobStorage = "AZURE_BLOB_STORAGE"
 )
 
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {
@@ -92,6 +93,19 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 	if plan.Vendor.ValueString() == VendorPubSub {
 		if plan.Region.IsNull() || plan.Region.IsUnknown() {
 			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorPubSub), "")
+		}
+	}
+	if plan.Vendor.ValueString() == VendorAzureBlobStorage {
+		if plan.Region.IsNull() || plan.Region.IsUnknown() {
+			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorAzureBlobStorage), "")
+		}
+		if plan.ServiceEndpointId.IsNull() || plan.ServiceEndpointId.IsUnknown() {
+			diags.AddError(fmt.Sprintf("service_endpoint_id is required for vendor %s", VendorAzureBlobStorage),
+				"It should follow the format '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}'")
+		}
+		if plan.DnsDomain.IsNull() || plan.DnsDomain.IsUnknown() {
+			diags.AddError(fmt.Sprintf("dns_domain is required for vendor %s", VendorAzureBlobStorage),
+				"It should follow the format '{storageAccount}.blob.core.windows.net'")
 		}
 	}
 
