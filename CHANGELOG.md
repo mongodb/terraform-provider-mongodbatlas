@@ -9,6 +9,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* resource/mongodbatlas_advanced_cluster: Emits a warning when `mongo_db_major_version` is modified outside of Terraform ([#4409](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4409))
 * resource/mongodbatlas_advanced_cluster: Fixes inconsistent result error when scaling attribute changes cause Atlas to recompute oplog_size_mb ([#4413](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4413))
 * resource/mongodbatlas_alert_configuration: Fix inconsistent state when creating OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD alerts ([#4408](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4408))
 * resource/mongodbatlas_federated_settings_org_role_mapping: Fixes plan churn on `role_assignments` fields when adding/removing a new block ([#4394](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4394))
