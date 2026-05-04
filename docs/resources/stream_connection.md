@@ -210,6 +210,30 @@ resource "mongodbatlas_stream_connection" "example_gcp_pubsub_psc" {
 }
 ```
 
+### Example Azure Blob Storage Connection with Private Link
+
+~> **NOTE:** An Azure cluster must be provisioned in the same region before creating an Azure Blob Storage private endpoint.
+
+```terraform
+resource "mongodbatlas_stream_connection" "example_azure_blob_private_link" {
+    project_id      = var.project_id
+    workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+    connection_name = "AzureBlobStoragePLConnection"
+    type            = "AzureBlobStorage"
+    azure = {
+      service_principal_id = "<AZURE_SERVICE_PRINCIPAL_ID>"
+      storage_account_name = "<AZURE_STORAGE_ACCOUNT_NAME>"
+      region               = "<AZURE_REGION>"
+    }
+    networking = {
+      access = {
+        type          = "PRIVATE_LINK"
+        connection_id = mongodbatlas_stream_privatelink_endpoint.azure_blob.id
+      }
+    }
+}
+```
+
 ### Example Https Connection
 
 ```terraform

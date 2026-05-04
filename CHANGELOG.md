@@ -2,10 +2,15 @@
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_stream_privatelink_endpoint: Adds `AZURE_BLOB_STORAGE` as a vendor type for AZURE provider ([#4366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4366))
+* data-source/mongodbatlas_stream_privatelink_endpoints: Adds `AZURE_BLOB_STORAGE` as a vendor type for AZURE provider ([#4366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4366))
 * resource/mongodbatlas_cloud_backup_schedule: Adds `skip_destroy` attribute to skip the API delete call on `terraform destroy`, allowing `terraform destroy` to remove a cluster when a Backup Compliance Policy (BCP) is enabled ([#4397](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4397))
+* resource/mongodbatlas_stream_privatelink_endpoint: Adds `AZURE_BLOB_STORAGE` as a vendor type for AZURE provider ([#4366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4366))
 
 BUG FIXES:
 
+* resource/mongodbatlas_advanced_cluster: Fixes inconsistent result error when scaling attribute changes cause Atlas to recompute oplog_size_mb ([#4413](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4413))
+* resource/mongodbatlas_alert_configuration: Fix inconsistent state when creating OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD alerts ([#4408](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4408))
 * resource/mongodbatlas_federated_settings_org_role_mapping: Fixes plan churn on `role_assignments` fields when adding/removing a new block ([#4394](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4394))
 * resource/mongodbatlas_search_index: Wait for deletion to complete before returning from destroy ([#4401](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4401))
 

@@ -121,6 +121,31 @@ func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {
 	}
 }
 
+func TestAccClusterAdvancedCluster_replicaSetOplogAfterDiskScale(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
+		oplog2560              = 2560
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configAWSProviderReplicaSetWithOptionalOplog(t, projectID, clusterName, 50, 3, &oplog2560),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkReplicaSetAWSProvider(true, true, projectID, clusterName, 50, 3, true, true),
+					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.oplog_size_mb", "2560"),
+				),
+			},
+			{
+				Config: configAWSProviderReplicaSetWithOptionalOplog(t, projectID, clusterName, 100, 3, nil),
+				Check:  checkReplicaSetAWSProvider(true, true, projectID, clusterName, 100, 3, true, true),
+			},
+		},
+	})
+}
+
 func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 	resource.ParallelTest(t, *replicaSetMultiCloudTestCase(t))
 }
@@ -1697,6 +1722,44 @@ func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, isTPF bool)
 			}]
 	}
 	`, configInfo.ProjectID, configInfo.ClusterName, configInfo.ClusterType, configInfo.DiskSizeGB, configInfo.NodeCountElectable) + dataSourcesConfig
+}
+
+func configAWSProviderReplicaSetWithOptionalOplog(t *testing.T, projectID, clusterName string, diskSizeGB, nodeCountElectable int, oplogSizeMB *int) string {
+	t.Helper()
+	advanced := ""
+	if oplogSizeMB != nil {
+		advanced = fmt.Sprintf(`
+	advanced_configuration = {
+		oplog_size_mb = %d
+	}
+`, *oplogSizeMB)
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = "REPLICASET"
+			retain_backups_enabled = "true"
+			%[5]s
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size   = "M10"
+						node_count      = %[4]d
+						disk_size_gb    = %[3]d
+					}
+					analytics_specs = {
+						instance_size = "M10"
+						node_count    = 1
+						disk_size_gb  = %[3]d
+					}
+					priority      = 7
+					provider_name = "AWS"
+					region_name   = "US_WEST_2"
+				}]
+			}]
+		}
+	`, projectID, clusterName, diskSizeGB, nodeCountElectable, advanced) + dataSourcesConfig
 }
 
 func checkReplicaSetAWSProvider(isTPF, useDataSource bool, projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {

@@ -25,6 +25,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 	* AZURE provider with EVENTHUB or CONFLUENT vendor.
 
+	* AZURE provider with AZURE_BLOB_STORAGE vendor. This should follow the format ` + "`{storageAccount}.blob.core.windows.net`" + `.
+
 	* For GCP provider with PUBSUB vendor, the API computes this process.`,
 			},
 			"dns_sub_domain": schema.ListAttribute{
@@ -62,8 +64,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "The region of the Provider’s cluster. See [AZURE](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances) and [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/#stream-processing-instances) supported regions. When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.",
 			},
 			"service_endpoint_id": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html).",
+				Optional: true,
+				MarkdownDescription: "For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). " +
+					"For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html). " +
+					"For AZURE_BLOB_STORAGE, this is the Azure Resource Manager path of the storage account in the format " +
+					"`/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}`.",
 			},
 			"service_attachment_uris": schema.ListAttribute{
 				Optional:            true,
@@ -83,7 +88,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 	* **AWS**: MSK, CONFLUENT, and S3
 
-	* **Azure**: EVENTHUB and CONFLUENT
+	* **Azure**: EVENTHUB, CONFLUENT, and AZURE_BLOB_STORAGE
 
 	* **GCP**: CONFLUENT and PUBSUB`,
 			},

@@ -7,7 +7,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -146,6 +149,70 @@ func TestAccStreamPrivatelinkEndpointS3_basic(t *testing.T) {
 	tc := basicS3TestCase(t)
 	// Tests include testing of plural data source and so cannot be run in parallel
 	resource.Test(t, *tc)
+}
+
+func TestAccStreamPrivatelinkEndpointAzureBlobStorage_basic(t *testing.T) {
+	acc.SkipTestForCI(t) // skip for CI because provisioning the streams private networking infrastructure is slow and expensive
+
+	tc := basicAzureBlobStorageTestCase(t)
+	// Tests include testing of plural data source and so cannot be run in parallel
+	resource.Test(t, *tc)
+}
+
+func TestAccStreamPrivatelinkEndpointAzureBlobStorage_fields(t *testing.T) {
+	const (
+		projectID = "does-not-matter"
+		provider  = "AZURE"
+		vendor    = "AZURE_BLOB_STORAGE"
+	)
+
+	tests := map[string]struct {
+		expectedError *regexp.Regexp
+		config        string
+	}{
+		"missing region": {
+			config:        missingRequiredFieldsConfig(projectID, provider, vendor),
+			expectedError: regexp.MustCompile(`region is required for vendor AZURE_BLOB_STORAGE`),
+		},
+		"missing service_endpoint_id": {
+			config: fmt.Sprintf(`
+			resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+				project_id    = %[1]q
+				provider_name = %[2]q
+				vendor        = %[3]q
+				region        = "eastus2"
+				dns_domain    = "acct.blob.core.windows.net"
+			}`, projectID, provider, vendor),
+			expectedError: regexp.MustCompile(`service_endpoint_id is required for vendor AZURE_BLOB_STORAGE`),
+		},
+		"missing dns_domain": {
+			config: fmt.Sprintf(`
+			resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+				project_id          = %[1]q
+				provider_name       = %[2]q
+				vendor              = %[3]q
+				region              = "eastus2"
+				service_endpoint_id = "/subscriptions/x/resourceGroups/y/providers/Microsoft.Storage/storageAccounts/acct"
+			}`, projectID, provider, vendor),
+			expectedError: regexp.MustCompile(`dns_domain is required for vendor AZURE_BLOB_STORAGE`),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			resource.ParallelTest(t, resource.TestCase{
+				PreCheck:                 func() { acc.PreCheckBasic(t) },
+				CheckDestroy:             checkDestroy,
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Steps: []resource.TestStep{
+					{
+						Config:      tc.config,
+						ExpectError: tc.expectedError,
+					},
+				},
+			})
+		})
+	}
 }
 
 func basicConfluentTestCase(t *testing.T, withDNSSubdomains bool) *resource.TestCase {
@@ -434,4 +501,71 @@ func checksStreamPrivatelinkEndpointS3(projectID, provider, vendor, region strin
 	}
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
 	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
+}
+
+func basicAzureBlobStorageTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+
+	var (
+		projectID          = acc.ProjectIDExecution(t)
+		clusterName        = acc.RandomClusterName()
+		provider           = "AZURE"
+		vendor             = "AZURE_BLOB_STORAGE"
+		subscriptionID     = os.Getenv("AZURE_SUBSCRIPTION_ID")
+		clientID           = os.Getenv("AZURE_CLIENT_ID")
+		clientSecret       = os.Getenv("AZURE_APP_SECRET")
+		tenantID           = os.Getenv("AZURE_TENANT_ID")
+		resourceGroupName  = acc.RandomName()
+		storageAccountName = "tfacc" + acctest.RandString(10)
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckStreamPrivateLinkEndpointAzureBlobStorage(t) },
+		CheckDestroy:             checkDestroy,
+		ExternalProviders:        acc.ExternalProvidersOnlyAzurerm(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:            acc.GetCompleteAzureBlobStorageConfig(projectID, clusterName, subscriptionID, clientID, clientSecret, tenantID, resourceGroupName, storageAccountName),
+				Check:             checksStreamPrivatelinkEndpointAzureBlobStorage(projectID, provider, vendor),
+				ConfigStateChecks: pluralConfigStateChecksAzureBlobStorage(vendor),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func pluralConfigStateChecksAzureBlobStorage(vendor string) []statecheck.StateCheck {
+	return []statecheck.StateCheck{
+		acc.PluralResultCheck(dataSourcePluralName, "vendor", knownvalue.StringExact(vendor), map[string]knownvalue.Check{
+			"vendor":              knownvalue.StringExact(vendor),
+			"provider_name":       knownvalue.StringExact("AZURE"),
+			"region":              knownvalue.NotNull(),
+			"dns_domain":          knownvalue.NotNull(),
+			"service_endpoint_id": knownvalue.NotNull(),
+			"state":               knownvalue.NotNull(),
+		}),
+	}
+}
+
+func checksStreamPrivatelinkEndpointAzureBlobStorage(projectID, provider, vendor string) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{checkExists()}
+	attrMap := map[string]string{
+		"project_id":    projectID,
+		"provider_name": provider,
+		"vendor":        vendor,
+	}
+	attrSet := []string{
+		"id",
+		"state",
+		"region",
+		"dns_domain",
+		"service_endpoint_id",
+	}
+	return acc.CheckRSAndDS(resourceName, &dataSourceName, nil, attrSet, attrMap, checks...)
 }
