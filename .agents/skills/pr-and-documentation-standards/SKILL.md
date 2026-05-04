@@ -20,6 +20,10 @@ Add a changelog entry (`.changelog/<PR_NUMBER>.txt`) for:
 - New resources/data sources (`release-note:new-resource` / `release-note:new-data-source`)
 - Migration guides or user-facing documentation changes
 
+### Changelog Entry Format
+
+- Start with a verb in 3rd person singular (e.g. `Emits`, `Adds`, `Fixes`, `Updates`)
+- Do not end with punctuation
 
 ## Documentation Style Guide
 
