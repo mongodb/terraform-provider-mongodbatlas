@@ -50,3 +50,9 @@ variable "aws_iam_role_name" {
   default     = "atlas-log-integration-role"
   type        = string
 }
+
+variable "use_legacy_path_structure" {
+  description = "When true, uses the legacy daily-folder path structure compatible with Push-Based Log Export"
+  default     = null
+  type        = bool
+}
