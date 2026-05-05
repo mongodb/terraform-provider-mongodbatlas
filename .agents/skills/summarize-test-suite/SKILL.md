@@ -35,11 +35,12 @@ Decide a confidence level for your verdict and embed it on the second line of th
 
 Confidence modulates urgency on the second line: lower confidence on a yellow or green verdict raises the action from "no immediate action" to "please review", because the agent is signalling it might have missed something. Red is always "investigate immediately" regardless of confidence — but the confidence prefix still appears so the on-call knows whether to fully trust the regression call.
 
-**When confidence is medium or low**, the summary must end with one extra line explaining the call:
+**When confidence is medium or low**, the summary must end with two extra lines:
 
-- `*Why <confidence> confidence*: <one or two sentences naming the specific ambiguity>` — e.g., *"saw an `INVALID_REGION` API error that doesn't match the category 3a indicators"*, *"a `flex_cluster` package failed with no `--- RUN`/`--- PASS` and an unfamiliar `unable to start dispatcher` line, ambiguous between build error and cleanup"*, *"two failing tests share a deferred-test-helper panic that doesn't match any category 1 example"*, or *"the `generic` job's logs returned HTTP 404, so its failures could not be enumerated"*. Be concrete; vague phrases like *"complex output"* aren't useful. The line is omitted on high confidence.
+- `*Why <confidence> confidence*: <one or two sentences naming the specific ambiguity>` — e.g., *"saw an `INVALID_REGION` API error that doesn't match the category 3a indicators"*, *"a `flex_cluster` package failed with no `--- RUN`/`--- PASS` and an unfamiliar `unable to start dispatcher` line, ambiguous between build error and cleanup"*, *"two failing tests share a deferred-test-helper panic that doesn't match any category 1 example"*, or *"the `generic` job's logs returned HTTP 404, so its failures could not be enumerated"*. Be concrete; vague phrases like *"complex output"* aren't useful.
+- `If this ambiguity recurs, consider updating the skill rules.` — verbatim, immediately after the *Why* line. This is a standing nudge that medium / low confidence often reflects a missing rule rather than a one-off run; the maintainer can use it to decide when to revisit the skill.
 
-Skill-improvement suggestions based on these "why" lines are generated offline by the skill maintainer (batching across multiple medium / low runs, with no length budget), not inside the Slack summary.
+Both lines are omitted on high confidence.
 
 ## Provider repo layout
 
@@ -192,6 +193,7 @@ See team's internal wiki for more details.
 
 [only when confidence is medium or low:]
 *Why <confidence> confidence*: <specific ambiguity in this run>
+If this ambiguity recurs, consider updating the skill rules.
 
 *TL;DR*: <one sentence on the suspected regression>. <if any failure took >30 min, mention "longest failure: TestX 75 min">. Check recent atlas-sdk-go bumps and upstream Atlas deployments around <approximate failure window>.
 ```
@@ -220,6 +222,7 @@ See team's internal wiki for more details.
 
 [only when confidence is medium or low:]
 *Why <confidence> confidence*: <specific ambiguity in this run>
+If this ambiguity recurs, consider updating the skill rules.
 ```
 
 #### Template — all tests passed
@@ -232,6 +235,7 @@ Use this when step 1 finds no failed jobs (test or cleanup).
 
 [only when confidence is medium or low:]
 *Why <confidence> confidence*: <specific ambiguity in this run>
+If this ambiguity recurs, consider updating the skill rules.
 ```
 
 Short by design — green days don't need a body.
