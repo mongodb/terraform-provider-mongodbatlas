@@ -61,7 +61,7 @@ Keep the table short and the hints neutral and self-contained — extend it care
 | Test name | Hint |
 |---|---|
 | `TestAccNetworkRSNetworkPeering_Azure` | Check for existing peering connections from a prior run. |
-| `TestAccEncryptionAtRest_azure_requirePrivateNetworking` | Ensure no active EAR private-endpoint connections from a prior run. |
+| `TestAccEncryptionAtRest_azure_requirePrivateNetworking` | Ensure no active encryption-at-rest private-endpoint connections from a prior run. |
 
 ## Workflow
 
@@ -114,7 +114,7 @@ The `--- FAIL: TestName` line is the source of truth for an individual test fail
 
 In neither case should the package name go in the *Failing tests* list — instead, surface a build error as its own bullet under code regressions ("Build error in `<package>`: <reason>") and a cleanup-only package failure as part of the cleanup count.
 
-**When `gh api .../jobs/{job_id}/logs` returns an HTTP error (404, 403, 500) or empty output**: do not guess the job's category. The job's tests cannot be verified. Surface it as a single bullet in the summary body — `• Logs unavailable: \`<job-name>\` (failed after <N> min — logs inaccessible)` — and do **not** count its tests toward any category, do **not** list them in the *Failing tests* line, and do **not** change the leading emoji based solely on this job. Set confidence to **medium** with the explanation `logs unavailable for \`<job-name>\` (HTTP <code>); all other jobs cleanly classified`. Rationale: a job that ran tens of minutes and then failed is most likely infra noise, but without logs you cannot confirm; medium confidence asks on-call to glance without triggering a false red alert.
+**When `gh api .../jobs/{job_id}/logs` returns an HTTP error (404, 403, 500) or empty output**: do not guess the job's category. The job's tests cannot be verified. Surface it as a single bullet in the summary body — `• Logs unavailable: \`<job-name>\` (failed after <N> min — logs inaccessible)` — and do **not** count its tests toward any category and do **not** list them in the *Failing tests* line. Logs-unavailable jobs do not, by themselves, escalate the verdict to red, but they are still failed jobs: when a logs-unavailable job exists, the floor for the leading emoji is `:yellow_circle:` (never `:green_circle:`), even if no category 1–5 indicators were found in any other job. Set confidence to **medium** with this exact text used as the `*Why medium confidence*:` line at the end of the summary: `logs unavailable for \`<job-name>\` (HTTP <code>); all other jobs cleanly classified`. Rationale: a job that ran tens of minutes and then failed is most likely infra noise, but without logs you cannot confirm; medium confidence asks on-call to glance without triggering a false red alert.
 
 **Subtest aggregation**: a `--- FAIL: Parent/<subname>` line is one subtest of `Parent`. If multiple subtests of the same parent fail in the same job, list `Parent` once with the count (`Parent (×N subtests)`), not N separate entries.
 
