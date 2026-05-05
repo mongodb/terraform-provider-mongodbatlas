@@ -63,6 +63,8 @@ Keep the table short and the hints neutral and self-contained — extend it care
 | `TestAccNetworkRSNetworkPeering_Azure` | Check for existing peering connections from a prior run. |
 | `TestAccEncryptionAtRest_azure_requirePrivateNetworking` | Ensure no active encryption-at-rest private-endpoint connections from a prior run. |
 
+When the *Known flaky test hints* section is emitted, append a closing line `See team's internal wiki for more details.` after the per-test bullets, so on-call knows there's a deeper playbook to consult. Do not include any URL — the wiki is internal and the skill output ships through a public skill file; on-call already knows where to find the team wiki.
+
 ## Workflow
 
 ### Step 1: Run context and failed jobs
@@ -184,6 +186,7 @@ Use this when at least one failure is category 1.
 [only when ≥1 failing test in this run matches the *Well-known flaky tests* table:]
 *Known flaky test hints*:
 • `TestNameX` — <hint from the table>
+See team's internal wiki for more details.
 
 *Failing tests* (first 10): `TestName1`, `TestName2`, `TestA`, `TestB`, …, and 7 more
 
@@ -211,6 +214,7 @@ Use this when every failure is category 2–5.
 [only when ≥1 failing test in this run matches the *Well-known flaky tests* table:]
 *Known flaky test hints*:
 • `TestNameX` — <hint from the table>
+See team's internal wiki for more details.
 
 *Failing tests* (first 10): `TestA`, `TestB`, …, and 4 more
 
@@ -254,7 +258,7 @@ The shape of the second line is therefore always: `<confidence> confidence — <
 - Categories 2 to 5 (infrastructure noise): collapse to a single count line per category. Apply root-cause aggregation when ≥3 tests share the same error string.
 - Cap the *Failing tests* line at the first 10 test names, comma-separated (no bullets), positioned below the summary. If more than 10 failed, suffix with `, and N more` where N is the remaining count.
 - Use `<url|label>` for links.
-- *Known flaky test hints*: emit only when at least one failing test name in this run matches the *Well-known flaky tests* table; one bullet per matching test, with the table's hint quoted verbatim. Do not invent hints, and do not link to internal resources.
+- *Known flaky test hints*: emit only when at least one failing test name in this run matches the *Well-known flaky tests* table; one bullet per matching test, with the table's hint quoted verbatim, followed by a closing `See team's internal wiki for more details.` line. Do not invent hints, and do not include any URL (the wiki reference must stay neutral).
 - Length budget is enforced by Step 6 below — see that step for the target, the hard cap, and the drop-priority list.
 
 ### Step 6: Length check (mandatory before returning)
