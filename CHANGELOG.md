@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.12.0 (May 06, 2026)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_log_integration: Adds `use_legacy_path_structure` attribute for `S3_LOG_EXPORT` type to use the legacy daily-folder path structure ([#4419](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4419))
