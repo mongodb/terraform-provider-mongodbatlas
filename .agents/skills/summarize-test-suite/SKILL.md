@@ -53,18 +53,16 @@ Special cases (do not apply the simple rule):
 - `config_sa_mig` runs the same packages as the `config` group, but only the migration tests, in SA-auth mode.
 - `clean-before` / `clean-after` are cleanup utilities under `internal/testutil/clean/`, **not** provider code. Failures in these never count as code regressions.
 
-## Well-known flaky tests
+## Well-known manual fixes
 
-Some failing tests have recurring root causes that aren't fully captured by category indicators alone. When a failing test name in the *current run* matches an entry below, surface the matching hint inline in the summary so on-call can act without re-investigating from scratch. Match strictly on test name within this run only — do not consult any other run.
+Some failing tests have recurring root causes that aren't fully captured by category indicators alone. When a failing test name in the *current run* matches an entry below, surface the matching manual fix inline in the summary so on-call can act without re-investigating from scratch. Match strictly on test name within this run only — do not consult any other run.
 
-Keep the table short and the hints neutral and self-contained — extend it carefully when a new pattern becomes well-established.
-
-| Test name | Hint |
+| Test name | Manual fix |
 |---|---|
 | `TestAccNetworkRSNetworkPeering_Azure` | Check for existing peering connections from a prior run. |
 | `TestAccEncryptionAtRest_azure_requirePrivateNetworking` | Ensure no active encryption-at-rest private-endpoint connections from a prior run. |
 
-When the *Known flaky test hints* section is emitted, append a closing line `See team's internal wiki for more details.` after the per-test bullets, so on-call knows there's a deeper playbook to consult. Do not include any URL — the wiki is internal and the skill output ships through a public skill file; on-call already knows where to find the team wiki.
+When the *Known manual fixes* section is emitted, append a closing line `See team's internal wiki for more details.` after the per-test bullets, so on-call knows there's a deeper playbook to consult. Do not include any URL — the wiki is internal and the skill output ships through a public skill file; on-call already knows where to find the team wiki.
 
 ## Workflow
 
@@ -188,9 +186,9 @@ Use this when at least one failure is category 1.
 • Cleanup: <N> tests (incl. clean-before / clean-after)
 [only when present:] • Logs unavailable: `<job-name>` (failed after <N> min — logs inaccessible)
 
-[only when ≥1 failing test in this run matches the *Well-known flaky tests* table:]
-*Known flaky test hints*:
-• `TestNameX` — <hint from the table>
+[only when ≥1 failing test in this run matches the *Well-known manual fixes* table:]
+*Known manual fixes*:
+• `TestNameX` — <manual fix from the table>
 See team's internal wiki for more details.
 
 *Failing tests* (first 10): `TestName1`, `TestName2`, `TestA`, `TestB`, …, and 7 more
@@ -217,9 +215,9 @@ Use this when every failure is category 2–5.
 • Cleanup: <N> tests (incl. clean-before / clean-after)
 [only when present:] • Logs unavailable: `<job-name>` (failed after <N> min — logs inaccessible)
 
-[only when ≥1 failing test in this run matches the *Well-known flaky tests* table:]
-*Known flaky test hints*:
-• `TestNameX` — <hint from the table>
+[only when ≥1 failing test in this run matches the *Well-known manual fixes* table:]
+*Known manual fixes*:
+• `TestNameX` — <manual fix from the table>
 See team's internal wiki for more details.
 
 *Failing tests* (first 10): `TestA`, `TestB`, …, and 4 more
@@ -266,7 +264,7 @@ The shape of the second line is therefore always: `<confidence> confidence — <
 - Categories 2 to 5 (infrastructure noise): collapse to a single count line per category. Apply root-cause aggregation when ≥3 tests share the same error string.
 - Cap the *Failing tests* line at the first 10 test names, comma-separated (no bullets), positioned below the summary. If more than 10 failed, suffix with `, and N more` where N is the remaining count.
 - Use `<url|label>` for links.
-- *Known flaky test hints*: emit only when at least one failing test name in this run matches the *Well-known flaky tests* table; one bullet per matching test, with the table's hint quoted verbatim, followed by a closing `See team's internal wiki for more details.` line. Do not invent hints, and do not include any URL (the wiki reference must stay neutral).
+- *Known manual fixes*: emit only when at least one failing test name in this run matches the *Well-known manual fixes* table; one bullet per matching test, with the table's manual fix quoted verbatim, followed by a closing `See team's internal wiki for more details.` line. Do not invent manual fixes, and do not include any URL (the wiki reference must stay neutral).
 - Length budget is enforced by Step 6 below — see that step for the target, the hard cap, and the drop-priority list.
 
 ### Step 6: Length check (mandatory before returning)
@@ -282,7 +280,7 @@ printf '%s' "<your summary>" | wc -c
 If `wc -c` reports more than 2900, compress in this order, re-measuring after each step until the count is under the cap:
 
 1. Drop the *Why confidence* line **and** the paired `If this ambiguity recurs, …` nudge together if confidence is medium (keep both on low — that's where they matter most). The two lines must always be present or absent together; never emit one without the other.
-2. Drop the *Known flaky test hints* section if confidence is high (the agent already classified cleanly; the hints are nice-to-have at that point).
+2. Drop the *Known manual fixes* section if confidence is high (the agent already classified cleanly; the fixes are nice-to-have at that point).
 3. Compress the *TL;DR* to one short sentence.
 4. Reduce the *Failing tests* cap from 10 to 5 (suffix with `, and N more`).
 5. Collapse *Other failures* bullets onto a single line, e.g., `*Other failures*: Cloud capacity 5, Timeout 12, Cleanup 3`.
@@ -296,6 +294,6 @@ If `wc -c` reports more than 2900, compress in this order, re-measuring after ea
 - Cleanup-class indicators (CIDR overlap, `still exists`, leftover principal) are root causes; a timeout on the same test is their downstream symptom. Classify by root cause (category 5), not symptom.
 - When `gh api .../jobs/{id}/logs` returns 404 or empty, surface as "Logs unavailable" in the summary body and set confidence to medium — never guess the category.
 - HTTP 404 on a secondary step after a successful Create is eventual-consistency flake (category 4). Reserve category 3 for 404s on the initial Create or lookup.
-- Some failing tests have well-known recurring root causes — match the failing test name against the *Well-known flaky tests* table and surface the matching hint when applicable.
+- Some failing tests have well-known recurring root causes — match the failing test name against the *Well-known manual fixes* table and surface the matching manual fix when applicable.
 - `unexpected state 'FAILED', wanted target '...'` from terraform-plugin-sdk's retry helper is a category 3 polled-state failure: Atlas reported a terminal failure during state polling. Don't conflate with category 4 timeouts (no `timeout while waiting`) or category 1 (no provider bug).
 - Cross-cloud propagation lag (Atlas creates an identity, GCP / AWS / Azure returns "does not exist" on it shortly after) is category 4 (eventual-consistency flake), not category 3 — same shape as the within-Atlas 404 case but the HTTP code may be 400 because the downstream cloud rejects the reference rather than the lookup itself.
