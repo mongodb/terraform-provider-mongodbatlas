@@ -60,7 +60,7 @@ Use `defer` to defer the next scheduled maintenance event by one week. This only
 ```
 
 ### Further Examples
-- [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_maintenance_window)
+- [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_maintenance_window)
 
 ## Argument Reference
 

@@ -135,7 +135,7 @@ resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
 ```
 
 ### Further Examples
-- [Backup Compliance Policy](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_backup_compliance_policy/resource)
+- [Backup Compliance Policy](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_backup_compliance_policy/resource)
 
 ## Argument Reference
 
