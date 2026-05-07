@@ -1399,6 +1399,11 @@ resources:
             immutable_computed: true
           otel_supplied_headers:
             sensitive: true
+          use_legacy_path_structure:
+            # Optional but Atlas returns the default value when null.
+            computability:
+              optional: true
+              computed: true
     datasources:
       read:
         path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}

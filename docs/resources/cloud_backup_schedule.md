@@ -215,7 +215,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 
 ### Further Examples
-- [Cloud Backup Schedule](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_cloud_backup_schedule)
+- [Cloud Backup Schedule](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_backup_schedule)
 
 ## Argument Reference
 

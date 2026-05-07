@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_log_integration: Adds `use_legacy_path_structure` attribute for `S3_LOG_EXPORT` type to use the legacy daily-folder path structure
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_log_integration: Adds `use_legacy_path_structure` attribute for `S3_LOG_EXPORT` type to use the legacy daily-folder path structure
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_log_integrations: Adds `use_legacy_path_structure` attribute for `S3_LOG_EXPORT` type to use the legacy daily-folder path structure
+```
