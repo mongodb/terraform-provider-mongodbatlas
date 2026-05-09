@@ -156,13 +156,13 @@ We are committed to clear and proactive communication:
 <!-- MATRIX_PLACEHOLDER_START -->
 | HashiCorp Terraform Release | HashiCorp Terraform Release Date  | HashiCorp Terraform Full Support End Date  | MongoDB Atlas Support End Date |
 |:-------:|:------------:|:------------:|:------------:|
+| 1.15.x | 2026-04-29 | 2028-04-30 | 2028-04-30 |
 | 1.14.x | 2025-11-19 | 2027-11-30 | 2027-11-30 |
 | 1.13.x | 2025-08-20 | 2027-08-31 | 2027-08-31 |
 | 1.12.x | 2025-05-14 | 2027-05-31 | 2027-05-31 |
 | 1.11.x | 2025-02-27 | 2027-02-28 | 2027-02-28 |
 | 1.10.x | 2024-11-27 | 2026-11-30 | 2026-11-30 |
 | 1.9.x | 2024-06-26 | 2026-06-30 | 2026-06-30 |
-| 1.8.x | 2024-04-10 | 2026-04-30 | 2026-04-30 |
 <!-- MATRIX_PLACEHOLDER_END -->
 For the safety of our users, we require only consuming versions of HashiCorp Terraform that are currently receiving Security / Maintenance Updates. For more details see [Support Period and End-of-Life (EOL) Policy](https://support.hashicorp.com/hc/en-us/articles/360021185113-Support-Period-and-End-of-Life-EOL-Policy).   
 
