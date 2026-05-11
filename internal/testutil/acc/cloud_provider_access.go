@@ -51,7 +51,7 @@ func ConfigAzureStorageResources(prefix, resourceGroupName, storageAccountName, 
 	return fmt.Sprintf(`
 		resource "azurerm_resource_group" "%[1]s_rg" {
 			name     = %[2]q
-			location = "East US"
+			location = "East US 2"
 		}
 
 		resource "azurerm_storage_account" "%[1]s_storage" {

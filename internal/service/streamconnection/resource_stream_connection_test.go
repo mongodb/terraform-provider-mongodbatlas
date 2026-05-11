@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
@@ -16,6 +17,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
+
+// azureServicePrincipalMu serializes Azure Blob Storage tests that share the same
+// service principal ID, preventing DUPLICATE_AZURE_SERVICE_PRINCIPAL errors
+var azureServicePrincipalMu sync.Mutex
 
 const (
 	dataSourceConfig = `
@@ -1307,7 +1312,11 @@ func TestAccStreamRSStreamConnection_AzureBlobStorage(t *testing.T) {
 		storageContainerName    = acc.RandomBucketName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckAzureEnvWithServicePrincipal(t) },
+		PreCheck: func() {
+			acc.PreCheckAzureEnvWithServicePrincipal(t)
+			azureServicePrincipalMu.Lock()
+			t.Cleanup(azureServicePrincipalMu.Unlock)
+		},
 		ExternalProviders:        acc.ExternalProvidersOnlyAzurerm(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -1328,21 +1337,26 @@ func TestAccStreamRSStreamConnection_AzureBlobStorage(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_AzureBlobStoragePrivateLink(t *testing.T) {
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		clusterName             = acc.RandomClusterName()
-		connectionName          = acc.RandomName()
-		clientID                = os.Getenv("AZURE_CLIENT_ID")
-		clientSecret            = os.Getenv("AZURE_APP_SECRET")
-		subscriptionID          = os.Getenv("AZURE_SUBSCRIPTION_ID")
-		tenantID                = os.Getenv("AZURE_TENANT_ID")
-		atlasAzureAppID         = os.Getenv("AZURE_ATLAS_APP_ID")
-		servicePrincipalID      = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
-		resourceGroupName       = acc.RandomName()
-		storageAccountName      = "tfacctest" + acctest.RandString(10)
-		storageContainerName    = acc.RandomBucketName()
+		projectID            = acc.ProjectIDExecution(t)
+		instanceName         = acc.RandomStreamInstanceName()
+		clusterName          = acc.RandomClusterName()
+		connectionName       = acc.RandomName()
+		clientID             = os.Getenv("AZURE_CLIENT_ID")
+		clientSecret         = os.Getenv("AZURE_APP_SECRET")
+		subscriptionID       = os.Getenv("AZURE_SUBSCRIPTION_ID")
+		tenantID             = os.Getenv("AZURE_TENANT_ID")
+		atlasAzureAppID      = os.Getenv("AZURE_ATLAS_APP_ID")
+		servicePrincipalID   = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
+		resourceGroupName    = acc.RandomName()
+		storageAccountName   = "tfacctest" + acctest.RandString(10)
+		storageContainerName = acc.RandomBucketName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckAzureEnvWithServicePrincipal(t) },
+		PreCheck: func() {
+			acc.PreCheckAzureEnvWithServicePrincipal(t)
+			azureServicePrincipalMu.Lock()
+			t.Cleanup(azureServicePrincipalMu.Unlock)
+		},
 		ExternalProviders:        acc.ExternalProvidersOnlyAzurerm(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -1439,6 +1453,15 @@ func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, cluste
 			}]
 		}
 
+		resource "mongodbatlas_stream_workspace" "test" {
+			project_id     = %[1]q
+			workspace_name = %[2]q
+			data_process_region = {
+				region         = "eastus2"
+				cloud_provider = "AZURE"
+			}
+		}
+
 		resource "mongodbatlas_stream_privatelink_endpoint" "test" {
 			project_id          = %[1]q
 			provider_name       = "AZURE"
@@ -1451,7 +1474,7 @@ func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, cluste
 
 		resource "mongodbatlas_stream_connection" "test" {
 			project_id      = %[1]q
-			workspace_name  = %[2]q
+			workspace_name  = mongodbatlas_stream_workspace.test.workspace_name
 			connection_name = %[3]q
 			type            = "AzureBlobStorage"
 			azure = {
