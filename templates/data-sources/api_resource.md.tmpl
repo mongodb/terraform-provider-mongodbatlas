@@ -1,0 +1,17 @@
+---
+subcategory: "Generic API Resource"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` reads any Atlas Admin API `GET` endpoint and exposes the full response through the `output` Dynamic attribute. Useful for endpoints that do not yet have a typed data source, or for preview features.
+
+~> **IMPORTANT — `output` is NOT marked Sensitive.** Any secret returned by the API surfaces in `terraform plan` / `terraform apply` / `terraform show`. Pipe sensitive fields through a Terraform `output { sensitive = true }` block when consuming them.
+
+## Example Usage
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+See the [`mongodbatlas_api_resource` resource documentation](../resources/api_resource.md) for the full description of `version_header`, supported endpoints, and the `output` sensitivity warning.

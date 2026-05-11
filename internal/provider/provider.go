@@ -23,6 +23,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikeyprojectassignment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apiresource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserorgassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserprojectassignment"
@@ -341,6 +342,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		logintegration.PluralDataSource,
 		privatelinkendpointservicedatafederationonlinearchive.DataSource,
 		privatelinkendpointservicedatafederationonlinearchive.PluralDataSource,
+		apiresource.DataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
@@ -382,6 +384,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		projectserviceaccountsecret.Resource,
 		projectserviceaccountaccesslistentry.Resource,
 		privatelinkendpointservicedatafederationonlinearchive.Resource,
+		apiresource.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {
