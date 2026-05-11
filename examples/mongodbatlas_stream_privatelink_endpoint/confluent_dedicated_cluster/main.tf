@@ -52,7 +52,7 @@ resource "mongodbatlas_stream_privatelink_endpoint" "test" {
   region              = var.aws_region
   vendor              = "CONFLUENT"
   service_endpoint_id = confluent_network.private_link.aws[0].private_link_endpoint_service
-  dns_sub_domain      = confluent_network.private_link.zonal_subdomains
+  dns_sub_domain      = values(confluent_network.private_link.zonal_subdomains)
 }
 
 data "mongodbatlas_stream_privatelink_endpoint" "singular_datasource" {
