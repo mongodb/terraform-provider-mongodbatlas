@@ -37,7 +37,7 @@ func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexCluste
 
 func WaitStateTransitionDelete(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, timeout time.Duration) error {
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{retrystrategy.RetryStrategyDeletingState},
+		Pending:    []string{retrystrategy.RetryStrategyCreatingState, retrystrategy.RetryStrategyIdleState, retrystrategy.RetryStrategyDeletingState},
 		Target:     []string{retrystrategy.RetryStrategyDeletedState},
 		Refresh:    refreshFunc(ctx, requestParams, client, false),
 		Timeout:    timeout,
