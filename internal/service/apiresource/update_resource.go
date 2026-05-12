@@ -194,7 +194,46 @@ func populateAfterReadUpdate(ctx context.Context, state *TFModelUpdate, bodyMap 
 }
 
 func (r *urs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	resp.Diagnostics.AddError("not implemented", "api_update Update is not yet implemented")
+	var plan TFModelUpdate
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	bodyMap, sensitiveMap, diags := buildRequestMaps(plan.Body, plan.SensitiveBody)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	url := plan.Path.ValueString()
+	versionHeader := resolveVersionHeader(plan.VersionHeader, plan.Preview)
+
+	mergedBody := mergeMaps(bodyMap, sensitiveMap)
+	bodyBytes, err := json.Marshal(mergedBody)
+	if err != nil {
+		resp.Diagnostics.AddError("encoding request body", err.Error())
+		return
+	}
+
+	result := callAPI(ctx, r.Client, plan.UpdateMethod.ValueString(), url, versionHeader, bodyBytes)
+	if result.Err != nil {
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("API %s %s failed", plan.UpdateMethod.ValueString(), url),
+			responseError(result),
+		)
+		return
+	}
+
+	newState := plan
+	newState.VersionHeader = types.StringValue(versionHeader)
+	newState.ID = types.StringValue(url)
+	resp.Diagnostics.Append(populateAfterWriteUpdate(ctx, &newState, bodyMap, sensitiveMap, result)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
 func (r *urs) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {
