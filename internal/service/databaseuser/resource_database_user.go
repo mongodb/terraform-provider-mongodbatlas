@@ -131,9 +131,6 @@ func (r *databaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional:  true,
 				Sensitive: true,
 				WriteOnly: true,
-				MarkdownDescription: "Write-only password for SCRAM-SHA authentication. " +
-					"Use with password_wo_version to trigger password updates. " +
-					"This attribute is never stored in state, only sent to Atlas on apply.",
 				Validators: []validator.String{
 					stringvalidator.ConflictsWith(path.Expressions{
 						path.MatchRelative().AtParent().AtName("password"),
@@ -145,8 +142,6 @@ func (r *databaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"password_wo_version": schema.Int64Attribute{
 				Optional: true,
-				MarkdownDescription: "Increment this value to trigger a password update when using password_wo. " +
-					"When you change the password, increment this version number so Terraform detects the change.",
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
