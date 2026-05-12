@@ -38,6 +38,20 @@ const (
 	defaultDeleteMethod  = "DELETE"
 )
 
+// TFModelUpdate is the in-memory representation of mongodbatlas_api_update.
+// Subset of TFModel: no id_attribute (path IS the read URL), no create_method
+// (we never create), no create_only_body_keys.
+type TFModelUpdate struct {
+	ID            types.String  `tfsdk:"id"`
+	Path          types.String  `tfsdk:"path"`
+	UpdateMethod  types.String  `tfsdk:"update_method"`
+	VersionHeader types.String  `tfsdk:"version_header"`
+	Body          types.Dynamic `tfsdk:"body"`
+	SensitiveBody types.Dynamic `tfsdk:"sensitive_body"`
+	Output        types.Dynamic `tfsdk:"output"`
+	Preview       types.Bool    `tfsdk:"preview"`
+}
+
 // todayVersionHeader returns the Atlas version media type for today's date in
 // UTC. Atlas snaps the date down to the latest published API version on or
 // before it, so this effectively means "use the latest version Atlas has".
