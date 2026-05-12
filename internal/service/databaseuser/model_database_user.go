@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 )
 
-func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescriptionValue types.String, plan *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
+func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescriptionValue types.String, statePasswordWoVersion types.Int64, plan *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
 	var rolesModel []*TfRoleModel
 	var labelsModel []*TfLabelModel
 	var scopesModel []*TfScopeModel
@@ -45,7 +45,20 @@ func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescri
 		Scopes:       NewMongoDBAtlasScopes(scopesModel),
 	}
 
-	if statePasswordValue != plan.Password {
+	// Handle password_wo (write-only): send if version is new or changed
+	if !plan.PasswordWo.IsNull() {
+		// For write-only passwords, send if:
+		// 1. State version is null (CREATE - new resource)
+		// 2. Version changed (UPDATE - password rotation)
+		planVersion := plan.PasswordWoVersion.ValueInt64()
+		stateVersion := statePasswordWoVersion.ValueInt64()
+		// On CREATE, state version is null, plan version > 0 → send password
+		// On UPDATE with version change, stateVersion != planVersion → send password
+		if statePasswordWoVersion.IsNull() || stateVersion != planVersion {
+			result.Password = plan.PasswordWo.ValueStringPointer()
+		}
+	} else if statePasswordValue != plan.Password {
+		// Legacy password attribute: send if changed
 		// Password value has been modified or no previous state was present. Password is only updated if changed in the terraform configuration CLOUDP-235738
 		result.Password = plan.Password.ValueStringPointer()
 	}
@@ -95,8 +108,14 @@ func NewTfDatabaseUserModel(ctx context.Context, inModel *TfDatabaseUserModel, d
 	}
 
 	if inModel != nil && inModel.Password.ValueString() != "" {
-		// The Password is not retuned from the endpoint so we use the one provided in the model
+		// The Password is not returned from the endpoint so we use the one provided in the model.
 		outModel.Password = inModel.Password
+	}
+	// password_wo is write-only: never stored in state, always null in read operations
+	outModel.PasswordWo = types.StringNull()
+	// password_wo_version is stored in state, preserved from prior state
+	if inModel != nil {
+		outModel.PasswordWoVersion = inModel.PasswordWoVersion
 	}
 	if inModel != nil && outModel.Description.Equal(types.StringValue("")) && inModel.Description.IsNull() {
 		// null != "" in TPF:  Error: Provider produced inconsistent result after apply. .description: was null, but now cty.StringVal("")

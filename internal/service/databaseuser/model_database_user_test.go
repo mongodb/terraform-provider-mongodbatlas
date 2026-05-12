@@ -92,10 +92,10 @@ var (
 
 func TestNewMongoDBDatabaseUser(t *testing.T) {
 	testCases := []struct {
-		tfDatabaseUserModel databaseuser.TfDatabaseUserModel
-		passwordStateValue  types.String
 		expectedResult      *admin.CloudDatabaseUser
+		passwordStateValue  types.String
 		name                string
+		tfDatabaseUserModel databaseuser.TfDatabaseUserModel
 		expectedError       bool
 	}{
 		{
@@ -145,7 +145,7 @@ func TestNewMongoDBDatabaseUser(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, err := databaseuser.NewMongoDBDatabaseUser(t.Context(), tc.passwordStateValue, types.StringValue(""), &testCases[i].tfDatabaseUserModel)
+			resultModel, err := databaseuser.NewMongoDBDatabaseUser(t.Context(), tc.passwordStateValue, types.StringValue(""), types.Int64Null(), &testCases[i].tfDatabaseUserModel)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -158,9 +158,9 @@ func TestNewMongoDBDatabaseUser(t *testing.T) {
 func TestNewTfDatabaseUserModel(t *testing.T) {
 	testCases := []struct {
 		expectedResult  *databaseuser.TfDatabaseUserModel
-		currentModel    databaseuser.TfDatabaseUserModel
 		sdkDatabaseUser *admin.CloudDatabaseUser
 		name            string
+		currentModel    databaseuser.TfDatabaseUserModel
 		expectedError   bool
 	}{
 		{

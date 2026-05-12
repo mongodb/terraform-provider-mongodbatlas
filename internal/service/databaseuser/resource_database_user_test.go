@@ -525,6 +525,85 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
+func TestAccDatabaseUser_withPasswordWo(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConfigDatabaseUserPasswordWo(projectID, username),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
+					resource.TestCheckResourceAttr(resourceName, "password_wo_version", "1"),
+					// password_wo should not be stored in state
+					resource.TestCheckNoResourceAttr(resourceName, "password_wo"),
+					// legacy password should not be set
+					resource.TestCheckNoResourceAttr(resourceName, "password"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDatabaseUser_withPasswordWoVersionUpdate(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConfigDatabaseUserPasswordWo(projectID, username),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "password_wo_version", "1"),
+				),
+			},
+			{
+				Config: acc.ConfigDatabaseUserPasswordWoVersionUpdate(projectID, username),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "password_wo_version", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDatabaseUser_legacyPassword(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		username  = acc.RandomName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConfigDatabaseUserBasic(projectID, username, "atlasAdmin", "test-key", "test-value"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
+					resource.TestCheckNoResourceAttr(resourceName, "password_wo"),
+					resource.TestCheckNoResourceAttr(resourceName, "password_wo_version"),
+				),
+			},
+		},
+	})
+}
+
 func checkDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_database_user" {
