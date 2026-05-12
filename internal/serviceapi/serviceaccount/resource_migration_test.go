@@ -14,14 +14,10 @@ import (
 
 func TestAccServiceAccount_moveFromAPIResource(t *testing.T) {
 	var (
-		orgID   = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		name    = acc.RandomName()
-		descr   = "moved-from-api-resource acceptance"
-		oldName = "mongodbatlas_api_resource.test"
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		name  = acc.RandomName()
+		descr = "moved-from-api-resource acceptance"
 	)
-	if orgID == "" {
-		t.Skip("MONGODB_ATLAS_ORG_ID not set")
-	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -31,7 +27,7 @@ func TestAccServiceAccount_moveFromAPIResource(t *testing.T) {
 			{
 				Config: configAPIResourceSA(orgID, name, descr),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(oldName, "output.clientId"),
+					resource.TestCheckResourceAttrSet("mongodbatlas_api_resource.test", "output.clientId"),
 				),
 			},
 			{
@@ -85,21 +81,29 @@ resource "mongodbatlas_service_account" "test" {
 func checkDestroyByClientID(orgID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		for _, rs := range s.RootModule().Resources {
-			var clientID string
+			// effectiveOrgID and clientID per-resource: typed SA exposes org_id in state;
+			// the generic api_resource does not, so the api_resource branch falls back
+			// to the closed-over orgID from test setup.
+			var (
+				clientID       string
+				effectiveOrgID string
+			)
 			switch rs.Type {
 			case "mongodbatlas_service_account":
 				clientID = rs.Primary.Attributes["client_id"]
+				effectiveOrgID = rs.Primary.Attributes["org_id"]
 			case "mongodbatlas_api_resource":
 				clientID = rs.Primary.Attributes["output.clientId"]
+				effectiveOrgID = orgID
 			default:
 				continue
 			}
 			if clientID == "" {
 				continue
 			}
-			_, _, err := acc.ConnV2().ServiceAccountsApi.GetOrgServiceAccount(context.Background(), orgID, clientID).Execute()
+			_, _, err := acc.ConnV2().ServiceAccountsApi.GetOrgServiceAccount(context.Background(), effectiveOrgID, clientID).Execute()
 			if err == nil {
-				return fmt.Errorf("service account %s/%s still exists", orgID, clientID)
+				return fmt.Errorf("service account %s/%s still exists", effectiveOrgID, clientID)
 			}
 		}
 		return nil
