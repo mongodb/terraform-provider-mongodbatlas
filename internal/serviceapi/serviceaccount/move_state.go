@@ -24,7 +24,7 @@ var idPattern = regexp.MustCompile(`^/api/atlas/v2/orgs/([^/]+)/serviceAccounts/
 // parseAPIResourceID extracts org_id and client_id from a mongodbatlas_api_resource
 // state.id targeting an org-scoped service account endpoint.
 func parseAPIResourceID(id string) (orgID, clientID string, err error) {
-	m := idPattern.FindStringSubmatch(strings.TrimSpace(id))
+	m := idPattern.FindStringSubmatch(id)
 	if m == nil {
 		return "", "", fmt.Errorf("source id %q does not match an org-scoped service account URL", id)
 	}

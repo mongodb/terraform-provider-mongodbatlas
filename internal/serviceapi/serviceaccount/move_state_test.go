@@ -110,6 +110,19 @@ func TestStateMover(t *testing.T) {
 		}
 	})
 
+	t.Run("null id reports error", func(t *testing.T) {
+		req := resource.MoveStateRequest{
+			SourceTypeName:        apiResourceSourceTypeName,
+			SourceProviderAddress: "registry.terraform.io/mongodb/mongodbatlas",
+			SourceRawState:        rawJSON(`{"id":null}`),
+		}
+		resp := &resource.MoveStateResponse{TargetState: nullTargetState(ctx, tfsdk.State{Schema: rs})}
+		stateMover(ctx, req, resp)
+		if !resp.Diagnostics.HasError() {
+			t.Fatalf("expected error diagnostic, got none")
+		}
+	})
+
 	t.Run("foreign provider is no-op", func(t *testing.T) {
 		req := resource.MoveStateRequest{
 			SourceTypeName:        apiResourceSourceTypeName,
