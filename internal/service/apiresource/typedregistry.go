@@ -58,8 +58,12 @@ func emitTypedCounterpartWarning(_ context.Context, path string, preview bool, d
 		fmt.Sprintf(
 			"A typed resource is available for this endpoint: %s. "+
 				"Migrate with a `moved` block to get typed schema, validation, "+
-				"and IDE completions. See the migration guide (#%s).",
-			entry.TypedTypeName, entry.DocsAnchor,
+				"and IDE completions.",
+			entry.TypedTypeName,
 		),
 	)
+	// entry.DocsAnchor is intentionally unused for now: it identifies the
+	// section of the migration guide a future warning revision should link
+	// to once that guide is published.
+	_ = entry.DocsAnchor
 }
