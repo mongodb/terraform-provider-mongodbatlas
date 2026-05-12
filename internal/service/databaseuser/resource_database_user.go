@@ -250,6 +250,15 @@ func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 	// Use configModel's write-only password if provided, otherwise use plan
 	if !configModel.PasswordWo.IsNull() {
 		plan.PasswordWo = configModel.PasswordWo
+		// Validate: password_wo requires password_wo_version to be set for rotation detection
+		if configModel.PasswordWoVersion.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("password_wo_version"),
+				"Missing Required Attribute",
+				"When 'password_wo' is set, 'password_wo_version' must also be specified to enable password rotation detection.",
+			)
+			return
+		}
 	}
 
 	dbUserReq, localDiags := NewMongoDBDatabaseUser(ctx, types.StringNull(), types.StringNull(), types.Int64Null(), plan)
@@ -331,6 +340,15 @@ func (r *databaseUserRS) Update(ctx context.Context, req resource.UpdateRequest,
 	// ensures it never appears in the resulting state.
 	if !configModel.PasswordWo.IsNull() {
 		plan.PasswordWo = configModel.PasswordWo
+		// Validate: password_wo requires password_wo_version to be set for rotation detection
+		if configModel.PasswordWoVersion.IsNull() {
+			resp.Diagnostics.AddAttributeError(
+				path.Root("password_wo_version"),
+				"Missing Required Attribute",
+				"When 'password_wo' is set, 'password_wo_version' must also be specified to enable password rotation detection.",
+			)
+			return
+		}
 	}
 
 	dbUserReq, localDiags := NewMongoDBDatabaseUser(ctx, state.Password, state.Description, state.PasswordWoVersion, plan)

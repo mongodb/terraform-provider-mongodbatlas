@@ -50,13 +50,20 @@ func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescri
 		// For write-only passwords, send if:
 		// 1. State version is null (CREATE - new resource)
 		// 2. Version changed (UPDATE - password rotation)
-		planVersion := plan.PasswordWoVersion.ValueInt64()
-		stateVersion := statePasswordWoVersion.ValueInt64()
-		// On CREATE, state version is null, plan version > 0 → send password
-		// On UPDATE with version change, stateVersion != planVersion → send password
-		if statePasswordWoVersion.IsNull() || stateVersion != planVersion {
+		// Only send if password_wo_version is also set (required by schema validation)
+		if statePasswordWoVersion.IsNull() {
+			// CREATE: state has no version, so this is a new resource → send password
 			result.Password = plan.PasswordWo.ValueStringPointer()
+		} else if !plan.PasswordWoVersion.IsNull() {
+			// UPDATE: both state and plan have versions, check if changed
+			planVersion := plan.PasswordWoVersion.ValueInt64()
+			stateVersion := statePasswordWoVersion.ValueInt64()
+			if stateVersion != planVersion {
+				result.Password = plan.PasswordWo.ValueStringPointer()
+			}
+			// If version unchanged, don't send password (no rotation)
 		}
+		// If plan version is null but password_wo is set, schema validation prevents this
 	} else if statePasswordValue != plan.Password {
 		// Legacy password attribute: send if changed
 		// Password value has been modified or no previous state was present. Password is only updated if changed in the terraform configuration CLOUDP-235738
