@@ -67,6 +67,9 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if plan.Path.IsNull() || plan.Path.IsUnknown() {
 		return
 	}
+	if plan.Preview.IsUnknown() {
+		return // preview depends on a computed value; skip warning until it resolves
+	}
 	emitTypedCounterpartWarning(ctx, plan.Path.ValueString(), plan.Preview.ValueBool(), &resp.Diagnostics)
 }
 
