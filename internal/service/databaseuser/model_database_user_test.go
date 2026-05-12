@@ -155,6 +155,71 @@ func TestNewMongoDBDatabaseUser(t *testing.T) {
 	}
 }
 
+func newPasswordWoTestModel(passwordWo string, version int64) databaseuser.TfDatabaseUserModel {
+	return databaseuser.TfDatabaseUserModel{
+		ProjectID:         types.StringValue(projectID),
+		Username:          types.StringValue(username),
+		AuthDatabaseName:  types.StringValue(authDatabaseName),
+		PasswordWo:        types.StringValue(passwordWo),
+		PasswordWoVersion: types.Int64Value(version),
+		Roles:             rolesSet,
+		Labels:            labelsSet,
+		Scopes:            scopesSet,
+	}
+}
+
+func newPasswordWoExpectedResult(password *string) *admin.CloudDatabaseUser {
+	return &admin.CloudDatabaseUser{
+		GroupId:      projectID,
+		Username:     username,
+		DatabaseName: authDatabaseName,
+		Description:  new(""),
+		Password:     password,
+		Roles:        []admin.DatabaseUserRole{sdkRole},
+		Labels:       &[]admin.ComponentLabel{sdkLabel},
+		Scopes:       &[]admin.UserScope{sdkScope},
+	}
+}
+
+func TestNewMongoDBDatabaseUserPasswordWo(t *testing.T) {
+	testCases := []struct {
+		expectedResult       *admin.CloudDatabaseUser
+		name                 string
+		tfDatabaseUserModel  databaseuser.TfDatabaseUserModel
+		passwordWoStateValue types.Int64
+	}{
+		{
+			name:                 "password_wo sets result.Password on CREATE",
+			tfDatabaseUserModel:  newPasswordWoTestModel("write-only-password", 1),
+			passwordWoStateValue: types.Int64Null(),
+			expectedResult:       newPasswordWoExpectedResult(&[]string{"write-only-password"}[0]),
+		},
+		{
+			name:                 "password_wo sets password when version changes on UPDATE",
+			tfDatabaseUserModel:  newPasswordWoTestModel("updated-password", 2),
+			passwordWoStateValue: types.Int64Value(1),
+			expectedResult:       newPasswordWoExpectedResult(&[]string{"updated-password"}[0]),
+		},
+		{
+			name:                 "password_wo does NOT set password when version unchanged on UPDATE",
+			tfDatabaseUserModel:  newPasswordWoTestModel("same-password", 1),
+			passwordWoStateValue: types.Int64Value(1),
+			expectedResult:       newPasswordWoExpectedResult(nil),
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel, err := databaseuser.NewMongoDBDatabaseUser(t.Context(), types.StringNull(), types.StringValue(""), tc.passwordWoStateValue, &testCases[i].tfDatabaseUserModel)
+
+			if err != nil {
+				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
+			}
+			assert.Equal(t, tc.expectedResult, resultModel, "created terraform model did not match expected output")
+		})
+	}
+}
+
 func TestNewTfDatabaseUserModel(t *testing.T) {
 	testCases := []struct {
 		expectedResult  *databaseuser.TfDatabaseUserModel
