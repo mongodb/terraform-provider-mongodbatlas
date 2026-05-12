@@ -123,7 +123,74 @@ func populateAfterWriteUpdate(ctx context.Context, state *TFModelUpdate, bodyMap
 }
 
 func (r *urs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	resp.Diagnostics.AddError("not implemented", "api_update Read is not yet implemented")
+	var state TFModelUpdate
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	bodyMap, _, diags := buildRequestMaps(state.Body, types.DynamicNull())
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// No deriveReadURL call (unlike rs.Read in resource.go): api_update has no
+	// id_attribute, so path IS the read URL.
+	readURL := state.Path.ValueString()
+	versionHeader := resolveVersionHeader(state.VersionHeader, state.Preview)
+
+	result := callAPI(ctx, r.Client, defaultReadMethod, readURL, versionHeader, nil)
+	if result.NotFound {
+		// Entity is gone — likely the typed resource was destroyed. Drop our
+		// state. A subsequent apply will fail at Create until the entity is
+		// recreated (or the user removes this resource).
+		resp.State.RemoveResource(ctx)
+		return
+	}
+	if result.Err != nil {
+		resp.Diagnostics.AddError(fmt.Sprintf("API GET %s failed", readURL), responseError(result))
+		return
+	}
+
+	resp.Diagnostics.Append(populateAfterReadUpdate(ctx, &state, bodyMap, result)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+}
+
+// populateAfterReadUpdate is structurally identical to populateAfterRead in
+// resource.go, retyped for TFModelUpdate. The reshape engine already gives us
+// the filter-to-patched-keys semantics by treating bodyMap as the template.
+// Keep in sync with populateAfterRead.
+func populateAfterReadUpdate(ctx context.Context, state *TFModelUpdate, bodyMap map[string]any, result callResult) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	respMap := result.Parsed
+	if respMap == nil {
+		respMap = map[string]any{}
+	}
+
+	sensitiveMap, _ := dynamicToMapStrict(state.SensitiveBody)
+	reshaped := dynamicreshape.Reshape(bodyMap, respMap, dynamicreshape.Options{
+		SensitivePaths: dynamicreshape.CollectSensitivePaths(sensitiveMap),
+	})
+	bodyDyn, err := mapToDynamic(ctx, reshaped, state.Body)
+	if err != nil {
+		diags.AddError("encoding body", err.Error())
+		return diags
+	}
+	state.Body = bodyDyn
+
+	outputDyn, err := mapToDynamic(ctx, respMap, types.DynamicNull())
+	if err != nil {
+		diags.AddError("encoding output", err.Error())
+		return diags
+	}
+	state.Output = outputDyn
+	return diags
 }
 
 func (r *urs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
