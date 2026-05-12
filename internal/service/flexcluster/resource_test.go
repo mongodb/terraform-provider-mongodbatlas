@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -58,13 +58,11 @@ func TestAccFlexClusterRS_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 
 func waitFlexClusterDeletion(t *testing.T, projectID, clusterName string) {
 	t.Helper()
-	ctx := context.Background()
-	client := acc.ConnV2().FlexClustersApi
 	params := &admin.GetFlexClusterApiParams{
 		GroupId: projectID,
 		Name:    clusterName,
 	}
-	require.NoError(t, flexcluster.WaitStateTransitionDelete(ctx, params, client, constant.DefaultTimeout))
+	require.NoError(t, flexcluster.WaitStateTransitionDelete(context.Background(), params, acc.ConnV2().FlexClustersApi, 10*time.Minute))
 }
 
 func TestAccFlexClusterRS_updateDeleteTimeout(t *testing.T) {
