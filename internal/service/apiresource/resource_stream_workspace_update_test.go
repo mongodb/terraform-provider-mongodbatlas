@@ -34,25 +34,17 @@ const (
 //
 // Body shape (matches ApiStreamsTenantUpdateRequestView.failoverRegions):
 //
-//	{"failoverRegions": [{"cloudProvider": "AWS", "region": "US_EAST_2"}]}
+//	{"failoverRegions": [{"cloudProvider": "AWS", "region": "DUBLIN_IRL"}]}
+//
+// The region value must be an ApiStreamsAWSRegionView enum name (DUBLIN_IRL,
+// VIRGINIA_USA, etc.), not an AWS region code. cloud-dev's allowlist
+// (StreamsConstants._allowedAWSRegions) only permits VIRGINIA_USA and
+// DUBLIN_IRL on AppEnv.DEV — and the failover region must differ from the
+// workspace primary, so DUBLIN_IRL is the only valid choice here.
 //
 // Note: failoverRegions is mutually exclusive with dataProcessRegion AND with
 // processorStatus in the same PATCH call. We only send failoverRegions here.
 func TestAccAPIUpdate_streamWorkspace_failoverRegions(t *testing.T) {
-	// Skipped: as of 2026-05-12, PATCH succeeds JSON validation against
-	// failoverRegions but returns 500 UNEXPECTED_ERROR from
-	// streamsTenantManager.updateTenant. Likely a server-side prerequisite
-	// (workspace tier, ready state, or feature-flag routing) we can't satisfy
-	// from the public API surface. See
-	// docs-context/api-update-demo-target-investigation.md for the full trail.
-	//
-	// The resource is proven functional: this test reaches Atlas with the
-	// correct preview content-type, correct JSON shape (verified against
-	// ApiStreamsTenantUpdateRequestView in MMS), correct AWS region enum
-	// value (OHIO_USA = US_EAST_2 per ApiStreamsAWSRegionView), and the
-	// preview channel accepts the field — we just hit a 500 downstream.
-	t.Skip("blocked on streams server-side 500 — see docs-context/api-update-demo-target-investigation.md")
-
 	var (
 		projectID    = acc.ProjectIDExecution(t)
 		instanceName = acc.RandomName()
@@ -66,27 +58,23 @@ func TestAccAPIUpdate_streamWorkspace_failoverRegions(t *testing.T) {
 			{
 				// Step 1: create workspace + initial PATCH with one failover region.
 				// Region value uses the ApiStreamsAWSRegionView enum name (e.g.
-				// OHIO_USA = US_EAST_2), not the AWS region code.
-				Config: configStreamWorkspaceWithFailover(projectID, instanceName, "OHIO_USA"),
+				// DUBLIN_IRL = EU_WEST_1), not the AWS region code. On cloud-dev,
+				// only VIRGINIA_USA (workspace primary) and DUBLIN_IRL (allowed
+				// AWS failover target) pass the StreamsConstants region allowlist
+				// check — see docs-context/api-update-demo-target-investigation.md
+				// for the trail.
+				Config: configStreamWorkspaceWithFailover(projectID, instanceName, "DUBLIN_IRL"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkStreamInstanceExists(streamResourceName, projectID),
 					resource.TestCheckResourceAttr(updateResourceName, "preview", "true"),
 					resource.TestCheckResourceAttr(updateResourceName, "body.failoverRegions.0.cloudProvider", "AWS"),
-					resource.TestCheckResourceAttr(updateResourceName, "body.failoverRegions.0.region", "OHIO_USA"),
+					resource.TestCheckResourceAttr(updateResourceName, "body.failoverRegions.0.region", "DUBLIN_IRL"),
 					resource.TestCheckResourceAttrSet(updateResourceName, "id"),
 				),
 			},
 			{
-				// Step 2: change region. Only api_update should plan; typed
-				// resource untouched.
-				Config: configStreamWorkspaceWithFailover(projectID, instanceName, "OREGON_USA"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkStreamInstanceExists(streamResourceName, projectID),
-					resource.TestCheckResourceAttr(updateResourceName, "body.failoverRegions.0.region", "OREGON_USA"),
-				),
-			},
-			{
-				// Step 3: drop the api_update block — typed resource stays.
+				// Step 2: drop the api_update block — typed resource stays,
+				// failoverRegions persists on the workspace (no-op delete).
 				Config: configStreamWorkspaceOnly(projectID, instanceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkStreamInstanceExists(streamResourceName, projectID),

@@ -146,6 +146,14 @@ func (r *urs) Read(ctx context.Context, req resource.ReadRequest, resp *resource
 	versionHeader := resolveVersionHeader(state.VersionHeader, state.Preview)
 
 	result := callAPI(ctx, r.Client, defaultReadMethod, readURL, versionHeader, nil)
+	// Some endpoints accept a preview content-type on write but not on read
+	// (e.g. PATCH /streams/{tenantName} has a preview variant; GET does not).
+	// When we configured `preview = true` for writes, fall back to today's GA
+	// version for the read. Atlas serializes the same entity regardless of
+	// content-type, so hidden fields like failoverRegions still come back.
+	if result.Status == 406 && state.Preview.ValueBool() {
+		result = callAPI(ctx, r.Client, defaultReadMethod, readURL, todayVersionHeader(), nil)
+	}
 	if result.NotFound {
 		// Entity is gone — likely the typed resource was destroyed. Drop our
 		// state. A subsequent apply will fail at Create until the entity is
