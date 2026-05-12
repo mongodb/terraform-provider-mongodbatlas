@@ -1,6 +1,12 @@
 package apiresource
 
-import "regexp"
+import (
+	"context"
+	"fmt"
+	"regexp"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+)
 
 // TypedCounterpart describes a typed resource that supersedes a particular
 // api_resource path. Used to (a) emit migration warnings at plan time and
@@ -38,4 +44,22 @@ func lookupIn(registry []TypedCounterpart, path string, preview bool) (TypedCoun
 		}
 	}
 	return TypedCounterpart{}, false
+}
+
+// emitTypedCounterpartWarning consults the registry and appends a warning
+// diagnostic to diags if a typed resource supersedes the given path.
+func emitTypedCounterpartWarning(_ context.Context, path string, preview bool, diags *diag.Diagnostics) {
+	entry, ok := LookupTypedCounterpart(path, preview)
+	if !ok {
+		return
+	}
+	diags.AddWarning(
+		"Typed resource available",
+		fmt.Sprintf(
+			"A typed resource is available for this endpoint: %s. "+
+				"Migrate with a `moved` block to get typed schema, validation, "+
+				"and IDE completions. See the migration guide (#%s).",
+			entry.TypedTypeName, entry.DocsAnchor,
+		),
+	)
 }

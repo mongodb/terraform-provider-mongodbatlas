@@ -22,6 +22,7 @@ const ResourceName = "api_resource"
 var (
 	_ resource.ResourceWithConfigure      = &rs{}
 	_ resource.ResourceWithImportState    = &rs{}
+	_ resource.ResourceWithModifyPlan     = &rs{}
 	_ resource.ResourceWithValidateConfig = &rs{}
 )
 
@@ -51,6 +52,22 @@ func (r *rs) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequ
 			"version_header and preview are mutually exclusive",
 			"Set either `version_header` or `preview = true`, not both.")
 	}
+}
+
+func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Skip on destroy (Plan is null).
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+	var plan TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if plan.Path.IsNull() || plan.Path.IsUnknown() {
+		return
+	}
+	emitTypedCounterpartWarning(ctx, plan.Path.ValueString(), plan.Preview.ValueBool(), &resp.Diagnostics)
 }
 
 func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
