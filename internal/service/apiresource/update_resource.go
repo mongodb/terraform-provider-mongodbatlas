@@ -50,6 +50,11 @@ func (r *urs) ValidateConfig(ctx context.Context, req resource.ValidateConfigReq
 	}
 }
 
+// Create issues the PATCH against `path` and uses the response body to populate
+// state. The design spec mentions a follow-up GET, but Atlas PATCH endpoints
+// reliably return the updated document on these surfaces, so we reuse the sibling
+// api_resource pattern. If a target endpoint ever returns 204 (no body), revisit
+// per open question #1 in the design spec.
 func (r *urs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan TFModelUpdate
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
