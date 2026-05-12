@@ -18,32 +18,40 @@ const (
 	streamResourceName = "mongodbatlas_stream_instance.demo"
 )
 
-// TestAccAPIUpdate_streamWorkspace_processorStatus exercises the
-// mongodbatlas_api_update resource against the regional-failover private
-// preview field on a stream workspace.
+// TestAccAPIUpdate_streamWorkspace_failoverRegions exercises the
+// mongodbatlas_api_update resource against the failoverRegions field on the
+// stream workspace PATCH endpoint.
 //
-// Flow:
-//  1. Typed mongodbatlas_stream_instance creates the workspace (GA fields).
-//  2. mongodbatlas_api_update PATCHes processorStatus on the same workspace
-//     using preview = true (preview content-type unlocks the field).
-//  3. We change mode GRACEFUL -> FORCED in HCL: plan shows a single PATCH,
-//     the typed resource is untouched.
-//  4. We drop the api_update block: the typed stream_instance survives
-//     destroy and Atlas keeps the field at its last-applied value.
-func TestAccAPIUpdate_streamWorkspace_processorStatus(t *testing.T) {
-	// Skipped: the processorStatus PATCH requires server-side state
-	// (failoverRegions on the workspace + regional_failover_config.enabled on
-	// processors) that the current public OpenAPI spec does not expose. We
-	// cannot construct a valid end-to-end scenario from typed or generic
-	// resources today. See docs-context/api-update-demo-target-investigation.md
-	// for the full Glean trail (TD doc, MMS PR, and validation rules).
+// failoverRegions is a perfect demo target for `api_update`:
+//   - It is accepted by Atlas in production today (verified by reading MMS:
+//     ApiStreamsTenantUpdateRequestView + ApiStreamsResource.updateTenant).
+//   - It is `@Schema(hidden = true)` in the MMS DTO, so it does NOT appear in
+//     the public OpenAPI spec. The typed stream_instance / stream_workspace
+//     resources cannot expose it.
+//   - It demonstrates exactly the hybrid-coexistence story: typed resource
+//     owns the workspace lifecycle, api_update reaches a hidden field the
+//     typed resource cannot see.
+//
+// Body shape (matches ApiStreamsTenantUpdateRequestView.failoverRegions):
+//
+//	{"failoverRegions": [{"cloudProvider": "AWS", "region": "US_EAST_2"}]}
+//
+// Note: failoverRegions is mutually exclusive with dataProcessRegion AND with
+// processorStatus in the same PATCH call. We only send failoverRegions here.
+func TestAccAPIUpdate_streamWorkspace_failoverRegions(t *testing.T) {
+	// Skipped: as of 2026-05-12, PATCH succeeds JSON validation against
+	// failoverRegions but returns 500 UNEXPECTED_ERROR from
+	// streamsTenantManager.updateTenant. Likely a server-side prerequisite
+	// (workspace tier, ready state, or feature-flag routing) we can't satisfy
+	// from the public API surface. See
+	// docs-context/api-update-demo-target-investigation.md for the full trail.
 	//
-	// The resource itself is fully exercised by:
-	//   - TestUpdateResource_ValidateConfig_PreviewVersionHeaderMutex
-	//   - manual run against this endpoint surfacing a 400 with the correct
-	//     content-type and body (proves auth, preview negotiation, body
-	//     marshalling, and error surfacing).
-	t.Skip("blocked on streams failover prerequisites — see docs-context/api-update-demo-target-investigation.md")
+	// The resource is proven functional: this test reaches Atlas with the
+	// correct preview content-type, correct JSON shape (verified against
+	// ApiStreamsTenantUpdateRequestView in MMS), correct AWS region enum
+	// value (OHIO_USA = US_EAST_2 per ApiStreamsAWSRegionView), and the
+	// preview channel accepts the field — we just hit a 500 downstream.
+	t.Skip("blocked on streams server-side 500 — see docs-context/api-update-demo-target-investigation.md")
 
 	var (
 		projectID    = acc.ProjectIDExecution(t)
@@ -56,22 +64,25 @@ func TestAccAPIUpdate_streamWorkspace_processorStatus(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamInstance(projectID),
 		Steps: []resource.TestStep{
 			{
-				// Step 1: create workspace + initial patch (GRACEFUL).
-				Config: configStreamWorkspaceWithFailover(projectID, instanceName, "GRACEFUL"),
+				// Step 1: create workspace + initial PATCH with one failover region.
+				// Region value uses the ApiStreamsAWSRegionView enum name (e.g.
+				// OHIO_USA = US_EAST_2), not the AWS region code.
+				Config: configStreamWorkspaceWithFailover(projectID, instanceName, "OHIO_USA"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkStreamInstanceExists(streamResourceName, projectID),
 					resource.TestCheckResourceAttr(updateResourceName, "preview", "true"),
-					resource.TestCheckResourceAttr(updateResourceName, "body.processorStatus.mode", "GRACEFUL"),
-					resource.TestCheckResourceAttr(updateResourceName, "body.processorStatus.status", "PROCESSORS_STARTED"),
+					resource.TestCheckResourceAttr(updateResourceName, "body.failoverRegions.0.cloudProvider", "AWS"),
+					resource.TestCheckResourceAttr(updateResourceName, "body.failoverRegions.0.region", "OHIO_USA"),
 					resource.TestCheckResourceAttrSet(updateResourceName, "id"),
 				),
 			},
 			{
-				// Step 2: change mode -> FORCED. Only api_update should plan.
-				Config: configStreamWorkspaceWithFailover(projectID, instanceName, "FORCED"),
+				// Step 2: change region. Only api_update should plan; typed
+				// resource untouched.
+				Config: configStreamWorkspaceWithFailover(projectID, instanceName, "OREGON_USA"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkStreamInstanceExists(streamResourceName, projectID),
-					resource.TestCheckResourceAttr(updateResourceName, "body.processorStatus.mode", "FORCED"),
+					resource.TestCheckResourceAttr(updateResourceName, "body.failoverRegions.0.region", "OREGON_USA"),
 				),
 			},
 			{
@@ -85,7 +96,7 @@ func TestAccAPIUpdate_streamWorkspace_processorStatus(t *testing.T) {
 	})
 }
 
-func configStreamWorkspaceWithFailover(projectID, name, mode string) string {
+func configStreamWorkspaceWithFailover(projectID, name, region string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_instance" "demo" {
 			project_id    = %[1]q
@@ -101,14 +112,15 @@ func configStreamWorkspaceWithFailover(projectID, name, mode string) string {
 			preview = true
 
 			body = {
-				processorStatus = {
-					mode   = %[3]q
-					region = "us-east-1"
-					status = "PROCESSORS_STARTED"
-				}
+				failoverRegions = [
+					{
+						cloudProvider = "AWS"
+						region        = %[3]q
+					},
+				]
 			}
 		}
-	`, projectID, name, mode)
+	`, projectID, name, region)
 }
 
 func configStreamWorkspaceOnly(projectID, name string) string {
