@@ -2,10 +2,15 @@ package apiresource
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dynamicreshape"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -46,7 +51,75 @@ func (r *urs) ValidateConfig(ctx context.Context, req resource.ValidateConfigReq
 }
 
 func (r *urs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	resp.Diagnostics.AddError("not implemented", "api_update Create is not yet implemented")
+	var plan TFModelUpdate
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	bodyMap, sensitiveMap, diags := buildRequestMaps(plan.Body, plan.SensitiveBody)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	url := plan.Path.ValueString()
+	versionHeader := resolveVersionHeader(plan.VersionHeader, plan.Preview)
+
+	mergedBody := mergeMaps(bodyMap, sensitiveMap)
+	bodyBytes, err := json.Marshal(mergedBody)
+	if err != nil {
+		resp.Diagnostics.AddError("encoding request body", err.Error())
+		return
+	}
+
+	result := callAPI(ctx, r.Client, plan.UpdateMethod.ValueString(), url, versionHeader, bodyBytes)
+	if result.Err != nil {
+		resp.Diagnostics.AddError(
+			fmt.Sprintf("API %s %s failed", plan.UpdateMethod.ValueString(), url),
+			responseError(result),
+		)
+		return
+	}
+
+	state := plan
+	state.VersionHeader = types.StringValue(versionHeader)
+	state.ID = types.StringValue(url)
+	resp.Diagnostics.Append(populateAfterWriteUpdate(ctx, &state, bodyMap, sensitiveMap, result)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+}
+
+// populateAfterWriteUpdate mirrors populateAfterWrite from resource.go but
+// skips deriveReadURL (api_update never derives a URL — path IS the URL).
+func populateAfterWriteUpdate(ctx context.Context, state *TFModelUpdate, bodyMap, sensitiveMap map[string]any, result callResult) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	respMap := result.Parsed
+	if respMap == nil {
+		respMap = map[string]any{}
+	}
+
+	reshaped := dynamicreshape.Reshape(bodyMap, respMap, dynamicreshape.Options{
+		SensitivePaths: dynamicreshape.CollectSensitivePaths(sensitiveMap),
+	})
+	bodyDyn, err := mapToDynamic(ctx, reshaped, state.Body)
+	if err != nil {
+		diags.AddError("encoding body", err.Error())
+		return diags
+	}
+	state.Body = bodyDyn
+
+	outputDyn, err := mapToDynamic(ctx, respMap, types.DynamicNull())
+	if err != nil {
+		diags.AddError("encoding output", err.Error())
+		return diags
+	}
+	state.Output = outputDyn
+	return diags
 }
 
 func (r *urs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
