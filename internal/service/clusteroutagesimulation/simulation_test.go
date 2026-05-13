@@ -90,7 +90,7 @@ func TestSimulateOutage_Success(t *testing.T) {
 		Return(&admin.ClusterOutageSimulation{State: &simulatingState}, nil, nil)
 
 	filters := []admin.AtlasClusterOutageSimulationOutageFilter{
-		{CloudProvider: strPtr("AWS"), RegionName: strPtr("US_EAST_1")},
+		{CloudProvider: new("AWS"), RegionName: new("US_EAST_1")},
 	}
 
 	err := clusteroutagesimulation.SimulateOutage(t.Context(), m, testProjectID, testClusterName, filters, true, fastTimeConfig)
@@ -141,8 +141,4 @@ func TestStopSimulation_APIError(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), testProjectID)
 	assert.Contains(t, err.Error(), testClusterName)
-}
-
-func strPtr(s string) *string {
-	return &s
 }
