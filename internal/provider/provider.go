@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -79,6 +80,7 @@ type MongodbatlasProvider struct {
 
 var _ provider.ProviderWithEphemeralResources = &MongodbatlasProvider{}
 var _ provider.ProviderWithActions = &MongodbatlasProvider{}
+var _ provider.ProviderWithListResources = &MongodbatlasProvider{}
 
 type tfModel struct {
 	Region               types.String        `tfsdk:"region"`
@@ -231,6 +233,7 @@ func (p *MongodbatlasProvider) Configure(ctx context.Context, req provider.Confi
 	resp.DataSourceData = client
 	resp.ResourceData = client
 	resp.ActionData = client
+	resp.ListResourceData = client
 
 	resp.EphemeralResourceData = &config.EphemeralResourceData{
 		ClientID:         c.ClientID,
@@ -398,6 +401,12 @@ func (p *MongodbatlasProvider) Actions(context.Context) []func() action.Action {
 	return []func() action.Action{
 		clusteroutagesimulation.Action,
 		clusteroutagesimulation.StopAction,
+	}
+}
+
+func (p *MongodbatlasProvider) ListResources(context.Context) []func() list.ListResource {
+	return []func() list.ListResource{
+		autogenprojectipaccesslist.ListResource,
 	}
 }
 

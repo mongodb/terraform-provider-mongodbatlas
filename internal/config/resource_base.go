@@ -153,6 +153,14 @@ func (r *RSCommon) UpgradeState(ctx context.Context) map[int64]resource.StateUpg
 	return resourceWithUpgradeState.UpgradeState(ctx)
 }
 
+func (r *RSCommon) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resourceWithIdentity, ok := r.ImplementedResource.(resource.ResourceWithIdentity)
+	if !ok {
+		return
+	}
+	resourceWithIdentity.IdentitySchema(ctx, req, resp)
+}
+
 // Extra methods not found on resource.Resource
 func (r *RSCommon) GetName() string {
 	return r.ResourceName

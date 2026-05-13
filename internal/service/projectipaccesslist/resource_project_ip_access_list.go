@@ -11,6 +11,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -31,6 +33,11 @@ const (
 
 var createAccessListEntryMutex = concurrency.NewMutexKV()
 
+type projectIPAccessListIdentityModel struct {
+	ProjectID types.String `tfsdk:"project_id"`
+	Entry     types.String `tfsdk:"entry"`
+}
+
 type projectIPAccessListRS struct {
 	config.RSCommon
 }
@@ -45,6 +52,22 @@ func Resource() resource.Resource {
 
 var _ resource.ResourceWithConfigure = &projectIPAccessListRS{}
 var _ resource.ResourceWithImportState = &projectIPAccessListRS{}
+var _ resource.ResourceWithIdentity = &projectIPAccessListRS{}
+
+func (r *projectIPAccessListRS) IdentitySchema(_ context.Context, _ resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"project_id": identityschema.StringAttribute{
+				RequiredForImport: true,
+				Description:       "Unique 24-hexadecimal digit string that identifies your project.",
+			},
+			"entry": identityschema.StringAttribute{
+				RequiredForImport: true,
+				Description:       "IP address, CIDR block, or AWS security group that identifies the access list entry.",
+			},
+		},
+	}
+}
 
 func (r *projectIPAccessListRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
@@ -87,6 +110,10 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	resp.Diagnostics.Append(resp.Identity.Set(ctx, &projectIPAccessListIdentityModel{
+		ProjectID: projectIPAccessListNewModel.ProjectID,
+		Entry:     types.StringValue(accessListEntryValue(projectIPAccessListNewModel)),
+	})...)
 }
 
 func (r *projectIPAccessListRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -129,12 +156,28 @@ func (r *projectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 
 		projectIPAccessListNewModel := NewTfProjectIPAccessListModel(projectIPAccessListModelState, accessList)
 		resp.Diagnostics.Append(resp.State.Set(ctx, &projectIPAccessListNewModel)...)
+		if !resp.Diagnostics.HasError() {
+			resp.Diagnostics.Append(resp.Identity.Set(ctx, &projectIPAccessListIdentityModel{
+				ProjectID: projectIPAccessListNewModel.ProjectID,
+				Entry:     types.StringValue(accessListEntryValue(projectIPAccessListNewModel)),
+			})...)
+		}
 		return nil
 	})
 
 	if err != nil {
 		resp.Diagnostics.AddError("error during the read operation", err.Error())
 	}
+}
+
+func accessListEntryValue(m *TfProjectIPAccessListModel) string {
+	if v := m.IPAddress.ValueString(); v != "" {
+		return v
+	}
+	if v := m.CIDRBlock.ValueString(); v != "" {
+		return v
+	}
+	return m.AWSSecurityGroup.ValueString()
 }
 
 func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -198,15 +241,26 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 }
 
 func (r *projectIPAccessListRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.SplitN(req.ID, "-", 2)
+	var projectID, entry string
 
-	if len(parts) != 2 {
-		resp.Diagnostics.AddError("import format error", "to import a projectIP Access List, use the format {project_id}-{entry}")
-		return
+	if req.Identity != nil {
+		var identity projectIPAccessListIdentityModel
+		resp.Diagnostics.Append(req.Identity.Get(ctx, &identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		projectID = identity.ProjectID.ValueString()
+		entry = identity.Entry.ValueString()
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, &identity)...)
+	} else {
+		parts := strings.SplitN(req.ID, "-", 2)
+		if len(parts) != 2 {
+			resp.Diagnostics.AddError("import format error", "to import a projectIP Access List, use the format {project_id}-{entry}")
+			return
+		}
+		projectID = parts[0]
+		entry = parts[1]
 	}
-
-	projectID := parts[0]
-	entry := parts[1]
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), conversion.EncodeStateID(map[string]string{
 		"entry":      entry,
