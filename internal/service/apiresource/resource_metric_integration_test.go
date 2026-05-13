@@ -106,11 +106,17 @@ func configOTELMetricIntegration(projectID, temporality, token string) string {
 					},
 				]
 			}
+
+			# Headers come back masked from Atlas (no real secret in the response),
+			# so the masked values can safely live in the visible output.
+			response_export_values = ["metricIntegrationId", "endpoint", "aggregationTemporality", "headers"]
 		}
 
 		data "mongodbatlas_api_resource" "test" {
 			path    = mongodbatlas_api_resource.test.id
 			preview = true
+
+			response_export_values = ["endpoint", "aggregationTemporality"]
 		}
 	`, projectID, temporality, token)
 }

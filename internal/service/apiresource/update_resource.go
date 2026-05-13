@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dynamicreshape"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/responseproject"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -47,6 +48,13 @@ func (r *urs) ValidateConfig(ctx context.Context, req resource.ValidateConfigReq
 		resp.Diagnostics.AddAttributeError(path.Root("preview"),
 			"version_header and preview are mutually exclusive",
 			"Set either `version_header` or `preview = true`, not both.")
+	}
+	if overlap := responseproject.PathsOverlap(
+		exportPaths(cfg.ResponseExportValues), exportPaths(cfg.ResponseExportValuesSensitive),
+	); len(overlap) > 0 {
+		resp.Diagnostics.AddAttributeError(path.Root("response_export_values_sensitive"),
+			"path declared in both response_export_values and response_export_values_sensitive",
+			fmt.Sprintf("each path must appear in only one list. Overlapping: %v", overlap))
 	}
 }
 
@@ -118,12 +126,14 @@ func populateAfterWriteUpdate(ctx context.Context, state *TFModelUpdate, bodyMap
 	}
 	state.Body = bodyDyn
 
-	outputDyn, err := mapToDynamic(ctx, respMap, types.DynamicNull())
+	outputDyn, outputSensitiveDyn, err := projectToDynamics(ctx, respMap,
+		exportPaths(state.ResponseExportValues), exportPaths(state.ResponseExportValuesSensitive))
 	if err != nil {
 		diags.AddError("encoding output", err.Error())
 		return diags
 	}
 	state.Output = outputDyn
+	state.OutputSensitive = outputSensitiveDyn
 	return diags
 }
 
@@ -197,12 +207,14 @@ func populateAfterReadUpdate(ctx context.Context, state *TFModelUpdate, bodyMap 
 	}
 	state.Body = bodyDyn
 
-	outputDyn, err := mapToDynamic(ctx, respMap, types.DynamicNull())
+	outputDyn, outputSensitiveDyn, err := projectToDynamics(ctx, respMap,
+		exportPaths(state.ResponseExportValues), exportPaths(state.ResponseExportValuesSensitive))
 	if err != nil {
 		diags.AddError("encoding output", err.Error())
 		return diags
 	}
 	state.Output = outputDyn
+	state.OutputSensitive = outputSensitiveDyn
 	return diags
 }
 
@@ -249,7 +261,7 @@ func (r *urs) Update(ctx context.Context, req resource.UpdateRequest, resp *reso
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
 
-func (r *urs) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) {
+func (r *urs) Delete(_ context.Context, _ resource.DeleteRequest, _ *resource.DeleteResponse) { //nolint:gocritic // framework interface dictates the signature
 	// No-op. The entity belongs to another (typed) resource. Removing this
 	// block from config leaves the patched field at its last-applied value.
 }
@@ -259,7 +271,10 @@ func (r *urs) ImportState(ctx context.Context, req resource.ImportStateRequest, 
 	// path doubles as id for this resource — set both so subsequent Read can execute.
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("path"), req.ID)...)
 	resp.Diagnostics.AddWarning(
-		"Import does not recover body / sensitive_body",
-		"After import, re-declare body and sensitive_body in HCL. The next plan will surface drift until the configured body matches what Atlas returns.",
+		"Import is best-effort — re-declare config and rotate secrets",
+		"Terraform import recovers only the resource URL into `id` and `path`. To finish: "+
+			"(1) re-declare `body` and other config in HCL; "+
+			"(2) run `terraform plan` and adjust HCL until the diff is clean; "+
+			"(3) re-supply or rotate `sensitive_body` — Atlas does not return secrets on GET, so the previous value cannot be recovered.",
 	)
 }

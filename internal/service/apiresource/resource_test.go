@@ -43,7 +43,8 @@ func TestAccAPIResource_serviceAccount_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "output.clientId"),
 					resource.TestCheckResourceAttrSet(resourceName, "output.createdAt"),
 					resource.TestCheckResourceAttrSet(resourceName, "output.secrets.0.id"),
-					resource.TestCheckResourceAttrSet(resourceName, "output.secrets.0.secret"),
+					// Secret value lands in the Sensitive twin, not the plain output.
+					resource.TestCheckResourceAttrSet(resourceName, "output_sensitive.secrets.0.secret"),
 					resource.TestCheckResourceAttr(resourceName, "body.name", name1),
 					resource.TestCheckResourceAttr(resourceName, "body.description", description1),
 					resource.TestCheckResourceAttrSet(dataSourceName, "output.clientId"),
@@ -100,10 +101,17 @@ func configServiceAccount(orgID, name, description string, roles []string, secre
 				roles                   = %[4]s
 				secretExpiresAfterHours = %[5]d
 			}
+
+			# Export the non-secret leaves individually. Exporting the parent
+			# secrets list would pull the secret into plain output too.
+			response_export_values           = ["clientId", "createdAt", "secrets.0.id", "secrets.0.maskedSecretValue"]
+			response_export_values_sensitive = ["secrets.0.secret"]
 		}
 
 		data "mongodbatlas_api_resource" "test" {
 			path = mongodbatlas_api_resource.test.id
+
+			response_export_values = ["clientId"]
 		}
 	`, orgID, name, description, rolesHCL, secretExpiresAfterHours)
 }

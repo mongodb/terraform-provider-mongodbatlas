@@ -8,26 +8,32 @@ import (
 
 // TFModel is the in-memory representation of mongodbatlas_api_resource.
 type TFModel struct {
-	IDAttribute        types.List    `tfsdk:"id_attribute"`
-	CreateOnlyBodyKeys types.Set     `tfsdk:"create_only_body_keys"`
-	ID                 types.String  `tfsdk:"id"`
-	Path               types.String  `tfsdk:"path"`
-	CreateMethod       types.String  `tfsdk:"create_method"`
-	UpdateMethod       types.String  `tfsdk:"update_method"`
-	VersionHeader      types.String  `tfsdk:"version_header"`
-	Body               types.Dynamic `tfsdk:"body"`
-	SensitiveBody      types.Dynamic `tfsdk:"sensitive_body"`
-	Output             types.Dynamic `tfsdk:"output"`
-	Preview            types.Bool    `tfsdk:"preview"`
+	IDAttribute                   types.List    `tfsdk:"id_attribute"`
+	CreateOnlyBodyKeys            types.Set     `tfsdk:"create_only_body_keys"`
+	ResponseExportValues          types.List    `tfsdk:"response_export_values"`
+	ResponseExportValuesSensitive types.List    `tfsdk:"response_export_values_sensitive"`
+	ID                            types.String  `tfsdk:"id"`
+	Path                          types.String  `tfsdk:"path"`
+	CreateMethod                  types.String  `tfsdk:"create_method"`
+	UpdateMethod                  types.String  `tfsdk:"update_method"`
+	VersionHeader                 types.String  `tfsdk:"version_header"`
+	Body                          types.Dynamic `tfsdk:"body"`
+	SensitiveBody                 types.Dynamic `tfsdk:"sensitive_body"`
+	Output                        types.Dynamic `tfsdk:"output"`
+	OutputSensitive               types.Dynamic `tfsdk:"output_sensitive"`
+	Preview                       types.Bool    `tfsdk:"preview"`
 }
 
 // TFModelDS is the data source equivalent: read-only, no body / sensitive_body.
 type TFModelDS struct {
-	ID            types.String  `tfsdk:"id"`
-	Path          types.String  `tfsdk:"path"`
-	VersionHeader types.String  `tfsdk:"version_header"`
-	Output        types.Dynamic `tfsdk:"output"`
-	Preview       types.Bool    `tfsdk:"preview"`
+	ID                            types.String  `tfsdk:"id"`
+	Path                          types.String  `tfsdk:"path"`
+	VersionHeader                 types.String  `tfsdk:"version_header"`
+	ResponseExportValues          types.List    `tfsdk:"response_export_values"`
+	ResponseExportValuesSensitive types.List    `tfsdk:"response_export_values_sensitive"`
+	Output                        types.Dynamic `tfsdk:"output"`
+	OutputSensitive               types.Dynamic `tfsdk:"output_sensitive"`
+	Preview                       types.Bool    `tfsdk:"preview"`
 }
 
 const (
@@ -42,14 +48,17 @@ const (
 // Subset of TFModel: no id_attribute (path IS the read URL), no create_method
 // (we never create), no create_only_body_keys.
 type TFModelUpdate struct {
-	ID            types.String  `tfsdk:"id"`
-	Path          types.String  `tfsdk:"path"`
-	UpdateMethod  types.String  `tfsdk:"update_method"`
-	VersionHeader types.String  `tfsdk:"version_header"`
-	Body          types.Dynamic `tfsdk:"body"`
-	SensitiveBody types.Dynamic `tfsdk:"sensitive_body"`
-	Output        types.Dynamic `tfsdk:"output"`
-	Preview       types.Bool    `tfsdk:"preview"`
+	ID                            types.String  `tfsdk:"id"`
+	Path                          types.String  `tfsdk:"path"`
+	UpdateMethod                  types.String  `tfsdk:"update_method"`
+	VersionHeader                 types.String  `tfsdk:"version_header"`
+	ResponseExportValues          types.List    `tfsdk:"response_export_values"`
+	ResponseExportValuesSensitive types.List    `tfsdk:"response_export_values_sensitive"`
+	Body                          types.Dynamic `tfsdk:"body"`
+	SensitiveBody                 types.Dynamic `tfsdk:"sensitive_body"`
+	Output                        types.Dynamic `tfsdk:"output"`
+	OutputSensitive               types.Dynamic `tfsdk:"output_sensitive"`
+	Preview                       types.Bool    `tfsdk:"preview"`
 }
 
 // todayVersionHeader returns the Atlas version media type for today's date in

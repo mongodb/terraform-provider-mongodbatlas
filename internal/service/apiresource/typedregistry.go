@@ -56,9 +56,8 @@ func emitTypedCounterpartWarning(_ context.Context, path string, preview bool, d
 	diags.AddWarning(
 		"Typed resource available",
 		fmt.Sprintf(
-			"A typed resource is available for this endpoint: %s. "+
-				"Migrate with a `moved` block to get typed schema, validation, "+
-				"and IDE completions.",
+			"A typed resource is available for this endpoint: `%s`. "+
+				"Use a `moved {}` block to migrate — state-only, no API call, no recreate.",
 			entry.TypedTypeName,
 		),
 	)

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dynamicjson"
@@ -20,8 +21,9 @@ func UpdateResourceSchema(_ context.Context) schema.Schema {
 		MarkdownDescription: "Patch-only generic Terraform resource. Sets fields on an Atlas entity that " +
 			"is primarily managed by another (typed) resource — without taking over its lifecycle. " +
 			"Use this for preview fields the typed resource does not yet expose. " +
-			"WARNING: the `output` attribute contains the full API response and is not marked Sensitive. " +
-			"Any secret returned by the API will appear in plan/apply output unless piped through a sensitive Terraform `output` block.",
+			"By default no response fields are persisted in state — declare paths in `response_export_values` " +
+			"(visible) or `response_export_values_sensitive` (redacted from plan/apply output) to opt in. " +
+			"**Import is best-effort**: `terraform import` recovers only the resource URL; `body` and `sensitive_body` must be re-declared in HCL, and `sensitive_body` values cannot be recovered from Atlas (rotate or re-supply).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -77,10 +79,30 @@ func UpdateResourceSchema(_ context.Context) schema.Schema {
 				Description: "Sensitive fragment merged into the request body. Values are never written to state; " +
 					"their keys are excluded from drift comparison.",
 			},
+			"response_export_values": schema.ListAttribute{
+				Optional:    true,
+				ElementType: basetypes.StringType{},
+				Description: "Dotted paths into the API response to retain in `output`. Anything not listed " +
+					"is discarded before state write. Numeric segments index lists (e.g. `failoverRegions.0.region`). " +
+					"Missing paths are silently skipped.",
+			},
+			"response_export_values_sensitive": schema.ListAttribute{
+				Optional:    true,
+				ElementType: basetypes.StringType{},
+				Description: "Same syntax as `response_export_values`, but matched values are stored in " +
+					"`output_sensitive` (Sensitive). A path must not appear in both lists.",
+			},
 			"output": schema.DynamicAttribute{
 				Computed: true,
-				Description: "Full API response from the most recent PATCH or GET. Access fields with " +
-					"`mongodbatlas_api_update.<name>.output.<field>`. NOT marked Sensitive.",
+				Description: "Projected API response. Contains only the paths listed in `response_export_values`. " +
+					"Null when no paths are declared.",
+			},
+			"output_sensitive": schema.DynamicAttribute{
+				Computed:  true,
+				Sensitive: true,
+				Description: "Projected API response containing the paths listed in `response_export_values_sensitive`. " +
+					"Marked Sensitive: Terraform redacts values from plan/apply output. " +
+					"Null when no sensitive paths are declared.",
 			},
 		},
 	}

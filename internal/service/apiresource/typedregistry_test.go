@@ -48,18 +48,16 @@ func TestLookupTypedCounterpart(t *testing.T) {
 	}
 }
 
-func boolPtr(b bool) *bool { return &b }
-
 func TestLookupTypedCounterpart_PreviewFilter(t *testing.T) {
 	syntheticRegistry := []TypedCounterpart{
 		{
 			PathPattern:   regexp.MustCompile(`^/preview/resource$`),
-			Preview:       boolPtr(true),
+			Preview:       new(true),
 			TypedTypeName: "preview_only",
 		},
 		{
 			PathPattern:   regexp.MustCompile(`^/ga/resource$`),
-			Preview:       boolPtr(false),
+			Preview:       new(false),
 			TypedTypeName: "ga_only",
 		},
 		{

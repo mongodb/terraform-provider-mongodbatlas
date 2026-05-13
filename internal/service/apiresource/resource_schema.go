@@ -21,8 +21,9 @@ func ResourceSchema(_ context.Context) schema.Schema {
 	return schema.Schema{
 		MarkdownDescription: "Generic Terraform resource wrapping any Atlas Admin API endpoint. " +
 			"Useful for endpoints not yet covered by a typed resource. " +
-			"WARNING: the `output` attribute contains the full API response and is not marked Sensitive. " +
-			"Any secret returned by the API will appear in plan/apply output unless piped through a sensitive Terraform `output` block.",
+			"By default no response fields are persisted in state — declare paths in `response_export_values` " +
+			"(visible) or `response_export_values_sensitive` (redacted from plan/apply output) to opt in. " +
+			"**Import is best-effort**: `terraform import` recovers only the resource URL; `body` and `sensitive_body` must be re-declared in HCL, and `sensitive_body` values cannot be recovered from Atlas (rotate or re-supply).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -108,10 +109,33 @@ func ResourceSchema(_ context.Context) schema.Schema {
 					"(for example `secretExpiresAfterHours`). These keys are stripped from the payload " +
 					"before the Update request is issued.",
 			},
+			"response_export_values": schema.ListAttribute{
+				Optional:    true,
+				ElementType: basetypes.StringType{},
+				Description: "Dotted paths into the API response to retain in `output`. Anything not listed " +
+					"is discarded before state write. Numeric segments index lists (e.g. `secrets.0.id`). " +
+					"Missing paths are silently skipped — endpoints that return a field only on Create (such as " +
+					"AI Model API Key `secret`) won't produce drift after the field disappears on subsequent reads. " +
+					"Paths used for `id_attribute` resolution are read from the raw response and do NOT need to be listed here.",
+			},
+			"response_export_values_sensitive": schema.ListAttribute{
+				Optional:    true,
+				ElementType: basetypes.StringType{},
+				Description: "Same syntax as `response_export_values`, but matched values are stored in " +
+					"`output_sensitive` (Sensitive). Use this for secrets returned by the API. " +
+					"A path must not appear in both lists.",
+			},
 			"output": schema.DynamicAttribute{
 				Computed: true,
-				Description: "Full API response from the most recent operation. Access fields with " +
-					"`mongodbatlas_api_resource.<name>.output.<field>`. NOT marked Sensitive — see the resource-level warning.",
+				Description: "Projected API response. Contains only the paths listed in `response_export_values`. " +
+					"Null when no paths are declared. Access fields with `mongodbatlas_api_resource.<name>.output.<field>`.",
+			},
+			"output_sensitive": schema.DynamicAttribute{
+				Computed:  true,
+				Sensitive: true,
+				Description: "Projected API response containing the paths listed in `response_export_values_sensitive`. " +
+					"Marked Sensitive: Terraform redacts values from plan/apply output. " +
+					"Null when no sensitive paths are declared.",
 			},
 		},
 	}

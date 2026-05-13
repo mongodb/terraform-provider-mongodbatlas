@@ -39,8 +39,8 @@ func TestAccAPIResource_aiModelAPIKey_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "output.apiKeyId"),
 					resource.TestCheckResourceAttrSet(resourceName, "output.createdAt"),
 					resource.TestCheckResourceAttrSet(resourceName, "output.status"),
-					// secret is present after Create.
-					resource.TestCheckResourceAttrSet(resourceName, "output.secret"),
+					// secret lands in output_sensitive (Sensitive, redacted from CLI output).
+					resource.TestCheckResourceAttrSet(resourceName, "output_sensitive.secret"),
 					// data source surfaces the masked variant (read response).
 					resource.TestCheckResourceAttrSet(dataSourceName, "output.maskedSecret"),
 				),
@@ -68,11 +68,16 @@ func configAIModelAPIKey(projectID, name string) string {
 			body = {
 				name = %[2]q
 			}
+
+			response_export_values           = ["apiKeyId", "createdAt", "status", "maskedSecret"]
+			response_export_values_sensitive = ["secret"]
 		}
 
 		data "mongodbatlas_api_resource" "test" {
 			path    = mongodbatlas_api_resource.test.id
 			preview = true
+
+			response_export_values = ["apiKeyId", "maskedSecret"]
 		}
 	`, projectID, name)
 }

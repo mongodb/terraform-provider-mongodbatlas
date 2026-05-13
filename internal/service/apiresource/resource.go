@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dynamicjson"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dynamicreshape"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/responseproject"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -51,6 +53,13 @@ func (r *rs) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequ
 		resp.Diagnostics.AddAttributeError(path.Root("preview"),
 			"version_header and preview are mutually exclusive",
 			"Set either `version_header` or `preview = true`, not both.")
+	}
+	if overlap := responseproject.PathsOverlap(
+		exportPaths(cfg.ResponseExportValues), exportPaths(cfg.ResponseExportValuesSensitive),
+	); len(overlap) > 0 {
+		resp.Diagnostics.AddAttributeError(path.Root("response_export_values_sensitive"),
+			"path declared in both response_export_values and response_export_values_sensitive",
+			fmt.Sprintf("each path must appear in only one list. Overlapping: %v", overlap))
 	}
 }
 
@@ -125,12 +134,10 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	prevOutput := dynamicToMap(state.Output)
-	readURL, d := deriveReadURL(state.Path.ValueString(), state.IDAttribute, prevOutput)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	// id_attribute resolution happened at Create time and is persisted as
+	// state.ID. Reading from state.ID (instead of re-deriving from output)
+	// keeps url derivation independent of response_export_values.
+	readURL := state.ID.ValueString()
 	versionHeader := resolveVersionHeader(state.VersionHeader, state.Preview)
 
 	result := callAPI(ctx, r.Client, defaultReadMethod, readURL, versionHeader, nil)
@@ -165,12 +172,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	prevOutput := dynamicToMap(state.Output)
-	updateURL, d := deriveReadURL(plan.Path.ValueString(), plan.IDAttribute, prevOutput)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	// Reuse the resolved URL from state — see Read for rationale.
+	updateURL := state.ID.ValueString()
 	versionHeader := resolveVersionHeader(plan.VersionHeader, plan.Preview)
 
 	mergedBody := mergeMaps(bodyMap, sensitiveMap)
@@ -206,12 +209,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 
-	prevOutput := dynamicToMap(state.Output)
-	deleteURL, d := deriveReadURL(state.Path.ValueString(), state.IDAttribute, prevOutput)
-	resp.Diagnostics.Append(d...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	// Reuse the resolved URL from state — see Read for rationale.
+	deleteURL := state.ID.ValueString()
 	versionHeader := resolveVersionHeader(state.VersionHeader, state.Preview)
 
 	result := callAPI(ctx, r.Client, defaultDeleteMethod, deleteURL, versionHeader, nil)
@@ -226,8 +225,11 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
 	resp.Diagnostics.AddWarning(
-		"Import does not recover body / sensitive_body",
-		"After import, re-declare body and sensitive_body in HCL. The next plan will surface drift until the configured body matches what Atlas returns.",
+		"Import is best-effort — re-declare config and rotate secrets",
+		"Terraform import recovers only the resource URL into `id`. To finish: "+
+			"(1) re-declare `path`, `body`, and other config in HCL; "+
+			"(2) run `terraform plan` and adjust HCL until the diff is clean; "+
+			"(3) re-supply or rotate `sensitive_body` — Atlas does not return secrets on GET, so the previous value cannot be recovered.",
 	)
 }
 
@@ -348,11 +350,6 @@ func dynamicToMapStrict(d types.Dynamic) (map[string]any, error) {
 	return out, nil
 }
 
-func dynamicToMap(d types.Dynamic) map[string]any {
-	m, _ := dynamicToMapStrict(d)
-	return m
-}
-
 // createOnlyKeys returns the list of body keys to strip before Update.
 func createOnlyKeys(s types.Set) []string {
 	if s.IsNull() || s.IsUnknown() {
@@ -370,9 +367,7 @@ func createOnlyKeys(s types.Set) []string {
 // mergeMaps returns a deep merge: values from b override or extend a.
 func mergeMaps(a, b map[string]any) map[string]any {
 	out := make(map[string]any, len(a)+len(b))
-	for k, v := range a {
-		out[k] = v
-	}
+	maps.Copy(out, a)
 	for k, v := range b {
 		if existing, ok := out[k]; ok {
 			if em, isMap := existing.(map[string]any); isMap {
@@ -411,12 +406,14 @@ func populateAfterWrite(ctx context.Context, state *TFModel, bodyMap, sensitiveM
 	}
 	state.Body = bodyDyn
 
-	outputDyn, err := mapToDynamic(ctx, respMap, types.DynamicNull())
+	outputDyn, outputSensitiveDyn, err := projectToDynamics(ctx, respMap,
+		exportPaths(state.ResponseExportValues), exportPaths(state.ResponseExportValuesSensitive))
 	if err != nil {
 		diags.AddError("encoding output", err.Error())
 		return diags
 	}
 	state.Output = outputDyn
+	state.OutputSensitive = outputSensitiveDyn
 
 	state.ID = types.StringValue(readURL)
 	return diags
@@ -441,14 +438,52 @@ func populateAfterRead(ctx context.Context, state *TFModel, bodyMap map[string]a
 	}
 	state.Body = bodyDyn
 
-	outputDyn, err := mapToDynamic(ctx, respMap, types.DynamicNull())
+	outputDyn, outputSensitiveDyn, err := projectToDynamics(ctx, respMap,
+		exportPaths(state.ResponseExportValues), exportPaths(state.ResponseExportValuesSensitive))
 	if err != nil {
 		diags.AddError("encoding output", err.Error())
 		return diags
 	}
 	state.Output = outputDyn
+	state.OutputSensitive = outputSensitiveDyn
 
 	return diags
+}
+
+// exportPaths converts a types.List of strings into a []string. Null/unknown → nil.
+func exportPaths(l types.List) []string {
+	if l.IsNull() || l.IsUnknown() {
+		return nil
+	}
+	out := make([]string, 0, len(l.Elements()))
+	for _, e := range l.Elements() {
+		if sv, ok := e.(types.String); ok && !sv.IsNull() && !sv.IsUnknown() {
+			out = append(out, sv.ValueString())
+		}
+	}
+	return out
+}
+
+// projectToDynamics projects respMap onto the two path lists and returns
+// (output, output_sensitive) as Dynamics. Empty path list → DynamicNull.
+func projectToDynamics(ctx context.Context, respMap map[string]any, paths, sensitivePaths []string) (output, outputSensitive types.Dynamic, err error) {
+	output, err = projectOne(ctx, respMap, paths)
+	if err != nil {
+		return types.DynamicNull(), types.DynamicNull(), err
+	}
+	outputSensitive, err = projectOne(ctx, respMap, sensitivePaths)
+	if err != nil {
+		return types.DynamicNull(), types.DynamicNull(), err
+	}
+	return output, outputSensitive, nil
+}
+
+func projectOne(ctx context.Context, respMap map[string]any, paths []string) (types.Dynamic, error) {
+	if len(paths) == 0 {
+		return types.DynamicNull(), nil
+	}
+	projected := responseproject.Project(respMap, paths)
+	return mapToDynamic(ctx, projected, types.DynamicNull())
 }
 
 func mapToDynamic(ctx context.Context, m any, prior types.Dynamic) (types.Dynamic, error) {
