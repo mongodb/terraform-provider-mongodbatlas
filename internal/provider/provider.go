@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -27,6 +28,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserorgassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserteamassignment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clusteroutagesimulation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
@@ -76,6 +78,7 @@ type MongodbatlasProvider struct {
 }
 
 var _ provider.ProviderWithEphemeralResources = &MongodbatlasProvider{}
+var _ provider.ProviderWithActions = &MongodbatlasProvider{}
 
 type tfModel struct {
 	Region               types.String        `tfsdk:"region"`
@@ -227,6 +230,7 @@ func (p *MongodbatlasProvider) Configure(ctx context.Context, req provider.Confi
 	}
 	resp.DataSourceData = client
 	resp.ResourceData = client
+	resp.ActionData = client
 
 	resp.EphemeralResourceData = &config.EphemeralResourceData{
 		ClientID:         c.ClientID,
@@ -388,6 +392,13 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		analyticsResources = append(analyticsResources, config.AnalyticsResourceFunc(resourceFunc()))
 	}
 	return analyticsResources
+}
+
+func (p *MongodbatlasProvider) Actions(context.Context) []func() action.Action {
+	return []func() action.Action{
+		clusteroutagesimulation.Action,
+		clusteroutagesimulation.StopAction,
+	}
 }
 
 func (p *MongodbatlasProvider) EphemeralResources(context.Context) []func() ephemeral.EphemeralResource {
