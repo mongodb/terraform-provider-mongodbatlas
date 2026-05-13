@@ -118,7 +118,8 @@ func NewTfDatabaseUserModel(ctx context.Context, inModel *TfDatabaseUserModel, d
 	}
 	// password_wo is write-only: never stored in state, always null in read operations
 	outModel.PasswordWo = types.StringNull()
-	// password_wo_version is stored in state, preserved from prior state
+	// password_wo_version is stored in state. On Create/Update inModel is the plan (user-specified value);
+	// on Read inModel is the prior state. In both cases we carry forward the value the user set.
 	if inModel != nil {
 		outModel.PasswordWoVersion = inModel.PasswordWoVersion
 	}
