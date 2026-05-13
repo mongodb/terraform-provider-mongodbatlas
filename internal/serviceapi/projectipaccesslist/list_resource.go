@@ -3,6 +3,7 @@ package projectipaccesslist
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/list"
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 )
@@ -97,25 +99,9 @@ func (r *IPAccessListListResource) fetchAllEntries(ctx context.Context, projectI
 }
 
 func FetchAllEntries(ctx context.Context, api admin.ProjectIPAccessListApi, projectID string) ([]admin.NetworkPermissionEntry, error) {
-	var all []admin.NetworkPermissionEntry
-	pageNum := 1
-	for {
-		result, _, err := api.
-			ListAccessListEntries(ctx, projectID).
-			ItemsPerPage(500).
-			PageNum(pageNum).
-			Execute()
-		if err != nil {
-			return nil, err
-		}
-		entries := result.GetResults()
-		all = append(all, entries...)
-		if len(entries) < 500 {
-			break
-		}
-		pageNum++
-	}
-	return all, nil
+	return dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.NetworkPermissionEntry], *http.Response, error) {
+		return api.ListAccessListEntries(ctx, projectID).ItemsPerPage(500).PageNum(pageNum).Execute()
+	})
 }
 
 func AccessListEntryValue(entry *admin.NetworkPermissionEntry) string {

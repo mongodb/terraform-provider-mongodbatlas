@@ -50,9 +50,9 @@ func TestFetchAllEntries_Pagination(t *testing.T) {
 	api.EXPECT().ListAccessListEntries(mock.Anything, testProjectID).
 		Return(admin.ListAccessListEntriesApiRequest{ApiService: api}).Times(2)
 	api.EXPECT().ListAccessListEntriesExecute(mock.Anything).
-		Return(&admin.PaginatedNetworkAccess{Results: page1}, &http.Response{StatusCode: http.StatusOK}, nil).Once()
+		Return(&admin.PaginatedNetworkAccess{Results: page1, TotalCount: new(501)}, &http.Response{StatusCode: http.StatusOK}, nil).Once()
 	api.EXPECT().ListAccessListEntriesExecute(mock.Anything).
-		Return(&admin.PaginatedNetworkAccess{Results: page2}, &http.Response{StatusCode: http.StatusOK}, nil).Once()
+		Return(&admin.PaginatedNetworkAccess{Results: page2, TotalCount: new(501)}, &http.Response{StatusCode: http.StatusOK}, nil).Once()
 
 	result, err := projectipaccesslist.FetchAllEntries(context.Background(), api, testProjectID)
 	require.NoError(t, err)
@@ -96,6 +96,11 @@ func TestAccessListEntryValue(t *testing.T) {
 			name:     "ip address takes precedence over cidr",
 			entry:    admin.NetworkPermissionEntry{IpAddress: new("1.2.3.4"), CidrBlock: new("10.0.0.0/8")},
 			expected: "1.2.3.4",
+		},
+		{
+			name:     "all fields empty",
+			entry:    admin.NetworkPermissionEntry{},
+			expected: "",
 		},
 	}
 

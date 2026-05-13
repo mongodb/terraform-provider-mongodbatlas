@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccQueryProjectIPAccessList_basic(t *testing.T) {
+func TestAccProjectIPAccessListQuery_basic(t *testing.T) {
 	projectID := acc.ProjectIDExecution(t)
 	ipAddress := acc.RandomIP(179, 154, 226)
 	listAddress := "mongodbatlas_project_ip_access_list.test"
