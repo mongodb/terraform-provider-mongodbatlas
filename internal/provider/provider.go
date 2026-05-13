@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -76,6 +77,7 @@ type MongodbatlasProvider struct {
 }
 
 var _ provider.ProviderWithEphemeralResources = &MongodbatlasProvider{}
+var _ provider.ProviderWithListResources = &MongodbatlasProvider{}
 
 type tfModel struct {
 	Region               types.String        `tfsdk:"region"`
@@ -227,6 +229,7 @@ func (p *MongodbatlasProvider) Configure(ctx context.Context, req provider.Confi
 	}
 	resp.DataSourceData = client
 	resp.ResourceData = client
+	resp.ListResourceData = client
 
 	resp.EphemeralResourceData = &config.EphemeralResourceData{
 		ClientID:         c.ClientID,
@@ -388,6 +391,12 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		analyticsResources = append(analyticsResources, config.AnalyticsResourceFunc(resourceFunc()))
 	}
 	return analyticsResources
+}
+
+func (p *MongodbatlasProvider) ListResources(context.Context) []func() list.ListResource {
+	return []func() list.ListResource{
+		autogenprojectipaccesslist.ListResource,
+	}
 }
 
 func (p *MongodbatlasProvider) EphemeralResources(context.Context) []func() ephemeral.EphemeralResource {
