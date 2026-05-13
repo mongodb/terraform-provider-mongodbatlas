@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dynamicjson"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dynamicreshape"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/responseproject"
@@ -40,6 +41,7 @@ type rs struct {
 
 func (r *rs) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (r *rs) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {

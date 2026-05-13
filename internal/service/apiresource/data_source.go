@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/responseproject"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -76,6 +77,7 @@ func (d *ds) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasou
 			},
 		},
 	}
+	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (d *ds) ValidateConfig(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
