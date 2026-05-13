@@ -35,7 +35,7 @@ var (
 		ImportStateIdFunc:       importStateIDFunc(resourceName),
 		ImportState:             true,
 		ImportStateVerify:       true,
-		ImportStateVerifyIgnore: []string{"password"},
+		ImportStateVerifyIgnore: []string{"password", "password_wo_version"},
 	}
 )
 

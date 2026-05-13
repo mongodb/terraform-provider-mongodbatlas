@@ -275,7 +275,9 @@ func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	resp.Diagnostics.AddWarning("If the password value will be managed externally it is advised to remove the attribute", "More details can be found in resource documentation under the 'password' attribute")
+	if !plan.Password.IsNull() {
+		resp.Diagnostics.AddWarning("If the password value will be managed externally it is advised to remove the attribute", "More details can be found in resource documentation under the 'password' attribute")
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &dbUserModel)...)
 	if resp.Diagnostics.HasError() {
@@ -358,7 +360,7 @@ func (r *databaseUserRS) Update(ctx context.Context, req resource.UpdateRequest,
 		plan.AuthDatabaseName.ValueString(),
 		plan.Username.ValueString(), dbUserReq).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("error during database user creation", err.Error())
+		resp.Diagnostics.AddError("error during database user update", err.Error())
 		return
 	}
 
