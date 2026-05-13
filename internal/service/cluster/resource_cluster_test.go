@@ -340,7 +340,7 @@ func TestAccCluster_basicAzure(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAzure(projectID, clusterName, "true", "M30", true),
+				Config: configAzure(projectID, clusterName, "true", "M10", true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -351,7 +351,7 @@ func TestAccCluster_basicAzure(t *testing.T) {
 				),
 			},
 			{
-				Config: configAzure(projectID, clusterName, "false", "M30", true),
+				Config: configAzure(projectID, clusterName, "false", "M10", true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -970,13 +970,13 @@ func TestAccCluster_withAutoScalingAWS(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 
-		instanceSize = "M30"
+		instanceSize = "M10"
 		minSize      = ""
-		maxSize      = "M60"
+		maxSize      = "M20"
 
-		instanceSizeUpdated = "M60"
-		minSizeUpdated      = "M20"
-		maxSizeUpdated      = "M80"
+		instanceSizeUpdated = "M20"
+		minSizeUpdated      = "M10"
+		maxSizeUpdated      = "M30"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1449,7 +1449,7 @@ func configAWS(projectID, name string, backupEnabled, autoDiskGBEnabled bool) st
 			retain_backups_enabled       = true
 			auto_scaling_disk_gb_enabled = %[4]t
 			provider_name               = "AWS"
-			provider_instance_size_name = "M30"
+			provider_instance_size_name = "M10"
 		}
 	`, projectID, name, backupEnabled, autoDiskGBEnabled)
 }
@@ -1700,7 +1700,7 @@ func configGCP(projectID, name, backupEnabled string) string {
 
 			// Provider Settings "block"
 			provider_name               = "GCP"
-			provider_instance_size_name = "M30"
+			provider_instance_size_name = "M10"
 		}
 	`, projectID, name, backupEnabled)
 }
@@ -1728,7 +1728,7 @@ func configGCPWithBiConnector(projectID, name, backupEnabled string, biConnector
 
 			// Provider Settings "block"
 			provider_name               = "GCP"
-			provider_instance_size_name = "M30"
+			provider_instance_size_name = "M10"
 			bi_connector_config {
 				enabled = %[4]t
 			}
@@ -2369,7 +2369,7 @@ resource "mongodbatlas_cluster" "test" {
   // Provider Settings "block"
 
   provider_name               = "AWS"
-  provider_instance_size_name = "M30"
+  provider_instance_size_name = "M10"
 }
 	`, projectID, name, backupEnabled, paused)
 }
