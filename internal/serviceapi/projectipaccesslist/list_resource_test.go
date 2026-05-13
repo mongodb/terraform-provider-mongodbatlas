@@ -47,16 +47,17 @@ func TestFetchAllEntries_Pagination(t *testing.T) {
 		{IpAddress: new("5.6.7.8")},
 	}
 
+	totalCount := len(page1) + len(page2)
 	api.EXPECT().ListAccessListEntries(mock.Anything, testProjectID).
 		Return(admin.ListAccessListEntriesApiRequest{ApiService: api}).Times(2)
 	api.EXPECT().ListAccessListEntriesExecute(mock.Anything).
-		Return(&admin.PaginatedNetworkAccess{Results: page1, TotalCount: new(501)}, &http.Response{StatusCode: http.StatusOK}, nil).Once()
+		Return(&admin.PaginatedNetworkAccess{Results: page1, TotalCount: new(totalCount)}, &http.Response{StatusCode: http.StatusOK}, nil).Once()
 	api.EXPECT().ListAccessListEntriesExecute(mock.Anything).
-		Return(&admin.PaginatedNetworkAccess{Results: page2, TotalCount: new(501)}, &http.Response{StatusCode: http.StatusOK}, nil).Once()
+		Return(&admin.PaginatedNetworkAccess{Results: page2, TotalCount: new(totalCount)}, &http.Response{StatusCode: http.StatusOK}, nil).Once()
 
 	result, err := projectipaccesslist.FetchAllEntries(context.Background(), api, testProjectID)
 	require.NoError(t, err)
-	assert.Len(t, result, 501)
+	assert.Len(t, result, totalCount)
 }
 
 func TestFetchAllEntries_APIError(t *testing.T) {
