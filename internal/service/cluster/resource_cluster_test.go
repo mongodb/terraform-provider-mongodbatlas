@@ -1658,7 +1658,7 @@ func configAzure(projectID, name, backupEnabled, instanceSizeName string, includ
 		    replication_specs {
 			  num_shards = 1
 			  regions_config {
-			     region_name     = "US_EAST_2"
+			     region_name     = "US_EAST"
 			     electable_nodes = 3
 			     priority        = 7
                  read_only_nodes = 0
@@ -1672,7 +1672,7 @@ func configAzure(projectID, name, backupEnabled, instanceSizeName string, includ
 			provider_name               = "AZURE"
 			%[4]s
 			provider_instance_size_name = %[5]q
-			provider_region_name        = "US_EAST_2"
+			provider_region_name        = "US_EAST"
 		}
 	`, projectID, name, backupEnabled, diskType, instanceSizeName)
 }
