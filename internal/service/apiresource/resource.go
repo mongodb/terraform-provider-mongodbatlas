@@ -365,6 +365,13 @@ func createOnlyKeys(s types.Set) []string {
 }
 
 // mergeMaps returns a deep merge: values from b override or extend a.
+//
+// Note: deep merge is only performed for nested objects (map[string]any). If
+// the same key holds a list in both a and b, b's list replaces a's wholesale;
+// per-element merging by index or by stable ID key is not attempted. Callers
+// must supply any list-valued field entirely in either body or sensitive_body
+// — splitting a list across the two is not supported. (Same limitation as
+// azapi's body/sensitive_body merge.)
 func mergeMaps(a, b map[string]any) map[string]any {
 	out := make(map[string]any, len(a)+len(b))
 	maps.Copy(out, a)

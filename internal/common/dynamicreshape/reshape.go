@@ -2,10 +2,12 @@
 // and produces a state body that mirrors the configured shape while taking
 // values from the response.
 //
-// Keys present in the configured body but absent from the response become
-// null (real drift). Keys present only in the response are dropped (noise
-// suppressed). Paths listed in SensitivePaths are excluded entirely so
-// write-only secrets never leak into state.
+// Keys configured but absent from the response are preserved at their
+// configured value (handles write-only request fields the API does not echo
+// back — overwriting with null would surface as phantom drift on every
+// refresh). Keys present only in the response are dropped (noise suppressed).
+// Paths listed in SensitivePaths are excluded entirely so write-only secrets
+// never leak into state.
 package dynamicreshape
 
 import (
@@ -92,10 +94,7 @@ func reshapeList(configured []any, response any, opts Options, path string) any 
 		copy(out, configured)
 		return out
 	}
-	n := len(configured)
-	if len(resp) < n {
-		n = len(resp)
-	}
+	n := min(len(resp), len(configured))
 	out := make([]any, len(configured))
 	for i, cv := range configured {
 		var rv any
