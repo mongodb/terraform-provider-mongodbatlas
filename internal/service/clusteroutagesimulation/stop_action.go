@@ -65,6 +65,10 @@ func (a *StopOutageSimulationAction) Configure(_ context.Context, req action.Con
 }
 
 func (a *StopOutageSimulationAction) Invoke(ctx context.Context, req action.InvokeRequest, resp *action.InvokeResponse) {
+	if a.client == nil {
+		resp.Diagnostics.AddError("Provider not configured", "The provider has not been configured. Ensure the provider block is set up correctly.")
+		return
+	}
 	var model stopOutageSimulationActionModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &model)...)
 	if resp.Diagnostics.HasError() {

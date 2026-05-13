@@ -95,7 +95,7 @@ func cleanupOutageSimulation(ctx context.Context, api admin.ClusterOutageSimulat
 		Pending:    []string{"START_REQUESTED", "STARTING"},
 		Target:     []string{"SIMULATING", "FAILED", "DELETED"},
 		Refresh:    outageAPIRefreshFunc(ctx, clusterName, projectID, api),
-		Timeout:    20 * time.Minute,
+		Timeout:    waitTimeout,
 		MinTimeout: timeout,
 		Delay:      timeout,
 	}

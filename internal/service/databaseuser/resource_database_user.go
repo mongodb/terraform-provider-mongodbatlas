@@ -242,7 +242,8 @@ func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	// Use configModel's write-only password if provided, otherwise use plan
+	// password_wo is nullified by the framework in the plan (write-only semantics), so read it from
+	// config instead. password_wo_version is non-write-only and remains in the plan unchanged.
 	if !configModel.PasswordWo.IsNull() {
 		plan.PasswordWo = configModel.PasswordWo
 		// Validate: password_wo requires password_wo_version to be set for rotation detection
@@ -275,7 +276,9 @@ func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	resp.Diagnostics.AddWarning("If the password value will be managed externally it is advised to remove the attribute", "More details can be found in resource documentation under the 'password' attribute")
+	if !plan.Password.IsNull() {
+		resp.Diagnostics.AddWarning("If the password value will be managed externally it is advised to remove the attribute", "More details can be found in resource documentation under the 'password' attribute")
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &dbUserModel)...)
 	if resp.Diagnostics.HasError() {
