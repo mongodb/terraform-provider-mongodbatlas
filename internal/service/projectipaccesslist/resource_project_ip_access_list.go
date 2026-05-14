@@ -243,7 +243,7 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 func (r *projectIPAccessListRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	var projectID, entry string
 
-	if req.Identity != nil {
+	if req.Identity != nil && !req.Identity.Raw.IsNull() {
 		var identity projectIPAccessListIdentityModel
 		resp.Diagnostics.Append(req.Identity.Get(ctx, &identity)...)
 		if resp.Diagnostics.HasError() {
