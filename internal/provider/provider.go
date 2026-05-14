@@ -363,7 +363,6 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		encryptionatrest.Resource,
 		databaseuser.Resource,
 		alertconfiguration.Resource,
-		projectipaccesslist.Resource,
 		searchdeployment.Resource,
 		pushbasedlogexport.Resource,
 		streaminstance.Resource,
@@ -394,6 +393,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 	for _, resourceFunc := range resources {
 		analyticsResources = append(analyticsResources, config.AnalyticsResourceFunc(resourceFunc()))
 	}
+	analyticsResources = append(analyticsResources, config.AnalyticsResourceFuncWithIdentity(projectipaccesslist.Resource()))
 	return analyticsResources
 }
 

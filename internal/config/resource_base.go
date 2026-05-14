@@ -153,14 +153,6 @@ func (r *RSCommon) UpgradeState(ctx context.Context) map[int64]resource.StateUpg
 	return resourceWithUpgradeState.UpgradeState(ctx)
 }
 
-func (r *RSCommon) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
-	resourceWithIdentity, ok := r.ImplementedResource.(resource.ResourceWithIdentity)
-	if !ok {
-		return
-	}
-	resourceWithIdentity.IdentitySchema(ctx, req, resp)
-}
-
 // Extra methods not found on resource.Resource
 func (r *RSCommon) GetName() string {
 	return r.ResourceName
@@ -168,4 +160,37 @@ func (r *RSCommon) GetName() string {
 
 func (r *RSCommon) SetClient(client *MongoDBClient) {
 	r.Client = client
+}
+
+// rsCommonWithIdentity extends RSCommon for resources that implement resource.ResourceWithIdentity.
+// Only use this via AnalyticsResourceFuncWithIdentity — using RSCommon directly would make the
+// framework treat every wrapped resource as having identity, breaking resources that don't set it.
+type rsCommonWithIdentity struct {
+	RSCommon
+}
+
+func (r *rsCommonWithIdentity) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resourceWithIdentity, ok := r.ImplementedResource.(resource.ResourceWithIdentity)
+	if !ok {
+		return
+	}
+	resourceWithIdentity.IdentitySchema(ctx, req, resp)
+}
+
+// AnalyticsResourceFuncWithIdentity is like AnalyticsResourceFunc but for resources that implement
+// resource.ResourceWithIdentity. Using this instead of AnalyticsResourceFunc ensures the identity
+// schema is visible to the framework without affecting other resources.
+func AnalyticsResourceFuncWithIdentity(iResource resource.Resource) func() resource.Resource {
+	commonResource, ok := iResource.(ImplementedResource)
+	if !ok {
+		panic(fmt.Sprintf("resource %T didn't comply with the ImplementedResource interface", iResource))
+	}
+	return func() resource.Resource {
+		return &rsCommonWithIdentity{
+			RSCommon: RSCommon{
+				ResourceName:        commonResource.GetName(),
+				ImplementedResource: commonResource,
+			},
+		}
+	}
 }
