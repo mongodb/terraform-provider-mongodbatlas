@@ -85,8 +85,8 @@ func TestAccPrivateLinkEndpoint_basicGCP(t *testing.T) {
 		providerName = constant.GCP
 		withPluralDS = true
 	)
-
-	resource.ParallelTest(t, resource.TestCase{
+	// Run serially to avoid GCP project conflicts.
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -126,11 +126,13 @@ func TestAccPrivateLinkEndpoint_deleteOnCreateTimeout(t *testing.T) {
 }
 
 func TestAccPrivateLinkEndpoint_gcpPortMappingEnabled(t *testing.T) {
-	resource.ParallelTest(t, *basicGCPTestCaseWithPortMapping(t, true))
+	// Run serially to avoid GCP project conflicts.
+	resource.Test(t, *basicGCPTestCaseWithPortMapping(t, true))
 }
 
 func TestAccPrivateLinkEndpoint_gcpPortMappingDisabled(t *testing.T) {
-	resource.ParallelTest(t, *basicGCPTestCaseWithPortMapping(t, false))
+	// Run serially to avoid GCP project conflicts.
+	resource.Test(t, *basicGCPTestCaseWithPortMapping(t, false))
 }
 
 func basicGCPTestCaseWithPortMapping(tb testing.TB, portMappingEnabled bool) *resource.TestCase {

@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* resource/mongodbatlas_flex_cluster: Fixes deletion waits to improve reliability when deleting flex clusters ([#4431](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4431))
+
 ## 2.12.0 (May 06, 2026)
 
 ENHANCEMENTS:

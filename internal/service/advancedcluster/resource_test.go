@@ -1981,7 +1981,7 @@ func configShardedMultiCloud(t *testing.T, projectID, name string, numShards int
 			  }
 			  priority      = 6
 			  provider_name = "AZURE"
-			  region_name   = "US_EAST_2"
+			  region_name   = "US_EAST"
 			}]
 		  },`, analyticsSize)
 	}
