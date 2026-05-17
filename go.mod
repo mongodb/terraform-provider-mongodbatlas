@@ -22,7 +22,7 @@ require (
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/mongodb-forks/digest v1.1.0
 	github.com/mongodb/atlas-sdk-go v1.0.1-0.20260420091344-79682715fd24
-	github.com/pb33f/libopenapi v0.36.3
+	github.com/pb33f/libopenapi v0.36.4
 	github.com/sebdah/goldie/v2 v2.8.0
 	github.com/spf13/cast v1.10.0
 	github.com/stretchr/testify v1.11.1
@@ -130,7 +130,7 @@ require (
 	golang.org/x/tools v0.45.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260226221140-a57be14db171 // indirect
-	google.golang.org/grpc v1.81.0 // indirect
+	google.golang.org/grpc v1.81.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
