@@ -1,56 +1,16 @@
 package advancedcluster_test
 
 import (
-	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
-)
-
-var (
-	autoScalingAttrTypes = map[string]attr.Type{
-		"compute_enabled":            types.BoolType,
-		"compute_max_instance_size":  types.StringType,
-		"compute_min_instance_size":  types.StringType,
-		"compute_scale_down_enabled": types.BoolType,
-		"disk_gb_enabled":            types.BoolType,
-	}
-	specsAttrTypes = map[string]attr.Type{
-		"disk_iops":       types.Int64Type,
-		"disk_size_gb":    types.Float64Type,
-		"ebs_volume_type": types.StringType,
-		"instance_size":   types.StringType,
-		"node_count":      types.Int64Type,
-	}
-	regionConfigAttrTypes = map[string]attr.Type{
-		"analytics_auto_scaling": types.ObjectType{AttrTypes: autoScalingAttrTypes},
-		"analytics_specs":        types.ObjectType{AttrTypes: specsAttrTypes},
-		"auto_scaling":           types.ObjectType{AttrTypes: autoScalingAttrTypes},
-		"backing_provider_name":  types.StringType,
-		"electable_specs":        types.ObjectType{AttrTypes: specsAttrTypes},
-		"priority":               types.Int64Type,
-		"provider_name":          types.StringType,
-		"read_only_specs":        types.ObjectType{AttrTypes: specsAttrTypes},
-		"region_name":            types.StringType,
-	}
-	replicationSpecAttrTypes = map[string]attr.Type{
-		"container_id":   types.MapType{ElemType: types.StringType},
-		"external_id":    types.StringType,
-		"region_configs": types.ListType{ElemType: types.ObjectType{AttrTypes: regionConfigAttrTypes}},
-		"zone_id":        types.StringType,
-		"zone_name":      types.StringType,
-	}
 )
 
 var (
@@ -124,197 +84,91 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 	}
 }
 
-type regionConfigTestParams struct {
-	electableInstanceSize   string
-	analyticsInstanceSize   string
-	readOnlyInstanceSize    string
-	diskSizeGb              float64
-	analyticsDiskSizeGb     float64
-	readOnlyDiskSizeGb      float64
-	diskIops                int64
-	electableNodeCount      int64
-	computeEnabled          bool
-	analyticsComputeEnabled bool
-	diskGBEnabled           bool
-	analyticsDiskGBEnabled  bool
-}
-
-func buildAutoScaling(t *testing.T, computeEnabled, diskGBEnabled bool) types.Object {
-	t.Helper()
-	obj, diags := types.ObjectValueFrom(context.Background(), autoScalingAttrTypes, advancedcluster.TFAutoScalingModel{
-		ComputeEnabled:          types.BoolValue(computeEnabled),
-		DiskGBEnabled:           types.BoolValue(diskGBEnabled),
-		ComputeScaleDownEnabled: types.BoolValue(false),
-		ComputeMinInstanceSize:  types.StringValue("M10"),
-		ComputeMaxInstanceSize:  types.StringValue("M40"),
-	})
-	require.Empty(t, diags)
-	return obj
-}
-
-func buildSpecs(t *testing.T, instanceSize string, nodeCount int64, diskSizeGb float64, diskIops int64) types.Object {
-	t.Helper()
-	if instanceSize == "" {
-		return types.ObjectNull(specsAttrTypes)
-	}
-	obj, diags := types.ObjectValueFrom(context.Background(), specsAttrTypes, advancedcluster.TFSpecsModel{
-		InstanceSize:  types.StringValue(instanceSize),
-		NodeCount:     types.Int64Value(nodeCount),
-		DiskSizeGb:    types.Float64Value(diskSizeGb),
-		DiskIops:      types.Int64Value(diskIops),
-		EbsVolumeType: types.StringNull(),
-	})
-	require.Empty(t, diags)
-	return obj
-}
-
-func buildRegionConfig(t *testing.T, rcParams *regionConfigTestParams) advancedcluster.TFRegionConfigsModel {
-	t.Helper()
-	analyticsDiskSizeGb := rcParams.diskSizeGb
-	if rcParams.analyticsDiskSizeGb != 0 {
-		analyticsDiskSizeGb = rcParams.analyticsDiskSizeGb
-	}
-	readOnlyDiskSizeGb := rcParams.diskSizeGb
-	if rcParams.readOnlyDiskSizeGb != 0 {
-		readOnlyDiskSizeGb = rcParams.readOnlyDiskSizeGb
-	}
-	return advancedcluster.TFRegionConfigsModel{
-		AutoScaling:          buildAutoScaling(t, rcParams.computeEnabled, rcParams.diskGBEnabled),
-		AnalyticsAutoScaling: buildAutoScaling(t, rcParams.analyticsComputeEnabled, rcParams.analyticsDiskGBEnabled),
-		ElectableSpecs:       buildSpecs(t, rcParams.electableInstanceSize, max(rcParams.electableNodeCount, 3), rcParams.diskSizeGb, rcParams.diskIops),
-		AnalyticsSpecs:       buildSpecs(t, rcParams.analyticsInstanceSize, 1, analyticsDiskSizeGb, rcParams.diskIops),
-		ReadOnlySpecs:        buildSpecs(t, rcParams.readOnlyInstanceSize, 2, readOnlyDiskSizeGb, rcParams.diskIops),
-		ProviderName:         types.StringValue("AWS"),
-		RegionName:           types.StringValue("US_EAST_1"),
-		Priority:             types.Int64Value(7),
-		BackingProviderName:  types.StringNull(),
-	}
-}
-
-func buildRepSpec(t *testing.T, regionConfigs ...advancedcluster.TFRegionConfigsModel) advancedcluster.TFReplicationSpecsModel {
-	t.Helper()
-	rcList, diags := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: regionConfigAttrTypes}, regionConfigs)
-	require.Empty(t, diags)
-	return advancedcluster.TFReplicationSpecsModel{
-		RegionConfigs: rcList,
-		ContainerId:   types.MapNull(types.StringType),
-		ExternalId:    types.StringNull(),
-		ZoneId:        types.StringNull(),
-		ZoneName:      types.StringNull(),
-	}
-}
-
-func buildModel(t *testing.T, useEffectiveFields bool, repSpecs ...advancedcluster.TFReplicationSpecsModel) *advancedcluster.TFModel {
-	t.Helper()
-	repSpecsList, diags := types.ListValueFrom(context.Background(), types.ObjectType{AttrTypes: replicationSpecAttrTypes}, repSpecs)
-	require.Empty(t, diags)
-	return &advancedcluster.TFModel{
-		UseEffectiveFields: types.BoolValue(useEffectiveFields),
-		ReplicationSpecs:   repSpecsList,
-		Labels:             types.MapNull(types.StringType),
-		Tags:               types.MapNull(types.StringType),
-	}
-}
-
-// buildModelForWarnTest builds a TFModel with a single replication spec containing a single region config.
-func buildModelForWarnTest(t *testing.T, useEffectiveFields bool, rcParams *regionConfigTestParams) *advancedcluster.TFModel {
-	t.Helper()
-	return buildModel(t, useEffectiveFields, buildRepSpec(t, buildRegionConfig(t, rcParams)))
-}
-
 func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
+	const rc00 = "replication_specs[0].region_configs[0]"
+
 	testCases := map[string]struct {
-		stateRC       regionConfigTestParams
-		planRC        regionConfigTestParams
-		expectWarning bool
+		attributeChanges []string
+		configs          []advancedcluster.RegionAutoScaling
+		expectWarning    bool
 	}{
 		"warns when compute auto-scaling on and electable instance_size changed": {
-			stateRC:       regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
-			planRC:        regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"},
-			expectWarning: true,
+			attributeChanges: []string{rc00 + ".electable_specs.instance_size"},
+			configs:          []advancedcluster.RegionAutoScaling{{RCPrefix: rc00, ComputeEnabled: true}},
+			expectWarning:    true,
 		},
-		"warns when disk auto-scaling on and disk fields changed": {
-			stateRC:       regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", diskSizeGb: 10, diskIops: 3000},
-			planRC:        regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", diskSizeGb: 20, diskIops: 4000},
-			expectWarning: true,
-		},
-		"warns when analytics compute auto-scaling on and analytics instance_size changed": {
-			stateRC:       regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10"},
-			planRC:        regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M20"},
-			expectWarning: true,
-		},
-		"no warning when auto-scaling is disabled": {
-			stateRC:       regionConfigTestParams{electableInstanceSize: "M10"},
-			planRC:        regionConfigTestParams{electableInstanceSize: "M20"},
-			expectWarning: false,
-		},
-		"no warning when auto-scaling is on but no managed spec fields changed": {
-			stateRC:       regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
-			planRC:        regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
-			expectWarning: false,
-		},
-		"no warning when auto-scaling is on but only node_count changed": {
-			stateRC:       regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", electableNodeCount: 3},
-			planRC:        regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", electableNodeCount: 5},
-			expectWarning: false,
-		},
-		"no warning when only analytics compute auto-scaling on but electable instance_size changed": {
-			stateRC:       regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10"},
-			planRC:        regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M20"},
-			expectWarning: false,
-		},
-		"no warning when analytics disk auto-scaling on but electable disk_size_gb changed": {
-			stateRC:       regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10},
-			planRC:        regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 20},
-			expectWarning: false,
-		},
-		"no warning when only electable disk auto-scaling on but analytics disk_size_gb changed": {
-			stateRC:       regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10, analyticsDiskSizeGb: 10},
-			planRC:        regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10, analyticsDiskSizeGb: 20},
-			expectWarning: false,
-		},
-		"no warning when only analytics disk auto-scaling on but electable disk_size_gb changed": {
-			stateRC:       regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 10, analyticsDiskSizeGb: 10},
-			planRC:        regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", diskSizeGb: 20, analyticsDiskSizeGb: 10},
-			expectWarning: false,
+		"warns when disk auto-scaling on and electable disk fields changed": {
+			attributeChanges: []string{rc00 + ".electable_specs.disk_size_gb", rc00 + ".electable_specs.disk_iops"},
+			configs:          []advancedcluster.RegionAutoScaling{{RCPrefix: rc00, DiskGBEnabled: true}},
+			expectWarning:    true,
 		},
 		"warns when compute auto-scaling on and electable disk_size_gb changed": {
-			stateRC:       regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", diskSizeGb: 10},
-			planRC:        regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", diskSizeGb: 20},
-			expectWarning: true,
-		},
-		"no warning when analytics compute auto-scaling on and analytics disk_size_gb changed": {
-			stateRC:       regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", analyticsDiskSizeGb: 10},
-			planRC:        regionConfigTestParams{analyticsComputeEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10", analyticsDiskSizeGb: 20},
-			expectWarning: false,
+			attributeChanges: []string{rc00 + ".electable_specs.disk_size_gb"},
+			configs:          []advancedcluster.RegionAutoScaling{{RCPrefix: rc00, ComputeEnabled: true}},
+			expectWarning:    true,
 		},
 		"warns when disk auto-scaling on and electable instance_size changed": {
-			stateRC:       regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M10", diskSizeGb: 10},
-			planRC:        regionConfigTestParams{diskGBEnabled: true, electableInstanceSize: "M20", diskSizeGb: 10},
-			expectWarning: true,
+			attributeChanges: []string{rc00 + ".electable_specs.instance_size"},
+			configs:          []advancedcluster.RegionAutoScaling{{RCPrefix: rc00, DiskGBEnabled: true}},
+			expectWarning:    true,
 		},
 		"warns when compute auto-scaling on and read_only instance_size changed": {
-			stateRC:       regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", readOnlyInstanceSize: "M10"},
-			planRC:        regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", readOnlyInstanceSize: "M20"},
-			expectWarning: true,
+			attributeChanges: []string{rc00 + ".read_only_specs.instance_size"},
+			configs:          []advancedcluster.RegionAutoScaling{{RCPrefix: rc00, ComputeEnabled: true}},
+			expectWarning:    true,
 		},
-		"no warning when only analytics disk auto-scaling on and analytics instance_size changed": {
-			stateRC:       regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10"},
-			planRC:        regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M20"},
-			expectWarning: false,
+		"warns when analytics compute auto-scaling on and analytics instance_size changed": {
+			attributeChanges: []string{rc00 + ".analytics_specs.instance_size"},
+			configs:          []advancedcluster.RegionAutoScaling{{RCPrefix: rc00, AnalyticsComputeEnabled: true}},
+			expectWarning:    true,
+		},
+		"no warning when auto-scaling is disabled": {
+			attributeChanges: []string{rc00 + ".electable_specs.instance_size"},
+			configs:          []advancedcluster.RegionAutoScaling{{RCPrefix: rc00}},
+			expectWarning:    false,
+		},
+		"no warning when auto-scaling is on but no managed spec fields changed": {
+			attributeChanges: nil,
+			configs:          []advancedcluster.RegionAutoScaling{{RCPrefix: rc00, ComputeEnabled: true}},
+			expectWarning:    false,
+		},
+		"no warning when auto-scaling is on but only node_count changed": {
+			attributeChanges: []string{rc00 + ".electable_specs.node_count"},
+			configs:          []advancedcluster.RegionAutoScaling{{RCPrefix: rc00, ComputeEnabled: true}},
+			expectWarning:    false,
+		},
+		"no warning when only analytics compute auto-scaling on but electable instance_size changed": {
+			attributeChanges: []string{rc00 + ".electable_specs.instance_size"},
+			configs:          []advancedcluster.RegionAutoScaling{{RCPrefix: rc00, AnalyticsComputeEnabled: true}},
+			expectWarning:    false,
+		},
+		"no warning when only electable auto-scaling on but analytics instance_size changed": {
+			attributeChanges: []string{rc00 + ".analytics_specs.instance_size"},
+			configs:          []advancedcluster.RegionAutoScaling{{RCPrefix: rc00, ComputeEnabled: true}},
+			expectWarning:    false,
+		},
+		"no warning when only electable auto-scaling on but analytics disk_size_gb changed": {
+			attributeChanges: []string{rc00 + ".analytics_specs.disk_size_gb"},
+			configs:          []advancedcluster.RegionAutoScaling{{RCPrefix: rc00, DiskGBEnabled: true}},
+			expectWarning:    false,
+		},
+		"no warning when analytics compute auto-scaling on and analytics disk_size_gb changed": {
+			attributeChanges: []string{rc00 + ".analytics_specs.disk_size_gb"},
+			configs:          []advancedcluster.RegionAutoScaling{{RCPrefix: rc00, AnalyticsComputeEnabled: true}},
+			expectWarning:    false,
+		},
+		"no warning when analytics instance_size changed without analytics compute auto-scaling": {
+			// Confirmed via repro: analytics disk_gb_enabled alone does not cause Atlas to ignore instance_size.
+			attributeChanges: []string{rc00 + ".analytics_specs.instance_size"},
+			configs:          []advancedcluster.RegionAutoScaling{{RCPrefix: rc00}},
+			expectWarning:    false,
 		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			ctx := context.Background()
-			state := buildModelForWarnTest(t, true, &tc.stateRC)
-			plan := buildModelForWarnTest(t, true, &tc.planRC)
-			attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 			var diags diag.Diagnostics
-
-			advancedcluster.WarnIgnoredSpecChange(ctx, &diags, attributeChanges, plan)
-
+			advancedcluster.WarnIgnoredSpecChange(&diags, true, tc.attributeChanges, tc.configs)
 			assert.False(t, diags.HasError())
 			if tc.expectWarning {
 				assert.Equal(t, 1, diags.WarningsCount())
@@ -326,39 +180,9 @@ func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
 	}
 
 	t.Run("no warning when use_effective_fields is false", func(t *testing.T) {
-		ctx := context.Background()
-		state := buildModelForWarnTest(t, false, &regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"})
-		plan := buildModelForWarnTest(t, false, &regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"})
-		attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
 		var diags diag.Diagnostics
-		advancedcluster.WarnIgnoredSpecChange(ctx, &diags, attributeChanges, plan)
-		assert.False(t, diags.HasError())
-		assert.Equal(t, 0, diags.WarningsCount())
-	})
-
-	// List length changes: new entries added in plan have no state counterpart, so attributeChanges marks them as added and skips them.
-	t.Run("no warning when replication_specs list length changes", func(t *testing.T) {
-		ctx := context.Background()
-		rc1 := buildRegionConfig(t, &regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"})
-		rc2 := buildRegionConfig(t, &regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"})
-		state := buildModel(t, true, buildRepSpec(t, rc1))
-		plan := buildModel(t, true, buildRepSpec(t, rc1), buildRepSpec(t, rc2))
-		attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
-		var diags diag.Diagnostics
-		advancedcluster.WarnIgnoredSpecChange(ctx, &diags, attributeChanges, plan)
-		assert.False(t, diags.HasError())
-		assert.Equal(t, 0, diags.WarningsCount())
-	})
-
-	t.Run("no warning when region_configs list length changes", func(t *testing.T) {
-		ctx := context.Background()
-		rc1 := buildRegionConfig(t, &regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"})
-		rc2 := buildRegionConfig(t, &regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M20"})
-		state := buildModel(t, true, buildRepSpec(t, rc1))
-		plan := buildModel(t, true, buildRepSpec(t, rc1, rc2))
-		attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
-		var diags diag.Diagnostics
-		advancedcluster.WarnIgnoredSpecChange(ctx, &diags, attributeChanges, plan)
+		configs := []advancedcluster.RegionAutoScaling{{RCPrefix: rc00, ComputeEnabled: true}}
+		advancedcluster.WarnIgnoredSpecChange(&diags, false, []string{rc00 + ".electable_specs.instance_size"}, configs)
 		assert.False(t, diags.HasError())
 		assert.Equal(t, 0, diags.WarningsCount())
 	})

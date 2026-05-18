@@ -15,6 +15,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
+type RegionAutoScaling struct {
+	RCPrefix                string
+	ComputeEnabled          bool
+	DiskGBEnabled           bool
+	AnalyticsComputeEnabled bool
+}
+
 var (
 	// Spec fields that Atlas controls when auto-scaling is active.
 	autoScalingManagedSpecFields = []string{"instance_size", "disk_size_gb", "disk_iops"}
@@ -65,16 +72,19 @@ func handleModifyPlan(ctx context.Context, diags *diag.Diagnostics, state, plan 
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
-	WarnIgnoredSpecChange(ctx, diags, attributeChanges, plan)
+	configs := extractAutoScalingConfigs(ctx, diags, plan)
+	if !diags.HasError() {
+		WarnIgnoredSpecChange(diags, plan.UseEffectiveFields.ValueBool(), attributeChanges, configs)
+	}
 }
 
-// WarnIgnoredSpecChange warns when use_effective_fields=true and auto-scaling is enabled but the user
-// changed instance_size, disk_size_gb, or disk_iops
-func WarnIgnoredSpecChange(ctx context.Context, diags *diag.Diagnostics, attributeChanges schemafunc.AttributeChanges, plan *TFModel) {
-	if !plan.UseEffectiveFields.ValueBool() {
+// WarnIgnoredSpecChange warns when use_effective_fields=true, auto-scaling is enabled, and the user
+// changed instance_size, disk_size_gb, or disk_iops — fields Atlas silently ignores in that case.
+func WarnIgnoredSpecChange(diags *diag.Diagnostics, useEffectiveFields bool, attributeChanges schemafunc.AttributeChanges, configs []RegionAutoScaling) {
+	if !useEffectiveFields {
 		return
 	}
-	ignoredFields := collectIgnoredSpecChanges(ctx, diags, attributeChanges, plan)
+	ignoredFields := collectIgnoredSpecChanges(attributeChanges, configs)
 	if len(ignoredFields) == 0 {
 		return
 	}
@@ -88,22 +98,10 @@ func WarnIgnoredSpecChange(ctx context.Context, diags *diag.Diagnostics, attribu
 	)
 }
 
-// collectIgnoredSpecChanges returns sorted field names changed in plan but ignored by Atlas due to auto-scaling.
-func collectIgnoredSpecChanges(ctx context.Context, diags *diag.Diagnostics, attributeChanges schemafunc.AttributeChanges, plan *TFModel) []string {
-	planRepSpecs := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
-	if diags.HasError() {
-		return nil
-	}
+func collectIgnoredSpecChanges(attributeChanges schemafunc.AttributeChanges, configs []RegionAutoScaling) []string {
 	ignoredSet := map[string]struct{}{}
-	for i := range planRepSpecs {
-		planRegionConfigs := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecs[i].RegionConfigs)
-		if diags.HasError() {
-			return nil
-		}
-		for j := range planRegionConfigs {
-			rcPrefix := fmt.Sprintf("replication_specs[%d].region_configs[%d]", i, j)
-			addIgnoredSpecChangesForRegionConfig(ctx, &planRegionConfigs[j], attributeChanges, rcPrefix, ignoredSet)
-		}
+	for _, cfg := range configs {
+		addIgnoredSpecChangesForRegionConfig(cfg, attributeChanges, ignoredSet)
 	}
 	if len(ignoredSet) == 0 {
 		return nil
@@ -113,18 +111,13 @@ func collectIgnoredSpecChanges(ctx context.Context, diags *diag.Diagnostics, att
 
 // addIgnoredSpecChangesForRegionConfig adds field names that will be silently ignored by Atlas.
 // Per Atlas docs: when compute OR disk auto-scaling is enabled, Atlas ignores instanceSize, diskSizeGB, and diskIOPS
-// for electable and read-only nodes. For analytics nodes, only instanceSize is ignored.
+// for electable and read-only nodes. For analytics nodes, only instanceSize is ignored (and only when compute is enabled).
 // https://www.mongodb.com/docs/atlas/cluster-autoscaling/#enhance-auto-scaling-with-effective-fields-in-terraform
-func addIgnoredSpecChangesForRegionConfig(ctx context.Context, planRC *TFRegionConfigsModel, attributeChanges schemafunc.AttributeChanges, rcPrefix string, ignored map[string]struct{}) {
-	autoScalingActive := isAutoScalingActive(ctx, planRC.AutoScaling)
-	// For analytics nodes, only compute_enabled causes instance_size to be ignored by Atlas.
-	// disk_gb_enabled alone does not affect analytics instance_size.
-	analyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRC.AnalyticsAutoScaling)
-	analyticsAutoScalingActive := analyticsAutoScaling != nil && analyticsAutoScaling.ComputeEnabled.ValueBool()
-
-	electablePrefix := rcPrefix + ".electable_specs."
-	readOnlyPrefix := rcPrefix + ".read_only_specs."
-	analyticsPrefix := rcPrefix + ".analytics_specs."
+func addIgnoredSpecChangesForRegionConfig(cfg RegionAutoScaling, attributeChanges schemafunc.AttributeChanges, ignored map[string]struct{}) {
+	autoScalingActive := cfg.ComputeEnabled || cfg.DiskGBEnabled
+	electablePrefix := cfg.RCPrefix + ".electable_specs."
+	readOnlyPrefix := cfg.RCPrefix + ".read_only_specs."
+	analyticsPrefix := cfg.RCPrefix + ".analytics_specs."
 	for _, change := range attributeChanges {
 		switch {
 		case autoScalingActive && strings.HasPrefix(change, electablePrefix):
@@ -135,15 +128,42 @@ func addIgnoredSpecChangesForRegionConfig(ctx context.Context, planRC *TFRegionC
 			if field := strings.TrimPrefix(change, readOnlyPrefix); slices.Contains(autoScalingManagedSpecFields, field) {
 				ignored[field] = struct{}{}
 			}
-		case analyticsAutoScalingActive && change == analyticsPrefix+"instance_size":
+		case cfg.AnalyticsComputeEnabled && change == analyticsPrefix+"instance_size":
 			ignored["instance_size"] = struct{}{}
 		}
 	}
 }
 
-func isAutoScalingActive(ctx context.Context, autoScalingObj basetypes.ObjectValue) bool {
-	autoScaling := TFModelObject[TFAutoScalingModel](ctx, autoScalingObj)
-	return autoScaling != nil && (autoScaling.ComputeEnabled.ValueBool() || autoScaling.DiskGBEnabled.ValueBool())
+// extractAutoScalingConfigs reads per-region-config auto-scaling flags from the plan model.
+func extractAutoScalingConfigs(ctx context.Context, diags *diag.Diagnostics, plan *TFModel) []RegionAutoScaling {
+	planRepSpecs := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
+	if diags.HasError() {
+		return nil
+	}
+	var configs []RegionAutoScaling
+	for i := range planRepSpecs {
+		planRegionConfigs := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecs[i].RegionConfigs)
+		if diags.HasError() {
+			return nil
+		}
+		for j := range planRegionConfigs {
+			regionConfig := &planRegionConfigs[j]
+			autoScaling := TFModelObject[TFAutoScalingModel](ctx, regionConfig.AutoScaling)
+			analyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, regionConfig.AnalyticsAutoScaling)
+			cfg := RegionAutoScaling{
+				RCPrefix: fmt.Sprintf("replication_specs[%d].region_configs[%d]", i, j),
+			}
+			if autoScaling != nil {
+				cfg.ComputeEnabled = autoScaling.ComputeEnabled.ValueBool()
+				cfg.DiskGBEnabled = autoScaling.DiskGBEnabled.ValueBool()
+			}
+			if analyticsAutoScaling != nil {
+				cfg.AnalyticsComputeEnabled = analyticsAutoScaling.ComputeEnabled.ValueBool()
+			}
+			configs = append(configs, cfg)
+		}
+	}
+	return configs
 }
 
 // adjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
