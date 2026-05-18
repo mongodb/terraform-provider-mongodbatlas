@@ -67,7 +67,7 @@ The module supports standalone usage when there is no existing `mongodbatlas_clu
 
 ### [`versions.tf`](v2/versions.tf)
 
-- `required_version` set to `1.9`, the current minimum supported version. The `moved` block between resource types requires at least Terraform 1.1 ([support](https://developer.hashicorp.com/terraform/language/moved)).
+- `required_version` set to `1.9`, the current minimum supported version. Uses a `moved` block ([docs](https://developer.hashicorp.com/terraform/language/moved)) to transition between resource types.
 - `mongodbatlas.version` bumped to `1.29.0` for new `mongodbatlas_advanced_cluster` v2 schema support.
 
 ### [`main.tf`](v2/main.tf)
