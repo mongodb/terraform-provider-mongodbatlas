@@ -342,11 +342,11 @@ resource "mongodbatlas_stream_processor" "example" {
 * `workspace_name` - (Optional) Label that identifies the stream processing workspace.
 * `instance_name` - (Optional, Deprecated) Label that identifies the stream processing workspace. Use `workspace_name` instead; this attribute will be removed in a future major version.
 * `connection_name` - (Required) Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - (Required) Type of connection. Can be `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
+* `type` - (Required) Type of connection. Can be `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
-* `db_role_to_execute` - The name of a Built in or Custom DB Role to connect to an Atlas Cluster. See [DBRoleToExecute](#DBRoleToExecute).
+* `db_role_to_execute` - The name of a Built in or Custom DB Role to connect to an Atlas Cluster. See [DBRoleToExecute](#dbroletoexecute).
 * `cluster_project_id` - Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams instance. You must first enable the organization setting.
 
 If `type` is of value `Kafka` the following additional arguments are defined:
@@ -354,18 +354,26 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 * `bootstrap_servers` - Comma separated list of server addresses.
 * `config` - A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
 * `security` - Properties for the secure transport connection to Kafka. For SASL_SSL, this can include the trusted certificate to use. See [security](#security).
-* `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
+* `networking` - Networking Access Type can be `PUBLIC` (default), `VPC`, or `PRIVATE_LINK`. See [networking](#networking).
 
 If `type` is `AzureBlobStorage` the configuration defines the following additional attributes:
-* `azure` - The configuration for Azure Blob Storage connection. See [Azure](#Azure).
+* `azure` - The configuration for Azure Blob Storage connection. See [Azure](#azure).
 * `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
+
+If `type` is of value `AWSKinesisDataStreams` the following additional arguments are defined:
+* `aws` - The configuration for AWS Kinesis Data Streams connection. See [AWS](#aws).
+* `networking` - Networking Access Type can be `PUBLIC`, `VPC`, or `PRIVATE_LINK`. See [networking](#networking).
 
 If `type` is of value `AWSLambda` the following additional arguments are defined:
-* `aws` - The configuration for AWS Lambda connection. See [AWS](#AWS)
+* `aws` - The configuration for AWS Lambda connection. See [AWS](#aws).
 
 If `type` is of value `GCPPubSub` the following additional arguments are defined:
-* `gcp` - The configuration for GCP Pub/Sub connection. See [GCP](#GCP)
+* `gcp` - The configuration for GCP Pub/Sub connection. See [GCP](#gcp).
 * `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
+
+If `type` is of value `S3` the following additional arguments are defined:
+* `aws` - The configuration for S3 connection. See [AWS](#aws).
+* `networking` - Networking Access Type can be `PUBLIC`, `VPC`, or `PRIVATE_LINK`. See [networking](#networking).
 
 If `type` is of value `Https` the following additional attributes are defined:
 * `url` - URL of the HTTPs endpoint that will be used for creating a connection.
@@ -378,7 +386,7 @@ If `type` is of value `SchemaRegistry` the following additional arguments are de
 
 ### Authentication
 
-* `mechanism` - Method of authentication. Value can be `PLAIN`, `SCRAM-256`, or `SCRAM-512`.
+* `mechanism` - Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, or `OAUTHBEARER`.
 * `method` - SASL OAUTHBEARER authentication method. Value must be OIDC.
 * `username` - Username of the account to connect to the Kafka cluster.
 * `password` - Password of the account to connect to the Kafka cluster.
@@ -449,5 +457,5 @@ You can import a stream connection resource using the workspace name, project ID
 $ terraform import mongodbatlas_stream_connection.test "DefaultInstance-12251446ae5f3f6ec7968b13-NewConnection"
 ```
 
-To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamConnection) Documentation.
-The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_instance/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.
+To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createstreamconnection) Documentation.
+The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_processor/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.
