@@ -13,6 +13,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 )
 
 // MoveState is used with moved block to upgrade from stream_instance to stream_workspace.
@@ -146,6 +147,8 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 	if model.Hostnames.IsNull() {
 		model.Hostnames = types.ListNull(types.StringType)
 	}
+
+	model.FailoverRegions = types.ListNull(streaminstance.FailoverRegionObjectType)
 
 	resp.Diagnostics.Append(resp.TargetState.Set(ctx, model)...)
 }

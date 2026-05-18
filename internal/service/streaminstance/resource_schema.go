@@ -32,13 +32,15 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"data_process_region": schema.SingleNestedAttribute{
-				Required: true,
-				Attributes: map[string]schema.Attribute{
-					"cloud_provider": schema.StringAttribute{
-						Required: true,
-					},
-					"region": schema.StringAttribute{
-						Required: true,
+				Required:   true,
+				Attributes: regionAttributes(),
+			},
+			"failover_regions": schema.ListNestedAttribute{
+				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"cloud_provider": schema.StringAttribute{Computed: true},
+						"region":         schema.StringAttribute{Computed: true},
 					},
 				},
 			},
@@ -64,11 +66,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
+func regionAttributes() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"cloud_provider": schema.StringAttribute{
+			Required: true,
+		},
+		"region": schema.StringAttribute{
+			Required: true,
+		},
+	}
+}
+
 type TFStreamInstanceModel struct {
 	ID                types.String `tfsdk:"id"`
 	InstanceName      types.String `tfsdk:"instance_name"`
 	ProjectID         types.String `tfsdk:"project_id"`
 	DataProcessRegion types.Object `tfsdk:"data_process_region"`
+	FailoverRegions   types.List   `tfsdk:"failover_regions"`
 	StreamConfig      types.Object `tfsdk:"stream_config"`
 	Hostnames         types.List   `tfsdk:"hostnames"`
 }
@@ -84,6 +98,11 @@ type TFInstanceStreamConfigSpecModel struct {
 }
 
 var ProcessRegionObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"cloud_provider": types.StringType,
+	"region":         types.StringType,
+}}
+
+var FailoverRegionObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"cloud_provider": types.StringType,
 	"region":         types.StringType,
 }}

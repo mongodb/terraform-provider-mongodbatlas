@@ -25,6 +25,20 @@ func newStreamWorkspaceCreateReq(ctx context.Context, plan *TFModel) (*admin.Str
 			Region:        dataProcessRegion.Region.ValueString(),
 		},
 	}
+	if !plan.FailoverRegions.IsNull() && !plan.FailoverRegions.IsUnknown() {
+		var failoverRegions []TFWorkspaceProcessRegionSpecModel
+		if diags := plan.FailoverRegions.ElementsAs(ctx, &failoverRegions, false); diags.HasError() {
+			return nil, diags
+		}
+		failoverDataRegions := make([]admin.StreamsDataProcessRegion, 0, len(failoverRegions))
+		for _, r := range failoverRegions {
+			failoverDataRegions = append(failoverDataRegions, admin.StreamsDataProcessRegion{
+				CloudProvider: r.CloudProvider.ValueString(),
+				Region:        r.Region.ValueString(),
+			})
+		}
+		streamTenant.FailoverRegions = &failoverDataRegions
+	}
 	if !plan.StreamConfig.IsNull() && !plan.StreamConfig.IsUnknown() {
 		streamConfig := new(TFWorkspaceStreamConfigModel)
 		if diags := plan.StreamConfig.As(ctx, streamConfig, basetypes.ObjectAsOptions{}); diags.HasError() {
@@ -34,7 +48,6 @@ func newStreamWorkspaceCreateReq(ctx context.Context, plan *TFModel) (*admin.Str
 		if streamConfig.MaxTierSize.ValueString() != "" {
 			maxTierSize = streamConfig.MaxTierSize.ValueStringPointer()
 		}
-
 		var tier *string
 		if streamConfig.Tier.ValueString() != "" {
 			tier = streamConfig.Tier.ValueStringPointer()
@@ -53,10 +66,25 @@ func newStreamWorkspaceUpdateReq(ctx context.Context, plan *TFModel) (*admin.Str
 	if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
 		return nil, diags
 	}
-	return &admin.StreamsTenantUpdateRequest{
+	updateReq := &admin.StreamsTenantUpdateRequest{
 		CloudProvider: dataProcessRegion.CloudProvider.ValueStringPointer(),
 		Region:        dataProcessRegion.Region.ValueStringPointer(),
-	}, nil
+	}
+	if !plan.FailoverRegions.IsNull() && !plan.FailoverRegions.IsUnknown() {
+		var failoverRegions []TFWorkspaceProcessRegionSpecModel
+		if diags := plan.FailoverRegions.ElementsAs(ctx, &failoverRegions, false); diags.HasError() {
+			return nil, diags
+		}
+		failoverDataRegions := make([]admin.StreamsDataProcessRegion, 0, len(failoverRegions))
+		for _, r := range failoverRegions {
+			failoverDataRegions = append(failoverDataRegions, admin.StreamsDataProcessRegion{
+				CloudProvider: r.CloudProvider.ValueString(),
+				Region:        r.Region.ValueString(),
+			})
+		}
+		updateReq.FailoverRegions = &failoverDataRegions
+	}
+	return updateReq, nil
 }
 
 // FromInstanceModel populates this workspace model from a TFStreamInstanceModel and maps instance_name to workspace_name.
@@ -66,6 +94,7 @@ func (m *TFModel) FromInstanceModel(instanceModel *streaminstance.TFStreamInstan
 	m.WorkspaceName = instanceModel.InstanceName
 	m.ProjectID = instanceModel.ProjectID
 	m.DataProcessRegion = instanceModel.DataProcessRegion
+	m.FailoverRegions = instanceModel.FailoverRegions
 	if instanceModel.StreamConfig.IsNull() {
 		m.StreamConfig = types.ObjectNull(map[string]attr.Type{
 			"max_tier_size": types.StringType,
