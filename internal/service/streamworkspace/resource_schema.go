@@ -28,14 +28,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"data_process_region": schema.SingleNestedAttribute{
-				Required: true,
-				Attributes: map[string]schema.Attribute{
-					"cloud_provider": schema.StringAttribute{
-						Required: true,
-					},
-					"region": schema.StringAttribute{
-						Required: true,
-					},
+				Required:   true,
+				Attributes: regionAttributes(),
+			},
+			"failover_regions": schema.ListNestedAttribute{
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: regionAttributes(),
 				},
 			},
 			"hostnames": schema.ListAttribute{
@@ -60,11 +59,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
+func regionAttributes() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"cloud_provider": schema.StringAttribute{
+			Required: true,
+		},
+		"region": schema.StringAttribute{
+			Required: true,
+		},
+	}
+}
+
 type TFModel struct {
 	ID                types.String `tfsdk:"id"`
 	WorkspaceName     types.String `tfsdk:"workspace_name"` // Only difference from TFStreamInstanceModel
 	ProjectID         types.String `tfsdk:"project_id"`
 	DataProcessRegion types.Object `tfsdk:"data_process_region"`
+	FailoverRegions   types.List   `tfsdk:"failover_regions"`
 	StreamConfig      types.Object `tfsdk:"stream_config"`
 	Hostnames         types.List   `tfsdk:"hostnames"`
 }
