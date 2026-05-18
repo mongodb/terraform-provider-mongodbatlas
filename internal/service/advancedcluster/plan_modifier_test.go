@@ -132,6 +132,7 @@ type regionConfigTestParams struct {
 	analyticsDiskSizeGb     float64
 	readOnlyDiskSizeGb      float64
 	diskIops                int64
+	electableNodeCount      int64
 	computeEnabled          bool
 	analyticsComputeEnabled bool
 	diskGBEnabled           bool
@@ -180,7 +181,7 @@ func buildRegionConfig(t *testing.T, rcParams *regionConfigTestParams) advancedc
 	return advancedcluster.TFRegionConfigsModel{
 		AutoScaling:          buildAutoScaling(t, rcParams.computeEnabled, rcParams.diskGBEnabled),
 		AnalyticsAutoScaling: buildAutoScaling(t, rcParams.analyticsComputeEnabled, rcParams.analyticsDiskGBEnabled),
-		ElectableSpecs:       buildSpecs(t, rcParams.electableInstanceSize, 3, rcParams.diskSizeGb, rcParams.diskIops),
+		ElectableSpecs:       buildSpecs(t, rcParams.electableInstanceSize, max(rcParams.electableNodeCount, 3), rcParams.diskSizeGb, rcParams.diskIops),
 		AnalyticsSpecs:       buildSpecs(t, rcParams.analyticsInstanceSize, 1, analyticsDiskSizeGb, rcParams.diskIops),
 		ReadOnlySpecs:        buildSpecs(t, rcParams.readOnlyInstanceSize, 2, readOnlyDiskSizeGb, rcParams.diskIops),
 		ProviderName:         types.StringValue("AWS"),
@@ -250,6 +251,11 @@ func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
 		"no warning when auto-scaling is on but no managed spec fields changed": {
 			stateRC:       regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
 			planRC:        regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10"},
+			expectWarning: false,
+		},
+		"no warning when auto-scaling is on but only node_count changed": {
+			stateRC:       regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", electableNodeCount: 3},
+			planRC:        regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", electableNodeCount: 5},
 			expectWarning: false,
 		},
 		"no warning when only analytics compute auto-scaling on but electable instance_size changed": {

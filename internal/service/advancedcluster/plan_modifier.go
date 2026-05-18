@@ -125,9 +125,13 @@ func addIgnoredSpecChangesForRegionConfig(ctx context.Context, planRC *TFRegionC
 	for _, change := range attributeChanges {
 		switch {
 		case autoScalingActive && strings.HasPrefix(change, electablePrefix):
-			ignored[strings.TrimPrefix(change, electablePrefix)] = struct{}{}
+			if field := strings.TrimPrefix(change, electablePrefix); slices.Contains(autoScalingManagedSpecFields, field) {
+				ignored[field] = struct{}{}
+			}
 		case autoScalingActive && strings.HasPrefix(change, readOnlyPrefix):
-			ignored[strings.TrimPrefix(change, readOnlyPrefix)] = struct{}{}
+			if field := strings.TrimPrefix(change, readOnlyPrefix); slices.Contains(autoScalingManagedSpecFields, field) {
+				ignored[field] = struct{}{}
+			}
 		case analyticsAutoScalingActive && change == analyticsPrefix+"instance_size":
 			ignored["instance_size"] = struct{}{}
 		}
