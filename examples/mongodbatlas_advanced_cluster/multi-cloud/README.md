@@ -8,7 +8,7 @@ This example creates a project and a Multi Cloud Advanced Cluster with 2 shards.
 * A MongoDB Atlas account 
 
 ```
-Terraform >= 0.13
+Terraform >= 1.9
 + provider registry.terraform.io/terraform-providers/mongodbatlas v2.0.0
 ```
 
