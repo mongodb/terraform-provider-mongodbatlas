@@ -117,7 +117,10 @@ func collectIgnoredSpecChanges(ctx context.Context, diags *diag.Diagnostics, att
 // https://www.mongodb.com/docs/atlas/cluster-autoscaling/#enhance-auto-scaling-with-effective-fields-in-terraform
 func addIgnoredSpecChangesForRegionConfig(ctx context.Context, planRC *TFRegionConfigsModel, attributeChanges schemafunc.AttributeChanges, rcPrefix string, ignored map[string]struct{}) {
 	autoScalingActive := isAutoScalingActive(ctx, planRC.AutoScaling)
-	analyticsAutoScalingActive := isAutoScalingActive(ctx, planRC.AnalyticsAutoScaling)
+	// For analytics nodes, only compute_enabled causes instance_size to be ignored by Atlas.
+	// disk_gb_enabled alone does not affect analytics instance_size.
+	analyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRC.AnalyticsAutoScaling)
+	analyticsAutoScalingActive := analyticsAutoScaling != nil && analyticsAutoScaling.ComputeEnabled.ValueBool()
 
 	electablePrefix := rcPrefix + ".electable_specs."
 	readOnlyPrefix := rcPrefix + ".read_only_specs."

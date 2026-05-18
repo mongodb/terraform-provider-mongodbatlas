@@ -298,10 +298,10 @@ func TestAdvancedCluster_WarnIgnoredSpecChange(t *testing.T) {
 			planRC:        regionConfigTestParams{computeEnabled: true, electableInstanceSize: "M10", readOnlyInstanceSize: "M20"},
 			expectWarning: true,
 		},
-		"warns when analytics disk auto-scaling on and analytics instance_size changed": {
+		"no warning when only analytics disk auto-scaling on and analytics instance_size changed": {
 			stateRC:       regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M10"},
 			planRC:        regionConfigTestParams{analyticsDiskGBEnabled: true, electableInstanceSize: "M10", analyticsInstanceSize: "M20"},
-			expectWarning: true,
+			expectWarning: false,
 		},
 	}
 
