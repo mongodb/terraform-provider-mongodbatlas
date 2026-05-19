@@ -79,9 +79,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"tier": schema.StringAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed:            true,
