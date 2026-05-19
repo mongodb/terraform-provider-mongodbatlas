@@ -24,10 +24,6 @@ func BuildSchema(proxy *base.SchemaProxy) (*APISpecSchema, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to build schema from proxy: %w", err)
 	}
-	// libopenapi >= v0.36.4 wraps a `$ref` that carries a sibling property (e.g. `description`)
-	// into a synthetic allOf rather than resolving the reference directly. Unwrap that wrapper
-	// before the normal type inference runs. See unwrapSiblingRefAllOf for the rationale and
-	// the deliberate limits of this workaround.
 	if unwrapped, ok := unwrapSiblingRefAllOf(schema); ok {
 		return unwrapped, nil
 	}
@@ -166,48 +162,32 @@ func buildSchemaFromResponse(op *high.Operation, configuredVersion *string) (*AP
 	return nil, errSchemaNotFound
 }
 
-// unwrapSiblingRefAllOf undoes the synthetic allOf wrapping that libopenapi (>= v0.36.4)
-// applies when a `$ref` carries sibling properties such as `description`. For:
-//
-//	eventTypeName:
-//	  $ref: '#/components/schemas/X'
-//	  description: Incident that triggered this alert.
-//
-// libopenapi produces a parent schema with no type/properties whose allOf contains the
-// original $ref alongside an inline schema that only carries the sibling fields. Without
-// this unwrap, the wrapper trips BuildSchema's "type cannot be inferred" check.
-//
-// This is NOT a general allOf composition handler — the flattened API spec consumed by
-// codegen is expected to resolve real allOf inheritance ahead of time. We only recognize
-// the narrow sibling-ref shape: exactly one $ref branch plus any number of inline branches
-// that contribute only sibling-style fields (currently just description). Anything outside
-// that shape returns ok=false so the caller falls back to the normal type-inference path
-// and surfaces the existing error.
+// unwrapSiblingRefAllOf undoes the 2-branch allOf wrapper libopenapi (>= v0.36.4) emits when
+// a `$ref` carries a `description` sibling. Real allOf composition is left to the flattened
+// API spec; any other wrapper shape returns ok=false so the existing "type cannot be inferred"
+// error surfaces unsupported shapes loudly.
 func unwrapSiblingRefAllOf(schema *base.Schema) (*APISpecSchema, bool) {
-	if len(schema.AllOf) == 0 {
-		return nil, false
-	}
-	if len(schema.Type) > 0 || (schema.Properties != nil && schema.Properties.Len() > 0) {
+	if len(schema.AllOf) != 2 ||
+		len(schema.Type) > 0 ||
+		(schema.Properties != nil && schema.Properties.Len() > 0) {
 		return nil, false
 	}
 
 	var refBranch *base.SchemaProxy
-	var siblingDesc string
+	var description string
 	for _, branch := range schema.AllOf {
 		if branch.GetReference() != "" {
 			if refBranch != nil {
-				return nil, false // more than one $ref branch — real allOf composition.
+				return nil, false
 			}
 			refBranch = branch
 			continue
 		}
-		inline, err := branch.BuildSchema()
-		if err != nil {
+		carrier, err := branch.BuildSchema()
+		if err != nil || !isDescriptionOnlyCarrier(carrier) {
 			return nil, false
 		}
-		if inline.Description != "" {
-			siblingDesc = inline.Description
-		}
+		description = carrier.Description
 	}
 	if refBranch == nil {
 		return nil, false
@@ -217,10 +197,24 @@ func unwrapSiblingRefAllOf(schema *base.Schema) (*APISpecSchema, bool) {
 	if err != nil {
 		return nil, false
 	}
-	if siblingDesc != "" {
-		inner.Schema.Description = siblingDesc
+	if description != "" {
+		inner.Schema.Description = description
 	}
 	return inner, true
+}
+
+// isDescriptionOnlyCarrier reports whether s is the inline branch libopenapi emits in a
+// sibling-ref wrapper: at most a description, with no structural or override fields.
+func isDescriptionOnlyCarrier(s *base.Schema) bool {
+	return len(s.Type) == 0 &&
+		(s.Properties == nil || s.Properties.Len() == 0) &&
+		len(s.Required) == 0 &&
+		len(s.AllOf) == 0 && len(s.OneOf) == 0 && len(s.AnyOf) == 0 &&
+		len(s.Enum) == 0 &&
+		s.Items == nil && s.AdditionalProperties == nil &&
+		s.Deprecated == nil && s.ReadOnly == nil && s.WriteOnly == nil && s.Nullable == nil &&
+		s.Default == nil && s.Example == nil &&
+		s.Title == ""
 }
 
 // getSchemaName extracts a human-readable schema name from the proxy reference or schema title.
