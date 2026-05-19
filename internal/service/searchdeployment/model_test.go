@@ -84,10 +84,10 @@ func TestSearchDeploymentTFModelToSDK(t *testing.T) {
 				Specs:       tfSpecsList(t, instanceSize, nodeCount),
 			},
 			expectedSDKReq: admin.ApiSearchDeploymentRequest{
-				Specs: []admin.ApiSearchDeploymentSpec{
+				Specs: []admin.ApiSearchDeploymentRequestSpec{
 					{
 						InstanceSize: instanceSize,
-						NodeCount:    nodeCount,
+						NodeCount:    new(nodeCount),
 					},
 				},
 			},

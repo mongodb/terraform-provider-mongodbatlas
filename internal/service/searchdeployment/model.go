@@ -13,11 +13,11 @@ func NewSearchDeploymentReq(ctx context.Context, searchDeploymentPlan *TFSearchD
 	var specs []TFSearchNodeSpecModel
 	searchDeploymentPlan.Specs.ElementsAs(ctx, &specs, true)
 
-	resultSpecs := make([]admin.ApiSearchDeploymentSpec, len(specs))
+	resultSpecs := make([]admin.ApiSearchDeploymentRequestSpec, len(specs))
 	for i, spec := range specs {
-		resultSpecs[i] = admin.ApiSearchDeploymentSpec{
+		resultSpecs[i] = admin.ApiSearchDeploymentRequestSpec{
 			InstanceSize: spec.InstanceSize.ValueString(),
-			NodeCount:    int(spec.NodeCount.ValueInt64()),
+			NodeCount:    new(int(spec.NodeCount.ValueInt64())),
 		}
 	}
 	return admin.ApiSearchDeploymentRequest{

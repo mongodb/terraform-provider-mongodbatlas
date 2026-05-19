@@ -86,13 +86,13 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 
 func TestMetricThresholdSDKToTFModel(t *testing.T) {
 	testCases := map[string]struct {
-		SDKResp                     *admin.FlexClusterMetricThreshold
+		SDKResp                     *admin.StreamProcessorMetricThreshold
 		currentStateMetricThreshold []alertconfiguration.TfMetricThresholdConfigModel
 		expectedTFModel             []alertconfiguration.TfMetricThresholdConfigModel
 	}{
 		"Complete SDK response": {
-			SDKResp: &admin.FlexClusterMetricThreshold{
-				MetricName: "ASSERT_REGULAR",
+			SDKResp: &admin.StreamProcessorMetricThreshold{
+				MetricName: new("ASSERT_REGULAR"),
 				Operator:   new(operator),
 				Threshold:  new(threshold),
 				Units:      new(units),
@@ -244,8 +244,8 @@ func TestAlertConfigurationSDKToTFModel(t *testing.T) {
 				EventTypeName: new("OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD"),
 				GroupId:       new("projectId"),
 				Id:            new("alertConfigurationId"),
-				MetricThreshold: &admin.FlexClusterMetricThreshold{
-					MetricName: "STREAM_PROCESSOR_CHANGE_STREAM_LAG",
+				MetricThreshold: &admin.StreamProcessorMetricThreshold{
+					MetricName: new("STREAM_PROCESSOR_CHANGE_STREAM_LAG"),
 					Operator:   new("GREATER_THAN"),
 					Threshold:  new(5.0),
 					Units:      new("NANOSECONDS"),
@@ -410,7 +410,7 @@ func TestThresholdTFModelToSDK(t *testing.T) {
 
 func TestMetricThresholdTFModelToSDK(t *testing.T) {
 	testCases := map[string]struct {
-		expectedSDKReq *admin.FlexClusterMetricThreshold
+		expectedSDKReq *admin.StreamProcessorMetricThreshold
 		tfModel        []alertconfiguration.TfMetricThresholdConfigModel
 	}{
 		"Empty TF model": {
@@ -427,8 +427,8 @@ func TestMetricThresholdTFModelToSDK(t *testing.T) {
 					Mode:       types.StringValue(mode),
 				},
 			},
-			expectedSDKReq: &admin.FlexClusterMetricThreshold{
-				MetricName: "ASSERT_REGULAR",
+			expectedSDKReq: &admin.StreamProcessorMetricThreshold{
+				MetricName: new("ASSERT_REGULAR"),
 				Operator:   new(operator),
 				Threshold:  new(threshold),
 				Units:      new(units),

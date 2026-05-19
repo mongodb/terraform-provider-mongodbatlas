@@ -363,13 +363,13 @@ func convertMatcherToCtyValues(matcher admin.StreamsMatcher) map[string]cty.Valu
 	}
 }
 
-func convertMetricThresholdToCtyValues(metric admin.FlexClusterMetricThreshold) map[string]cty.Value {
+func convertMetricThresholdToCtyValues(metric admin.StreamProcessorMetricThreshold) map[string]cty.Value {
 	var t float64
 	if metric.Threshold != nil {
 		t = *metric.Threshold
 	}
 	return map[string]cty.Value{
-		"metric_name": cty.StringVal(metric.MetricName),
+		"metric_name": ctyStringPtrVal(metric.MetricName),
 		"operator":    ctyStringPtrVal(metric.Operator),
 		"threshold":   cty.NumberFloatVal(t),
 		"units":       ctyStringPtrVal(metric.Units),
