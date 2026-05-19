@@ -1,5 +1,5 @@
 schema:
-    description: Create one Stream Processor within the specified stream workspace. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Stream Processing Owner role.
+    description: Create one Stream Processor within the specified stream workspace.
     attributes:
         - string: {}
           description: |-
@@ -162,13 +162,13 @@ schema:
           request_only_required_on_create: false
         - string: {}
           description: Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.
-          computed_optional_required: computed
+          computed_optional_required: optional
           tf_schema_name: tier
           tf_model_name: Tier
           api_name: tier
-          req_body_usage: omit_always
+          req_body_usage: omit_in_update_body
           sensitive: false
-          create_only: false
+          create_only: true
           present_in_any_response: true
           request_only_required_on_create: false
         - bool:

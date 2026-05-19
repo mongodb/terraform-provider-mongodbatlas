@@ -24,7 +24,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"event_type_name": dsschema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Event type that triggers an alert.",
+				MarkdownDescription: "Incident that triggered this alert.",
 			},
 			"group_id": dsschema.StringAttribute{
 				Required:            true,
@@ -57,7 +57,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"metric_threshold": dsschema.SingleNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics about the serverless database.",
+				MarkdownDescription: "Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.",
 				CustomType:          customtypes.NewObjectType[TFDSMetricThresholdModel](ctx),
 				Attributes: map[string]dsschema.Attribute{
 					"metric_name": dsschema.StringAttribute{

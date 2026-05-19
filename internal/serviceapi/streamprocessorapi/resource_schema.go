@@ -79,8 +79,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"tier": schema.StringAttribute{
-				Computed:            true,
+				Optional:            true,
 				MarkdownDescription: "Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.",
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed:            true,
@@ -105,7 +106,7 @@ type TFModel struct {
 	State                 types.String                                `tfsdk:"state" autogen:"omitjson"`
 	Stats                 customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"stats" autogen:"omitjson"`
 	TenantName            types.String                                `tfsdk:"tenant_name" autogen:"omitjson"`
-	Tier                  types.String                                `tfsdk:"tier" autogen:"omitjson"`
+	Tier                  types.String                                `tfsdk:"tier" autogen:"omitjsonupdate"`
 	DeleteOnCreateTimeout types.Bool                                  `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
 	Timeouts              timeouts.Value                              `tfsdk:"timeouts" autogen:"omitjson"`
 }
