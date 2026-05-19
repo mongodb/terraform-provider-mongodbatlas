@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* resource/mongodbatlas_database_user: Removes incorrect warning emitted on every resource creation regardless of authentication type ([#4443](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4443))
+
 BUG FIXES:
 
 * resource/mongodbatlas_advanced_cluster: Emits a warning during plan when `use_effective_fields` is true, auto-scaling is enabled, and `instance_size`, `disk_size_gb`, or `disk_iops` is modified, as Atlas silently ignores these changes in that combination ([#4405](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4405))
