@@ -24,8 +24,15 @@ func BuildSchema(proxy *base.SchemaProxy) (*APISpecSchema, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to build schema from proxy: %w", err)
 	}
-	if unwrapped, ok := unwrapSiblingRefAllOf(schema); ok {
-		return unwrapped, nil
+	if refBranch, description, ok := matchSiblingRefAllOf(schema); ok {
+		inner, err := BuildSchema(refBranch)
+		if err != nil {
+			return nil, err
+		}
+		if description != "" {
+			inner.Schema.Description = description
+		}
+		return inner, nil
 	}
 	switch {
 	case len(schema.Type) > 0:
@@ -162,45 +169,37 @@ func buildSchemaFromResponse(op *high.Operation, configuredVersion *string) (*AP
 	return nil, errSchemaNotFound
 }
 
-// unwrapSiblingRefAllOf undoes the 2-branch allOf wrapper libopenapi (>= v0.36.4) emits when
-// a `$ref` carries a `description` sibling. Real allOf composition is left to the flattened
-// API spec; any other wrapper shape returns ok=false so the existing "type cannot be inferred"
-// error surfaces unsupported shapes loudly.
-func unwrapSiblingRefAllOf(schema *base.Schema) (*APISpecSchema, bool) {
+// matchSiblingRefAllOf detects the 2-branch allOf wrapper libopenapi (>= v0.36.4) emits when
+// a `$ref` carries a `description` sibling, returning the referenced proxy and the override
+// description. Real allOf composition is left to the flattened API spec; any other wrapper
+// shape returns ok=false so the existing "type cannot be inferred" error surfaces unsupported
+// shapes loudly. Detection only — the caller resolves the ref so any underlying BuildSchema
+// failure propagates instead of being hidden behind the wrapper's generic error.
+func matchSiblingRefAllOf(schema *base.Schema) (refBranch *base.SchemaProxy, description string, ok bool) {
 	if len(schema.AllOf) != 2 ||
 		len(schema.Type) > 0 ||
 		(schema.Properties != nil && schema.Properties.Len() > 0) {
-		return nil, false
+		return nil, "", false
 	}
 
-	var refBranch *base.SchemaProxy
-	var description string
 	for _, branch := range schema.AllOf {
 		if branch.GetReference() != "" {
 			if refBranch != nil {
-				return nil, false
+				return nil, "", false
 			}
 			refBranch = branch
 			continue
 		}
 		carrier, err := branch.BuildSchema()
 		if err != nil || !isDescriptionOnlyCarrier(carrier) {
-			return nil, false
+			return nil, "", false
 		}
 		description = carrier.Description
 	}
 	if refBranch == nil {
-		return nil, false
+		return nil, "", false
 	}
-
-	inner, err := BuildSchema(refBranch)
-	if err != nil {
-		return nil, false
-	}
-	if description != "" {
-		inner.Schema.Description = description
-	}
-	return inner, true
+	return refBranch, description, true
 }
 
 // isDescriptionOnlyCarrier reports whether s is the inline branch libopenapi emits in a
