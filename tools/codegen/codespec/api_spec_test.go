@@ -17,14 +17,18 @@ info:
   version: 1.0.0
 components:
   schemas:
+    Referenced:
+      type: string
+      description: original description
     TestSchema:
 %s`
 
 func TestBuildSchema(t *testing.T) {
 	tests := map[string]struct {
-		schemaDefinition string
-		errorContains    string
-		expectedType     string
+		schemaDefinition    string
+		errorContains       string
+		expectedType        string
+		expectedDescription string
 	}{
 		"Explicit object type": {
 			schemaDefinition: `      type: object
@@ -70,6 +74,15 @@ func TestBuildSchema(t *testing.T) {
         type: string`,
 			expectedType: "array",
 		},
+		"$ref with sibling description is unwrapped to referenced schema": {
+			// libopenapi >= v0.36.4 turns `$ref` with a sibling property into a single-element
+			// allOf wrapper. BuildSchema should unwrap that wrapper and surface the referenced
+			// schema's type while honoring the sibling description override.
+			schemaDefinition: `      $ref: '#/components/schemas/Referenced'
+      description: override description`,
+			expectedType:        "string",
+			expectedDescription: "override description",
+		},
 	}
 
 	for name, tc := range tests {
@@ -86,6 +99,9 @@ func TestBuildSchema(t *testing.T) {
 				require.NoError(t, err)
 				assert.NotNil(t, result.Schema)
 				assert.Equal(t, tc.expectedType, result.Type)
+				if tc.expectedDescription != "" {
+					assert.Equal(t, tc.expectedDescription, result.Schema.Description)
+				}
 			} else {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), tc.errorContains)
