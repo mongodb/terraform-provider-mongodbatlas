@@ -6,18 +6,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 )
 
 func NewSearchDeploymentReq(ctx context.Context, searchDeploymentPlan *TFSearchDeploymentRSModel) admin.ApiSearchDeploymentRequest {
 	var specs []TFSearchNodeSpecModel
 	searchDeploymentPlan.Specs.ElementsAs(ctx, &specs, true)
 
-	resultSpecs := make([]admin.ApiSearchDeploymentSpec, len(specs))
+	resultSpecs := make([]admin.ApiSearchDeploymentRequestSpec, len(specs))
 	for i, spec := range specs {
-		resultSpecs[i] = admin.ApiSearchDeploymentSpec{
+		resultSpecs[i] = admin.ApiSearchDeploymentRequestSpec{
 			InstanceSize: spec.InstanceSize.ValueString(),
-			NodeCount:    int(spec.NodeCount.ValueInt64()),
+			NodeCount:    new(int(spec.NodeCount.ValueInt64())),
 		}
 	}
 	return admin.ApiSearchDeploymentRequest{

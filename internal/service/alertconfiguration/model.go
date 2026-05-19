@@ -3,7 +3,7 @@ package alertconfiguration
 import (
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -58,13 +58,13 @@ func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.Stream
 	}
 }
 
-func NewMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigModel) *admin.FlexClusterMetricThreshold {
+func NewMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigModel) *admin.StreamProcessorMetricThreshold {
 	if len(tfMetricThresholdConfigSlice) == 0 {
 		return nil
 	}
 	v := tfMetricThresholdConfigSlice[0]
-	return &admin.FlexClusterMetricThreshold{
-		MetricName: v.MetricName.ValueString(),
+	return &admin.StreamProcessorMetricThreshold{
+		MetricName: v.MetricName.ValueStringPointer(),
 		Operator:   v.Operator.ValueStringPointer(),
 		Threshold:  v.Threshold.ValueFloat64Pointer(),
 		Units:      v.Units.ValueStringPointer(),
@@ -187,11 +187,11 @@ func NewTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currSt
 	return notifications
 }
 
-func NewTFMetricThresholdConfigModel(t *admin.FlexClusterMetricThreshold, currStateSlice []TfMetricThresholdConfigModel) []TfMetricThresholdConfigModel {
+func NewTFMetricThresholdConfigModel(t *admin.StreamProcessorMetricThreshold, currStateSlice []TfMetricThresholdConfigModel) []TfMetricThresholdConfigModel {
 	if len(currStateSlice) == 0 { // metric threshold was created elsewhere from terraform, or import statement is being called
 		return []TfMetricThresholdConfigModel{
 			{
-				MetricName: conversion.StringNullIfEmpty(t.MetricName),
+				MetricName: conversion.StringNullIfEmpty(t.GetMetricName()),
 				Operator:   conversion.StringNullIfEmpty(t.GetOperator()),
 				Threshold:  types.Float64Value(t.GetThreshold()),
 				Units:      conversion.StringNullIfEmpty(t.GetUnits()),
@@ -204,7 +204,7 @@ func NewTFMetricThresholdConfigModel(t *admin.FlexClusterMetricThreshold, currSt
 		Threshold: types.Float64Value(t.GetThreshold()),
 	}
 	if !currState.MetricName.IsNull() {
-		newState.MetricName = conversion.StringNullIfEmpty(t.MetricName)
+		newState.MetricName = conversion.StringNullIfEmpty(t.GetMetricName())
 	}
 	if !currState.Operator.IsNull() {
 		newState.Operator = conversion.StringNullIfEmpty(t.GetOperator())
@@ -324,7 +324,7 @@ func NewTFAlertConfigurationDSModelList(alerts []admin.GroupAlertsConfig, projec
 // If in the future a type that requires different logic is introduced, like threshold taking precedence over metricThreshold,
 // we will have to ensure both the new type and OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD are handled correctly.
 func newTFThresholdModels(
-	metricThreshold *admin.FlexClusterMetricThreshold,
+	metricThreshold *admin.StreamProcessorMetricThreshold,
 	threshold *admin.StreamProcessorMetricThreshold,
 	currMetricThreshold []TfMetricThresholdConfigModel,
 	currThreshold []TfThresholdConfigModel,
