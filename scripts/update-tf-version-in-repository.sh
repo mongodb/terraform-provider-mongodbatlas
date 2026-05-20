@@ -63,7 +63,7 @@ version_lt() {
 
 # Update required_version field in examples versions.tf files.
 find examples -name "versions.tf" -not -path "*/.terraform/*" | while read -r file; do
-	current=$(grep -oE 'required_version = ">= [0-9]+\.[0-9]+"' "$file" | grep -oE '[0-9]+\.[0-9]+' | head -1)
+	current=$(grep -oE 'required_version = ">= [0-9]+\.[0-9]+"' "$file" | grep -oE '[0-9]+\.[0-9]+' | head -1 || true)
 	if [ -n "$current" ] && version_lt "$current" "$MIN_TF_VERSION"; then
 		sed -i.bak -E "s/required_version = \">= [0-9]+\.[0-9]+\"/required_version = \">= $MIN_TF_VERSION\"/" "$file"
 	fi
