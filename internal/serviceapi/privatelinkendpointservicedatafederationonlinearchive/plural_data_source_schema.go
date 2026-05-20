@@ -38,7 +38,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 						},
 						"provider_name": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services only.",
+							MarkdownDescription: "Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services and Azure.",
 						},
 						"region": dsschema.StringAttribute{
 							Computed:            true,

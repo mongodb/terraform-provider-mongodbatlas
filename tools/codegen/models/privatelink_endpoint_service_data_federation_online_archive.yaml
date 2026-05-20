@@ -1,5 +1,5 @@
 schema:
-    description: Adds one private endpoint for Federated Database Instances and Online Archives to the specified projects. If the endpoint ID already exists and the associated comment is unchanged, Atlas Data Federation makes no change to the endpoint ID list. If the endpoint ID already exists and the associated comment is changed, Atlas Data Federation updates the comment value only in the endpoint ID list. If the endpoint ID doesn't exist, Atlas Data Federation appends the new endpoint to the list of endpoints in the endpoint ID list. Each region has an associated service name for the various endpoints. For the latest list of supported regions and their service names, see the external documentation. To use this resource, the requesting Service Account or API Key must have the Project Owner or Project Charts Admin roles.
+    description: Adds one private endpoint for Federated Database Instances and Online Archives to the specified projects. If the endpoint ID already exists and the associated comment is unchanged, Atlas Data Federation makes no change to the endpoint ID list. If the endpoint ID already exists and the associated comment is changed, Atlas Data Federation updates the comment value only in the endpoint ID list. If the endpoint ID doesn't exist, Atlas Data Federation appends the new endpoint to the list of endpoints in the endpoint ID list. Each region has an associated service name for the various endpoints. For the latest list of supported regions and their service names, see the external documentation.
     attributes:
         - string: {}
           description: Human-readable string to associate with this private endpoint.
@@ -24,7 +24,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Unique 22-character alphanumeric string that identifies the private endpoint.
+          description: Unique string that identifies the private endpoint. For AWS, this is a 22-character alphanumeric string in the format `vpce-<17 hex characters>`. For Azure, this is the full resource ID in the format `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateEndpoints/{endpointName}`.
           computed_optional_required: required
           tf_schema_name: endpoint_id
           tf_model_name: EndpointId
@@ -148,7 +148,7 @@ operations:
     version_header: application/vnd.atlas.2023-01-01+json
 data_sources:
     singular:
-        description: Returns the specified private endpoint for Federated Database Instances or Online Archives in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only or Project Charts Admin roles.
+        description: Returns the specified private endpoint for Federated Database Instances or Online Archives in the specified project.
         attributes:
             - string: {}
               description: Human-readable string to associate with this private endpoint.
@@ -196,7 +196,7 @@ data_sources:
               request_only_required_on_create: false
             - string:
                 default: AWS
-              description: Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services only.
+              description: Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services and Azure.
               computed_optional_required: computed
               tf_schema_name: provider_name
               tf_model_name: ProviderName
@@ -231,7 +231,7 @@ data_sources:
               request_only_required_on_create: false
         expanded_model: true
     plural:
-        description: Returns all private endpoints for Federated Database Instances and Online Archives in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only or Project Charts Admin roles.
+        description: Returns all private endpoints for Federated Database Instances and Online Archives in the specified project.
         attributes:
             - string: {}
               description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
@@ -282,7 +282,7 @@ data_sources:
                           request_only_required_on_create: false
                         - string:
                             default: AWS
-                          description: Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services only.
+                          description: Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services and Azure.
                           computed_optional_required: computed
                           tf_schema_name: provider_name
                           tf_model_name: ProviderName
