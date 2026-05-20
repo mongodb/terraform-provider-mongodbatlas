@@ -49,23 +49,22 @@ LATEST_TF_PATCH_VERSION=$(./scripts/get-terraform-supported-versions.sh "latest"
 # Update Terraform versions in .tool-versions
 sed -i.bak -E "s|^(terraform) [0-9]+\.[0-9]+\.[0-9]+|\1 $LATEST_TF_PATCH_VERSION|" "$TOOL_VERSIONS_FILE"
 
-# MIN_TF_VERSION=$(echo "$TF_VERSIONS_ARR" | jq -r 'last' | sed 's/\.x$//')
-MIN_TF_VERSION="1.10"
+MIN_TF_VERSION=$(echo "$TF_VERSIONS_ARR" | jq -r 'last' | sed 's/\.x$//')
 
 # Only bump TF version if min supported version is greater than the one set in the file.
-# Skips files that require a higher version for specific features
-version_lte() {
+# Skips files that require a higher version for specific features (e.g. write-only attributes).
+version_lt() {
 	local major1="${1%%.*}" minor1="${1#*.}"
 	local major2="${2%%.*}" minor2="${2#*.}"
 	[ "$major1" -lt "$major2" ] && return 0
-	[ "$major1" -eq "$major2" ] && [ "$minor1" -le "$minor2" ] && return 0
+	[ "$major1" -eq "$major2" ] && [ "$minor1" -lt "$minor2" ] && return 0
 	return 1
 }
 
 # Update required_version field in examples versions.tf files.
 find examples -name "versions.tf" -not -path "*/.terraform/*" | while read -r file; do
 	current=$(grep -oE 'required_version = ">= [0-9]+\.[0-9]+"' "$file" | grep -oE '[0-9]+\.[0-9]+' | head -1)
-	if [ -n "$current" ] && version_lte "$current" "$MIN_TF_VERSION"; then
+	if [ -n "$current" ] && version_lt "$current" "$MIN_TF_VERSION"; then
 		sed -i.bak -E "s/required_version = \">= [0-9]+\.[0-9]+\"/required_version = \">= $MIN_TF_VERSION\"/" "$file"
 	fi
 done
