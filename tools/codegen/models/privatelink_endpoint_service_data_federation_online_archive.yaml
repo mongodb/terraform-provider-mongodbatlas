@@ -24,7 +24,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Unique string that identifies the private endpoint. For AWS, this is a 22-character alphanumeric string in the format `vpce-<17 hex characters>`. For Azure, this is the full resource ID in the format `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateEndpoints/{endpointName}`.
+          description: Unique 22-character alphanumeric string that identifies the private endpoint.
           computed_optional_required: required
           tf_schema_name: endpoint_id
           tf_model_name: EndpointId
@@ -196,7 +196,7 @@ data_sources:
               request_only_required_on_create: false
             - string:
                 default: AWS
-              description: Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services and Azure.
+              description: Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services only.
               computed_optional_required: computed
               tf_schema_name: provider_name
               tf_model_name: ProviderName
@@ -282,7 +282,7 @@ data_sources:
                           request_only_required_on_create: false
                         - string:
                             default: AWS
-                          description: Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services and Azure.
+                          description: Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services only.
                           computed_optional_required: computed
                           tf_schema_name: provider_name
                           tf_model_name: ProviderName
