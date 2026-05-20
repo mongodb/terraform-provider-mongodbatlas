@@ -1241,14 +1241,14 @@ resources:
             description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
           results.customer_endpoint_dns_name:
             description: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`."
-        ignores: ["links", "results.links", "customer_endpoint_ip_address", "azure_link_id", "error_message", "status", "results.customer_endpoint_ip_address", "results.azure_link_id", "results.error_message", "results.status", "delete_on_create_timeout"]
+        ignores: ["links", "results.links"]
     schema:
       expanded_model: true
       aliases:
         groupId: projectId
         provider: providerName
       ignores: [
-        "results", "customer_endpoint_ip_address", "status", "azure_link_id", "error_message"
+        "results"
       ]
       overrides:
           project_id:

@@ -29,6 +29,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`.",
 			},
+			"customer_endpoint_ip_address": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "IP address used to connect to the Azure private endpoint.",
+			},
 			"endpoint_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique string that identifies the private endpoint. For AWS, this is a 22-character alphanumeric string (e.g. `vpce-xxxxxxxxxxxxxxxxx`). For Azure, this is the full resource ID of the private endpoint (e.g. `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateEndpoints/{privateEndpointName}`).",
@@ -51,6 +55,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`.",
 			},
+			"status": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Status of the private endpoint connection request.",
+			},
 			"type": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Human-readable label that identifies the resource type associated with this private endpoint.",
@@ -72,13 +80,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	TFExpandedModel
-	Comment                 types.String   `tfsdk:"comment"`
-	CustomerEndpointDNSName types.String   `tfsdk:"customer_endpoint_dns_name"`
-	EndpointId              types.String   `tfsdk:"endpoint_id"`
-	ProjectId               types.String   `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	ProviderName            types.String   `tfsdk:"provider_name" apiname:"provider"`
-	Region                  types.String   `tfsdk:"region"`
-	Type                    types.String   `tfsdk:"type"`
-	DeleteOnCreateTimeout   types.Bool     `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
-	Timeouts                timeouts.Value `tfsdk:"timeouts" autogen:"omitjson"`
+	AzureLinkId               types.String   `tfsdk:"azure_link_id"`
+	Comment                   types.String   `tfsdk:"comment"`
+	CustomerEndpointDNSName   types.String   `tfsdk:"customer_endpoint_dns_name"`
+	CustomerEndpointIPAddress types.String   `tfsdk:"customer_endpoint_ip_address"`
+	EndpointId                types.String   `tfsdk:"endpoint_id"`
+	ErrorMessage              types.String   `tfsdk:"error_message"`
+	ProjectId                 types.String   `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	ProviderName              types.String   `tfsdk:"provider_name" apiname:"provider"`
+	Region                    types.String   `tfsdk:"region"`
+	Status                    types.String   `tfsdk:"status"`
+	Type                      types.String   `tfsdk:"type"`
+	DeleteOnCreateTimeout     types.Bool     `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
+	Timeouts                  timeouts.Value `tfsdk:"timeouts" autogen:"omitjson"`
 }

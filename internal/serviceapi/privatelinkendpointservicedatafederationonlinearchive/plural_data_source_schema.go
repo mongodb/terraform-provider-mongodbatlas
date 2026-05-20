@@ -24,6 +24,10 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 				CustomType:          customtypes.NewNestedListType[TFPluralDSResultsModel](ctx),
 				NestedObject: dsschema.NestedAttributeObject{
 					Attributes: map[string]dsschema.Attribute{
+						"azure_link_id": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Link ID that identifies the Azure private endpoint connection.",
+						},
 						"comment": dsschema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Human-readable string to associate with this private endpoint.",
@@ -32,17 +36,29 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`.",
 						},
+						"customer_endpoint_ip_address": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "IP address used to connect to the Azure private endpoint.",
+						},
 						"endpoint_id": dsschema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Unique string that identifies the private endpoint. For AWS, this is a 22-character alphanumeric string (e.g. `vpce-xxxxxxxxxxxxxxxxx`). For Azure, this is the full resource ID of the private endpoint (e.g. `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateEndpoints/{privateEndpointName}`).",
 						},
+						"error_message": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Error message describing a failure approving the private endpoint request.",
+						},
 						"provider_name": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services only.",
+							MarkdownDescription: "Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services and Azure.",
 						},
 						"region": dsschema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`.",
+						},
+						"status": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Status of the private endpoint connection request.",
 						},
 						"type": dsschema.StringAttribute{
 							Computed:            true,
@@ -61,10 +77,14 @@ type TFPluralDSModel struct {
 	Results   customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
 }
 type TFPluralDSResultsModel struct {
-	Comment                 types.String `tfsdk:"comment" autogen:"omitjson"`
-	CustomerEndpointDNSName types.String `tfsdk:"customer_endpoint_dns_name" autogen:"omitjson"`
-	EndpointId              types.String `tfsdk:"endpoint_id" autogen:"omitjson"`
-	ProviderName            types.String `tfsdk:"provider_name" apiname:"provider" autogen:"omitjson"`
-	Region                  types.String `tfsdk:"region" autogen:"omitjson"`
-	Type                    types.String `tfsdk:"type" autogen:"omitjson"`
+	AzureLinkId               types.String `tfsdk:"azure_link_id" autogen:"omitjson"`
+	Comment                   types.String `tfsdk:"comment" autogen:"omitjson"`
+	CustomerEndpointDNSName   types.String `tfsdk:"customer_endpoint_dns_name" autogen:"omitjson"`
+	CustomerEndpointIPAddress types.String `tfsdk:"customer_endpoint_ip_address" autogen:"omitjson"`
+	EndpointId                types.String `tfsdk:"endpoint_id" autogen:"omitjson"`
+	ErrorMessage              types.String `tfsdk:"error_message" autogen:"omitjson"`
+	ProviderName              types.String `tfsdk:"provider_name" apiname:"provider" autogen:"omitjson"`
+	Region                    types.String `tfsdk:"region" autogen:"omitjson"`
+	Status                    types.String `tfsdk:"status" autogen:"omitjson"`
+	Type                      types.String `tfsdk:"type" autogen:"omitjson"`
 }
