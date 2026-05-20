@@ -3,6 +3,7 @@ package streamprocessor
 import (
 	"context"
 	"encoding/json"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -207,9 +208,7 @@ func convertDlqToTF(ctx context.Context, dlq *admin.StreamsDLQ) (*types.Object, 
 	return &dlqObject, nil
 }
 func convertPipelineToTF(pipeline []any) (jsontypes.Normalized, diag.Diagnostics) {
-	// Atlas can return 10.0 for a field the user set as 10. The SDK decoder uses UseNumber(),
-	// so those arrive as json.Number("10.0") and re-marshal as "10.0", causing a plan diff.
-	// Walk the tree: normalize via int64 first (preserves large integer precision), then float64.
+	// Atlas returns whole numbers in pipeline as doubles (e.g. 10.0). Normalize json.Number values to avoid spurious plan diffs.
 	normalizeNumbers(pipeline)
 	pipelineJSON, err := json.Marshal(pipeline)
 	if err != nil {
@@ -221,13 +220,7 @@ func convertPipelineToTF(pipeline []any) (jsontypes.Normalized, diag.Diagnostics
 func normalizeNumbers(v any) any {
 	switch val := v.(type) {
 	case json.Number:
-		if i, err := val.Int64(); err == nil {
-			return i
-		}
-		if f, err := val.Float64(); err == nil {
-			return f
-		}
-		return val
+		return normalizeNumber(val)
 	case []any:
 		for i, elem := range val {
 			val[i] = normalizeNumbers(elem)
@@ -238,6 +231,14 @@ func normalizeNumbers(v any) any {
 		}
 	}
 	return v
+}
+
+func normalizeNumber(n json.Number) json.Number {
+	s := string(n)
+	if idx := strings.IndexByte(s, '.'); idx != -1 && strings.TrimLeft(s[idx+1:], "0") == "" {
+		return json.Number(s[:idx])
+	}
+	return n
 }
 
 func convertStatsToTF(stats any) (types.String, diag.Diagnostics) {
