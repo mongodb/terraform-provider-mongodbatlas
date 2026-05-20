@@ -207,10 +207,6 @@ func convertDlqToTF(ctx context.Context, dlq *admin.StreamsDLQ) (*types.Object, 
 	return &dlqObject, nil
 }
 func convertPipelineToTF(pipeline []any) (jsontypes.Normalized, diag.Diagnostics) {
-	// Atlas can return 10.0 for a field the user set as 10. The SDK decoder uses UseNumber(),
-	// so those arrive as json.Number("10.0") and re-marshal as "10.0", causing a plan diff.
-	// Walk the tree: normalize via int64 first (preserves large integer precision), then float64.
-	normalizeNumbers(pipeline)
 	pipelineJSON, err := json.Marshal(pipeline)
 	if err != nil {
 		return jsontypes.NewNormalizedValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to marshal pipeline", err.Error())}
@@ -218,33 +214,10 @@ func convertPipelineToTF(pipeline []any) (jsontypes.Normalized, diag.Diagnostics
 	return jsontypes.NewNormalizedValue(string(pipelineJSON)), nil
 }
 
-func normalizeNumbers(v any) any {
-	switch val := v.(type) {
-	case json.Number:
-		if i, err := val.Int64(); err == nil {
-			return i
-		}
-		if f, err := val.Float64(); err == nil {
-			return f
-		}
-		return val
-	case []any:
-		for i, elem := range val {
-			val[i] = normalizeNumbers(elem)
-		}
-	case map[string]any:
-		for k, elem := range val {
-			val[k] = normalizeNumbers(elem)
-		}
-	}
-	return v
-}
-
 func convertStatsToTF(stats any) (types.String, diag.Diagnostics) {
 	if stats == nil {
 		return types.StringNull(), nil
 	}
-	normalizeNumbers(stats) // same UseNumber() normalization as pipeline
 	statsJSON, err := json.Marshal(stats)
 	if err != nil {
 		return types.StringValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to marshal stats", err.Error())}
