@@ -8,8 +8,6 @@ subcategory: "Projects"
 
 ~> **DEPRECATION:** This data source is deprecated. Use `mongodbatlas_cloud_user_project_assignment` to read project user assignments. See the [Project Invitation to Cloud User Project Assignment Migration Guide](../guides/atlas-user-management).
 
--> **NOTE:** Groups and projects are synonymous terms. You may find GROUP-ID in the official documentation.
-
 ## Example Usages
 
 ```terraform
@@ -27,7 +25,7 @@ data "mongodbatlas_project_invitation" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project to which you invited the user.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project to which you invited the user, also known as `groupId` in the official documentation.
 * `username` - (Required) Email address of the invited user. This is the address to which Atlas sends the invite. If the user accepts the invitation, they log in to Atlas with this username.
 * `invitation_id` - (Required) Unique 24-hexadecimal digit string that identifies the invitation in Atlas.
 

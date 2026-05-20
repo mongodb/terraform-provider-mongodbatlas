@@ -24,6 +24,16 @@ func BuildSchema(proxy *base.SchemaProxy) (*APISpecSchema, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to build schema from proxy: %w", err)
 	}
+	if refBranch, description := matchSiblingRefAllOf(schema); refBranch != nil {
+		inner, err := BuildSchema(refBranch)
+		if err != nil {
+			return nil, err
+		}
+		if description != "" {
+			inner.Schema.Description = description
+		}
+		return inner, nil
+	}
 	switch {
 	case len(schema.Type) > 0:
 		resp.Type = schema.Type[0]
@@ -157,6 +167,53 @@ func buildSchemaFromResponse(op *high.Operation, configuredVersion *string) (*AP
 	}
 
 	return nil, errSchemaNotFound
+}
+
+// matchSiblingRefAllOf detects the 2-branch allOf wrapper libopenapi (>= v0.36.4) emits when
+// a `$ref` carries a `description` sibling, returning the referenced proxy and the override
+// description. Real allOf composition is left to the flattened API spec; any other wrapper
+// shape returns a nil refBranch so the existing "type cannot be inferred" error surfaces
+// unsupported shapes loudly. Detection only — the caller resolves the ref so any underlying
+// BuildSchema failure propagates instead of being hidden behind the wrapper's generic error.
+func matchSiblingRefAllOf(schema *base.Schema) (refBranch *base.SchemaProxy, description string) {
+	if len(schema.AllOf) != 2 ||
+		len(schema.Type) > 0 ||
+		(schema.Properties != nil && schema.Properties.Len() > 0) {
+		return nil, ""
+	}
+
+	for _, branch := range schema.AllOf {
+		if branch.GetReference() != "" {
+			if refBranch != nil {
+				return nil, ""
+			}
+			refBranch = branch
+			continue
+		}
+		carrier, err := branch.BuildSchema()
+		if err != nil || !isDescriptionOnlyCarrier(carrier) {
+			return nil, ""
+		}
+		description = carrier.Description
+	}
+	if refBranch == nil {
+		return nil, ""
+	}
+	return refBranch, description
+}
+
+// isDescriptionOnlyCarrier reports whether s is the inline branch libopenapi emits in a
+// sibling-ref wrapper: at most a description, with no structural or override fields.
+func isDescriptionOnlyCarrier(s *base.Schema) bool {
+	return len(s.Type) == 0 &&
+		(s.Properties == nil || s.Properties.Len() == 0) &&
+		len(s.Required) == 0 &&
+		len(s.AllOf) == 0 && len(s.OneOf) == 0 && len(s.AnyOf) == 0 &&
+		len(s.Enum) == 0 &&
+		s.Items == nil && s.AdditionalProperties == nil &&
+		s.Deprecated == nil && s.ReadOnly == nil && s.WriteOnly == nil && s.Nullable == nil &&
+		s.Default == nil && s.Example == nil &&
+		s.Title == ""
 }
 
 // getSchemaName extracts a human-readable schema name from the proxy reference or schema title.

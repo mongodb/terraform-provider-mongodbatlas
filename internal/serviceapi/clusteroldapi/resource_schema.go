@@ -334,6 +334,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Optional:            true,
 												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
 												Optional:            true,
@@ -414,6 +418,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Optional:            true,
 												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
 												Optional:            true,
@@ -470,6 +478,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -649,10 +661,11 @@ type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel struct {
 	Enabled types.Bool `tfsdk:"enabled"`
 }
 type TFReplicationSpecsRegionConfigsAnalyticsSpecsModel struct {
-	DiskIOPS      types.Int64  `tfsdk:"disk_iops"`
-	EbsVolumeType types.String `tfsdk:"ebs_volume_type"`
-	InstanceSize  types.String `tfsdk:"instance_size"`
-	NodeCount     types.Int64  `tfsdk:"node_count"`
+	DiskIOPS       types.Int64  `tfsdk:"disk_iops"`
+	DiskThroughput types.Int64  `tfsdk:"disk_throughput" autogen:"omitjson"`
+	EbsVolumeType  types.String `tfsdk:"ebs_volume_type"`
+	InstanceSize   types.String `tfsdk:"instance_size"`
+	NodeCount      types.Int64  `tfsdk:"node_count"`
 }
 type TFReplicationSpecsRegionConfigsAutoScalingModel struct {
 	Compute customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingComputeModel] `tfsdk:"compute"`
@@ -669,14 +682,16 @@ type TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel struct {
 }
 type TFReplicationSpecsRegionConfigsElectableSpecsModel struct {
 	DiskIOPS              types.Int64  `tfsdk:"disk_iops"`
+	DiskThroughput        types.Int64  `tfsdk:"disk_throughput" autogen:"omitjson"`
 	EbsVolumeType         types.String `tfsdk:"ebs_volume_type"`
 	EffectiveInstanceSize types.String `tfsdk:"effective_instance_size" autogen:"omitjson"`
 	InstanceSize          types.String `tfsdk:"instance_size"`
 	NodeCount             types.Int64  `tfsdk:"node_count"`
 }
 type TFReplicationSpecsRegionConfigsReadOnlySpecsModel struct {
-	DiskIOPS      types.Int64  `tfsdk:"disk_iops"`
-	EbsVolumeType types.String `tfsdk:"ebs_volume_type"`
-	InstanceSize  types.String `tfsdk:"instance_size"`
-	NodeCount     types.Int64  `tfsdk:"node_count"`
+	DiskIOPS       types.Int64  `tfsdk:"disk_iops"`
+	DiskThroughput types.Int64  `tfsdk:"disk_throughput" autogen:"omitjson"`
+	EbsVolumeType  types.String `tfsdk:"ebs_volume_type"`
+	InstanceSize   types.String `tfsdk:"instance_size"`
+	NodeCount      types.Int64  `tfsdk:"node_count"`
 }

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
@@ -37,7 +37,7 @@ func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexCluste
 
 func WaitStateTransitionDelete(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, timeout time.Duration) error {
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{retrystrategy.RetryStrategyDeletingState},
+		Pending:    []string{retrystrategy.RetryStrategyCreatingState, retrystrategy.RetryStrategyIdleState, retrystrategy.RetryStrategyDeletingState},
 		Target:     []string{retrystrategy.RetryStrategyDeletedState},
 		Refresh:    refreshFunc(ctx, requestParams, client, false),
 		Timeout:    timeout,

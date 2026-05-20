@@ -1,12 +1,17 @@
 package flexcluster_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/stretchr/testify/require"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -36,6 +41,9 @@ func TestAccFlexClusterRS_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 		createTimeout         = "1s"
 		deleteOnCreateTimeout = true
 	)
+	t.Cleanup(func() {
+		waitFlexClusterDeletion(t, projectID, clusterName)
+	})
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -46,6 +54,15 @@ func TestAccFlexClusterRS_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 			},
 		},
 	})
+}
+
+func waitFlexClusterDeletion(t *testing.T, projectID, clusterName string) {
+	t.Helper()
+	params := &admin.GetFlexClusterApiParams{
+		GroupId: projectID,
+		Name:    clusterName,
+	}
+	require.NoError(t, flexcluster.WaitStateTransitionDelete(context.Background(), params, acc.ConnV2().FlexClustersApi, 10*time.Minute))
 }
 
 func TestAccFlexClusterRS_updateDeleteTimeout(t *testing.T) {

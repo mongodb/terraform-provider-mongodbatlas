@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -35,7 +35,7 @@ func importStep(config string) resource.TestStep {
 		ImportStateIdFunc:       importStateIDFunc(resourceName),
 		ImportState:             true,
 		ImportStateVerify:       true,
-		ImportStateVerifyIgnore: []string{"delete_on_create_timeout"},
+		ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "timeouts"},
 	}
 }
 
@@ -194,7 +194,9 @@ func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
 			RequirePrivateNetworking: new(true),
 		}
-		region = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
+		region         = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
+		createTimeout  = "45m"
+		timeoutsConfig = acc.TimeoutConfig(&createTimeout, nil, nil)
 	)
 
 	return &resource.TestCase{
@@ -212,6 +214,10 @@ func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 			},
 			{
 				Config: configAWSBasic(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKmsPrivateNetworking),
+				Check:  checkBasic(projectID, "AWS", region, true),
+			},
+			{
+				Config: configAWSWithTimeouts(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKmsPrivateNetworking, timeoutsConfig),
 				Check:  checkBasic(projectID, "AWS", region, true),
 			},
 			importStep(configAWSBasic(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKms)),
@@ -357,8 +363,12 @@ func checkBasic(projectID, cloudProvider, region string, expectApproved bool) re
 }
 
 func configAWSBasic(projectID, awsIAMRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration) string {
+	return configAWSWithTimeouts(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKms, "")
+}
+
+func configAWSWithTimeouts(projectID, awsIAMRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration, timeoutConfig string) string {
 	encryptionAtRestConfig := acc.ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKms, false, true, false)
-	return configEARPrivateEndpoint(encryptionAtRestConfig, awsKms, "", nil)
+	return configEARPrivateEndpoint(encryptionAtRestConfig, awsKms, timeoutConfig, nil)
 }
 
 func configAWSProject(projectName, orgID, awsIAMRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration, timeoutConfig string, deleteOnCreateTimeout *bool) string {

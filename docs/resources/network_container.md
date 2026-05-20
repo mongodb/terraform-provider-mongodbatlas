@@ -12,8 +12,6 @@ The following is the maximum number of Network Peering containers per cloud prov
 <br> &#8226;  GCP -  One container per project.
 <br> &#8226;  AWS and Azure - One container per cloud provider region.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
-
 
 ## Example Usage
 
@@ -52,11 +50,11 @@ resource "mongodbatlas_network_container" "test" {
 ```
 
 ### Further Examples
-- [GCP and MongoDB Atlas VPC Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_network_peering/gcp)
+- [GCP and MongoDB Atlas VPC Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_network_peering/gcp)
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the Atlas project for this Network Peering Container.
+* `project_id` - (Required) Unique identifier for the Atlas project for this Network Peering Container, also known as `groupId` in the official documentation.
 * `atlas_cidr_block` - (Required) CIDR block that Atlas uses for the Network Peering containers in your project.  Atlas uses the specified CIDR block for all other Network Peering connections created in the project. The Atlas CIDR block must be at least a /24 and at most a /21 in one of the following [private networks](https://tools.ietf.org/html/rfc1918.html#section-3):
   * Lower bound: 10.0.0.0 -	Upper bound: 10.255.255.255 -	Prefix: 10/8
   * Lower bound: 172.16.0.0 -	Upper bound:172.31.255.255 -	Prefix:	172.16/12

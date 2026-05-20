@@ -11,13 +11,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 const streamConnectionName = "stream_connection"
+
+// Connection type constants used to differentiate API field mapping by connection type.
+const (
+	ConnectionTypeAWSKinesisDataStreams = "AWSKinesisDataStreams"
+	ConnectionTypeAWSLambda             = "AWSLambda"
+	ConnectionTypeAzureBlobStorage      = "AzureBlobStorage"
+	ConnectionTypeGCPPubSub             = "GCPPubSub"
+	ConnectionTypeCluster               = "Cluster"
+	ConnectionTypeHTTPS                 = "Https"
+	ConnectionTypeKafka                 = "Kafka"
+	ConnectionTypeS3                    = "S3"
+	ConnectionTypeSample                = "Sample"
+	ConnectionTypeSchemaRegistry        = "SchemaRegistry"
+)
 
 var _ resource.ResourceWithConfigure = &streamConnectionRS{}
 var _ resource.ResourceWithImportState = &streamConnectionRS{}
@@ -51,6 +64,8 @@ type TFStreamConnectionCommonModel struct {
 	DBRoleToExecute  types.Object `tfsdk:"db_role_to_execute"`
 	Networking       types.Object `tfsdk:"networking"`
 	AWS              types.Object `tfsdk:"aws"`
+	GCP              types.Object `tfsdk:"gcp"`
+	Azure            types.Object `tfsdk:"azure"`
 	// https connection
 	Headers types.Map    `tfsdk:"headers"`
 	URL     types.String `tfsdk:"url"`
@@ -159,6 +174,26 @@ var AWSObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"role_arn": types.StringType,
 }}
 
+type TFGCPModel struct {
+	ServiceAccountID types.String `tfsdk:"service_account_id"`
+}
+
+var GCPObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"service_account_id": types.StringType,
+}}
+
+type TFAzureModel struct {
+	ServicePrincipalID types.String `tfsdk:"service_principal_id"`
+	StorageAccountName types.String `tfsdk:"storage_account_name"`
+	Region             types.String `tfsdk:"region"`
+}
+
+var AzureObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"service_principal_id": types.StringType,
+	"storage_account_name": types.StringType,
+	"region":               types.StringType,
+}}
+
 func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
 	conversion.UpdateSchemaDescription(&resp.Schema)
@@ -203,9 +238,8 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 
 	connectionName := conversion.SafeValue(apiResp.Name)
 
-	// Wait for the connection to reach a ready state before returning
-	// This ensures the connection is fully provisioned and available for use with stream processors
-	createTimeout := cleanup.ResolveTimeout(ctx, &streamConnectionPlan.Timeouts, cleanup.OperationCreate, &resp.Diagnostics)
+	createTimeout, diags := streamConnectionPlan.Timeouts.Create(ctx, DefaultConnectionTimeout)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -289,9 +323,8 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	// Wait for the connection to reach a ready state before returning
-	// This ensures the connection is fully provisioned and available for use with stream processors
-	updateTimeout := cleanup.ResolveTimeout(ctx, &streamConnectionPlan.Timeouts, cleanup.OperationUpdate, &resp.Diagnostics)
+	updateTimeout, diags := streamConnectionPlan.Timeouts.Update(ctx, DefaultConnectionTimeout)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -327,7 +360,8 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 	connectionName := streamConnectionState.ConnectionName.ValueString()
 
-	deleteTimeout := cleanup.ResolveTimeout(ctx, &streamConnectionState.Timeouts, cleanup.OperationDelete, &resp.Diagnostics)
+	deleteTimeout, diags := streamConnectionState.Timeouts.Delete(ctx, DefaultConnectionTimeout)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

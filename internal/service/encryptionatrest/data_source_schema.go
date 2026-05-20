@@ -3,7 +3,7 @@ package encryptionatrest
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -142,7 +142,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 			},
 			"id": schema.StringAttribute{
 				Computed: true,

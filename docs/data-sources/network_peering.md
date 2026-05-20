@@ -6,8 +6,6 @@ subcategory: "Network Peering"
 
 `mongodbatlas_network_peering` describes a Network Peering Connection.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
-
 ## Example Usage
 
 ### Basic Example (AWS).
@@ -32,7 +30,7 @@ data "mongodbatlas_network_peering" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project.
+* `project_id` - (Required) The unique ID for the project, also known as `groupId` in the official documentation.
 * `peering_id` - (Required) Atlas assigned unique ID for the peering connection.
 
 ## Attributes Reference

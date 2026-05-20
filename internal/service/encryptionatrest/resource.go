@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -107,7 +107,7 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 			},
 			"enabled_for_search_nodes": schema.BoolAttribute{
 				Optional:            true,

@@ -41,6 +41,7 @@ var (
 
 type s3Config struct {
 	kmsKey            *string
+	useLegacyPath     *bool
 	bucketName        string
 	bucketPolicyName  string
 	iamRoleName       string
@@ -75,6 +76,7 @@ func TestAccLogIntegration_basicS3(t *testing.T) {
 		awsIAMRoleName       = acc.RandomIAMRole()
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 		kmsKey               = os.Getenv("AWS_KMS_KEY_ID")
+		useLegacyPath        = true
 		withDS               = true
 	)
 
@@ -85,19 +87,19 @@ func TestAccLogIntegration_basicS3(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasicS3(projectID, logTypesMongoD, &s3Config{nil, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, withDS),
-				Check:  checkBasicS3(logTypesMongoD, s3BucketName, prefixPath, withDS),
+				Config: configBasicS3(projectID, logTypesMongoD, &s3Config{nil, nil, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, withDS),
+				Check:  checkBasicS3(logTypesMongoD, s3BucketName, prefixPath, !useLegacyPath, withDS),
 			},
 			{
-				Config: configBasicS3(projectID, logTypesAll, &s3Config{&kmsKey, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, !withDS),
-				Check:  checkBasicS3(logTypesAll, s3BucketName, prefixPath, !withDS),
+				Config: configBasicS3(projectID, logTypesAll, &s3Config{&kmsKey, new(useLegacyPath), s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, !withDS),
+				Check:  checkBasicS3(logTypesAll, s3BucketName, prefixPath, useLegacyPath, !withDS),
 			},
 			{
-				Config: configBasicS3(projectID, logTypesMongoS, &s3Config{nil, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, !withDS),
-				Check:  checkBasicS3(logTypesMongoS, s3BucketName, prefixPath, !withDS),
+				Config: configBasicS3(projectID, logTypesMongoS, &s3Config{nil, new(!useLegacyPath), s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, !withDS),
+				Check:  checkBasicS3(logTypesMongoS, s3BucketName, prefixPath, !useLegacyPath, !withDS),
 			},
 			{
-				Config:                               configBasicS3(projectID, logTypesMongoS, &s3Config{&kmsKey, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, false),
+				Config:                               configBasicS3(projectID, logTypesMongoS, &s3Config{&kmsKey, new(!useLegacyPath), s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, false),
 				ResourceName:                         resourceName,
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportState:                          true,
@@ -127,7 +129,7 @@ func TestAccLogIntegration_basicAzure(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckLogIntegrationEnvAzure(t) },
+		PreCheck:                 func() { acc.PreCheckAzureEnvWithServicePrincipal(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAzurerm(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -303,6 +305,10 @@ func configBasicS3(projectID string, logTypes []string, config *s3Config, withDS
 	if config.kmsKey != nil {
 		kmsKeyHCL = fmt.Sprintf("kms_key = %q", *config.kmsKey)
 	}
+	useLegacyPathHCL := ""
+	if config.useLegacyPath != nil {
+		useLegacyPathHCL = fmt.Sprintf("use_legacy_path_structure = %t", *config.useLegacyPath)
+	}
 	dsConfig := ""
 	if withDS {
 		dsConfig = datasourcesConfig
@@ -318,20 +324,22 @@ func configBasicS3(projectID string, logTypes []string, config *s3Config, withDS
 			bucket_name = aws_s3_bucket.log_bucket.bucket
 			prefix_path = %[4]q
 			%[5]s
+			%[6]s
 		}
 
-		%[6]s
-	`, awsIAMRoleAuthAndS3Config(projectID, config), projectID, logTypesStr, config.prefixPath, kmsKeyHCL, dsConfig)
+		%[7]s
+	`, awsIAMRoleAuthAndS3Config(projectID, config), projectID, logTypesStr, config.prefixPath, kmsKeyHCL, useLegacyPathHCL, dsConfig)
 }
 
-func checkBasicS3(logTypes []string, bucketName, prefixPath string, withDS bool) resource.TestCheckFunc {
+func checkBasicS3(logTypes []string, bucketName, prefixPath string, useLegacyPath, withDS bool) resource.TestCheckFunc {
 	setChecks := []string{"iam_role_id", "integration_id"}
 	mapChecks := map[string]string{
-		"bucket_name": bucketName,
-		"prefix_path": prefixPath,
-		"type":        "S3_LOG_EXPORT",
-		"log_types.#": strconv.Itoa(len(logTypes)),
-		"log_types.0": logTypes[0],
+		"bucket_name":               bucketName,
+		"prefix_path":               prefixPath,
+		"type":                      "S3_LOG_EXPORT",
+		"log_types.#":               strconv.Itoa(len(logTypes)),
+		"log_types.0":               logTypes[0],
+		"use_legacy_path_structure": strconv.FormatBool(useLegacyPath),
 	}
 	return commonCheck(setChecks, mapChecks, withDS)
 }
@@ -345,21 +353,23 @@ func configBasicAzure(projectID string, logTypes []string, config *azureConfig, 
 	return fmt.Sprintf(`
 		%[1]s
 		%[2]s
+		%[3]s
 
 		resource "mongodbatlas_log_integration" "test" {
-			project_id             = %[3]q
+			project_id             = %[4]q
 		    type                   = "AZURE_LOG_EXPORT"
-			log_types              = %[4]s
+			log_types              = %[5]s
 		    role_id                = mongodbatlas_cloud_provider_access_authorization.azure_auth.role_id
 		    storage_account_name   = azurerm_storage_account.log_storage.name
 		    storage_container_name = azurerm_storage_container.log_container.name
-			prefix_path            = %[5]q
+			prefix_path            = %[6]q
 		}
 
-		%[6]s
+		%[7]s
 	`,
 		acc.ConfigAzurermProvider(config.subscriptionID, config.clientID, config.clientSecret, config.tenantID),
-		azureStorageContainerConfig(projectID, config),
+		acc.ConfigAzureCloudProviderAccess(projectID, config.atlasAzureAppID, config.servicePrincipalID, config.tenantID),
+		acc.ConfigAzureStorageResources("log", config.resourceGroupName, config.storageAccountName, config.storageContainerName, config.servicePrincipalID),
 		projectID, logTypesStr, config.prefixPath, dsConfig,
 	)
 }
@@ -686,50 +696,6 @@ func awsIAMRoleAuthAndS3Config(projectID string, config *s3Config) string {
 				EOF
 		}
 	`, projectID, config.bucketName, config.iamRoleName, config.iamRolePolicyName, config.bucketPolicyName)
-}
-
-func azureStorageContainerConfig(projectID string, config *azureConfig) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_cloud_provider_access_setup" "azure_setup" {
-			project_id    = %[1]q
-			provider_name = "AZURE"
-
-			azure_config {
-				atlas_azure_app_id   = %[2]q
-				service_principal_id = %[3]q
-				tenant_id            = %[4]q
-			}
-		}
-
-		resource "mongodbatlas_cloud_provider_access_authorization" "azure_auth" {
-			project_id = %[1]q
-			role_id    = mongodbatlas_cloud_provider_access_setup.azure_setup.role_id
-
-			azure {
-				atlas_azure_app_id   = %[2]q
-				service_principal_id = %[3]q
-				tenant_id            = %[4]q
-			}
-		}
-
-		resource "azurerm_resource_group" "log_rg" {
-			name     = %[5]q
-			location = "East US"
-		}
-
-		resource "azurerm_storage_account" "log_storage" {
-			name                     = %[6]q
-			resource_group_name      = azurerm_resource_group.log_rg.name
-			location                 = azurerm_resource_group.log_rg.location
-			account_tier             = "Standard"
-			account_replication_type = "LRS"
-		}
-
-		resource "azurerm_storage_container" "log_container" {
-			name                  = %[7]q
-			storage_account_id    = azurerm_storage_account.log_storage.id
-		}
-	`, projectID, config.atlasAzureAppID, config.servicePrincipalID, config.tenantID, config.resourceGroupName, config.storageAccountName, config.storageContainerName)
 }
 
 func gcsStorageBucketConfig(projectID string, config *gcsConfig) string {

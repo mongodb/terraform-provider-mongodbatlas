@@ -1,5 +1,70 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* resource/mongodbatlas_database_user: Removes incorrect warning emitted on every resource creation regardless of authentication type ([#4443](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4443))
+
+BUG FIXES:
+
+* resource/mongodbatlas_advanced_cluster: Emits a warning during plan when `use_effective_fields` is true, auto-scaling is enabled, and `instance_size`, `disk_size_gb`, or `disk_iops` is modified, as Atlas silently ignores these changes in that combination ([#4405](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4405))
+* resource/mongodbatlas_flex_cluster: Fixes deletion waits to improve reliability when deleting flex clusters ([#4431](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4431))
+
+## 2.12.0 (May 06, 2026)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_log_integration: Adds `use_legacy_path_structure` attribute for `S3_LOG_EXPORT` type to use the legacy daily-folder path structure ([#4419](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4419))
+* data-source/mongodbatlas_log_integrations: Adds `use_legacy_path_structure` attribute for `S3_LOG_EXPORT` type to use the legacy daily-folder path structure ([#4419](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4419))
+* data-source/mongodbatlas_stream_privatelink_endpoint: Adds `AZURE_BLOB_STORAGE` as a vendor type for AZURE provider ([#4366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4366))
+* data-source/mongodbatlas_stream_privatelink_endpoints: Adds `AZURE_BLOB_STORAGE` as a vendor type for AZURE provider ([#4366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4366))
+* resource/mongodbatlas_cloud_backup_schedule: Adds `skip_destroy` attribute to skip the API delete call on `terraform destroy`, allowing `terraform destroy` to remove a cluster when a Backup Compliance Policy (BCP) is enabled ([#4397](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4397))
+* resource/mongodbatlas_log_integration: Adds `use_legacy_path_structure` attribute for `S3_LOG_EXPORT` type to use the legacy daily-folder path structure ([#4419](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4419))
+* resource/mongodbatlas_stream_privatelink_endpoint: Adds `AZURE_BLOB_STORAGE` as a vendor type for AZURE provider ([#4366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4366))
+
+BUG FIXES:
+
+* resource/mongodbatlas_advanced_cluster: Emits a warning when `mongo_db_major_version` is modified outside of Terraform ([#4409](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4409))
+* resource/mongodbatlas_advanced_cluster: Fixes inconsistent result error when scaling attribute changes cause Atlas to recompute oplog_size_mb ([#4413](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4413))
+* resource/mongodbatlas_alert_configuration: Fix inconsistent state when creating OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD alerts ([#4408](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4408))
+* resource/mongodbatlas_federated_settings_org_role_mapping: Fixes plan churn on `role_assignments` fields when adding/removing a new block ([#4394](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4394))
+* resource/mongodbatlas_search_index: Wait for deletion to complete before returning from destroy ([#4401](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4401))
+
+## 2.11.0 (April 22, 2026)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_federated_database_instance: Adds `private_endpoint_hostnames` attribute ([#4358](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4358))
+* data-source/mongodbatlas_federated_database_instances: Adds `private_endpoint_hostnames` attribute ([#4358](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4358))
+* data-source/mongodbatlas_privatelink_endpoint: Adds `supported_remote_regions` attribute to support reading additional AWS regions that can connect to the endpoint service ([#4315](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4315))
+* data-source/mongodbatlas_privatelink_endpoints: Adds `supported_remote_regions` attribute to support reading additional AWS regions that can connect to the endpoint service ([#4315](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4315))
+* data-source/mongodbatlas_stream_privatelink_endpoint: Adds support for GCP `PUBSUB` vendor ([#4382](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4382))
+* data-source/mongodbatlas_stream_privatelink_endpoints: Adds support for GCP `PUBSUB` vendor ([#4382](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4382))
+* resource/mongodbatlas_federated_database_instance: Adds `private_endpoint_hostnames` attribute ([#4358](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4358))
+* resource/mongodbatlas_privatelink_endpoint: Adds `supported_remote_regions` attribute to configure additional AWS regions that can connect to the endpoint service ([#4315](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4315))
+* resource/mongodbatlas_privatelink_endpoint: Adds update timeout support ([#4373](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4373))
+* resource/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive: Adds support for import using `{project_id}/{endpoint_id}` format ([#4351](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4351))
+* resource/mongodbatlas_stream_connection: Updates default delete timeout from 10 minutes to 20 minutes to be consistent with create and update operations ([#4382](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4382))
+* resource/mongodbatlas_stream_privatelink_endpoint: Adds support for GCP `PUBSUB` vendor ([#4382](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4382))
+
+BUG FIXES:
+
+* resource/mongodbatlas_advanced_cluster: Fixes `config_server_type` inconsistent result after apply when `config_server_management_mode` is `ATLAS_MANAGED` ([#4380](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4380))
+* resource/mongodbatlas_cloud_provider_access_setup: Fixes import reporting wrong error when read fails ([#4378](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4378))
+* resource/mongodbatlas_encryption_at_rest_private_endpoint: Fixes inconsistent state error when adding `timeouts` block to an existing resource ([#4377](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4377))
+* resource/mongodbatlas_federated_settings_org_config: Fixes perpetual plan drift on `post_auth_role_grants` and `data_access_identity_provider_ids` caused by non-deterministic API response ordering ([#4384](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4384))
+* resource/mongodbatlas_stream_connection: Fixes default timeout for create, update, and delete operations to use 20 minutes instead of the generic 3-hour fallback ([#4382](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4382))
+
+## 2.10.0 (April 08, 2026)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection: Adds `AzureBlobStorage` connection ([#4357](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4357))
+* data-source/mongodbatlas_stream_connection: Adds support for `GCPPubSub` connection type with `gcp` attribute ([#4354](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4354))
+* data-source/mongodbatlas_stream_connections: Adds `AzureBlobStorage` connection ([#4357](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4357))
+* data-source/mongodbatlas_stream_connections: Adds support for `GCPPubSub` connection type with `gcp` attribute ([#4354](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4354))
+* resource/mongodbatlas_stream_connection: Adds `AzureBlobStorage` connection ([#4357](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4357))
+* resource/mongodbatlas_stream_connection: Adds support for `GCPPubSub` connection type with `gcp` attribute ([#4354](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4354))
+
 BUG FIXES:
 
 * resource/mongodbatlas_ldap_verify: Fixes `bind_password` not being marked as sensitive ([#4349](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4349))

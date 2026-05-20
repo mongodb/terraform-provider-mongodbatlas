@@ -6,8 +6,6 @@ subcategory: "Private Endpoint Services"
 
 `mongodbatlas_privatelink_endpoint` describes a Private Endpoint. This represents a Private Endpoint Connection to retrieve details regarding a private endpoint by id in an Atlas project
 
--> **NOTE:** Groups and projects are synonymous terms. The official documentation uses `group_id`.
-
 ~> **IMPORTANT:** Before configuring a private endpoint for a new region in your cluster, review the [Multi-Region Private Endpoints](https://www.mongodb.com/docs/atlas/troubleshoot-private-endpoints/#multi-region-private-endpoints) troubleshooting documentation.
 
 ## Example Usage
@@ -27,13 +25,13 @@ data "mongodbatlas_privatelink_endpoint" "this" {
 ```
 
 ### Further Examples
-- [AWS PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_privatelink_endpoint/aws)
-- [Azure PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_privatelink_endpoint/azure)
-- [GCP Private Service Connect Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
+- [AWS PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_privatelink_endpoint/aws)
+- [Azure PrivateLink Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_privatelink_endpoint/azure)
+- [GCP Private Service Connect Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the project.
+* `project_id` - (Required) Unique identifier for the project, also known as `groupId` in the official documentation.
 * `private_link_id` - (Required) Unique identifier of the private endpoint that you want to retrieve.
 * `provider_name` - (Required) Cloud provider for which you want to retrieve a private endpoint service. Atlas accepts `AWS`, `AZURE`, or `GCP`.
 
@@ -45,6 +43,7 @@ In addition to all arguments above, the following attributes are exported:
 * `endpoint_service_name` - Name of the PrivateLink endpoint service in AWS. Returns `null` while Atlas creates the endpoint service.
 * `error_message` - Error message for the private endpoint connection. Returns `null` if there are no errors.
 * `interface_endpoints` - Unique identifiers of the interface endpoints in your VPC that you added to the AWS PrivateLink connection.
+* `supported_remote_regions` - List of additional AWS regions that can connect to the endpoint service.
 * `status` - Status of the AWS PrivateLink connection.
   Returns one of the following values:
   * `AVAILABLE` - Atlas created the load balancer and the Private Link Service.

@@ -58,7 +58,7 @@ output "service_accounts_results" {
 
 - `description` (String) Human readable description for the Service Account.
 - `name` (String) Human-readable name for the Service Account. The name is modifiable and does not have to be unique.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `roles` (Set of String) A list of project-level roles for the Service Account.
 
 ### Optional

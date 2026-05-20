@@ -6,8 +6,6 @@ subcategory: "Data Federation"
 
 `mongodbatlas_privatelink_endpoint_service_data_federation_online_archive` provides a Private Endpoint Service resource for Data Federation and Online Archive. The resource allows you to create and manage a private endpoint for Federated Database Instances and Online Archives to the specified project.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 -> **NOTE:** Updates are limited to the `comment` argument.
 
 ## Example Usage: AWS provider
@@ -56,12 +54,12 @@ resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archi
 -> **NOTE:** For Azure, recreating the private endpoint is required. Do not reuse an `endpoint_id`; instead, create a new Azure private endpoint. See [Azure's documentation](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview) for further details.
 
 ### Further Examples
-- [AWS PrivateLink for Data Federation and Online Archive](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_privatelink_endpoint/aws/data-federation-online-archive)
-- [Azure PrivateLink for Data Federation and Online Archive](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive/azure)
+- [AWS PrivateLink for Data Federation and Online Archive](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_privatelink_endpoint/aws/data-federation-online-archive)
+- [Azure PrivateLink for Data Federation and Online Archive](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive/azure)
 
 ## Argument Reference
 
-* `project_id` (Required) - Unique 24-hexadecimal digit string that identifies your project.
+* `project_id` (Required) - Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `endpoint_id` (Required) - Unique string that identifies the private endpoint. For AWS, this is a 22-character alphanumeric string (e.g. `vpce-xxxxxxxxxxxxxxxxx`). For Azure, this is the full resource ID of the private endpoint (e.g. `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateEndpoints/{privateEndpointName}`). See [Atlas Data Federation supports AWS and Azure private endpoints using the PrivateLink feature](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint).
 * `provider_name` (Required) - Human-readable label that identifies the cloud service provider. AWS and Azure are currently supported.
 * `timeouts` - (Optional) The duration to wait for the Private Endpoint Service resource for Data Federation and Online Archive to be created or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `2h`), `delete` (default: `2h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).  

@@ -6,8 +6,6 @@ subcategory: "Alert Configurations"
 
 `mongodbatlas_alert_configuration` provides an Alert Configuration resource to define the conditions that trigger an alert and the methods of notification within a MongoDB Atlas project.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -137,12 +135,12 @@ resource "mongodbatlas_alert_configuration" "test" {
 ```
 
 ### Further Examples
-- [Alert Configuration](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_alert_configuration)
+- [Alert Configuration](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_alert_configuration)
 
 
 ## Argument Reference
 
-* `project_id` - (Required) The ID of the project where the alert configuration will create.
+* `project_id` - (Required) The ID of the project where the alert configuration will create, also known as `groupId` in the official documentation.
 * `enabled` - It is not required, but If the attribute is omitted, by default will be false, and the configuration would be disabled. You must set true to enable the configuration.
 * `event_type` - (Required) The type of event that will trigger an alert.
 

@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 
 	"github.com/stretchr/testify/require"
 
@@ -32,7 +32,8 @@ const (
 
 var (
 	botProjectPrefixes = []string{
-		"cfn-test-bot-",
+		"cfn-", // general CFN tests
+		"ct-",  // CFN contract tests
 		"test-acc-tf-p-",
 	}
 	// keptPrefixes has the prefix of the projects that we want to delete their resources but keep the projects themselves.

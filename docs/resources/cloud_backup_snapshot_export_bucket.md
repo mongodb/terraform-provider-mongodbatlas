@@ -7,8 +7,6 @@ subcategory: "Cloud Backups"
 `mongodbatlas_cloud_backup_snapshot_export_bucket` allows you to create an export snapshot bucket for the specified project.
 
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 -> **NOTE:** To prevent errors during resource destruction, ensure that no `mongodbatlas_cloud_backup_schedule` resource that defines an automatic export policy references this resource. If you must update related `mongodbatlas_cloud_backup_schedule` resources, make these updates in isolated `terraform apply` operations first, then run the operation that destroys the `mongodbatlas_cloud_backup_snapshot_export_bucket` resource.
 
 ## Example Usage
@@ -38,12 +36,12 @@ resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
 ```
 
 ### Further Examples
-- [AWS Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/aws)
-- [Azure Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/azure)
+- [AWS Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/aws)
+- [Azure Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/azure)
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `groupId` in the official documentation.
 * `bucket_name` - (Required) Name of the bucket that the provided role ID is authorized to access.
 * `cloud_provider` - (Required) Name of the provider of the cloud service where Atlas can access the S3 bucket.
 * `iam_role_id` - Unique identifier of the role that Atlas can use to access the bucket. Required if `cloud_provider` is set to `AWS`.

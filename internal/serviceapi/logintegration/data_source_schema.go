@@ -79,7 +79,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"project_id": dsschema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 			},
 			"region": dsschema.StringAttribute{
 				Computed:            true,
@@ -101,28 +101,33 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Human-readable label that identifies the service to which you want to integrate with Atlas. The value must match the log integration type. This value cannot be modified after the integration is created.",
 			},
+			"use_legacy_path_structure": dsschema.BoolAttribute{
+				Computed:            true,
+				MarkdownDescription: "Applies to type: S3_LOG_EXPORT. When true, uses the legacy daily-folder path structure compatible with Push-Based Log Export: `{prefix}/{cluster}/{hostname}/{logType}/{YYYY-MM-DD}/{timestamp}-{logType}.log`. When false (default), uses the flat timestamped structure: `{prefix}/{cluster}/{hostname}/{logType}/{timestamp}-{logType}.log`.",
+			},
 		},
 	}
 }
 
 type TFDSModel struct {
-	ApiKey               types.String                                              `tfsdk:"api_key" autogen:"sensitive,omitjson"`
-	BucketName           types.String                                              `tfsdk:"bucket_name" autogen:"omitjson"`
-	HecToken             types.String                                              `tfsdk:"hec_token" autogen:"sensitive,omitjson"`
-	HecUrl               types.String                                              `tfsdk:"hec_url" autogen:"omitjson"`
-	IamRoleId            types.String                                              `tfsdk:"iam_role_id" autogen:"omitjson"`
-	IntegrationId        types.String                                              `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
-	KmsKey               types.String                                              `tfsdk:"kms_key" autogen:"omitjson"`
-	LogTypes             customtypes.SetValue[types.String]                        `tfsdk:"log_types" autogen:"omitjson"`
-	OtelEndpoint         types.String                                              `tfsdk:"otel_endpoint" autogen:"omitjson"`
-	OtelSuppliedHeaders  customtypes.NestedListValue[TFDSOtelSuppliedHeadersModel] `tfsdk:"otel_supplied_headers" autogen:"sensitive,omitjson"`
-	PrefixPath           types.String                                              `tfsdk:"prefix_path" autogen:"omitjson"`
-	ProjectId            types.String                                              `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Region               types.String                                              `tfsdk:"region" autogen:"omitjson"`
-	RoleId               types.String                                              `tfsdk:"role_id" autogen:"omitjson"`
-	StorageAccountName   types.String                                              `tfsdk:"storage_account_name" autogen:"omitjson"`
-	StorageContainerName types.String                                              `tfsdk:"storage_container_name" autogen:"omitjson"`
-	Type                 types.String                                              `tfsdk:"type" autogen:"omitjson"`
+	ApiKey                 types.String                                              `tfsdk:"api_key" autogen:"sensitive,omitjson"`
+	BucketName             types.String                                              `tfsdk:"bucket_name" autogen:"omitjson"`
+	HecToken               types.String                                              `tfsdk:"hec_token" autogen:"sensitive,omitjson"`
+	HecUrl                 types.String                                              `tfsdk:"hec_url" autogen:"omitjson"`
+	IamRoleId              types.String                                              `tfsdk:"iam_role_id" autogen:"omitjson"`
+	IntegrationId          types.String                                              `tfsdk:"integration_id" apiname:"id" autogen:"omitjson"`
+	KmsKey                 types.String                                              `tfsdk:"kms_key" autogen:"omitjson"`
+	LogTypes               customtypes.SetValue[types.String]                        `tfsdk:"log_types" autogen:"omitjson"`
+	OtelEndpoint           types.String                                              `tfsdk:"otel_endpoint" autogen:"omitjson"`
+	OtelSuppliedHeaders    customtypes.NestedListValue[TFDSOtelSuppliedHeadersModel] `tfsdk:"otel_supplied_headers" autogen:"sensitive,omitjson"`
+	PrefixPath             types.String                                              `tfsdk:"prefix_path" autogen:"omitjson"`
+	ProjectId              types.String                                              `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	Region                 types.String                                              `tfsdk:"region" autogen:"omitjson"`
+	RoleId                 types.String                                              `tfsdk:"role_id" autogen:"omitjson"`
+	StorageAccountName     types.String                                              `tfsdk:"storage_account_name" autogen:"omitjson"`
+	StorageContainerName   types.String                                              `tfsdk:"storage_container_name" autogen:"omitjson"`
+	Type                   types.String                                              `tfsdk:"type" autogen:"omitjson"`
+	UseLegacyPathStructure types.Bool                                                `tfsdk:"use_legacy_path_structure" autogen:"omitjson"`
 }
 type TFDSOtelSuppliedHeadersModel struct {
 	Name  types.String `tfsdk:"name" autogen:"omitjson"`

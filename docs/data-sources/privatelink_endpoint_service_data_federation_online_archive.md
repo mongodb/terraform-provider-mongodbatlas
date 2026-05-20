@@ -6,8 +6,6 @@ subcategory: "Data Federation"
 
 `mongodbatlas_privatelink_endpoint_service_data_federation_online_archive` describes a Private Endpoint Service resource for Data Federation and Online Archive.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -33,7 +31,7 @@ data "mongodbatlas_privatelink_endpoint_service_data_federation_online_archive" 
 
 ## Argument Reference
 
-* `project_id` (Required) - Unique 24-hexadecimal digit string that identifies your project.
+* `project_id` (Required) - Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `endpoint_id` (Required) - Unique string that identifies the private endpoint. For AWS, this is a 22-character alphanumeric string (e.g. `vpce-xxxxxxxxxxxxxxxxx`). For Azure, this is the full resource ID of the private endpoint (e.g. `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateEndpoints/{privateEndpointName}`). See [Atlas Data Federation supports AWS and Azure private endpoints using the PrivateLink feature](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint).
 
 ## Attributes Reference

@@ -17,7 +17,7 @@ data "mongodbatlas_stream_connections" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `instance_name` - (Deprecated) Label that identifies the stream processing workspace. Attribute is deprecated and will be removed in following major versions in favor of `workspace_name`.
 * `workspace_name` - (Optional) Label that identifies the stream processing workspace. Conflicts with `instance_name`.
 
@@ -36,24 +36,41 @@ In addition to all arguments above, it also exports the following attributes:
 
 ### Stream Connection
 
-* `project_id` - Unique 24-hexadecimal digit string that identifies your project.
+* `project_id` - Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `workspace_name` - Label that identifies the stream processing workspace.
 * `connection_name` - Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
-* `type` - Type of connection. `AWSLambda`, `Cluster`, `Https`, `Kafka`, `Sample`, or `SchemaRegistry`.
+* `type` - Type of connection. `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
-* `db_role_to_execute` - The name of a Built in or Custom DB Role to connect to an Atlas Cluster. See [DBRoleToExecute](#DBRoleToExecute).
+* `db_role_to_execute` - The name of a Built in or Custom DB Role to connect to an Atlas Cluster. See [DBRoleToExecute](#dbroletoexecute).
+* `cluster_project_id` - Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams instance. You must first enable the organization setting.
 
 If `type` is of value `Kafka` the following additional attributes are defined:
 * `authentication` - User credentials required to connect to a Kafka cluster. Includes the authentication type, as well as the parameters for that authentication mode. See [authentication](#authentication).
 * `bootstrap_servers` - Comma separated list of server addresses.
 * `config` - A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
 * `security` - Properties for the secure transport connection to Kafka. For SASL_SSL, this can include the trusted certificate to use. See [security](#security).
-* `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
+* `networking` - Networking Access Type can be `PUBLIC` (default), `VPC`, or `PRIVATE_LINK`. See [networking](#networking).
 
-If `type` is of value `AWSLambda` the following additional attributes are defined::
-* `aws` - The configuration for AWS Lambda connection. See [AWS](#AWS)
+If `type` is `AzureBlobStorage` the configuration defines the following additional attributes:
+* `azure` - The configuration for Azure Blob Storage connection. See [Azure](#azure).
+* `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
+
+If `type` is of value `AWSKinesisDataStreams` the following additional attributes are defined:
+* `aws` - The configuration for AWS Kinesis Data Streams connection. See [AWS](#aws).
+* `networking` - Networking Access Type can be `PUBLIC`, `VPC`, or `PRIVATE_LINK`. See [networking](#networking).
+
+If `type` is of value `AWSLambda` the following additional attributes are defined:
+* `aws` - The configuration for AWS Lambda connection. See [AWS](#aws).
+
+If `type` is of value `GCPPubSub` the following additional attributes are defined:
+* `gcp` - The configuration for GCP Pub/Sub connection. See [GCP](#gcp).
+* `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
+
+If `type` is of value `S3` the following additional attributes are defined:
+* `aws` - The configuration for S3 connection. See [AWS](#aws).
+* `networking` - Networking Access Type can be `PUBLIC`, `VPC`, or `PRIVATE_LINK`. See [networking](#networking).
 
 If `type` is of value `Https` the following additional attributes are defined:
 * `url` - URL of the HTTPs endpoint that will be used for creating a connection.
@@ -96,6 +113,14 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
 ### AWS
 * `role_arn` - Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
 
+### Azure
+* `service_principal_id` - Required. UUID that identifies the Azure Service Principal used to access the Azure Blob Storage account.
+* `storage_account_name` - Required. Name of the Azure Storage account. Must follow Azure storage account naming rules: 3 to 24 characters in length, and use only lowercase letters and numbers.
+* `region` - Optional. Azure region where the storage account is located, specified as a valid Azure region name (for example, `eastus`, `westeurope`).
+
+### GCP
+* `service_account_id` - Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to GCP Pub/Sub resources.
+
 ### Schema Registry Authentication
 * `type` - Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry. Valid values are `USER_INFO` or `SASL_INHERIT`.
   * `USER_INFO` - Uses username and password authentication for Confluent Schema Registry.
@@ -103,5 +128,5 @@ If `type` is of value `SchemaRegistry` the following additional attributes are d
 * `username` - Username for the Schema Registry. Required when `type` is `USER_INFO`.
 * `password` - Password for the Schema Registry. Required when `type` is `USER_INFO`.
 
-To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/listStreamConnections) Documentation.
-The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_instance/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.
+To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-liststreamconnections) Documentation.
+The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_processor/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.

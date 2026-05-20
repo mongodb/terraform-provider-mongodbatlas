@@ -7,8 +7,6 @@ subcategory: "Data Federation"
 `mongodbatlas_federated_query_limit` provides a Federated Database Instance Query Limits resource. To learn more about Atlas Data Federation see https://www.mongodb.com/docs/atlas/data-federation/overview/.
 
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ## Example Usages
 
 
@@ -23,11 +21,11 @@ resource "mongodbatlas_federated_query_limit" "test" {
 ```
 
 ### Further Examples
-- [Federated Query Limit](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_federated_query_limit)
+- [Federated Query Limit](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_federated_query_limit)
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create a Federated Database Instance.
+* `project_id` - (Required) The unique ID for the project to create a Federated Database Instance, also known as `groupId` in the official documentation.
 * `tenant_name` - (Required) Name of the Atlas Federated Database Instance.
 * `limit_name` - (Required) String enum that indicates whether the identity provider is active or not. Accepted values are:
     * `bytesProcessed.query`: Limit on the number of bytes processed during a single data federation query.

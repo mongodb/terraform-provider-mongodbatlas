@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
-	"go.mongodb.org/atlas-sdk/v20250312018/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/mockadmin"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

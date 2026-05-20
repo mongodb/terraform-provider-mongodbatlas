@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 )
 
 type sdkToTFModelTestCase struct {
@@ -19,20 +19,25 @@ type sdkToTFModelTestCase struct {
 }
 
 var (
-	projectID             = "projectID"
-	id                    = "id"
-	arn                   = "arn"
-	dnsDomain             = "dnsDomain"
-	dnsSubDomain          = "dnsSubDomain"
-	interfaceEndpointID   = "interfaceEndpointId"
-	interfaceEndpointName = "interfaceEndpointName"
-	providerAccountID     = "providerAccountId"
-	region                = "us-east-1"
-	serviceEndpointID     = "serviceEndpointId"
-	serviceEndpointIDS3   = "com.amazonaws.us-east-1.s3"
-	state                 = "DONE"
-	vendorConfluent       = "CONFLUENT"
-	vendorS3              = "S3"
+	projectID                  = "projectID"
+	id                         = "id"
+	arn                        = "arn"
+	dnsDomain                  = "dnsDomain"
+	dnsSubDomain               = "dnsSubDomain"
+	interfaceEndpointID        = "interfaceEndpointId"
+	interfaceEndpointName      = "interfaceEndpointName"
+	providerAccountID          = "providerAccountId"
+	region                     = "us-east-1"
+	serviceEndpointID          = "serviceEndpointId"
+	serviceEndpointIDS3        = "com.amazonaws.us-east-1.s3"
+	state                      = "DONE"
+	vendorConfluent            = "CONFLUENT"
+	vendorPubSub               = "PUBSUB"
+	vendorS3                   = "S3"
+	vendorAzureBlobStorage     = "AZURE_BLOB_STORAGE"
+	azureRegion                = "eastus2"
+	azureBlobDNSDomain         = "mystorageaccount.blob.core.windows.net"
+	azureBlobServiceEndpointID = "/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/mystorageaccount"
 )
 
 func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
@@ -177,6 +182,52 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				Region:    types.StringValue(region),
 				State:     types.StringValue(state),
 				Vendor:    types.StringValue(vendorConfluent),
+			},
+		},
+		"SDK response with GCP PubSub": {
+			SDKResp: &admin.StreamsPrivateLinkConnection{
+				Id:        &id,
+				DnsDomain: &dnsDomain,
+				Provider:  constant.GCP,
+				Region:    &region,
+				State:     &state,
+				Vendor:    &vendorPubSub,
+			},
+			projectID: projectID,
+			expectedTFModel: &streamprivatelinkendpoint.TFModel{
+				Id:                    types.StringValue(id),
+				DnsDomain:             types.StringValue(dnsDomain),
+				DnsSubDomain:          types.ListNull(types.StringType),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+				ProjectId:             types.StringValue(projectID),
+				Provider:              types.StringValue(constant.GCP),
+				Region:                types.StringValue(region),
+				State:                 types.StringValue(state),
+				Vendor:                types.StringValue(vendorPubSub),
+			},
+		},
+		"SDK response with Azure Blob Storage": {
+			SDKResp: &admin.StreamsPrivateLinkConnection{
+				Id:                &id,
+				DnsDomain:         &azureBlobDNSDomain,
+				Provider:          constant.AZURE,
+				Region:            &azureRegion,
+				ServiceEndpointId: &azureBlobServiceEndpointID,
+				State:             &state,
+				Vendor:            &vendorAzureBlobStorage,
+			},
+			projectID: projectID,
+			expectedTFModel: &streamprivatelinkendpoint.TFModel{
+				Id:                    types.StringValue(id),
+				DnsDomain:             types.StringValue(azureBlobDNSDomain),
+				ProjectId:             types.StringValue(projectID),
+				Provider:              types.StringValue(constant.AZURE),
+				Region:                types.StringValue(azureRegion),
+				ServiceEndpointId:     types.StringValue(azureBlobServiceEndpointID),
+				DnsSubDomain:          types.ListNull(types.StringType),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+				State:                 types.StringValue(state),
+				Vendor:                types.StringValue(vendorAzureBlobStorage),
 			},
 		},
 		"Empty SDK response": {
@@ -335,6 +386,38 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 				Vendor:                   &vendorConfluent,
 			},
 		},
+		"TF state with GCP PubSub": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Id:                    types.StringValue(id),
+				Provider:              types.StringValue(constant.GCP),
+				Vendor:                types.StringValue(vendorPubSub),
+				Region:                types.StringValue(region),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+			},
+			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
+				Provider: constant.GCP,
+				Vendor:   &vendorPubSub,
+				Region:   &region,
+			},
+		},
+		"TF state with Azure Blob Storage": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Id:                    types.StringValue(id),
+				DnsDomain:             types.StringValue(azureBlobDNSDomain),
+				Provider:              types.StringValue(constant.AZURE),
+				Region:                types.StringValue(azureRegion),
+				ServiceEndpointId:     types.StringValue(azureBlobServiceEndpointID),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+				Vendor:                types.StringValue(vendorAzureBlobStorage),
+			},
+			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
+				DnsDomain:         &azureBlobDNSDomain,
+				Provider:          constant.AZURE,
+				Region:            &azureRegion,
+				ServiceEndpointId: &azureBlobServiceEndpointID,
+				Vendor:            &vendorAzureBlobStorage,
+			},
+		},
 	}
 
 	for testName, tc := range testCases {
@@ -434,6 +517,86 @@ func TestStreamPrivatelinkEndpointValidation(t *testing.T) {
 			},
 			expectError: true,
 			errorCount:  1,
+		},
+		"GCP PubSub with all required fields": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:              types.StringValue(constant.GCP),
+				Vendor:                types.StringValue(streamprivatelinkendpoint.VendorPubSub),
+				Region:                types.StringValue("us-west1"),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+			},
+			expectError: false,
+			errorCount:  0,
+		},
+		"Azure Blob Storage with all required fields": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:              types.StringValue(constant.AZURE),
+				Vendor:                types.StringValue(streamprivatelinkendpoint.VendorAzureBlobStorage),
+				Region:                types.StringValue("eastus2"),
+				ServiceEndpointId:     types.StringValue("/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/myaccount"),
+				DnsDomain:             types.StringValue("myaccount.blob.core.windows.net"),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+			},
+			expectError: false,
+			errorCount:  0,
+		},
+		"GCP PubSub missing region": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:              types.StringValue(constant.GCP),
+				Vendor:                types.StringValue(streamprivatelinkendpoint.VendorPubSub),
+				Region:                types.StringNull(),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+			},
+			expectError: true,
+			errorCount:  1,
+		},
+		"Azure Blob Storage missing region": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:              types.StringValue(constant.AZURE),
+				Vendor:                types.StringValue(streamprivatelinkendpoint.VendorAzureBlobStorage),
+				Region:                types.StringNull(),
+				ServiceEndpointId:     types.StringValue("/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/myaccount"),
+				DnsDomain:             types.StringValue("myaccount.blob.core.windows.net"),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+			},
+			expectError: true,
+			errorCount:  1,
+		},
+		"Azure Blob Storage missing service_endpoint_id": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:              types.StringValue(constant.AZURE),
+				Vendor:                types.StringValue(streamprivatelinkendpoint.VendorAzureBlobStorage),
+				Region:                types.StringValue("eastus2"),
+				ServiceEndpointId:     types.StringNull(),
+				DnsDomain:             types.StringValue("myaccount.blob.core.windows.net"),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+			},
+			expectError: true,
+			errorCount:  1,
+		},
+		"Azure Blob Storage missing dns_domain": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:              types.StringValue(constant.AZURE),
+				Vendor:                types.StringValue(streamprivatelinkendpoint.VendorAzureBlobStorage),
+				Region:                types.StringValue("eastus2"),
+				ServiceEndpointId:     types.StringValue("/subscriptions/sub-id/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/myaccount"),
+				DnsDomain:             types.StringNull(),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+			},
+			expectError: true,
+			errorCount:  1,
+		},
+		"Azure Blob Storage missing all required fields": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Provider:              types.StringValue(constant.AZURE),
+				Vendor:                types.StringValue(streamprivatelinkendpoint.VendorAzureBlobStorage),
+				Region:                types.StringNull(),
+				ServiceEndpointId:     types.StringNull(),
+				DnsDomain:             types.StringNull(),
+				ServiceAttachmentUris: types.ListNull(types.StringType),
+			},
+			expectError: true,
+			errorCount:  3,
 		},
 	}
 

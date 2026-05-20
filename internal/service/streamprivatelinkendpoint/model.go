@@ -7,13 +7,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 )
 
 const (
-	VendorConfluent = "CONFLUENT"
-	VendorMSK       = "MSK"
-	VendorS3        = "S3"
+	VendorConfluent        = "CONFLUENT"
+	VendorMSK              = "MSK"
+	VendorPubSub           = "PUBSUB"
+	VendorS3               = "S3"
+	VendorAzureBlobStorage = "AZURE_BLOB_STORAGE"
 )
 
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {
@@ -62,7 +64,7 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		if hasServiceEndpointID && hasServiceAttachmentUris {
 			diags.AddError("Only one of service_endpoint_id or service_attachment_uris can be provided", "")
 		}
-		if plan.DnsDomain.IsNull() {
+		if plan.DnsDomain.IsNull() || plan.DnsDomain.IsUnknown() {
 			diags.AddError(fmt.Sprintf("dns_domain is required for vendor %s", VendorConfluent), "")
 		}
 		if plan.Region.IsNull() {
@@ -85,6 +87,25 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		}
 		if plan.ServiceEndpointId.IsNull() {
 			diags.AddError(fmt.Sprintf("service_endpoint_id is required for vendor %s", VendorS3), "It should follow the format 'com.amazonaws.<region>.s3', for example 'com.amazonaws.us-east-1.s3'")
+		}
+	}
+
+	if plan.Vendor.ValueString() == VendorPubSub {
+		if plan.Region.IsNull() || plan.Region.IsUnknown() {
+			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorPubSub), "")
+		}
+	}
+	if plan.Vendor.ValueString() == VendorAzureBlobStorage {
+		if plan.Region.IsNull() || plan.Region.IsUnknown() {
+			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorAzureBlobStorage), "")
+		}
+		if plan.ServiceEndpointId.IsNull() || plan.ServiceEndpointId.IsUnknown() {
+			diags.AddError(fmt.Sprintf("service_endpoint_id is required for vendor %s", VendorAzureBlobStorage),
+				"It should follow the format '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Storage/storageAccounts/{storageAccount}'")
+		}
+		if plan.DnsDomain.IsNull() || plan.DnsDomain.IsUnknown() {
+			diags.AddError(fmt.Sprintf("dns_domain is required for vendor %s", VendorAzureBlobStorage),
+				"It should follow the format '{storageAccount}.blob.core.windows.net'")
 		}
 	}
 

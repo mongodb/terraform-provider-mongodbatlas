@@ -6,11 +6,7 @@ subcategory: "Cloud Backups"
 
 `mongodbatlas_cloud_backup_schedule` provides a cloud backup schedule resource. The resource lets you create, read, update and delete a cloud backup schedule.
 
--> **NOTE** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
--> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy). 
-
--> **NOTE:** If you need to remove the `mongodbatlas_cloud_backup_schedule`, read [this guide](../guides/delete-cluster-with-backup-compliance-policy.md).
+-> **NOTE:** If a Backup Compliance Policy is enabled on the project, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the policy (see [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy)). To allow `terraform destroy` to remove the associated `mongodbatlas_advanced_cluster` without being blocked by the policy, set `skip_destroy = true`. See the [delete cluster guide](../guides/delete-cluster-with-backup-compliance-policy.md) for background and legacy workarounds.
 
 -> **NOTE:** When creating a backup schedule you **must either** use the `depends_on` clause to indicate the cluster to which it refers **or** specify the values of `project_id` and `cluster_name` as reference of the cluster resource (e.g. `cluster_name = mongodbatlas_advanced_cluster.my_cluster.name` - see the example below). Failure in doing so will result in an error when executing the plan.
 
@@ -219,11 +215,11 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 
 ### Further Examples
-- [Cloud Backup Schedule](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.9.0/examples/mongodbatlas_cloud_backup_schedule)
+- [Cloud Backup Schedule](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_backup_schedule)
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
+* `project_id` - (Required) The unique identifier of the project for the Atlas cluster, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) The name of the Atlas cluster that contains the snapshot backup policy you want to retrieve.
 * `reference_hour_of_day` - (Optional) UTC Hour of day between 0 and 23, inclusive, representing which hour of the day that Atlas takes snapshots for backup policy items.
 * `reference_minute_of_hour` - (Optional) UTC Minutes after `reference_hour_of_day` that Atlas takes snapshots for backup policy items. Must be between 0 and 59, inclusive.
@@ -243,6 +239,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `use_org_and_group_names_in_export_prefix` - Specify true to use organization and project names instead of organization and project UUIDs in the path for the metadata files that Atlas uploads to your bucket after it finishes exporting the snapshots. To learn more about the metadata files that Atlas uploads, see [Export Cloud Backup Snapshot](https://www.mongodb.com/docs/atlas/backup/cloud-backup/export/#std-label-cloud-provider-snapshot-export).
 * `copy_settings` - List that contains a document for each copy setting item in the desired backup policy. See [below](#copy_settings)
 * `export` - (Optional) Policy for automatically exporting Cloud Backup Snapshots. See [below](#export)
+* `skip_destroy` - (Optional) Flag that, when set to `true`, causes the provider to remove the resource from Terraform state on destroy without calling the Atlas API to delete the backup schedule. The schedule remains in Atlas and is removed when the cluster is deleted. This is useful when a Backup Compliance Policy prevents deleting the backup schedule, allowing `terraform destroy` to succeed. Defaults to `false`. See the [Delete a Cluster with Backup Compliance Policy](../guides/delete-cluster-with-backup-compliance-policy.md) guide.
 ### export
 * `export_bucket_id` - Unique identifier of the mongodbatlas_cloud_backup_snapshot_export_bucket export_bucket_id value.
 * `frequency_type` - Frequency associated with the export snapshot item: `weekly`, `monthly`, `yearly`, `daily` (requires reaching out to Customer Support)

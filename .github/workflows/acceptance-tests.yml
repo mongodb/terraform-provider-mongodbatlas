@@ -126,7 +126,7 @@ jobs:
       gcp_service_account_email: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
 
     with:
-      terraform_version: ${{ inputs.terraform_version || '1.14.x' }}
+      terraform_version: ${{ inputs.terraform_version || '1.15.x' }}
       provider_version: ${{ inputs.provider_version }}
       test_group: ${{ inputs.test_group }}
       test_name: ${{ inputs.test_name }}

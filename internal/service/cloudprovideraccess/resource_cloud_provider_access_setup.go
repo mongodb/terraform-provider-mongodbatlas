@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -28,7 +28,7 @@ const (
 	errorCreate                  = "error creating cloud provider access %s"
 	errorUpdate                  = "error updating cloud provider access %s"
 	errorDelete                  = "error deleting cloud provider access %s"
-	errorImporter                = "error importing cloud provider access %s"
+	errorImporter                = "error importing cloud provider access %v"
 	ErrorGetRead                 = "error reading cloud provider access %s"
 	defaultTimeout time.Duration = 20 * time.Minute
 )
@@ -346,25 +346,12 @@ func resourceCloudProviderAccessSetupImportState(ctx context.Context, d *schema.
 		return nil, fmt.Errorf(errorImporter, err)
 	}
 
-	// searching id in internal format
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"id":            roleID,
 		"project_id":    projectID,
 		"provider_name": providerName,
 	}))
 
-	err2 := resourceCloudProviderAccessSetupRead(ctx, d, meta)
-
-	if err2 != nil {
-		return nil, fmt.Errorf(errorImporter, err)
-	}
-
-	// case of not found
-	if d.Id() == "" {
-		return nil, fmt.Errorf(errorImporter, " Resource not found at the cloud please check your id")
-	}
-
-	// params syncing
 	if err = d.Set("project_id", projectID); err != nil {
 		return nil, fmt.Errorf(errorImporter, err)
 	}
