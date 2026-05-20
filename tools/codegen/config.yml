@@ -771,6 +771,10 @@ resources:
           computability:
             optional: true
             computed: true
+        tier: # optional, but when not configured Atlas returns the parent stream instance's tier.
+          computability:
+            optional: true
+            computed: true
 
   stream_connection_api:
     read:

@@ -63,8 +63,8 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - int64: {}
-                      description: Number of Search Nodes in the cluster.
-                      computed_optional_required: required
+                      description: Number of Search Nodes in this region. Optional; falls back to the request-level default when omitted.
+                      computed_optional_required: optional
                       tf_schema_name: node_count
                       tf_model_name: NodeCount
                       api_name: nodeCount
@@ -73,10 +73,7 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
-          description: |-
-            List of settings that configure the Search Nodes for your cluster.
-
-            **NOTE**: We accept a single configuration for all nodes currently.
+          description: List of settings that configure the Search Nodes for your cluster. Provide one element per region when configuring asymmetric deployments; a single element applies to all regions.
           custom_type:
             package: customtypes
             name: Specs
