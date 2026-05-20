@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customtypes"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -48,7 +48,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"pipeline": schema.StringAttribute{
-				CustomType: jsontypes.NormalizedType{},
+				CustomType: customtypes.JSONSemanticNormalizedType{},
 				Required:   true,
 				MarkdownDescription: "Stream aggregation pipeline you want to apply to your streaming data. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation)" +
 					" contain more information. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when setting this attribute. For more details see the [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)",
@@ -117,18 +117,18 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFStreamProcessorRSModel struct {
-	InstanceName          types.String         `tfsdk:"instance_name"`
-	WorkspaceName         types.String         `tfsdk:"workspace_name"`
-	Options               types.Object         `tfsdk:"options"`
-	Pipeline              jsontypes.Normalized `tfsdk:"pipeline"`
-	ProcessorID           types.String         `tfsdk:"id"`
-	ProcessorName         types.String         `tfsdk:"processor_name"`
-	ProjectID             types.String         `tfsdk:"project_id"`
-	State                 types.String         `tfsdk:"state"`
-	Stats                 types.String         `tfsdk:"stats"`
-	Tier                  types.String         `tfsdk:"tier"`
-	Timeouts              timeouts.Value       `tfsdk:"timeouts"`
-	DeleteOnCreateTimeout types.Bool           `tfsdk:"delete_on_create_timeout"`
+	InstanceName          types.String                       `tfsdk:"instance_name"`
+	WorkspaceName         types.String                       `tfsdk:"workspace_name"`
+	Options               types.Object                       `tfsdk:"options"`
+	Pipeline              customtypes.JSONSemanticNormalized `tfsdk:"pipeline"`
+	ProcessorID           types.String                       `tfsdk:"id"`
+	ProcessorName         types.String                       `tfsdk:"processor_name"`
+	ProjectID             types.String                       `tfsdk:"project_id"`
+	State                 types.String                       `tfsdk:"state"`
+	Stats                 types.String                       `tfsdk:"stats"`
+	Tier                  types.String                       `tfsdk:"tier"`
+	Timeouts              timeouts.Value                     `tfsdk:"timeouts"`
+	DeleteOnCreateTimeout types.Bool                         `tfsdk:"delete_on_create_timeout"`
 }
 
 type TFOptionsModel struct {

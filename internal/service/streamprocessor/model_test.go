@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/stretchr/testify/assert"
@@ -234,7 +234,7 @@ func TestSDKToTFModel(t *testing.T) {
 				InstanceName:  types.StringValue(workspaceName),
 				Options:       types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
 				ProcessorID:   types.StringValue(processorID),
-				Pipeline:      jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+				Pipeline:      customtypes.NewJSONSemanticNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
 				State:         types.StringValue("CREATED"),
@@ -247,7 +247,7 @@ func TestSDKToTFModel(t *testing.T) {
 				InstanceName:  types.StringValue(workspaceName),
 				Options:       types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
 				ProcessorID:   types.StringValue(processorID),
-				Pipeline:      jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+				Pipeline:      customtypes.NewJSONSemanticNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
 				State:         types.StringValue("STARTED"),
@@ -260,7 +260,7 @@ func TestSDKToTFModel(t *testing.T) {
 				InstanceName:  types.StringValue(workspaceName),
 				Options:       optionsToTFModel(t, &streamOptionsExample),
 				ProcessorID:   types.StringValue(processorID),
-				Pipeline:      jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+				Pipeline:      customtypes.NewJSONSemanticNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
 				State:         types.StringValue("STARTED"),
@@ -380,7 +380,7 @@ func TestPluralDSSDKToTFModelWithInstanceName(t *testing.T) {
 }
 
 func TestNewStreamProcessorUpdateReq(t *testing.T) {
-	validPipeline := jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]")
+	validPipeline := customtypes.NewJSONSemanticNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]")
 
 	testCases := map[string]struct {
 		model          *streamprocessor.TFStreamProcessorRSModel
