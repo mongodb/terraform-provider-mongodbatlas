@@ -209,24 +209,24 @@ func convertDlqToTF(ctx context.Context, dlq *admin.StreamsDLQ) (*types.Object, 
 }
 func convertPipelineToTF(pipeline []any) (jsontypes.Normalized, diag.Diagnostics) {
 	// Atlas returns whole numbers in pipeline as doubles (e.g. 10.0). Normalize json.Number values to avoid spurious plan diffs.
-	pipelineJSON, err := json.Marshal(normalizeNumbers(pipeline))
+	pipelineJSON, err := json.Marshal(NormalizeNumbers(pipeline))
 	if err != nil {
 		return jsontypes.NewNormalizedValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to marshal pipeline", err.Error())}
 	}
 	return jsontypes.NewNormalizedValue(string(pipelineJSON)), nil
 }
 
-func normalizeNumbers(v any) any {
+func NormalizeNumbers(v any) any {
 	switch val := v.(type) {
 	case json.Number:
 		return normalizeNumber(val)
 	case []any:
 		for i, elem := range val {
-			val[i] = normalizeNumbers(elem)
+			val[i] = NormalizeNumbers(elem)
 		}
 	case map[string]any:
 		for k, elem := range val {
-			val[k] = normalizeNumbers(elem)
+			val[k] = NormalizeNumbers(elem)
 		}
 	}
 	return v
@@ -244,8 +244,8 @@ func convertStatsToTF(stats any) (types.String, diag.Diagnostics) {
 	if stats == nil {
 		return types.StringNull(), nil
 	}
-	// Atlas returns whole numbers in stats as doubles (e.g. 10.0). Normalize json.Number values to avoid spurious plan diffs.
-	statsJSON, err := json.Marshal(normalizeNumbers(stats))
+	// Normalize json.Number values as in pipeline.
+	statsJSON, err := json.Marshal(NormalizeNumbers(stats))
 	if err != nil {
 		return types.StringValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to marshal stats", err.Error())}
 	}
