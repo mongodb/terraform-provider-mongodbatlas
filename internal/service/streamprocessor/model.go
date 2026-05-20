@@ -209,8 +209,7 @@ func convertDlqToTF(ctx context.Context, dlq *admin.StreamsDLQ) (*types.Object, 
 }
 func convertPipelineToTF(pipeline []any) (jsontypes.Normalized, diag.Diagnostics) {
 	// Atlas returns whole numbers in pipeline as doubles (e.g. 10.0). Normalize json.Number values to avoid spurious plan diffs.
-	normalizeNumbers(pipeline)
-	pipelineJSON, err := json.Marshal(pipeline)
+	pipelineJSON, err := json.Marshal(normalizeNumbers(pipeline))
 	if err != nil {
 		return jsontypes.NewNormalizedValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to marshal pipeline", err.Error())}
 	}
@@ -245,8 +244,8 @@ func convertStatsToTF(stats any) (types.String, diag.Diagnostics) {
 	if stats == nil {
 		return types.StringNull(), nil
 	}
-	normalizeNumbers(stats) // same UseNumber() normalization as pipeline
-	statsJSON, err := json.Marshal(stats)
+	// Atlas returns whole numbers in stats as doubles (e.g. 10.0). Normalize json.Number values to avoid spurious plan diffs.
+	statsJSON, err := json.Marshal(normalizeNumbers(stats))
 	if err != nil {
 		return types.StringValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to marshal stats", err.Error())}
 	}
