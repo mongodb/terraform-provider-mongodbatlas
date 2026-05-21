@@ -484,3 +484,36 @@ func TestGetWorkspaceOrInstanceName(t *testing.T) {
 		})
 	}
 }
+
+func TestNormalizeNumbers(t *testing.T) {
+	testCases := map[string]struct {
+		input    any
+		expected any
+	}{
+		"whole float normalized": {
+			input:    json.Number("10.0"),
+			expected: json.Number("10"),
+		},
+		"non-zero fractional preserved": {
+			input:    json.Number("10.5"),
+			expected: json.Number("10.5"),
+		},
+		"integer unchanged": {
+			input:    json.Number("10"),
+			expected: json.Number("10"),
+		},
+		"nested map normalized": {
+			input:    map[string]any{"interval": map[string]any{"size": json.Number("10.0"), "count": json.Number("10"), "ratio": json.Number("10.5")}},
+			expected: map[string]any{"interval": map[string]any{"size": json.Number("10"), "count": json.Number("10"), "ratio": json.Number("10.5")}},
+		},
+		"slice normalized": {
+			input:    []any{json.Number("10.0"), json.Number("10"), json.Number("10.5")},
+			expected: []any{json.Number("10"), json.Number("10"), json.Number("10.5")},
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, streamprocessor.NormalizeNumbers(tc.input))
+		})
+	}
+}
