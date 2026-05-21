@@ -5,7 +5,6 @@ Setup private connection to a [Data Federation or Online Archive](https://www.mo
 
 ## Dependencies
 
-* Terraform: See the [Compatibility Matrix](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#hashicorp-terraform-version-compatibility-matrix) for supported versions.
 * An AWS account - provider.aws: version = "~> 4"
 * A MongoDB Atlas account - provider.mongodbatlas: version = "~> 1.10"
 

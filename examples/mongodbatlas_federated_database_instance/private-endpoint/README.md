@@ -4,7 +4,6 @@ This example shows how to configure a [MongoDB Atlas Federated Database Instance
 
 ## Dependencies
 
-* Terraform: See the [Compatibility Matrix](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#hashicorp-terraform-version-compatibility-matrix) for supported versions.
 * A MongoDB Atlas account
 * An AWS account
 

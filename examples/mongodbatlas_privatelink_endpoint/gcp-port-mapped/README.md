@@ -36,7 +36,6 @@ resource "mongodbatlas_privatelink_endpoint" "this" {
 
 ## Dependencies
 
-* Terraform: See the [Compatibility Matrix](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#hashicorp-terraform-version-compatibility-matrix) for supported versions.
 * Google Cloud account
 * MongoDB Atlas account
 
