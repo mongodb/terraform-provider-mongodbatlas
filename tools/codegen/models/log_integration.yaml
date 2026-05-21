@@ -1,5 +1,5 @@
 schema:
-    description: Creates a new log integration configuration identified by a unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+    description: Creates a new log integration configuration identified by a unique ID.
     discriminator:
         mapping:
             AZURE_LOG_EXPORT:
@@ -341,7 +341,7 @@ operations:
     version_header: application/vnd.atlas.2025-03-12+json
 data_sources:
     singular:
-        description: Returns the configuration for one log integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+        description: Returns the configuration for one log integration identified by its unique ID.
         discriminator:
             mapping:
                 AZURE_LOG_EXPORT:
@@ -668,7 +668,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
     plural:
-        description: Returns all log integration configurations for the project. Optionally filter by integration type. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+        description: Returns all log integration configurations for the project. Optionally filter by integration type.
         attributes:
             - string: {}
               description: Optional filter by integration type (e.g., `S3_LOG_EXPORT`).

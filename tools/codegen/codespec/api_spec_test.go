@@ -17,14 +17,20 @@ info:
   version: 1.0.0
 components:
   schemas:
+    Referenced:
+      type: string
+      description: original description
+    Other:
+      type: integer
     TestSchema:
 %s`
 
 func TestBuildSchema(t *testing.T) {
 	tests := map[string]struct {
-		schemaDefinition string
-		errorContains    string
-		expectedType     string
+		schemaDefinition    string
+		errorContains       string
+		expectedType        string
+		expectedDescription string
 	}{
 		"Explicit object type": {
 			schemaDefinition: `      type: object
@@ -70,6 +76,33 @@ func TestBuildSchema(t *testing.T) {
         type: string`,
 			expectedType: "array",
 		},
+		"$ref with sibling description is unwrapped to referenced schema": {
+			// libopenapi >= v0.36.4 turns `$ref` with a sibling property into a 2-branch allOf
+			// wrapper. BuildSchema should unwrap that wrapper and surface the referenced
+			// schema's type while honoring the sibling description override.
+			schemaDefinition: `      $ref: '#/components/schemas/Referenced'
+      description: override description`,
+			expectedType:        "string",
+			expectedDescription: "override description",
+		},
+		"allOf with two $refs is not treated as sibling-ref wrapper": {
+			// Two $ref branches is a real allOf composition (not the libopenapi sibling-ref
+			// shape) and should fall through to the existing error, not be silently unwrapped
+			// to one of the refs.
+			schemaDefinition: `      allOf:
+        - $ref: '#/components/schemas/Referenced'
+        - $ref: '#/components/schemas/Other'`,
+			errorContains: "type cannot be inferred",
+		},
+		"$ref with sibling beyond description is not unwrapped": {
+			// Only `description` siblings are recognized today. Any other sibling (e.g.
+			// `deprecated`) must cause the wrapper to fall through to the existing error so
+			// the new pattern is surfaced loudly instead of silently dropping the override.
+			schemaDefinition: `      $ref: '#/components/schemas/Referenced'
+      description: override description
+      deprecated: true`,
+			errorContains: "type cannot be inferred",
+		},
 	}
 
 	for name, tc := range tests {
@@ -86,6 +119,9 @@ func TestBuildSchema(t *testing.T) {
 				require.NoError(t, err)
 				assert.NotNil(t, result.Schema)
 				assert.Equal(t, tc.expectedType, result.Type)
+				if tc.expectedDescription != "" {
+					assert.Equal(t, tc.expectedDescription, result.Schema.Description)
+				}
 			} else {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), tc.errorContains)

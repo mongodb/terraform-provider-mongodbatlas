@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 )
 
 func ConfigDatabaseUserBasic(projectID, username, roleName, keyLabel, valueLabel string) string {

@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
-	"go.mongodb.org/atlas-sdk/v20250312018/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"

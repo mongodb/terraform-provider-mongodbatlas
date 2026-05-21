@@ -12,8 +12,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
-	"go.mongodb.org/atlas-sdk/v20250312018/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/mockadmin"
 )
 
 type testCase struct {

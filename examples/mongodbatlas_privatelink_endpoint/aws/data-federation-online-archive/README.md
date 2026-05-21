@@ -5,7 +5,7 @@ Setup private connection to a [Data Federation or Online Archive](https://www.mo
 
 ## Dependencies
 
-* Terraform v0.13
+* Terraform >= 1.9
 * An AWS account - provider.aws: version = "~> 4"
 * A MongoDB Atlas account - provider.mongodbatlas: version = "~> 1.10"
 
