@@ -14,7 +14,7 @@ You can refer to the MongoDB Atlas documentation to know about the region names 
 
 ## Dependencies
 
-* Terraform v0.13 or greater
+* Terraform >= 1.9
 * A MongoDB Atlas account 
 * provider.mongodbatlas: version = "~> 0.9.1"
 * Some users (see [here](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1083)) have reported issues deploying this starter example with Mac M1 CPU. If issue persists, suggest deploying instead on x86 linux if possible. See list of supported binaries [here](https://github.com/mongodb/terraform-provider-mongodbatlas/releases/tag/v1.8.1)  

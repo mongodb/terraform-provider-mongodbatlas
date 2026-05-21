@@ -9,7 +9,7 @@ This project aims to provide an example of using [MongoDB Atlas Federated Databa
 * A MongoDB Atlas account 
 
 ```
-Terraform v1.4.6
+Terraform >= 1.9
 + provider registry.terraform.io/terraform-providers/mongodbatlas v1.10.0
 ```
 

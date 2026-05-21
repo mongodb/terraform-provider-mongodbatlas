@@ -41,7 +41,7 @@ Before running this example, you need:
 2. **Google Cloud Platform Account**: With a project and appropriate permissions to:
    - Create KMS resources (Key Rings and Crypto Keys)
    - Manage IAM bindings on KMS resources
-3. **Terraform**: Version 0.13 or later
+3. **Terraform**: Version 1.9 or later
 4. **Google Cloud Terraform Provider**: The Google provider must be configured in your Terraform environment. See the [Google provider documentation](https://registry.terraform.io/providers/hashicorp/google/latest/docs) for authentication methods 
 
 ### Required GCP Permissions

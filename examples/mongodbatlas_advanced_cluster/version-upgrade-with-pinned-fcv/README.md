@@ -12,7 +12,7 @@ The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021
 * A MongoDB Atlas account 
 
 ```
-Terraform >= 0.13
+Terraform >= 1.9
 + provider registry.terraform.io/terraform-providers/mongodbatlas v2.0.0
 ```
 

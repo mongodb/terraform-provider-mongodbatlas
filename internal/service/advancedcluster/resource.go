@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	// TODO: To be reverted before merging to master in CLOUDP-397759
 	"go.mongodb.org/atlas-sdk/v20250312018/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
