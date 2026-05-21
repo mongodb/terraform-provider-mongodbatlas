@@ -30,7 +30,7 @@ The rest of this example is a step by step guide on how to migrate from `mongodb
 - [Cleanup with `terraform destroy`](#cleanup-with-terraform-destroy)
 
 ## Dependencies
-- Terraform CLI >= 1.9
+- Terraform: See the [Compatibility Matrix](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#hashicorp-terraform-version-compatibility-matrix) for supported versions.
 - Terraform MongoDB Atlas Provider `>=v1.29.0`
 - A MongoDB Atlas account.
 - Configure the provider (can also be done by configuring `atlas_client_id` and `atlas_client_secret` in a `provider.tfvars`).

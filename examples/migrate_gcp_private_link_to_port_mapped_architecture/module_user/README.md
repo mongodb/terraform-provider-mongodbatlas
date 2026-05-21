@@ -22,7 +22,7 @@ The rest of this example is a step by step guide on how to migrate from legacy t
 
 ## Dependencies
 
-- Terraform CLI >= 1.9.
+- Terraform: See the [Compatibility Matrix](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#hashicorp-terraform-version-compatibility-matrix) for supported versions.
 - Terraform MongoDB Atlas Provider with port-mapped architecture support.
 - A MongoDB Atlas account.
 - A Google Cloud account with appropriate permissions.

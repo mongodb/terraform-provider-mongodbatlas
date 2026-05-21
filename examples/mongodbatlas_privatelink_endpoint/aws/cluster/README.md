@@ -5,7 +5,7 @@ Setup private connection to a [MongoDB Atlas Cluster](https://www.mongodb.com/ba
 
 ## Dependencies
 
-* Terraform >= 1.9
+* Terraform: See the [Compatibility Matrix](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#hashicorp-terraform-version-compatibility-matrix) for supported versions.
 * An AWS account - provider.aws: version = "~> 4"
 * A MongoDB Atlas account - provider.mongodbatlas: version = "~> 1.8"
 
