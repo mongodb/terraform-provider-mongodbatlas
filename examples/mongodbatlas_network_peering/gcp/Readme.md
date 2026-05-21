@@ -5,12 +5,10 @@ This project aims to provide an example of using GCP and MongoDB Atlas together.
 
 ## Dependencies
 
-* Terraform v0.15
 * GCP Account
 * A MongoDB Atlas account 
 
 ```
-Terraform v0.15.3
 on darwin_amd64
 + provider registry.terraform.io/hashicorp/google v3.74.0
 + provider registry.terraform.io/mongodb/mongodbatlas v0.9.1

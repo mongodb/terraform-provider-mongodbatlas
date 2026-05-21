@@ -10,7 +10,6 @@ This example shows how to configure push-based log export for an Atlas project.
 
 
 ```
-Terraform v1.5.2
 + provider registry.terraform.io/terraform-providers/mongodbatlas v1.16.0
 ```
 
