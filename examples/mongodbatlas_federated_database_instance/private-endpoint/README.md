@@ -4,7 +4,6 @@ This example shows how to configure a [MongoDB Atlas Federated Database Instance
 
 ## Dependencies
 
-* Terraform >= 1.0
 * A MongoDB Atlas account
 * An AWS account
 

@@ -9,7 +9,6 @@ This example shows how to perform authorization for a cloud provider Azure Servi
 
 
 ```
-Terraform v1.5.2
 + provider registry.terraform.io/terraform-providers/mongodbatlas v1.11.0
 ```
 

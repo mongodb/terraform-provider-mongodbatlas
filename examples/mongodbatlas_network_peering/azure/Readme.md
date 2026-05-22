@@ -5,12 +5,10 @@ This project aims to provide an example of using Azure and MongoDB Atlas togethe
 
 ## Dependencies
 
-* Terraform v0.13
 * Microsoft Azure account 
 * A MongoDB Atlas account 
 
 ```
-Terraform v0.13.0
 + provider registry.terraform.io/hashicorp/azuread v1.0.0
 + provider registry.terraform.io/hashicorp/azurerm v2.31.1
 + provider registry.terraform.io/terraform-providers/mongodbatlas v0.6.5
