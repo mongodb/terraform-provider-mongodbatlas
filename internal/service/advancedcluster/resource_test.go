@@ -3147,3 +3147,64 @@ func checkUseAwsTimeBasedSnapshotCopy(value bool) resource.TestCheckFunc {
 		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0."+attrName),
 	)
 }
+
+func TestAccAdvancedCluster_diskThroughput(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 5)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configDiskThroughput(projectID, clusterName),
+				Check:  checkDiskThroughput(),
+			},
+		},
+	})
+}
+
+func configDiskThroughput(projectID, clusterName string) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id   = %[1]q
+  name         = %[2]q
+  cluster_type = "REPLICASET"
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          region_name   = "AF_SOUTH_1"
+          priority      = 7
+          provider_name = "AWS"
+          electable_specs = {
+            instance_size = "M30_GEN_2"
+            node_count    = 3
+          }
+          analytics_specs = {
+            instance_size = "M30_GEN_2"
+            node_count    = 1
+          }
+          read_only_specs = {
+            instance_size = "M30_GEN_2"
+            node_count    = 1
+          }
+        }
+      ]
+    }
+  ]
+}
+`, projectID, clusterName) + dataSourcesConfig
+}
+
+func checkDiskThroughput() resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
+	for _, specsAttr := range []string{"electable_specs", "analytics_specs", "read_only_specs"} {
+		attr := "replication_specs.0.region_configs.0." + specsAttr + ".disk_throughput"
+		effectiveAttr := "replication_specs.0.region_configs.0.effective_" + specsAttr + ".disk_throughput"
+		checks = append(checks, resource.TestCheckResourceAttrWith(dataSourceName, attr, acc.IntGreatThan(0)), resource.TestCheckResourceAttrPair(dataSourceName, attr, dataSourceName, effectiveAttr))
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
