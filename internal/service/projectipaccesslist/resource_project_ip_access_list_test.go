@@ -56,9 +56,9 @@ func TestAccProjectIPAccessList_settingIPAddress(t *testing.T) {
 func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 	var (
 		projectID        = acc.ProjectIDExecution(t)
-		cidrBlock        = acc.RandomIP(179, 154, 226) + "/32"
+		cidrBlock        = acc.RandomIP(179, 154, 230) + "/32"
 		comment          = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
-		updatedCIDRBlock = acc.RandomIP(179, 154, 228) + "/32"
+		updatedCIDRBlock = acc.RandomIP(179, 154, 232) + "/32"
 		updatedComment   = fmt.Sprintf("TestAcc for cidrBlock updated (%s)", updatedCIDRBlock)
 		withDS           = true
 	)
@@ -163,7 +163,7 @@ func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		ipAddress = acc.RandomIP(179, 154, 226)
+		ipAddress = acc.RandomIP(179, 154, 234)
 		comment   = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
 		withDS    = false
 	)

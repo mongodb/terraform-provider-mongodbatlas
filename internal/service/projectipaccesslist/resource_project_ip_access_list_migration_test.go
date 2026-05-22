@@ -36,7 +36,7 @@ func TestMigProjectIPAccessList_settingIPAddress(t *testing.T) {
 func TestMigProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		cidrBlock = acc.RandomIP(180, 154, 226) + "/32"
+		cidrBlock = acc.RandomIP(180, 154, 228) + "/32"
 		comment   = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 		withDS    = false
 		config    = configWithCIDRBlock(projectID, cidrBlock, comment, withDS)
