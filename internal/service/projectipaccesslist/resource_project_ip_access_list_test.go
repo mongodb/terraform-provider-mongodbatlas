@@ -164,7 +164,7 @@ func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		ipAddress = acc.RandomIP(179, 154, 234)
-		comment   = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
+		comment   = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 		withDS    = false
 	)
 
