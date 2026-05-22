@@ -6,7 +6,6 @@ This project aims to provide a very straight-forward example of using AWS and Mo
 ## Dependencies
 
 ```
-on darwin_amd64
 + provider registry.terraform.io/hashicorp/aws v3.48.0
 + provider registry.terraform.io/mongodb/mongodbatlas v0.9.1
 ```

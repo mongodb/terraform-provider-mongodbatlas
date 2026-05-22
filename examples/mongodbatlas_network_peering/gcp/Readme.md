@@ -9,7 +9,6 @@ This project aims to provide an example of using GCP and MongoDB Atlas together.
 * A MongoDB Atlas account 
 
 ```
-on darwin_amd64
 + provider registry.terraform.io/hashicorp/google v3.74.0
 + provider registry.terraform.io/mongodb/mongodbatlas v0.9.1
 ```
