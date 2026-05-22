@@ -386,7 +386,6 @@ func TestAccCluster_basicGCP(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
-					resource.TestCheckResourceAttr(resourceName, "provider_region_name", "US_EAST_4"),
 				),
 			},
 			{
@@ -399,7 +398,6 @@ func TestAccCluster_basicGCP(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.#"),
 					resource.TestCheckResourceAttrSet(resourceName, "replication_specs.0.regions_config.#"),
-					resource.TestCheckResourceAttr(resourceName, "provider_region_name", "US_EAST_4"),
 				),
 			},
 		},
@@ -1051,6 +1049,29 @@ func TestAccCluster_tenant(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
 					resource.TestCheckResourceAttrSet(resourceName, "mongo_uri"),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "10"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccCluster_basicGCPRegionName(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
+		regionName             = "US_EAST_4"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configGCPRegionName(projectID, clusterName, regionName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+					resource.TestCheckResourceAttr(resourceName, "provider_region_name", regionName),
 				),
 			},
 		},
@@ -2263,6 +2284,21 @@ func configAWSWithAutoscaling(projectID, name, backupEnabled, autoDiskEnabled, a
 			name 	     = mongodbatlas_cluster.test.name
 		}
 	`, projectID, name, backupEnabled, autoDiskEnabled, autoScalingEnabled, scaleDownEnabled, minSizeName, maxSizeName, instanceSizeName)
+}
+
+func configGCPRegionName(projectID, name, regionName string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_cluster" "test" {
+		project_id                   = %[1]q
+		name                         = %[2]q
+		auto_scaling_disk_gb_enabled = true
+		provider_name                = "GCP"
+		disk_size_gb                 = 10
+		provider_instance_size_name  = "M10"
+		num_shards                   = 1
+		provider_region_name         = %[3]q
+	}
+	`, projectID, name, regionName)
 }
 
 func configRegions(projectID, name, replications string) string {
