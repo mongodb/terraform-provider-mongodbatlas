@@ -7,6 +7,9 @@ This example creates a project and a Global Cluster with 2 zones where each zone
 * Terraform MongoDB Atlas Provider v2.0.0 or later
 * A MongoDB Atlas account 
 
+```
++ provider registry.terraform.io/terraform-providers/mongodbatlas v2.0.0
+```
 
 
 ## Usage
