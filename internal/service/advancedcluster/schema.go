@@ -306,6 +306,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			},
 			"adaptive_capacity": schema.StringAttribute{
 				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Governs adaptive capacity behavior of Azure nodes in single-cloud Azure clusters or multi-cloud clusters that include Azure nodes. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. `ENABLED` means the cluster explicitly opts in to adaptive capacity. `DISABLED` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. `null` means the field is unset; Azure clusters use adaptive capacity by default when the feature is enabled at the group level. Setting this field for single-cloud AWS or GCP clusters is a no-op.",
 			},
 			"version_release_system": schema.StringAttribute{
