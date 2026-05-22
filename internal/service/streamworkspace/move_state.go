@@ -36,6 +36,14 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 				"region":         tftypes.String,
 			},
 		},
+		"failover_regions": tftypes.List{
+			ElementType: tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"cloud_provider": tftypes.String,
+					"region":         tftypes.String,
+				},
+			},
+		},
 		"stream_config": tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
 				"tier": tftypes.String,
@@ -127,6 +135,38 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 		})
 	}
 
+	// Extract and preserve failover_regions if present.
+	if failoverRegionsVal, exists := stateObj["failover_regions"]; exists && !failoverRegionsVal.IsNull() {
+		var regionsList []tftypes.Value
+		if err := failoverRegionsVal.As(&regionsList); err == nil {
+			tfRegions := make([]attr.Value, 0, len(regionsList))
+			for _, regionVal := range regionsList {
+				var regionObj map[string]tftypes.Value
+				if err := regionVal.As(&regionObj); err == nil {
+					cloudProvider := schemafunc.GetAttrFromStateObj[string](regionObj, "cloud_provider")
+					region := schemafunc.GetAttrFromStateObj[string](regionObj, "region")
+					objValue, diags := types.ObjectValue(map[string]attr.Type{
+						"cloud_provider": types.StringType,
+						"region":         types.StringType,
+					}, map[string]attr.Value{
+						"cloud_provider": types.StringPointerValue(cloudProvider),
+						"region":         types.StringPointerValue(region),
+					})
+					if !diags.HasError() {
+						tfRegions = append(tfRegions, objValue)
+					}
+				}
+			}
+			listValue, diags := types.ListValue(streaminstance.FailoverRegionObjectType, tfRegions)
+			if !diags.HasError() {
+				model.FailoverRegions = listValue
+			}
+		}
+	}
+	if model.FailoverRegions.IsNull() {
+		model.FailoverRegions = types.ListNull(streaminstance.FailoverRegionObjectType)
+	}
+
 	// Extract and preserve hostnames if present.
 	if hostnamesVal, exists := stateObj["hostnames"]; exists && !hostnamesVal.IsNull() {
 		var hostnamesList []tftypes.Value
@@ -147,8 +187,6 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 	if model.Hostnames.IsNull() {
 		model.Hostnames = types.ListNull(types.StringType)
 	}
-
-	model.FailoverRegions = types.ListNull(streaminstance.FailoverRegionObjectType)
 
 	resp.Diagnostics.Append(resp.TargetState.Set(ctx, model)...)
 }
