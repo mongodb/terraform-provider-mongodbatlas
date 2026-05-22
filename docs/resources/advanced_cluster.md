@@ -752,17 +752,17 @@ replication_specs = [
 
 * `instance_size` - (Required) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
 
-  -> **NOTE:** Cluster tier names in the `instance_size` attribute are prepended with `R` instead of `M` if they run a low-CPU version of the cluster, for example `R40`. For a complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
+  Cluster tier names in the `instance_size` attribute are prepended with `R` instead of `M` if they run a low-CPU version of the cluster, for example `R40`. For a complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
 
-  -> **NOTE:** Gen 2 instance sizes use the `_GEN_2` suffix, for example `M30_GEN_2`. Gen 2 clusters run on AWS Graviton4 hardware with gp3 storage and support configurable IOPS via `disk_iops`.
+  [Gen2](https://www.mongodb.com/docs/atlas/manage-clusters/#aws-gen2-dedicated-clusters) instance sizes use the `_GEN_2` suffix, for example `M30_GEN_2`.
 
 * `disk_iops` - (Optional) Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. You can set this attribute if you selected AWS or Azure as your cloud service provider. For AWS, valid configurations are:
-    * For Gen 2 instance sizes (such as `M30_GEN_2`) with `ebs_volume_type` set to `STANDARD`: configurable between 3,000 and 80,000 IOPS.
-    * For M30 or greater (not including `Mxx_NVME` tiers) with `ebs_volume_type` set to `PROVISIONED`: configurable within the allowable range for the selected volume size.
+  * For Gen 2 instance sizes (such as `M30_GEN_2`) with `ebs_volume_type` set to `STANDARD`: configurable between 3000 and 80000 IOPS.
+  * For M30 or greater (not including `Mxx_NVME` tiers) with `ebs_volume_type` set to `PROVISIONED`: configurable within the allowable range for the selected volume size.
   For Azure, `instance_size` must be set to `M40` or greater (not including `Mxx_NVME` tiers), and the region must support Extended IOPS. You can't set this attribute for a multi-cloud cluster.
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
-    * `STANDARD` volume types use gp3 storage. For Gen 2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.
-    * `PROVISIONED` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size.
+  * `STANDARD` volume types use gp3 storage. For Gen 2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.
+  * `PROVISIONED` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size.
 * `node_count` - (Optional) Number of nodes of the given type for MongoDB Atlas to deploy to the region.
 * `disk_size_gb` - (Optional) Storage capacity that the host's root volume possesses expressed in gigabytes. This value must be equal for all shards and node types. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier. **Note:** Using `disk_size_gb` with Standard IOPS could lead to errors and configuration issues. Therefore, it should be used only with the [Provisioned IOPS volume type](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#PROVISIONED). When using Provisioned IOPS, the disk_size_gb parameter specifies the storage capacity, but the IOPS are set independently. Ensuring that `disk_size_gb` is used exclusively with Provisioned IOPS will help avoid these issues.
 
@@ -771,13 +771,14 @@ replication_specs = [
 
 * `instance_size` - (Required) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
 
-  -> **NOTE:** Cluster tier names in the `instance_size` attribute are prepended with `R` instead of `M` if they run a low-CPU version of the cluster, for example `R40`. For a complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
+  Cluster tier names in the `instance_size` attribute are prepended with `R` instead of `M` if they run a low-CPU version of the cluster, for example `R40`. For a complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
 
-  -> **NOTE:** Gen 2 instance sizes use the `_GEN_2` suffix, for example `M30_GEN_2`. Gen 2 clusters run on AWS Graviton4 hardware with gp3 storage and support configurable IOPS via `disk_iops`.
+  [Gen2](https://www.mongodb.com/docs/atlas/manage-clusters/#aws-gen2-dedicated-clusters) instance sizes use the `_GEN_2` suffix, for example `M30_GEN_2`.
 
 * `disk_iops` - (Optional) Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. You can set this attribute if you selected AWS or Azure as your cloud service provider. For AWS, valid configurations are:
-    * For Gen 2 instance sizes (such as `M30_GEN_2`) with `ebs_volume_type` set to `STANDARD`: configurable between 3,000 and 80,000 IOPS.
-    * For M30 or greater (not including `Mxx_NVME` tiers) with `ebs_volume_type` set to `PROVISIONED`: configurable within the allowable range for the selected volume size.
+
+  * For Gen 2 instance sizes (such as `M30_GEN_2`) with `ebs_volume_type` set to `STANDARD`: configurable between 3000 and 80000 IOPS.
+  * For M30 or greater (not including `Mxx_NVME` tiers) with `ebs_volume_type` set to `PROVISIONED`: configurable within the allowable range for the selected volume size.
   For Azure, `instance_size` must be set to `M40` or greater (not including `Mxx_NVME` tiers), and the region must support Extended IOPS. You can't set this attribute for a multi-cloud cluster.
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
     * `STANDARD` volume types use gp3 storage. For Gen 2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.
@@ -789,13 +790,14 @@ replication_specs = [
 
 * `instance_size` - (Required) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
 
-  -> **NOTE:** Cluster tier names in the `instance_size` attribute are prepended with `R` instead of `M` if they run a low-CPU version of the cluster, for example `R40`. For a complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
+  Cluster tier names in the `instance_size` attribute are prepended with `R` instead of `M` if they run a low-CPU version of the cluster, for example `R40`. For a complete list of Low-CPU instance clusters see Cluster Configuration Options under each [Cloud Provider](https://www.mongodb.com/docs/atlas/reference/cloud-providers).
 
-  -> **NOTE:** Gen 2 instance sizes use the `_GEN_2` suffix, for example `M30_GEN_2`. Gen 2 clusters run on AWS Graviton4 hardware with gp3 storage and support configurable IOPS via `disk_iops`.
+  [Gen2](https://www.mongodb.com/docs/atlas/manage-clusters/#aws-gen2-dedicated-clusters) instance sizes use the `_GEN_2` suffix, for example `M30_GEN_2`.
 
 * `disk_iops` - (Optional) Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. You can set this attribute if you selected AWS or Azure as your cloud service provider. For AWS, valid configurations are:
-    * For Gen 2 instance sizes (such as `M30_GEN_2`) with `ebs_volume_type` set to `STANDARD`: configurable between 3,000 and 80,000 IOPS.
-    * For M30 or greater (not including `Mxx_NVME` tiers) with `ebs_volume_type` set to `PROVISIONED`: configurable within the allowable range for the selected volume size.
+  
+  * For Gen 2 instance sizes (such as `M30_GEN_2`) with `ebs_volume_type` set to `STANDARD`: configurable between 3000 and 80000 IOPS.
+  * For M30 or greater (not including `Mxx_NVME` tiers) with `ebs_volume_type` set to `PROVISIONED`: configurable within the allowable range for the selected volume size.
   For Azure, `instance_size` must be set to `M40` or greater (not including `Mxx_NVME` tiers), and the region must support Extended IOPS. You can't set this attribute for a multi-cloud cluster. This parameter defaults to the cluster tier's standard IOPS value.
 * `ebs_volume_type` - (Optional) Type of storage you want to attach to your AWS-provisioned cluster. Set only if you selected AWS as your cloud service provider. You can't set this parameter for a multi-cloud cluster. Valid values are:
     * `STANDARD` volume types use gp3 storage. For Gen 2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.
