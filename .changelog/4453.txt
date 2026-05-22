@@ -1,6 +1,6 @@
 ```release-note:enhancement
-datasource/advanced_cluster: Added `disk_throughput` computed attribute to specs sub-resources
+datasource/mongodbatlas_advanced_cluster: Adds `disk_throughput` computed attribute to specs sub-resources
 ```
 ```release-note:enhancement
-datasource/advanced_clusters: Added `disk_throughput` computed attribute to specs sub-resources
+datasource/mongodbatlas_advanced_clusters: Adds `disk_throughput` computed attribute to specs sub-resources
 ```
