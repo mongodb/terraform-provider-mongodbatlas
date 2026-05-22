@@ -41,36 +41,12 @@ func RandomIAMUser() string {
 	return acctest.RandomWithPrefix(prefixIAMUser)
 }
 
-// ipCounter is a process-global counter used by RandomIP to allocate unique IPs.
-// Initialized to a random offset so two test runs do not replay identical sequences.
+// ipCounter provides unique IPs per process; each run gets its own project so no cross-process seed is needed.
 var ipCounter atomic.Uint32
 
-const (
-	// ipCounterMask keeps the counter inside a 24-bit address space (3 octets).
-	ipCounterMask uint32 = 0xFFFFFF
-	// ipOctetMask isolates a single octet (8 bits) from the counter.
-	ipOctetMask uint32 = 0xFF
-	// ipOctetShiftHigh / ipOctetShiftMid extract the high and middle octets
-	// from the 24-bit counter; the low octet is taken without a shift.
-	ipOctetShiftHigh uint32 = 16
-	ipOctetShiftMid  uint32 = 8
-)
-
-func init() {
-	ipCounter.Store(uint32(acctest.RandIntRange(0, int(ipCounterMask)))) //nolint:gosec // value capped at 24 bits, fits in uint32
-}
-
-// RandomIP returns a unique IP within the 179.0.0.0/8 range. Uniqueness is
-// guaranteed within a single test process for up to ~16M calls, which avoids
-// the collisions a previous shared-octets implementation produced when parallel
-// tests rolled the same last octet.
 func RandomIP() string {
-	n := ipCounter.Add(1) & ipCounterMask
-	return fmt.Sprintf("179.%d.%d.%d",
-		byte((n>>ipOctetShiftHigh)&ipOctetMask),
-		byte((n>>ipOctetShiftMid)&ipOctetMask),
-		byte(n&ipOctetMask),
-	)
+	n := ipCounter.Add(1)
+	return fmt.Sprintf("179.%d.%d.%d", byte(n>>16), byte(n>>8), byte(n)) //nolint:gosec // intentional octet extraction
 }
 
 func RandomEmail() string {
