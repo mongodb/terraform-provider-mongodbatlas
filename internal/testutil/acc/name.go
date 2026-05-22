@@ -2,6 +2,7 @@ package acc
 
 import (
 	"fmt"
+	"sync/atomic"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
@@ -40,8 +41,12 @@ func RandomIAMUser() string {
 	return acctest.RandomWithPrefix(prefixIAMUser)
 }
 
-func RandomIP(a, b, c byte) string {
-	return fmt.Sprintf("%d.%d.%d.%d", a, b, c, acctest.RandIntRange(0, 255))
+// ipCounter provides unique IPs per process; each run gets its own project so no cross-process seed is needed.
+var ipCounter atomic.Uint32
+
+func RandomIP() string {
+	n := ipCounter.Add(1)
+	return fmt.Sprintf("179.%d.%d.%d", byte(n>>16), byte(n>>8), byte(n)) //nolint:gosec // intentional octet extraction
 }
 
 func RandomEmail() string {
