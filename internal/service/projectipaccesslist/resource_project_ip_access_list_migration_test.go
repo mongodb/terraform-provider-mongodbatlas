@@ -13,7 +13,7 @@ import (
 func TestMigProjectIPAccessList_settingIPAddress(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		ipAddress = acc.RandomIP(180, 154, 226)
+		ipAddress = acc.RandomIP()
 		comment   = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 		withDS    = false
 		config    = configWithIPAddress(projectID, ipAddress, comment, withDS)
@@ -36,7 +36,7 @@ func TestMigProjectIPAccessList_settingIPAddress(t *testing.T) {
 func TestMigProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		cidrBlock = acc.RandomIP(180, 154, 228) + "/32"
+		cidrBlock = acc.RandomIP() + "/32"
 		comment   = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
 		withDS    = false
 		config    = configWithCIDRBlock(projectID, cidrBlock, comment, withDS)
