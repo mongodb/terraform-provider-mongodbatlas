@@ -33,6 +33,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"failover_regions": schema.ListNestedAttribute{
 				Optional: true,
+				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: regionAttributes(),
 				},
