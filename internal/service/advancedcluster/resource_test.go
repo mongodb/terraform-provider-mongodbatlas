@@ -3201,8 +3201,10 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 func checkDiskThroughput() resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
-	for _, specsAttr := range []string{"electable_specs", "analytics_specs", "read_only_specs", "effective_electable_specs", "effective_analytics_specs", "effective_read_only_specs"} {
-		checks = append(checks, resource.TestCheckResourceAttrWith(dataSourceName, "replication_specs.0.region_configs.0."+specsAttr+".disk_throughput", acc.IntGreatThan(0)))
+	for _, specsAttr := range []string{"electable_specs", "analytics_specs", "read_only_specs"} {
+		attr := "replication_specs.0.region_configs.0." + specsAttr + ".disk_throughput"
+		effectiveAttr := "replication_specs.0.region_configs.0.effective_" + specsAttr + ".disk_throughput"
+		checks = append(checks, resource.TestCheckResourceAttrWith(dataSourceName, attr, acc.IntGreatThan(0)), resource.TestCheckResourceAttrPair(dataSourceName, attr, dataSourceName, effectiveAttr))
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
