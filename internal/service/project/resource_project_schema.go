@@ -116,6 +116,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"region_usage_restrictions": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"ip_addresses": schema.SingleNestedAttribute{
 				Computed:           true,
