@@ -30,6 +30,10 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 		Pipeline: &pipeline,
 	}
 
+	if !plan.FailoverEnabled.IsNull() && !plan.FailoverEnabled.IsUnknown() {
+		streamProcessor.FailoverEnabled = plan.FailoverEnabled.ValueBoolPointer()
+	}
+
 	if !plan.Options.IsNull() && !plan.Options.IsUnknown() {
 		optionsModel := &TFOptionsModel{}
 		if diags := plan.Options.As(ctx, optionsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
@@ -67,6 +71,10 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSM
 			Name:     plan.ProcessorName.ValueStringPointer(),
 			Pipeline: &pipeline,
 		},
+	}
+
+	if !plan.FailoverEnabled.IsNull() && !plan.FailoverEnabled.IsUnknown() {
+		streamProcessorAPIParams.StreamsModifyStreamProcessor.FailoverEnabled = plan.FailoverEnabled.ValueBoolPointer()
 	}
 
 	if !plan.Options.IsNull() && !plan.Options.IsUnknown() {
@@ -107,14 +115,15 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, w
 		return nil, diags
 	}
 	tfModel := &TFStreamProcessorRSModel{
-		Options:       *optionsTF,
-		Pipeline:      pipelineTF,
-		ProcessorID:   types.StringPointerValue(&apiResp.Id),
-		ProcessorName: types.StringPointerValue(&apiResp.Name),
-		ProjectID:     types.StringPointerValue(&projectID),
-		State:         types.StringPointerValue(&apiResp.State),
-		Stats:         statsTF,
-		Tier:          types.StringPointerValue(apiResp.Tier),
+		Options:         *optionsTF,
+		Pipeline:        pipelineTF,
+		ProcessorID:     types.StringPointerValue(&apiResp.Id),
+		ProcessorName:   types.StringPointerValue(&apiResp.Name),
+		ProjectID:       types.StringPointerValue(&projectID),
+		State:           types.StringPointerValue(&apiResp.State),
+		Stats:           statsTF,
+		Tier:            types.StringPointerValue(apiResp.Tier),
+		FailoverEnabled: types.BoolPointerValue(apiResp.FailoverEnabled),
 	}
 
 	if workspaceName != "" {
@@ -152,14 +161,15 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName, w
 		return nil, diags
 	}
 	tfModel := &TFStreamProcessorDSModel{
-		ID:            types.StringPointerValue(&apiResp.Id),
-		Options:       *optionsTF,
-		Pipeline:      types.StringValue(pipelineTF.ValueString()),
-		ProcessorName: types.StringPointerValue(&apiResp.Name),
-		ProjectID:     types.StringPointerValue(&projectID),
-		State:         types.StringPointerValue(&apiResp.State),
-		Stats:         statsTF,
-		Tier:          types.StringPointerValue(apiResp.Tier),
+		ID:              types.StringPointerValue(&apiResp.Id),
+		Options:         *optionsTF,
+		Pipeline:        types.StringValue(pipelineTF.ValueString()),
+		ProcessorName:   types.StringPointerValue(&apiResp.Name),
+		ProjectID:       types.StringPointerValue(&projectID),
+		State:           types.StringPointerValue(&apiResp.State),
+		Stats:           statsTF,
+		Tier:            types.StringPointerValue(apiResp.Tier),
+		FailoverEnabled: types.BoolPointerValue(apiResp.FailoverEnabled),
 	}
 
 	if workspaceName != "" {

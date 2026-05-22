@@ -53,6 +53,37 @@ func TestAccStreamProcessor_basic(t *testing.T) {
 	resource.Test(t, *basicTestCase(t))
 }
 
+func TestAccStreamProcessor_withFailoverEnabled(t *testing.T) {
+	var (
+		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		randomSuffix             = acctest.RandString(5)
+		processorName            = "new-processor-failover" + randomSuffix
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithFailoverEnabled(t, projectID, workspaceName, processorName, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "failover_enabled", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "failover_enabled", "true"),
+				),
+			},
+			{
+				Config: configWithFailoverEnabled(t, projectID, workspaceName, processorName, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "failover_enabled", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "failover_enabled", "false"),
+				),
+			},
+			importStep(),
+		}})
+}
+
 func TestAccStreamProcessor_withTier(t *testing.T) {
 	var (
 		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
@@ -703,6 +734,42 @@ func config(t *testing.T, projectID, workspaceName, processorName, state, nameSu
 		}
 		
 	`, projectID, workspaceName, processorName, pipeline, stateConfig, optionsStr, dependsOnStr, timeoutConfig, deleteOnCreateTimeoutConfig) + otherConfig
+}
+
+func configWithFailoverEnabled(t *testing.T, projectID, workspaceName, processorName string, failoverEnabled bool) string {
+	t.Helper()
+
+	return fmt.Sprintf(`
+	data "mongodbatlas_stream_connection" "sample_stream_solar" {
+		project_id      = %[1]q
+		workspace_name  = %[2]q
+		connection_name = "sample_stream_solar"
+	}
+
+	resource "mongodbatlas_stream_processor" "processor" {
+		project_id       = %[1]q
+		workspace_name   = %[2]q
+		processor_name   = %[3]q
+		pipeline = jsonencode([
+			{ "$source" = { "connectionName" = data.mongodbatlas_stream_connection.sample_stream_solar.connection_name } },
+			{ "$emit" = { "connectionName" = "__testLog" } }
+		])
+		state            = "STARTED"
+		failover_enabled = %[4]t
+	}
+
+	data "mongodbatlas_stream_processor" "test" {
+		project_id     = mongodbatlas_stream_processor.processor.project_id
+		workspace_name = mongodbatlas_stream_processor.processor.workspace_name
+		processor_name = mongodbatlas_stream_processor.processor.processor_name
+	}
+
+	data "mongodbatlas_stream_processors" "test" {
+		project_id     = %[1]q
+		workspace_name = %[2]q
+		depends_on     = [mongodbatlas_stream_processor.processor]
+	}
+	`, projectID, workspaceName, processorName, failoverEnabled)
 }
 
 func configWithTier(t *testing.T, projectID, workspaceName, processorName, tier string) string {
