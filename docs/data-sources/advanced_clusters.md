@@ -278,8 +278,8 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 ### specs
 
-* `disk_iops` - Target IOPS (Input/Output Operations Per Second) for storage attached to this hardware. This parameter defaults to the cluster tier's standard IOPS value. See the resource documentation for [`electable_specs`](../resources/advanced_cluster.md#electable_specs) for additional `disk_iops` configuration details.
-* `disk_throughput` - Target throughput for storage attached to this hardware. Returns only for Gen2 instance sizes with Standard (GP3) volume type.
+* `disk_iops` - Target IOPS (Input/Output Operations Per Second) for the node's storage volume. This parameter defaults to the cluster tier's standard IOPS value. See the resource documentation for [`electable_specs`](../resources/advanced_cluster.md#electable_specs) for additional `disk_iops` configuration details.
+* `disk_throughput` - Target throughput for the node's storage volume. Returns only for Gen2 instance sizes with Standard (GP3) volume type.
 * `ebs_volume_type` - Type of storage attached to your AWS-provisioned cluster. See the resource documentation for [`electable_specs`](../resources/advanced_cluster.md#electable_specs) for additional `disk_iops` configuration details.
 * `instance_size` - Hardware specification for the instance sizes in this region.
 * `node_count` - Number of nodes of the given type for MongoDB Atlas to deploy to the region.
