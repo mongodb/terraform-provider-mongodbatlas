@@ -6,7 +6,6 @@ In `step-1-token-generator`, the JWT is never written to Terraform state or plan
 
 ## Prerequisites
 
-- Terraform >= 1.11 (required for write-only attributes in step 1).
 - A MongoDB Atlas Service Account.
 - AWS CLI configured with credentials that have `secretsmanager:CreateSecret`, `secretsmanager:PutSecretValue`, and `secretsmanager:GetSecretValue` permissions.
 
@@ -39,8 +38,7 @@ terraform apply
 
 Note the `aws_secret_id` output as you will need it for step 2.
 
-#### Alternative: local-exec provisioner (Terraform >= 1.10)
-
+#### Alternative: local-exec provisioner
 If you are on Terraform 1.10 or your cloud provider does not yet support write-only attributes, see the inline comments in `step-1-token-generator/main.tf` for instructions on switching to a `local-exec` provisioner approach.
 
 ### Step 2: Consume the token

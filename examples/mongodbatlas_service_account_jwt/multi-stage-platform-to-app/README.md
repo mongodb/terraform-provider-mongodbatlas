@@ -30,7 +30,6 @@ The hand-off is automated using `local-exec` provisioners that trigger downstrea
 
 ## Prerequisites
 
-- Terraform >= 1.11 (required for write-only attributes in `phase-1-app-bootstrap`).
 - An org-level MongoDB Atlas Service Account with permissions to create projects.
 - AWS CLI configured with `secretsmanager:CreateSecret`, `secretsmanager:PutSecretValue`, and `secretsmanager:GetSecretValue` permissions.
 

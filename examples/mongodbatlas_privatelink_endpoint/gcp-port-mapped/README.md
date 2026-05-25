@@ -36,12 +36,10 @@ resource "mongodbatlas_privatelink_endpoint" "this" {
 
 ## Dependencies
 
-* Terraform >= 1.9
 * Google Cloud account
 * MongoDB Atlas account
 
 ```
-Terraform >= 1.9
 + provider registry.terraform.io/hashicorp/google
 + provider registry.terraform.io/terraform-providers/mongodbatlas
 ```
