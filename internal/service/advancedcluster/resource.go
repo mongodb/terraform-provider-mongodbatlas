@@ -2,7 +2,6 @@ package advancedcluster
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"go.mongodb.org/atlas-sdk/v20250312020/admin"
@@ -265,9 +264,16 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			clusterResp = upgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
 		case diff.upgradeTenantReq != nil:
 			clusterResp = upgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
-		case diff.clusterPatchOnlyReq != nil || diff.clearAdaptiveCapacity:
-			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, diff.clearAdaptiveCapacity, waitParams)
+		case diff.clusterPatchOnlyReq != nil:
+			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
 		}
+		if diags.HasError() {
+			return
+		}
+	}
+	// adaptive_capacity removed from config: needs special handling, see clearAdaptiveCapacity.
+	if !plan.AdaptiveCapacity.Equal(state.AdaptiveCapacity) && plan.AdaptiveCapacity.IsNull() {
+		clusterResp = clearAdaptiveCapacity(ctx, diags, r.Client, waitParams)
 		if diags.HasError() {
 			return
 		}
@@ -368,58 +374,35 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 	return AwaitChanges(ctx, r.Client, waitParams, operationFCVUnpinning, diags)
 }
 
-func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, patchReq *admin.ClusterDescription20240805, clearAdaptiveCapacity bool, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
+func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, patchReq *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	// paused = `false` is sent in an isolated request before other changes to avoid error from API: Cannot update cluster while it is paused or being paused.
 	var result *admin.ClusterDescription20240805
-	if patchReq != nil && patchReq.Paused != nil && !patchReq.GetPaused() {
+	if patchReq.Paused != nil && !patchReq.GetPaused() {
 		patchReq.Paused = nil
 		_ = updateCluster(ctx, diags, r.Client, &resumeRequest, waitParams, operationResumeBeforeUpdate)
 	}
 
 	// paused = `true` is sent in an isolated request after other changes have been applied to avoid error from API: Cannot update and pause cluster at the same time
-	var pauseAfterOtherChanges bool
-	if patchReq != nil && patchReq.Paused != nil && patchReq.GetPaused() {
+	var pauseAfterOtherChanges = false
+	if patchReq.Paused != nil && patchReq.GetPaused() {
 		patchReq.Paused = nil
 		pauseAfterOtherChanges = true
 	}
 
-	if clearAdaptiveCapacity {
-		result = patchClusterWithNullFields(ctx, diags, r.Client, patchReq, waitParams)
-	} else {
-		result = updateCluster(ctx, diags, r.Client, patchReq, waitParams, operationUpdate)
-	}
+	result = updateCluster(ctx, diags, r.Client, patchReq, waitParams, operationUpdate)
 
-	if !diags.HasError() && pauseAfterOtherChanges {
+	if pauseAfterOtherChanges {
 		result = updateCluster(ctx, diags, r.Client, &pauseRequest, waitParams, operationPauseAfterUpdate)
 	}
 	return result
 }
 
-// patchClusterWithNullFields sends a PATCH with adaptiveCapacity explicitly set to JSON null.
-// This is necessary because the SDK field uses *string with omitempty, so a nil pointer is omitted
-// from JSON rather than serialized as null.
-func patchClusterWithNullFields(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, patchReq *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
-	var patchMap map[string]any
-	if patchReq != nil {
-		jsonBytes, err := json.Marshal(patchReq)
-		if err != nil {
-			addErrorDiag(diags, operationUpdate, err.Error())
-			return nil
-		}
-		if err := json.Unmarshal(jsonBytes, &patchMap); err != nil {
-			addErrorDiag(diags, operationUpdate, err.Error())
-			return nil
-		}
-	} else {
-		patchMap = make(map[string]any)
-	}
-	patchMap["adaptiveCapacity"] = nil
-	bodyBytes, err := json.Marshal(patchMap)
-	if err != nil {
-		addErrorDiag(diags, operationUpdate, err.Error())
-		return nil
-	}
-	_, err = client.UntypedAPICall(ctx, config.APICallParams{
+// clearAdaptiveCapacity sends a PATCH with `adaptiveCapacity: null` via UntypedAPICall.
+// Needed because the SDK field is *string with omitempty, so a nil pointer would be omitted instead of serialized as null.
+// Once CLOUDP-315290 adds SDK-level null support in PATCH payloads, this special case can be removed.
+func clearAdaptiveCapacity(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
+	body := []byte(`{"adaptiveCapacity":null}`)
+	_, err := client.UntypedAPICall(ctx, config.APICallParams{
 		VersionHeader: "application/vnd.atlas.2024-08-05+json",
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{name}",
 		PathParams: map[string]string{
@@ -427,7 +410,7 @@ func patchClusterWithNullFields(ctx context.Context, diags *diag.Diagnostics, cl
 			"name":    waitParams.ClusterName,
 		},
 		Method: "PATCH",
-	}, bodyBytes)
+	}, body)
 	if err != nil {
 		addErrorDiag(diags, operationUpdate, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
@@ -532,7 +515,6 @@ type clusterDiff struct {
 	upgradeFlexToDedicatedReq *admin.AtlasTenantClusterUpgradeRequest20240805
 	isUpgradeTenantToFlex     bool
 	isUpdateOfFlex            bool
-	clearAdaptiveCapacity     bool
 }
 
 func (c *clusterDiff) isAnyUpgrade() bool {
@@ -558,10 +540,6 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 		return clusterDiff{}
 	}
 
-	// AdaptiveCapacity is *string with omitempty so nil can't be marshaled as JSON null via the SDK struct.
-	// Detect the null transition here so the update path can send it explicitly via UntypedAPICall.
-	clearAdaptiveCapacity := !plan.AdaptiveCapacity.Equal(state.AdaptiveCapacity) && plan.AdaptiveCapacity.IsNull()
-
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknown and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
@@ -570,11 +548,8 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 		diags.AddError(errorPatchPayload, err.Error())
 		return clusterDiff{}
 	}
-	if update.IsZeroValues(patchReq) {
-		if !clearAdaptiveCapacity {
-			return clusterDiff{} // No changes to cluster
-		}
-		return clusterDiff{clearAdaptiveCapacity: true}
+	if update.IsZeroValues(patchReq) { // No changes to cluster
+		return clusterDiff{}
 	}
 	if upgradeFlexToDedicatedReq := getUpgradeFlexToDedicatedRequest(stateReq, patchReq); upgradeFlexToDedicatedReq != nil {
 		return clusterDiff{upgradeFlexToDedicatedReq: upgradeFlexToDedicatedReq}
@@ -582,7 +557,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	if upgradeTenantReq := getUpgradeTenantRequest(stateReq, patchReq); upgradeTenantReq != nil {
 		return clusterDiff{upgradeTenantReq: upgradeTenantReq}
 	}
-	return clusterDiff{clusterPatchOnlyReq: patchReq, clearAdaptiveCapacity: clearAdaptiveCapacity}
+	return clusterDiff{clusterPatchOnlyReq: patchReq}
 }
 
 func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {

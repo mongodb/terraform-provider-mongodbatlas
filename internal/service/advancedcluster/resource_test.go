@@ -3113,7 +3113,6 @@ func TestAccAdvancedCluster_useAwsTimeBasedSnapshotCopy_nonAWSError(t *testing.T
 	})
 }
 
-// TODO: ask Atlas team whether setting adaptive_capacity on non-Azure clusters should return an error or be silently ignored (currently a no-op).
 func TestAccAdvancedCluster_adaptiveCapacity(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
@@ -3125,16 +3124,24 @@ func TestAccAdvancedCluster_adaptiveCapacity(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), false, "AZURE", "US_EAST_2"),
-				Check:  checkAdaptiveCapacity(new("ENABLED"), false),
+				Config: configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), true, "AZURE", "US_EAST_2"),
+				Check:  checkAdaptiveCapacity(new("ENABLED"), true),
 			},
 			{
 				Config: configAdaptiveCapacity(projectID, clusterName, new("DISABLED"), true, "AZURE", "US_EAST_2"),
 				Check:  checkAdaptiveCapacity(new("DISABLED"), true),
 			},
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, nil, false, "AZURE", "US_EAST_2"),
-				Check:  checkAdaptiveCapacity(nil, false),
+				Config: configAdaptiveCapacity(projectID, clusterName, nil, true, "AZURE", "US_EAST_2"),
+				Check:  checkAdaptiveCapacity(nil, true),
+			},
+			{
+				Config: configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), false, "AZURE", "US_EAST_2"),
+				Check:  checkAdaptiveCapacity(new("ENABLED"), false),
+			},
+			{
+				Config: configAdaptiveCapacity(projectID, clusterName, nil, true, "AZURE", "US_EAST_2"),
+				Check:  checkAdaptiveCapacity(nil, true),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
