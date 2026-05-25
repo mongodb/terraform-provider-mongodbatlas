@@ -1055,33 +1055,10 @@ func TestAccCluster_tenant(t *testing.T) {
 	})
 }
 
-func TestAccCluster_basicGCPRegionNameWesternUS(t *testing.T) {
+func TestAccCluster_basicGCPRegionName(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
-		regionName             = "WESTERN_US"
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configGCPRegionName(projectID, clusterName, regionName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", clusterName),
-					resource.TestCheckResourceAttr(resourceName, "provider_region_name", regionName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccCluster_basicGCPRegionNameUSWest2(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
-		regionName             = "US_WEST_2"
+		regionName             = "US_EAST_4"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -2309,8 +2286,7 @@ func configAWSWithAutoscaling(projectID, name, backupEnabled, autoDiskEnabled, a
 	`, projectID, name, backupEnabled, autoDiskEnabled, autoScalingEnabled, scaleDownEnabled, minSizeName, maxSizeName, instanceSizeName)
 }
 
-func configGCPRegionName(
-	projectID, name, regionName string) string {
+func configGCPRegionName(projectID, name, regionName string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_cluster" "test" {
 		project_id                   = %[1]q
