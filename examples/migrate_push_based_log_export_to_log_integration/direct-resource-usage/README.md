@@ -12,7 +12,6 @@ The migration is shown in three phases:
 
 - An AWS account with permissions to create S3 buckets and IAM roles
 - A MongoDB Atlas organization and project
-- Terraform >= 1.9
 - MongoDB Atlas Provider (latest version recommended)
 
 ## Migration Steps
