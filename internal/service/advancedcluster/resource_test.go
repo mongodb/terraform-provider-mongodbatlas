@@ -3124,23 +3124,23 @@ func TestAccAdvancedCluster_adaptiveCapacity(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), true, "AZURE", "US_EAST_2"),
+				Config: configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), true, "AZURE", "US_EAST_2"), // create
 				Check:  checkAdaptiveCapacity(new("ENABLED"), true),
 			},
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, new("DISABLED"), true, "AZURE", "US_EAST_2"),
+				Config: configAdaptiveCapacity(projectID, clusterName, new("DISABLED"), true, "AZURE", "US_EAST_2"), // AC only change
 				Check:  checkAdaptiveCapacity(new("DISABLED"), true),
 			},
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, nil, true, "AZURE", "US_EAST_2"),
+				Config: configAdaptiveCapacity(projectID, clusterName, nil, true, "AZURE", "US_EAST_2"), // AC remove only
 				Check:  checkAdaptiveCapacity(nil, true),
 			},
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), false, "AZURE", "US_EAST_2"),
+				Config: configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), false, "AZURE", "US_EAST_2"), // AC set-from-null + tag change
 				Check:  checkAdaptiveCapacity(new("ENABLED"), false),
 			},
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, nil, true, "AZURE", "US_EAST_2"),
+				Config: configAdaptiveCapacity(projectID, clusterName, nil, true, "AZURE", "US_EAST_2"), // AC remove + tag change
 				Check:  checkAdaptiveCapacity(nil, true),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -3169,13 +3169,12 @@ func TestAccAdvancedCluster_adaptiveCapacityAWS(t *testing.T) {
 }
 
 func configAdaptiveCapacity(projectID, name string, value *string, addTags bool, providerName, regionName string) string {
-	adaptiveCapacityAttr := ""
+	var extraAttrs string
 	if value != nil {
-		adaptiveCapacityAttr = fmt.Sprintf(`adaptive_capacity = %q`, *value)
+		extraAttrs += fmt.Sprintf("adaptive_capacity = %q\n", *value)
 	}
-	tagsAttr := ""
 	if addTags {
-		tagsAttr = `tags = { "env" = "test" }`
+		extraAttrs += `tags = { "env" = "test" }` + "\n"
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
@@ -3183,7 +3182,6 @@ func configAdaptiveCapacity(projectID, name string, value *string, addTags bool,
 			name         = %[2]q
 			cluster_type = "REPLICASET"
 			%[3]s
-			%[4]s
 
 			replication_specs = [{
 				region_configs = [{
@@ -3191,13 +3189,13 @@ func configAdaptiveCapacity(projectID, name string, value *string, addTags bool,
 						instance_size = "M10"
 						node_count    = 3
 					}
-					provider_name = %[5]q
+					provider_name = %[4]q
 					priority      = 7
-					region_name   = %[6]q
+					region_name   = %[5]q
 				}]
 			}]
 		}
-	`, projectID, name, adaptiveCapacityAttr, tagsAttr, providerName, regionName) + dataSourcesConfig
+	`, projectID, name, extraAttrs, providerName, regionName) + dataSourcesConfig
 }
 
 func checkAdaptiveCapacity(value *string, addTags bool) resource.TestCheckFunc {
