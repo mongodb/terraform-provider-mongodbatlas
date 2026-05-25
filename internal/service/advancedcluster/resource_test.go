@@ -3125,86 +3125,95 @@ func TestAccAdvancedCluster_adaptiveCapacity(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, "ENABLED", "AZURE", "US_EAST_2"),
-				Check:  checkAdaptiveCapacity("ENABLED"),
+				Config: configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), false, "AZURE", "US_EAST_2"),
+				Check:  checkAdaptiveCapacity(new("ENABLED"), false),
 			},
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, "DISABLED", "AZURE", "US_EAST_2"),
-				Check:  checkAdaptiveCapacity("DISABLED"),
+				Config: configAdaptiveCapacity(projectID, clusterName, new("DISABLED"), true, "AZURE", "US_EAST_2"),
+				Check:  checkAdaptiveCapacity(new("DISABLED"), true),
 			},
 			{
-				Config: configAdaptiveCapacityAbsent(projectID, clusterName, "AZURE", "US_EAST_2"),
-				Check:  checkAdaptiveCapacityAbsent(),
+				Config: configAdaptiveCapacity(projectID, clusterName, nil, false, "AZURE", "US_EAST_2"),
+				Check:  checkAdaptiveCapacity(nil, false),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
 
-func configAdaptiveCapacity(projectID, name, value, providerName, regionName string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id        = %[1]q
-			name              = %[2]q
-			cluster_type      = "REPLICASET"
-			adaptive_capacity = %[3]q
-
-			replication_specs = [{
-				region_configs = [{
-					electable_specs = {
-						instance_size = "M10"
-						node_count    = 3
-						disk_size_gb  = 10
-					}
-					provider_name = %[4]q
-					priority      = 7
-					region_name   = %[5]q
-				}]
-			}]
-		}
-	`, projectID, name, value, providerName, regionName) + dataSourcesConfig
-}
-
-func checkAdaptiveCapacity(value string) resource.TestCheckFunc {
-	attrName := "adaptive_capacity"
-	return resource.ComposeAggregateTestCheckFunc(
-		acc.CheckExistsCluster(resourceName),
-		resource.TestCheckResourceAttr(resourceName, attrName, value),
-		resource.TestCheckResourceAttr(dataSourceName, attrName, value),
-		resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0."+attrName),
+// TestAccAdvancedCluster_adaptiveCapacityAWS verifies that adaptive_capacity can be set on AWS clusters.
+// Atlas silently ignores the value for non-Azure providers, but Terraform must still accept and persist it.
+func TestAccAdvancedCluster_adaptiveCapacityAWS(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), false, "AWS", "US_EAST_1"),
+				Check:  checkAdaptiveCapacity(new("ENABLED"), false),
+			},
+		},
+	})
 }
 
-func configAdaptiveCapacityAbsent(projectID, name, providerName, regionName string) string {
+func configAdaptiveCapacity(projectID, name string, value *string, addTags bool, providerName, regionName string) string {
+	adaptiveCapacityAttr := ""
+	if value != nil {
+		adaptiveCapacityAttr = fmt.Sprintf(`adaptive_capacity = %q`, *value)
+	}
+	tagsAttr := ""
+	if addTags {
+		tagsAttr = `tags = { "env" = "test" }`
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
 			cluster_type = "REPLICASET"
+			%[3]s
+			%[4]s
 
 			replication_specs = [{
 				region_configs = [{
 					electable_specs = {
 						instance_size = "M10"
 						node_count    = 3
-						disk_size_gb  = 10
 					}
-					provider_name = %[3]q
+					provider_name = %[5]q
 					priority      = 7
-					region_name   = %[4]q
+					region_name   = %[6]q
 				}]
 			}]
 		}
-	`, projectID, name, providerName, regionName) + dataSourcesConfig
+	`, projectID, name, adaptiveCapacityAttr, tagsAttr, providerName, regionName) + dataSourcesConfig
 }
 
-func checkAdaptiveCapacityAbsent() resource.TestCheckFunc {
+func checkAdaptiveCapacity(value *string, addTags bool) resource.TestCheckFunc {
 	attrName := "adaptive_capacity"
-	return resource.ComposeAggregateTestCheckFunc(
-		acc.CheckExistsCluster(resourceName),
-		resource.TestCheckNoResourceAttr(resourceName, attrName),
-		resource.TestCheckNoResourceAttr(dataSourceName, attrName),
-	)
+	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
+	if value == nil {
+		checks = append(checks,
+			resource.TestCheckNoResourceAttr(resourceName, attrName),
+			resource.TestCheckNoResourceAttr(dataSourceName, attrName),
+		)
+	} else {
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, attrName, *value),
+			resource.TestCheckResourceAttr(dataSourceName, attrName, *value),
+			resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0."+attrName),
+		)
+	}
+	if addTags {
+		checks = append(checks, resource.TestCheckResourceAttr(resourceName, "tags.env", "test"))
+	} else {
+		checks = append(checks, resource.TestCheckNoResourceAttr(resourceName, "tags.env"))
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func configUseAwsTimeBasedSnapshotCopy(projectID, name string, value bool, providerName, regionName string) string {
