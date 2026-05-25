@@ -16,9 +16,9 @@ func TestAccProjectRSAccesslistAPIKey_SettingIPAddress(t *testing.T) {
 	var (
 		resourceName     = "mongodbatlas_access_list_api_key.test"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		ipAddress        = acc.RandomIP(179, 154, 226)
+		ipAddress        = acc.RandomIP()
 		description      = acc.RandomName()
-		updatedIPAddress = acc.RandomIP(179, 154, 228)
+		updatedIPAddress = acc.RandomIP()
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -56,9 +56,9 @@ func TestAccProjectRSAccessListAPIKey_SettingCIDRBlock(t *testing.T) {
 	var (
 		resourceName     = "mongodbatlas_access_list_api_key.test"
 		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		cidrBlock        = acc.RandomIP(179, 154, 226) + "/32"
+		cidrBlock        = acc.RandomIP() + "/32"
 		description      = acc.RandomName()
-		updatedCIDRBlock = acc.RandomIP(179, 154, 228) + "/32"
+		updatedCIDRBlock = acc.RandomIP() + "/32"
 	)
 
 	resource.Test(t, resource.TestCase{
