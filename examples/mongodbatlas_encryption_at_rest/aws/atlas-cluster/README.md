@@ -8,7 +8,6 @@ This example sets up encryption at rest using AWS KMS for your Atlas Project. It
 * A MongoDB Atlas account 
 
 ```
-Terraform >= 1.9
 + provider registry.terraform.io/terraform-providers/mongodbatlas v1.10.2
 ```
 

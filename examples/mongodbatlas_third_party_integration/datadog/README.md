@@ -2,7 +2,6 @@
 
 ## Dependencies
 
-* Terraform v0.13
 * A [DataDog](https://www.datadoghq.com/) API Key.
     * As of March 2023, worth noting that this is *not* an Application Key. API Keys can be created and accessed via Organization Settings from DataDog UI (not from MongoDB Atlas).
 * A MongoDB Atlas account - provider.mongodbatlas: version = "~> 1.8"
