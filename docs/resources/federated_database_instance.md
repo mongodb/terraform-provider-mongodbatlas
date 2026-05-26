@@ -43,7 +43,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
 
 ## Example Usages with Amazon S3 bucket as storage database
 
-> **NOTE:** You must configure the Cloud Provider Access properly to authorize the federated database instance to access your S3 bucket. This requires creating a `mongodbatlas_cloud_provider_access_setup` and a `mongodbatlas_cloud_provider_access_authorization` resource, as well as the corresponding AWS IAM roles and policies. For a complete, runnable example, see the [AWS Federated Database Instance example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_federated_database_instance/aws).
+> **NOTE:** You must configure the Cloud Provider Access properly to authorize the federated database instance to access your S3 bucket. This requires creating a `mongodbatlas_cloud_provider_access_setup` and a `mongodbatlas_cloud_provider_access_authorization` resource, as well as the corresponding AWS IAM roles and policies. For a complete, runnable example, see the [AWS Federated Database Instance example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_federated_database_instance/aws).
 
 ```terraform
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
@@ -55,7 +55,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
   project_id = "PROJECT ID"
   role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
   aws {
-    iam_assumed_role_arn = "arn:aws:iam::770682223847:role/TEST-ROLE-FOR-FEDERATED-DATABASE"
+    iam_assumed_role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/<IAM_ROLE_NAME>"
   }
 }
 
