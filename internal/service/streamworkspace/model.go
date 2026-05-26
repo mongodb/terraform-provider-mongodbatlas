@@ -61,15 +61,9 @@ func newStreamWorkspaceCreateReq(ctx context.Context, plan *TFModel) (*admin.Str
 }
 
 // newStreamWorkspaceUpdateReq creates an API request for updating a stream workspace.
+// dataProcessRegion and failoverRegions are mutually exclusive in the PATCH body.
 func newStreamWorkspaceUpdateReq(ctx context.Context, plan *TFModel) (*admin.StreamsTenantUpdateRequest, diag.Diagnostics) {
-	dataProcessRegion := &TFWorkspaceProcessRegionSpecModel{}
-	if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
-		return nil, diags
-	}
-	updateReq := &admin.StreamsTenantUpdateRequest{
-		CloudProvider: dataProcessRegion.CloudProvider.ValueStringPointer(),
-		Region:        dataProcessRegion.Region.ValueStringPointer(),
-	}
+	updateReq := &admin.StreamsTenantUpdateRequest{}
 	if !plan.FailoverRegions.IsNull() && !plan.FailoverRegions.IsUnknown() {
 		var failoverRegions []TFWorkspaceProcessRegionSpecModel
 		if diags := plan.FailoverRegions.ElementsAs(ctx, &failoverRegions, false); diags.HasError() {
@@ -83,6 +77,13 @@ func newStreamWorkspaceUpdateReq(ctx context.Context, plan *TFModel) (*admin.Str
 			})
 		}
 		updateReq.FailoverRegions = &failoverDataRegions
+	} else {
+		dataProcessRegion := &TFWorkspaceProcessRegionSpecModel{}
+		if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		updateReq.CloudProvider = dataProcessRegion.CloudProvider.ValueStringPointer()
+		updateReq.Region = dataProcessRegion.Region.ValueStringPointer()
 	}
 	return updateReq, nil
 }
