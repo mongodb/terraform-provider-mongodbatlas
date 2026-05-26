@@ -271,6 +271,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			return
 		}
 	}
+	// adaptive_capacity removed from config: needs special handling, see clearAdaptiveCapacity.
+	if !plan.AdaptiveCapacity.Equal(state.AdaptiveCapacity) && plan.AdaptiveCapacity.IsNull() {
+		clusterResp = clearAdaptiveCapacity(ctx, diags, r.Client, waitParams)
+		if diags.HasError() {
+			return
+		}
+	}
 	// clusterResp can be nil if there are no changes to the cluster, for example when `delete_on_create_timeout` is changed or only advanced configuration is changed
 	if clusterResp == nil {
 		var flexResp *admin.FlexClusterDescription20241113
@@ -388,6 +395,27 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, p
 		result = updateCluster(ctx, diags, r.Client, &pauseRequest, waitParams, operationPauseAfterUpdate)
 	}
 	return result
+}
+
+// clearAdaptiveCapacity sends a PATCH with `adaptiveCapacity: null` via UntypedAPICall.
+// Needed because the SDK field is *string with omitempty, so a nil pointer would be omitted instead of serialized as null.
+// Once CLOUDP-315290 adds SDK-level null support in PATCH payloads, this special case can be removed.
+func clearAdaptiveCapacity(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
+	body := []byte(`{"adaptiveCapacity":null}`)
+	_, err := client.UntypedAPICall(ctx, config.APICallParams{
+		VersionHeader: "application/vnd.atlas.2024-08-05+json",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{name}",
+		PathParams: map[string]string{
+			"groupId": waitParams.ProjectID,
+			"name":    waitParams.ClusterName,
+		},
+		Method: "PATCH",
+	}, body)
+	if err != nil {
+		addErrorDiag(diags, operationUpdate, defaultAPIErrorDetails(waitParams.ClusterName, err))
+		return nil
+	}
+	return AwaitChanges(ctx, client, waitParams, operationUpdate, diags)
 }
 
 func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {

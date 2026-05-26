@@ -53,6 +53,7 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
 		UseAwsTimeBasedSnapshotCopyForFastInitialSync: types.BoolValue(conversion.SafeValue(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync)),
 		VersionReleaseSystem:                          types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
+		AdaptiveCapacity:                              types.StringPointerValue(input.AdaptiveCapacity),
 		PinnedFCV:                                     pinnedFCV,
 	}
 }
