@@ -240,7 +240,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigAddResourceStr(t, networkPeeringConfig+configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-vpc", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true), resourceName, "timeouts = {\n  create = \"40m\"\n  delete = \"40m\"\n}"),
+				Config: configWithPrivateNetworkingTimeouts(t, networkPeeringConfig+configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-vpc", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true), "40m", "40m"),
 				Check:  checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-vpc", "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
 			},
 			{
@@ -461,10 +461,10 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigAddResourceStr(t, fmt.Sprintf(`
+				Config: configWithPrivateNetworkingTimeouts(t, fmt.Sprintf(`
 					%[1]s
 					%[2]s
-				`, privatelinkConfig, configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-privatelink", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingPrivatelink, true)), resourceName, "timeouts = {\n  create = \"40m\"\n  delete = \"40m\"\n}"),
+				`, privatelinkConfig, configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-privatelink", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingPrivatelink, true)), "40m", "40m"),
 				Check: checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-privatelink", "user", "rawpassword", "localhost:9092", "earliest", networkingTypePrivatelink, true, true),
 			},
 			{
@@ -543,7 +543,7 @@ func TestAccStreamRSStreamConnection_GCPPubSubPrivateLink(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigAddResourceStr(t, configureGCPPubSubPrivateLink(projectID, instanceName, clusterName, connectionName, region), resourceName, "timeouts = {\n  create = \"60m\"\n  delete = \"60m\"\n}"),
+				Config: configWithPrivateNetworkingTimeouts(t, configureGCPPubSubPrivateLink(projectID, instanceName, clusterName, connectionName, region), "60m", "60m"),
 				Check:  checkGCPPubSubPrivateLinkAttributes(resourceName, instanceName, connectionName),
 			},
 			{
@@ -1362,7 +1362,7 @@ func TestAccStreamRSStreamConnection_AzureBlobStoragePrivateLink(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigAddResourceStr(t, dataSourceConfig+configureAzureBlobStoragePrivateLink(projectID, instanceName, clusterName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName), resourceName, "timeouts = {\n  create = \"60m\"\n  delete = \"60m\"\n}"),
+				Config: configWithPrivateNetworkingTimeouts(t, dataSourceConfig+configureAzureBlobStoragePrivateLink(projectID, instanceName, clusterName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName), "60m", "60m"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAzureBlobStoragePrivateLinkAttributes(resourceName, instanceName, connectionName, servicePrincipalID, storageAccountName),
 					checkAzureBlobStoragePrivateLinkAttributes(dataSourceName, instanceName, connectionName, servicePrincipalID, storageAccountName),
@@ -1535,4 +1535,16 @@ func streamConnectionsAttributeChecksAcceptance(resourceName string, pageNum, it
 func streamConnectionsAttributeChecksMigration(resourceName string, pageNum, itemsPerPage *int) resource.TestCheckFunc {
 	commonTests := streamConnectionsAttributeChecks(resourceName, pageNum, itemsPerPage)
 	return resource.ComposeAggregateTestCheckFunc(commonTests, resource.TestCheckResourceAttrSet(resourceName, "instance_name"))
+}
+
+// configWithPrivateNetworkingTimeouts wraps a stream connection config with extended create/delete
+// timeouts for private-networking connections (VPC, PRIVATE_LINK) that go through a PENDING state
+// while cloud-provider infrastructure (VPC proxy, private endpoint) is provisioned asynchronously.
+func configWithPrivateNetworkingTimeouts(t *testing.T, baseConfig, create, delete string) string {
+	t.Helper()
+	return acc.ConfigAddResourceStr(t, baseConfig, resourceName, fmt.Sprintf(`
+		timeouts = {
+			create = %q
+			delete = %q
+		}`, create, delete))
 }
