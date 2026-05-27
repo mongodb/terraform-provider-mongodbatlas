@@ -1,0 +1,5 @@
+package streamworkspace
+
+var NewStreamWorkspaceUpdateReq = newStreamWorkspaceUpdateReq
+
+type ExportedFailoverRegionsWriteOnce = failoverRegionsWriteOnce

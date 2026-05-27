@@ -96,9 +96,15 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan TFModel
+	var plan, state TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+	if !plan.DataProcessRegion.Equal(state.DataProcessRegion) && !plan.FailoverRegions.Equal(state.FailoverRegions) {
+		resp.Diagnostics.AddError("Invalid stream workspace update",
+			"data_process_region and failover_regions cannot be changed in the same apply. Apply each change separately.")
 		return
 	}
 	connV2 := r.Client.AtlasV2

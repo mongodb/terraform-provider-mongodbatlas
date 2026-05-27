@@ -34,6 +34,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"failover_regions": schema.ListNestedAttribute{
 				Optional: true,
 				Computed: true,
+				PlanModifiers: []planmodifier.List{
+					failoverRegionsWriteOnce{},
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: regionAttributes(),
 				},
