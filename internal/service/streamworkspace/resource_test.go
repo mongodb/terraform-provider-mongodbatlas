@@ -3,9 +3,11 @@ package streamworkspace_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -92,6 +94,94 @@ func TestAccStreamWorkspaceRS_withFailoverRegions(t *testing.T) {
 	})
 }
 
+func TestAccStreamWorkspaceRS_updateWithFailoverRegions(t *testing.T) {
+	var (
+		resourceName  = "mongodbatlas_stream_workspace.test"
+		projectID     = acc.ProjectIDExecution(t)
+		workspaceName = acc.RandomName()
+	)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyStreamInstance,
+		Steps: []resource.TestStep{
+			// Step 1: create without failover_regions
+			{
+				Config: streamsWorkspaceConfig(projectID, workspaceName, region, cloudProvider),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkStreamsWorkspaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "failover_regions.#", "0"),
+				),
+			},
+			// Step 2: add failover_regions via update (null → value, allowed)
+			{
+				Config: streamsWorkspaceWithFailoverRegionsConfig(projectID, workspaceName, region, cloudProvider, failoverRegion),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkStreamsWorkspaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "failover_regions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "failover_regions.0.region", failoverRegion),
+					resource.TestCheckResourceAttr(resourceName, "failover_regions.0.cloud_provider", cloudProvider),
+				),
+			},
+			// Step 3: no-op plan — failover_regions unchanged, expect no diff
+			{
+				Config:   streamsWorkspaceWithFailoverRegionsConfig(projectID, workspaceName, region, cloudProvider, failoverRegion),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+func TestAccStreamWorkspaceRS_failoverWriteOnceRequiresReplace(t *testing.T) {
+	var (
+		resourceName  = "mongodbatlas_stream_workspace.test"
+		projectID     = acc.ProjectIDExecution(t)
+		workspaceName = acc.RandomName()
+	)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyStreamInstance,
+		Steps: []resource.TestStep{
+			// Step 1: create with DUBLIN_IRL failover
+			{
+				Config: streamsWorkspaceWithFailoverRegionsConfig(projectID, workspaceName, region, cloudProvider, "DUBLIN_IRL"),
+				Check:  checkStreamsWorkspaceExists(resourceName),
+			},
+			// Step 2: change failover region — must require replace, not in-place update
+			{
+				Config: streamsWorkspaceWithFailoverRegionsConfig(projectID, workspaceName, region, cloudProvider, "OREGON_USA"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionDestroyBeforeCreate),
+					},
+				},
+			},
+		},
+	})
+}
+
+func TestAccStreamWorkspaceRS_simultaneousDataProcessRegionAndFailoverChange(t *testing.T) {
+	var (
+		projectID     = acc.ProjectIDExecution(t)
+		workspaceName = acc.RandomName()
+	)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyStreamInstance,
+		Steps: []resource.TestStep{
+			{
+				Config: streamsWorkspaceConfig(projectID, workspaceName, region, cloudProvider),
+			},
+			{
+				Config:      streamsWorkspaceWithChangedRegionAndFailover(projectID, workspaceName),
+				ExpectError: regexp.MustCompile(`data_process_region and failover_regions cannot be changed in the same apply`),
+			},
+		},
+	})
+}
+
 func checkStreamsWorkspaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -162,6 +252,28 @@ func streamsWorkspaceWithStreamConfigConfig(projectID, workspaceName, region, cl
 			}
 		}
 	`, projectID, workspaceName, region, cloudProvider, tier, maxTierSize)
+}
+
+func streamsWorkspaceWithChangedRegionAndFailover(projectID, workspaceName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_workspace" "test" {
+			project_id = %[1]q
+			workspace_name = %[2]q
+			data_process_region = {
+				region = "OREGON_USA"
+				cloud_provider = "AWS"
+			}
+			failover_regions = [
+				{
+					cloud_provider = "AWS"
+					region = %[3]q
+				}
+			]
+			stream_config = {
+				tier = "SP10"
+			}
+		}
+	`, projectID, workspaceName, failoverRegion)
 }
 
 func streamsWorkspaceResourceWithDataSourcesConfig(projectID, workspaceName, region, cloudProvider string) string {
