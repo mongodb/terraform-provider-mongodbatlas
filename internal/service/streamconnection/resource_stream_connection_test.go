@@ -240,7 +240,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-vpc", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
+				Config: acc.ConfigAddResourceStr(t, networkPeeringConfig+configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-vpc", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true), resourceName, `timeouts = { create = "40m" }`),
 				Check:  checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-vpc", "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
 			},
 			{
@@ -1362,7 +1362,7 @@ func TestAccStreamRSStreamConnection_AzureBlobStoragePrivateLink(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourceConfig + configureAzureBlobStoragePrivateLink(projectID, instanceName, clusterName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName),
+				Config: acc.ConfigAddResourceStr(t, dataSourceConfig+configureAzureBlobStoragePrivateLink(projectID, instanceName, clusterName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName), resourceName, `timeouts = { create = "60m" delete = "60m" }`),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAzureBlobStoragePrivateLinkAttributes(resourceName, instanceName, connectionName, servicePrincipalID, storageAccountName),
 					checkAzureBlobStoragePrivateLinkAttributes(dataSourceName, instanceName, connectionName, servicePrincipalID, storageAccountName),
