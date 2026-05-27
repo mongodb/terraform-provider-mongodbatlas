@@ -240,7 +240,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigAddResourceStr(t, networkPeeringConfig+configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-vpc", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true), resourceName, `timeouts = { create = "40m" }`),
+				Config: acc.ConfigAddResourceStr(t, networkPeeringConfig+configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-vpc", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true), resourceName, `timeouts = { create = "40m" delete = "40m" }`),
 				Check:  checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-vpc", "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
 			},
 			{
@@ -461,10 +461,10 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(`
+				Config: acc.ConfigAddResourceStr(t, fmt.Sprintf(`
 					%[1]s
 					%[2]s
-				`, privatelinkConfig, configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-privatelink", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingPrivatelink, true)),
+				`, privatelinkConfig, configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-privatelink", getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingPrivatelink, true)), resourceName, `timeouts = { create = "40m" delete = "40m" }`),
 				Check: checkKafkaAttributesAcceptance(resourceName, instanceName, "kafka-conn-privatelink", "user", "rawpassword", "localhost:9092", "earliest", networkingTypePrivatelink, true, true),
 			},
 			{
@@ -543,7 +543,7 @@ func TestAccStreamRSStreamConnection_GCPPubSubPrivateLink(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: configureGCPPubSubPrivateLink(projectID, instanceName, clusterName, connectionName, region),
+				Config: acc.ConfigAddResourceStr(t, configureGCPPubSubPrivateLink(projectID, instanceName, clusterName, connectionName, region), resourceName, `timeouts = { create = "60m" delete = "60m" }`),
 				Check:  checkGCPPubSubPrivateLinkAttributes(resourceName, instanceName, connectionName),
 			},
 			{
