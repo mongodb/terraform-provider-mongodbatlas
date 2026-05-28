@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_stream_connection: Adds `failover_connections` attribute to support configuring failover connections
+```

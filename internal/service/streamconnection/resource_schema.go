@@ -235,6 +235,123 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 
+			"failover_connections": schema.ListNestedAttribute{
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							Computed: true,
+						},
+						"name": schema.StringAttribute{
+							Required: true,
+						},
+						"type": schema.StringAttribute{
+							Required: true,
+						},
+						"cluster_name": schema.StringAttribute{
+							Optional: true,
+						},
+						"cluster_project_id": schema.StringAttribute{
+							Optional: true,
+						},
+						"db_role_to_execute": schema.SingleNestedAttribute{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"role": schema.StringAttribute{Required: true},
+								"type": schema.StringAttribute{
+									Required: true,
+									Validators: []validator.String{
+										stringvalidator.OneOf("BUILT_IN", "CUSTOM"),
+									},
+								},
+							},
+						},
+						"bootstrap_servers": schema.StringAttribute{
+							Optional: true,
+						},
+						"authentication": schema.SingleNestedAttribute{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"mechanism":                   schema.StringAttribute{Optional: true},
+								"method":                      schema.StringAttribute{Optional: true},
+								"password":                    schema.StringAttribute{Optional: true, Sensitive: true},
+								"username":                    schema.StringAttribute{Optional: true},
+								"token_endpoint_url":          schema.StringAttribute{Optional: true},
+								"client_id":                   schema.StringAttribute{Optional: true},
+								"client_secret":               schema.StringAttribute{Optional: true, Sensitive: true},
+								"scope":                       schema.StringAttribute{Optional: true},
+								"sasl_oauthbearer_extensions": schema.StringAttribute{Optional: true},
+							},
+						},
+						"config": schema.MapAttribute{
+							ElementType: types.StringType,
+							Optional:    true,
+						},
+						"security": schema.SingleNestedAttribute{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"broker_public_certificate": schema.StringAttribute{Optional: true},
+								"protocol":                  schema.StringAttribute{Optional: true},
+							},
+						},
+						"networking": schema.SingleNestedAttribute{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"access": schema.SingleNestedAttribute{
+									Required: true,
+									Attributes: map[string]schema.Attribute{
+										"type":          schema.StringAttribute{Required: true},
+										"connection_id": schema.StringAttribute{Optional: true},
+									},
+								},
+							},
+						},
+						"aws": schema.SingleNestedAttribute{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"role_arn": schema.StringAttribute{Required: true},
+							},
+						},
+						"azure": schema.SingleNestedAttribute{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"service_principal_id": schema.StringAttribute{Required: true},
+								"storage_account_name": schema.StringAttribute{Required: true},
+								"region":               schema.StringAttribute{Optional: true, Computed: true},
+							},
+						},
+						"gcp": schema.SingleNestedAttribute{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"service_account_id": schema.StringAttribute{Required: true},
+							},
+						},
+						"url": schema.StringAttribute{
+							Optional: true,
+						},
+						"headers": schema.MapAttribute{
+							ElementType: types.StringType,
+							Optional:    true,
+						},
+						"schema_registry_provider": schema.StringAttribute{
+							Optional: true,
+						},
+						"schema_registry_urls": schema.ListAttribute{
+							ElementType: types.StringType,
+							Optional:    true,
+						},
+						"schema_registry_authentication": schema.SingleNestedAttribute{
+							Optional: true,
+							Attributes: map[string]schema.Attribute{
+								"type":     schema.StringAttribute{Optional: true},
+								"username": schema.StringAttribute{Optional: true},
+								"password": schema.StringAttribute{Optional: true, Sensitive: true},
+							},
+						},
+					},
+				},
+			},
+
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create:            true,
 				Update:            true,
