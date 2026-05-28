@@ -103,7 +103,7 @@ var (
 
 func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 	testCase := testCaseKafkaPlaintext(t)
-	resource.ParallelTest(t, *testCase)
+	resource.Test(t, *testCase)
 }
 
 func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
@@ -219,7 +219,7 @@ func TestAccStreamRSStreamConnection_kafkaOAuthBearer(t *testing.T) {
 			},
 		},
 	}
-	resource.ParallelTest(t, *testCase)
+	resource.Test(t, *testCase)
 }
 
 func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
@@ -265,7 +265,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		providerName            = "AWS"
 		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -294,7 +294,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 	testCase := testCaseCluster(t)
-	resource.ParallelTest(t, *testCase)
+	resource.Test(t, *testCase)
 }
 
 func testCaseCluster(t *testing.T) *resource.TestCase {
@@ -361,7 +361,7 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 		instanceName = acc.RandomStreamInstanceName() // The execution stream instance use sample stream, so we need to create this in a different instance
 		sampleName   = "sample_stream_solar"
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -397,7 +397,7 @@ func TestAccStreamStreamConnection_https(t *testing.T) {
 		}`
 		emptyHeaders string
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -455,7 +455,7 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 		}`, networkingTypePrivatelink)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -484,7 +484,7 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 		awsIAMRoleName          = acc.RandomIAMRole()
 		connectionName          = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -509,7 +509,7 @@ func TestAccStreamRSStreamConnection_GCPPubSub(t *testing.T) {
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -562,7 +562,7 @@ func TestAccStreamRSStreamConnection_instanceName(t *testing.T) {
 		connectionName          = acc.RandomName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -595,7 +595,7 @@ func TestAccStreamRSStreamConnection_conflictingFields(t *testing.T) {
 		connectionName          = "conflict-test"
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -616,7 +616,7 @@ func TestAccStreamRSStreamConnection_SchemaRegistry(t *testing.T) {
 		username                = "user"
 		password                = "password"
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -683,7 +683,7 @@ func TestAccStreamRSStreamConnection_SchemaRegistrySASLInherit(t *testing.T) {
 		connectionName          = acc.RandomName()
 		schemaRegistryURLs      = []string{"https://schemaregistry.example.com"}
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -1311,7 +1311,7 @@ func TestAccStreamRSStreamConnection_AzureBlobStorage(t *testing.T) {
 		storageAccountName      = "tfacctest" + acctest.RandString(10)
 		storageContainerName    = acc.RandomBucketName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			acc.PreCheckAzureEnvWithServicePrincipal(t)
 			azureServicePrincipalMu.Lock()

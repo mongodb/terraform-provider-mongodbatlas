@@ -18,7 +18,7 @@ This example creates the following resources:
 
 ### GCP
 - GCS bucket for storing logs.
-- IAM binding granting the Atlas-managed service account object admin access to the bucket.
+- IAM binding granting the Atlas-managed service account `roles/storage.objectCreator` on the bucket.
 
 ## Usage
 

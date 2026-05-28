@@ -23,9 +23,9 @@ const (
 func TestAccProjectIPAccessList_settingIPAddress(t *testing.T) {
 	var (
 		projectID        = acc.ProjectIDExecution(t)
-		ipAddress        = acc.RandomIP(179, 154, 226)
+		ipAddress        = acc.RandomIP()
 		comment          = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
-		updatedIPAddress = acc.RandomIP(179, 154, 228)
+		updatedIPAddress = acc.RandomIP()
 		updatedComment   = fmt.Sprintf("TestAcc for ipAddress updated (%s)", updatedIPAddress)
 		withDS           = true
 	)
@@ -56,9 +56,9 @@ func TestAccProjectIPAccessList_settingIPAddress(t *testing.T) {
 func TestAccProjectIPAccessList_settingCIDRBlock(t *testing.T) {
 	var (
 		projectID        = acc.ProjectIDExecution(t)
-		cidrBlock        = acc.RandomIP(179, 154, 226) + "/32"
+		cidrBlock        = acc.RandomIP() + "/32"
 		comment          = fmt.Sprintf("TestAcc for cidrBlock (%s)", cidrBlock)
-		updatedCIDRBlock = acc.RandomIP(179, 154, 228) + "/32"
+		updatedCIDRBlock = acc.RandomIP() + "/32"
 		updatedComment   = fmt.Sprintf("TestAcc for cidrBlock updated (%s)", updatedCIDRBlock)
 		withDS           = true
 	)
@@ -130,11 +130,11 @@ func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 
 		if i%2 == 0 {
 			entryName = "cidr_block"
-			entry["cidr_block"] = acc.RandomIP(byte(i), 2, 3) + "/32"
+			entry["cidr_block"] = acc.RandomIP() + "/32"
 			ipAddr = entry["cidr_block"]
 		} else {
 			entryName = "ip_address"
-			entry["ip_address"] = acc.RandomIP(byte(i), 2, 3)
+			entry["ip_address"] = acc.RandomIP()
 			ipAddr = entry["ip_address"]
 		}
 		entry["comment"] = fmt.Sprintf("TestAcc for %s (%s)", entryName, ipAddr)
@@ -163,8 +163,8 @@ func TestAccProjectIPAccessList_settingMultiple(t *testing.T) {
 func TestAccProjectIPAccessList_importIncorrectId(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		ipAddress = acc.RandomIP(179, 154, 226)
-		comment   = fmt.Sprintf("TestAcc for ipaddres (%s)", ipAddress)
+		ipAddress = acc.RandomIP()
+		comment   = fmt.Sprintf("TestAcc for ipAddress (%s)", ipAddress)
 		withDS    = false
 	)
 

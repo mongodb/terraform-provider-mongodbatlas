@@ -15,7 +15,6 @@ You can refer to the MongoDB Atlas documentation to know about the parameters th
 
 ## Dependencies
 
-* Terraform v0.13 or greater
 * A MongoDB Atlas account 
 * provider.mongodbatlas: version = "~> 0.9.1"
 

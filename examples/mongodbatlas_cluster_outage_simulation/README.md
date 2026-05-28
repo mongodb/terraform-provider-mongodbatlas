@@ -9,7 +9,6 @@ This project aims to provide an example of using [MongoDB Atlas Cluster Outage S
 * A MongoDB Atlas account 
 
 ```
-Terraform >= 1.9
 + provider registry.terraform.io/terraform-providers/mongodbatlas v1.10.0
 ```
 

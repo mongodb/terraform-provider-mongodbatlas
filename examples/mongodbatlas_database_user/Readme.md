@@ -8,7 +8,6 @@ You can view the MongoDB Atlas Cluster Regions from the [documentation](https://
 
 ## Dependencies
 
-* Terraform v0.13
 * A MongoDB Atlas account - terraform-providers/mongodbatlas v0.6.5
 
 ## Usage

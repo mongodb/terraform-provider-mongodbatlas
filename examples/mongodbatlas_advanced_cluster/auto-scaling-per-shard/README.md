@@ -26,7 +26,6 @@ If you are migrating from v1.x of our provider to v2.0.0 or later, the `v1.x.x/`
 * A MongoDB Atlas account 
 
 ```
-Terraform >= 1.9
 + provider registry.terraform.io/terraform-providers/mongodbatlas v2.0.0
 ```
 
