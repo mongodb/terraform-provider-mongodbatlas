@@ -14,6 +14,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -1193,15 +1194,14 @@ func waitOnClusterDeleteDone(t *testing.T, projectID, clusterName string) {
 	t.Helper()
 	diags := &diag.Diagnostics{}
 	clusterResp, _ := advancedcluster.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false, false)
-	if clusterResp == nil {
-		t.Fatalf("cluster %s not found in %s", clusterName, projectID)
-	}
+	require.NotNil(t, clusterResp)
 	_ = advancedcluster.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedcluster.ClusterWaitParams{
 		ProjectID:   projectID,
 		ClusterName: clusterName,
-		Timeout:     60 * time.Second,
+		Timeout:     60 * time.Minute,
 		IsDelete:    true,
 	}, "waiting for cluster to be deleted after cleanup in create timeout", diags)
+	require.False(t, diags.HasError())
 	time.Sleep(2 * time.Minute) // Decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name".
 }
 

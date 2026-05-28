@@ -718,7 +718,7 @@ func gcsStorageBucketConfig(projectID string, config *gcsConfig) string {
 
 		resource "google_storage_bucket_iam_member" "bucket_permission" {
 			bucket = google_storage_bucket.log_bucket.name
-			role   = "roles/storage.objectAdmin"
+			role   = "roles/storage.objectCreator"
 			member = "serviceAccount:${mongodbatlas_cloud_provider_access_authorization.gcp_auth.gcp[0].service_account_for_atlas}"
 		}
 	`, projectID, config.bucketName)

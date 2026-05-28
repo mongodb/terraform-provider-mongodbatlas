@@ -50,7 +50,7 @@ func importStep() resource.TestStep {
 }
 
 func TestAccStreamProcessor_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+	resource.Test(t, *basicTestCase(t))
 }
 
 func TestAccStreamProcessor_withTier(t *testing.T) {
@@ -60,7 +60,7 @@ func TestAccStreamProcessor_withTier(t *testing.T) {
 		processorName            = "new-processor-tier" + randomSuffix
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroyStreamProcessor,
@@ -153,7 +153,7 @@ func TestAccStreamProcessor_JSONWhiteSpaceFormat(t *testing.T) {
 		processorName              = "new-processor-json-unchanged"
 		sampleSrcConfigExtraSpaces = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true, extraWhitespace: true}
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		CheckDestroy:             checkDestroyStreamProcessor,
@@ -176,7 +176,7 @@ func TestAccStreamProcessor_withOptions(t *testing.T) {
 		processorName            = "new-processor" + randomSuffix
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroyStreamProcessor,
@@ -319,7 +319,7 @@ func TestAccStreamProcessor_clusterType(t *testing.T) {
 		srcConfig                = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true}
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroyStreamProcessor,
@@ -340,7 +340,7 @@ func TestAccStreamProcessor_createErrors(t *testing.T) {
 		randomSuffix             = acctest.RandString(5)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroyStreamProcessor,
@@ -366,7 +366,7 @@ func TestAccStreamProcessor_createTimeoutWithDeleteOnCreate(t *testing.T) {
 		deleteOnCreateTimeout    = true
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroyStreamProcessor,
@@ -521,7 +521,7 @@ func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, i
 	}
 	steps = append(steps, finalStep)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroyStreamProcessor,
