@@ -102,7 +102,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if !plan.DataProcessRegion.Equal(state.DataProcessRegion) && !plan.FailoverRegions.Equal(state.FailoverRegions) {
+	if !plan.DataProcessRegion.Equal(state.DataProcessRegion) && !plan.FailoverRegions.IsNull() && !plan.FailoverRegions.IsUnknown() && len(plan.FailoverRegions.Elements()) > 0 {
 		resp.Diagnostics.AddError("Invalid stream workspace update",
 			"data_process_region and failover_regions cannot be changed in the same apply. Apply each change separately.")
 		return
