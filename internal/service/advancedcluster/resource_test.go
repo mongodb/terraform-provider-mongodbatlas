@@ -14,6 +14,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -3124,24 +3126,29 @@ func TestAccAdvancedCluster_adaptiveCapacity(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), true, "AZURE", "US_EAST_2"), // create
-				Check:  checkAdaptiveCapacity(new("ENABLED"), true),
+				Config:            configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), true, "AZURE", "US_EAST_2"), // create
+				Check:             checkAdaptiveCapacity(new("ENABLED"), true),
+				ConfigStateChecks: pluralAdaptiveCapacityChecks(clusterName, new("ENABLED")),
 			},
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, new("DISABLED"), true, "AZURE", "US_EAST_2"), // AC only change
-				Check:  checkAdaptiveCapacity(new("DISABLED"), true),
+				Config:            configAdaptiveCapacity(projectID, clusterName, new("DISABLED"), true, "AZURE", "US_EAST_2"), // AC only change
+				Check:             checkAdaptiveCapacity(new("DISABLED"), true),
+				ConfigStateChecks: pluralAdaptiveCapacityChecks(clusterName, new("DISABLED")),
 			},
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, nil, true, "AZURE", "US_EAST_2"), // AC remove only
-				Check:  checkAdaptiveCapacity(nil, true),
+				Config:            configAdaptiveCapacity(projectID, clusterName, nil, true, "AZURE", "US_EAST_2"), // AC remove only
+				Check:             checkAdaptiveCapacity(nil, true),
+				ConfigStateChecks: pluralAdaptiveCapacityChecks(clusterName, nil),
 			},
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), false, "AZURE", "US_EAST_2"), // AC set-from-null + tag change
-				Check:  checkAdaptiveCapacity(new("ENABLED"), false),
+				Config:            configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), false, "AZURE", "US_EAST_2"), // AC set-from-null + tag change
+				Check:             checkAdaptiveCapacity(new("ENABLED"), false),
+				ConfigStateChecks: pluralAdaptiveCapacityChecks(clusterName, new("ENABLED")),
 			},
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, nil, true, "AZURE", "US_EAST_2"), // AC remove + tag change
-				Check:  checkAdaptiveCapacity(nil, true),
+				Config:            configAdaptiveCapacity(projectID, clusterName, nil, true, "AZURE", "US_EAST_2"), // AC remove + tag change
+				Check:             checkAdaptiveCapacity(nil, true),
+				ConfigStateChecks: pluralAdaptiveCapacityChecks(clusterName, nil),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -3161,8 +3168,9 @@ func TestAccAdvancedCluster_adaptiveCapacityAWS(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), false, "AWS", "US_EAST_1"),
-				Check:  checkAdaptiveCapacity(new("ENABLED"), false),
+				Config:            configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), false, "AWS", "US_EAST_1"),
+				Check:             checkAdaptiveCapacity(new("ENABLED"), false),
+				ConfigStateChecks: pluralAdaptiveCapacityChecks(clusterName, new("ENABLED")),
 			},
 		},
 	})
@@ -3198,6 +3206,18 @@ func configAdaptiveCapacity(projectID, name string, value *string, addTags bool,
 	`, projectID, name, extraAttrs, providerName, regionName) + dataSourcesConfig
 }
 
+func pluralAdaptiveCapacityChecks(clusterName string, value *string) []statecheck.StateCheck {
+	var acCheck knownvalue.Check = knownvalue.Null()
+	if value != nil {
+		acCheck = knownvalue.StringExact(*value)
+	}
+	return []statecheck.StateCheck{
+		acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(clusterName), map[string]knownvalue.Check{
+			"adaptive_capacity": acCheck,
+		}),
+	}
+}
+
 func checkAdaptiveCapacity(value *string, addTags bool) resource.TestCheckFunc {
 	attrName := "adaptive_capacity"
 	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
@@ -3210,7 +3230,6 @@ func checkAdaptiveCapacity(value *string, addTags bool) resource.TestCheckFunc {
 		checks = append(checks,
 			resource.TestCheckResourceAttr(resourceName, attrName, *value),
 			resource.TestCheckResourceAttr(dataSourceName, attrName, *value),
-			resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0."+attrName),
 		)
 	}
 	if addTags {
