@@ -14,6 +14,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -3159,86 +3161,29 @@ func TestAccAdvancedCluster_gen2StandardDiskIops(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGen2StandardDiskIops(projectID, clusterName, 3000),
-				Check:  checkGen2StandardDiskIops(3000),
+				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 3200, true),
+				Check:             checkGen2(3200, "STANDARD", true, true),
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 3200, "STANDARD")},
 			},
 			{
-				Config: configGen2StandardDiskIops(projectID, clusterName, 3600),
-				Check:  checkGen2StandardDiskIops(3600),
+				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 3400, true),
+				Check:             checkGen2(3400, "STANDARD", true, true),
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 3400, "STANDARD")},
 			},
 			{
-				Config:      configGen2StandardDiskIops(projectID, clusterName, 3601),
-				ExpectError: regexp.MustCompile("DISK_IOPS"),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 1000, true),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2StandardDiskIops(projectID, clusterName, 1000),
-				ExpectError: regexp.MustCompile("DISK_IOPS"),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", 0, true),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2StandardDiskIops(projectID, clusterName, 0),
-				ExpectError: regexp.MustCompile("DISK_IOPS"),
-			},
-			{
-				Config:      configGen2StandardDiskIops(projectID, clusterName, -1),
-				ExpectError: regexp.MustCompile("DISK_IOPS"),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "STANDARD", -1, true),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 		},
 	})
-}
-
-func configGen2StandardDiskIops(projectID, clusterName string, diskIops int) string {
-	return fmt.Sprintf(`
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = %[1]q
-  name         = %[2]q
-  cluster_type = "REPLICASET"
-  replication_specs = [
-    {
-      region_configs = [
-        {
-          region_name   = "AF_SOUTH_1"
-          priority      = 7
-          provider_name = "AWS"
-          electable_specs = {
-            instance_size   = "M30_GEN_2"
-            node_count      = 3
-            disk_iops       = %[3]d
-            ebs_volume_type = "STANDARD"
-          }
-          analytics_specs = {
-            instance_size   = "M30_GEN_2"
-            node_count      = 1
-            disk_iops       = %[3]d
-            ebs_volume_type = "STANDARD"
-          }
-          read_only_specs = {
-            instance_size   = "M30_GEN_2"
-            node_count      = 1
-            disk_iops       = %[3]d
-            ebs_volume_type = "STANDARD"
-          }
-        }
-      ]
-    }
-  ]
-}
-`, projectID, clusterName, diskIops) + dataSourcesConfig
-}
-
-func checkGen2StandardDiskIops(diskIops int) resource.TestCheckFunc {
-	diskIopsStr := strconv.Itoa(diskIops)
-	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
-	for _, specsAttr := range []string{"electable_specs", "analytics_specs", "read_only_specs"} {
-		base := "replication_specs.0.region_configs.0." + specsAttr + "."
-		effectiveBase := "replication_specs.0.region_configs.0.effective_" + specsAttr + "."
-		checks = append(checks,
-			resource.TestCheckResourceAttr(resourceName, base+"disk_iops", diskIopsStr),
-			resource.TestCheckResourceAttr(dataSourceName, base+"disk_iops", diskIopsStr),
-			resource.TestCheckResourceAttrWith(dataSourceName, base+"disk_throughput", acc.IntGreatThan(0)),
-			resource.TestCheckResourceAttrPair(dataSourceName, base+"disk_throughput", dataSourceName, effectiveBase+"disk_throughput"),
-		)
-	}
-	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func TestAccAdvancedCluster_gen2HighPerformanceDiskIops(t *testing.T) {
@@ -3252,69 +3197,33 @@ func TestAccAdvancedCluster_gen2HighPerformanceDiskIops(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGen2HighPerformanceDiskIops(projectID, clusterName, 3000),
-				Check:  checkGen2HighPerformanceDiskIops(3000),
+				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 3200, false),
+				Check:             checkGen2(3200, "HIGH_PERFORMANCE", false, false),
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 3200, "HIGH_PERFORMANCE")},
 			},
 			{
-				Config: configGen2HighPerformanceDiskIops(projectID, clusterName, 3500),
-				Check:  checkGen2HighPerformanceDiskIops(3500),
+				Config:            configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 3400, false),
+				Check:             checkGen2(3400, "HIGH_PERFORMANCE", false, false),
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 3400, "HIGH_PERFORMANCE")},
 			},
 			{
-				Config:      configGen2HighPerformanceDiskIops(projectID, clusterName, 3601),
-				ExpectError: regexp.MustCompile("DISK_IOPS"),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 100000, false),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2HighPerformanceDiskIops(projectID, clusterName, 1),
-				ExpectError: regexp.MustCompile("DISK_IOPS"),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 1, false),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2HighPerformanceDiskIops(projectID, clusterName, 0),
-				ExpectError: regexp.MustCompile("DISK_IOPS"),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", 0, false),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2HighPerformanceDiskIops(projectID, clusterName, -1),
-				ExpectError: regexp.MustCompile("DISK_IOPS"),
+				Config:      configGen2(projectID, clusterName, "AF_SOUTH_1", "M30_GEN_2", "HIGH_PERFORMANCE", -1, false),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 		},
 	})
-}
-
-func configGen2HighPerformanceDiskIops(projectID, clusterName string, diskIops int) string {
-	return fmt.Sprintf(`
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id   = %[1]q
-  name         = %[2]q
-  cluster_type = "REPLICASET"
-  replication_specs = [
-    {
-      region_configs = [
-        {
-          region_name   = "AF_SOUTH_1"
-          priority      = 7
-          provider_name = "AWS"
-          electable_specs = {
-            instance_size   = "M30_GEN_2"
-            node_count      = 3
-            disk_iops       = %[3]d
-            ebs_volume_type = "HIGH_PERFORMANCE"
-          }
-        }
-      ]
-    }
-  ]
-}
-`, projectID, clusterName, diskIops) + dataSourcesConfig
-}
-
-func checkGen2HighPerformanceDiskIops(diskIops int) resource.TestCheckFunc {
-	diskIopsStr := strconv.Itoa(diskIops)
-	return resource.ComposeAggregateTestCheckFunc(
-		acc.CheckExistsCluster(resourceName),
-		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.disk_iops", diskIopsStr),
-		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.ebs_volume_type", "HIGH_PERFORMANCE"),
-		resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.disk_iops", diskIopsStr),
-		resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.ebs_volume_type", "HIGH_PERFORMANCE"),
-	)
 }
 
 func TestAccAdvancedCluster_gen2ProvisionedDiskIops(t *testing.T) {
@@ -3328,34 +3237,54 @@ func TestAccAdvancedCluster_gen2ProvisionedDiskIops(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGen2ProvisionedDiskIops(projectID, clusterName, 3000),
-				Check:  checkGen2ProvisionedDiskIops(3000),
+				Config:            configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1000, false),
+				Check:             checkGen2(1000, "PROVISIONED", false, false),
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 1000, "PROVISIONED")},
 			},
 			{
-				Config: configGen2ProvisionedDiskIops(projectID, clusterName, 4000),
-				Check:  checkGen2ProvisionedDiskIops(4000),
+				Config:            configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1500, false),
+				Check:             checkGen2(1500, "PROVISIONED", false, false),
+				ConfigStateChecks: []statecheck.StateCheck{pluralCheckGen2(clusterName, 1500, "PROVISIONED")},
 			},
 			{
-				Config:      configGen2ProvisionedDiskIops(projectID, clusterName, 1000000),
-				ExpectError: regexp.MustCompile("DISK_IOPS"),
+				Config:      configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1000000, false),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2ProvisionedDiskIops(projectID, clusterName, 1),
-				ExpectError: regexp.MustCompile("DISK_IOPS"),
+				Config:      configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 1, false),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2ProvisionedDiskIops(projectID, clusterName, 0),
-				ExpectError: regexp.MustCompile("DISK_IOPS"),
+				Config:      configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", 0, false),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 			{
-				Config:      configGen2ProvisionedDiskIops(projectID, clusterName, -1),
-				ExpectError: regexp.MustCompile("DISK_IOPS"),
+				Config:      configGen2(projectID, clusterName, "US_EAST_1", "M30", "PROVISIONED", -1, false),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
 			},
 		},
 	})
 }
 
-func configGen2ProvisionedDiskIops(projectID, clusterName string, diskIops int) string {
+// configGen2 builds a replicaset cluster config with electable_specs and, when allSpecTypes is true,
+// also analytics_specs and read_only_specs (node_count=1 each).
+func configGen2(projectID, clusterName, region, instanceSize, ebsVolumeType string, diskIops int, allSpecTypes bool) string {
+	extraSpecs := ""
+	if allSpecTypes {
+		extraSpecs = fmt.Sprintf(`
+          analytics_specs = {
+            instance_size   = %[1]q
+            node_count      = 1
+            disk_iops       = %[2]d
+            ebs_volume_type = %[3]q
+          }
+          read_only_specs = {
+            instance_size   = %[1]q
+            node_count      = 1
+            disk_iops       = %[2]d
+            ebs_volume_type = %[3]q
+          }`, instanceSize, diskIops, ebsVolumeType)
+	}
 	return fmt.Sprintf(`
 resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = %[1]q
@@ -3365,30 +3294,61 @@ resource "mongodbatlas_advanced_cluster" "test" {
     {
       region_configs = [
         {
-          region_name   = "US_EAST_1"
+          region_name   = %[3]q
           priority      = 7
           provider_name = "AWS"
           electable_specs = {
-            instance_size   = "M30"
+            instance_size   = %[4]q
             node_count      = 3
-            disk_iops       = %[3]d
-            ebs_volume_type = "PROVISIONED"
-          }
+            disk_iops       = %[5]d
+            ebs_volume_type = %[6]q
+          }%[7]s
         }
       ]
     }
   ]
 }
-`, projectID, clusterName, diskIops) + dataSourcesConfig
+`, projectID, clusterName, region, instanceSize, diskIops, ebsVolumeType, extraSpecs) + dataSourcesConfig
 }
 
-func checkGen2ProvisionedDiskIops(diskIops int) resource.TestCheckFunc {
+// checkGen2 verifies disk_iops and ebs_volume_type in resource and data source. allSpecTypes
+// controls whether analytics_specs and read_only_specs are also checked. checkDiskThroughput
+// additionally verifies disk_throughput is populated and matches the effective specs (only
+// returned for Gen2 STANDARD/gp3).
+func checkGen2(diskIops int, ebsVolumeType string, allSpecTypes, checkDiskThroughput bool) resource.TestCheckFunc {
 	diskIopsStr := strconv.Itoa(diskIops)
-	return resource.ComposeAggregateTestCheckFunc(
-		acc.CheckExistsCluster(resourceName),
-		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.disk_iops", diskIopsStr),
-		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.ebs_volume_type", "PROVISIONED"),
-		resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.disk_iops", diskIopsStr),
-		resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.ebs_volume_type", "PROVISIONED"),
+	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
+	specsAttrs := []string{"electable_specs"}
+	if allSpecTypes {
+		specsAttrs = []string{"electable_specs", "analytics_specs", "read_only_specs"}
+	}
+	for _, specsAttr := range specsAttrs {
+		base := "replication_specs.0.region_configs.0." + specsAttr + "."
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, base+"disk_iops", diskIopsStr),
+			resource.TestCheckResourceAttr(dataSourceName, base+"disk_iops", diskIopsStr),
+			resource.TestCheckResourceAttr(resourceName, base+"ebs_volume_type", ebsVolumeType),
+			resource.TestCheckResourceAttr(dataSourceName, base+"ebs_volume_type", ebsVolumeType),
+		)
+		if checkDiskThroughput {
+			effectiveBase := "replication_specs.0.region_configs.0.effective_" + specsAttr + "."
+			checks = append(checks,
+				resource.TestCheckResourceAttrWith(dataSourceName, base+"disk_throughput", acc.IntGreatThan(0)),
+				resource.TestCheckResourceAttrPair(dataSourceName, base+"disk_throughput", dataSourceName, effectiveBase+"disk_throughput"),
+			)
+		}
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func pluralCheckGen2(clusterName string, diskIops int, ebsVolumeType string) statecheck.StateCheck {
+	return acc.PluralResultCheck(
+		dataSourcePluralName,
+		"name",
+		knownvalue.StringExact(clusterName),
+		map[string]knownvalue.Check{
+			"replication_specs.0.region_configs.0.electable_specs.disk_iops":       knownvalue.Int64Exact(int64(diskIops)),
+			"replication_specs.0.region_configs.0.electable_specs.ebs_volume_type": knownvalue.StringExact(ebsVolumeType),
+		},
 	)
 }
