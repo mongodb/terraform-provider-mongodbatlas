@@ -3148,7 +3148,7 @@ func checkUseAwsTimeBasedSnapshotCopy(value bool) resource.TestCheckFunc {
 	)
 }
 
-func TestAccAdvancedCluster_diskThroughput(t *testing.T) {
+func TestAccAdvancedCluster_gen2StandardDiskIops(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 5)
 	)
@@ -3159,14 +3159,34 @@ func TestAccAdvancedCluster_diskThroughput(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configDiskThroughput(projectID, clusterName),
-				Check:  checkDiskThroughput(),
+				Config: configGen2StandardDiskIops(projectID, clusterName, 3000),
+				Check:  checkGen2StandardDiskIops(3000),
+			},
+			{
+				Config: configGen2StandardDiskIops(projectID, clusterName, 3600),
+				Check:  checkGen2StandardDiskIops(3600),
+			},
+			{
+				Config:      configGen2StandardDiskIops(projectID, clusterName, 3601),
+				ExpectError: regexp.MustCompile("DISK_IOPS"),
+			},
+			{
+				Config:      configGen2StandardDiskIops(projectID, clusterName, 1000),
+				ExpectError: regexp.MustCompile("DISK_IOPS"),
+			},
+			{
+				Config:      configGen2StandardDiskIops(projectID, clusterName, 0),
+				ExpectError: regexp.MustCompile("DISK_IOPS"),
+			},
+			{
+				Config:      configGen2StandardDiskIops(projectID, clusterName, -1),
+				ExpectError: regexp.MustCompile("DISK_IOPS"),
 			},
 		},
 	})
 }
 
-func configDiskThroughput(projectID, clusterName string) string {
+func configGen2StandardDiskIops(projectID, clusterName string, diskIops int) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = %[1]q
@@ -3180,31 +3200,195 @@ resource "mongodbatlas_advanced_cluster" "test" {
           priority      = 7
           provider_name = "AWS"
           electable_specs = {
-            instance_size = "M30_GEN_2"
-            node_count    = 3
+            instance_size   = "M30_GEN_2"
+            node_count      = 3
+            disk_iops       = %[3]d
+            ebs_volume_type = "STANDARD"
           }
           analytics_specs = {
-            instance_size = "M30_GEN_2"
-            node_count    = 1
+            instance_size   = "M30_GEN_2"
+            node_count      = 1
+            disk_iops       = %[3]d
+            ebs_volume_type = "STANDARD"
           }
           read_only_specs = {
-            instance_size = "M30_GEN_2"
-            node_count    = 1
+            instance_size   = "M30_GEN_2"
+            node_count      = 1
+            disk_iops       = %[3]d
+            ebs_volume_type = "STANDARD"
           }
         }
       ]
     }
   ]
 }
-`, projectID, clusterName) + dataSourcesConfig
+`, projectID, clusterName, diskIops) + dataSourcesConfig
 }
 
-func checkDiskThroughput() resource.TestCheckFunc {
+func checkGen2StandardDiskIops(diskIops int) resource.TestCheckFunc {
+	diskIopsStr := strconv.Itoa(diskIops)
 	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
 	for _, specsAttr := range []string{"electable_specs", "analytics_specs", "read_only_specs"} {
-		attr := "replication_specs.0.region_configs.0." + specsAttr + ".disk_throughput"
-		effectiveAttr := "replication_specs.0.region_configs.0.effective_" + specsAttr + ".disk_throughput"
-		checks = append(checks, resource.TestCheckResourceAttrWith(dataSourceName, attr, acc.IntGreatThan(0)), resource.TestCheckResourceAttrPair(dataSourceName, attr, dataSourceName, effectiveAttr))
+		base := "replication_specs.0.region_configs.0." + specsAttr + "."
+		effectiveBase := "replication_specs.0.region_configs.0.effective_" + specsAttr + "."
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, base+"disk_iops", diskIopsStr),
+			resource.TestCheckResourceAttr(dataSourceName, base+"disk_iops", diskIopsStr),
+			resource.TestCheckResourceAttrWith(dataSourceName, base+"disk_throughput", acc.IntGreatThan(0)),
+			resource.TestCheckResourceAttrPair(dataSourceName, base+"disk_throughput", dataSourceName, effectiveBase+"disk_throughput"),
+		)
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func TestAccAdvancedCluster_gen2HighPerformanceDiskIops(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configGen2HighPerformanceDiskIops(projectID, clusterName, 3000),
+				Check:  checkGen2HighPerformanceDiskIops(3000),
+			},
+			{
+				Config: configGen2HighPerformanceDiskIops(projectID, clusterName, 3500),
+				Check:  checkGen2HighPerformanceDiskIops(3500),
+			},
+			{
+				Config:      configGen2HighPerformanceDiskIops(projectID, clusterName, 3601),
+				ExpectError: regexp.MustCompile("DISK_IOPS"),
+			},
+			{
+				Config:      configGen2HighPerformanceDiskIops(projectID, clusterName, 1),
+				ExpectError: regexp.MustCompile("DISK_IOPS"),
+			},
+			{
+				Config:      configGen2HighPerformanceDiskIops(projectID, clusterName, 0),
+				ExpectError: regexp.MustCompile("DISK_IOPS"),
+			},
+			{
+				Config:      configGen2HighPerformanceDiskIops(projectID, clusterName, -1),
+				ExpectError: regexp.MustCompile("DISK_IOPS"),
+			},
+		},
+	})
+}
+
+func configGen2HighPerformanceDiskIops(projectID, clusterName string, diskIops int) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id   = %[1]q
+  name         = %[2]q
+  cluster_type = "REPLICASET"
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          region_name   = "AF_SOUTH_1"
+          priority      = 7
+          provider_name = "AWS"
+          electable_specs = {
+            instance_size   = "M30_GEN_2"
+            node_count      = 3
+            disk_iops       = %[3]d
+            ebs_volume_type = "HIGH_PERFORMANCE"
+          }
+        }
+      ]
+    }
+  ]
+}
+`, projectID, clusterName, diskIops) + dataSourcesConfig
+}
+
+func checkGen2HighPerformanceDiskIops(diskIops int) resource.TestCheckFunc {
+	diskIopsStr := strconv.Itoa(diskIops)
+	return resource.ComposeAggregateTestCheckFunc(
+		acc.CheckExistsCluster(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.disk_iops", diskIopsStr),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.ebs_volume_type", "HIGH_PERFORMANCE"),
+		resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.disk_iops", diskIopsStr),
+		resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.ebs_volume_type", "HIGH_PERFORMANCE"),
+	)
+}
+
+func TestAccAdvancedCluster_gen2ProvisionedDiskIops(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configGen2ProvisionedDiskIops(projectID, clusterName, 3000),
+				Check:  checkGen2ProvisionedDiskIops(3000),
+			},
+			{
+				Config: configGen2ProvisionedDiskIops(projectID, clusterName, 4000),
+				Check:  checkGen2ProvisionedDiskIops(4000),
+			},
+			{
+				Config:      configGen2ProvisionedDiskIops(projectID, clusterName, 1000000),
+				ExpectError: regexp.MustCompile("DISK_IOPS"),
+			},
+			{
+				Config:      configGen2ProvisionedDiskIops(projectID, clusterName, 1),
+				ExpectError: regexp.MustCompile("DISK_IOPS"),
+			},
+			{
+				Config:      configGen2ProvisionedDiskIops(projectID, clusterName, 0),
+				ExpectError: regexp.MustCompile("DISK_IOPS"),
+			},
+			{
+				Config:      configGen2ProvisionedDiskIops(projectID, clusterName, -1),
+				ExpectError: regexp.MustCompile("DISK_IOPS"),
+			},
+		},
+	})
+}
+
+func configGen2ProvisionedDiskIops(projectID, clusterName string, diskIops int) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_advanced_cluster" "test" {
+  project_id   = %[1]q
+  name         = %[2]q
+  cluster_type = "REPLICASET"
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          region_name   = "US_EAST_1"
+          priority      = 7
+          provider_name = "AWS"
+          electable_specs = {
+            instance_size   = "M30"
+            node_count      = 3
+            disk_iops       = %[3]d
+            ebs_volume_type = "PROVISIONED"
+          }
+        }
+      ]
+    }
+  ]
+}
+`, projectID, clusterName, diskIops) + dataSourcesConfig
+}
+
+func checkGen2ProvisionedDiskIops(diskIops int) resource.TestCheckFunc {
+	diskIopsStr := strconv.Itoa(diskIops)
+	return resource.ComposeAggregateTestCheckFunc(
+		acc.CheckExistsCluster(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.disk_iops", diskIopsStr),
+		resource.TestCheckResourceAttr(resourceName, "replication_specs.0.region_configs.0.electable_specs.ebs_volume_type", "PROVISIONED"),
+		resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.disk_iops", diskIopsStr),
+		resource.TestCheckResourceAttr(dataSourceName, "replication_specs.0.region_configs.0.electable_specs.ebs_volume_type", "PROVISIONED"),
+	)
 }
