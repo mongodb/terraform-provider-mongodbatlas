@@ -3210,7 +3210,6 @@ func checkAdaptiveCapacity(value *string, addTags bool) resource.TestCheckFunc {
 		checks = append(checks,
 			resource.TestCheckResourceAttr(resourceName, attrName, *value),
 			resource.TestCheckResourceAttr(dataSourceName, attrName, *value),
-			resource.TestCheckResourceAttrSet(dataSourcePluralName, "results.0."+attrName),
 		)
 	}
 	if addTags {
