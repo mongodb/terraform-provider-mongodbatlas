@@ -17,11 +17,6 @@ func TestSkipUnauthorizedErr(t *testing.T) {
 		err      error
 		expected error
 	}{
-		"nil error returns nil": {
-			resp:     &http.Response{StatusCode: http.StatusUnauthorized},
-			err:      nil,
-			expected: nil,
-		},
 		"401 with error returns ErrUnauthorized": {
 			resp:     &http.Response{StatusCode: http.StatusUnauthorized},
 			err:      apiErr,

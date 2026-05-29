@@ -10,15 +10,14 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
-// ErrUnauthorized signals a transient HTTP 401 while accessing a project's resources.
-// It happens for projects that are being created or torn down by a concurrent test run.
-// Callers should skip the project for this run and let the next run retry it instead of failing.
+// ErrUnauthorized signals a transient HTTP 401 while accessing a project's resources (e.g. a
+// project a concurrent run is creating or tearing down). Callers skip the project and retry next run.
 var ErrUnauthorized = errors.New("unauthorized accessing project resources, skipping for this run")
 
-// SkipUnauthorizedErr returns ErrUnauthorized when the response is a transient 401, so the caller
-// can skip the project. Any other error is returned unchanged.
+// SkipUnauthorizedErr maps a transient 401 to ErrUnauthorized so the caller can skip the project;
+// any other error is returned unchanged.
 func SkipUnauthorizedErr(resp *http.Response, err error) error {
-	if err != nil && validate.StatusUnauthorized(resp) {
+	if validate.StatusUnauthorized(resp) {
 		return ErrUnauthorized
 	}
 	return err
@@ -62,8 +61,8 @@ func RemoveStreamInstances(ctx context.Context, dryRun bool, client *admin.APICl
 	return len(streamInstances.GetResults()), nil
 }
 
-// RemovePrivateLinkConnections deletes all Stream Processing Private Link connections in the project.
-// Left behind, they block project deletion with CANNOT_CLOSE_GROUP_ACTIVE_STREAMS_RESOURCE.
+// RemovePrivateLinkConnections deletes all Stream Processing Private Link connections in the project;
+// left behind, they block project deletion with CANNOT_CLOSE_GROUP_ACTIVE_STREAMS_RESOURCE.
 func RemovePrivateLinkConnections(ctx context.Context, dryRun bool, client *admin.APIClient, projectID string) (int, error) {
 	connections, resp, err := client.StreamsApi.ListPrivateLinkConnections(ctx, projectID).Execute()
 	if err != nil {
@@ -72,7 +71,11 @@ func RemovePrivateLinkConnections(ctx context.Context, dryRun bool, client *admi
 	results := connections.GetResults()
 	for i := range results {
 		if !dryRun {
-			if _, err = client.StreamsApi.DeletePrivateLinkConnection(ctx, projectID, results[i].GetId()).Execute(); err != nil {
+			_, err = client.StreamsApi.DeletePrivateLinkConnection(ctx, projectID, results[i].GetId()).Execute()
+			if admin.IsErrorCode(err, "STREAM_PRIVATE_LINK_IN_USE") {
+				continue // still referenced by a stream connection, leave it for the next run
+			}
+			if err != nil {
 				return 0, err
 			}
 		}

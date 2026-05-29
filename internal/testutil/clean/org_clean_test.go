@@ -320,7 +320,7 @@ func removeNetworkPeering(ctx context.Context, t *testing.T, dryRun bool, client
 func removePrivateEndpointServices(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) (int, error) {
 	t.Helper()
 	totalCount := 0
-	cloudProviders := []string{"AWS", "AZURE", "GCP"}
+	cloudProviders := []string{constant.AWS, constant.AZURE, constant.GCP}
 
 	for _, provider := range cloudProviders {
 		endpointServices, resp, err := client.PrivateEndpointServicesApi.ListPrivateEndpointService(ctx, projectID, provider).Execute()
