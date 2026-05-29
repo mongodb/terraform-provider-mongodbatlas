@@ -38,9 +38,9 @@ func RemoveStreamInstances(ctx context.Context, dryRun bool, client *admin.APICl
 		if !dryRun {
 			_, err = client.StreamsApi.DeleteStreamWorkspace(ctx, projectID, instanceName).Execute()
 			if err != nil && admin.IsErrorCode(err, "STREAM_TENANT_HAS_STREAM_PROCESSORS") {
-				streamProcessors, _, spErr := client.StreamsApi.GetStreamProcessors(ctx, projectID, instanceName).Execute()
+				streamProcessors, spResp, spErr := client.StreamsApi.GetStreamProcessors(ctx, projectID, instanceName).Execute()
 				if spErr != nil {
-					return 0, spErr
+					return 0, SkipUnauthorizedErr(spResp, spErr)
 				}
 
 				for _, processor := range streamProcessors.GetResults() {
