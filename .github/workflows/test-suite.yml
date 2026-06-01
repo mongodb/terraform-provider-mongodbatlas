@@ -142,13 +142,11 @@ jobs:
           CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS: "1"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Persist summary to run page and file
-        if: ${{ steps.summary.outputs.structured_output != '' }}
         env:
           SUMMARY: ${{ fromJSON(steps.summary.outputs.structured_output).summary }}
         run: |
           printf '%s\n' "$SUMMARY" | tee summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload summary artifact
-        if: ${{ steps.summary.outputs.structured_output != '' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: summary
