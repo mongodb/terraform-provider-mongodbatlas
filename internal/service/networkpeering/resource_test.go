@@ -37,7 +37,7 @@ func TestAccNetworkRSNetworkPeering_Azure(t *testing.T) {
 		providerName      = "AZURE"
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAzure(t); acc.CleanAzurePeeringConnections(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
@@ -84,7 +84,7 @@ func TestAccNetworkRSNetworkPeering_AzureFailedStatus(t *testing.T) {
 		providerName      = "AZURE"
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAzure(t); acc.CleanAzurePeeringConnections(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
