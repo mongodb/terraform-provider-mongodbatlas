@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * resource/mongodbatlas_database_user: Removes incorrect warning emitted on every resource creation regardless of authentication type ([#4443](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4443))
 * resource/mongodbatlas_project: Reduces plan verbosity by avoiding `(known after apply)` on `region_usage_restrictions`, which remains stable after project creation ([#4455](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4455))
+* resource/mongodbatlas_stream_connection: Increases default create/update/delete timeout from 20 to 40 minutes ([#4467](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4467))
 
 BUG FIXES:
 
