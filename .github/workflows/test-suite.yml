@@ -63,6 +63,7 @@ concurrency:
    
 jobs:
   variables:
+    permissions: {}
     env:
       schedule_terraform_matrix: '["1.15.x"]'
       schedule_provider_matrix: '[""]' # "" for latest version    
@@ -81,12 +82,16 @@ jobs:
           echo "DAY=$(date +'%a')"
           echo "DAY=$(date +'%a')" >> "$GITHUB_OUTPUT"
   clean-before:
+    permissions: {}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 
   tests:
     needs: [clean-before, variables]
     if: ${{ !cancelled() }}
+    permissions:
+      id-token: write
+      contents: read
     strategy:
       max-parallel: 1
       fail-fast: false
@@ -107,6 +112,7 @@ jobs:
   clean-after:
     needs: tests
     if: ${{ !cancelled() }}
+    permissions: {}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 

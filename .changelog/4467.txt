@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_stream_connection: Increases default create/update/delete timeout from 20 to 40 minutes
+```

@@ -80,6 +80,9 @@ jobs:
           exit 1
   call-acceptance-tests-workflow:
     needs: [build, github-linters, unit-test, generate-doc-check]
+    permissions:
+      id-token: write
+      contents: read
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
