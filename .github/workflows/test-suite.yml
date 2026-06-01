@@ -82,6 +82,7 @@ jobs:
           echo "DAY=$(date +'%a')"
           echo "DAY=$(date +'%a')" >> "$GITHUB_OUTPUT"
   clean-before:
+    if: ${{ github.run_number == 0 }} # TODO: TEMPORARY Always false (run numbers start at 1); skips cleanup. Reverted in the last commit before merging.
     permissions: {}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
@@ -111,7 +112,7 @@ jobs:
 
   clean-after:
     needs: tests
-    if: ${{ !cancelled() }}
+    if: ${{ github.run_number == 0 }} # TODO: TEMPORARY Always false (run numbers start at 1); skips cleanup. Reverted in the last commit before merging. Original: ${{ !cancelled() }}
     permissions: {}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
@@ -154,6 +155,7 @@ jobs:
           name: summary
           path: summary.md
       - name: Post summary to Slack
+        if: ${{ github.run_number == 0 }} # TODO: TEMPORARY Always false (run numbers start at 1); skips Slack post. Reverted in the last commit before merging.
         uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -173,7 +175,7 @@ jobs:
               ]
             }
       - name: Fallback ping if any prior step failed
-        if: ${{ failure() }}
+        if: ${{ github.run_number == 0 }} # TODO: TEMPORARY Always false (run numbers start at 1); skips Slack ping. Reverted in the last commit before merging. Original: ${{ failure() }}
         uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
