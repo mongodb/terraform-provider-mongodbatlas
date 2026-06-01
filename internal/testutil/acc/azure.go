@@ -59,7 +59,8 @@ func cleanPeeringsForVNet(tb testing.TB, client *http.Client, subscriptionID, re
 			Name string `json:"name"`
 		} `json:"value"`
 	}
-	if err := json.NewDecoder(listResp.Body).Decode(&listResult); err != nil || len(listResult.Value) == 0 {
+	require.NoError(tb, json.NewDecoder(listResp.Body).Decode(&listResult), "decode peerings response for vnet %s", vnetName)
+	if len(listResult.Value) == 0 {
 		return
 	}
 	for _, p := range listResult.Value {
