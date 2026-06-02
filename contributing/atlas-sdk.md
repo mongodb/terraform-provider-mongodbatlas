@@ -1,7 +1,9 @@
 # Atlas SDK update
 
-Most of the new features of the provider are using [atlas-sdk](https://github.com/mongodb/atlas-sdk-go)
-SDK is updated automatically, tracking all new Atlas features.
+Most of the new features of the provider are using [atlas-sdk](https://github.com/mongodb/atlas-sdk-go).
+The SDK is updated automatically, tracking new Atlas features.
+
+For RC-only APIs before a tagged release, see [Atlas SDK preview (dev-latest)](atlas-sdk-preview.md).
 
 ## How to update Atlas SDK 
 
