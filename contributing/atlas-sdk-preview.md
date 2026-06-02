@@ -2,8 +2,8 @@
 
 The provider ships two Atlas Admin API clients:
 
-- **Versioned SDK** (`go.mongodb.org/atlas-sdk/v…/admin`): default for production resources. Access via `MongoDBClient.AtlasV2`.
-- **Preview SDK** (`github.com/mongodb/atlas-sdk-go/admin`): tracks the latest [release candidate](https://github.com/mongodb/openapi) OpenAPI on branch `dev-latest`. Access via `MongoDBClient.AtlasPreview`.
+- **Versioned SDK** (`go.mongodb.org/atlas-sdk/v<YYYYMMDD>/admin`): default for production resources. Access via `MongoDBClient.AtlasV2`.
+- **Preview SDK** (`github.com/mongodb/atlas-sdk-go/admin`): generated from [release candidate](https://github.com/mongodb/openapi) OpenAPI on `mongodb/openapi` branch `dev`, published on the atlas-sdk-go branch `dev-latest`. Access via `MongoDBClient.AtlasPreview`.
 
 Use the preview client only when an endpoint exists in the RC API but is not yet available in the pinned versioned module. Move calls to `AtlasV2` after the API ships in a tagged SDK release.
 
@@ -45,7 +45,7 @@ make fix
 make update-atlas-sdk
 ```
 
-`scripts/update-sdk.sh` rewrites the latest `go.mongodb.org/atlas-sdk/v…` module, then runs `go get github.com/mongodb/atlas-sdk-go@dev-latest`.
+`scripts/update-sdk.sh` rewrites the latest `go.mongodb.org/atlas-sdk/v<YYYYMMDD>` module, then runs `go get github.com/mongodb/atlas-sdk-go@dev-latest`.
 
 > NOTE: `make update-atlas-sdk` can change imports across hundreds of files. Run it on a clean `master` checkout with no uncommitted changes.
 
@@ -61,12 +61,12 @@ Embed `config.RSCommon` and call APIs on `r.Client.AtlasPreview`:
 import adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 
 func (r *RS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	conn := r.Client.AtlasPreview
+	conn := r.Client.AtlasPreview // github.com/mongodb/atlas-sdk-go/admin
 	// conn.SomeApi.SomeMethod(ctx).Execute()
 }
 ```
 
-Stable resources continue to use `r.Client.AtlasV2` with `go.mongodb.org/atlas-sdk/v…/admin`.
+Stable resources continue to use `r.Client.AtlasV2` with `go.mongodb.org/atlas-sdk/v<YYYYMMDD>/admin`.
 
 ### SDKv2 resources
 
@@ -88,6 +88,6 @@ conn := acc.ConnPreview()
 
 ## When to use which client
 
-- **Versioned SDK**: Import `go.mongodb.org/atlas-sdk/v…/admin`. Use `AtlasV2` by default; it matches released SDK tags and provider dependencies.
+- **Versioned SDK**: Import `go.mongodb.org/atlas-sdk/v<YYYYMMDD>/admin`. Use `AtlasV2` by default; it matches released SDK tags and provider dependencies.
 - **Preview SDK**: Import `github.com/mongodb/atlas-sdk-go/admin`. Use `AtlasPreview` for RC-only endpoints until the next versioned SDK release.
 - **Legacy pins**: `AtlasV220240530` and `AtlasV220241113` remain for specific backward-compatibility cases documented in `internal/config/client.go`.
