@@ -96,6 +96,7 @@ func TestAccOrganization3_rotationLifecycle(t *testing.T) {
 					testCheckResourceAttr(addr, "client_secret_rotation.old_secret.secret_id", &secondCurrentSecretID),
 					resource.TestCheckResourceAttrSet(addr, "client_secret_rotation.current_secret.secret_id"),
 				),
+				ExpectNonEmptyPlan: true, // Will always refresh since rotate_before_expiry_hours == expires_after_hours
 			},
 		},
 	})
