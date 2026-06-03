@@ -107,9 +107,9 @@ func resourceName(name string) string {
 }
 
 type rotationBlockConfig struct {
-	expiresAfterHours       int64
 	rotateBeforeExpiryHours *int64
 	secretVersion           *int64
+	expiresAfterHours       int64
 }
 
 func configRotationBlock(name, orgOwnerID string, cfg rotationBlockConfig) string {

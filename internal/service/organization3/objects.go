@@ -84,6 +84,48 @@ func SecretMetadataObjectTypeForTest() types.ObjectType {
 	return secretMetadataObjectType
 }
 
+// markPlanForRotation shapes the Terraform plan for an upcoming rotation: known secret_version and old_secret,
+// unknown current_secret and client_secret so apply creates the next Atlas secret.
+func markPlanForRotation(
+	ctx context.Context,
+	plan *TFModel,
+	planRotation, stateRotation *TFClientSecretRotationModel,
+	targetVersion int64,
+) diag.Diagnostics {
+	var diags diag.Diagnostics
+	planRotation.SecretVersion = types.Int64Value(targetVersion)
+	promotedOld, promoteDiags := secretMetadataForRotationPromotion(ctx, planRotation, stateRotation)
+	diags.Append(promoteDiags...)
+	if diags.HasError() {
+		return diags
+	}
+	oldSecretObject, oldDiags := secretMetadataToObject(ctx, &promotedOld)
+	diags.Append(oldDiags...)
+	if diags.HasError() {
+		return diags
+	}
+	planRotation.OldSecret = oldSecretObject
+	planRotation.CurrentSecret = types.ObjectUnknown(secretMetadataObjectType.AttrTypes)
+	plan.ClientSecret = types.StringUnknown()
+	rotationObject, objectDiags := rotationToObject(ctx, planRotation)
+	diags.Append(objectDiags...)
+	if diags.HasError() {
+		return diags
+	}
+	plan.ClientSecretRotation = rotationObject
+	return diags
+}
+
+// MarkPlanForRotationForTest exposes markPlanForRotation for unit tests.
+func MarkPlanForRotationForTest(
+	ctx context.Context,
+	plan *TFModel,
+	planRotation, stateRotation *TFClientSecretRotationModel,
+	targetVersion int64,
+) diag.Diagnostics {
+	return markPlanForRotation(ctx, plan, planRotation, stateRotation, targetVersion)
+}
+
 func secretMetadataForRotationPromotion(
 	ctx context.Context,
 	planRotation, stateRotation *TFClientSecretRotationModel,

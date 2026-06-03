@@ -40,6 +40,8 @@ func (r *organization3RS) Schema(ctx context.Context, req resource.SchemaRequest
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
+// ModifyPlan schedules client secret rotation before apply: when renewal is due or secret_version is forced higher,
+// it bumps secret_version, promotes current metadata to old_secret, and marks new secret fields unknown until Update.
 func (r *organization3RS) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
 		return
@@ -69,55 +71,32 @@ func (r *organization3RS) ModifyPlan(ctx context.Context, req resource.ModifyPla
 		stateVersion = stateRotation.SecretVersion.ValueInt64()
 	}
 
-	targetVersion, shouldRotate := rotationTargetVersion(ctx, &planRotation, &stateRotation, stateVersion, time.Now(), &resp.Diagnostics)
+	decision := rotationPlanDecision(ctx, &planRotation, &stateRotation, stateVersion, time.Now(), &resp.Diagnostics)
+	if resp.Diagnostics.HasError() || !decision.ShouldRotate {
+		return
+	}
+	resp.Diagnostics.Append(markPlanForRotation(ctx, &plan, &planRotation, &stateRotation, decision.TargetVersion)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if !shouldRotate {
-		return
-	}
-
-	planRotation.SecretVersion = types.Int64Value(targetVersion)
-	promotedOld, promoteDiags := secretMetadataForRotationPromotion(ctx, &planRotation, &stateRotation)
-	resp.Diagnostics.Append(promoteDiags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	oldSecretObject, oldDiags := secretMetadataToObject(ctx, &promotedOld)
-	resp.Diagnostics.Append(oldDiags...)
-	planRotation.OldSecret = oldSecretObject
-	planRotation.CurrentSecret = types.ObjectUnknown(secretMetadataObjectType.AttrTypes)
-	plan.ClientSecret = types.StringUnknown()
-
-	rotationObject, objectDiags := rotationToObject(ctx, &planRotation)
-	resp.Diagnostics.Append(objectDiags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	plan.ClientSecretRotation = rotationObject
 	resp.Diagnostics.Append(resp.Plan.Set(ctx, plan)...)
 }
 
+// resolveRotationPlanVersion picks the secret_version Update should apply: stateVersion when not rotating,
+// otherwise the target from rotationPlanDecision (forced config version or scheduled stateVersion+1).
 func resolveRotationPlanVersion(
 	ctx context.Context,
-	plan *TFModel,
+	_ *TFModel,
 	planRotation, stateRotation *TFClientSecretRotationModel,
 	stateVersion int64,
 	diags *diag.Diagnostics,
 ) int64 {
-	planVersion := stateVersion
-	if !planRotation.SecretVersion.IsNull() && !planRotation.SecretVersion.IsUnknown() {
-		planVersion = planRotation.SecretVersion.ValueInt64()
-	}
-	if planVersion > stateVersion {
-		return planVersion
-	}
-	targetVersion, shouldRotate := rotationTargetVersion(ctx, planRotation, stateRotation, stateVersion, time.Now(), diags)
+	decision := rotationPlanDecision(ctx, planRotation, stateRotation, stateVersion, time.Now(), diags)
 	if diags.HasError() {
 		return stateVersion
 	}
-	if shouldRotate {
-		return targetVersion
+	if decision.ShouldRotate {
+		return decision.TargetVersion
 	}
 	return stateVersion
 }
@@ -356,8 +335,6 @@ func (r *organization3RS) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	fillRotationSecretsFromStateIfUnknown(&planRotation, &stateRotation)
-
 	stateVersion := int64(0)
 	if !stateRotation.SecretVersion.IsNull() && !stateRotation.SecretVersion.IsUnknown() {
 		stateVersion = stateRotation.SecretVersion.ValueInt64()
@@ -385,6 +362,7 @@ func (r *organization3RS) Update(ctx context.Context, req resource.UpdateRequest
 		}
 	}
 
+	// ModifyPlan may leave current_secret/old_secret unknown; copy from state so refresh and state write work when apply skips rotation.
 	fillRotationSecretsFromStateIfUnknown(&planRotation, &stateRotation)
 	resp.Diagnostics.Append(r.finalizeRotationState(ctx, conn, &state, &planRotation)...)
 	if resp.Diagnostics.HasError() {

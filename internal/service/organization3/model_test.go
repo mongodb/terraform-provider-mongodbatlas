@@ -42,65 +42,191 @@ func TestEffectiveRotateBeforeExpiryHours(t *testing.T) {
 	assert.Equal(t, int64(100), organization3.EffectiveRotateBeforeExpiryHoursForTest(720, types.Int64Value(100)))
 }
 
-func TestRotationTargetVersion_usesPlanRotateBeforePolicy(t *testing.T) {
+func TestRotationPlanDecision(t *testing.T) {
 	t.Parallel()
-	ctx := t.Context()
 	now := time.Date(2026, 6, 3, 10, 0, 0, 0, time.UTC)
 	createdAt := now.Add(-2 * time.Hour)
-	expiresAt := createdAt.Add(8 * time.Hour)
+	shortExpiresAt := createdAt.Add(8 * time.Hour)
+	longExpiresAt := now.Add(720 * time.Hour)
 
-	stateVals := rotationValues{
-		expiresAfterHours: 8,
-		rotateBefore:      4,
-		secretVersion:     1,
-		currentSecret: &secretMetadataValues{
+	currentWithExpiry := func(expiresAt time.Time) *secretMetadataValues {
+		return &secretMetadataValues{
 			secretID:  "sid-current",
 			createdAt: createdAt.Format(time.RFC3339),
 			expiresAt: expiresAt.Format(time.RFC3339),
+		}
+	}
+
+	tests := []struct { //nolint:govet // table rows prioritize readability over field alignment
+		name                  string
+		planRotation          *rotationValues
+		stateRotation         *rotationValues
+		now                   time.Time
+		stateVersion          int64
+		wantTarget            int64
+		wantRotate            bool
+		wantError             bool
+		unknownCurrentInState bool
+	}{
+		{
+			name: "tighten rotate_before schedules rotation",
+			planRotation: &rotationValues{
+				expiresAfterHours: 8,
+				rotateBefore:      8,
+				secretVersion:     1,
+				currentSecret:     currentWithExpiry(shortExpiresAt),
+			},
+			stateRotation: &rotationValues{
+				expiresAfterHours: 8,
+				rotateBefore:      4,
+				secretVersion:     1,
+				currentSecret:     currentWithExpiry(shortExpiresAt),
+			},
+			stateVersion: 1,
+			now:          now,
+			wantRotate:   true,
+			wantTarget:   2,
+		},
+		{
+			name: "not due inside renew window",
+			planRotation: &rotationValues{
+				expiresAfterHours: 720,
+				rotateBefore:      360,
+				secretVersion:     1,
+				currentSecret:     currentWithExpiry(longExpiresAt),
+			},
+			stateRotation: &rotationValues{
+				expiresAfterHours: 720,
+				rotateBefore:      360,
+				secretVersion:     1,
+				currentSecret:     currentWithExpiry(longExpiresAt),
+			},
+			stateVersion: 1,
+			now:          now,
+			wantRotate:   false,
+			wantTarget:   0,
+		},
+		{
+			name: "due when renew window in past",
+			planRotation: &rotationValues{
+				expiresAfterHours: 720,
+				rotateBefore:      87600,
+				secretVersion:     1,
+				currentSecret: &secretMetadataValues{
+					secretID:  "sid-current",
+					createdAt: now.Add(-48 * time.Hour).Format(time.RFC3339),
+					expiresAt: now.Add(24 * time.Hour).Format(time.RFC3339),
+				},
+			},
+			stateRotation: &rotationValues{
+				expiresAfterHours: 720,
+				rotateBefore:      87600,
+				secretVersion:     1,
+				currentSecret: &secretMetadataValues{
+					secretID:  "sid-current",
+					createdAt: now.Add(-48 * time.Hour).Format(time.RFC3339),
+					expiresAt: now.Add(24 * time.Hour).Format(time.RFC3339),
+				},
+			},
+			stateVersion: 1,
+			now:          now,
+			wantRotate:   true,
+			wantTarget:   2,
+		},
+		{
+			name: "forced secret_version",
+			planRotation: &rotationValues{
+				expiresAfterHours: 720,
+				rotateBefore:      360,
+				secretVersion:     2,
+				currentSecret:     currentWithExpiry(longExpiresAt),
+			},
+			stateRotation: &rotationValues{
+				expiresAfterHours: 720,
+				rotateBefore:      360,
+				secretVersion:     1,
+				currentSecret:     currentWithExpiry(longExpiresAt),
+			},
+			stateVersion: 1,
+			now:          now,
+			wantRotate:   true,
+			wantTarget:   2,
+		},
+		{
+			name: "missing state expires_at errors",
+			planRotation: &rotationValues{
+				expiresAfterHours: 8,
+				rotateBefore:      9,
+				secretVersion:     1,
+				currentSecret:     currentWithExpiry(shortExpiresAt),
+			},
+			stateRotation: &rotationValues{
+				expiresAfterHours: 8,
+				rotateBefore:      4,
+				secretVersion:     1,
+				currentSecret:     currentWithExpiry(shortExpiresAt),
+			},
+			stateVersion:          1,
+			now:                   now,
+			wantError:             true,
+			unknownCurrentInState: true,
 		},
 	}
-	planVals := stateVals
-	planVals.rotateBefore = 8
-	plan, state := buildPlanAndState(t, &planVals, &stateVals)
 
-	var planModel, stateModel organization3.TFModel
-	require.False(t, plan.Get(ctx, &planModel).HasError())
-	require.False(t, state.Get(ctx, &stateModel).HasError())
-	planRotation, _ := organization3.RotationFromObject(ctx, planModel.ClientSecretRotation)
-	stateRotation, _ := organization3.RotationFromObject(ctx, stateModel.ClientSecretRotation)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := t.Context()
+			plan, state := buildPlanAndState(t, tc.planRotation, tc.stateRotation)
 
-	var diags diag.Diagnostics
-	target, shouldRotate := organization3.RotationTargetVersionForTest(ctx, &planRotation, &stateRotation, 1, now, &diags)
-	assert.False(t, diags.HasError())
-	assert.True(t, shouldRotate)
-	assert.Equal(t, int64(2), target)
+			var planModel, stateModel organization3.TFModel
+			require.False(t, plan.Get(ctx, &planModel).HasError())
+			require.False(t, state.Get(ctx, &stateModel).HasError())
+			planRotation, _ := organization3.RotationFromObject(ctx, planModel.ClientSecretRotation)
+			stateRotation, _ := organization3.RotationFromObject(ctx, stateModel.ClientSecretRotation)
 
-	diags = nil
-	_, shouldRotateStateOnly := organization3.RotationTargetVersionForTest(ctx, &stateRotation, &stateRotation, 1, now, &diags)
-	assert.False(t, diags.HasError())
-	assert.False(t, shouldRotateStateOnly)
+			if tc.unknownCurrentInState {
+				unknown := types.ObjectUnknown(organization3.SecretMetadataObjectTypeForTest().AttrTypes)
+				planRotation.CurrentSecret = unknown
+				stateRotation.CurrentSecret = unknown
+			}
+
+			var diags diag.Diagnostics
+			target, shouldRotate := organization3.RotationPlanDecisionForTest(
+				ctx, &planRotation, &stateRotation, tc.stateVersion, tc.now, &diags,
+			)
+			if tc.wantError {
+				assert.True(t, diags.HasError())
+				assert.False(t, shouldRotate)
+				return
+			}
+			assert.False(t, diags.HasError())
+			assert.Equal(t, tc.wantRotate, shouldRotate)
+			if tc.wantRotate {
+				assert.Equal(t, tc.wantTarget, target)
+			}
+		})
+	}
 }
 
-func TestRotationTargetVersion_missingStateExpiresAtErrors(t *testing.T) {
+func TestMarkPlanForRotation_missingSecretIDErrors(t *testing.T) {
 	t.Parallel()
 	ctx := t.Context()
-	planRotation := &organization3.TFClientSecretRotationModel{
-		ExpiresAfterHours:       types.Int64Value(8),
-		RotateBeforeExpiryHours: types.Int64Value(9),
-		CurrentSecret:           types.ObjectUnknown(organization3.SecretMetadataObjectTypeForTest().AttrTypes),
+	emptyCurrent := &secretMetadataValues{secretID: "", createdAt: "", expiresAt: ""}
+	rotation := rotationValues{
+		expiresAfterHours: 8,
+		rotateBefore:      4,
+		secretVersion:     1,
+		currentSecret:     emptyCurrent,
 	}
-	stateRotation := &organization3.TFClientSecretRotationModel{
-		ExpiresAfterHours:       types.Int64Value(8),
-		RotateBeforeExpiryHours: types.Int64Value(4),
-		SecretVersion:           types.Int64Value(1),
-		CurrentSecret:           types.ObjectUnknown(organization3.SecretMetadataObjectTypeForTest().AttrTypes),
-	}
+	plan, _ := buildPlanAndState(t, &rotation, &rotation)
+	var planModel organization3.TFModel
+	require.False(t, plan.Get(ctx, &planModel).HasError())
+	planRotation, _ := organization3.RotationFromObject(ctx, planModel.ClientSecretRotation)
+	stateRotation := planRotation
 
-	var diags diag.Diagnostics
-	target, shouldRotate := organization3.RotationTargetVersionForTest(ctx, planRotation, stateRotation, 1, time.Now(), &diags)
+	diags := organization3.MarkPlanForRotationForTest(ctx, &planModel, &planRotation, &stateRotation, 2)
 	assert.True(t, diags.HasError())
-	assert.False(t, shouldRotate)
-	assert.Equal(t, int64(0), target)
 }
 
 func TestModifyPlan_tightenRotateBeforeSchedulesRotation(t *testing.T) {

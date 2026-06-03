@@ -57,6 +57,25 @@ func shouldDeleteOldSecret(stateVersion int64, oldSecret *TFSecretMetadataModel)
 	return stateVersion >= 2 && !oldSecret.SecretID.IsNull() && oldSecret.SecretID.ValueString() != ""
 }
 
+// rotationDecision is whether plan or apply should rotate and the target secret_version.
+// Forced when plan secret_version exceeds state; otherwise scheduled from state current_secret.expires_at and RenewalDue.
+type rotationDecision struct {
+	TargetVersion int64
+	ShouldRotate  bool
+}
+
+// rotationPlanDecision evaluates rotationDecision for ModifyPlan and Update version resolution.
+func rotationPlanDecision(
+	ctx context.Context,
+	planRotation, stateRotation *TFClientSecretRotationModel,
+	stateVersion int64,
+	now time.Time,
+	diags *diag.Diagnostics,
+) rotationDecision {
+	targetVersion, shouldRotate := rotationTargetVersion(ctx, planRotation, stateRotation, stateVersion, now, diags)
+	return rotationDecision{TargetVersion: targetVersion, ShouldRotate: shouldRotate}
+}
+
 func rotationTargetVersion(
 	ctx context.Context,
 	planRotation, stateRotation *TFClientSecretRotationModel,
@@ -130,13 +149,14 @@ func ShouldDeleteOldSecretForTest(stateVersion int64, oldSecret *TFSecretMetadat
 	return shouldDeleteOldSecret(stateVersion, oldSecret)
 }
 
-// RotationTargetVersionForTest exposes rotationTargetVersion for unit tests.
-func RotationTargetVersionForTest(
+// RotationPlanDecisionForTest exposes rotationPlanDecision for unit tests.
+func RotationPlanDecisionForTest(
 	ctx context.Context,
 	planRotation, stateRotation *TFClientSecretRotationModel,
 	stateVersion int64,
 	now time.Time,
 	diags *diag.Diagnostics,
 ) (int64, bool) {
-	return rotationTargetVersion(ctx, planRotation, stateRotation, stateVersion, now, diags)
+	d := rotationPlanDecision(ctx, planRotation, stateRotation, stateVersion, now, diags)
+	return d.TargetVersion, d.ShouldRotate
 }
