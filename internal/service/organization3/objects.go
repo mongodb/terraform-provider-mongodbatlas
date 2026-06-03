@@ -11,10 +11,9 @@ import (
 )
 
 var secretMetadataObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"secret_id":    types.StringType,
-	"created_at":   types.StringType,
-	"expires_at":   types.StringType,
-	"last_used_at": types.StringType,
+	"secret_id":  types.StringType,
+	"created_at": types.StringType,
+	"expires_at": types.StringType,
 }}
 
 var rotationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -39,7 +38,7 @@ func rotationToObject(ctx context.Context, rotation *TFClientSecretRotationModel
 }
 
 func SecretMetadataFromObject(ctx context.Context, object types.Object) (TFSecretMetadataModel, diag.Diagnostics) {
-	if object.IsNull() {
+	if object.IsNull() || object.IsUnknown() {
 		return TFSecretMetadataModel{}, nil
 	}
 	var metadata TFSecretMetadataModel
@@ -56,17 +55,11 @@ func secretMetadataNullObject(ctx context.Context) (types.Object, diag.Diagnosti
 }
 
 func secretMetadataFromAPI(secret *admin.ServiceAccountSecret) TFSecretMetadataModel {
-	model := TFSecretMetadataModel{
+	return TFSecretMetadataModel{
 		SecretID:  types.StringValue(secret.GetId()),
 		CreatedAt: types.StringValue(formatRFC3339(secret.GetCreatedAt())),
 		ExpiresAt: types.StringValue(formatRFC3339(secret.GetExpiresAt())),
 	}
-	if secret.HasLastUsedAt() {
-		model.LastUsedAt = types.StringValue(formatRFC3339(secret.GetLastUsedAt()))
-	} else {
-		model.LastUsedAt = types.StringNull()
-	}
-	return model
 }
 
 func mergeSecretMetadataFromAPI(stateMeta *TFSecretMetadataModel, apiSecret *admin.ServiceAccountSecret) TFSecretMetadataModel {
@@ -84,6 +77,68 @@ func findSecretByID(secrets []admin.ServiceAccountSecret, secretID string) (*adm
 		}
 	}
 	return nil, false
+}
+
+// SecretMetadataObjectTypeForTest exposes secretMetadataObjectType for unit tests.
+func SecretMetadataObjectTypeForTest() types.ObjectType {
+	return secretMetadataObjectType
+}
+
+func secretMetadataForRotationPromotion(
+	ctx context.Context,
+	planRotation, stateRotation *TFClientSecretRotationModel,
+) (TFSecretMetadataModel, diag.Diagnostics) {
+	for _, object := range []types.Object{stateRotation.CurrentSecret, planRotation.CurrentSecret} {
+		meta, diags := SecretMetadataFromObject(ctx, object)
+		if diags.HasError() {
+			return TFSecretMetadataModel{}, diags
+		}
+		if !meta.SecretID.IsNull() && meta.SecretID.ValueString() != "" {
+			return meta, nil
+		}
+	}
+	var diags diag.Diagnostics
+	diags.AddError(
+		"Missing current_secret metadata",
+		"current_secret.secret_id must be present in state to promote to old_secret during rotation; restore current_secret and old_secret in Terraform state if a prior apply left them null",
+	)
+	return TFSecretMetadataModel{}, diags
+}
+
+func validateRotationStateForWrite(ctx context.Context, rotationObject types.Object) diag.Diagnostics {
+	if rotationObject.IsNull() || rotationObject.IsUnknown() {
+		return nil
+	}
+	rotation, diags := RotationFromObject(ctx, rotationObject)
+	if diags.HasError() {
+		return diags
+	}
+	secretVersion := int64(0)
+	if !rotation.SecretVersion.IsNull() && !rotation.SecretVersion.IsUnknown() {
+		secretVersion = rotation.SecretVersion.ValueInt64()
+	}
+	if secretVersion < 1 {
+		return nil
+	}
+	currentMeta, currentDiags := SecretMetadataFromObject(ctx, rotation.CurrentSecret)
+	diags.Append(currentDiags...)
+	if currentMeta.SecretID.IsNull() || currentMeta.SecretID.ValueString() == "" {
+		diags.AddError(
+			"Invalid rotation state",
+			"Refusing to write state with an empty current_secret; restore current_secret metadata in Terraform state before applying again",
+		)
+	}
+	if secretVersion >= 2 {
+		oldMeta, oldDiags := SecretMetadataFromObject(ctx, rotation.OldSecret)
+		diags.Append(oldDiags...)
+		if oldMeta.SecretID.IsNull() || oldMeta.SecretID.ValueString() == "" {
+			diags.AddError(
+				"Invalid rotation state",
+				"Refusing to write state with an empty old_secret at secret_version >= 2; restore old_secret metadata in Terraform state before applying again",
+			)
+		}
+	}
+	return diags
 }
 
 func rotationWithDefaults(rotation *TFClientSecretRotationModel, expiresAfterHours int64) {

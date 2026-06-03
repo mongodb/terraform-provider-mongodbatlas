@@ -83,7 +83,7 @@ Real-Atlas Terraform Plugin Framework resource that demonstrates **ModifyPlan**-
 ## Schema vs organization2
 
 - **Scheduling**: `rotate_before_expiry_hours` (default `expires_after_hours / 2`) and Atlas `current_secret.expires_at`; no `interval`, `next_renewal`, or provider-local `expires_at`.
-- **Secret metadata**: Nested `current_secret` and `old_secret` objects (`secret_id`, `created_at`, `expires_at`, `last_used_at`) refreshed on read.
+- **Secret metadata**: Nested `current_secret` and `old_secret` objects (`secret_id`, `created_at`, `expires_at`) refreshed on read. `last_used_at` is omitted to avoid plan noise when the SA is used on refresh.
 - **Practitioner inputs**: `expires_after_hours` and `rotate_before_expiry_hours` (no `secret_` prefix inside the rotation block). Maps to Atlas `secret_expires_after_hours` on create and rotation POST.
 - **Deletion policy**: No delete on v1→2; from v2→3 onward DELETE `old_secret` before POST so at most two active secrets remain.
 

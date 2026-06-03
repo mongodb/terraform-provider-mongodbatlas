@@ -41,6 +41,95 @@ func TestEffectiveRotateBeforeExpiryHours(t *testing.T) {
 	assert.Equal(t, int64(100), organization3.EffectiveRotateBeforeExpiryHoursForTest(720, types.Int64Value(100)))
 }
 
+func TestRotationTargetVersion_usesPlanRotateBeforePolicy(t *testing.T) {
+	t.Parallel()
+	ctx := t.Context()
+	now := time.Date(2026, 6, 3, 10, 0, 0, 0, time.UTC)
+	createdAt := now.Add(-2 * time.Hour)
+	expiresAt := createdAt.Add(8 * time.Hour)
+
+	stateVals := rotationValues{
+		expiresAfterHours: 8,
+		rotateBefore:      4,
+		secretVersion:     1,
+		currentSecret: &secretMetadataValues{
+			secretID:  "sid-current",
+			createdAt: createdAt.Format(time.RFC3339),
+			expiresAt: expiresAt.Format(time.RFC3339),
+		},
+	}
+	planVals := stateVals
+	planVals.rotateBefore = 8
+	plan, state := buildPlanAndState(t, &planVals, &stateVals)
+
+	var planModel, stateModel organization3.TFModel
+	require.False(t, plan.Get(ctx, &planModel).HasError())
+	require.False(t, state.Get(ctx, &stateModel).HasError())
+	planRotation, _ := organization3.RotationFromObject(ctx, planModel.ClientSecretRotation)
+	stateRotation, _ := organization3.RotationFromObject(ctx, stateModel.ClientSecretRotation)
+
+	target, shouldRotate := organization3.RotationTargetVersionForTest(ctx, &planRotation, &stateRotation, 1, now)
+	assert.True(t, shouldRotate)
+	assert.Equal(t, int64(2), target)
+
+	_, shouldRotateStateOnly := organization3.RotationTargetVersionForTest(ctx, &stateRotation, &stateRotation, 1, now)
+	assert.False(t, shouldRotateStateOnly)
+}
+
+func TestRotationTargetVersion_planUnknownCurrentSchedulesRotation(t *testing.T) {
+	t.Parallel()
+	ctx := t.Context()
+	planRotation := &organization3.TFClientSecretRotationModel{
+		ExpiresAfterHours:       types.Int64Value(8),
+		RotateBeforeExpiryHours: types.Int64Value(9),
+		CurrentSecret:           types.ObjectUnknown(organization3.SecretMetadataObjectTypeForTest().AttrTypes),
+	}
+	stateRotation := &organization3.TFClientSecretRotationModel{
+		ExpiresAfterHours:       types.Int64Value(8),
+		RotateBeforeExpiryHours: types.Int64Value(4),
+		SecretVersion:           types.Int64Value(1),
+		CurrentSecret:           types.ObjectUnknown(organization3.SecretMetadataObjectTypeForTest().AttrTypes),
+	}
+
+	target, shouldRotate := organization3.RotationTargetVersionForTest(ctx, planRotation, stateRotation, 1, time.Now())
+	assert.True(t, shouldRotate)
+	assert.Equal(t, int64(2), target)
+}
+
+func TestModifyPlan_tightenRotateBeforeSchedulesRotation(t *testing.T) {
+	now := time.Now().UTC()
+	createdAt := now.Add(-2 * time.Hour)
+	expiresAt := createdAt.Add(8 * time.Hour)
+
+	stateRotation := rotationValues{
+		expiresAfterHours: 8,
+		rotateBefore:      4,
+		secretVersion:     1,
+		currentSecret: &secretMetadataValues{
+			secretID:  "sid-current",
+			createdAt: createdAt.Format(time.RFC3339),
+			expiresAt: expiresAt.Format(time.RFC3339),
+		},
+	}
+	planRotation := stateRotation
+	planRotation.rotateBefore = 8
+	plan, state := buildPlanAndState(t, &planRotation, &stateRotation)
+	req := resource.ModifyPlanRequest{Plan: plan, State: state}
+	resp := &resource.ModifyPlanResponse{Plan: plan}
+
+	modifyPlan(t, req, resp)
+	require.False(t, resp.Diagnostics.HasError())
+
+	var planModel organization3.TFModel
+	resp.Diagnostics.Append(resp.Plan.Get(t.Context(), &planModel)...)
+	require.False(t, resp.Diagnostics.HasError())
+
+	rotationModel, diags := organization3.RotationFromObject(t.Context(), planModel.ClientSecretRotation)
+	require.False(t, diags.HasError())
+	assert.Equal(t, int64(2), rotationModel.SecretVersion.ValueInt64())
+	assert.True(t, rotationModel.CurrentSecret.IsUnknown())
+}
+
 func TestShouldDeleteOldSecret(t *testing.T) {
 	empty := &organization3.TFSecretMetadataModel{SecretID: types.StringNull()}
 	withID := &organization3.TFSecretMetadataModel{SecretID: types.StringValue("sid-old")}
@@ -151,10 +240,9 @@ func TestModifyPlan_forceSecretVersion(t *testing.T) {
 }
 
 type secretMetadataValues struct {
-	lastUsedAt *string
-	secretID   string
-	createdAt  string
-	expiresAt  string
+	secretID  string
+	createdAt string
+	expiresAt string
 }
 
 type rotationValues struct {
@@ -203,23 +291,17 @@ func rotationObjectTerraformType() tftypes.Type {
 
 func secretMetadataTerraformType() tftypes.Type {
 	return tftypes.Object{AttributeTypes: map[string]tftypes.Type{
-		"secret_id":    tftypes.String,
-		"created_at":   tftypes.String,
-		"expires_at":   tftypes.String,
-		"last_used_at": tftypes.String,
+		"secret_id":  tftypes.String,
+		"created_at": tftypes.String,
+		"expires_at": tftypes.String,
 	}}
 }
 
 func secretMetadataTerraformMap(meta secretMetadataValues) map[string]tftypes.Value {
-	lastUsed := any(nil)
-	if meta.lastUsedAt != nil {
-		lastUsed = *meta.lastUsedAt
-	}
 	return map[string]tftypes.Value{
-		"secret_id":    tftypes.NewValue(tftypes.String, meta.secretID),
-		"created_at":   tftypes.NewValue(tftypes.String, meta.createdAt),
-		"expires_at":   tftypes.NewValue(tftypes.String, meta.expiresAt),
-		"last_used_at": tftypes.NewValue(tftypes.String, lastUsed),
+		"secret_id":  tftypes.NewValue(tftypes.String, meta.secretID),
+		"created_at": tftypes.NewValue(tftypes.String, meta.createdAt),
+		"expires_at": tftypes.NewValue(tftypes.String, meta.expiresAt),
 	}
 }
 

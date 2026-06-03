@@ -31,10 +31,9 @@ type TFClientSecretRotationModel struct {
 }
 
 type TFSecretMetadataModel struct {
-	SecretID   types.String `tfsdk:"secret_id"`
-	CreatedAt  types.String `tfsdk:"created_at"`
-	ExpiresAt  types.String `tfsdk:"expires_at"`
-	LastUsedAt types.String `tfsdk:"last_used_at"`
+	SecretID  types.String `tfsdk:"secret_id"`
+	CreatedAt types.String `tfsdk:"created_at"`
+	ExpiresAt types.String `tfsdk:"expires_at"`
 }
 
 func effectiveRotateBeforeExpiryHours(expiresAfterHours int64, configured types.Int64) int64 {
@@ -71,18 +70,38 @@ func rotationTargetVersion(
 
 	currentSecret, diags := SecretMetadataFromObject(ctx, stateRotation.CurrentSecret)
 	if diags.HasError() || currentSecret.ExpiresAt.IsNull() {
+		if planRotation.CurrentSecret.IsUnknown() {
+			return stateVersion + 1, true
+		}
 		return 0, false
 	}
 	expiresAt, err := time.Parse(time.RFC3339, currentSecret.ExpiresAt.ValueString())
 	if err != nil {
 		return 0, false
 	}
-	expiresAfter := stateRotation.ExpiresAfterHours.ValueInt64()
-	rotateBefore := effectiveRotateBeforeExpiryHours(expiresAfter, stateRotation.RotateBeforeExpiryHours)
+	expiresAfter := rotationPolicyExpiresAfterHours(planRotation, stateRotation)
+	rotateBefore := effectiveRotateBeforeExpiryHours(
+		expiresAfter,
+		rotationPolicyRotateBeforeExpiryHours(planRotation, stateRotation),
+	)
 	if !RenewalDue(now, expiresAt, rotateBefore) {
 		return 0, false
 	}
 	return stateVersion + 1, true
+}
+
+func rotationPolicyExpiresAfterHours(planRotation, stateRotation *TFClientSecretRotationModel) int64 {
+	if !planRotation.ExpiresAfterHours.IsNull() && !planRotation.ExpiresAfterHours.IsUnknown() {
+		return planRotation.ExpiresAfterHours.ValueInt64()
+	}
+	return stateRotation.ExpiresAfterHours.ValueInt64()
+}
+
+func rotationPolicyRotateBeforeExpiryHours(planRotation, stateRotation *TFClientSecretRotationModel) types.Int64 {
+	if !planRotation.RotateBeforeExpiryHours.IsNull() && !planRotation.RotateBeforeExpiryHours.IsUnknown() {
+		return planRotation.RotateBeforeExpiryHours
+	}
+	return stateRotation.RotateBeforeExpiryHours
 }
 
 func formatRFC3339(t time.Time) string {
@@ -97,4 +116,14 @@ func EffectiveRotateBeforeExpiryHoursForTest(expiresAfterHours int64, configured
 // ShouldDeleteOldSecretForTest exposes shouldDeleteOldSecret for unit tests.
 func ShouldDeleteOldSecretForTest(stateVersion int64, oldSecret *TFSecretMetadataModel) bool {
 	return shouldDeleteOldSecret(stateVersion, oldSecret)
+}
+
+// RotationTargetVersionForTest exposes rotationTargetVersion for unit tests.
+func RotationTargetVersionForTest(
+	ctx context.Context,
+	planRotation, stateRotation *TFClientSecretRotationModel,
+	stateVersion int64,
+	now time.Time,
+) (int64, bool) {
+	return rotationTargetVersion(ctx, planRotation, stateRotation, stateVersion, now)
 }

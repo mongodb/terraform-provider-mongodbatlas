@@ -75,7 +75,12 @@ func (r *organization3RS) ModifyPlan(ctx context.Context, req resource.ModifyPla
 	}
 
 	planRotation.SecretVersion = types.Int64Value(targetVersion)
-	oldSecretObject, oldDiags := secretMetadataToObject(ctx, secretMetadataFromStateCurrent(ctx, &stateRotation))
+	promotedOld, promoteDiags := secretMetadataForRotationPromotion(ctx, &planRotation, &stateRotation)
+	resp.Diagnostics.Append(promoteDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	oldSecretObject, oldDiags := secretMetadataToObject(ctx, &promotedOld)
 	resp.Diagnostics.Append(oldDiags...)
 	planRotation.OldSecret = oldSecretObject
 	planRotation.CurrentSecret = types.ObjectUnknown(secretMetadataObjectType.AttrTypes)
@@ -90,12 +95,58 @@ func (r *organization3RS) ModifyPlan(ctx context.Context, req resource.ModifyPla
 	resp.Diagnostics.Append(resp.Plan.Set(ctx, plan)...)
 }
 
-func secretMetadataFromStateCurrent(ctx context.Context, stateRotation *TFClientSecretRotationModel) *TFSecretMetadataModel {
-	current, diags := SecretMetadataFromObject(ctx, stateRotation.CurrentSecret)
-	if diags.HasError() {
-		return &TFSecretMetadataModel{}
+func resolveRotationPlanVersion(
+	ctx context.Context,
+	plan *TFModel,
+	planRotation, stateRotation *TFClientSecretRotationModel,
+	stateVersion int64,
+) int64 {
+	planVersion := stateVersion
+	if !planRotation.SecretVersion.IsNull() && !planRotation.SecretVersion.IsUnknown() {
+		planVersion = planRotation.SecretVersion.ValueInt64()
 	}
-	return &current
+	if planVersion > stateVersion {
+		return planVersion
+	}
+	targetVersion, shouldRotate := rotationTargetVersion(ctx, planRotation, stateRotation, stateVersion, time.Now())
+	if shouldRotate {
+		return targetVersion
+	}
+	if planRotation.CurrentSecret.IsUnknown() && plan.ClientSecret.IsUnknown() {
+		return stateVersion + 1
+	}
+	return stateVersion
+}
+
+func fillRotationSecretsFromStateIfUnknown(planRotation, stateRotation *TFClientSecretRotationModel) {
+	if planRotation.CurrentSecret.IsUnknown() && !stateRotation.CurrentSecret.IsUnknown() && !stateRotation.CurrentSecret.IsNull() {
+		planRotation.CurrentSecret = stateRotation.CurrentSecret
+	}
+	if planRotation.OldSecret.IsUnknown() && !stateRotation.OldSecret.IsUnknown() && !stateRotation.OldSecret.IsNull() {
+		planRotation.OldSecret = stateRotation.OldSecret
+	}
+}
+
+func (r *organization3RS) finalizeRotationState(
+	ctx context.Context,
+	conn *admin.APIClient,
+	state *TFModel,
+	rotation *TFClientSecretRotationModel,
+) diag.Diagnostics {
+	var diags diag.Diagnostics
+	sa, err := getServiceAccount(ctx, conn, state.OrgID.ValueString(), state.ClientID.ValueString())
+	if err != nil {
+		diags.AddError(errorUpdate, err.Error())
+		return diags
+	}
+	if sa == nil {
+		diags.AddError(errorUpdate, "service account not found during update")
+		return diags
+	}
+	updated, refreshDiags := refreshRotationSecrets(ctx, rotation, sa.GetSecrets())
+	diags.Append(refreshDiags...)
+	*rotation = updated
+	return diags
 }
 
 func (r *organization3RS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -159,6 +210,10 @@ func (r *organization3RS) Create(ctx context.Context, req resource.CreateRequest
 		state.ClientSecretRotation = types.ObjectNull(rotationObjectType.AttrTypes)
 	}
 
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.Diagnostics.Append(validateRotationStateForWrite(ctx, state.ClientSecretRotation)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -227,6 +282,9 @@ func refreshRotationSecrets(ctx context.Context, rotation *TFClientSecretRotatio
 	var diags diag.Diagnostics
 	rotationWithDefaults(rotation, rotation.ExpiresAfterHours.ValueInt64())
 
+	if rotation.CurrentSecret.IsUnknown() {
+		return *rotation, diags
+	}
 	currentMeta, currentDiags := SecretMetadataFromObject(ctx, rotation.CurrentSecret)
 	diags.Append(currentDiags...)
 	if !currentMeta.SecretID.IsNull() && currentMeta.SecretID.ValueString() != "" {
@@ -238,7 +296,7 @@ func refreshRotationSecrets(ctx context.Context, rotation *TFClientSecretRotatio
 		}
 	}
 
-	if rotation.OldSecret.IsNull() {
+	if rotation.OldSecret.IsNull() || rotation.OldSecret.IsUnknown() {
 		return *rotation, diags
 	}
 	oldMeta, oldDiags := SecretMetadataFromObject(ctx, rotation.OldSecret)
@@ -294,17 +352,36 @@ func (r *organization3RS) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	stateVersion := stateRotation.SecretVersion.ValueInt64()
-	planVersion := stateVersion
-	if !planRotation.SecretVersion.IsNull() && !planRotation.SecretVersion.IsUnknown() {
-		planVersion = planRotation.SecretVersion.ValueInt64()
+	fillRotationSecretsFromStateIfUnknown(&planRotation, &stateRotation)
+
+	stateVersion := int64(0)
+	if !stateRotation.SecretVersion.IsNull() && !stateRotation.SecretVersion.IsUnknown() {
+		stateVersion = stateRotation.SecretVersion.ValueInt64()
 	}
 
+	planVersion := resolveRotationPlanVersion(ctx, &plan, &planRotation, &stateRotation, stateVersion)
+	planRotation.SecretVersion = types.Int64Value(planVersion)
+
 	if planVersion > stateVersion {
-		if err := r.applyRotation(ctx, conn, &plan, &state, &planRotation, &stateRotation, stateVersion, planVersion); err != nil {
+		if err := r.applyRotation(
+			ctx,
+			conn,
+			&plan,
+			&state,
+			&planRotation,
+			&stateRotation,
+			stateVersion,
+			planVersion,
+		); err != nil {
 			resp.Diagnostics.AddError(errorUpdate, err.Error())
 			return
 		}
+	}
+
+	fillRotationSecretsFromStateIfUnknown(&planRotation, &stateRotation)
+	resp.Diagnostics.Append(r.finalizeRotationState(ctx, conn, &state, &planRotation)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	state.Name = plan.Name
@@ -316,7 +393,37 @@ func (r *organization3RS) Update(ctx context.Context, req resource.UpdateRequest
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	resp.Diagnostics.Append(validateRotationStateForWrite(ctx, state.ClientSecretRotation)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+}
+
+func deleteOldSecretBeforeRotation(
+	ctx context.Context,
+	conn *admin.APIClient,
+	orgID, clientID string,
+	stateRotation *TFClientSecretRotationModel,
+	stateVersion int64,
+) error {
+	if stateVersion < 2 {
+		return nil
+	}
+	stateOld, diags := SecretMetadataFromObject(ctx, stateRotation.OldSecret)
+	if diags.HasError() {
+		return fmt.Errorf("invalid old_secret in state")
+	}
+	if !shouldDeleteOldSecret(stateVersion, &stateOld) {
+		return fmt.Errorf(
+			"cannot rotate at secret_version %d: old_secret.secret_id must be set in state so the overlap secret managed by this resource can be deleted before creating the next secret; run terraform refresh if Atlas already has two secrets",
+			stateVersion,
+		)
+	}
+	if err := deleteServiceAccountSecret(ctx, conn, orgID, clientID, stateOld.SecretID.ValueString()); err != nil {
+		return fmt.Errorf("delete old secret before rotation: %w", err)
+	}
+	return nil
 }
 
 func (r *organization3RS) applyRotation(
@@ -326,18 +433,14 @@ func (r *organization3RS) applyRotation(
 	planRotation, stateRotation *TFClientSecretRotationModel,
 	stateVersion, planVersion int64,
 ) error {
-	stateOld, diags := SecretMetadataFromObject(ctx, stateRotation.OldSecret)
-	if diags.HasError() {
-		return fmt.Errorf("invalid old_secret in state")
-	}
-	if shouldDeleteOldSecret(stateVersion, &stateOld) {
-		if err := deleteServiceAccountSecret(ctx, conn, state.OrgID.ValueString(), state.ClientID.ValueString(), stateOld.SecretID.ValueString()); err != nil {
-			return fmt.Errorf("delete old secret before rotation: %w", err)
-		}
+	orgID := state.OrgID.ValueString()
+	clientID := state.ClientID.ValueString()
+	if err := deleteOldSecretBeforeRotation(ctx, conn, orgID, clientID, stateRotation, stateVersion); err != nil {
+		return err
 	}
 
 	expiresAfter := planRotation.ExpiresAfterHours.ValueInt64()
-	newSecret, err := createServiceAccountSecret(ctx, conn, state.OrgID.ValueString(), state.ClientID.ValueString(), int(expiresAfter))
+	newSecret, err := createServiceAccountSecret(ctx, conn, orgID, clientID, int(expiresAfter))
 	if err != nil {
 		return fmt.Errorf("create rotated secret: %w", err)
 	}

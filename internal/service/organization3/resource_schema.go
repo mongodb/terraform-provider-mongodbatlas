@@ -81,14 +81,16 @@ func ResourceSchema(_ context.Context) schema.Schema {
 							"created_at": schema.StringAttribute{
 								MarkdownDescription: "RFC3339 timestamp from Atlas.",
 								Computed:            true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"expires_at": schema.StringAttribute{
 								MarkdownDescription: "RFC3339 expiry from Atlas; source of truth for rotation scheduling.",
 								Computed:            true,
-							},
-							"last_used_at": schema.StringAttribute{
-								MarkdownDescription: "RFC3339 last use from Atlas. Null when unused.",
-								Computed:            true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
 							},
 						},
 					},
@@ -98,15 +100,21 @@ func ResourceSchema(_ context.Context) schema.Schema {
 						Attributes: map[string]schema.Attribute{
 							"secret_id": schema.StringAttribute{
 								Computed: true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"created_at": schema.StringAttribute{
 								Computed: true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
 							},
 							"expires_at": schema.StringAttribute{
 								Computed: true,
-							},
-							"last_used_at": schema.StringAttribute{
-								Computed: true,
+								PlanModifiers: []planmodifier.String{
+									stringplanmodifier.UseStateForUnknown(),
+								},
 							},
 						},
 					},
