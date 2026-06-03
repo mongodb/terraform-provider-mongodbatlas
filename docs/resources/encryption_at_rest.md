@@ -107,28 +107,6 @@ For Azure environments using static credentials (`client_id`, `tenant_id`, and `
 The following example shows how to configure role-based authentication for Azure Key Vault by obtaining an Atlas-managed role through Cloud Provider Access and passing the resulting `role_id` to the encryption at rest configuration.
 
 ```terraform
-resource "mongodbatlas_cloud_provider_access_setup" "this" {
-  project_id    = var.atlas_project_id
-  provider_name = "AZURE"
-
-  azure_config {
-    atlas_azure_app_id   = var.atlas_azure_app_id
-    service_principal_id = var.azure_service_principal_id
-    tenant_id            = var.azure_tenant_id
-  }
-}
-
-resource "mongodbatlas_cloud_provider_access_authorization" "this" {
-  project_id = var.atlas_project_id
-  role_id    = mongodbatlas_cloud_provider_access_setup.this.role_id
-
-  azure {
-    atlas_azure_app_id   = var.atlas_azure_app_id
-    service_principal_id = var.azure_service_principal_id
-    tenant_id            = var.azure_tenant_id
-  }
-}
-
 resource "mongodbatlas_encryption_at_rest" "test" {
   project_id = var.atlas_project_id
 
@@ -136,11 +114,12 @@ resource "mongodbatlas_encryption_at_rest" "test" {
     enabled           = true
     azure_environment = "AZURE"
 
-    subscription_id     = var.azure_subscription_id
+    subscription_id = var.azure_subscription_id
+
     resource_group_name = var.azure_resource_group_name
     key_vault_name      = var.azure_key_vault_name
     key_identifier      = var.azure_key_identifier
-    role_id             = mongodbatlas_cloud_provider_access_authorization.this.role_id
+    role_id             = var.azure_role_id
   }
 }
 
