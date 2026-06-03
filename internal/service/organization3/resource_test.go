@@ -73,7 +73,7 @@ func TestAccOrganization3_rotationLifecycle(t *testing.T) {
 				}),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(addr, "client_secret_rotation.secret_version", "2"),
-					resource.TestCheckResourceAttr(addr, "client_secret_rotation.old_secret.secret_id", firstCurrentSecretID),
+					testCheckResourceAttr(addr, "client_secret_rotation.old_secret.secret_id", &firstCurrentSecretID),
 					resource.TestCheckResourceAttrSet(addr, "client_secret_rotation.current_secret.secret_id"),
 					saveAttr(addr, "client_secret_rotation.current_secret.secret_id", &secondCurrentSecretID),
 				),
@@ -93,7 +93,7 @@ func TestAccOrganization3_rotationLifecycle(t *testing.T) {
 				Config: widenRotateBeforeConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(addr, "client_secret_rotation.secret_version", "3"),
-					resource.TestCheckResourceAttr(addr, "client_secret_rotation.old_secret.secret_id", secondCurrentSecretID),
+					testCheckResourceAttr(addr, "client_secret_rotation.old_secret.secret_id", &secondCurrentSecretID),
 					resource.TestCheckResourceAttrSet(addr, "client_secret_rotation.current_secret.secret_id"),
 				),
 			},
@@ -148,15 +148,27 @@ func checkDestroyOrganization3(s *terraform.State) error {
 	return nil
 }
 
-func saveAttr(resourceAddress, attr string, target *string) resource.TestCheckFunc {
+// testCheckResourceAttr evaluates expected at check time (after prior steps run).
+// Do not use resource.TestCheckResourceAttr(..., savedID) with a var from another step:
+// the expected string is fixed when resource.Test builds the Steps slice, before any apply.
+func testCheckResourceAttr(resourceAddress, key string, expected *string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if expected == nil || *expected == "" {
+			return fmt.Errorf("%s: %q expected value not set (saveAttr in an earlier step must run first)", resourceAddress, key)
+		}
+		return resource.TestCheckResourceAttr(resourceAddress, key, *expected)(s)
+	}
+}
+
+func saveAttr(resourceAddress, key string, target *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceAddress]
 		if !ok {
 			return fmt.Errorf("resource not found: %s", resourceAddress)
 		}
-		value, ok := rs.Primary.Attributes[attr]
-		if !ok {
-			return fmt.Errorf("attribute %q not found on %s", attr, resourceAddress)
+		value, ok := rs.Primary.Attributes[key]
+		if !ok || value == "" {
+			return fmt.Errorf("%s: attribute %q not found or empty", resourceAddress, key)
 		}
 		*target = value
 		return nil
