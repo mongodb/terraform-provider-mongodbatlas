@@ -73,3 +73,58 @@ Acceptance coverage:
 ## Branch
 
 Implemented on `CLOUDP-381539_org_resource_sa_rotation_support` until maintainer review.
+
+---
+
+# organization3 PoC (`mongodbatlas_organization3`)
+
+Real-Atlas Terraform Plugin Framework resource that demonstrates **ModifyPlan**-driven client secret rotation with API-backed `expires_at` scheduling. Compare with the mock `mongodbatlas_organization2` PoC above.
+
+## Schema vs organization2
+
+- **Scheduling**: `rotate_before_expiry_hours` (default `expires_after_hours / 2`) and Atlas `current_secret.expires_at`; no `interval`, `next_renewal`, or provider-local `expires_at`.
+- **Secret metadata**: Nested `current_secret` and `old_secret` objects (`secret_id`, `created_at`, `expires_at`, `last_used_at`) refreshed on read.
+- **Practitioner inputs**: `expires_after_hours` and `rotate_before_expiry_hours` (no `secret_` prefix inside the rotation block). Maps to Atlas `secret_expires_after_hours` on create and rotation POST.
+- **Deletion policy**: No delete on v1→2; from v2→3 onward DELETE `old_secret` before POST so at most two active secrets remain.
+
+## Example
+
+```hcl
+resource "mongodbatlas_organization3" "demo" {
+  name         = "demo-org"
+  org_owner_id = var.org_owner_id
+
+  client_secret_rotation = {
+    expires_after_hours        = 720
+    rotate_before_expiry_hours = 360
+  }
+}
+```
+
+## Acceptance test env
+
+- Provider credentials with permission to create organizations (same as `mongodbatlas_organization` tests).
+- `MONGODB_ATLAS_ORG_OWNER_ID`: Atlas user ID for `org_owner_id`.
+- Tests call `acc.SkipUnlessHasOrgOwner()` and `acc.SkipTestForCI()`; they create and delete real organizations (cost).
+
+**Test-only rotation trigger**: Set `rotate_before_expiry_hours` very large (for example `87600`) so ModifyPlan treats renewal as due on the next apply without sleep or bumping `secret_version`.
+
+## Tests
+
+Unit tests (no Atlas credentials):
+
+```sh
+cd code/provider
+go test ./internal/service/organization3/ -run 'TestRenewalDue|TestModifyPlan|TestShouldDeleteOldSecret|TestEffectiveRotateBeforeExpiryHours' -v
+```
+
+Acceptance tests (real Atlas):
+
+```sh
+cd code/provider
+TF_ACC=1 go test ./internal/service/organization3/ -run TestAccOrganization3 -v
+```
+
+```sh
+golangci-lint run ./internal/service/organization3/...
+```

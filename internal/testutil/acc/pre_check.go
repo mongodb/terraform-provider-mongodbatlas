@@ -76,6 +76,15 @@ func PreCheckCloudProviderAccessAzure(tb testing.TB) {
 	}
 }
 
+// SkipUnlessHasOrgOwner skips CI and tests without MONGODB_ATLAS_ORG_OWNER_ID (organization create PoCs).
+func SkipUnlessHasOrgOwner(tb testing.TB) {
+	tb.Helper()
+	SkipTestForCI(tb)
+	if os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID") == "" {
+		tb.Skip("`MONGODB_ATLAS_ORG_OWNER_ID` must be set for organization owner acceptance tests")
+	}
+}
+
 func PreCheckBasicOwnerID(tb testing.TB) {
 	tb.Helper()
 	PreCheckBasic(tb)

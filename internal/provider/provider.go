@@ -36,6 +36,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexsnapshot"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/organization2"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/organization3"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
@@ -367,6 +368,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		encryptionatrestprivateendpoint.Resource,
 		mongodbemployeeaccessgrant.Resource,
 		organization2.Resource,
+		organization3.Resource,
 		streamprivatelinkendpoint.Resource,
 		flexcluster.Resource,
 		resourcepolicy.Resource,
