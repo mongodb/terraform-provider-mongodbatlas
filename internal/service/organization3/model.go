@@ -2,8 +2,10 @@ package organization3
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -60,6 +62,7 @@ func rotationTargetVersion(
 	planRotation, stateRotation *TFClientSecretRotationModel,
 	stateVersion int64,
 	now time.Time,
+	diags *diag.Diagnostics,
 ) (int64, bool) {
 	if !planRotation.SecretVersion.IsUnknown() && !planRotation.SecretVersion.IsNull() {
 		configVersion := planRotation.SecretVersion.ValueInt64()
@@ -68,8 +71,12 @@ func rotationTargetVersion(
 		}
 	}
 
-	currentSecret, diags := SecretMetadataFromObject(ctx, stateRotation.CurrentSecret)
-	if diags.HasError() || currentSecret.ExpiresAt.IsNull() {
+	currentSecret, currentDiags := SecretMetadataFromObject(ctx, stateRotation.CurrentSecret)
+	diags.Append(currentDiags...)
+	if diags.HasError() {
+		return 0, false
+	}
+	if currentSecret.ExpiresAt.IsNull() {
 		if planRotation.CurrentSecret.IsUnknown() {
 			return stateVersion + 1, true
 		}
@@ -77,6 +84,10 @@ func rotationTargetVersion(
 	}
 	expiresAt, err := time.Parse(time.RFC3339, currentSecret.ExpiresAt.ValueString())
 	if err != nil {
+		diags.AddError(
+			"Invalid current_secret.expires_at",
+			fmt.Sprintf("Could not parse %q as RFC3339: %s", currentSecret.ExpiresAt.ValueString(), err),
+		)
 		return 0, false
 	}
 	expiresAfter := rotationPolicyExpiresAfterHours(planRotation, stateRotation)
@@ -124,6 +135,7 @@ func RotationTargetVersionForTest(
 	planRotation, stateRotation *TFClientSecretRotationModel,
 	stateVersion int64,
 	now time.Time,
+	diags *diag.Diagnostics,
 ) (int64, bool) {
-	return rotationTargetVersion(ctx, planRotation, stateRotation, stateVersion, now)
+	return rotationTargetVersion(ctx, planRotation, stateRotation, stateVersion, now, diags)
 }

@@ -69,7 +69,10 @@ func (r *organization3RS) ModifyPlan(ctx context.Context, req resource.ModifyPla
 		stateVersion = stateRotation.SecretVersion.ValueInt64()
 	}
 
-	targetVersion, shouldRotate := rotationTargetVersion(ctx, &planRotation, &stateRotation, stateVersion, time.Now())
+	targetVersion, shouldRotate := rotationTargetVersion(ctx, &planRotation, &stateRotation, stateVersion, time.Now(), &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	if !shouldRotate {
 		return
 	}
@@ -100,6 +103,7 @@ func resolveRotationPlanVersion(
 	plan *TFModel,
 	planRotation, stateRotation *TFClientSecretRotationModel,
 	stateVersion int64,
+	diags *diag.Diagnostics,
 ) int64 {
 	planVersion := stateVersion
 	if !planRotation.SecretVersion.IsNull() && !planRotation.SecretVersion.IsUnknown() {
@@ -108,7 +112,10 @@ func resolveRotationPlanVersion(
 	if planVersion > stateVersion {
 		return planVersion
 	}
-	targetVersion, shouldRotate := rotationTargetVersion(ctx, planRotation, stateRotation, stateVersion, time.Now())
+	targetVersion, shouldRotate := rotationTargetVersion(ctx, planRotation, stateRotation, stateVersion, time.Now(), diags)
+	if diags.HasError() {
+		return stateVersion
+	}
 	if shouldRotate {
 		return targetVersion
 	}
@@ -359,7 +366,10 @@ func (r *organization3RS) Update(ctx context.Context, req resource.UpdateRequest
 		stateVersion = stateRotation.SecretVersion.ValueInt64()
 	}
 
-	planVersion := resolveRotationPlanVersion(ctx, &plan, &planRotation, &stateRotation, stateVersion)
+	planVersion := resolveRotationPlanVersion(ctx, &plan, &planRotation, &stateRotation, stateVersion, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	planRotation.SecretVersion = types.Int64Value(planVersion)
 
 	if planVersion > stateVersion {

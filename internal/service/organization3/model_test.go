@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -68,11 +69,15 @@ func TestRotationTargetVersion_usesPlanRotateBeforePolicy(t *testing.T) {
 	planRotation, _ := organization3.RotationFromObject(ctx, planModel.ClientSecretRotation)
 	stateRotation, _ := organization3.RotationFromObject(ctx, stateModel.ClientSecretRotation)
 
-	target, shouldRotate := organization3.RotationTargetVersionForTest(ctx, &planRotation, &stateRotation, 1, now)
+	var diags diag.Diagnostics
+	target, shouldRotate := organization3.RotationTargetVersionForTest(ctx, &planRotation, &stateRotation, 1, now, &diags)
+	assert.False(t, diags.HasError())
 	assert.True(t, shouldRotate)
 	assert.Equal(t, int64(2), target)
 
-	_, shouldRotateStateOnly := organization3.RotationTargetVersionForTest(ctx, &stateRotation, &stateRotation, 1, now)
+	diags = nil
+	_, shouldRotateStateOnly := organization3.RotationTargetVersionForTest(ctx, &stateRotation, &stateRotation, 1, now, &diags)
+	assert.False(t, diags.HasError())
 	assert.False(t, shouldRotateStateOnly)
 }
 
@@ -91,7 +96,9 @@ func TestRotationTargetVersion_planUnknownCurrentSchedulesRotation(t *testing.T)
 		CurrentSecret:           types.ObjectUnknown(organization3.SecretMetadataObjectTypeForTest().AttrTypes),
 	}
 
-	target, shouldRotate := organization3.RotationTargetVersionForTest(ctx, planRotation, stateRotation, 1, time.Now())
+	var diags diag.Diagnostics
+	target, shouldRotate := organization3.RotationTargetVersionForTest(ctx, planRotation, stateRotation, 1, time.Now(), &diags)
+	assert.False(t, diags.HasError())
 	assert.True(t, shouldRotate)
 	assert.Equal(t, int64(2), target)
 }
