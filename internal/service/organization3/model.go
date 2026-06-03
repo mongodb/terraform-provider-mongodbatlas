@@ -76,10 +76,11 @@ func rotationTargetVersion(
 	if diags.HasError() {
 		return 0, false
 	}
-	if currentSecret.ExpiresAt.IsNull() {
-		if planRotation.CurrentSecret.IsUnknown() {
-			return stateVersion + 1, true
-		}
+	if currentSecret.ExpiresAt.IsNull() || currentSecret.ExpiresAt.ValueString() == "" {
+		diags.AddError(
+			"Missing current_secret.expires_at",
+			"State must include current_secret.expires_at from Atlas (create, read, or refresh) before rotation can be scheduled",
+		)
 		return 0, false
 	}
 	expiresAt, err := time.Parse(time.RFC3339, currentSecret.ExpiresAt.ValueString())

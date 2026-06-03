@@ -119,9 +119,6 @@ func resolveRotationPlanVersion(
 	if shouldRotate {
 		return targetVersion
 	}
-	if planRotation.CurrentSecret.IsUnknown() && plan.ClientSecret.IsUnknown() {
-		return stateVersion + 1
-	}
 	return stateVersion
 }
 
@@ -483,9 +480,9 @@ func (r *organization3RS) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
-	conn := providerAtlasV2(r.Client)
+	conn := r.atlasV2(ctx, &state)
 	if err := deleteOrganization(ctx, conn, state.OrgID.ValueString()); err != nil {
-		resp.Diagnostics.AddError(errorUpdate, fmt.Sprintf("delete organization: %s", err))
+		resp.Diagnostics.AddError(errorDelete, fmt.Sprintf("delete organization: %s", err))
 	}
 }
 
@@ -493,4 +490,5 @@ const (
 	errorCreate = "error creating resource " + fullResourceName
 	errorRead   = "error reading resource " + fullResourceName
 	errorUpdate = "error updating resource " + fullResourceName
+	errorDelete = "error deleting resource " + fullResourceName
 )

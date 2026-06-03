@@ -81,7 +81,7 @@ func TestRotationTargetVersion_usesPlanRotateBeforePolicy(t *testing.T) {
 	assert.False(t, shouldRotateStateOnly)
 }
 
-func TestRotationTargetVersion_planUnknownCurrentSchedulesRotation(t *testing.T) {
+func TestRotationTargetVersion_missingStateExpiresAtErrors(t *testing.T) {
 	t.Parallel()
 	ctx := t.Context()
 	planRotation := &organization3.TFClientSecretRotationModel{
@@ -98,9 +98,9 @@ func TestRotationTargetVersion_planUnknownCurrentSchedulesRotation(t *testing.T)
 
 	var diags diag.Diagnostics
 	target, shouldRotate := organization3.RotationTargetVersionForTest(ctx, planRotation, stateRotation, 1, time.Now(), &diags)
-	assert.False(t, diags.HasError())
-	assert.True(t, shouldRotate)
-	assert.Equal(t, int64(2), target)
+	assert.True(t, diags.HasError())
+	assert.False(t, shouldRotate)
+	assert.Equal(t, int64(0), target)
 }
 
 func TestModifyPlan_tightenRotateBeforeSchedulesRotation(t *testing.T) {
