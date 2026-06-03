@@ -21,7 +21,7 @@ func (r *organization3RS) atlasV2(ctx context.Context, state *TFModel) *admin.AP
 				"client_secret_null": state.ClientSecret.IsNull(),
 				"org_id":             state.OrgID.ValueString(),
 			})
-		return r.Client.AtlasV2
+		return providerAtlasV2(r.Client)
 	}
 	clientID := state.ClientID.ValueString()
 	secret := state.ClientSecret.ValueString()
@@ -29,19 +29,31 @@ func (r *organization3RS) atlasV2(ctx context.Context, state *TFModel) *admin.AP
 	if clientID == "" || secret == "" {
 		tflog.Debug(ctx, "organization3: client_id or client_secret empty in state, using provider-configured API credentials",
 			map[string]any{"org_id": orgID})
-		return r.Client.AtlasV2
+		return providerAtlasV2(r.Client)
 	}
-	if saClient := newSAClient(ctx, orgID, clientID, secret, r.Client); saClient != nil {
+	saClient, validateErr := buildValidatedSAClient(ctx, orgID, clientID, secret, r.Client)
+	if saClient != nil {
 		tflog.Debug(ctx, "organization3: using service account credentials from state",
 			map[string]any{"org_id": orgID, "client_id": clientID})
 		return saClient
 	}
 	tflog.Debug(ctx, "organization3: service account credentials from state failed validation, using provider-configured API credentials",
-		map[string]any{"org_id": orgID, "client_id": clientID})
-	return r.Client.AtlasV2
+		map[string]any{
+			"org_id":    orgID,
+			"client_id": clientID,
+			"error":     errString(validateErr),
+		})
+	return providerAtlasV2(r.Client)
 }
 
-func newSAClient(ctx context.Context, orgID, clientID, secretValue string, currentClient *config.MongoDBClient) *admin.APIClient {
+func errString(err error) string {
+	if err == nil {
+		return ""
+	}
+	return err.Error()
+}
+
+func buildValidatedSAClient(ctx context.Context, orgID, clientID, secretValue string, currentClient *config.MongoDBClient) (*admin.APIClient, error) {
 	c := &config.Credentials{
 		ClientID:     clientID,
 		ClientSecret: secretValue,
@@ -49,14 +61,15 @@ func newSAClient(ctx context.Context, orgID, clientID, secretValue string, curre
 	}
 	newClient, err := config.NewClient(c, currentClient.TerraformVersion)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	if orgID != "" {
-		if _, _, err := newClient.AtlasV2.OrganizationsApi.GetOrg(ctx, orgID).Execute(); err != nil {
-			return nil
-		}
+	if orgID == "" {
+		return newClient.AtlasV2, nil
 	}
-	return newClient.AtlasV2
+	if _, _, err := newClient.AtlasV2.OrganizationsApi.GetOrg(ctx, orgID).Execute(); err != nil {
+		return nil, err
+	}
+	return newClient.AtlasV2, nil
 }
 
 func providerAtlasV2(client *config.MongoDBClient) *admin.APIClient {
