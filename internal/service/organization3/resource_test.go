@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -15,87 +16,85 @@ import (
 
 const resourceType = "mongodbatlas_organization3"
 
-func TestAccOrganization3_withRotationBlock(t *testing.T) {
+// TestAccOrganization3_rotationLifecycle exercises create, practitioner-forced rotation,
+// stable re-apply, and ModifyPlan-scheduled rotation from a widened rotate_before_expiry_hours policy.
+// Short expires_after_hours (8h) keeps Atlas overlap windows testable without long sleeps.
+func TestAccOrganization3_rotationLifecycle(t *testing.T) {
 	acc.SkipInUnitTest(t)
 	acc.SkipUnlessHasOrgOwner(t)
 
 	orgOwnerID := os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
 	name := acc.RandomName()
-	var firstCurrentSecretID string
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroyOrganization3,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithRotation(name, orgOwnerID, 720, 87600, nil),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName(name), "client_secret_rotation.secret_version", "1"),
-					resource.TestCheckResourceAttrSet(resourceName(name), "client_secret_rotation.current_secret.secret_id"),
-					saveAttr(resourceName(name), "client_secret_rotation.current_secret.secret_id", &firstCurrentSecretID),
-				),
-			},
-			{
-				Config: configWithRotation(name, orgOwnerID, 720, 87600, nil),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName(name), "client_secret_rotation.secret_version", "2"),
-					resource.TestCheckResourceAttr(resourceName(name), "client_secret_rotation.old_secret.secret_id", firstCurrentSecretID),
-					resource.TestCheckResourceAttrSet(resourceName(name), "client_secret_rotation.current_secret.secret_id"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccOrganization3_rotationDeletesOldSecret(t *testing.T) {
-	acc.SkipInUnitTest(t)
-	acc.SkipUnlessHasOrgOwner(t)
-
-	orgOwnerID := os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
-	name := acc.RandomName()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroyOrganization3,
-		Steps: []resource.TestStep{
-			{Config: configWithRotation(name, orgOwnerID, 720, 87600, nil)},
-			{Config: configWithRotation(name, orgOwnerID, 720, 87600, nil)},
-			{
-				Config: configWithRotation(name, orgOwnerID, 720, 87600, nil),
-				Check:  checkAtMostTwoSecrets(resourceName(name)),
-			},
-		},
-	})
-}
-
-func TestAccOrganization3_forceSecretVersion(t *testing.T) {
-	acc.SkipInUnitTest(t)
-	acc.SkipUnlessHasOrgOwner(t)
-
-	orgOwnerID := os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
-	name := acc.RandomName()
-	var firstCurrentSecretID string
+	addr := resourceName(name)
+	var firstCurrentSecretID, secondCurrentSecretID string
 	forcedVersion := int64(2)
+	expiresAfter := int64(8) // Atlas secret lifetime; also default rotate_before = 4h
+	rotateBefore := int64(8) // renew window covers full lifetime so ModifyPlan schedules immediately
+
+	createConfig := configRotationBlock(name, orgOwnerID, rotationBlockConfig{
+		expiresAfterHours: expiresAfter,
+	})
+	afterForceConfig := configRotationBlock(name, orgOwnerID, rotationBlockConfig{
+		expiresAfterHours: expiresAfter,
+	}) // same as create; secret_version removed after forced rotation
+	widenRotateBeforeConfig := configRotationBlock(name, orgOwnerID, rotationBlockConfig{
+		expiresAfterHours:       expiresAfter,
+		rotateBeforeExpiryHours: &rotateBefore,
+	})
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroyOrganization3,
 		Steps: []resource.TestStep{
+			// Step 1: Create org + SA with rotation block; initial secret is version 1.
 			{
-				Config: configWithRotation(name, orgOwnerID, 720, 360, nil),
+				Config: createConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName(name), "client_secret_rotation.secret_version", "1"),
-					saveAttr(resourceName(name), "client_secret_rotation.current_secret.secret_id", &firstCurrentSecretID),
+					resource.TestCheckResourceAttr(addr, "client_secret_rotation.secret_version", "1"),
+					resource.TestCheckResourceAttrSet(addr, "client_secret_rotation.current_secret.secret_id"),
+					saveAttr(addr, "client_secret_rotation.current_secret.secret_id", &firstCurrentSecretID),
 				),
 			},
+			// Step 2: Re-apply unchanged config; expect no drift (ModifyPlan must not schedule yet).
 			{
-				Config: configWithRotation(name, orgOwnerID, 720, 360, &forcedVersion),
+				Config: createConfig,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+			},
+			// Step 3: Practitioner forces rotation via secret_version = 2 (no wait for expires_at).
+			{
+				Config: configRotationBlock(name, orgOwnerID, rotationBlockConfig{
+					expiresAfterHours: expiresAfter,
+					secretVersion:     &forcedVersion,
+				}),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName(name), "client_secret_rotation.secret_version", "2"),
-					resource.TestCheckResourceAttr(resourceName(name), "client_secret_rotation.old_secret.secret_id", firstCurrentSecretID),
+					resource.TestCheckResourceAttr(addr, "client_secret_rotation.secret_version", "2"),
+					resource.TestCheckResourceAttr(addr, "client_secret_rotation.old_secret.secret_id", firstCurrentSecretID),
+					resource.TestCheckResourceAttrSet(addr, "client_secret_rotation.current_secret.secret_id"),
+					saveAttr(addr, "client_secret_rotation.current_secret.secret_id", &secondCurrentSecretID),
+				),
+			},
+			// Step 4: Drop secret_version from config; state stays at 2 with two secrets, no further change.
+			{
+				Config: afterForceConfig,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+			},
+			// Step 5: Widen rotate_before_expiry_hours to 8 so renewAt is in the past; ModifyPlan → version 3.
+			// At state version 2 the provider deletes old_secret before POST (deletion policy).
+			{
+				Config: widenRotateBeforeConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(addr, "client_secret_rotation.secret_version", "3"),
+					resource.TestCheckResourceAttr(addr, "client_secret_rotation.old_secret.secret_id", secondCurrentSecretID),
+					resource.TestCheckResourceAttrSet(addr, "client_secret_rotation.current_secret.secret_id"),
 				),
 			},
 		},
@@ -106,29 +105,30 @@ func resourceName(name string) string {
 	return fmt.Sprintf("%s.%s", resourceType, name)
 }
 
-func configProvider() string {
-	return `provider "mongodbatlas" {}`
+type rotationBlockConfig struct {
+	expiresAfterHours       int64
+	rotateBeforeExpiryHours *int64
+	secretVersion           *int64
 }
 
-func configWithRotation(name, orgOwnerID string, expiresAfter, rotateBefore int64, secretVersion *int64) string {
-	versionAttr := ""
-	if secretVersion != nil {
-		versionAttr = fmt.Sprintf("\n    secret_version = %d", *secretVersion)
+func configRotationBlock(name, orgOwnerID string, cfg rotationBlockConfig) string {
+	extra := ""
+	if cfg.rotateBeforeExpiryHours != nil {
+		extra += fmt.Sprintf("\n    rotate_before_expiry_hours = %d", *cfg.rotateBeforeExpiryHours)
+	}
+	if cfg.secretVersion != nil {
+		extra += fmt.Sprintf("\n    secret_version = %d", *cfg.secretVersion)
 	}
 	return fmt.Sprintf(`
-%s
-
 resource %q %q {
   name         = %q
   org_owner_id = %q
 
   client_secret_rotation = {
-    expires_after_hours        = %d
-    rotate_before_expiry_hours = %d
-%s
+    expires_after_hours = %d%s
   }
 }
-`, configProvider(), resourceType, name, name, orgOwnerID, expiresAfter, rotateBefore, versionAttr)
+`, resourceType, name, name, orgOwnerID, cfg.expiresAfterHours, extra)
 }
 
 func checkDestroyOrganization3(s *terraform.State) error {
@@ -146,25 +146,6 @@ func checkDestroyOrganization3(s *terraform.State) error {
 		}
 	}
 	return nil
-}
-
-func checkAtMostTwoSecrets(resourceAddress string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceAddress]
-		if !ok {
-			return fmt.Errorf("resource not found: %s", resourceAddress)
-		}
-		orgID := rs.Primary.Attributes["org_id"]
-		clientID := rs.Primary.Attributes["client_id"]
-		sa, _, err := acc.MongoDBClient.AtlasV2.ServiceAccountsApi.GetOrgServiceAccount(context.Background(), orgID, clientID).Execute()
-		if err != nil {
-			return err
-		}
-		if len(sa.GetSecrets()) > 2 {
-			return fmt.Errorf("expected at most 2 secrets, got %d", len(sa.GetSecrets()))
-		}
-		return nil
-	}
 }
 
 func saveAttr(resourceAddress, attr string, target *string) resource.TestCheckFunc {

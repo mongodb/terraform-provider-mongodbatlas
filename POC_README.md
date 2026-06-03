@@ -107,8 +107,6 @@ resource "mongodbatlas_organization3" "demo" {
 - `MONGODB_ATLAS_ORG_OWNER_ID`: Atlas user ID for `org_owner_id`.
 - Tests call `acc.SkipUnlessHasOrgOwner()` and `acc.SkipTestForCI()`; they create and delete real organizations (cost).
 
-**Test-only rotation trigger**: Set `rotate_before_expiry_hours` very large (for example `87600`) so ModifyPlan treats renewal as due on the next apply without sleep or bumping `secret_version`.
-
 ## Tests
 
 Unit tests (no Atlas credentials):
@@ -122,8 +120,16 @@ Acceptance tests (real Atlas):
 
 ```sh
 cd code/provider
-TF_ACC=1 go test ./internal/service/organization3/ -run TestAccOrganization3 -v
+TF_ACC=1 go test ./internal/service/organization3/ -run TestAccOrganization3_rotationLifecycle -v
 ```
+
+Acceptance coverage (`TestAccOrganization3_rotationLifecycle`):
+
+- Create with `expires_after_hours = 8` only; `secret_version = 1`.
+- Empty plan on second apply (unchanged config).
+- Force rotation with `secret_version = 2`; `old_secret` matches prior `current_secret`.
+- Empty plan after removing `secret_version` from config.
+- Widen policy with `rotate_before_expiry_hours = 8`; `secret_version = 3` and `old_secret` matches prior current.
 
 ```sh
 golangci-lint run ./internal/service/organization3/...
