@@ -445,9 +445,9 @@ resource "mongodbatlas_stream_connection" "example" {
 }
 ```
 
-* `create` - (Optional) The maximum time to wait for the stream connection to be fully provisioned after creation. Defaults to `20m` (20 minutes).
-* `update` - (Optional) The maximum time to wait for the stream connection to be fully provisioned after an update. Defaults to `20m` (20 minutes).
-* `delete` - (Optional) The maximum time to wait for the stream connection to be fully deleted. Defaults to `20m` (20 minutes).
+* `create` - (Optional) The maximum time to wait for the stream connection to be fully provisioned after creation. Defaults to `40m` (40 minutes).
+* `update` - (Optional) The maximum time to wait for the stream connection to be fully provisioned after an update. Defaults to `40m` (40 minutes).
+* `delete` - (Optional) The maximum time to wait for the stream connection to be fully deleted. Defaults to `40m` (40 minutes).
 
 ## Import
 

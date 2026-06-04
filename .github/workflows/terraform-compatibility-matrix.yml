@@ -38,6 +38,9 @@ jobs:
   run-test-supported-versions:
     needs: ["get-supported-versions"]
     if: ${{ !cancelled() }}
+    permissions:
+      id-token: write
+      contents: read
     strategy:
       max-parallel: 1
       fail-fast: false

@@ -3,7 +3,6 @@ package streamprocessor
 import (
 	"context"
 	"encoding/json"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -208,44 +207,18 @@ func convertDlqToTF(ctx context.Context, dlq *admin.StreamsDLQ) (*types.Object, 
 	return &dlqObject, nil
 }
 func convertPipelineToTF(pipeline []any) (jsontypes.Normalized, diag.Diagnostics) {
-	// Atlas returns whole numbers in pipeline as doubles (e.g. 10.0). Normalize json.Number values to avoid spurious plan diffs.
-	pipelineJSON, err := json.Marshal(NormalizeNumbers(pipeline))
+	pipelineJSON, err := json.Marshal(pipeline)
 	if err != nil {
 		return jsontypes.NewNormalizedValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to marshal pipeline", err.Error())}
 	}
 	return jsontypes.NewNormalizedValue(string(pipelineJSON)), nil
 }
 
-func NormalizeNumbers(v any) any {
-	switch val := v.(type) {
-	case json.Number:
-		return normalizeNumber(val)
-	case []any:
-		for i, elem := range val {
-			val[i] = NormalizeNumbers(elem)
-		}
-	case map[string]any:
-		for k, elem := range val {
-			val[k] = NormalizeNumbers(elem)
-		}
-	}
-	return v
-}
-
-func normalizeNumber(n json.Number) json.Number {
-	s := string(n)
-	if idx := strings.IndexByte(s, '.'); idx != -1 && strings.TrimLeft(s[idx+1:], "0") == "" {
-		return json.Number(s[:idx])
-	}
-	return n
-}
-
 func convertStatsToTF(stats any) (types.String, diag.Diagnostics) {
 	if stats == nil {
 		return types.StringNull(), nil
 	}
-	// Normalize json.Number values as in pipeline.
-	statsJSON, err := json.Marshal(NormalizeNumbers(stats))
+	statsJSON, err := json.Marshal(stats)
 	if err != nil {
 		return types.StringValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to marshal stats", err.Error())}
 	}

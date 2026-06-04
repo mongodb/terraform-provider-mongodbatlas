@@ -49,7 +49,7 @@ func TestAccFlexClusterRS_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configBasic(projectID, clusterName, provider, region, acc.TimeoutConfig(&createTimeout, nil, nil), true, false, &deleteOnCreateTimeout),
+				Config:      configBasic(projectID, clusterName, provider, region, acc.TimeoutConfig(&createTimeout, nil, nil), false, false, &deleteOnCreateTimeout),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 		},
