@@ -75,7 +75,7 @@ output "mongodbatlas_flex_clusters_names" {
 Required:
 
 - `backing_provider_name` (String) Cloud service provider on which MongoDB Cloud provisioned the flex cluster.
-- `region_name` (String) Human-readable label that identifies the geographic location of your MongoDB flex cluster. The region you choose can affect network latency for clients accessing your databases. For a complete list of region names, see [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/#std-label-amazon-aws), [GCP](https://www.mongodb.com/docs/atlas/reference/google-gcp/), and [Azure](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/).
+- `region_name` (String) Human-readable label that identifies the geographic location of your MongoDB flex cluster. The region you choose can affect network latency for clients accessing your databases. For a complete list of region names, see [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/#std-label-amazon-aws), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), and [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
 
 Read-Only:
 
