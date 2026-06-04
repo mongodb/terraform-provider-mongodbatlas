@@ -200,7 +200,7 @@ You must also configure the following environment variables before running the t
   export AWS_SUBNET_ID=<AWS_SUBNET_ID>
   export AWS_SECURITY_GROUP_ID=<AWS_SECURITY_GROUP_ID>
   ```
-~> **Notice:** For more information about the PrivateLink (for AWS only), see: https://www.mongodb.com/docs/atlas/reference/api/encryption-at-rest/ and https://www.mongodb.com/docs/atlas/reference/api/private-endpoint/
+~> **Notice:** For more information about the PrivateLink (for AWS only), see: https://www.mongodb.com/docs/atlas/reference/api/private-endpoint/
 
 ##### AZURE env variables
 
