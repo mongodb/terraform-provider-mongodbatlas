@@ -1254,6 +1254,9 @@ jobs:
           AWS_SUBNET_ID: ${{ vars.AWS_SUBNET_ID }}
           AWS_SECURITY_GROUP_ID: ${{ vars.AWS_SECURITY_GROUP_ID }}
           AZURE_DIRECTORY_ID: ${{ secrets.azure_directory_id }}
+          AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
+          AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
+          AZURE_APP_SECRET: ${{ secrets.azure_app_secret }}
           AZURE_RESOURCE_GROUP_NAME: ${{ secrets.azure_resource_group_name }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
           AZURE_VNET_NAME: ${{ secrets.azure_vnet_name }}
