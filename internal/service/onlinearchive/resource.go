@@ -44,7 +44,7 @@ func Resource() *schema.Resource {
 	}
 }
 
-// https://www.mongodb.com/docs/atlas/reference/api/online-archive-create-one
+// https://docs.atlas.mongodb.com/reference/api/online-archive-create-one
 func resourceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		// argument values
