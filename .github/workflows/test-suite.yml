@@ -141,6 +141,16 @@ jobs:
           ANTHROPIC_CUSTOM_HEADERS: "api-key: ${{ secrets.AI_GATEWAY_API_KEY }}"
           CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS: "1"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Persist summary to run page and file
+        env:
+          SUMMARY: ${{ fromJSON(steps.summary.outputs.structured_output).summary }}
+        run: |
+          printf '%s\n' "$SUMMARY" | tee summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload summary artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: summary
+          path: summary.md
       - name: Post summary to Slack
         uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
         with:
