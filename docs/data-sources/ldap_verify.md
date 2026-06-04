@@ -70,4 +70,4 @@ In addition to all arguments above, the following attributes are exported:
 * `validations` - Array of validation messages related to the verification of the provided LDAP over TLS/SSL configuration details.
 
 
-See detailed information for arguments and attributes: [MongoDB API LDAP Verify](https://docs.atlas.mongodb.com/reference/api/ldaps-configuration-verification-status)
+See detailed information for arguments and attributes: [MongoDB API LDAP Verify](https://www.mongodb.com/docs/atlas/reference/api/ldaps-configuration-verification-status)

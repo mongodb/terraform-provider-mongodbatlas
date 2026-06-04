@@ -45,7 +45,7 @@ data "mongodbatlas_alert_configuration" "test" {
 }
 ```
 
--> **NOTE:** In order to allow for a fast pace of change to alert variables some validations have been removed from this resource in order to unblock alert creation. Impacted areas have links to the MongoDB Atlas API documentation so always check it for the most current information: https://docs.atlas.mongodb.com/reference/api/alert-configurations-create-config/
+-> **NOTE:** In order to allow for a fast pace of change to alert variables some validations have been removed from this resource in order to unblock alert creation. Impacted areas have links to the MongoDB Atlas API documentation so always check it for the most current information: https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-create-config/
 
 ```terraform
 resource "mongodbatlas_alert_configuration" "test" {
@@ -165,7 +165,7 @@ Rules to apply when matching an object against this alert configuration. Only en
 ### Metric Threshold Config
 The threshold that causes an alert to be triggered. Required if `event_type_name` : `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`.
 
-* `metric_name` - Name of the metric to check. The full list being quite large, please refer to atlas docs [here for general metrics](https://docs.atlas.mongodb.com/reference/alert-host-metrics/#measurement-types) and [here for serverless metrics](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-create-config/#serverless-measurements)
+* `metric_name` - Name of the metric to check. The full list being quite large, please refer to atlas docs [here for general metrics](https://www.mongodb.com/docs/atlas/reference/alert-host-metrics/#measurement-types) and [here for serverless metrics](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-create-config/#serverless-measurements)
 
 * `operator` - The operator to apply when checking the current metric value against the threshold value.
   Accepted values are:
@@ -231,4 +231,4 @@ Notifications to send when an alert condition is detected.
 * `microsoft_teams_webhook_url` - Microsoft Teams channel incoming webhook URL. Required for the `MICROSOFT_TEAMS` notifications type.
 * `roles` - Atlas role in current Project or Organization. Atlas returns this value if you set `type_name` to `ORG` or `GROUP`.
 
-See detailed information for arguments and attributes: [MongoDB API Alert Configuration](https://docs.atlas.mongodb.com/reference/api/alert-configurations-get-config/)
+See detailed information for arguments and attributes: [MongoDB API Alert Configuration](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-get-config/)

@@ -142,9 +142,9 @@ Accepted values include:
   * `ROLE` -  New database user has credentials associated with an AWS IAM role.
 
 * `ldap_auth_type` - (Optional) Method by which the provided `username` is authenticated. If no value is given, Atlas uses the default value of `NONE`.
-  * `NONE` -	Atlas authenticates this user through [SCRAM-SHA](https://docs.mongodb.com/manual/core/security-scram/), not LDAP.
+  * `NONE` -	Atlas authenticates this user through [SCRAM-SHA](https://www.mongodb.com/docs/manual/core/security-scram/), not LDAP.
   * `USER` - LDAP server authenticates this user through the user's LDAP user. `username` must also be a fully qualified distinguished name, as defined in [RFC-2253](https://tools.ietf.org/html/rfc2253).
-  * `GROUP` - LDAP server authenticates this user using their LDAP user and authorizes this user using their LDAP group. To learn more about LDAP security, see [Set up User Authentication and Authorization with LDAP](https://docs.atlas.mongodb.com/security-ldaps). `username` must also be a fully qualified distinguished name, as defined in [RFC-2253](https://tools.ietf.org/html/rfc2253).
+  * `GROUP` - LDAP server authenticates this user using their LDAP user and authorizes this user using their LDAP group. To learn more about LDAP security, see [Set up User Authentication and Authorization with LDAP](https://www.mongodb.com/docs/atlas/security-ldaps). `username` must also be a fully qualified distinguished name, as defined in [RFC-2253](https://tools.ietf.org/html/rfc2253).
 
 
 * `oidc_auth_type` - (Optional) Human-readable label that indicates whether the new database user authenticates with OIDC (OpenID Connect) federated authentication. If no value is given, Atlas uses the default value of `NONE`. The accepted types are:
@@ -159,7 +159,7 @@ Block mapping a user's role to a database / collection. A role allows the user t
 
 ~> **IMPORTANT:** If a user is assigned a custom MongoDB role, they cannot be assigned any other roles.
 
-* `role_name` - (Required) Name of the role to grant. See [Create a Database User](https://docs.atlas.mongodb.com/reference/api/database-users-create-a-user/) `roles.roleName` for valid values and restrictions.
+* `role_name` - (Required) Name of the role to grant. See [Create a Database User](https://www.mongodb.com/docs/atlas/reference/api/database-users-create-a-user/) `roles.roleName` for valid values and restrictions.
 * `database_name` - (Required) Database on which the user has the specified role. A role on the `admin` database can include privileges that apply to the other databases. This field should be set to `admin` for a custom MongoDB role.
 * `collection_name` - (Optional) Collection for which the role applies. You can specify a collection for the `read` and `readWrite` roles. If you do not specify a collection for `read` and `readWrite`, the role applies to all collections in the database (excluding some collections in the `system`. database).
 

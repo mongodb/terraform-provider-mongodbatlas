@@ -51,4 +51,4 @@ In addition to all arguments above, the following attributes are exported:
 * `user_to_dn_mapping.0.ldap_query` - An LDAP query formatting template that inserts the LDAP name matched by the `match` regular expression into an LDAP query URI as specified by RFC 4515 and RFC 4516.
 
 
-See detailed information for arguments and attributes: [MongoDB API LDAP Configuration](https://docs.atlas.mongodb.com/reference/api/ldaps-configuration-get-current)
+See detailed information for arguments and attributes: [MongoDB API LDAP Configuration](https://www.mongodb.com/docs/atlas/reference/api/ldaps-configuration-get-current)

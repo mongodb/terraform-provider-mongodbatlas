@@ -8,7 +8,7 @@ subcategory: "Clusters"
 
 `mongodbatlas_serverless_instance` describes a single serverless instance. This represents a single serverless instance that have been created.
 > **NOTE:**  Serverless instances do not support some Atlas features at this time.
-For a full list of unsupported features, see [Serverless Instance Limitations](https://docs.atlas.mongodb.com/reference/serverless-instance-limitations/).
+For a full list of unsupported features, see [Serverless Instance Limitations](https://www.mongodb.com/docs/atlas/reference/serverless-instance-limitations/).
  
 
 ## Example Usage
@@ -52,4 +52,4 @@ Key-value pairs between 1 to 255 characters in length for tagging and categorizi
 To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas).
 
 
-For more information see: [MongoDB Atlas API - Serverless Instance](https://docs.atlas.mongodb.com/reference/api/serverless-instances/) Documentation.
+For more information see: [MongoDB Atlas API - Serverless Instance](https://www.mongodb.com/docs/atlas/reference/api/serverless-instances/) Documentation.

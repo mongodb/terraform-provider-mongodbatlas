@@ -52,4 +52,4 @@ In addition to all arguments above, the following attributes are exported:
 * `regions` - Atlas GCP regions where the container resides.
 
 
-See detailed information for arguments and attributes: [MongoDB API Network Peering Container](https://docs.atlas.mongodb.com/reference/api/vpc-create-container/)
+See detailed information for arguments and attributes: [MongoDB API Network Peering Container](https://www.mongodb.com/docs/atlas/reference/api/vpc-create-container/)
