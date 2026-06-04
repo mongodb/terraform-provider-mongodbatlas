@@ -43,7 +43,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
 
 ## Example Usages with Amazon S3 bucket as storage database
 
-> **NOTE:** You must configure the Cloud Provider Access properly to authorize the federated database instance to access your S3 bucket. This requires creating a `mongodbatlas_cloud_provider_access_setup` and a `mongodbatlas_cloud_provider_access_authorization` resource, as well as the corresponding AWS IAM roles and policies. For a complete, runnable example, see the [AWS Federated Database Instance example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_federated_database_instance/aws).
+**NOTE:** You must configure the Cloud Provider Access properly to authorize the federated database instance to access your S3 bucket. This requires creating a `mongodbatlas_cloud_provider_access_setup` and a `mongodbatlas_cloud_provider_access_authorization` resource, as well as the corresponding AWS IAM roles and policies. For a complete example, see the [AWS Federated Database Instance example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_federated_database_instance/aws).
 
 ```terraform
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
@@ -51,7 +51,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
   provider_name = "AWS"
 }
 
-resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+  project_id = mongodbatlas_cloud_provider_access_setup.setup_only.project_id
   project_id = "PROJECT ID"
   role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
   aws {
@@ -59,7 +59,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
   }
 }
 
-resource "mongodbatlas_federated_database_instance" "test" {
+  project_id         = mongodbatlas_cloud_provider_access_setup.setup_only.project_id
   project_id         = "PROJECT ID"
   name = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
   cloud_provider_config {
