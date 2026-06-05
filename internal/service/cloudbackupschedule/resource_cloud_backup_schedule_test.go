@@ -425,7 +425,7 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 
 func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 	var (
-		spec        = acc.ReplicationSpecRequest{ProviderName: constant.AZURE}
+		spec        = acc.ReplicationSpecRequest{ProviderName: constant.AZURE, Region: "US_EAST_2"}
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ReplicationSpecs: []acc.ReplicationSpecRequest{spec}})
 	)
 
