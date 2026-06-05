@@ -1,0 +1,24 @@
+no_progress = true
+
+# Skip immutable historical records: released changelog and dated compliance docs.
+exclude_path = ["CHANGELOG.md", "compliance"]
+
+# Known false positives: auth-gated endpoints, literal placeholders, and a third-party site.
+exclude = [
+  'cloud.mongodb.com/api',
+  'support.snyk.io',
+  'sts.windows.net',
+  'token.actions.githubusercontent.com',
+  'epoch101.com',
+]
+
+# Terraform Registry renders intra-doc links under docs/ without the .md extension
+# (e.g. ../guides/foo, ../resources/bar#anchor), so docs use extensionless links that resolve
+# on the registry but not on disk. The first rule leaves file:// links that already end in a
+# real extension (.md, .tf, .png, ...) untouched; the second appends .md to extensionless
+# links under docs/ so they resolve. Extensionless links outside docs/ (e.g. example
+# subdirectories) are left alone. Relies on lychee applying the first matching remap only.
+remap = [
+  '(file://[^#]*\.[a-zA-Z]+)(#.*)?$ ${1}${2}',
+  '(file://[^#]*/docs/[^#]*?)(#.*)?$ ${1}.md${2}',
+]
