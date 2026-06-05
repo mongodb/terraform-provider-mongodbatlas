@@ -61,7 +61,7 @@ In addition to all arguments above, the following attributes are exported:
 * `matcher` - Rules to apply when matching an object against this alert configuration. See [matchers](#matchers).
 * `metric_threshold_config` - The threshold that causes an alert to be triggered. Required if `event_type_name` : `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`. See [metric threshold config](#metric-threshold-config).
 * `threshold_config` - 	 Threshold that triggers an alert. Required if `event_type_name` is any value other than `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`. See [threshold config](#threshold-config).
-* `notification` - List of notifications to send when an alert condition is detected. See [notification](#notifications).
+* `notification` - List of notifications to send when an alert condition is detected. See [notification](#notification).
 * `severity_override` - Severity of the event.
 * `output` - Requested output string format for the alert configuration
 
@@ -131,7 +131,7 @@ The threshold that causes an alert to be triggered. Required if `event_type_name
 * `units` - The units for the threshold value. Depends on the type of metric.
   Refer to the [MongoDB API Alert Configuration documentation](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-get-config/#request-body-parameters) for a list of accepted values.
 
-### Notifications
+### Notification
 Notifications to send when an alert condition is detected.
 
 * `api_token` - Slack API token. Required for the SLACK notifications type. If the token later becomes invalid, Atlas sends an email to the project owner and eventually removes the token.
