@@ -3,7 +3,7 @@
 
 ## Table of Contents
 - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
-- [Auto-Generating Resources \& Data Sources (Internal tool)](#auto-generating-resources--data-sources)
+- [Auto-Generating Resources \& Data Sources (Internal tool)](#auto-generating-resources--data-sources-internal-tool)
   - [Customizing Generated Resources \& Data Sources](#customizing-generated-resources--data-sources)
 
 ## Scaffolding Initial Code and File Structure
@@ -19,7 +19,7 @@ make scaffold resource_name=streamInstance type=resource
 
 This will generate resource/data source files and accompanying test files needed for starting the development, and will contain multiple comments with `TODO:` statements which give guidance for the development.
 
-As a follow up step, use [Auto-Generating Resources](#auto-generating-resources) to autogenerate the schema via the Open API specification. This will require making adjustments to the generated `./internal/service/<resource_name>/tfplugingen/generator_config.yml` file.
+As a follow up step, use [Auto-Generating Resources](#auto-generating-resources--data-sources-internal-tool) to autogenerate the schema via the Open API specification. This will require making adjustments to the generated `./internal/service/<resource_name>/tfplugingen/generator_config.yml` file.
 
 ## Auto-Generating Resources & Data Sources (Internal tool)
 

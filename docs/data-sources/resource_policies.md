@@ -95,7 +95,7 @@ output "policy_ids" {
 
 ### Required
 
-- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
+- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listorganizations) endpoint to retrieve all organizations to which the authenticated user has access.
 
 ### Read-Only
 
@@ -114,7 +114,7 @@ Read-Only:
 - `last_updated_by_user` (Attributes) The user that last updated the Atlas resource policy. (see [below for nested schema](#nestedatt--resource_policies--last_updated_by_user))
 - `last_updated_date` (String) Date and time in UTC when the Atlas resource policy was last updated.
 - `name` (String) Human-readable label that describes the Atlas resource policy.
-- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
+- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listorganizations) endpoint to retrieve all organizations to which the authenticated user has access.
 - `policies` (Attributes List) List of policies that make up the Atlas resource policy. (see [below for nested schema](#nestedatt--resource_policies--policies))
 - `version` (String) A string that identifies the version of the Atlas resource policy.
 
@@ -158,7 +158,7 @@ Read-Only:
 - `last_updated_by_user` (Attributes) The user that last updated the Atlas resource policy. (see [below for nested schema](#nestedatt--results--last_updated_by_user))
 - `last_updated_date` (String) Date and time in UTC when the Atlas resource policy was last updated.
 - `name` (String) Human-readable label that describes the Atlas resource policy.
-- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
+- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listorganizations) endpoint to retrieve all organizations to which the authenticated user has access.
 - `policies` (Attributes List) List of policies that make up the Atlas resource policy. (see [below for nested schema](#nestedatt--results--policies))
 - `version` (String) A string that identifies the version of the Atlas resource policy.
 
