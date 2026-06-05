@@ -76,7 +76,7 @@ data "mongodbatlas_x509_authentication_database_user" "test" {
 ## Attributes Reference
 In addition to all arguments above, the following attributes are exported:
 
-* `customer_x509_cas` - Contains the last X.509 certificate and private key created for a database user.
+* `customer_x509_cas` - PEM string of the customer-managed X.509 Certificate Authority (CA).
 
   #### Certificates
 * `certificates` - Array of objects where each details one unexpired database user certificate.
