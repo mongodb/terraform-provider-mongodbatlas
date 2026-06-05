@@ -13,7 +13,7 @@ The [encryption at rest Terraform module](https://registry.terraform.io/modules/
 
 Atlas does not automatically rotate user-managed encryption keys. Defer to your preferred Encryption at Rest provider’s documentation and guidance for best practices on key rotation. Atlas automatically creates a 90-day key rotation alert when you configure Encryption at Rest using your Key Management in an Atlas project.
 
-See [Encryption at Rest](https://www.mongodb.com/docs/atlas/security-kms-encryption/index.html) for more information, including prerequisites and restrictions.
+See [Encryption at Rest](https://www.mongodb.com/docs/atlas/security-kms-encryption/) for more information, including prerequisites and restrictions.
 
 ~> **IMPORTANT** By default, Atlas enables encryption at rest for all cluster storage and snapshot volumes.
 
@@ -25,7 +25,7 @@ See [Encryption at Rest](https://www.mongodb.com/docs/atlas/security-kms-encrypt
 
 ## Enabling Encryption at Rest for existing Atlas cluster
 
-After configuring at least one key management provider for an Atlas project, Project Owners can enable customer key management for each Atlas cluster for which they require encryption. For clusters defined in terraform, the [`encryption_at_rest_provider` attribute](advanced_cluster#encryption_at_rest_provider) can be used in both `mongodbatlas_advanced_cluster` and `mongodbatlas_cluster` resources. The key management provider does not have to match the cluster cloud service provider.
+After configuring at least one key management provider for an Atlas project, Project Owners can enable customer key management for each Atlas cluster for which they require encryption. For clusters defined in terraform, the [`encryption_at_rest_provider` attribute](advanced_cluster) can be used in both `mongodbatlas_advanced_cluster` and `mongodbatlas_cluster` resources. The key management provider does not have to match the cluster cloud service provider.
 
 Please reference [Enable Customer Key Management for an Atlas Cluster](https://www.mongodb.com/docs/atlas/security-kms-encryption/#enable-customer-key-management-for-an-service-cluster) documentation for additional considerations.
 
