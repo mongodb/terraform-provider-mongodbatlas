@@ -67,7 +67,7 @@ jobs:
       - name: Notify Slack
         uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
         with:
-          # TODO: TEMPORARY use the test webhook; revert to SLACK_WEBHOOK_URL before merging the PR
+          # TODO: CLOUDP-381694 Revert to SLACK_WEBHOOK_URL in the follow-up PR that enables the cron
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
           webhook-type: incoming-webhook
           payload: |
