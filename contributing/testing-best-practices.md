@@ -35,8 +35,8 @@
 
 ### Cloud Gov tests
 
-1. Use [`PreCheck: PreCheckGovBasic`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/testutil/acc/pre_check.go#L98)
-2. Use the [`acc.ConfigGovProvider`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/testutil/acc/provider.go#L61) together with your normal terraform config
+1. Use [`PreCheck: PreCheckGovBasic`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/testutil/acc/pre_check.go#L134)
+2. Use the [`acc.ConfigGovProvider`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/testutil/acc/provider.go#L124) together with your normal terraform config
 3. Modify the `checkExist` and `CheckDestroy` to use `acc.ConnV2UsingGov`
 4. Follow naming convention:
    1. `TestAccGovProject_withProjectOwner`, note prefix: `TestAccGov`
