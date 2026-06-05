@@ -102,6 +102,10 @@ resource "mongodbatlas_encryption_at_rest" "default" {
 ```
 
 ### Configuring encryption at rest using customer key management in Azure
+For Azure environments using static credentials (`client_id`, `tenant_id`, and `secret`), we recommend migrating to role-based authentication. For more details see our [Migration Guide: Encryption at Rest (Azure) Client Credentials to Role-based Auth](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/encryption-at-rest-azure-role-based-migration).
+
+The following example shows how to configure role-based authentication for Azure Key Vault by obtaining an Atlas-managed role through Cloud Provider Access and passing the resulting `role_id` to the encryption at rest configuration.
+
 ```terraform
 resource "mongodbatlas_encryption_at_rest" "test" {
   project_id = var.atlas_project_id
