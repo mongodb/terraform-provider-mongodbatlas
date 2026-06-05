@@ -53,6 +53,16 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name: "Successful transition to IDLE with 500 error in between",
+			mockResponses: []response{
+				{state: &updating},
+				{statusCode: sc500, err: errors.New("Internal Server Error")},
+				{state: &idle},
+			},
+			expectedState: &idle,
+			expectedError: false,
+		},
+		{
 			name: "Error when transitioning to an unknown state",
 			mockResponses: []response{
 				{state: &updating},
@@ -64,7 +74,7 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 		{
 			name: "Error when API responds with error",
 			mockResponses: []response{
-				{statusCode: sc500, err: errors.New("Internal server error")},
+				{err: errors.New("network error")},
 			},
 			expectedState: nil,
 			expectedError: true,
@@ -98,9 +108,18 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name: "Successful transition to DELETED with 500 error in between",
+			mockResponses: []response{
+				{state: &updating},
+				{statusCode: sc500, err: errors.New("Internal Server Error")},
+				{statusCode: sc404, err: errors.New(searchdeployment.SearchDeploymentDoesNotExistsError)},
+			},
+			expectedError: false,
+		},
+		{
 			name: "Error when API responds with error",
 			mockResponses: []response{
-				{statusCode: sc500, err: errors.New("Internal server error")},
+				{err: errors.New("network error")},
 			},
 			expectedError: true,
 		},
