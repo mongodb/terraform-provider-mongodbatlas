@@ -104,6 +104,9 @@ data "mongodbatlas_alert_configuration" "test" {
 * `project_id` - (Required) The ID of the project where the alert configuration will create, also known as `groupId` in the official documentation.
 * `alert_configuration_id` - (Required) Unique identifier for the alert configuration.
 * `output` - (Optional) List of formatted output requested for this alert configuration
+* `output.#.type` - (Required) If the output is requested, you must specify its type. The format is computed as `output.#.value`, the following are the supported types:
+- `resource_hcl`: This string is used to define the resource as it exists in MongoDB Atlas.
+- `resource_import`: This string is used to import the existing resource into the state file.
 
 ## Attributes Reference
 
