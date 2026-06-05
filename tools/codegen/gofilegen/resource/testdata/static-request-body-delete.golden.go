@@ -31,6 +31,9 @@ type rs struct {
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
+	if schemaHook, ok := any(r).(autogen.ResourceSchemaHook); ok {
+		resp.Schema = schemaHook.ResourceSchema(ctx, resp.Schema)
+	}
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -148,5 +151,6 @@ func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *d
 			Method:        "PATCH",
 		},
 		StaticRequestBody: `{"enabled": false}`,
+		ResetsToDefaults:  true,
 	}
 }

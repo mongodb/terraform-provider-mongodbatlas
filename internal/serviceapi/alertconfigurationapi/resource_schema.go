@@ -26,7 +26,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"event_type_name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Event type that triggers an alert.",
+				MarkdownDescription: "Incident that triggered this alert.",
 			},
 			"group_id": schema.StringAttribute{
 				Required:            true,
@@ -60,11 +60,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"metric_threshold": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics about the serverless database.",
+				MarkdownDescription: "Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.",
 				CustomType:          customtypes.NewObjectType[TFMetricThresholdModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"metric_name": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
 						MarkdownDescription: "Human-readable label that identifies the metric against which MongoDB Cloud checks the configured `metricThreshold.threshold`.",
 					},
 					"mode": schema.StringAttribute{

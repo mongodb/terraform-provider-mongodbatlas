@@ -7,8 +7,6 @@ subcategory: "Projects"
 `mongodbatlas_third_party_integrations` describes all Third-Party Integration Settings. This represents two Third-Party services `PAGER_DUTY` and `DATADOG`
 applied across the project. 
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -32,7 +30,7 @@ data "mongodbatlas_third_party_integrations" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to get all Third-Party service integrations
+* `project_id` - (Required) The unique ID for the project to get all Third-Party service integrations, also known as `groupId` in the official documentation
 
 ## Attributes Reference
 
@@ -44,8 +42,8 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Third-Party Service Integration 
 
-* `project_id` - ID of the Atlas project the Third-Party Service Integration belongs to.
-* `type` - Thirt-Party service integration type.
+* `project_id` - ID of the Atlas project the Third-Party Service Integration belongs to, also known as `groupId` in the official documentation.
+* `type` - Third-Party service integration type.
 * `id` - Unique identifier of the integration.
 
      * PAGER_DUTY
@@ -66,7 +64,8 @@ Additional values based on Type
   * `region` - Two-letter code that indicates which API URL to use. See the `region` response field of [MongoDB API Third-Party Service Integration documentation](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getthirdpartyintegration) for more details. Datadog will use "US" by default.
   * `send_collection_latency_metrics` - Toggle sending collection latency metrics that includes database names and collection names and latency metrics on reads, writes, commands, and transactions.
   * `send_database_metrics` - Toggle sending database metrics that includes database names and metrics on the number of collections, storage size, and index size.
-  * `send_user_provided_resource_tags` - Toggle sending user provided group and cluster resource tags with the datadog metrics.
+  * `send_user_provided_resource_tags` - Toggle sending user provided group and cluster resource tags with the Datadog metrics.
+  * `send_query_stats_metrics` - Toggle sending query shape metrics that includes query hash and metrics on latency, execution frequency, documents returned, and timestamps.
 * `OPS_GENIE`
   * `api_key` - Your API Key.
   * `region` -  Two-letter code that indicates which API URL to use. See the `region` response field of [MongoDB API Third-Party Service Integration documentation](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getthirdpartyintegration) for more details. Opsgenie will use US by default.

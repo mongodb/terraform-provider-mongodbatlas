@@ -1,5 +1,5 @@
 schema:
-    description: Updates the auditing configuration for the specified project. The auditing configuration defines the events that MongoDB Cloud records in the audit log. To use this resource, the requesting Service Account or API Key must have the Project Owner role. This feature isn't available for `M0`, `M2`, `M5`, or serverless clusters.
+    description: Updates the auditing configuration for the specified project. The auditing configuration defines the events that MongoDB Cloud records in the audit log. This feature isn't available for `M0`, `M2`, `M5`, or serverless clusters.
     attributes:
         - bool:
             default: false
@@ -66,6 +66,7 @@ operations:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/auditLog
         static_request_body: '{"enabled": "false"}'
+        resets_to_defaults: true
     create:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/auditLog

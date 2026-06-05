@@ -145,7 +145,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "wait-configuration",
 		},
-		"Defining static request body in delete operation": {
+		"Defining static request body in delete operation with resets to defaults": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
@@ -174,6 +174,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod:        "PATCH",
 						Path:              "/api/v1/testname/{projectId}",
 						StaticRequestBody: `{"enabled": false}`,
+						ResetsToDefaults:  true,
 					},
 					VersionHeader: "application/vnd.atlas.2024-05-30+json",
 				},

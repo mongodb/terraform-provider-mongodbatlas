@@ -8,5 +8,5 @@ Thanks for your interest in contributing to MongoDB Atlas Terraform Provider, th
 - [Documentation](documentation.md)
 - [Changelog process](changelog-process.md)
 - [Atlas SDK](atlas-sdk.md)
-- [Enhanced Network Logging](network-logging.md)
+- [Atlas SDK preview (dev-latest)](atlas-sdk-preview.md)
 - [Compliance](compliance.md)

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedsettingsidentityprovider"
@@ -97,6 +98,51 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	}
 }
 
+func TestAccFederatedSettingsOrg_noDriftOnListFields(t *testing.T) {
+	acc.SkipTestForCI(t)
+	var (
+		resourceName         = "mongodbatlas_federated_settings_org_config.test"
+		federationSettingsID = os.Getenv("MONGODB_ATLAS_FEDERATION_SETTINGS_ID")
+		orgID                = os.Getenv("MONGODB_ATLAS_FEDERATED_ORG_ID")
+		idpID                = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
+		associatedDomain     = os.Getenv("MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN")
+		oidcIDP1             = os.Getenv("MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID_1")
+		oidcIDP2             = os.Getenv("MONGODB_ATLAS_FEDERATED_OIDC_IDP_ID_2")
+	)
+	config := configNoDrift(federationSettingsID, orgID, associatedDomain, idpID, oidcIDP1, oidcIDP2)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckFederatedSettingsOIDCWorkloadIDPs(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:             config,
+				ResourceName:       resourceName,
+				ImportStateIdFunc:  importStateIDFunc(federationSettingsID, orgID),
+				ImportState:        true,
+				ImportStateVerify:  false,
+				ImportStatePersist: true,
+			},
+			{
+				Config: config,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "post_auth_role_grants.#", "4"),
+					resource.TestCheckResourceAttr(resourceName, "data_access_identity_provider_ids.#", "2"),
+				),
+			},
+			{
+				Config: config,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+			},
+		},
+	})
+}
+
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -126,6 +172,19 @@ func importStateIDFunc(federationSettingsID, orgID string) resource.ImportStateI
 		ids := conversion.DecodeStateID(ID)
 		return fmt.Sprintf("%s-%s", ids["federation_settings_id"], ids["org_id"]), nil
 	}
+}
+
+func configNoDrift(federationSettingsID, orgID, associatedDomain, idpID, oidcIDP1, oidcIDP2 string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_federated_settings_org_config" "test" {
+			federation_settings_id            = %[1]q
+			org_id                            = %[2]q
+			domain_restriction_enabled        = false
+			domain_allow_list                 = [%[3]q]
+			identity_provider_id              = %[4]q
+			post_auth_role_grants             = ["ORG_MEMBER", "ORG_READ_ONLY", "ORG_BILLING_READ_ONLY", "ORG_GROUP_CREATOR"]
+			data_access_identity_provider_ids = [%[5]q, %[6]q]
+		}`, federationSettingsID, orgID, associatedDomain, idpID, oidcIDP1, oidcIDP2)
 }
 
 func configBasic(federationSettingsID, orgID, associatedDomain string, identityProviderID *string, createIdpWorkload, attachIdpWorkload, domainRestrictionEnabled bool) string {

@@ -8,7 +8,6 @@ subcategory: "Cloud Backups"
 
 `mongodbatlas_shared_tier_snapshots` provides an Cloud Backup Snapshots data source for Shared Tier Clusters. Atlas Cloud Backup Snapshots provide localized backup storage using the native snapshot functionality of the cluster’s cloud service.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 -> **NOTE:** This data source is only for Shared Tier Clusters (M2 and M5). See [here](https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/) for more details on Shared Tier Cluster Limitations. 
 
 
@@ -24,7 +23,7 @@ data "mongodbatlas_shared_tier_snapshots" "test" {
 ## Argument Reference
 
 * `cluster_name` - (Required) Human-readable label that identifies the cluster.
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project..
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 

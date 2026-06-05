@@ -24,7 +24,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```
 
 ### Further Examples
-- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_stream_connection)
+- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_stream_connection)
 
 ### Example Cross Project Cluster Connection
 
@@ -65,7 +65,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ### Example Kafka SASL OAuthbearer Connection
 
 ```terraform
-resource "mongodbatlas_stream_connection" "example-kafka-oauthbearer" {
+resource "mongodbatlas_stream_connection" "example_kafka_oauthbearer" {
     project_id      = var.project_id
     workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
     connection_name = "KafkaOAuthbearerConnection"
@@ -118,6 +118,27 @@ resource "mongodbatlas_stream_connection" "test" {
 }
 ```
 
+### Example Azure Blob Storage Connection
+
+```terraform
+resource "mongodbatlas_stream_connection" "test" {
+    project_id      = var.project_id
+    workspace_name  = "NewWorkspace"
+    connection_name = "AzureBlobStorageConnection"
+    type            = "AzureBlobStorage"
+    azure = {
+      service_principal_id = "<AZURE_SERVICE_PRINCIPAL_ID>"
+      storage_account_name = "<AZURE_STORAGE_ACCOUNT_NAME>"
+      region               = "<AZURE_REGION>"
+    }
+    networking = {
+      access = {
+        type = "PUBLIC"
+      }
+    }
+}
+```
+
 ### Example AWSLambda Connection
 
 ```terraform
@@ -133,10 +154,90 @@ resource "mongodbatlas_stream_connection" "test" {
 
 ```
 
+### Example GCPPubSub Connection
+
+```terraform
+resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
+    project_id    = var.project_id
+    provider_name = "GCP"
+}
+
+resource "mongodbatlas_cloud_provider_access_authorization" "gcp_auth" {
+    project_id = var.project_id
+    role_id    = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
+}
+
+resource "mongodbatlas_stream_connection" "example_gcp_pubsub" {
+    project_id      = var.project_id
+    workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+    connection_name = "GCPPubSubConnection"
+    type            = "GCPPubSub"
+    gcp = {
+      service_account_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.gcp_config[0].service_account_for_atlas
+    }
+    depends_on = [mongodbatlas_cloud_provider_access_authorization.gcp_auth]
+}
+```
+
+### Example GCPPubSub Connection with Private Service Connect
+
+```terraform
+resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
+    project_id    = var.project_id
+    provider_name = "GCP"
+}
+
+resource "mongodbatlas_cloud_provider_access_authorization" "gcp_auth" {
+    project_id = var.project_id
+    role_id    = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
+}
+
+resource "mongodbatlas_stream_connection" "example_gcp_pubsub_psc" {
+    project_id      = var.project_id
+    workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+    connection_name = "GCPPubSubPSCConnection"
+    type            = "GCPPubSub"
+    gcp = {
+      service_account_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.gcp_config[0].service_account_for_atlas
+    }
+    networking = {
+      access = {
+        type          = "PRIVATE_LINK"
+        connection_id = mongodbatlas_stream_privatelink_endpoint.gcp_pubsub.id
+      }
+    }
+    depends_on = [mongodbatlas_cloud_provider_access_authorization.gcp_auth]
+}
+```
+
+### Example Azure Blob Storage Connection with Private Link
+
+~> **NOTE:** An Azure cluster must be provisioned in the same region before creating an Azure Blob Storage private endpoint.
+
+```terraform
+resource "mongodbatlas_stream_connection" "example_azure_blob_private_link" {
+    project_id      = var.project_id
+    workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
+    connection_name = "AzureBlobStoragePLConnection"
+    type            = "AzureBlobStorage"
+    azure = {
+      service_principal_id = "<AZURE_SERVICE_PRINCIPAL_ID>"
+      storage_account_name = "<AZURE_STORAGE_ACCOUNT_NAME>"
+      region               = "<AZURE_REGION>"
+    }
+    networking = {
+      access = {
+        type          = "PRIVATE_LINK"
+        connection_id = mongodbatlas_stream_privatelink_endpoint.azure_blob.id
+      }
+    }
+}
+```
+
 ### Example Https Connection
 
 ```terraform
-resource "mongodbatlas_stream_connection" "example-https" {
+resource "mongodbatlas_stream_connection" "example_https" {
   project_id      = var.project_id
   workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
   connection_name = "https_connection_tf_new"
@@ -152,7 +253,7 @@ resource "mongodbatlas_stream_connection" "example-https" {
 ### Example Schema Registry Connection with USER_INFO Authentication
 
 ```terraform
-resource "mongodbatlas_stream_connection" "example-schema-registry" {
+resource "mongodbatlas_stream_connection" "example_schema_registry" {
   project_id               = var.project_id
   workspace_name           = mongodbatlas_stream_workspace.example.workspace_name
   connection_name          = "SchemaRegistryConnection"
@@ -170,7 +271,7 @@ resource "mongodbatlas_stream_connection" "example-schema-registry" {
 ### Example Schema Registry Connection with SASL_INHERIT Authentication
 
 ```terraform
-resource "mongodbatlas_stream_connection" "example-schema-registry-sasl" {
+resource "mongodbatlas_stream_connection" "example_schema_registry_sasl" {
   project_id               = var.project_id
   workspace_name           = mongodbatlas_stream_workspace.example.workspace_name
   connection_name          = "SchemaRegistryConnectionSASL"
@@ -233,119 +334,120 @@ resource "mongodbatlas_stream_processor" "example" {
 
 ~> **NOTE:** The stream processor resource automatically depends on the stream connections through the `connection_name` references in the pipeline. This ensures proper creation order. The provider waits for each connection to be fully provisioned before returning from create or update operations.
 
-<!-- schema generated by tfplugindocs -->
-## Schema
+## Argument Reference
 
-### Required
+**NOTE:** Either `workspace_name` or `instance_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is an alias for `instance_name`. `workspace_name` should be used instead of `instance_name`.
 
-- `connection_name` (String)
-- `project_id` (String)
-- `type` (String)
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
+* `workspace_name` - (Optional) Label that identifies the stream processing workspace.
+* `instance_name` - (Optional, Deprecated) Label that identifies the stream processing workspace. Use `workspace_name` instead; this attribute will be removed in a future major version.
+* `connection_name` - (Required) Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
+* `type` - (Required) Type of connection. Can be `AWSKinesisDataStreams`, `AWSLambda`, `AzureBlobStorage`, `Cluster`, `GCPPubSub`, `Https`, `Kafka`, `S3`, `Sample`, or `SchemaRegistry`.
 
-### Optional
+If `type` is of value `Cluster` the following additional arguments are defined:
+* `cluster_name` - Name of the cluster configured for this connection.
+* `db_role_to_execute` - The name of a Built in or Custom DB Role to connect to an Atlas Cluster. See [DBRoleToExecute](#dbroletoexecute).
+* `cluster_project_id` - Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams instance. You must first enable the organization setting.
 
-- `authentication` (Attributes) (see [below for nested schema](#nestedatt--authentication))
-- `aws` (Attributes) (see [below for nested schema](#nestedatt--aws))
-- `bootstrap_servers` (String)
-- `cluster_name` (String)
-- `cluster_project_id` (String)
-- `config` (Map of String)
-- `db_role_to_execute` (Attributes) (see [below for nested schema](#nestedatt--db_role_to_execute))
-- `headers` (Map of String)
-- `instance_name` (String, Deprecated)
-- `networking` (Attributes) (see [below for nested schema](#nestedatt--networking))
-- `schema_registry_authentication` (Attributes) (see [below for nested schema](#nestedatt--schema_registry_authentication))
-- `schema_registry_provider` (String)
-- `schema_registry_urls` (List of String)
-- `security` (Attributes) (see [below for nested schema](#nestedatt--security))
-- `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
-- `url` (String)
-- `workspace_name` (String)
+If `type` is of value `Kafka` the following additional arguments are defined:
+* `authentication` - User credentials required to connect to a Kafka cluster. Includes the authentication type, as well as the parameters for that authentication mode. See [authentication](#authentication).
+* `bootstrap_servers` - Comma separated list of server addresses.
+* `config` - A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
+* `security` - Properties for the secure transport connection to Kafka. For SASL_SSL, this can include the trusted certificate to use. See [security](#security).
+* `networking` - Networking Access Type can be `PUBLIC` (default), `VPC`, or `PRIVATE_LINK`. See [networking](#networking).
 
-### Read-Only
+If `type` is `AzureBlobStorage` the configuration defines the following additional attributes:
+* `azure` - The configuration for Azure Blob Storage connection. See [Azure](#azure).
+* `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
 
-- `id` (String) The ID of this resource.
+If `type` is of value `AWSKinesisDataStreams` the following additional arguments are defined:
+* `aws` - The configuration for AWS Kinesis Data Streams connection. See [AWS](#aws).
+* `networking` - Networking Access Type can be `PUBLIC`, `VPC`, or `PRIVATE_LINK`. See [networking](#networking).
 
-<a id="nestedatt--authentication"></a>
-### Nested Schema for `authentication`
+If `type` is of value `AWSLambda` the following additional arguments are defined:
+* `aws` - The configuration for AWS Lambda connection. See [AWS](#aws).
 
-Optional:
+If `type` is of value `GCPPubSub` the following additional arguments are defined:
+* `gcp` - The configuration for GCP Pub/Sub connection. See [GCP](#gcp).
+* `networking` - Networking Access Type can be `PUBLIC` or `PRIVATE_LINK`. See [networking](#networking).
 
-- `client_id` (String)
-- `client_secret` (String, Sensitive)
-- `mechanism` (String)
-- `method` (String)
-- `password` (String, Sensitive)
-- `sasl_oauthbearer_extensions` (String)
-- `scope` (String)
-- `token_endpoint_url` (String)
-- `username` (String)
+If `type` is of value `S3` the following additional arguments are defined:
+* `aws` - The configuration for S3 connection. See [AWS](#aws).
+* `networking` - Networking Access Type can be `PUBLIC`, `VPC`, or `PRIVATE_LINK`. See [networking](#networking).
 
+If `type` is of value `Https` the following additional attributes are defined:
+* `url` - URL of the HTTPs endpoint that will be used for creating a connection.
+* `headers` - A map of key-value pairs for optional headers.
 
-<a id="nestedatt--aws"></a>
-### Nested Schema for `aws`
+If `type` is of value `SchemaRegistry` the following additional arguments are defined:
+* `schema_registry_provider` - The Schema Registry provider. Must be set to `CONFLUENT`.
+* `schema_registry_urls` - List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
+* `schema_registry_authentication` - Authentication configuration for Schema Registry. See [Schema Registry Authentication](#schema-registry-authentication).
 
-Required:
+### Authentication
 
-- `role_arn` (String)
+* `mechanism` - Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, or `OAUTHBEARER`.
+* `method` - SASL OAUTHBEARER authentication method. Value must be OIDC.
+* `username` - Username of the account to connect to the Kafka cluster.
+* `password` - Password of the account to connect to the Kafka cluster.
+* `token_endpoint_url` -  OAUTH issuer (IdP provider) token endpoint HTTP(S) URI used to retrieve the token.
+* `client_id` - Public identifier for the Kafka client.
+* `client_secret` - Secret known only to the Kafka client and the authorization server.
+* `scope` - Scope of the access request to the broker specified by the Kafka clients.
+* `sasl_oauthbearer_extensions` - Additional information to provide to the Kafka broker.
 
+### Security
 
-<a id="nestedatt--db_role_to_execute"></a>
-### Nested Schema for `db_role_to_execute`
+* `broker_public_certificate` - A trusted, public x509 certificate for connecting to Kafka over SSL. String value of the certificate must be defined in the attribute.
+* `protocol` - Describes the transport type. Can be either `SASL_PLAINTEXT` or `SASL_SSL`.
 
-Required:
+### DBRoleToExecute
 
-- `role` (String)
-- `type` (String)
+* `role` - The name of the role to use. Value can be  `atlasAdmin`, `readWriteAnyDatabase`, or `readAnyDatabase` if `type` is set to `BUILT_IN`, or the name of a user-defined role if `type` is set to `CUSTOM`.
+* `type` - Type of the DB role. Can be either BUILT_IN or CUSTOM.
 
+### Networking
+* `access` - Information about the networking access. See [access](#access).
 
-<a id="nestedatt--networking"></a>
-### Nested Schema for `networking`
+### Access
+* `type` - Selected networking type. Either `PUBLIC`, `VPC` or `PRIVATE_LINK`. Defaults to `PUBLIC`.
+* `connection_id` - Id of the Private Link connection when type is `PRIVATE_LINK`.
 
-Required:
+### AWS
+* `role_arn` - Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
 
-- `access` (Attributes) (see [below for nested schema](#nestedatt--networking--access))
+### GCP
+* `service_account_id` - Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to GCP Pub/Sub resources.
 
-<a id="nestedatt--networking--access"></a>
-### Nested Schema for `networking.access`
+### Azure
+* `service_principal_id` - (Required) UUID that identifies the Azure Service Principal used to access the Azure Blob Storage account.
+* `storage_account_name` - (Required) Name of the Azure Storage account to use. Must be lowercase, 3-24 characters, and contain only letters and numbers.
+* `region` - (Optional) Azure region where the storage account is located, specified as a valid Azure region name (for example, `eastus`, `westeurope`).
 
-Required:
+### Schema Registry Authentication
+* `type` - Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry. Valid values are `USER_INFO` or `SASL_INHERIT`.
+  * `USER_INFO` - Uses username and password authentication for Confluent Schema Registry.
+  * `SASL_INHERIT` - Inherits the authentication configuration from Kafka for the Confluent Schema Registry.
+* `username` - Username for the Schema Registry. Required when `type` is `USER_INFO`.
+* `password` - Password for the Schema Registry. Required when `type` is `USER_INFO`.
 
-- `type` (String)
+### Timeouts
 
-Optional:
+```terraform
+resource "mongodbatlas_stream_connection" "example" {
+  # ... other configuration ...
 
-- `connection_id` (String)
+  timeouts = {
+    create = "30m"
+    update = "30m"
+    delete = "15m"
+  }
+}
+```
 
-
-
-<a id="nestedatt--schema_registry_authentication"></a>
-### Nested Schema for `schema_registry_authentication`
-
-Optional:
-
-- `password` (String, Sensitive)
-- `type` (String)
-- `username` (String)
-
-
-<a id="nestedatt--security"></a>
-### Nested Schema for `security`
-
-Optional:
-
-- `broker_public_certificate` (String)
-- `protocol` (String)
-
-
-<a id="nestedatt--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), and "h" (hours). Default: `20m`.
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), and "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs. Default: `10m`.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), and "h" (hours). Default: `20m`.
+* `create` - (Optional) The maximum time to wait for the stream connection to be fully provisioned after creation. Defaults to `40m` (40 minutes).
+* `update` - (Optional) The maximum time to wait for the stream connection to be fully provisioned after an update. Defaults to `40m` (40 minutes).
+* `delete` - (Optional) The maximum time to wait for the stream connection to be fully deleted. Defaults to `40m` (40 minutes).
 
 ## Import
 
@@ -355,5 +457,5 @@ You can import a stream connection resource using the workspace name, project ID
 $ terraform import mongodbatlas_stream_connection.test "DefaultInstance-12251446ae5f3f6ec7968b13-NewConnection"
 ```
 
-To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamConnection) Documentation.
-The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_instance/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.
+To learn more, see: [MongoDB Atlas API - Stream Connection](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createstreamconnection) Documentation.
+The [Terraform Provider Examples Section](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_stream_processor/atlas-streams-user-journey.md) also contains details on the overall support for Atlas Streams Processing in Terraform.

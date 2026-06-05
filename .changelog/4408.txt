@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_alert_configuration: Fix inconsistent state when creating OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD alerts
+```

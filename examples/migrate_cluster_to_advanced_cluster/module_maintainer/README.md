@@ -66,7 +66,8 @@ The module supports standalone usage when there is no existing `mongodbatlas_clu
 ### [`variables.tf`](v2/variables.tf) unchanged from `v1`
 
 ### [`versions.tf`](v2/versions.tf)
-- `required_version` of Terraform CLI bumped to `1.8` for `moved` block [support](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move) between resource types.
+
+- `required_version` set to `1.9`, the current minimum supported version. Uses a `moved` block ([docs](https://developer.hashicorp.com/terraform/language/moved)) to transition between resource types.
 - `mongodbatlas.version` bumped to `1.29.0` for new `mongodbatlas_advanced_cluster` v2 schema support.
 
 ### [`main.tf`](v2/main.tf)
@@ -150,6 +151,17 @@ output "mongodbatlas_cluster" {
 ```
 
 ## Step 4: Module `v4` Implementation Changes and Highlights
+
+> **Warning:** This step removes the `moved` block, which is a [breaking change](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring#removing-moved-blocks) per HashiCorp's documentation.
+>
+> - Any module consumer who has not yet applied a version containing the `moved` block (v2 or v3) and upgrades directly to v4 will see Terraform plan to **destroy the existing cluster and create a new one**.
+> - If applied, this causes downtime and can lead to data loss.
+> - HashiCorp strongly recommends retaining all historical `moved` blocks indefinitely.
+> - Only remove the `moved` block if you are certain that all consumers have successfully applied the move.
+> - If you use [HCP Terraform](https://developer.hashicorp.com/terraform/cloud-docs), check the [explorer](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/explorer) to verify which module versions are currently in use.
+>
+> For more details, see the [moved block lifecycle guidance](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide#how-long-should-you-keep-the-moved-block).
+
 This module marks the end of the migration to `mongodbatlas_advanced_cluster`.
 We future-proof the module by removing references to the `mongodbatlas_cluster` data source and only allowing the latest schema for the `replication_specs` variable.
 A major version bump would typically accompany this module version since we remove and rename input and output variables.

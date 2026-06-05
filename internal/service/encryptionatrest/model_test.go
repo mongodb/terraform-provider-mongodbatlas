@@ -3,7 +3,7 @@ package encryptionatrest_test
 import (
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -56,6 +56,7 @@ var (
 		ResourceGroupName:        &resourceGroupName,
 		KeyVaultName:             &keyVaultName,
 		KeyIdentifier:            &keyIdentifier,
+		RoleId:                   &roleID,
 		TenantID:                 &tenantID,
 		Secret:                   &secret,
 		RequirePrivateNetworking: &requirePrivateNetworking,
@@ -71,6 +72,7 @@ var (
 		TenantID:                 types.StringValue(tenantID),
 		Secret:                   types.StringValue(secret),
 		RequirePrivateNetworking: types.BoolValue(requirePrivateNetworking),
+		RoleID:                   types.StringValue(roleID),
 	}
 	GoogleCloudKMS = &admin.GoogleCloudKMS{
 		Enabled:              &enabled,

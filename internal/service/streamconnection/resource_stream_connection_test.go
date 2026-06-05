@@ -7,14 +7,20 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
+
+// azureServicePrincipalMu serializes Azure Blob Storage tests that share the same
+// service principal ID, preventing DUPLICATE_AZURE_SERVICE_PRINCIPAL errors
+var azureServicePrincipalMu sync.Mutex
 
 const (
 	dataSourceConfig = `
@@ -97,7 +103,7 @@ var (
 
 func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 	testCase := testCaseKafkaPlaintext(t)
-	resource.ParallelTest(t, *testCase)
+	resource.Test(t, *testCase)
 }
 
 func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
@@ -213,7 +219,7 @@ func TestAccStreamRSStreamConnection_kafkaOAuthBearer(t *testing.T) {
 			},
 		},
 	}
-	resource.ParallelTest(t, *testCase)
+	resource.Test(t, *testCase)
 }
 
 func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
@@ -259,7 +265,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		providerName            = "AWS"
 		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -288,7 +294,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
 	testCase := testCaseCluster(t)
-	resource.ParallelTest(t, *testCase)
+	resource.Test(t, *testCase)
 }
 
 func testCaseCluster(t *testing.T) *resource.TestCase {
@@ -355,7 +361,7 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 		instanceName = acc.RandomStreamInstanceName() // The execution stream instance use sample stream, so we need to create this in a different instance
 		sampleName   = "sample_stream_solar"
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -391,7 +397,7 @@ func TestAccStreamStreamConnection_https(t *testing.T) {
 		}`
 		emptyHeaders string
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -449,7 +455,7 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 		}`, networkingTypePrivatelink)
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -478,7 +484,7 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 		awsIAMRoleName          = acc.RandomIAMRole()
 		connectionName          = acc.RandomName()
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -498,13 +504,65 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	})
 }
 
+func TestAccStreamRSStreamConnection_GCPPubSub(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = acc.RandomName()
+	)
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: configureGCPPubSub(projectID, instanceName, connectionName),
+				Check:  checkGCPPubSubAttributes(resourceName, instanceName, connectionName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccStreamRSStreamConnection_GCPPubSubPrivateLink(t *testing.T) {
+	acc.SkipTestForCI(t) // requires a GCP cluster in the same region for privatelink provisioning, too slow for CI
+	var (
+		projectID      = acc.ProjectIDExecution(t)
+		instanceName   = acc.RandomStreamInstanceName()
+		clusterName    = acc.RandomClusterName()
+		connectionName = acc.RandomName()
+		region         = "us-east4"
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: configureGCPPubSubPrivateLink(projectID, instanceName, clusterName, connectionName, region),
+				Check:  checkGCPPubSubPrivateLinkAttributes(resourceName, instanceName, connectionName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccStreamRSStreamConnection_instanceName(t *testing.T) {
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = acc.RandomName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -537,7 +595,7 @@ func TestAccStreamRSStreamConnection_conflictingFields(t *testing.T) {
 		connectionName          = "conflict-test"
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -558,7 +616,7 @@ func TestAccStreamRSStreamConnection_SchemaRegistry(t *testing.T) {
 		username                = "user"
 		password                = "password"
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -625,7 +683,7 @@ func TestAccStreamRSStreamConnection_SchemaRegistrySASLInherit(t *testing.T) {
 		connectionName          = acc.RandomName()
 		schemaRegistryURLs      = []string{"https://schemaregistry.example.com"}
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -1112,6 +1170,121 @@ func configureAWSLambda(projectID, instanceName, connectionName, awsIamRoleName 
 	return config
 }
 
+func configureGCPPubSub(projectID, instanceName, connectionName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
+			project_id    = %[1]q
+			provider_name = "GCP"
+		}
+
+		resource "mongodbatlas_cloud_provider_access_authorization" "gcp_auth" {
+			project_id = %[1]q
+			role_id    = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
+		}
+
+		resource "mongodbatlas_stream_connection" "test" {
+			project_id      = %[1]q
+			workspace_name  = %[2]q
+			connection_name = %[3]q
+			type            = "GCPPubSub"
+			gcp = {
+				service_account_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.gcp_config[0].service_account_for_atlas
+			}
+			depends_on = [mongodbatlas_cloud_provider_access_authorization.gcp_auth]
+		}
+	`, projectID, instanceName, connectionName)
+}
+
+func checkGCPPubSubAttributes(resourceName, workspaceName, connectionName string) resource.TestCheckFunc {
+	resourceChecks := []resource.TestCheckFunc{
+		checkStreamConnectionExists(),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName),
+		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
+		resource.TestCheckResourceAttr(resourceName, "type", "GCPPubSub"),
+		resource.TestCheckResourceAttrSet(resourceName, "gcp.service_account_id"),
+	}
+	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
+}
+
+func configureGCPPubSubPrivateLink(projectID, instanceName, clusterName, connectionName, region string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[3]q
+			cluster_type = "REPLICASET"
+			replication_specs = [{
+				region_configs = [{
+					priority      = 7
+					provider_name = "GCP"
+					region_name   = "US_EAST_4"
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+					}
+				}]
+			}]
+		}
+
+		resource "mongodbatlas_stream_workspace" "test" {
+			project_id     = %[1]q
+			workspace_name = %[2]q
+			data_process_region = {
+				region         = "US_EAST4"
+				cloud_provider = "GCP"
+			}
+		}
+
+		resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
+			project_id    = %[1]q
+			provider_name = "GCP"
+		}
+
+		resource "mongodbatlas_cloud_provider_access_authorization" "gcp_auth" {
+			project_id = %[1]q
+			role_id    = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
+		}
+
+		resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+			project_id    = %[1]q
+			provider_name = "GCP"
+			vendor        = "PUBSUB"
+			region        = %[5]q
+			depends_on    = [mongodbatlas_advanced_cluster.test, mongodbatlas_cloud_provider_access_authorization.gcp_auth]
+		}
+
+		resource "mongodbatlas_stream_connection" "test" {
+			project_id      = %[1]q
+			workspace_name  = mongodbatlas_stream_workspace.test.workspace_name
+			connection_name = %[4]q
+			type            = "GCPPubSub"
+			gcp = {
+				service_account_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.gcp_config[0].service_account_for_atlas
+			}
+			networking = {
+				access = {
+					type          = "PRIVATE_LINK"
+					connection_id = mongodbatlas_stream_privatelink_endpoint.test.id
+				}
+			}
+		}
+	`, projectID, instanceName, clusterName, connectionName, region)
+}
+
+func checkGCPPubSubPrivateLinkAttributes(resourceName, workspaceName, connectionName string) resource.TestCheckFunc {
+	resourceChecks := []resource.TestCheckFunc{
+		checkStreamConnectionExists(),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName),
+		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
+		resource.TestCheckResourceAttr(resourceName, "type", "GCPPubSub"),
+		resource.TestCheckResourceAttrSet(resourceName, "gcp.service_account_id"),
+		resource.TestCheckResourceAttr(resourceName, "networking.access.type", "PRIVATE_LINK"),
+		resource.TestCheckResourceAttrSet(resourceName, "networking.access.connection_id"),
+	}
+	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
+}
+
 func checkAWSLambdaAttributes(resourceName, workspaceName, connectionName string) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
@@ -1120,6 +1293,221 @@ func checkAWSLambdaAttributes(resourceName, workspaceName, connectionName string
 		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 		resource.TestCheckResourceAttr(resourceName, "type", "AWSLambda"),
 		resource.TestCheckResourceAttrSet(resourceName, "aws.role_arn"),
+	}
+	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
+}
+
+func TestAccStreamRSStreamConnection_AzureBlobStorage(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = acc.RandomName()
+		clientID                = os.Getenv("AZURE_CLIENT_ID")
+		clientSecret            = os.Getenv("AZURE_APP_SECRET")
+		subscriptionID          = os.Getenv("AZURE_SUBSCRIPTION_ID")
+		tenantID                = os.Getenv("AZURE_TENANT_ID")
+		atlasAzureAppID         = os.Getenv("AZURE_ATLAS_APP_ID")
+		servicePrincipalID      = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
+		resourceGroupName       = acc.RandomName()
+		storageAccountName      = "tfacctest" + acctest.RandString(10)
+		storageContainerName    = acc.RandomBucketName()
+	)
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			acc.PreCheckAzureEnvWithServicePrincipal(t)
+			azureServicePrincipalMu.Lock()
+			t.Cleanup(azureServicePrincipalMu.Unlock)
+		},
+		ExternalProviders:        acc.ExternalProvidersOnlyAzurerm(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourceConfig + configureAzureBlobStorage(projectID, instanceName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName, networkingTypePublic),
+				Check:  checkAzureBlobStorageAttributes(resourceName, dataSourceName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccStreamRSStreamConnection_AzureBlobStoragePrivateLink(t *testing.T) {
+	var (
+		projectID            = acc.ProjectIDExecution(t)
+		instanceName         = acc.RandomStreamInstanceName()
+		clusterName          = acc.RandomClusterName()
+		connectionName       = acc.RandomName()
+		clientID             = os.Getenv("AZURE_CLIENT_ID")
+		clientSecret         = os.Getenv("AZURE_APP_SECRET")
+		subscriptionID       = os.Getenv("AZURE_SUBSCRIPTION_ID")
+		tenantID             = os.Getenv("AZURE_TENANT_ID")
+		atlasAzureAppID      = os.Getenv("AZURE_ATLAS_APP_ID")
+		servicePrincipalID   = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
+		resourceGroupName    = acc.RandomName()
+		storageAccountName   = "tfacctest" + acctest.RandString(10)
+		storageContainerName = acc.RandomBucketName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			acc.PreCheckAzureEnvWithServicePrincipal(t)
+			azureServicePrincipalMu.Lock()
+			t.Cleanup(azureServicePrincipalMu.Unlock)
+		},
+		ExternalProviders:        acc.ExternalProvidersOnlyAzurerm(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourceConfig + configureAzureBlobStoragePrivateLink(projectID, instanceName, clusterName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAzureBlobStoragePrivateLinkAttributes(resourceName, instanceName, connectionName, servicePrincipalID, storageAccountName),
+					checkAzureBlobStoragePrivateLinkAttributes(dataSourceName, instanceName, connectionName, servicePrincipalID, storageAccountName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+func configAzureBlobStorageStreamConnection(projectID, workspaceName, connectionName, networkingType string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_connection" "test" {
+			project_id      = %[1]q
+			workspace_name  = %[2]q
+			connection_name = %[3]q
+			type            = "AzureBlobStorage"
+			azure = {
+				service_principal_id = mongodbatlas_cloud_provider_access_setup.azure_setup.azure_config[0].service_principal_id
+				storage_account_name = azurerm_storage_account.blob_storage.name
+				region               = azurerm_resource_group.blob_rg.location
+			}
+			networking = {
+				access = {
+					type = %[4]q
+				}
+			}
+			depends_on = [
+				mongodbatlas_cloud_provider_access_authorization.azure_auth,
+				azurerm_role_assignment.blob_contributor,
+			]
+		}
+	`, projectID, workspaceName, connectionName, networkingType)
+}
+
+func configureAzureBlobStorage(projectID, workspaceName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName, networkingType string) string {
+	return acc.ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID) +
+		acc.ConfigAzureCloudProviderAccess(projectID, atlasAzureAppID, servicePrincipalID, tenantID) +
+		acc.ConfigAzureStorageResources("blob", resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID) +
+		configAzureBlobStorageStreamConnection(projectID, workspaceName, connectionName, networkingType)
+}
+
+func checkAzureBlobStorageAttributes(resourceNames ...string) resource.TestCheckFunc {
+	var checks []resource.TestCheckFunc
+	for _, name := range resourceNames {
+		checks = append(checks,
+			checkStreamConnectionExists(),
+			resource.TestCheckResourceAttrSet(name, "project_id"),
+			resource.TestCheckResourceAttrSet(name, "workspace_name"),
+			resource.TestCheckResourceAttrSet(name, "connection_name"),
+			resource.TestCheckResourceAttr(name, "type", "AzureBlobStorage"),
+			resource.TestCheckResourceAttrSet(name, "azure.service_principal_id"),
+			resource.TestCheckResourceAttrSet(name, "azure.storage_account_name"),
+			resource.TestCheckResourceAttrSet(name, "azure.region"),
+			resource.TestCheckResourceAttr(name, "networking.access.type", networkingTypePublic),
+		)
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func configureAzureBlobStoragePrivateLink(projectID, workspaceName, clusterName, connectionName, clientID, clientSecret, subscriptionID, tenantID, atlasAzureAppID, servicePrincipalID, resourceGroupName, storageAccountName, storageContainerName string) string {
+	return acc.ConfigAzurermProvider(subscriptionID, clientID, clientSecret, tenantID) +
+		acc.ConfigAzureCloudProviderAccess(projectID, atlasAzureAppID, servicePrincipalID, tenantID) +
+		acc.ConfigAzureStorageResources("blob", resourceGroupName, storageAccountName, storageContainerName, servicePrincipalID) +
+		configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, clusterName, connectionName)
+}
+
+func configAzureBlobStoragePrivateLinkResources(projectID, workspaceName, clusterName, connectionName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[4]q
+			cluster_type = "REPLICASET"
+			replication_specs = [{
+				region_configs = [{
+					priority      = 7
+					provider_name = "AZURE"
+					region_name   = "US_EAST_2"
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+					}
+				}]
+			}]
+		}
+
+		resource "mongodbatlas_stream_workspace" "test" {
+			project_id     = %[1]q
+			workspace_name = %[2]q
+			data_process_region = {
+				region         = "eastus2"
+				cloud_provider = "AZURE"
+			}
+		}
+
+		resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+			project_id          = %[1]q
+			provider_name       = "AZURE"
+			vendor              = "AZURE_BLOB_STORAGE"
+			region              = azurerm_resource_group.blob_rg.location
+			service_endpoint_id = azurerm_storage_account.blob_storage.id
+			dns_domain          = "${azurerm_storage_account.blob_storage.name}.blob.core.windows.net"
+			depends_on          = [mongodbatlas_advanced_cluster.test]
+		}
+
+		resource "mongodbatlas_stream_connection" "test" {
+			project_id      = %[1]q
+			workspace_name  = mongodbatlas_stream_workspace.test.workspace_name
+			connection_name = %[3]q
+			type            = "AzureBlobStorage"
+			azure = {
+				service_principal_id = mongodbatlas_cloud_provider_access_setup.azure_setup.azure_config[0].service_principal_id
+				storage_account_name = azurerm_storage_account.blob_storage.name
+				region               = azurerm_resource_group.blob_rg.location
+			}
+			networking = {
+				access = {
+					type          = "PRIVATE_LINK"
+					connection_id = mongodbatlas_stream_privatelink_endpoint.test.id
+				}
+			}
+			depends_on = [
+				mongodbatlas_cloud_provider_access_authorization.azure_auth,
+				azurerm_role_assignment.blob_contributor,
+			]
+		}
+	`, projectID, workspaceName, connectionName, clusterName)
+}
+
+func checkAzureBlobStoragePrivateLinkAttributes(resourceName, workspaceName, connectionName, servicePrincipalID, storageAccountName string) resource.TestCheckFunc {
+	resourceChecks := []resource.TestCheckFunc{
+		checkStreamConnectionExists(),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName),
+		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
+		resource.TestCheckResourceAttr(resourceName, "type", "AzureBlobStorage"),
+		resource.TestCheckResourceAttr(resourceName, "azure.service_principal_id", servicePrincipalID),
+		resource.TestCheckResourceAttr(resourceName, "azure.storage_account_name", storageAccountName),
+		resource.TestCheckResourceAttrSet(resourceName, "azure.region"),
+		resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingTypePrivatelink),
+		resource.TestCheckResourceAttrSet(resourceName, "networking.access.connection_id"),
 	}
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }

@@ -34,7 +34,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 			},
 			"specs": schema.ListNestedAttribute{
 				Validators: []validator.List{
@@ -64,8 +64,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Create:            true,
 				Update:            true,
 				Delete:            true,
-				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate(constant.DefaultTimeoutDocumentation),
-				UpdateDescription: constant.TimeoutDescriptionCreateReadUpdate(constant.DefaultTimeoutDocumentation),
+				CreateDescription: constant.TimeoutDescriptionCreateUpdate(constant.DefaultTimeoutDocumentation),
+				UpdateDescription: constant.TimeoutDescriptionCreateUpdate(constant.DefaultTimeoutDocumentation),
 				DeleteDescription: constant.TimeoutDescriptionDelete(constant.DefaultTimeoutDocumentation),
 			}),
 			"skip_wait_on_update": schema.BoolAttribute{

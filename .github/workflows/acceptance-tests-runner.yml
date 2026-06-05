@@ -158,6 +158,8 @@ on:
         required: true
       mongodb_atlas_private_endpoint_dns_name:
         required: true
+      mongodb_atlas_private_endpoint_id_replace:
+        required: true
       mongodb_atlas_gov_private_key:
         required: true
       mongodb_atlas_gov_public_key:
@@ -207,6 +209,12 @@ on:
       slack_oncall_tag_stream:
         required: true
       slack_webhook_url_stream:
+        required: true
+      gcp_project_id:
+        required: true
+      gcp_workload_identity_provider:
+        required: true
+      gcp_service_account_email:
         required: true
 
 env:
@@ -283,10 +291,11 @@ jobs:
       search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
       search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
       service_account: ${{ steps.filter.outputs.service_account == 'true' || env.mustTrigger == 'true' }}
+      service_account_jwt: ${{ steps.filter.outputs.service_account_jwt == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-    - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
+    - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d
       id: filter
       if: ${{ inputs.test_group == ''  && env.mustTrigger == 'false' }}
       with:
@@ -298,7 +307,9 @@ jobs:
             - 'internal/provider/*.go'
           authentication:
             - 'internal/config/*.go'
-            - 'internal/provider/*.go' 
+            - 'internal/provider/*.go'
+          service_account_jwt:
+            - 'internal/service/serviceaccountjwt/*.go'
           autogen_fast:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/alertconfigurationapi/*.go'
@@ -306,6 +317,7 @@ jobs:
             - 'internal/serviceapi/customdbroleapi/*.go'
             - 'internal/serviceapi/databaseuserapi/*.go'
             - 'internal/serviceapi/maintenancewindowapi/*.go'
+            - 'internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive/*.go'
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/projectsettingsapi/*.go'
             - 'internal/serviceapi/resourcepolicyapi/*.go'
@@ -385,7 +397,6 @@ jobs:
             - 'internal/service/privateendpointregionalmode/*.go'
             - 'internal/service/privatelinkendpoint/*.go'
             - 'internal/service/privatelinkendpointservice/*.go'
-            - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go' 
           project:
             - 'internal/common/autogen/*.go'
             - 'internal/service/accesslistapikey/*.go'
@@ -416,7 +427,8 @@ jobs:
             - 'internal/service/streamconnection/*.go'
             - 'internal/service/streaminstance/*.go'
             - 'internal/service/streamprocessor/*.go'
-            - 'internal/service/streamprivatelinkendpoint/*.go' 
+            - 'internal/service/streamprivatelinkendpoint/*.go'
+            - 'internal/service/streamworkspace/*.go'
 
 
   advanced_cluster:
@@ -428,10 +440,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -453,10 +465,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -479,10 +491,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -525,10 +537,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
@@ -566,10 +578,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
@@ -604,6 +616,34 @@ jobs:
           MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}        
         run: make access-token-revoke token="${{ steps.create-token.outputs.access_token }}"
 
+  # Always runs using Service Account credentials (explicitly set in step env)
+  service_account_jwt:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.service_account_jwt == 'true' || inputs.test_group == 'service_account_jwt' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false
+      - name: Acceptance Tests (Service Account JWT)
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ""
+          MONGODB_ATLAS_PRIVATE_KEY: ""
+          MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
+          MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_REGEX_RUN: '^TestAccServiceAccountJWT'
+          ACCTEST_PACKAGES: ./internal/service/serviceaccountjwt
+        run: make testacc
+
   autogen_fast:
     needs: [change-detection, get-provider-version]
     # Avoids concurrent execution of resource policy tests to prevent race conditions on organization-level side effects of resource policies
@@ -611,18 +651,24 @@ jobs:
       group: ${{ github.repository }}-resource-policy-concurrency
     if: ${{ needs.change-detection.outputs.autogen_fast == 'true' || inputs.test_group == 'autogen' || inputs.test_group == 'autogen_fast' }}
     runs-on: ubuntu-latest
-    permissions: {}
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ secrets.gcp_workload_identity_provider }}
+          service_account: ${{ secrets.gcp_service_account_email }}
       - name: Enable autogen
         run: make tools enable-autogen
       - name: Acceptance Tests
@@ -631,6 +677,16 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_KMS_KEY_ID: ${{ secrets.aws_kms_key_id }}
+          MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME: ${{ secrets.mongodb_atlas_private_endpoint_dns_name }}
+          MONGODB_ATLAS_PRIVATE_ENDPOINT_ID: ${{ secrets.mongodb_atlas_private_endpoint_id }}
+          MONGODB_ATLAS_PRIVATE_ENDPOINT_ID_REPLACE: ${{ secrets.mongodb_atlas_private_endpoint_id_replace }}
+          AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
+          AZURE_APP_SECRET: ${{ secrets.azure_app_secret }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
+          AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
+          AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
+          AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
+          GCP_PROJECT_ID: ${{ secrets.gcp_project_id }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
             ./internal/serviceapi/alertconfigurationapi
@@ -639,6 +695,7 @@ jobs:
             ./internal/serviceapi/databaseuserapi
             ./internal/serviceapi/logintegration
             ./internal/serviceapi/maintenancewindowapi
+            ./internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/projectsettingsapi
             ./internal/serviceapi/streamconnectionapi
@@ -663,10 +720,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
@@ -697,10 +754,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -736,10 +793,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -758,10 +815,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -788,10 +845,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -810,10 +867,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -832,10 +889,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -881,10 +938,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
@@ -942,10 +999,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -981,10 +1038,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -1003,10 +1060,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
@@ -1044,10 +1101,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
@@ -1066,10 +1123,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -1093,10 +1150,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -1115,10 +1172,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -1144,10 +1201,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -1166,10 +1223,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -1190,6 +1247,9 @@ jobs:
           AWS_SUBNET_ID: ${{ vars.AWS_SUBNET_ID }}
           AWS_SECURITY_GROUP_ID: ${{ vars.AWS_SECURITY_GROUP_ID }}
           AZURE_DIRECTORY_ID: ${{ secrets.azure_directory_id }}
+          AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
+          AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
+          AZURE_APP_SECRET: ${{ secrets.azure_app_secret }}
           AZURE_RESOURCE_GROUP_NAME: ${{ secrets.azure_resource_group_name }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
           AZURE_VNET_NAME: ${{ secrets.azure_vnet_name }}
@@ -1201,7 +1261,6 @@ jobs:
             ./internal/service/privateendpointregionalmode
             ./internal/service/privatelinkendpoint
             ./internal/service/privatelinkendpointservice
-            ./internal/service/privatelinkendpointservicedatafederationonlinearchive
         run: make testacc
       
   project: 
@@ -1213,10 +1272,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -1251,10 +1310,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -1279,10 +1338,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
@@ -1306,10 +1365,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
@@ -1329,10 +1388,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
@@ -1351,10 +1410,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
@@ -1380,10 +1439,10 @@ jobs:
         - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
           with:
             ref: ${{ inputs.ref || github.ref }}
-        - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
+        - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
           with:
             go-version-file: 'go.mod'
-        - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
           with:
             terraform_version: ${{ inputs.terraform_version }}
             terraform_wrapper: false  
@@ -1400,12 +1459,19 @@ jobs:
             AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
             AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
             AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
+            AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
+            AZURE_APP_SECRET: ${{ secrets.azure_app_secret }}
+            AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
+            AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
+            AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
+            AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
             ACCTEST_PACKAGES: |
               ./internal/service/streamaccountdetails
               ./internal/service/streamconnection
               ./internal/service/streaminstance
               ./internal/service/streamprocessor
               ./internal/service/streamprivatelinkendpoint
+              ./internal/service/streamworkspace
           run: make testacc
 
   slack-notification-stream:
@@ -1415,7 +1481,7 @@ jobs:
     permissions: {}
     steps:
       - name: Send Slack message
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
         with:
           webhook: ${{ secrets.slack_webhook_url_stream }}
           webhook-type: incoming-webhook

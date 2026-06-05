@@ -1,5 +1,5 @@
 variable "project_id" {
-  description = "MongoDB Atlas Project ID"
+  description = "Atlas Project ID"
   type        = string
 }
 

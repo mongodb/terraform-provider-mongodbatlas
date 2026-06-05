@@ -6,6 +6,10 @@ func StatusNotFound(resp *http.Response) bool {
 	return resp != nil && resp.StatusCode == http.StatusNotFound
 }
 
+func StatusUnauthorized(resp *http.Response) bool {
+	return resp != nil && resp.StatusCode == http.StatusUnauthorized
+}
+
 func StatusServiceUnavailable(resp *http.Response) bool {
 	return resp != nil && resp.StatusCode == http.StatusServiceUnavailable
 }

@@ -21,8 +21,8 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 				Name:        "test_name",
 				PackageName: "testname",
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
-						SingularDSAttributes: &codespec.Attributes{
+					Singular: &codespec.Schema{
+						Attributes: codespec.Attributes{
 							{
 								TFSchemaName:             "string_attr",
 								TFModelName:              "StringAttr",
@@ -69,8 +69,8 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 				Name:        "test_name",
 				PackageName: "testname",
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
-						SingularDSAttributes: &codespec.Attributes{
+					Singular: &codespec.Schema{
+						Attributes: codespec.Attributes{
 							{
 								TFSchemaName:             "nested_object_attr",
 								TFModelName:              "NestedObjectAttr",
@@ -130,9 +130,9 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 				Name:        "test_name",
 				PackageName: "testname",
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
+					Singular: &codespec.Schema{
 						DeprecationMessage: new("This data source is deprecated. Please use the test_name_new data source instead."),
-						SingularDSAttributes: &codespec.Attributes{
+						Attributes: codespec.Attributes{
 							{
 								TFSchemaName:             "string_attr",
 								TFModelName:              "StringAttr",
@@ -151,8 +151,8 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 				Name:        "test_name",
 				PackageName: "testname",
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
-						SingularDSAttributes: &codespec.Attributes{
+					Singular: &codespec.Schema{
+						Attributes: codespec.Attributes{
 							{
 								TFSchemaName:             "project_id",
 								TFModelName:              "ProjectId",
@@ -173,11 +173,76 @@ func TestDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "ds-required-path-param",
 		},
+		"Expanded model embedding": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				DataSources: &codespec.DataSources{
+					Singular: &codespec.Schema{
+						ExpandedModel: true,
+						Attributes: codespec.Attributes{
+							{
+								TFSchemaName:             "project_id",
+								TFModelName:              "ProjectId",
+								String:                   &codespec.StringAttribute{},
+								Description:              new("project identifier"),
+								ComputedOptionalRequired: codespec.Required,
+							},
+						},
+					},
+				},
+			},
+			goldenFileName: "ds-expanded-model",
+		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
 			result, err := schema.GenerateDataSourceSchemaGoCode(&tc.inputModel)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
+			g.Assert(t, tc.goldenFileName, result)
+		})
+	}
+}
+
+func TestPluralDataSourceSchemaGenerationFromCodeSpec(t *testing.T) {
+	testCases := map[string]dsSchemaGenerationTestCase{
+		"Expanded model embedding": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				DataSources: &codespec.DataSources{
+					Plural: &codespec.Schema{
+						ExpandedModel: true,
+						Attributes: codespec.Attributes{
+							{
+								TFSchemaName:             "project_id",
+								TFModelName:              "ProjectId",
+								String:                   &codespec.StringAttribute{},
+								Description:              new("project identifier"),
+								ComputedOptionalRequired: codespec.Required,
+							},
+							{
+								TFSchemaName:             "name",
+								TFModelName:              "Name",
+								String:                   &codespec.StringAttribute{},
+								Description:              new("resource name"),
+								ComputedOptionalRequired: codespec.Computed,
+							},
+						},
+					},
+				},
+			},
+			goldenFileName: "plural-ds-expanded-model",
+		},
+	}
+
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			result, err := schema.GeneratePluralDataSourceSchemaGoCode(&tc.inputModel)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -198,17 +263,17 @@ func TestDataSourceSchemaGenerationErrors(t *testing.T) {
 				PackageName: "testname",
 				DataSources: nil,
 			},
-			expectedErrMsg: "data source schema is required for test_name",
+			expectedErrMsg: "singular data source schema is required for test_name",
 		},
-		"Missing DataSources Schema": {
+		"Missing Singular Schema": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
 				PackageName: "testname",
 				DataSources: &codespec.DataSources{
-					Schema: nil,
+					Singular: nil,
 				},
 			},
-			expectedErrMsg: "data source schema is required for test_name",
+			expectedErrMsg: "singular data source schema is required for test_name",
 		},
 	}
 

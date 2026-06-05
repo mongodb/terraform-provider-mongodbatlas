@@ -1,16 +1,13 @@
 package hcl
 
 import (
-	"context"
+	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 	"sync"
 	"testing"
-
-	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/hc-install/product"
-	"github.com/hashicorp/hc-install/releases"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclparse"
@@ -31,13 +28,9 @@ func getTF() *tfexec.Terraform {
 	if tf != nil {
 		return tf
 	}
-	installer := &releases.ExactVersion{
-		Product: product.Terraform,
-		Version: version.Must(version.NewVersion("1.10.1")),
-	}
-	execPath, err := installer.Install(context.Background())
+	execPath, err := exec.LookPath("terraform")
 	if err != nil {
-		panic(err)
+		panic("terraform not found in PATH: " + err.Error())
 	}
 	tempDir, err := os.Getwd()
 	if err != nil {
@@ -72,8 +65,8 @@ func AddAttributes(t *testing.T, body *hclsyntax.Body, ret map[string]cty.Value)
 func PrettyHCL(tb testing.TB, content string) string {
 	tb.Helper()
 	builder := strings.Builder{}
-	fmt := getTF().Format(tb.Context(), io.NopCloser(strings.NewReader(content)), &builder)
-	require.NoError(tb, fmt)
+	err := getTF().Format(tb.Context(), io.NopCloser(strings.NewReader(content)), &builder)
+	require.NoError(tb, err)
 	formatted := builder.String()
 	return formatted
 }
@@ -98,4 +91,16 @@ func GetBlockBody(t *testing.T, block *hclwrite.Block) *hclsyntax.Body {
 	body, ok := parser.Body.(*hclsyntax.Body)
 	require.True(t, ok, "unexpected *hclsyntax.Body type: %T", parser.Body)
 	return body
+}
+
+// StringSliceToHCL converts a Go string slice to an HCL literal.
+// Returns "null" for nil, "[]" for empty, or a quoted list like `["a", "b"]`.
+func StringSliceToHCL(slice []string) string {
+	if slice == nil {
+		return "null"
+	}
+	if len(slice) == 0 {
+		return "[]"
+	}
+	return fmt.Sprintf("[%s]", `"`+strings.Join(slice, `", "`)+`"`)
 }

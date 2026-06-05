@@ -1,6 +1,10 @@
 package autogen
 
 import (
+	"context"
+
+	datasourceschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -12,6 +16,11 @@ type PreReadAPICallHook interface {
 
 type PostReadAPICallHook interface {
 	PostReadAPICall(HandleReadReq, APICallResult) APICallResult
+}
+
+// Hook for handling aggregated list responses (plural data sources usage)
+type PostReadAggregatedListAPICallHook interface {
+	PostReadAggregatedListAPICall(HandleReadReq, APICallResult) APICallResult
 }
 
 type PreCreateAPICallHook interface {
@@ -40,4 +49,12 @@ type PostUpdateAPICallHook interface {
 
 type PreImportHook interface {
 	PreImport(id string) (string, error)
+}
+
+type ResourceSchemaHook interface {
+	ResourceSchema(ctx context.Context, baseSchema schema.Schema) schema.Schema
+}
+
+type DataSourceSchemaHook interface {
+	DataSourceSchema(ctx context.Context, baseSchema datasourceschema.Schema) datasourceschema.Schema
 }

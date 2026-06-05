@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
@@ -33,7 +34,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 			},
 			"cidr_block": schema.StringAttribute{
 				Optional: true,
@@ -88,8 +89,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Remark that explains the purpose or scope of this IP access list entry.",
 			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Read:   true,
-				Delete: true,
+				Read:              true,
+				ReadDescription:   constant.TimeoutDescriptionRead("2m"),
+				Delete:            true,
+				DeleteDescription: constant.TimeoutDescriptionDelete("45m"),
 			}),
 		},
 	}

@@ -30,7 +30,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 					Attributes: map[string]dsschema.Attribute{
 						"project_id": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 						},
 					},
 				},

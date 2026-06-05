@@ -1,6 +1,6 @@
 schema:
     description: |-
-        Creates one cluster in the specified project. Clusters contain a group of hosts that maintain the same data set. This resource can create clusters with asymmetrically-sized shards. Each project supports up to 25 database deployments. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Cluster Creator role. This feature is not available for serverless clusters.
+        Creates one cluster in the specified project. Clusters contain a group of hosts that maintain the same data set. This resource can create clusters with asymmetrically-sized shards. Each project supports up to 25 database deployments. This feature is not available for serverless clusters.
 
         Please note that using an `instanceSize` of M2 or M5 will create a Flex cluster instead. Support for the `instanceSize` of M2 or M5 will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward.
     deprecation_message: This resource is deprecated. Please use the mongodbatlas_cluster_api resource instead.
@@ -21,7 +21,7 @@ schema:
                 attributes:
                     - list:
                         element_type: 4
-                      description: The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.
+                      description: The custom OpenSSL cipher suite list for TLS 1.2. Requires `tlsCipherConfigMode` = `CUSTOM`; when `tlsCipherConfigMode` is omitted, supplying a non-empty list infers `CUSTOM`.
                       custom_type:
                         package: customtypes
                         model: customtypes.ListValue[types.String]
@@ -37,7 +37,7 @@ schema:
                       request_only_required_on_create: false
                     - list:
                         element_type: 4
-                      description: The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.
+                      description: The custom OpenSSL cipher suite list for TLS 1.3. Requires `tlsCipherConfigMode` = `CUSTOM`; when `tlsCipherConfigMode` is omitted, supplying a non-empty list infers `CUSTOM`.
                       custom_type:
                         package: customtypes
                         model: customtypes.ListValue[types.String]
@@ -799,7 +799,7 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
-                                  description: Options that determine how this cluster handles resource scaling.
+                                  description: 'Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.'
                                   custom_type:
                                     package: customtypes
                                     name: ReplicationSpecsRegionConfigsAnalyticsAutoScaling
@@ -836,9 +836,20 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
+                                            - int64: {}
+                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_throughput
+                                              tf_model_name: DiskThroughput
+                                              api_name: diskThroughput
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
                                             - string:
                                                 default: STANDARD
-                                              description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
+                                              description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`."
                                               computed_optional_required: computed_optional
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
@@ -870,7 +881,7 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
-                                  description: Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region.
+                                  description: 'Optional for provider_name: AWS, AZURE, GCP. Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don''t specify this parameter, no read-only nodes are deployed to the region.'
                                   custom_type:
                                     package: customtypes
                                     name: ReplicationSpecsRegionConfigsAnalyticsSpecs
@@ -983,7 +994,7 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
-                                  description: Options that determine how this cluster handles resource scaling.
+                                  description: 'Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.'
                                   custom_type:
                                     package: customtypes
                                     name: ReplicationSpecsRegionConfigsAutoScaling
@@ -999,7 +1010,7 @@ schema:
                                   present_in_any_response: true
                                   request_only_required_on_create: false
                                 - string: {}
-                                  description: "Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when `providerName` is `TENANT` and `electableSpecs.instanceSize` is `M0`, `M2` or `M5`. \n\nPlease note that using an `instanceSize` of M2 or M5 will create a Flex cluster instead. Support for the `instanceSize` of M2 or M5 will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward."
+                                  description: "Optional for provider_name: TENANT. Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when `providerName` is `TENANT` and `electableSpecs.instanceSize` is `M0`, `M2` or `M5`. \n\nPlease note that using an `instanceSize` of M2 or M5 will create a Flex cluster instead. Support for the `instanceSize` of M2 or M5 will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward."
                                   computed_optional_required: optional
                                   tf_schema_name: backing_provider_name
                                   tf_model_name: BackingProviderName
@@ -1031,9 +1042,20 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
+                                            - int64: {}
+                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_throughput
+                                              tf_model_name: DiskThroughput
+                                              api_name: diskThroughput
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
                                             - string:
                                                 default: STANDARD
-                                              description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
+                                              description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`."
                                               computed_optional_required: computed_optional
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
@@ -1138,9 +1160,20 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
+                                            - int64: {}
+                                              description: Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.
+                                              computed_optional_required: computed
+                                              tf_schema_name: disk_throughput
+                                              tf_model_name: DiskThroughput
+                                              api_name: diskThroughput
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
                                             - string:
                                                 default: STANDARD
-                                              description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
+                                              description: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`."
                                               computed_optional_required: computed_optional
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
@@ -1172,7 +1205,7 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
-                                  description: Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region.
+                                  description: 'Optional for provider_name: AWS, AZURE, GCP. Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don''t specify this parameter, no read-only nodes are deployed to the region.'
                                   custom_type:
                                     package: customtypes
                                     name: ReplicationSpecsRegionConfigsReadOnlySpecs

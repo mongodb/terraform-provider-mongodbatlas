@@ -32,13 +32,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"custom_openssl_cipher_config_tls12": schema.ListAttribute{
 						Computed:            true,
 						Optional:            true,
-						MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.",
+						MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. Requires `tlsCipherConfigMode` = `CUSTOM`; when `tlsCipherConfigMode` is omitted, supplying a non-empty list infers `CUSTOM`.",
 						CustomType:          customtypes.NewListType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
 					"custom_openssl_cipher_config_tls13": schema.ListAttribute{
 						Optional:            true,
-						MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.",
+						MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.3. Requires `tlsCipherConfigMode` = `CUSTOM`; when `tlsCipherConfigMode` is omitted, supplying a non-empty list infers `CUSTOM`.",
 						CustomType:          customtypes.NewListType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
@@ -284,7 +284,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								Attributes: map[string]schema.Attribute{
 									"analytics_auto_scaling": schema.SingleNestedAttribute{
 										Optional:            true,
-										MarkdownDescription: "Options that determine how this cluster handles resource scaling.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"compute": schema.SingleNestedAttribute{
@@ -326,7 +326,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"analytics_specs": schema.SingleNestedAttribute{
 										Computed:            true,
 										Optional:            true,
-										MarkdownDescription: "Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsSpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
@@ -334,10 +334,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Optional:            true,
 												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
 												Optional:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -354,7 +358,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"auto_scaling": schema.SingleNestedAttribute{
 										Computed:            true,
 										Optional:            true,
-										MarkdownDescription: "Options that determine how this cluster handles resource scaling.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. Options that determine how this cluster handles resource scaling.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAutoScalingModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"compute": schema.SingleNestedAttribute{
@@ -402,7 +406,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									},
 									"backing_provider_name": schema.StringAttribute{
 										Optional:            true,
-										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when `providerName` is `TENANT` and `electableSpecs.instanceSize` is `M0`, `M2` or `M5`. \n\nPlease note that using an `instanceSize` of M2 or M5 will create a Flex cluster instead. Support for the `instanceSize` of M2 or M5 will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward.",
+										MarkdownDescription: "Optional for provider_name: TENANT. Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when `providerName` is `TENANT` and `electableSpecs.instanceSize` is `M0`, `M2` or `M5`. \n\nPlease note that using an `instanceSize` of M2 or M5 will create a Flex cluster instead. Support for the `instanceSize` of M2 or M5 will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward.",
 									},
 									"electable_specs": schema.SingleNestedAttribute{
 										Optional:            true,
@@ -414,10 +418,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Optional:            true,
 												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
 												Optional:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"effective_instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -463,7 +471,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"read_only_specs": schema.SingleNestedAttribute{
 										Computed:            true,
 										Optional:            true,
-										MarkdownDescription: "Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region.",
+										MarkdownDescription: "Optional for provider_name: AWS, AZURE, GCP. Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region.",
 										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsReadOnlySpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
@@ -471,10 +479,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Optional:            true,
 												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `replicationSpecs[n].regionConfigs[m].providerName` : `Azure`.\n- set `replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize` : `M40` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected `.instanceSize` and `.diskSizeGB`.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
 												Optional:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -649,10 +661,11 @@ type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel struct {
 	Enabled types.Bool `tfsdk:"enabled"`
 }
 type TFReplicationSpecsRegionConfigsAnalyticsSpecsModel struct {
-	DiskIOPS      types.Int64  `tfsdk:"disk_iops"`
-	EbsVolumeType types.String `tfsdk:"ebs_volume_type"`
-	InstanceSize  types.String `tfsdk:"instance_size"`
-	NodeCount     types.Int64  `tfsdk:"node_count"`
+	DiskIOPS       types.Int64  `tfsdk:"disk_iops"`
+	DiskThroughput types.Int64  `tfsdk:"disk_throughput" autogen:"omitjson"`
+	EbsVolumeType  types.String `tfsdk:"ebs_volume_type"`
+	InstanceSize   types.String `tfsdk:"instance_size"`
+	NodeCount      types.Int64  `tfsdk:"node_count"`
 }
 type TFReplicationSpecsRegionConfigsAutoScalingModel struct {
 	Compute customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingComputeModel] `tfsdk:"compute"`
@@ -669,14 +682,16 @@ type TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel struct {
 }
 type TFReplicationSpecsRegionConfigsElectableSpecsModel struct {
 	DiskIOPS              types.Int64  `tfsdk:"disk_iops"`
+	DiskThroughput        types.Int64  `tfsdk:"disk_throughput" autogen:"omitjson"`
 	EbsVolumeType         types.String `tfsdk:"ebs_volume_type"`
 	EffectiveInstanceSize types.String `tfsdk:"effective_instance_size" autogen:"omitjson"`
 	InstanceSize          types.String `tfsdk:"instance_size"`
 	NodeCount             types.Int64  `tfsdk:"node_count"`
 }
 type TFReplicationSpecsRegionConfigsReadOnlySpecsModel struct {
-	DiskIOPS      types.Int64  `tfsdk:"disk_iops"`
-	EbsVolumeType types.String `tfsdk:"ebs_volume_type"`
-	InstanceSize  types.String `tfsdk:"instance_size"`
-	NodeCount     types.Int64  `tfsdk:"node_count"`
+	DiskIOPS       types.Int64  `tfsdk:"disk_iops"`
+	DiskThroughput types.Int64  `tfsdk:"disk_throughput" autogen:"omitjson"`
+	EbsVolumeType  types.String `tfsdk:"ebs_volume_type"`
+	InstanceSize   types.String `tfsdk:"instance_size"`
+	NodeCount      types.Int64  `tfsdk:"node_count"`
 }

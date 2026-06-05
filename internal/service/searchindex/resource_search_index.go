@@ -12,13 +12,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 )
 
 const (
-	vectorSearch = "vectorSearch"
+	vectorSearch                  = "vectorSearch"
+	indexBuildDelayAndMinTimeout  = 1 * time.Minute
+	indexDeleteDelayAndMinTimeout = 5 * time.Second
 )
 
 func Resource() *schema.Resource {
@@ -245,6 +248,18 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.Errorf("error deleting search index (%s): %s", d.Get("name").(string), err)
 	}
+
+	stateConf := &retry.StateChangeConf{
+		Pending:    searchIndexPendingStates,
+		Target:     []string{retrystrategy.RetryStrategyDeletedState},
+		Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
+		Timeout:    d.Timeout(schema.TimeoutDelete),
+		MinTimeout: indexDeleteDelayAndMinTimeout,
+		Delay:      indexDeleteDelayAndMinTimeout,
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return diag.Errorf("error waiting for search index (%s) to be deleted: %s", d.Get("name").(string), err)
+	}
 	return nil
 }
 
@@ -370,12 +385,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.Get("wait_for_index_build_completion").(bool) {
 		timeout := d.Timeout(schema.TimeoutUpdate)
 		stateConf := &retry.StateChangeConf{
-			Pending:    []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING"},
+			Pending:    searchIndexPendingStates,
 			Target:     []string{"READY", "STEADY"},
 			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
 			Timeout:    timeout,
-			MinTimeout: 1 * time.Minute,
-			Delay:      1 * time.Minute,
+			MinTimeout: indexBuildDelayAndMinTimeout,
+			Delay:      indexBuildDelayAndMinTimeout,
 		}
 
 		// Wait, catching any errors
@@ -577,12 +592,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.Get("wait_for_index_build_completion").(bool) {
 		timeout := d.Timeout(schema.TimeoutCreate)
 		stateConf := &retry.StateChangeConf{
-			Pending:    []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING"},
+			Pending:    searchIndexPendingStates,
 			Target:     []string{"READY", "STEADY"},
 			Refresh:    resourceSearchIndexRefreshFunc(ctx, clusterName, projectID, indexID, connV2),
 			Timeout:    timeout,
-			MinTimeout: 1 * time.Minute,
-			Delay:      1 * time.Minute,
+			MinTimeout: indexBuildDelayAndMinTimeout,
+			Delay:      indexBuildDelayAndMinTimeout,
 		}
 
 		// Wait, catching any errors

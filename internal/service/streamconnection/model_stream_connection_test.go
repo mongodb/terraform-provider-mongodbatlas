@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 )
 
 const (
@@ -37,6 +37,11 @@ const (
 	awslambdaConnectionName   = "aws_lambda_connection"
 	sampleRoleArn             = "rn:aws:iam::123456789123:role/sample"
 	httpsURL                  = "https://example.com"
+	gcpPubSubConnectionName   = "gcp_pubsub_connection"
+	sampleServiceAccountID    = "projects/my-project/serviceAccounts/streams@my-project.iam.gserviceaccount.com"
+	azureServicePrincipalID   = "12345678-1234-1234-1234-123456789012"
+	azureStorageAccountName   = "mystorageaccount"
+	azureRegion               = "eastus2"
 )
 
 var (
@@ -58,11 +63,19 @@ type sdkToTFModelTestCase struct {
 	name                             string
 }
 
-func TestStreamConnectionSDKToTFModel(t *testing.T) {
+func sdkToTFModelTestCases(t *testing.T) []sdkToTFModelTestCase {
+	t.Helper()
+	cases := sdkToTFModelBasicTestCases(t)
+	cases = append(cases, sdkToTFModelAdditionalTestCases(t)...)
+	return cases
+}
+
+func sdkToTFModelBasicTestCases(t *testing.T) []sdkToTFModelTestCase {
+	t.Helper()
 	var authConfigWithPasswordDefined = tfAuthenticationObject(t, authMechanism, authUsername, "raw password")
 	var authConfigWithOAuth = tfAuthenticationObjectForOAuth(t, authMechanism, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions, method)
 
-	testCases := []sdkToTFModelTestCase{
+	return []sdkToTFModelTestCase{
 		{
 			name: "Cluster connection type SDK response",
 			SDKResp: &admin.StreamsConnection{
@@ -90,6 +103,8 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -125,6 +140,8 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -163,6 +180,8 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -205,6 +224,8 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -232,6 +253,8 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -270,6 +293,8 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -296,12 +321,20 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
 				},
 			},
 		},
+	}
+}
+
+func sdkToTFModelAdditionalTestCases(t *testing.T) []sdkToTFModelTestCase {
+	t.Helper()
+	return []sdkToTFModelTestCase{
 		{
 			name: "AWSLambda connection type with roleArn",
 			SDKResp: &admin.StreamsConnection{
@@ -323,6 +356,106 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                          tfAWSLambdaConfigObject(t, sampleRoleArn),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
+					Headers:                      types.MapNull(types.StringType),
+					SchemaRegistryURLs:           types.ListNull(types.StringType),
+					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				},
+			},
+		},
+		{
+			name: "GCPPubSub connection type with serviceAccountId",
+			SDKResp: &admin.StreamsConnection{
+				Name: new(gcpPubSubConnectionName),
+				Type: new("GCPPubSub"),
+				Gcp:  &admin.StreamsGCPConnectionConfig{ServiceAccountId: new(sampleServiceAccountID)},
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:                    types.StringValue(dummyProjectID),
+					WorkspaceName:                types.StringValue(instanceName),
+					ConnectionName:               types.StringValue(gcpPubSubConnectionName),
+					Type:                         types.StringValue("GCPPubSub"),
+					Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+					Config:                       types.MapNull(types.StringType),
+					Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+					Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          tfGCPConfigObject(t, sampleServiceAccountID),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
+					Headers:                      types.MapNull(types.StringType),
+					SchemaRegistryURLs:           types.ListNull(types.StringType),
+					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				},
+			},
+		},
+		{
+			name: "GCPPubSub connection type with publicPrivateNetworking",
+			SDKResp: &admin.StreamsConnection{
+				Name: new(gcpPubSubConnectionName),
+				Type: new("GCPPubSub"),
+				Gcp:  &admin.StreamsGCPConnectionConfig{ServiceAccountId: new(sampleServiceAccountID)},
+				PublicPrivateNetworking: &admin.StreamsPublicPrivateLinkNetworking{
+					Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
+						Type:         new("PRIVATE_LINK"),
+						ConnectionId: new("plc-12345"),
+					},
+				},
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:                    types.StringValue(dummyProjectID),
+					WorkspaceName:                types.StringValue(instanceName),
+					ConnectionName:               types.StringValue(gcpPubSubConnectionName),
+					Type:                         types.StringValue("GCPPubSub"),
+					Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+					Config:                       types.MapNull(types.StringType),
+					Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+					Networking:                   tfNetworkingObject(t, "PRIVATE_LINK", new("plc-12345")),
+					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          tfGCPConfigObject(t, sampleServiceAccountID),
+					Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
+					Headers:                      types.MapNull(types.StringType),
+					SchemaRegistryURLs:           types.ListNull(types.StringType),
+					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
+				},
+			},
+		},
+		{
+			name: "AzureBlobStorage connection type with publicPrivateNetworking",
+			SDKResp: &admin.StreamsConnection{
+				Name:  new(connectionName),
+				Type:  new("AzureBlobStorage"),
+				Azure: &admin.AzureConnection{ServicePrincipalId: new(azureServicePrincipalID), StorageAccountName: new(azureStorageAccountName), Region: new(azureRegion)},
+				PublicPrivateNetworking: &admin.StreamsPublicPrivateLinkNetworking{
+					Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
+						Type: new(networkingType),
+					},
+				},
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:                    types.StringValue(dummyProjectID),
+					WorkspaceName:                types.StringValue(instanceName),
+					ConnectionName:               types.StringValue(connectionName),
+					Type:                         types.StringValue("AzureBlobStorage"),
+					Authentication:               types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+					Config:                       types.MapNull(types.StringType),
+					Security:                     types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+					DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+					Networking:                   tfNetworkingObject(t, networkingType, nil),
+					AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                        tfAzureConfigObject(t, azureServicePrincipalID, azureStorageAccountName, azureRegion),
 					Headers:                      types.MapNull(types.StringType),
 					SchemaRegistryURLs:           types.ListNull(types.StringType),
 					SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -359,6 +492,8 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					DBRoleToExecute:        types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 					Networking:             types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 					AWS:                    types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+					GCP:                    types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+					Azure:                  types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 					Headers:                types.MapNull(types.StringType),
 					SchemaRegistryProvider: types.StringValue("CONFLUENT"),
 					SchemaRegistryURLs: types.ListValueMust(types.StringType, []attr.Value{
@@ -370,8 +505,10 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			},
 		},
 	}
+}
 
-	for _, tc := range testCases {
+func TestStreamConnectionSDKToTFModel(t *testing.T) {
+	for _, tc := range sdkToTFModelTestCases(t) {
 		t.Run(tc.name, func(t *testing.T) {
 			resultModel, diags := streamconnection.NewTFStreamConnection(t.Context(), tc.providedProjID, "", tc.providedInstanceName, tc.providedAuthConfig, tc.providedSchemaRegistryAuthConfig, tc.SDKResp, nil)
 			if diags.HasError() {
@@ -390,11 +527,10 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 // This ensures users can configure longer timeouts for slow-provisioning connections or
 // shorter timeouts to fail fast.
 func TestNewTFStreamConnectionCustomTimeoutsOverrideDefault(t *testing.T) {
-	defaultTimeout := 20 * time.Minute
 	customCreateTimeout := 30 * time.Minute
 	customUpdateTimeout := 45 * time.Minute
+	customDeleteTimeout := 10 * time.Minute
 
-	// User specifies custom timeouts in their Terraform config
 	userConfiguredTimeouts := timeouts.Value{
 		Object: types.ObjectValueMust(
 			map[string]attr.Type{
@@ -407,7 +543,7 @@ func TestNewTFStreamConnectionCustomTimeoutsOverrideDefault(t *testing.T) {
 				"create": types.StringValue("30m"),
 				"read":   types.StringNull(),
 				"update": types.StringValue("45m"),
-				"delete": types.StringNull(),
+				"delete": types.StringValue("10m"),
 			},
 		),
 	}
@@ -425,23 +561,25 @@ func TestNewTFStreamConnectionCustomTimeoutsOverrideDefault(t *testing.T) {
 		nil,          // currAuthConfig
 		nil,          // currSchemaRegistryAuthConfig
 		apiResp,
-		&userConfiguredTimeouts, // planTimeouts - user configured custom timeouts
+		&userConfiguredTimeouts,
 	)
 
 	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
 	require.NotNil(t, resultModel)
 
-	// Verify user-configured timeouts are preserved in the model
 	assert.Equal(t, userConfiguredTimeouts, resultModel.Timeouts)
 
-	// Verify custom timeouts override the default (20m) when extracted
-	createTimeout, localDiags := resultModel.Timeouts.Create(t.Context(), defaultTimeout)
+	createTimeout, localDiags := resultModel.Timeouts.Create(t.Context(), streamconnection.DefaultConnectionTimeout)
 	require.False(t, localDiags.HasError())
 	assert.Equal(t, customCreateTimeout, createTimeout, "user-configured create timeout (30m) should override default (20m)")
 
-	updateTimeout, localDiags := resultModel.Timeouts.Update(t.Context(), defaultTimeout)
+	updateTimeout, localDiags := resultModel.Timeouts.Update(t.Context(), streamconnection.DefaultConnectionTimeout)
 	require.False(t, localDiags.HasError())
 	assert.Equal(t, customUpdateTimeout, updateTimeout, "user-configured update timeout (45m) should override default (20m)")
+
+	deleteTimeout, localDiags := resultModel.Timeouts.Delete(t.Context(), streamconnection.DefaultConnectionTimeout)
+	require.False(t, localDiags.HasError())
+	assert.Equal(t, customDeleteTimeout, deleteTimeout, "user-configured delete timeout (10m) should override default (20m)")
 }
 
 type paginatedConnectionsSDKToTFModelTestCase struct {
@@ -456,7 +594,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 		{
 			name: "Complete SDK response with configured page options",
 			SDKResp: &admin.PaginatedApiStreamsConnection{
-				Results: &[]admin.StreamsConnection{
+				Results: []admin.StreamsConnection{
 					{
 						Name: new(connectionName),
 						Type: new("Kafka"),
@@ -546,6 +684,8 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 							Networking:                   tfNetworkingObject(t, networkingType, nil),
 							AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+							Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 							Headers:                      types.MapNull(types.StringType),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
 							SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -565,6 +705,8 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							DBRoleToExecute:              tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
 							Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+							Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 							Headers:                      types.MapNull(types.StringType),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
 							SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -584,6 +726,8 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 							Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+							Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 							Headers:                      types.MapNull(types.StringType),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
 							SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -603,6 +747,8 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 							Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                          tfAWSLambdaConfigObject(t, sampleRoleArn),
+							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+							Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 							Headers:                      types.MapNull(types.StringType),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
 							SchemaRegistryAuthentication: types.ObjectNull(streamconnection.SchemaRegistryAuthenticationObjectType.AttrTypes),
@@ -622,6 +768,8 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							DBRoleToExecute:              types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 							Networking:                   types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                          types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+							GCP:                          types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+							Azure:                        types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 							Headers:                      tfConfigMap(t, headersMap),
 							URL:                          types.StringValue(httpsURL),
 							SchemaRegistryURLs:           types.ListNull(types.StringType),
@@ -642,6 +790,8 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							DBRoleToExecute:        types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 							Networking:             types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 							AWS:                    types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+							GCP:                    types.ObjectNull(streamconnection.GCPObjectType.AttrTypes),
+							Azure:                  types.ObjectNull(streamconnection.AzureObjectType.AttrTypes),
 							Headers:                types.MapNull(types.StringType),
 							SchemaRegistryProvider: types.StringValue("CONFLUENT"),
 							SchemaRegistryURLs: types.ListValueMust(types.StringType, []attr.Value{
@@ -657,7 +807,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 		{
 			name: "Without defining page options",
 			SDKResp: &admin.PaginatedApiStreamsConnection{
-				Results:    &[]admin.StreamsConnection{},
+				Results:    []admin.StreamsConnection{},
 				TotalCount: new(0),
 			},
 			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
@@ -676,7 +826,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 		{
 			name: "With workspace name and no page options",
 			SDKResp: &admin.PaginatedApiStreamsConnection{
-				Results:    &[]admin.StreamsConnection{},
+				Results:    []admin.StreamsConnection{},
 				TotalCount: new(0),
 			},
 			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
@@ -814,6 +964,78 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				Type: new("AWSLambda"),
 				Aws: &admin.StreamsAWSConnectionConfig{
 					RoleArn: new(sampleRoleArn),
+				},
+			},
+		},
+		{
+			name: "GCPPubSub type TF state",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:      types.StringValue(dummyProjectID),
+					InstanceName:   types.StringValue(instanceName),
+					ConnectionName: types.StringValue(gcpPubSubConnectionName),
+					Type:           types.StringValue("GCPPubSub"),
+					GCP:            tfGCPConfigObject(t, sampleServiceAccountID),
+				},
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name: new(gcpPubSubConnectionName),
+				Type: new("GCPPubSub"),
+				Gcp: &admin.StreamsGCPConnectionConfig{
+					ServiceAccountId: new(sampleServiceAccountID),
+				},
+			},
+		},
+		{
+			name: "GCPPubSub type TF state with PRIVATE_LINK networking",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:      types.StringValue(dummyProjectID),
+					InstanceName:   types.StringValue(instanceName),
+					ConnectionName: types.StringValue(gcpPubSubConnectionName),
+					Type:           types.StringValue("GCPPubSub"),
+					GCP:            tfGCPConfigObject(t, sampleServiceAccountID),
+					Networking:     tfNetworkingObject(t, "PRIVATE_LINK", new("plc-12345")),
+				},
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name: new(gcpPubSubConnectionName),
+				Type: new("GCPPubSub"),
+				Gcp: &admin.StreamsGCPConnectionConfig{
+					ServiceAccountId: new(sampleServiceAccountID),
+				},
+				PublicPrivateNetworking: &admin.StreamsPublicPrivateLinkNetworking{
+					Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
+						Type:         new("PRIVATE_LINK"),
+						ConnectionId: new("plc-12345"),
+					},
+				},
+			},
+		},
+		{
+			name: "AzureBlobStorage type TF state",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				TFStreamConnectionCommonModel: streamconnection.TFStreamConnectionCommonModel{
+					ProjectID:      types.StringValue(dummyProjectID),
+					InstanceName:   types.StringValue(instanceName),
+					ConnectionName: types.StringValue(connectionName),
+					Type:           types.StringValue("AzureBlobStorage"),
+					Azure:          tfAzureConfigObject(t, azureServicePrincipalID, azureStorageAccountName, azureRegion),
+					Networking:     tfNetworkingObject(t, networkingType, nil),
+				},
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name: new(connectionName),
+				Type: new("AzureBlobStorage"),
+				Azure: &admin.AzureConnection{
+					ServicePrincipalId: new(azureServicePrincipalID),
+					StorageAccountName: new(azureStorageAccountName),
+					Region:             new(azureRegion),
+				},
+				PublicPrivateNetworking: &admin.StreamsPublicPrivateLinkNetworking{
+					Access: &admin.StreamsPublicPrivateLinkNetworkingAccess{
+						Type: new(networkingType),
+					},
 				},
 			},
 		},
@@ -1004,6 +1226,19 @@ func tfNetworkingObject(t *testing.T, networkingType string, connectionID *strin
 	return networking
 }
 
+func tfAzureConfigObject(t *testing.T, servicePrincipalID, storageAccountName, region string) types.Object {
+	t.Helper()
+	azure, diags := types.ObjectValueFrom(t.Context(), streamconnection.AzureObjectType.AttrTypes, streamconnection.TFAzureModel{
+		ServicePrincipalID: types.StringValue(servicePrincipalID),
+		StorageAccountName: types.StringValue(storageAccountName),
+		Region:             types.StringValue(region),
+	})
+	if diags.HasError() {
+		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
+	}
+	return azure
+}
+
 func tfAWSLambdaConfigObject(t *testing.T, roleArn string) types.Object {
 	t.Helper()
 	aws, diags := types.ObjectValueFrom(t.Context(), streamconnection.AWSObjectType.AttrTypes, streamconnection.TFAWSModel{
@@ -1043,4 +1278,15 @@ func tfSchemaRegistryAuthObjectNoPassword(t *testing.T, authType, username strin
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
 	}
 	return auth
+}
+
+func tfGCPConfigObject(t *testing.T, serviceAccountID string) types.Object {
+	t.Helper()
+	gcp, diags := types.ObjectValueFrom(t.Context(), streamconnection.GCPObjectType.AttrTypes, streamconnection.TFGCPModel{
+		ServiceAccountID: types.StringValue(serviceAccountID),
+	})
+	if diags.HasError() {
+		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
+	}
+	return gcp
 }

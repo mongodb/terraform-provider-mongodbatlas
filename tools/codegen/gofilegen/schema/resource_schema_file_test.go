@@ -128,6 +128,32 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "primitive-attributes",
 		},
+		"Expanded model root embed": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Schema: &codespec.Schema{
+					ExpandedModel: true,
+					Attributes: []codespec.Attribute{
+						{
+							TFSchemaName:             "project_id",
+							TFModelName:              "ProjectId",
+							String:                   &codespec.StringAttribute{},
+							Description:              new("project id"),
+							ComputedOptionalRequired: codespec.Required,
+						},
+						{
+							TFSchemaName:             "connection_name",
+							TFModelName:              "ConnectionName",
+							String:                   &codespec.StringAttribute{},
+							Description:              new("connection name"),
+							ComputedOptionalRequired: codespec.Required,
+						},
+					},
+				},
+			},
+			goldenFileName: "expanded-model",
+		},
 		"Custom type attributes": {
 			inputModel: codespec.Resource{
 				Name:        "test_name",
@@ -397,6 +423,22 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              new("Name of the service account"),
 							ComputedOptionalRequired: codespec.Optional,
+						},
+						{
+							TFSchemaName:             "count",
+							TFModelName:              "Count",
+							Int64:                    &codespec.Int64Attribute{},
+							Description:              new("The count value"),
+							ComputedOptionalRequired: codespec.Computed,
+							ImmutableComputed:        true,
+						},
+						{
+							TFSchemaName:             "enabled",
+							TFModelName:              "Enabled",
+							Bool:                     &codespec.BoolAttribute{},
+							Description:              new("Whether feature is enabled"),
+							ComputedOptionalRequired: codespec.Computed,
+							ImmutableComputed:        true,
 						},
 					},
 				},

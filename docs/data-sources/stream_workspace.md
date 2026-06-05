@@ -23,7 +23,7 @@ If you're migrating from the deprecated `mongodbatlas_stream_instance` data sour
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `workspace_name` - (Required) Label that identifies the stream workspace.
 
 ## Attributes Reference

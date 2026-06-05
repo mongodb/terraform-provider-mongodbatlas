@@ -147,9 +147,7 @@ func TestPluralDataSourceGenerationFromCodeSpec(t *testing.T) {
 				Name:        "test_api",
 				PackageName: "testapi",
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
-						PluralDSAttributes: &codespec.Attributes{},
-					},
+					Plural: &codespec.Schema{},
 					Operations: codespec.APIOperations{
 						List: &codespec.APIOperation{
 							HTTPMethod: "GET",
@@ -166,8 +164,8 @@ func TestPluralDataSourceGenerationFromCodeSpec(t *testing.T) {
 				Name:        "test_api",
 				PackageName: "testapi",
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
-						PluralDSAttributes: &codespec.Attributes{
+					Plural: &codespec.Schema{
+						Attributes: codespec.Attributes{
 							{
 								TFSchemaName:             "project_id",
 								TFModelName:              "ProjectId",
@@ -207,8 +205,8 @@ func TestPluralDataSourceGenerationFromCodeSpec(t *testing.T) {
 				Name:        "service_account",
 				PackageName: "serviceaccount",
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
-						PluralDSAttributes: &codespec.Attributes{
+					Plural: &codespec.Schema{
+						Attributes: codespec.Attributes{
 							{
 								TFSchemaName:             "org_id",
 								TFModelName:              "OrgId",
@@ -262,9 +260,7 @@ func TestPluralDataSourceGenerationFromCodeSpec(t *testing.T) {
 				Name:        "control_plane_ip_addresses_api",
 				PackageName: "controlplaneipaddressesapi",
 				DataSources: &codespec.DataSources{
-					Schema: &codespec.DataSourceSchema{
-						PluralDSAttributes: &codespec.Attributes{},
-					},
+					Plural: &codespec.Schema{},
 					Operations: codespec.APIOperations{
 						List: &codespec.APIOperation{
 							HTTPMethod: "GET",

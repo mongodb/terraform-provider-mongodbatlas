@@ -24,7 +24,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 			},
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -45,7 +45,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create:            true,
 				Delete:            true,
-				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate(constant.DefaultTimeoutDocumentation),
+				CreateDescription: constant.TimeoutDescriptionCreateUpdate(constant.DefaultTimeoutDocumentation),
 				DeleteDescription: constant.TimeoutDescriptionDelete(constant.DefaultTimeoutDocumentation),
 			}),
 			"delete_on_create_timeout": schema.BoolAttribute{

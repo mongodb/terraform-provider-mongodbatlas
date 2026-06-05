@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_federated_settings_org_role_mapping: Fixes plan churn on `role_assignments` fields when adding/removing a new block
+```

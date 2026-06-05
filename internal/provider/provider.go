@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
@@ -33,6 +35,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexrestorejob"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexsnapshot"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaddresses"
@@ -41,6 +44,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountaccesslistentry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountjwt"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamaccountdetails"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
@@ -49,6 +53,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/logintegration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive"
 	autogenprojectipaccesslist "github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccount"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectserviceaccountsecret"
@@ -69,6 +74,8 @@ const (
 
 type MongodbatlasProvider struct {
 }
+
+var _ provider.ProviderWithEphemeralResources = &MongodbatlasProvider{}
 
 type tfModel struct {
 	Region               types.String        `tfsdk:"region"`
@@ -220,6 +227,13 @@ func (p *MongodbatlasProvider) Configure(ctx context.Context, req provider.Confi
 	}
 	resp.DataSourceData = client
 	resp.ResourceData = client
+
+	resp.EphemeralResourceData = &config.EphemeralResourceData{
+		ClientID:         c.ClientID,
+		ClientSecret:     c.ClientSecret,
+		BaseURL:          c.BaseURL,
+		TerraformVersion: req.TerraformVersion,
+	}
 }
 
 func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) *config.Vars {
@@ -292,6 +306,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		encryptionatrestprivateendpoint.PluralDataSource,
 		mongodbemployeeaccessgrant.DataSource,
 		streamaccountdetails.DataSource,
+		privatelinkendpoint.PluralDataSource,
 		streamprivatelinkendpoint.DataSource,
 		streamprivatelinkendpoint.PluralDataSource,
 		flexcluster.DataSource,
@@ -324,6 +339,8 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		projectserviceaccountaccesslistentry.PluralDataSource,
 		logintegration.DataSource,
 		logintegration.PluralDataSource,
+		privatelinkendpointservicedatafederationonlinearchive.DataSource,
+		privatelinkendpointservicedatafederationonlinearchive.PluralDataSource,
 	}
 	analyticsDataSources := []func() datasource.DataSource{}
 	for _, dataSourceFunc := range dataSources {
@@ -364,12 +381,24 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		projectserviceaccount.Resource,
 		projectserviceaccountsecret.Resource,
 		projectserviceaccountaccesslistentry.Resource,
+		privatelinkendpointservicedatafederationonlinearchive.Resource,
 	}
 	analyticsResources := []func() resource.Resource{}
 	for _, resourceFunc := range resources {
 		analyticsResources = append(analyticsResources, config.AnalyticsResourceFunc(resourceFunc()))
 	}
 	return analyticsResources
+}
+
+func (p *MongodbatlasProvider) EphemeralResources(context.Context) []func() ephemeral.EphemeralResource {
+	ephemeralResources := []func() ephemeral.EphemeralResource{
+		serviceaccountjwt.New,
+	}
+	ephemeralResourcesWithAnalytics := []func() ephemeral.EphemeralResource{}
+	for _, ephemeralResourceFunc := range ephemeralResources {
+		ephemeralResourcesWithAnalytics = append(ephemeralResourcesWithAnalytics, config.AnalyticsEphemeralResourceFunc(ephemeralResourceFunc()))
+	}
+	return ephemeralResourcesWithAnalytics
 }
 
 func NewFrameworkProvider() provider.Provider {

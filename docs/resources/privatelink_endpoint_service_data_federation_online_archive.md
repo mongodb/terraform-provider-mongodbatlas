@@ -6,8 +6,6 @@ subcategory: "Data Federation"
 
 `mongodbatlas_privatelink_endpoint_service_data_federation_online_archive` provides a Private Endpoint Service resource for Data Federation and Online Archive. The resource allows you to create and manage a private endpoint for Federated Database Instances and Online Archives to the specified project.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 -> **NOTE:** Updates are limited to the `comment` argument.
 
 ## Example Usage
@@ -40,11 +38,11 @@ resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archi
 The `service_name` value for the region in question can be found in the [MongoDB Atlas Administration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createdatafederationprivateendpoint) documentation.
 
 ### Further Examples
-- [AWS PrivateLink for Data Federation and Online Archive](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_privatelink_endpoint/aws/data-federation-online-archive)
+- [AWS PrivateLink for Data Federation and Online Archive](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_privatelink_endpoint/aws/data-federation-online-archive)
 
 ## Argument Reference
 
-* `project_id` (Required) - Unique 24-hexadecimal digit string that identifies your project. 
+* `project_id` (Required) - Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `endpoint_id` (Required) - Unique 22-character alphanumeric string that identifies the private endpoint. See [Atlas Data Federation supports Amazon Web Services private endpoints using the AWS PrivateLink feature](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint).
 * `provider_name` (Required) - Human-readable label that identifies the cloud service provider. 
 * `timeouts` - (Optional) The duration to wait for the Private Endpoint Service resource for Data Federation and Online Archive to be created or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `2h`), `delete` (default: `2h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).  
@@ -60,10 +58,15 @@ In addition to all arguments above, the following attributes are exported:
 
 ## Import
 
-Private Endpoint Service resource for Data Federation and Online Archive can be imported using project ID, endpoint ID, in the format `project_id`--`endpoint_id`, e.g.
+Import the Private Endpoint Service resource for Data Federation and Online Archive using the project ID and endpoint ID in either of the following formats:
+
+- `project_id--endpoint_id`
+- `project_id/endpoint_id`
 
 ```
 $ terraform import mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.example 1112222b3bf99403840e8934--vpce-3bf78b0ddee411ba1
+
+$ terraform import mongodbatlas_privatelink_endpoint_service_data_federation_online_archive.example 1112222b3bf99403840e8934/vpce-3bf78b0ddee411ba1
 ```
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint) Documentation for more information.

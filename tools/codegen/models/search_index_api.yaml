@@ -1,5 +1,5 @@
 schema:
-    description: Creates one Atlas Search index on the specified collection. Atlas Search indexes define the fields on which to create the index and the analyzers to use when creating the index. Only clusters running MongoDB v4.2 or later can use Atlas Search. To use this resource, the requesting Service Account or API Key must have the Project Data Access Admin role.
+    description: Creates one Atlas Search index on the specified collection. Atlas Search indexes define the fields on which to create the index and the analyzers to use when creating the index. Only clusters running MongoDB v4.2 or later can use Atlas Search.
     discriminator:
         mapping:
             search:
@@ -224,6 +224,17 @@ schema:
                       create_only: false
                       present_in_any_response: false
                       request_only_required_on_create: false
+                    - string: {}
+                      description: Top-level path to the array that contains vector fields. When provided, vector fields under this path are treated as nested.
+                      computed_optional_required: optional
+                      tf_schema_name: nested_root
+                      tf_model_name: NestedRoot
+                      api_name: nestedRoot
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: false
+                      request_only_required_on_create: false
                     - int64:
                         default: 1
                       description: Number of index partitions. Allowed values are [1, 2, 4].
@@ -368,7 +379,7 @@ schema:
                                     package: customtypes
                                     model: customtypes.ListValue[jsontypes.Normalized]
                                     schema: customtypes.NewListType[jsontypes.Normalized](ctx)
-                                  computed_optional_required: optional
+                                  computed_optional_required: required
                                   tf_schema_name: types
                                   tf_model_name: Types
                                   api_name: types
@@ -603,6 +614,17 @@ schema:
                       tf_schema_name: mappings
                       tf_model_name: Mappings
                       api_name: mappings
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Top-level path to the array that contains vector fields. When provided, vector fields under this path are treated as nested.
+                      computed_optional_required: computed
+                      tf_schema_name: nested_root
+                      tf_model_name: NestedRoot
+                      api_name: nestedRoot
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
@@ -907,6 +929,17 @@ schema:
                                               create_only: false
                                               present_in_any_response: true
                                               request_only_required_on_create: false
+                                            - string: {}
+                                              description: Top-level path to the array that contains vector fields. When provided, vector fields under this path are treated as nested.
+                                              computed_optional_required: computed
+                                              tf_schema_name: nested_root
+                                              tf_model_name: NestedRoot
+                                              api_name: nestedRoot
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
                                             - int64:
                                                 default: 1
                                               description: Number of index partitions. Allowed values are [1, 2, 4].
@@ -1073,6 +1106,17 @@ schema:
                                               tf_schema_name: fields
                                               tf_model_name: Fields
                                               api_name: fields
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                              present_in_any_response: true
+                                              request_only_required_on_create: false
+                                            - string: {}
+                                              description: Top-level path to the array that contains vector fields. When provided, vector fields under this path are treated as nested.
+                                              computed_optional_required: computed
+                                              tf_schema_name: nested_root
+                                              tf_model_name: NestedRoot
+                                              api_name: nestedRoot
                                               req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
@@ -1251,7 +1295,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Status that describes this index's synonym mappings. This status appears only if the index has synonyms defined.
+          description: 'Optional for type: search. Status that describes this index''s synonym mappings. This status appears only if the index has synonyms defined.'
           computed_optional_required: computed
           tf_schema_name: synonym_mapping_status
           tf_model_name: SynonymMappingStatus
@@ -1263,7 +1307,7 @@ schema:
           request_only_required_on_create: false
         - list:
             element_type: 5
-          description: A list of documents describing the status of the index's synonym mappings on each search host. Only appears if the index has synonyms defined.
+          description: 'Optional for type: search. A list of documents describing the status of the index''s synonym mappings on each search host. Only appears if the index has synonyms defined.'
           custom_type:
             package: customtypes
             model: customtypes.ListValue[jsontypes.Normalized]
@@ -1303,6 +1347,7 @@ schema:
             configurable_timeouts:
                 - create
                 - update
+                - delete
           computed_optional_required: ""
           tf_schema_name: timeouts
           tf_model_name: Timeouts
@@ -1313,6 +1358,15 @@ schema:
           request_only_required_on_create: false
 operations:
     delete:
+        wait:
+            state_property: status
+            pending_states:
+                - DELETING
+            target_states:
+                - DELETED
+            timeout_seconds: 300
+            min_timeout_seconds: 5
+            delay_seconds: 5
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}
     create:

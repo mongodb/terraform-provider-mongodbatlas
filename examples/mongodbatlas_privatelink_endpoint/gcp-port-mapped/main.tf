@@ -61,6 +61,19 @@ resource "mongodbatlas_privatelink_endpoint_service" "this" {
   gcp_project_id              = var.gcp_project_id
 }
 
+data "mongodbatlas_privatelink_endpoint" "this" {
+  project_id      = mongodbatlas_privatelink_endpoint.this.project_id
+  private_link_id = mongodbatlas_privatelink_endpoint.this.private_link_id
+  provider_name   = "GCP"
+  depends_on      = [mongodbatlas_privatelink_endpoint_service.this]
+}
+
+data "mongodbatlas_privatelink_endpoints" "this" {
+  project_id    = mongodbatlas_privatelink_endpoint.this.project_id
+  provider_name = "GCP"
+  depends_on    = [mongodbatlas_privatelink_endpoint_service.this]
+}
+
 data "mongodbatlas_advanced_cluster" "cluster" {
   count = var.cluster_name == "" ? 0 : 1
   # Use endpoint service as source of project_id to gather cluster data after endpoint changes are applied
@@ -82,4 +95,12 @@ locals {
 
 output "connection_string" {
   value = length(local.connection_strings) > 0 ? local.connection_strings[0] : ""
+}
+
+output "privatelink_endpoint" {
+  value = data.mongodbatlas_privatelink_endpoint.this
+}
+
+output "privatelink_endpoints" {
+  value = data.mongodbatlas_privatelink_endpoints.this.results
 }

@@ -38,6 +38,9 @@ jobs:
   run-test-supported-versions:
     needs: ["get-supported-versions"]
     if: ${{ !cancelled() }}
+    permissions:
+      id-token: write
+      contents: read
     strategy:
       max-parallel: 1
       fail-fast: false
@@ -58,7 +61,7 @@ jobs:
     permissions: {}
     steps:
       - name: Send Slack message
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook

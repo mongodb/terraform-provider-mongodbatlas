@@ -11,7 +11,7 @@ The Terraform MongoDB Atlas Provider offers a two-resource path to perform an au
 - The second resource, `mongodbatlas_cloud_provider_access_authorization`, helps to perform the authorization using the `role_id` of the first resource.
 
 This path is helpful in a multi-provider Terraform file, and allows for a single and decoupled apply. 
-See example of this two-resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_cloud_provider_access/aws), AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_cloud_provider_access/azure) and GCP Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_cloud_provider_access/gcp).
+See example of this two-resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_provider_access/aws), AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_provider_access/azure) and GCP Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_provider_access/gcp).
 
 
 ## mongodbatlas_cloud_provider_access_authorization
@@ -85,14 +85,14 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 ```
 
 ### Further Examples
-- [AWS Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_cloud_provider_access/aws)
-- [Azure Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_cloud_provider_access/azure)
-- [GCP Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_cloud_provider_access/gcp)
+- [AWS Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_provider_access/aws)
+- [Azure Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_provider_access/azure)
+- [GCP Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_provider_access/gcp)
 
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project. **WARNING**: Changing the `project_id` will result in destruction of the existing authorization resource and the creation of a new authorization resource.
+* `project_id` - (Required) The unique ID for the project, also known as `groupId` in the official documentation. **WARNING**: Changing the `project_id` will result in destruction of the existing authorization resource and the creation of a new authorization resource.
 * `role_id`    - (Required) The unique ID of this role returned by the mongodb atlas api. **WARNING**: Changing the `role_id` will result in destruction of the existing authorization resource and the creation of a new authorization resource.
 
 Conditional 

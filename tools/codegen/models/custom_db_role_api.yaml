@@ -1,5 +1,5 @@
 schema:
-    description: Creates one custom role in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role, Project Stream Processing Owner role, or the Project Database Access Admin role.
+    description: Creates one custom role in the specified project.
     attributes:
         - list_nested:
             nested_object:
@@ -57,7 +57,7 @@ schema:
                         name: ActionsResources
                         model: customtypes.NestedListValue[TFActionsResourcesModel]
                         schema: customtypes.NewNestedListType[TFActionsResourcesModel](ctx)
-                      computed_optional_required: optional
+                      computed_optional_required: required
                       tf_schema_name: resources
                       tf_model_name: Resources
                       api_name: resources

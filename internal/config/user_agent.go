@@ -22,6 +22,9 @@ const (
 	UserAgentOperationValuePlanModify   = "plan-modify"
 	UserAgentOperationValueUpgradeState = "upgrade-state"
 	UserAgentOperationValueMoveState    = "move-state"
+	UserAgentOperationValueOpen         = "open"
+	UserAgentOperationValueRenew        = "renew"
+	UserAgentOperationValueClose        = "close"
 )
 
 // UserAgentExtra holds additional metadata to be appended to the User-Agent header and context.

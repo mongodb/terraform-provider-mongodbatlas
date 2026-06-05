@@ -594,7 +594,8 @@ func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *test
 					SingleNested: &codespec.SingleNestedAttribute{
 						NestedObject: codespec.NestedAttributeObject{
 							Discriminator: &codespec.Discriminator{
-								PropertyName: codespec.DiscriminatorAttrName{APIName: "innerType", TFSchemaName: "inner_kind"},
+								PropertyName:   codespec.DiscriminatorAttrName{APIName: "innerType", TFSchemaName: "inner_kind"},
+								SkipValidation: true,
 								Mapping: map[string]codespec.DiscriminatorType{
 									"TypeA": {
 										Allowed:  []codespec.DiscriminatorAttrName{{APIName: "attrA", TFSchemaName: "attr_a"}, {APIName: "innerType", TFSchemaName: "inner_kind"}},
@@ -726,7 +727,8 @@ func TestApplyTransformationsToResource_AliasDiscriminatorTransformation(t *test
 						NestedObject: codespec.NestedAttributeObject{
 							Discriminator: &codespec.Discriminator{
 								// NOT renamed - non-dotted alias only applies at root level
-								PropertyName: codespec.NewDiscriminatorAttrName("typeField"),
+								PropertyName:   codespec.NewDiscriminatorAttrName("typeField"),
+								SkipValidation: true,
 								Mapping: map[string]codespec.DiscriminatorType{
 									"InnerA": {
 										Allowed:  []codespec.DiscriminatorAttrName{codespec.NewDiscriminatorAttrName("innerAttr"), codespec.NewDiscriminatorAttrName("typeField")},
@@ -899,6 +901,70 @@ func TestApplyTransformationsToResource_IgnoreValidatorsTransformation(t *testin
 	}
 }
 
+func TestApplyTransformationsToResource_ComputedDiscriminatorAutoSkip(t *testing.T) {
+	inputResource := &codespec.Resource{
+		Schema: &codespec.Schema{
+			Discriminator: &codespec.Discriminator{
+				PropertyName: codespec.DiscriminatorAttrName{APIName: "type", TFSchemaName: "type"},
+				Mapping: map[string]codespec.DiscriminatorType{
+					"A": {Allowed: []codespec.DiscriminatorAttrName{{APIName: "attrA", TFSchemaName: "attr_a"}}},
+					"B": {Allowed: []codespec.DiscriminatorAttrName{{APIName: "attrB", TFSchemaName: "attr_b"}}},
+				},
+			},
+			Attributes: codespec.Attributes{
+				{
+					TFSchemaName:             "type",
+					TFModelName:              "Type",
+					APIName:                  "type",
+					ComputedOptionalRequired: codespec.Computed,
+					String:                   &codespec.StringAttribute{},
+					ReqBodyUsage:             codespec.OmitAlways,
+				},
+				{
+					TFSchemaName:             "nested_obj",
+					TFModelName:              "NestedObj",
+					APIName:                  "nestedObj",
+					ComputedOptionalRequired: codespec.Computed,
+					SingleNested: &codespec.SingleNestedAttribute{
+						NestedObject: codespec.NestedAttributeObject{
+							Discriminator: &codespec.Discriminator{
+								PropertyName: codespec.DiscriminatorAttrName{APIName: "kind", TFSchemaName: "kind"},
+								Mapping: map[string]codespec.DiscriminatorType{
+									"X": {Allowed: []codespec.DiscriminatorAttrName{{APIName: "xAttr", TFSchemaName: "x_attr"}}},
+									"Y": {Allowed: []codespec.DiscriminatorAttrName{{APIName: "yAttr", TFSchemaName: "y_attr"}}},
+								},
+							},
+							Attributes: codespec.Attributes{
+								{
+									TFSchemaName:             "kind",
+									TFModelName:              "Kind",
+									APIName:                  "kind",
+									ComputedOptionalRequired: codespec.Computed,
+									String:                   &codespec.StringAttribute{},
+									ReqBodyUsage:             codespec.OmitAlways,
+								},
+							},
+						},
+					},
+					ReqBodyUsage: codespec.OmitAlways,
+				},
+			},
+		},
+		Operations: codespec.APIOperations{
+			Create: &codespec.APIOperation{},
+			Read:   &codespec.APIOperation{},
+		},
+	}
+
+	err := codespec.ApplyTransformationsToResource(&config.Resource{}, inputResource)
+	require.NoError(t, err)
+
+	assert.True(t, inputResource.Schema.Discriminator.SkipValidation, "root computed discriminator should auto-skip")
+
+	nestedDisc := inputResource.Schema.Attributes[1].SingleNested.NestedObject.Discriminator
+	assert.True(t, nestedDisc.SkipValidation, "nested computed discriminator should auto-skip")
+}
+
 func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
 	tests := map[string]struct {
 		inputDataSources   *codespec.DataSources
@@ -909,8 +975,8 @@ func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
 	}{
 		"Alias applied to attribute and path param": {
 			inputDataSources: &codespec.DataSources{
-				Schema: &codespec.DataSourceSchema{
-					SingularDSAttributes: &codespec.Attributes{
+				Singular: &codespec.Schema{
+					Attributes: codespec.Attributes{
 						{
 							TFSchemaName:             "group_id",
 							TFModelName:              "GroupId",
@@ -966,8 +1032,8 @@ func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
 		},
 		"Alias applied to List operation path": {
 			inputDataSources: &codespec.DataSources{
-				Schema: &codespec.DataSourceSchema{
-					SingularDSAttributes: &codespec.Attributes{
+				Singular: &codespec.Schema{
+					Attributes: codespec.Attributes{
 						{
 							TFSchemaName:             "group_id",
 							TFModelName:              "GroupId",
@@ -1006,8 +1072,8 @@ func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
 		},
 		"No aliases - attributes unchanged": {
 			inputDataSources: &codespec.DataSources{
-				Schema: &codespec.DataSourceSchema{
-					SingularDSAttributes: &codespec.Attributes{
+				Singular: &codespec.Schema{
+					Attributes: codespec.Attributes{
 						{
 							TFSchemaName:             "group_id",
 							TFModelName:              "GroupId",
@@ -1042,8 +1108,8 @@ func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
 		},
 		"Alias applied to plural data source attributes and List path": {
 			inputDataSources: &codespec.DataSources{
-				Schema: &codespec.DataSourceSchema{
-					PluralDSAttributes: &codespec.Attributes{
+				Plural: &codespec.Schema{
+					Attributes: codespec.Attributes{
 						{
 							TFSchemaName:             "group_id",
 							TFModelName:              "GroupId",
@@ -1132,11 +1198,11 @@ func TestApplyTransformationsToDataSources_AliasTransformation(t *testing.T) {
 			require.NoError(t, err)
 
 			// Check if test is for singular or plural data sources
-			if tc.inputDataSources.Schema.SingularDSAttributes != nil {
-				assert.Equal(t, tc.expectedAttributes, *tc.inputDataSources.Schema.SingularDSAttributes)
+			if tc.inputDataSources.Singular != nil {
+				assert.Equal(t, tc.expectedAttributes, tc.inputDataSources.Singular.Attributes)
 			}
-			if tc.inputDataSources.Schema.PluralDSAttributes != nil {
-				assert.Equal(t, tc.expectedAttributes, *tc.inputDataSources.Schema.PluralDSAttributes)
+			if tc.inputDataSources.Plural != nil {
+				assert.Equal(t, tc.expectedAttributes, tc.inputDataSources.Plural.Attributes)
 			}
 
 			if tc.expectedReadPath != "" {
@@ -1157,8 +1223,8 @@ func TestApplyTransformationsToDataSources_OverrideTransformation(t *testing.T) 
 	}{
 		"Override description": {
 			inputDataSources: &codespec.DataSources{
-				Schema: &codespec.DataSourceSchema{
-					SingularDSAttributes: &codespec.Attributes{
+				Singular: &codespec.Schema{
+					Attributes: codespec.Attributes{
 						{
 							TFSchemaName:             "name",
 							TFModelName:              "Name",
@@ -1195,8 +1261,8 @@ func TestApplyTransformationsToDataSources_OverrideTransformation(t *testing.T) 
 		},
 		"Override computability": {
 			inputDataSources: &codespec.DataSources{
-				Schema: &codespec.DataSourceSchema{
-					SingularDSAttributes: &codespec.Attributes{
+				Singular: &codespec.Schema{
+					Attributes: codespec.Attributes{
 						{
 							TFSchemaName:             "optional_attr",
 							TFModelName:              "OptionalAttr",
@@ -1231,8 +1297,8 @@ func TestApplyTransformationsToDataSources_OverrideTransformation(t *testing.T) 
 		},
 		"Override description in plural data source": {
 			inputDataSources: &codespec.DataSources{
-				Schema: &codespec.DataSourceSchema{
-					PluralDSAttributes: &codespec.Attributes{
+				Plural: &codespec.Schema{
+					Attributes: codespec.Attributes{
 						{
 							TFSchemaName:             "project_id",
 							TFModelName:              "ProjectId",
@@ -1275,11 +1341,11 @@ func TestApplyTransformationsToDataSources_OverrideTransformation(t *testing.T) 
 			require.NoError(t, err)
 
 			// Check if test is for singular or plural data sources
-			if tc.inputDataSources.Schema.SingularDSAttributes != nil {
-				assert.Equal(t, tc.expectedAttributes, *tc.inputDataSources.Schema.SingularDSAttributes)
+			if tc.inputDataSources.Singular != nil {
+				assert.Equal(t, tc.expectedAttributes, tc.inputDataSources.Singular.Attributes)
 			}
-			if tc.inputDataSources.Schema.PluralDSAttributes != nil {
-				assert.Equal(t, tc.expectedAttributes, *tc.inputDataSources.Schema.PluralDSAttributes)
+			if tc.inputDataSources.Plural != nil {
+				assert.Equal(t, tc.expectedAttributes, tc.inputDataSources.Plural.Attributes)
 			}
 		})
 	}
@@ -1287,8 +1353,8 @@ func TestApplyTransformationsToDataSources_OverrideTransformation(t *testing.T) 
 
 func TestApplyTransformationsToDataSources_IgnoreTransformation(t *testing.T) {
 	inputDataSources := &codespec.DataSources{
-		Schema: &codespec.DataSourceSchema{
-			SingularDSAttributes: &codespec.Attributes{
+		Singular: &codespec.Schema{
+			Attributes: codespec.Attributes{
 				{
 					TFSchemaName:             "keep_attr",
 					TFModelName:              "KeepAttr",
@@ -1331,13 +1397,13 @@ func TestApplyTransformationsToDataSources_IgnoreTransformation(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, expectedAttributes, *inputDataSources.Schema.SingularDSAttributes)
+	assert.Equal(t, expectedAttributes, inputDataSources.Singular.Attributes)
 }
 
 func TestApplyTransformationsToDataSources_IgnorePluralDataSource(t *testing.T) {
 	inputDataSources := &codespec.DataSources{
-		Schema: &codespec.DataSourceSchema{
-			PluralDSAttributes: &codespec.Attributes{
+		Plural: &codespec.Schema{
+			Attributes: codespec.Attributes{
 				{
 					TFSchemaName:             "project_id",
 					TFModelName:              "ProjectId",
@@ -1391,13 +1457,13 @@ func TestApplyTransformationsToDataSources_IgnorePluralDataSource(t *testing.T) 
 	require.NoError(t, err)
 
 	// Verify project_id is still present
-	require.Len(t, *inputDataSources.Schema.PluralDSAttributes, 2, "Should have project_id and results")
+	require.Len(t, inputDataSources.Plural.Attributes, 2, "Should have project_id and results")
 
 	// Verify results array with only keep_attr
 	var resultsAttr *codespec.Attribute
-	for i := range *inputDataSources.Schema.PluralDSAttributes {
-		if (*inputDataSources.Schema.PluralDSAttributes)[i].TFSchemaName == "results" {
-			resultsAttr = &(*inputDataSources.Schema.PluralDSAttributes)[i]
+	for i := range inputDataSources.Plural.Attributes {
+		if inputDataSources.Plural.Attributes[i].TFSchemaName == "results" {
+			resultsAttr = &inputDataSources.Plural.Attributes[i]
 			break
 		}
 	}
@@ -1424,15 +1490,15 @@ func TestApplyTransformationsToDataSources_NilInputs(t *testing.T) {
 	err := codespec.ApplyTransformationsToDataSources(&config.DataSources{}, nil)
 	require.NoError(t, err)
 
-	// Test nil Schema
+	// Test nil Singular and Plural
 	err = codespec.ApplyTransformationsToDataSources(&config.DataSources{}, &codespec.DataSources{})
 	require.NoError(t, err)
 }
 
 func TestApplyTransformationsToDataSources_TypeOverride(t *testing.T) {
 	inputDataSources := &codespec.DataSources{
-		Schema: &codespec.DataSourceSchema{
-			SingularDSAttributes: &codespec.Attributes{
+		Singular: &codespec.Schema{
+			Attributes: codespec.Attributes{
 				// List to Set
 				{
 					TFSchemaName:             "list_attr",
@@ -1594,5 +1660,5 @@ func TestApplyTransformationsToDataSources_TypeOverride(t *testing.T) {
 
 	err := codespec.ApplyTransformationsToDataSources(inputConfig, inputDataSources)
 	require.NoError(t, err)
-	assert.Equal(t, expectedAttributes, *inputDataSources.Schema.SingularDSAttributes)
+	assert.Equal(t, expectedAttributes, inputDataSources.Singular.Attributes)
 }

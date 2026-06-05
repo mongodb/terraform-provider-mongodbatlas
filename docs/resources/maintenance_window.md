@@ -8,8 +8,6 @@ subcategory: "Projects"
 
 -> **NOTE:** Only a single maintenance window resource can be defined per project.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 -> **NOTE:** Maintenance window times use the project's configured timezone. To change the timezone, update the Project Time Zone setting in the Atlas Project Settings.
 
 ## Maintenance Window Considerations:
@@ -62,11 +60,11 @@ Use `defer` to defer the next scheduled maintenance event by one week. This only
 ```
 
 ### Further Examples
-- [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_maintenance_window)
+- [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_maintenance_window)
 
 ## Argument Reference
 
-* `project_id` - The unique identifier of the project for the Maintenance Window.
+* `project_id` - The unique identifier of the project for the Maintenance Window, also known as `groupId` in the official documentation.
 * `day_of_week` - (Required) Day of the week when you would like the maintenance window to start as a 1-based integer: Su=1, M=2, T=3, W=4, T=5, F=6, Sa=7.
 * `hour_of_day` - (Required) Hour of the day when you would like the maintenance window to start. This parameter uses the 24-hour clock, where midnight is 0, noon is 12. Uses the project's configured timezone.
 * `defer` - (Optional) Defer the next scheduled maintenance event for the given project by one week. Only works when maintenance is already scheduled.

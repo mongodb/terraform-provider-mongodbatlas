@@ -144,7 +144,7 @@ resource "mongodbatlas_search_index" "conf-dynamic" {
 
 * `type` - (Optional) Type of index: `search` or `vectorSearch`. Default type is `search`.
 * `name` - (Required) The name of the search index you want to create.
-* `project_id` - (Required) The ID of the organization or project you want to create the search index within.
+* `project_id` - (Required) The ID of the organization or project you want to create the search index within, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) The name of the cluster where you want to create the search index within.
 * `wait_for_index_build_completion` - (Optional) Wait for search index to achieve Active status before terraform considers resource built.
 * `timeouts` - (Optional) The duration to wait for the Search Index to be created, updated, or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `3h`), `update` (default: `3h`), `delete` (default: `3h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts). 
@@ -451,3 +451,11 @@ Synonyms mapping definition to use in the index.
 ```
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/atlas-search/) - [and MongoDB Atlas API - Search](https://docs.atlas.mongodb.com/reference/api/atlas-search/) Documentation for more information.
+
+## Import
+
+You can import search indexes using `project_id`, `cluster_name`, and `index_id` as in the following example:
+
+```shell
+terraform import mongodbatlas_search_index.test {project_id}--{cluster_name}--{index_id}
+```

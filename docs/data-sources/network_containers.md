@@ -6,8 +6,6 @@ subcategory: "Network Peering"
 
 `mongodbatlas_network_containers` describes all Network Peering Containers. The data source requires your Project ID.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find **group_id** in the official documentation.
-
 
 ## Example Usage
 
@@ -29,7 +27,7 @@ data "mongodbatlas_network_containers" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project.
+* `project_id` - (Required) The unique ID for the project, also known as `groupId` in the official documentation.
 * `provider_name` - (Required) Cloud provider for this Network peering container. Accepted values are AWS, GCP, and Azure.
 
 

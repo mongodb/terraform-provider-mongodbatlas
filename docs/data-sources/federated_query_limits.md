@@ -6,8 +6,6 @@ subcategory: "Data Federation"
 
 `mongodbatlas_federated_query_limits` provides a Federated Database Instance Query Limits data source. To learn more about Atlas Data Federation see https://www.mongodb.com/docs/atlas/data-federation/overview/. 
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ## Example Usages
 
 
@@ -20,7 +18,7 @@ data "mongodbatlas_federated_query_limits" "test" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project to create a Federated Database Instance.
+* `project_id` - (Required) The unique ID for the project to create a Federated Database Instance, also known as `groupId` in the official documentation.
 * `tenant_name` - (Required) Name of the Atlas Federated Database Instance.
 
 ## Attributes Reference

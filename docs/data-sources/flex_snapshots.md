@@ -34,9 +34,7 @@ output "mongodbatlas_flex_snapshots" {
 ### Required
 
 - `name` (String) Human-readable label that identifies the flex cluster whose snapshot you want to restore.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
-**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Read-Only
 
@@ -51,9 +49,7 @@ Read-Only:
 - `finish_time` (String) Date and time when MongoDB Cloud completed writing this snapshot. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 - `mongo_db_version` (String) MongoDB host version that the snapshot runs.
 - `name` (String) Human-readable label that identifies the flex cluster whose snapshot you want to restore.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
-**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 - `scheduled_time` (String) Date and time when MongoDB Cloud will take the snapshot. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 - `snapshot_id` (String) Unique 24-hexadecimal digit string that identifies the snapshot to restore.
 - `start_time` (String) Date and time when MongoDB Cloud began taking the snapshot. This parameter expresses its value in the ISO 8601 timestamp format in UTC.

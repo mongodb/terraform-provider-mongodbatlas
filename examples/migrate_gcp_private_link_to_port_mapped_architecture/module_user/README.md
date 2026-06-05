@@ -22,7 +22,6 @@ The rest of this example is a step by step guide on how to migrate from legacy t
 
 ## Dependencies
 
-- Terraform CLI >= 1.0.
 - Terraform MongoDB Atlas Provider with port-mapped architecture support.
 - A MongoDB Atlas account.
 - A Google Cloud account with appropriate permissions.

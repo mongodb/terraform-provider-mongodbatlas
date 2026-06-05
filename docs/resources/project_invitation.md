@@ -12,8 +12,6 @@ Each invitation for an Atlas user includes roles that Atlas grants the user when
 
 The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) describes the roles which can be assigned to a user.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find GROUP-ID in the official documentation.
-
 ~> **IMPORTANT:** This resource is only for managing invitations, not for managing the Atlas User being invited. Possible provider behavior depending on the invitee's action:
 * If the user has not yet accepted the invitation, the provider leaves the invitation as is.
 * If the user has accepted the invitation and is now a project member, the provider will remove the invitation from the Terraform state.  The invitation must then be removed from the Terraform resource configuration.
@@ -38,11 +36,11 @@ resource "mongodbatlas_project_invitation" "test" {
 ```
 
 ### Further Examples
-- [Migrate Project Invitation to Cloud User Project Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/migrate_project_invitation_to_cloud_user_project_assignment)
+- [Migrate Project Invitation to Cloud User Project Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/migrate_project_invitation_to_cloud_user_project_assignment)
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project to which you want to invite a user.
+* `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project to which you want to invite a user, also known as `groupId` in the official documentation.
 * `username` - (Required) Email address to which Atlas sent the invitation. The user uses this email address as their Atlas username if they accept this invitation.
 * `roles` - (Required) List of Atlas roles to assign to the invited user. If the user accepts the invitation, Atlas assigns these roles to them. Refer to the [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#project-roles) for information on valid roles.
 

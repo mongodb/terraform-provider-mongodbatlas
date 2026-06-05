@@ -8,33 +8,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccStreamDSStreamInstances_basic(t *testing.T) {
-	var (
-		dataSourceName = "data.mongodbatlas_stream_instances.test"
-		projectID      = acc.ProjectIDExecution(t)
-		instanceName   = acc.RandomName()
-	)
-
-	checks := paginatedAttrChecks(dataSourceName, nil, nil)
-	// created instance is present in results
-	checks = append(checks, resource.TestCheckResourceAttrWith(dataSourceName, "results.#", acc.IntGreatThan(0)),
-		resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "results.*", map[string]string{
-			"instance_name": instanceName,
-		}))
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyStreamInstance,
-		Steps: []resource.TestStep{
-			{
-				Config: streamInstancesDataSourceConfig(projectID, instanceName, region, cloudProvider),
-				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
-			},
-		},
-	})
-}
-
 func TestAccStreamDSStreamInstances_withPageConfig(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_stream_instances.test"
@@ -57,16 +30,6 @@ func TestAccStreamDSStreamInstances_withPageConfig(t *testing.T) {
 			},
 		},
 	})
-}
-
-func streamInstancesDataSourceConfig(projectID, instanceName, region, cloudProvider string) string {
-	return fmt.Sprintf(`
-		%s
-
-		data "mongodbatlas_stream_instances" "test" {
-			project_id = mongodbatlas_stream_instance.test.project_id
-		}
-	`, acc.StreamInstanceConfig(projectID, instanceName, region, cloudProvider))
 }
 
 func streamInstancesWithPageAttrDataSourceConfig(projectID, instanceName, region, cloudProvider string, pageNum int) string {

@@ -6,8 +6,6 @@ subcategory: "Private Endpoint Services"
 
 `mongodbatlas_privatelink_endpoint_service` describes a Private Endpoint Link. This represents a Private Endpoint Link Connection that wants to retrieve details in an Atlas project.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
-
 ## Example Usage
 
 ```terraform
@@ -22,12 +20,12 @@ data "mongodbatlas_privatelink_endpoint_service" "this" {
 See [`mongodbatlas_privatelink_endpoint_service` resource](../resources/privatelink_endpoint_service.md) for complete examples with each cloud provider.
 
 ### Available complete examples
-- [Setup private connection to a MongoDB Atlas Cluster with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
-- [GCP Private Service Connect Endpoint and Service (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.7.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
+- [Setup private connection to a MongoDB Atlas Cluster with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+- [GCP Private Service Connect Endpoint and Service (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the project, also known as `group_id` in the official documentation.
+* `project_id` - (Required) Unique identifier for the project, also known as `groupId` in the official documentation.
 * `private_link_id` - (Required) Unique identifier of the `AWS`, `AZURE` or `GCP` PrivateLink connection which is created by `mongodbatlas_privatelink_endpoint` resource.
 * `endpoint_service_id` - (Required) Unique identifier of the interface endpoint you created in your VPC. For `AWS` and `AZURE`, this is the interface endpoint identifier. For `GCP` port-mapped architecture, this is the forwarding rule name. For `GCP` legacy private endpoint architecture, this is the endpoint group name.
 * `provider_name` - (Required) Cloud provider for which you want to create a private endpoint. Atlas accepts `AWS`, `AZURE` or `GCP`.

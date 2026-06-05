@@ -11,8 +11,6 @@ subcategory: "Clusters"
 > **NOTE:**  Serverless instances do not support some Atlas features at this time.
 For a full list of unsupported features, see [Serverless Instance Limitations](https://docs.atlas.mongodb.com/reference/serverless-instance-limitations/).
 
-> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
-
 
 ## Example Usage
 
@@ -24,7 +22,7 @@ data "mongodbatlas_serverless_instances" "data_serverless" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the [project](https://docs.atlas.mongodb.com/organizations-projects/#std-label-projects) that contains the specified cluster.
+* `project_id` - (Required) Unique identifier for the [project](https://docs.atlas.mongodb.com/organizations-projects/#std-label-projects) that contains the specified cluster, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 * `results` - A list where each result represents a Serverless Instance. To learn more, see [Serverless Instance](#serverless-instance).

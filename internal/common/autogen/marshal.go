@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
@@ -44,6 +45,24 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 	objJSON := make(map[string]any)
 	for i := range valModel.NumField() {
 		attrTypeModel := valModel.Type().Field(i)
+		attrValModel := valModel.Field(i)
+
+		// Flatten anonymous embedded structs into the same JSON object.
+		if attrTypeModel.Anonymous {
+			if attrValModel.Kind() == reflect.Struct {
+				embeddedJSON, err := marshalAttrs(attrValModel, isUpdate)
+				if err != nil {
+					return nil, err
+				}
+				maps.Copy(objJSON, embeddedJSON)
+				continue
+			}
+
+			return nil, fmt.Errorf(
+				"marshal unsupported anonymous field %q of kind %s (expected struct)",
+				attrTypeModel.Name, attrValModel.Kind())
+		}
+
 		tags := GetPropertyTags(&attrTypeModel)
 		if tags.OmitJSON {
 			continue // skip fields with tag `omitjson`
@@ -52,7 +71,6 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 			continue // skip fields with tag `omitjsonupdate` if in update mode
 		}
 		apiName := getAPINameFromTag(attrTypeModel.Name, tags)
-		attrValModel := valModel.Field(i)
 		if err := marshalAttr(apiName, attrValModel, objJSON, isUpdate, tags); err != nil {
 			return nil, err
 		}

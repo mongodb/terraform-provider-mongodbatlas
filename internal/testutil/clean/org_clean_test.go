@@ -2,6 +2,7 @@ package clean_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -11,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 
 	"github.com/stretchr/testify/require"
 
@@ -32,7 +33,8 @@ const (
 
 var (
 	botProjectPrefixes = []string{
-		"cfn-test-bot-",
+		"cfn-", // general CFN tests
+		"ct-",  // CFN contract tests
 		"test-acc-tf-p-",
 	}
 	// keptPrefixes has the prefix of the projects that we want to delete their resources but keep the projects themselves.
@@ -57,13 +59,13 @@ func TestSingleProjectRemoval(t *testing.T) {
 	}
 	client := acc.ConnV2()
 	dryRun, _ := strconv.ParseBool(os.Getenv("DRY_RUN"))
-	changes := removeProjectResources(t.Context(), t, dryRun, client, projectToClean)
+	changes, err := removeProjectResources(t.Context(), t, dryRun, client, projectToClean)
+	require.NoError(t, err)
 	if changes != "" {
 		t.Logf("project %s %s", projectToClean, changes)
 	}
 	if !dryRun {
-		err := deleteProject(t.Context(), client, projectToClean)
-		require.NoError(t, err)
+		require.NoError(t, deleteProject(t.Context(), client, projectToClean))
 	}
 }
 
@@ -88,7 +90,9 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		require.NoError(t, err)
 		runRetries = attempts
 	}
-	projects := readAllProjects(t.Context(), t, client)
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	require.NotEmpty(t, orgID, "MONGODB_ATLAS_ORG_ID must be set")
+	projects := readAllProjects(t.Context(), t, client, orgID)
 	projectsBefore := len(projects)
 	t.Logf("found %d projects (DRY_RUN=%t)", projectsBefore, dryRun)
 	projectsToClean := map[string]string{}
@@ -112,7 +116,12 @@ func TestCleanProjectAndClusters(t *testing.T) {
 	for name, projectID := range projectsToClean {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			changes := removeProjectResources(t.Context(), t, dryRun, client, projectID)
+			changes, err := removeProjectResources(t.Context(), t, dryRun, client, projectID)
+			if errors.Is(err, clean.ErrUnauthorized) {
+				t.Logf("skip project %s (%s): unauthorized (transient, will retry next run)", name, projectID)
+				return
+			}
+			require.NoError(t, err)
 			if changes != "" {
 				t.Logf("project %s %s", name, changes)
 			}
@@ -121,7 +130,6 @@ func TestCleanProjectAndClusters(t *testing.T) {
 				emptyProjectCount++
 				return
 			}
-			var err error
 			for i := range runRetries {
 				attempt := i + 1
 				if attempt > 1 {
@@ -146,15 +154,15 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		})
 	}
 	t.Cleanup(func() {
-		projectsAfter := readAllProjects(context.Background(), t, client) // reason: using context.Background() here intentionally because t.Context() is canceled at cleanup
+		projectsAfter := readAllProjects(context.Background(), t, client, orgID) // reason: using context.Background() here intentionally because t.Context() is canceled at cleanup
 		t.Logf("SUMMARY\nProjects changed from %d to %d\ndelete_errors=%d\nempty_project_count=%d\nDRY_RUN=%t", projectsBefore, len(projectsAfter), deleteErrors, emptyProjectCount, dryRun)
 	})
 }
 
-func readAllProjects(ctx context.Context, t *testing.T, client *admin.APIClient) []admin.Group {
+func readAllProjects(ctx context.Context, t *testing.T, client *admin.APIClient, orgID string) []admin.Group {
 	t.Helper()
 	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {
-		return client.ProjectsApi.ListGroups(ctx).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
+		return client.OrganizationsApi.GetOrgGroups(ctx, orgID).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
 	})
 	require.NoError(t, err)
 	return projects
@@ -179,42 +187,32 @@ func deleteProject(ctx context.Context, client *admin.APIClient, projectID strin
 	return err
 }
 
-func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) string {
+func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) (string, error) {
 	t.Helper()
+	steps := []struct {
+		run   func() (int, error)
+		label string
+	}{
+		{label: "clusters", run: func() (int, error) { return removeClusters(ctx, t, dryRun, client, projectID) }},
+		{label: "peerings", run: func() (int, error) { return removeNetworkPeering(ctx, t, dryRun, client, projectID) }},
+		{label: "federated private endpoints", run: func() (int, error) { return removeFederatedDatabasePrivateEndpoints(ctx, t, dryRun, client, projectID) }},
+		{label: "federated databases", run: func() (int, error) { return removeFederatedDatabases(ctx, t, dryRun, client, projectID) }},
+		{label: "stream instances", run: func() (int, error) { return clean.RemoveStreamInstances(ctx, dryRun, client, projectID) }},
+		{label: "stream private link connections", run: func() (int, error) { return clean.RemovePrivateLinkConnections(ctx, dryRun, client, projectID) }},
+		{label: "private endpoint services", run: func() (int, error) { return removePrivateEndpointServices(ctx, t, dryRun, client, projectID) }},
+		{label: "encryption at rest private endpoints", run: func() (int, error) { return removeEncryptionAtRestPrivateEndpoints(ctx, t, dryRun, client, projectID) }},
+	}
 	changes := []string{}
-	clustersRemoved := removeClusters(ctx, t, dryRun, client, projectID)
-	if clustersRemoved > 0 {
-		changes = append(changes, fmt.Sprintf("removed %d clusters", clustersRemoved))
+	for _, step := range steps {
+		count, err := step.run()
+		if err != nil {
+			return "", err
+		}
+		if count > 0 {
+			changes = append(changes, fmt.Sprintf("removed %d %s", count, step.label))
+		}
 	}
-	serverlessClustersRemoved := removeServerlessClusters(ctx, t, dryRun, client, projectID)
-	if serverlessClustersRemoved > 0 {
-		changes = append(changes, fmt.Sprintf("removed %d serverless clusters", serverlessClustersRemoved))
-	}
-	peeringsRemoved := removeNetworkPeering(ctx, t, dryRun, client, projectID)
-	if peeringsRemoved > 0 {
-		changes = append(changes, fmt.Sprintf("removed %d peerings", peeringsRemoved))
-	}
-	federatedEndpointsRemoved := removeFederatedDatabasePrivateEndpoints(ctx, t, dryRun, client, projectID)
-	if federatedEndpointsRemoved > 0 {
-		changes = append(changes, fmt.Sprintf("removed %d federated private endpoints", federatedEndpointsRemoved))
-	}
-	federatedDatabasesRemoved := removeFederatedDatabases(ctx, t, dryRun, client, projectID)
-	if federatedDatabasesRemoved > 0 {
-		changes = append(changes, fmt.Sprintf("removed %d federated databases", federatedDatabasesRemoved))
-	}
-	streamInstancesRemoved := removeStreamInstances(ctx, t, dryRun, client, projectID)
-	if streamInstancesRemoved > 0 {
-		changes = append(changes, fmt.Sprintf("removed %d stream instances", streamInstancesRemoved))
-	}
-	privateEndpointServicesRemoved := removePrivateEndpointServices(ctx, t, dryRun, client, projectID)
-	if privateEndpointServicesRemoved > 0 {
-		changes = append(changes, fmt.Sprintf("removed %d private endpoint services", privateEndpointServicesRemoved))
-	}
-	encryptionAtRestPrivateEndpointsRemoved := removeEncryptionAtRestPrivateEndpoints(ctx, t, dryRun, client, projectID)
-	if encryptionAtRestPrivateEndpointsRemoved > 0 {
-		changes = append(changes, fmt.Sprintf("removed %d encryption at rest private endpoints", encryptionAtRestPrivateEndpointsRemoved))
-	}
-	return strings.Join(changes, ", ")
+	return strings.Join(changes, ", "), nil
 }
 
 func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bool) string {
@@ -246,10 +244,12 @@ func skipProjectDelete(name string) bool {
 	return false
 }
 
-func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) (int, error) {
 	t.Helper()
-	clusters, _, err := client.ClustersApi.ListClusters(ctx, projectID).ItemsPerPage(itemsPerPage).Execute()
-	require.NoError(t, err)
+	clusters, resp, err := client.ClustersApi.ListClusters(ctx, projectID).ItemsPerPage(itemsPerPage).Execute()
+	if err != nil {
+		return 0, clean.SkipUnauthorizedErr(resp, err)
+	}
 	clustersResults := clusters.GetResults()
 	deleteFailures := []string{}
 
@@ -272,43 +272,28 @@ func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admi
 				t.Logf("cluster %s already requested deletion", cName)
 				continue
 			}
-			require.NoError(t, err)
-		}
-	}
-	require.Empty(t, deleteFailures, strings.Join(deleteFailures, "\n"))
-	return len(clustersResults)
-}
-
-func removeServerlessClusters(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
-	t.Helper()
-	clusters, _, err := client.ServerlessInstancesApi.ListServerlessInstances(ctx, projectID).ItemsPerPage(itemsPerPage).Execute()
-	require.NoError(t, err)
-	clustersResults := clusters.GetResults()
-	for i := range clustersResults {
-		c := clustersResults[i]
-		cName := c.GetName()
-		t.Logf("delete serverless cluster %s", cName)
-		if !dryRun {
-			_, _, err = client.ServerlessInstancesApi.DeleteServerlessInstance(ctx, projectID, cName).Execute()
-			if admin.IsErrorCode(err, "SERVERLESS_INSTANCE_ALREADY_REQUESTED_DELETION") {
-				t.Logf("serverless cluster %s already requested deletion", cName)
-				continue
+			if err != nil {
+				return 0, err
 			}
-			require.NoError(t, err)
 		}
 	}
-	return len(clustersResults)
+	if len(deleteFailures) > 0 {
+		return 0, errors.New(strings.Join(deleteFailures, "\n"))
+	}
+	return len(clustersResults), nil
 }
 
-func removeNetworkPeering(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+func removeNetworkPeering(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) (int, error) {
 	t.Helper()
 	peeringIDs := []string{}
 	for _, providerName := range []string{constant.AWS, constant.AZURE, constant.GCP} {
-		peering, _, err := client.NetworkPeeringApi.ListGroupPeersWithParams(ctx, &admin.ListGroupPeersApiParams{
+		peering, resp, err := client.NetworkPeeringApi.ListGroupPeersWithParams(ctx, &admin.ListGroupPeersApiParams{
 			ProviderName: &providerName,
 			GroupId:      projectID,
 		}).ItemsPerPage(itemsPerPage).Execute()
-		require.NoError(t, err)
+		if err != nil {
+			return 0, clean.SkipUnauthorizedErr(resp, err)
+		}
 		peeringResults := peering.GetResults()
 		for i := range peeringResults {
 			p := peeringResults[i]
@@ -324,97 +309,101 @@ func removeNetworkPeering(ctx context.Context, t *testing.T, dryRun bool, client
 				t.Logf("peering %s already requested deletion", peerID)
 				continue
 			}
-			require.NoError(t, err)
+			if err != nil {
+				return 0, err
+			}
 		}
 	}
-	return len(peeringIDs)
+	return len(peeringIDs), nil
 }
 
-func removeStreamInstances(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
-	t.Helper()
-	count, err := clean.RemoveStreamInstances(ctx, dryRun, client, projectID)
-	require.NoError(t, err)
-	return count
-}
-
-func removePrivateEndpointServices(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+func removePrivateEndpointServices(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) (int, error) {
 	t.Helper()
 	totalCount := 0
-	cloudProviders := []string{"AWS", "AZURE", "GCP"}
+	cloudProviders := []string{constant.AWS, constant.AZURE, constant.GCP}
 
 	for _, provider := range cloudProviders {
-		endpointServices, _, err := client.PrivateEndpointServicesApi.ListPrivateEndpointService(ctx, projectID, provider).Execute()
+		endpointServices, resp, err := client.PrivateEndpointServicesApi.ListPrivateEndpointService(ctx, projectID, provider).Execute()
 		if err != nil {
-			t.Errorf("failed to list private endpoint services for %s: %v", provider, err)
-			continue
+			return 0, clean.SkipUnauthorizedErr(resp, err)
 		}
 
 		for _, service := range endpointServices {
 			id := service.GetId()
 			t.Logf("delete private endpoint service %s for provider %s", id, provider)
 			if !dryRun {
-				_, err := client.PrivateEndpointServicesApi.DeletePrivateEndpointService(ctx, projectID, provider, id).Execute()
-				require.NoError(t, err)
+				if _, err := client.PrivateEndpointServicesApi.DeletePrivateEndpointService(ctx, projectID, provider, id).Execute(); err != nil {
+					return 0, err
+				}
 			}
 		}
 		totalCount += len(endpointServices)
 	}
 
-	return totalCount
+	return totalCount, nil
 }
 
-func removeFederatedDatabasePrivateEndpoints(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+func removeFederatedDatabasePrivateEndpoints(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) (int, error) {
 	t.Helper()
-	paginatedResults, _, err := client.DataFederationApi.ListPrivateEndpointIds(ctx, projectID).Execute()
-	require.NoError(t, err)
+	paginatedResults, resp, err := client.DataFederationApi.ListPrivateEndpointIds(ctx, projectID).Execute()
+	if err != nil {
+		return 0, clean.SkipUnauthorizedErr(resp, err)
+	}
 	endpoints := paginatedResults.GetResults()
 	for _, f := range endpoints {
 		endpointID := f.GetEndpointId()
 		t.Logf("delete federated private endpoint %s", endpointID)
 		if !dryRun {
-			_, err = client.DataFederationApi.DeletePrivateEndpointId(ctx, projectID, endpointID).Execute()
-			require.NoError(t, err)
+			if _, err = client.DataFederationApi.DeletePrivateEndpointId(ctx, projectID, endpointID).Execute(); err != nil {
+				return 0, err
+			}
 		}
 	}
-	return len(endpoints)
+	return len(endpoints), nil
 }
 
-func removeFederatedDatabases(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+func removeFederatedDatabases(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) (int, error) {
 	t.Helper()
-	federatedResults, _, err := client.DataFederationApi.ListDataFederation(ctx, projectID).Execute()
+	federatedResults, resp, err := client.DataFederationApi.ListDataFederation(ctx, projectID).Execute()
 	if admin.IsErrorCode(err, "DATA_FEDERATION_TENANT_NOT_FOUND_FOR_ID") {
 		t.Logf("no federated databases found for project %s, must delete this manually from the UI", projectID) // Deletion task was only partially successful - deleted the storage config but not the tenant config (internal slack thread)
-		return 0
+		return 0, nil
 	}
-	require.NoError(t, err)
+	if err != nil {
+		return 0, clean.SkipUnauthorizedErr(resp, err)
+	}
 	for _, f := range federatedResults {
 		federatedName := f.GetName()
 		t.Logf("delete federated %s", federatedName)
 		if !dryRun {
-			_, err = client.DataFederationApi.DeleteDataFederation(ctx, projectID, federatedName).Execute()
-			require.NoError(t, err)
+			if _, err = client.DataFederationApi.DeleteDataFederation(ctx, projectID, federatedName).Execute(); err != nil {
+				return 0, err
+			}
 		}
 	}
-	return len(federatedResults)
+	return len(federatedResults), nil
 }
 
-func removeEncryptionAtRestPrivateEndpoints(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+func removeEncryptionAtRestPrivateEndpoints(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) (int, error) {
 	t.Helper()
 	endpointsCount := 0
 	for _, cloudProvider := range []string{constant.AWS, constant.AZURE} {
-		privateEndpoints, _, err := client.EncryptionAtRestUsingCustomerKeyManagementApi.ListRestPrivateEndpoints(ctx, projectID, cloudProvider).Execute()
-		require.NoError(t, err)
+		privateEndpoints, resp, err := client.EncryptionAtRestUsingCustomerKeyManagementApi.ListRestPrivateEndpoints(ctx, projectID, cloudProvider).Execute()
+		if err != nil {
+			return 0, clean.SkipUnauthorizedErr(resp, err)
+		}
 		endpoints := privateEndpoints.GetResults()
 		endpointsCount += len(endpoints)
 		for _, endpoint := range endpoints {
 			endpointID := endpoint.GetId()
 			t.Logf("delete encryption at rest private endpoint %s", endpointID)
 			if !dryRun {
-				_, err = client.EncryptionAtRestUsingCustomerKeyManagementApi.RequestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute()
-				require.NoError(t, err)
+				if _, err = client.EncryptionAtRestUsingCustomerKeyManagementApi.RequestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute(); err != nil {
+					return 0, err
+				}
 				time.Sleep(30 * time.Second)
 			}
 		}
 	}
-	return endpointsCount
+	return endpointsCount, nil
 }

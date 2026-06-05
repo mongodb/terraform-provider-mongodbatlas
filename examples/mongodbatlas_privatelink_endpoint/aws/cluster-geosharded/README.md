@@ -9,7 +9,6 @@ Setup [regionalized private endpoints](https://www.mongodb.com/docs/atlas/securi
 
 ## Dependencies
 
-* Terraform v0.13
 * An AWS account - provider.aws: version = "~> 4"
 * A MongoDB Atlas account - provider.mongodbatlas: version = "~> 1.8"
 

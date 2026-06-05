@@ -768,3 +768,83 @@ func TestMarshalPanic(t *testing.T) {
 		})
 	}
 }
+
+func TestMarshalEmbeddedExpandedModel(t *testing.T) {
+	type modelExpandedFields struct {
+		ID types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
+	}
+	type modelExpanded struct {
+		modelExpandedFields
+		ConnectionName types.String `tfsdk:"connection_name" apiname:"name"`
+		Type           types.String `tfsdk:"type"`
+	}
+	model := modelExpanded{
+		modelExpandedFields: modelExpandedFields{
+			ID: types.StringValue("ws-123-conn"),
+		},
+		ConnectionName: types.StringValue("conn"),
+		Type:           types.StringValue("Sample"),
+	}
+	const expectedJSON = `
+	{
+		"name": "conn",
+		"type": "Sample"
+	}
+	`
+
+	raw, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedJSON, string(raw))
+}
+
+func TestMarshalEmbeddedExpandedModel_WithSendableExpandedField(t *testing.T) {
+	type modelExpandedFields struct {
+		ID           types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
+		ExpandedAttr types.String `tfsdk:"expanded_attr"`
+	}
+	type modelExpanded struct {
+		modelExpandedFields
+		ConnectionName types.String `tfsdk:"connection_name" apiname:"name"`
+		Type           types.String `tfsdk:"type"`
+	}
+	model := modelExpanded{
+		modelExpandedFields: modelExpandedFields{
+			ID:           types.StringValue("ws-123-proj-conn"),
+			ExpandedAttr: types.StringValue("expanded-attr"),
+		},
+		ConnectionName: types.StringValue("conn"),
+		Type:           types.StringValue("Kafka"),
+	}
+
+	const expectedJSON = `
+	{
+		"expandedAttr": "expanded-attr",
+		"name": "conn",
+		"type": "Kafka"
+	}
+	`
+
+	raw, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedJSON, string(raw))
+}
+
+func TestMarshalAnonymousNonStruct(t *testing.T) {
+	type EmbeddedInt int
+
+	type Model struct {
+		Name types.String `tfsdk:"name"`
+		EmbeddedInt
+	}
+
+	model := Model{
+		Name:        types.StringValue("abc"),
+		EmbeddedInt: EmbeddedInt(1),
+	}
+
+	raw, err := autogen.Marshal(&model, false)
+	require.Error(t, err)
+	assert.Nil(t, raw)
+	require.ErrorContains(t, err, "marshal unsupported anonymous field")
+	require.ErrorContains(t, err, "expected struct")
+}

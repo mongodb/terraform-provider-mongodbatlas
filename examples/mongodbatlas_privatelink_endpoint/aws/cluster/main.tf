@@ -20,3 +20,16 @@ resource "mongodbatlas_privatelink_endpoint_service" "pe_east_service" {
     delete = "10m"
   }
 }
+
+data "mongodbatlas_privatelink_endpoint" "pe_east" {
+  project_id      = mongodbatlas_privatelink_endpoint.pe_east.project_id
+  private_link_id = mongodbatlas_privatelink_endpoint.pe_east.private_link_id
+  provider_name   = "AWS"
+  depends_on      = [mongodbatlas_privatelink_endpoint_service.pe_east_service]
+}
+
+data "mongodbatlas_privatelink_endpoints" "endpoints" {
+  project_id    = mongodbatlas_privatelink_endpoint.pe_east.project_id
+  provider_name = "AWS"
+  depends_on    = [mongodbatlas_privatelink_endpoint_service.pe_east_service]
+}

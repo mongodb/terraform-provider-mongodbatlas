@@ -32,6 +32,9 @@ type rs struct {
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
+	if schemaHook, ok := any(r).(autogen.ResourceSchemaHook); ok {
+		resp.Schema = schemaHook.ResourceSchema(ctx, resp.Schema)
+	}
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -147,6 +150,20 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 	reqHandle := deleteRequest(r, r.Client, &state, &resp.Diagnostics)
+	timeout, diags := state.Timeouts.Delete(ctx, 300*time.Second)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	reqHandle.Wait = &autogen.WaitReq{
+		StateProperty:     "status",
+		PendingStates:     []string{"DELETING"},
+		TargetStates:      []string{"DELETED"},
+		Timeout:           timeout,
+		MinTimeoutSeconds: 5,
+		DelaySeconds:      5,
+		CallParams:        readAPICallParams,
+	}
 	autogen.HandleDelete(ctx, *reqHandle)
 }
 

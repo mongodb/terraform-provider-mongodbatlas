@@ -50,7 +50,7 @@ We ship binaries but do not prioritize fixes for the following operating system 
 
 
 ## Troubleshooting
-See [Troubleshooting](./docs/troubleshooting.md).
+See [Troubleshooting](./troubleshooting).
 
 ## Developing the Provider
 See our [contributing guides](./contributing/README.md).

@@ -11,10 +11,8 @@ Using a Multi-Region Access Point (MRAP) provides:
 
 ## Prerequisites
 
-- MongoDB Atlas account with Organization Owner or Project Owner role.
+- MongoDB Atlas Service Account with Organization Owner or Project Owner role.
 - AWS account with permissions to create S3 buckets, S3 Multi-Region Access Points, and IAM roles.
-- Terraform >= `1.0`.
-- AWS Provider >= `5.0`.
 
 ## Resources Created
 
@@ -66,7 +64,7 @@ log_types   = ["MONGOD", "MONGOS"]
 
 **2\. Review the Terraform plan.**
 
-Execute the following command and ensure you are happy with the plan.
+Execute the following command and ensure you agree with the plan.
 
 ```bash
 terraform plan
@@ -118,8 +116,7 @@ The `log_types` attribute supports the following values:
 
 ## Notes
 
-- The requesting Service Account or API Key must have the Organization Owner or Project Owner role.
-- MongoDB Cloud will add sub-directories based on the log type under the specified `prefix_path`.
+- Atlas will add sub-directories based on the log type under the specified `prefix_path`.
 - MRAP creation can take several minutes to complete.
 - The IAM policy includes permissions for both the MRAP and the backing S3 buckets, as some operations require direct bucket access.
 - Optional: Use `kms_key` to specify an AWS KMS key ID or ARN for server-side encryption.

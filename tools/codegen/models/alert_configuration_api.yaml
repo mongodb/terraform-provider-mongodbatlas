@@ -1,8 +1,5 @@
 schema:
-    description: |-
-        Creates one alert configuration for the specified project. Alert configurations define the triggers and notification methods for alerts. To use this resource, the requesting Service Account or API Key must have the Project Alerts Manager, Project Monitoring Admin, Organization Owner, or Project Owner role.
-
-        This resource remains under revision and may change.
+    description: "Creates one alert configuration for the specified project. Alert configurations define the triggers and notification methods for alerts. \n\nThis resource remains under revision and may change."
     attributes:
         - string: {}
           description: Date and time when MongoDB Cloud created the alert configuration. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
@@ -28,7 +25,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Event type that triggers an alert.
+          description: Incident that triggered this alert.
           computed_optional_required: optional
           tf_schema_name: event_type_name
           tf_model_name: EventTypeName
@@ -119,7 +116,7 @@ schema:
                 attributes:
                     - string: {}
                       description: Human-readable label that identifies the metric against which MongoDB Cloud checks the configured `metricThreshold.threshold`.
-                      computed_optional_required: required
+                      computed_optional_required: optional
                       tf_schema_name: metric_name
                       tf_model_name: MetricName
                       api_name: metricName
@@ -162,7 +159,7 @@ schema:
                       present_in_any_response: true
                       request_only_required_on_create: false
                     - string:
-                        default: HOURS
+                        default: RAW
                       description: Element used to express the quantity. This can be an element of time, storage capacity, and the like.
                       computed_optional_required: computed_optional
                       tf_schema_name: units
@@ -173,7 +170,7 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
-          description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics about the serverless database.
+          description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
           custom_type:
             package: customtypes
             name: MetricThreshold
@@ -706,12 +703,12 @@ operations:
         path: /api/atlas/v2/groups/{groupId}/alertConfigs/{id}
     version_header: application/vnd.atlas.2023-01-01+json
 data_sources:
-    schema:
-        singular_ds_description: |-
-            Returns the specified alert configuration from the specified project. To use this resource, the requesting Service Account or API Key must have the Project Read Only role. Use the Return All Alert Configurations for One Project endpoint to retrieve all alert configurations to which the authenticated user has access.
+    singular:
+        description: |-
+            Returns the specified alert configuration from the specified project. Use the Return All Alert Configurations for One Project endpoint to retrieve all alert configurations to which the authenticated user has access.
 
             This resource remains under revision and may change.
-        singular_ds_attributes:
+        attributes:
             - string: {}
               description: Date and time when MongoDB Cloud created the alert configuration. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
               computed_optional_required: computed
@@ -736,7 +733,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Event type that triggers an alert.
+              description: Incident that triggered this alert.
               computed_optional_required: computed
               tf_schema_name: event_type_name
               tf_model_name: EventTypeName
@@ -870,7 +867,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string:
-                            default: HOURS
+                            default: RAW
                           description: Element used to express the quantity. This can be an element of time, storage capacity, and the like.
                           computed_optional_required: computed
                           tf_schema_name: units
@@ -881,7 +878,7 @@ data_sources:
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false
-              description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics about the serverless database.
+              description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
               custom_type:
                 package: customtypes
                 name: MetricThreshold
@@ -1399,11 +1396,9 @@ data_sources:
               create_only: false
               present_in_any_response: false
               request_only_required_on_create: false
-        plural_ds_description: |-
-            Returns all alert configurations for one project. These alert configurations apply to any component in the project. Alert configurations define the triggers and notification methods for alerts. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
-
-            This resource remains under revision and may change.
-        plural_ds_attributes:
+    plural:
+        description: "Returns all alert configurations for one project. These alert configurations apply to any component in the project. Alert configurations define the triggers and notification methods for alerts. \n\nThis resource remains under revision and may change."
+        attributes:
             - string: {}
               description: |-
                 Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -1445,7 +1440,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Event type that triggers an alert.
+                          description: Incident that triggered this alert.
                           computed_optional_required: computed
                           tf_schema_name: event_type_name
                           tf_model_name: EventTypeName
@@ -1576,7 +1571,7 @@ data_sources:
                                       present_in_any_response: false
                                       request_only_required_on_create: false
                                     - string:
-                                        default: HOURS
+                                        default: RAW
                                       description: Element used to express the quantity. This can be an element of time, storage capacity, and the like.
                                       computed_optional_required: computed
                                       tf_schema_name: units
@@ -1587,7 +1582,7 @@ data_sources:
                                       create_only: false
                                       present_in_any_response: false
                                       request_only_required_on_create: false
-                          description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics about the serverless database.
+                          description: Threshold for the metric that, when exceeded, triggers an alert. The metric threshold pertains to event types which reflects changes of measurements and metrics in stream processors.
                           custom_type:
                             package: customtypes
                             name: ResultsMetricThreshold

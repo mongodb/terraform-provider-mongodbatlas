@@ -63,11 +63,10 @@ func GenerateCodeForResource(resourceModel *codespec.Resource, packageDir string
 	}
 
 	// Generate data source files if data sources are defined
-	if resourceModel.DataSources != nil && resourceModel.DataSources.Schema != nil {
+	if resourceModel.DataSources != nil {
 		log.Printf("[INFO] Generating data source code: %s", resourceModel.Name)
-		dataSourceSchema := resourceModel.DataSources.Schema
 
-		if dataSourceSchema.SingularDSAttributes != nil && len(*dataSourceSchema.SingularDSAttributes) > 0 {
+		if resourceModel.DataSources.Singular != nil && len(resourceModel.DataSources.Singular.Attributes) > 0 {
 			files, err := generateComponentFiles(resourceModel, packageDir, dataSourceComponent, writeFile)
 			if err != nil {
 				return nil, fmt.Errorf("failed to generate data source: %w", err)
@@ -75,7 +74,7 @@ func GenerateCodeForResource(resourceModel *codespec.Resource, packageDir string
 			generatedFiles = append(generatedFiles, files...)
 		}
 
-		if dataSourceSchema.PluralDSAttributes != nil && len(*dataSourceSchema.PluralDSAttributes) > 0 {
+		if resourceModel.DataSources.Plural != nil && len(resourceModel.DataSources.Plural.Attributes) > 0 {
 			files, err := generateComponentFiles(resourceModel, packageDir, pluralDataSourceComponent, writeFile)
 			if err != nil {
 				return nil, fmt.Errorf("failed to generate plural data source: %w", err)

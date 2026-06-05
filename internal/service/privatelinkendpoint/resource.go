@@ -18,12 +18,13 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 )
 
 const (
 	errorPrivateLinkEndpointsCreate  = "error creating MongoDB Private Endpoints Connection: %s"
 	errorPrivateLinkEndpointsRead    = "error reading MongoDB Private Endpoints Connection(%s): %s"
+	errorPrivateLinkEndpointsUpdate  = "error updating MongoDB Private Endpoints Connection(%s): %s"
 	errorPrivateLinkEndpointsDelete  = "error deleting MongoDB Private Endpoints Connection(%s): %s"
 	ErrorPrivateLinkEndpointsSetting = "error setting `%s` for MongoDB Private Endpoints Connection(%s): %s"
 	delayAndMinTimeout               = 5 * time.Second
@@ -117,6 +118,14 @@ func Resource() *schema.Resource {
 				Optional:    true,
 				Description: "Flag that indicates whether this resource uses GCP port-mapping. When `true`, it uses the port-mapped architecture. When `false` or unset, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.",
 			},
+			"supported_remote_regions": {
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Description: "List of additional AWS regions that can connect to the endpoint service. Regions must be specified in Atlas format (e.g., `US_EAST_1`). Only applicable for AWS provider. The `region_name` is supported by default and must not be included.",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -126,6 +135,7 @@ func Resource() *schema.Resource {
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Hour),
+			Update: schema.DefaultTimeout(1 * time.Hour),
 			Delete: schema.DefaultTimeout(1 * time.Hour),
 		},
 	}
@@ -149,12 +159,17 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
+	if v, ok := d.GetOk("supported_remote_regions"); ok {
+		regions := conversion.ExpandStringList(v.(*schema.Set).List())
+		request.SupportedRemoteRegions = &regions
+	}
+
 	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.CreatePrivateEndpointService(ctx, projectID, request).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, err))
 	}
 
-	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, providerName, privateEndpoint.GetId(), d.Timeout(schema.TimeoutCreate))
+	stateConf := waitStateChangeConfig(ctx, connV2, projectID, providerName, privateEndpoint.GetId(), d.Timeout(schema.TimeoutCreate))
 	_, errWait := stateConf.WaitForStateContext(ctx)
 	deleteOnCreateTimeout := true // default value when not set
 	if v, ok := d.GetOkExists("delete_on_create_timeout"); ok {
@@ -178,8 +193,36 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return resourceRead(ctx, d, meta)
 }
 
+// resourceUpdate handles changes to supported_remote_regions. Most attributes use ForceNew so they
+// never reach update, and port_mapping_enabled is blocked by CustomizeDiff. Only supported_remote_regions
+// triggers an in-place update.
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// CustomizeDiff prevents port_mapping_enabled from being changed, so this should never be called with actual changes.
+	if !d.HasChange("supported_remote_regions") {
+		return resourceRead(ctx, d, meta)
+	}
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	ids := conversion.DecodeStateID(d.Id())
+	privateLinkID := ids["private_link_id"]
+	projectID := ids["project_id"]
+	providerName := ids["provider_name"]
+	regions := conversion.ExpandStringList(d.Get("supported_remote_regions").(*schema.Set).List())
+	updateRequest := &admin.ApiAtlasModifyEndpointServiceRequest{
+		CloudProvider:          providerName,
+		SupportedRemoteRegions: &regions,
+	}
+	_, _, err := connV2.PrivateEndpointServicesApi.UpdatePrivateEndpointService(ctx, projectID, privateLinkID, updateRequest).Execute()
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsUpdate, privateLinkID, err))
+	}
+
+	stateConf := waitStateChangeConfig(ctx, connV2, projectID, providerName, privateLinkID, d.Timeout(schema.TimeoutUpdate))
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsUpdate, privateLinkID, err))
+	}
+
+	if err := d.Set("supported_remote_regions", regions); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "supported_remote_regions", privateLinkID, err))
+	}
 	return resourceRead(ctx, d, meta)
 }
 
@@ -263,6 +306,12 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "port_mapping_enabled", privateLinkID, err))
 	}
 
+	if regions := privateEndpoint.GetSupportedRemoteRegions(); len(regions) > 0 {
+		if err := d.Set("supported_remote_regions", regions); err != nil {
+			return diag.FromErr(fmt.Errorf(ErrorPrivateLinkEndpointsSetting, "supported_remote_regions", privateLinkID, err))
+		}
+	}
+
 	if privateEndpoint.GetErrorMessage() != "" {
 		return diag.FromErr(fmt.Errorf("privatelink endpoint is in a failed state: %s", privateEndpoint.GetErrorMessage()))
 	}
@@ -287,7 +336,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	log.Println("[INFO] Waiting for MongoDB Private Endpoints Connection to be destroyed")
 
-	stateConf := DeleteStateChangeConfig(ctx, connV2, projectID, providerName, privateLinkID, d.Timeout(schema.TimeoutDelete))
+	stateConf := deleteStateChangeConfig(ctx, connV2, projectID, providerName, privateLinkID, d.Timeout(schema.TimeoutDelete))
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsDelete, privateLinkID, err))
@@ -359,7 +408,7 @@ func refreshFunc(ctx context.Context, client *admin.APIClient, projectID, provid
 	}
 }
 
-func CreateStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, providerName, privateLinkID string, timeout time.Duration) retry.StateChangeConf {
+func waitStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, providerName, privateLinkID string, timeout time.Duration) retry.StateChangeConf {
 	return retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "DELETING"},
 		Target:     []string{"WAITING_FOR_USER", "FAILED", "DELETED", "AVAILABLE"},
@@ -370,7 +419,7 @@ func CreateStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, proje
 	}
 }
 
-func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, providerName, privateLinkID string, timeout time.Duration) retry.StateChangeConf {
+func deleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, providerName, privateLinkID string, timeout time.Duration) retry.StateChangeConf {
 	return retry.StateChangeConf{
 		Pending:    []string{"DELETING"},
 		Target:     []string{"DELETED", "FAILED"},

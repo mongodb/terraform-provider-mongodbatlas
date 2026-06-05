@@ -26,7 +26,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Human-readable label that identifies the privilege action.",
 						},
 						"resources": schema.ListNestedAttribute{
-							Optional:            true,
+							Required:            true,
 							MarkdownDescription: "List of resources on which you grant the action.",
 							CustomType:          customtypes.NewNestedListType[TFActionsResourcesModel](ctx),
 							NestedObject: schema.NestedAttributeObject{

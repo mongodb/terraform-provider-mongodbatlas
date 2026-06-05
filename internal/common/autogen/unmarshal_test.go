@@ -906,3 +906,52 @@ func TestUnmarshalUnsupportedModel(t *testing.T) {
 		})
 	}
 }
+
+func TestUnmarshalEmbeddedExpandedModel(t *testing.T) {
+	type ModelExpandedFields struct {
+		ID types.String `tfsdk:"id" apiname:"id" autogen:"omitjson"`
+	}
+	type ModelExpanded struct {
+		ModelExpandedFields
+		ConnectionName types.String `tfsdk:"connection_name" apiname:"name"`
+		Type           types.String `tfsdk:"type"`
+	}
+	model := ModelExpanded{
+		ModelExpandedFields: ModelExpandedFields{
+			ID: types.StringUnknown(),
+		},
+		ConnectionName: types.StringUnknown(),
+		Type:           types.StringUnknown(),
+	}
+
+	responseJSON := []byte(`{
+		"id": "ws-123-conn",
+		"name": "conn",
+		"type": "Sample"
+	}`)
+
+	err := autogen.Unmarshal(responseJSON, &model)
+	require.NoError(t, err)
+
+	assert.Equal(t, "ws-123-conn", model.ID.ValueString())
+	assert.Equal(t, "conn", model.ConnectionName.ValueString())
+	assert.Equal(t, "Sample", model.Type.ValueString())
+}
+
+func TestUnmarshalAnonymousNonStruct(t *testing.T) {
+	type EmbeddedInt int
+
+	type Model struct {
+		Name types.String `tfsdk:"name"`
+		EmbeddedInt
+	}
+
+	model := Model{
+		Name: types.StringUnknown(),
+	}
+
+	err := autogen.Unmarshal([]byte(`{"name":"abc"}`), &model)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "unmarshal unsupported anonymous field")
+	assert.ErrorContains(t, err, "expected struct")
+}

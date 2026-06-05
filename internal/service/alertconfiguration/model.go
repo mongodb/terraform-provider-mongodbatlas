@@ -3,7 +3,7 @@ package alertconfiguration
 import (
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312014/admin"
+	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -58,13 +58,13 @@ func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.Stream
 	}
 }
 
-func NewMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigModel) *admin.FlexClusterMetricThreshold {
+func NewMetricThreshold(tfMetricThresholdConfigSlice []TfMetricThresholdConfigModel) *admin.StreamProcessorMetricThreshold {
 	if len(tfMetricThresholdConfigSlice) == 0 {
 		return nil
 	}
 	v := tfMetricThresholdConfigSlice[0]
-	return &admin.FlexClusterMetricThreshold{
-		MetricName: v.MetricName.ValueString(),
+	return &admin.StreamProcessorMetricThreshold{
+		MetricName: v.MetricName.ValueStringPointer(),
 		Operator:   v.Operator.ValueStringPointer(),
 		Threshold:  v.Threshold.ValueFloat64Pointer(),
 		Units:      v.Units.ValueStringPointer(),
@@ -85,6 +85,10 @@ func NewMatcherList(list []TfMatcherModel) *[]admin.StreamsMatcher {
 }
 
 func NewTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currState *TfAlertConfigurationRSModel) TfAlertConfigurationRSModel {
+	metricThresholdConfig, thresholdConfig := newTFThresholdModels(
+		apiRespConfig.MetricThreshold, apiRespConfig.Threshold, currState.MetricThresholdConfig, currState.ThresholdConfig,
+	)
+
 	return TfAlertConfigurationRSModel{
 		ID:                    currState.ID,
 		ProjectID:             currState.ProjectID,
@@ -93,8 +97,8 @@ func NewTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currSt
 		Created:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Created)),
 		Updated:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Updated)),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
-		MetricThresholdConfig: NewTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, currState.MetricThresholdConfig),
-		ThresholdConfig:       NewTFThresholdConfigModel(apiRespConfig.Threshold, currState.ThresholdConfig),
+		MetricThresholdConfig: metricThresholdConfig,
+		ThresholdConfig:       thresholdConfig,
 		Notification:          NewTFNotificationModelList(apiRespConfig.GetNotifications(), currState.Notification),
 		Matcher:               NewTFMatcherModelList(apiRespConfig.GetMatchers(), currState.Matcher),
 		SeverityOverride:      types.StringPointerValue(apiRespConfig.SeverityOverride),
@@ -183,14 +187,11 @@ func NewTFNotificationModelList(n []admin.AlertsNotificationRootForGroup, currSt
 	return notifications
 }
 
-func NewTFMetricThresholdConfigModel(t *admin.FlexClusterMetricThreshold, currStateSlice []TfMetricThresholdConfigModel) []TfMetricThresholdConfigModel {
-	if t == nil {
-		return []TfMetricThresholdConfigModel{}
-	}
+func NewTFMetricThresholdConfigModel(t *admin.StreamProcessorMetricThreshold, currStateSlice []TfMetricThresholdConfigModel) []TfMetricThresholdConfigModel {
 	if len(currStateSlice) == 0 { // metric threshold was created elsewhere from terraform, or import statement is being called
 		return []TfMetricThresholdConfigModel{
 			{
-				MetricName: conversion.StringNullIfEmpty(t.MetricName),
+				MetricName: conversion.StringNullIfEmpty(t.GetMetricName()),
 				Operator:   conversion.StringNullIfEmpty(t.GetOperator()),
 				Threshold:  types.Float64Value(t.GetThreshold()),
 				Units:      conversion.StringNullIfEmpty(t.GetUnits()),
@@ -203,7 +204,7 @@ func NewTFMetricThresholdConfigModel(t *admin.FlexClusterMetricThreshold, currSt
 		Threshold: types.Float64Value(t.GetThreshold()),
 	}
 	if !currState.MetricName.IsNull() {
-		newState.MetricName = conversion.StringNullIfEmpty(t.MetricName)
+		newState.MetricName = conversion.StringNullIfEmpty(t.GetMetricName())
 	}
 	if !currState.Operator.IsNull() {
 		newState.Operator = conversion.StringNullIfEmpty(t.GetOperator())
@@ -218,10 +219,6 @@ func NewTFMetricThresholdConfigModel(t *admin.FlexClusterMetricThreshold, currSt
 }
 
 func NewTFThresholdConfigModel(t *admin.StreamProcessorMetricThreshold, currStateSlice []TfThresholdConfigModel) []TfThresholdConfigModel {
-	if t == nil {
-		return []TfThresholdConfigModel{}
-	}
-
 	if len(currStateSlice) == 0 { // threshold was created elsewhere from terraform, or import statement is being called
 		return []TfThresholdConfigModel{
 			{
@@ -275,6 +272,10 @@ func NewTFMatcherModelList(m []admin.StreamsMatcher, currStateSlice []TfMatcherM
 }
 
 func NewTfAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, projectID string) TFAlertConfigurationDSModel {
+	metricThresholdConfig, thresholdConfig := newTFThresholdModels(
+		apiRespConfig.MetricThreshold, apiRespConfig.Threshold, []TfMetricThresholdConfigModel{}, []TfThresholdConfigModel{},
+	)
+
 	return TFAlertConfigurationDSModel{
 		ID: types.StringValue(conversion.EncodeStateID(map[string]string{
 			EncodedIDKeyAlertID:   *apiRespConfig.Id,
@@ -286,8 +287,8 @@ func NewTfAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, proj
 		Created:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Created)),
 		Updated:               types.StringPointerValue(conversion.TimePtrToStringPtr(apiRespConfig.Updated)),
 		Enabled:               types.BoolPointerValue(apiRespConfig.Enabled),
-		MetricThresholdConfig: NewTFMetricThresholdConfigModel(apiRespConfig.MetricThreshold, []TfMetricThresholdConfigModel{}),
-		ThresholdConfig:       NewTFThresholdConfigModel(apiRespConfig.Threshold, []TfThresholdConfigModel{}),
+		MetricThresholdConfig: metricThresholdConfig,
+		ThresholdConfig:       thresholdConfig,
 		Notification:          NewTFNotificationModelList(apiRespConfig.GetNotifications(), []TfNotificationModel{}),
 		Matcher:               NewTFMatcherModelList(apiRespConfig.GetMatchers(), []TfMatcherModel{}),
 		SeverityOverride:      types.StringPointerValue(apiRespConfig.SeverityOverride),
@@ -314,4 +315,25 @@ func NewTFAlertConfigurationDSModelList(alerts []admin.GroupAlertsConfig, projec
 	}
 
 	return results
+}
+
+// newTFThresholdModels returns metricThreshold and threshold models, giving precedence to metricThreshold when both are set.
+// This is necessary to avoid inconsistent applies for the OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD event type, for which
+// the API returns both metricThreshold and threshold in the response for backwards compatibility. See HELP-91242.
+// We apply this logic for all types to catch other inconsistencies if they come up, without requiring a new provider version.
+// If in the future a type that requires different logic is introduced, like threshold taking precedence over metricThreshold,
+// we will have to ensure both the new type and OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD are handled correctly.
+func newTFThresholdModels(
+	metricThreshold *admin.StreamProcessorMetricThreshold,
+	threshold *admin.StreamProcessorMetricThreshold,
+	currMetricThreshold []TfMetricThresholdConfigModel,
+	currThreshold []TfThresholdConfigModel,
+) ([]TfMetricThresholdConfigModel, []TfThresholdConfigModel) {
+	if metricThreshold != nil {
+		return NewTFMetricThresholdConfigModel(metricThreshold, currMetricThreshold), []TfThresholdConfigModel{}
+	}
+	if threshold != nil {
+		return []TfMetricThresholdConfigModel{}, NewTFThresholdConfigModel(threshold, currThreshold)
+	}
+	return []TfMetricThresholdConfigModel{}, []TfThresholdConfigModel{}
 }

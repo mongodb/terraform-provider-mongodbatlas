@@ -42,7 +42,7 @@ func TestNetworkLoggingTransport_Success(t *testing.T) {
 		err:      nil,
 	}
 	transport := config.NewTransportWithNetworkLogging(mockTransport, true)
-	req := httptest.NewRequest(http.MethodGet, "https://api.example.com/test", http.NoBody)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.NoError(t, err)
 	require.Equal(t, 200, resp.StatusCode)
@@ -66,7 +66,7 @@ func TestNetworkLoggingTransport_HTTPError(t *testing.T) {
 		err:      nil,
 	}
 	transport := config.NewTransportWithNetworkLogging(mockTransport, true)
-	req := httptest.NewRequest(http.MethodPost, "https://api.example.com/test", http.NoBody)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodPost, "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
@@ -88,7 +88,7 @@ func TestNetworkLoggingTransport_NetworkError(t *testing.T) {
 		err:      networkErr,
 	}
 	transport := config.NewTransportWithNetworkLogging(mockTransport, true)
-	req := httptest.NewRequest(http.MethodGet, "https://api.example.com/test", http.NoBody)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.Error(t, err)
 	require.Equal(t, networkErr, err)
@@ -114,7 +114,7 @@ func TestNetworkLoggingTransport_DigestAuthChallenge(t *testing.T) {
 		err:      nil,
 	}
 	transport := config.NewTransportWithNetworkLogging(mockTransport, true)
-	req := httptest.NewRequest(http.MethodGet, "https://cloud.mongodb.com/api/atlas/v2/groups", http.NoBody)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "https://cloud.mongodb.com/api/atlas/v2/groups", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.NoError(t, err)
 	require.Equal(t, 401, resp.StatusCode)
@@ -142,7 +142,7 @@ func TestNetworkLoggingTransport_Disabled(t *testing.T) {
 		err:      nil,
 	}
 	transport := config.NewTransportWithNetworkLogging(mockTransport, false)
-	req := httptest.NewRequest(http.MethodGet, "https://api.example.com/test", http.NoBody)
+	req := httptest.NewRequestWithContext(t.Context(), http.MethodGet, "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)

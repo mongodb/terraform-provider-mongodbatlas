@@ -81,8 +81,8 @@ func validateEntryPrefix(entries []changelog.Note, filePath string) {
 	for _, entry := range entries {
 		entryContent := entry.Body
 		if containsType(entry.Type, typesRequireResourcePrefix) &&
-			!strings.HasPrefix(entryContent, "resource/mongodbatlas_") && !strings.HasPrefix(entryContent, "data-source/mongodbatlas_") && !strings.HasPrefix(entryContent, "provider") {
-			log.Fatalf("Error validating changelog file: %s. An incorrect prefix was found in the definition of the changelog entry. Please use the prefix `resource/mongodbatlas_`, `data-source/mongodbatlas_`, or `provider` accordingly.", filePath)
+			!strings.HasPrefix(entryContent, "resource/mongodbatlas_") && !strings.HasPrefix(entryContent, "data-source/mongodbatlas_") && !strings.HasPrefix(entryContent, "ephemeral/mongodbatlas_") && !strings.HasPrefix(entryContent, "provider") {
+			log.Fatalf("Error validating changelog file: %s. An incorrect prefix was found in the definition of the changelog entry. Please use the prefix `resource/mongodbatlas_`, `data-source/mongodbatlas_`, `ephemeral/mongodbatlas_`, or `provider` accordingly.", filePath)
 		}
 	}
 }

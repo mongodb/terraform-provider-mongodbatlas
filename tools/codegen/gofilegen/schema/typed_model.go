@@ -8,28 +8,28 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 )
 
-func GenerateTypedModels(attributes codespec.Attributes) CodeStatement {
-	return generateTypedModelsWithPrefix(attributes, "", false)
+func GenerateTypedModels(attributes codespec.Attributes, expandedModel bool) CodeStatement {
+	return generateTypedModelsWithPrefix(attributes, "", false, expandedModel)
 }
 
 // GenerateDataSourceTypedModels generates the TFDSModel struct for data sources.
 // DS models are simpler: no autogen tags (no request body marshaling).
-func GenerateDataSourceTypedModels(attributes codespec.Attributes, isPlural bool) CodeStatement {
+func GenerateDataSourceTypedModels(attributes codespec.Attributes, isPlural, expandedModel bool) CodeStatement {
 	if isPlural {
-		return generateTypedModelsWithPrefix(attributes, "PluralDS", true)
+		return generateTypedModelsWithPrefix(attributes, "PluralDS", true, expandedModel)
 	}
-	return generateTypedModelsWithPrefix(attributes, "DS", true)
+	return generateTypedModelsWithPrefix(attributes, "DS", true, expandedModel)
 }
 
 // generateTypedModelsWithPrefix starts the generation process.
 // The prefix parameter serves as both the initial model name and the constant reference prefix.
-func generateTypedModelsWithPrefix(attributes codespec.Attributes, prefix string, isDataSource bool) CodeStatement {
-	return generateTypedModels(attributes, prefix, isDataSource, prefix)
+func generateTypedModelsWithPrefix(attributes codespec.Attributes, prefix string, isDataSource, expandedModel bool) CodeStatement {
+	return generateTypedModels(attributes, prefix, isDataSource, prefix, expandedModel)
 }
 
 // generateTypedModels recursively generates typed models.
-func generateTypedModels(attributes codespec.Attributes, name string, isDataSource bool, dsPrefix string) CodeStatement {
-	models := []CodeStatement{generateStructOfTypedModel(attributes, name, isDataSource, dsPrefix)}
+func generateTypedModels(attributes codespec.Attributes, name string, isDataSource bool, dsPrefix string, expandedModel bool) CodeStatement {
+	models := []CodeStatement{generateStructOfTypedModel(attributes, name, isDataSource, dsPrefix, expandedModel)}
 
 	// Generate nested models for all attributes (both resource and data source)
 	// Data source nested models use the DS prefix to avoid naming clashes with resource models
@@ -44,28 +44,22 @@ func generateTypedModels(attributes codespec.Attributes, name string, isDataSour
 }
 
 func getNestedModel(attribute *codespec.Attribute, ancestorsName string, isDataSource bool, dsPrefix string) *CodeStatement {
-	var nested *codespec.NestedAttributeObject
-	if attribute.ListNested != nil {
-		nested = &attribute.ListNested.NestedObject
-	}
-	if attribute.SingleNested != nil {
-		nested = &attribute.SingleNested.NestedObject
-	}
-	if attribute.MapNested != nil {
-		nested = &attribute.MapNested.NestedObject
-	}
-	if attribute.SetNested != nil {
-		nested = &attribute.SetNested.NestedObject
-	}
+	nested := attribute.NestedObject()
 	if nested == nil {
 		return nil
 	}
-	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.TFModelName, isDataSource, dsPrefix)
+	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.TFModelName, isDataSource, dsPrefix, false)
 	return &res
 }
 
-func generateStructOfTypedModel(attributes codespec.Attributes, name string, isDataSource bool, dsPrefix string) CodeStatement {
+func generateStructOfTypedModel(attributes codespec.Attributes, name string, isDataSource bool, dsPrefix string, expandedModel bool) CodeStatement {
 	structProperties := []string{}
+	if expandedModel && !isDataSource && name == "" {
+		structProperties = append(structProperties, "TFExpandedModel")
+	}
+	if expandedModel && isDataSource && name == dsPrefix {
+		structProperties = append(structProperties, fmt.Sprintf("TF%sExpandedModel", dsPrefix))
+	}
 	for i := range attributes {
 		structProperties = append(structProperties, typedModelProperty(&attributes[i], isDataSource, dsPrefix))
 	}

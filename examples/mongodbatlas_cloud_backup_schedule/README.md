@@ -9,7 +9,6 @@ This project aims to provide an example of using [Cloud Backup Schedule in Atlas
 * A MongoDB Atlas account 
 
 ```
-Terraform v1.10.0
 + provider registry.terraform.io/terraform-providers/mongodbatlas v1.10.0
 ```
 

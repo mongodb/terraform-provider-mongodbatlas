@@ -6,7 +6,6 @@ subcategory: "Teams"
 
 `mongodbatlas_team` describes a Team. The resource requires your Organization ID, Project ID and Team ID.
 
--> **NOTE:** Groups and projects are synonymous terms. You may find `group_id` in the official documentation.
 
 ## Example Usage
 
@@ -54,7 +53,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Terraform's unique identifier used internally for state management.
 * `team_id` -  The unique identifier for the team.
 * `name` -  The name of the team you want to create.
-* `usernames` - **(DEPRECATED)** The users who are part of the team. This attribute is deprecated and will be removed in the next major release. Please transition to `data.mongodbatlas_team.users`. For more details, see [Migration Guide: Team Usernames Attribute to Cloud User Team Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management.md).
+* `usernames` - **(DEPRECATED)** The users who are part of the team. This attribute is deprecated and will be removed in the next major release. Please transition to `data.mongodbatlas_team.users`. For more details, see [Migration Guide: Team Usernames Attribute to Cloud User Team Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management).
 * `users`- Returns a list of all pending and active MongoDB Cloud users associated with the specified team.
 
 ### Users

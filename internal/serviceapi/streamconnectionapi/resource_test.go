@@ -17,6 +17,7 @@ func TestAccStreamConnectionAPI_basic(t *testing.T) {
 	var (
 		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName           = fmt.Sprintf("kafka-conn-api-%s", acc.RandomName())
+		craftedID                = fmt.Sprintf("%s-%s-%s", workspaceName, projectID, connectionName)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -36,6 +37,7 @@ func TestAccStreamConnectionAPI_basic(t *testing.T) {
 				),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "stream_connection_id"),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName),
 					resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
@@ -45,6 +47,7 @@ func TestAccStreamConnectionAPI_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "PLAIN"),
 					resource.TestCheckResourceAttr(resourceName, "authentication.username", "user"),
 					resource.TestCheckResourceAttr(resourceName, "security.protocol", "SASL_PLAINTEXT"),
+					resource.TestCheckResourceAttr(resourceName, "id", craftedID),
 				),
 			},
 			{

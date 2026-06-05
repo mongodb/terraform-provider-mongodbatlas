@@ -146,6 +146,11 @@ func Resource() *schema.Resource {
 				Computed: true,
 				Optional: true,
 			},
+			"send_query_stats_metrics": {
+				Type:     schema.TypeBool,
+				Computed: true,
+				Optional: true,
+			},
 		},
 	}
 }

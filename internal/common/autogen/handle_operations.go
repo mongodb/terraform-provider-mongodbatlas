@@ -154,6 +154,7 @@ func handleReadCore(
 
 // HandleDataSourceReadList handles the read operation for a plural data source (list) with automatic pagination.
 func HandleDataSourceReadList(ctx context.Context, req HandleReadReq) {
+	var lastResp *http.Response
 	// Fetch all pages using dsschema.AllPages
 	allResults, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[json.RawMessage], *http.Response, error) {
 		// Build API call params with pagination query parameters
@@ -166,13 +167,14 @@ func HandleDataSourceReadList(ctx context.Context, req HandleReadReq) {
 			},
 			Method: req.CallParams.Method,
 		}
-		callResult := callReadWithHooks(ctx, req.Client, paginatedParams, req, req.Hooks)
+		callResult := callReadWithHooksWithOptions(ctx, req.Client, paginatedParams, req, req.Hooks)
 		if callResult.Err != nil {
 			return nil, callResult.Resp, callResult.Err
 		}
 		if notFound(callResult.Body, callResult.Resp) {
 			return nil, callResult.Resp, fmt.Errorf("resource not found")
 		}
+		lastResp = callResult.Resp
 
 		// Parse response to extract results and pagination info
 		var pageResp paginatedAPIResponse
@@ -196,6 +198,17 @@ func HandleDataSourceReadList(ctx context.Context, req HandleReadReq) {
 	if err != nil {
 		addError(req.RespDiags, opRead, errUnmarshallingResponse, err)
 		return
+	}
+	if postReadListHook, ok := req.Hooks.(PostReadAggregatedListAPICallHook); ok {
+		callResult := postReadListHook.PostReadAggregatedListAPICall(req, APICallResult{
+			Body: fullResponseBytes,
+			Resp: lastResp,
+		})
+		if callResult.Err != nil {
+			addError(req.RespDiags, opRead, errCallingAPI, callResult.Err)
+			return
+		}
+		fullResponseBytes = callResult.Body
 	}
 
 	// Unmarshal into the model
@@ -271,6 +284,7 @@ type HandleDeleteReq struct {
 	CallParams        *config.APICallParams
 	Wait              *WaitReq
 	StaticRequestBody string
+	ResetsToDefaults  bool
 }
 
 func HandleDelete(ctx context.Context, req HandleDeleteReq) {
@@ -280,6 +294,10 @@ func HandleDelete(ctx context.Context, req HandleDeleteReq) {
 	}
 	if errWait := handleWaitDelete(ctx, req.Wait, req.Client, req.State, req.Hooks); errWait != nil {
 		addError(req.Diags, opDelete, errWaitingForChanges, errWait)
+		return
+	}
+	if req.ResetsToDefaults {
+		req.Diags.AddWarning("Delete resets resource to default settings", "This resource does not perform a true delete. Instead, the delete operation resets the resource configuration to its default values.")
 	}
 }
 
@@ -431,6 +449,10 @@ func callCreateWithHooks(ctx context.Context, client *config.MongoDBClient, call
 }
 
 func callReadWithHooks(ctx context.Context, client *config.MongoDBClient, callParams config.APICallParams, req HandleReadReq, hooks any) APICallResult {
+	return callReadWithHooksWithOptions(ctx, client, callParams, req, hooks)
+}
+
+func callReadWithHooksWithOptions(ctx context.Context, client *config.MongoDBClient, callParams config.APICallParams, req HandleReadReq, hooks any) APICallResult {
 	var modifiedParams = callParams
 	if preReadHook, ok := hooks.(PreReadAPICallHook); ok {
 		modifiedParams = preReadHook.PreReadAPICall(callParams)

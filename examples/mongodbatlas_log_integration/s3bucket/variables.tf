@@ -1,11 +1,11 @@
 variable "atlas_client_id" {
-  description = "MongoDB Atlas Service Account Client ID"
+  description = "Atlas Service Account Client ID"
   type        = string
   default     = ""
 }
 
 variable "atlas_client_secret" {
-  description = "MongoDB Atlas Service Account Client Secret"
+  description = "Atlas Service Account Client Secret"
   type        = string
   sensitive   = true
   default     = ""
@@ -49,4 +49,10 @@ variable "aws_iam_role_name" {
   description = "The name of the IAM role to use to set up cloud provider access in Atlas"
   default     = "atlas-log-integration-role"
   type        = string
+}
+
+variable "use_legacy_path_structure" {
+  description = "When true, uses the legacy daily-folder path structure compatible with Push-Based Log Export"
+  default     = null
+  type        = bool
 }

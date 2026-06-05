@@ -63,6 +63,7 @@ func toCodeTemplateOpModel(op *codespec.APIOperation) *codetemplate.Operation {
 		PathParams:        GetPathParams(op.Path),
 		Wait:              getWaitValues(op.Wait),
 		StaticRequestBody: op.StaticRequestBody,
+		ResetsToDefaults:  op.ResetsToDefaults,
 	}
 }
 

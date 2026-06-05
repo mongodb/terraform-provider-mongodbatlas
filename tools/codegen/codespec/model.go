@@ -48,19 +48,13 @@ type Resource struct {
 	IDAttributes []string      `yaml:"id_attributes,omitempty"`
 }
 
-// DataSources holds the data source configuration within a resource
+// DataSources holds the data source configuration within a resource.
+// Singular and Plural use the same Schema type as the resource schema.
+// ExpandedModel defaults to false for data sources.
 type DataSources struct {
-	Schema     *DataSourceSchema `yaml:"schema,omitempty"`
-	Operations APIOperations     `yaml:"operations"` // only Read and List operations
-}
-
-// DataSourceSchema holds schema information specific to data sources
-type DataSourceSchema struct {
-	SingularDSDescription *string     `yaml:"singular_ds_description,omitempty"`
-	SingularDSAttributes  *Attributes `yaml:"singular_ds_attributes,omitempty"`
-	PluralDSDescription   *string     `yaml:"plural_ds_description,omitempty"`
-	PluralDSAttributes    *Attributes `yaml:"plural_ds_attributes,omitempty"`
-	DeprecationMessage    *string     `yaml:"deprecation_message,omitempty"`
+	Singular   *Schema       `yaml:"singular,omitempty"`
+	Plural     *Schema       `yaml:"plural,omitempty"`
+	Operations APIOperations `yaml:"operations"` // only Read and List operations
 }
 
 type APIOperations struct {
@@ -77,6 +71,7 @@ type APIOperation struct {
 	HTTPMethod        string `yaml:"http_method"`
 	Path              string `yaml:"path"`
 	StaticRequestBody string `yaml:"static_request_body,omitempty"`
+	ResetsToDefaults  bool   `yaml:"resets_to_defaults,omitempty"`
 }
 
 type Wait struct {
@@ -97,7 +92,8 @@ type Schema struct {
 	DeprecationMessage *string        `yaml:"deprecation_message,omitempty"`
 	Discriminator      *Discriminator `yaml:"discriminator,omitempty"`
 
-	Attributes Attributes `yaml:"attributes"`
+	Attributes    Attributes `yaml:"attributes"`
+	ExpandedModel bool       `yaml:"expanded_model,omitempty"`
 }
 
 // DiscriminatorAttrName pairs the original API property name with the Terraform schema name.
@@ -151,6 +147,21 @@ type Attribute struct {
 	ListTypeAsMap               bool                     `yaml:"list_type_as_map,omitempty"`      // Flags API property to be defined as a Map type while API defines as list of key-value pairs (used for tags and labels).
 	SkipStateListMerge          bool                     `yaml:"skip_state_list_merge,omitempty"` // When true, nested list elements are not merged with state during unmarshal.
 	ImmutableComputed           bool                     `yaml:"immutable_computed,omitempty"`    // When true, adds UseStateForUnknown plan modifier for computed attributes.
+}
+
+func (a *Attribute) NestedObject() *NestedAttributeObject {
+	switch {
+	case a.ListNested != nil:
+		return &a.ListNested.NestedObject
+	case a.SetNested != nil:
+		return &a.SetNested.NestedObject
+	case a.SingleNested != nil:
+		return &a.SingleNested.NestedObject
+	case a.MapNested != nil:
+		return &a.MapNested.NestedObject
+	default:
+		return nil
+	}
 }
 
 type ComputedOptionalRequired string

@@ -44,7 +44,7 @@ func GeneratePluralGoCode(input *codespec.Resource) ([]byte, error) {
 
 	listOp := input.DataSources.Operations.List
 	pathParams := resource.GetPathParams(listOp.Path)
-	queryParams := getQueryParams(*input.DataSources.Schema.PluralDSAttributes)
+	queryParams := getQueryParams(input.DataSources.Plural.Attributes)
 
 	tmplInputs := codetemplate.PluralDataSourceFileInputs{
 		PackageName:    input.PackageName,
