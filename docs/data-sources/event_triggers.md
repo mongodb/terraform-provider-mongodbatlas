@@ -49,6 +49,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Event Trigger
 
+* `trigger_id` - The unique ID of the trigger.
 * `name` - The name of the trigger.
 * `type` - The type of the trigger. Possible Values: `DATABASE`, `AUTHENTICATION`
 * `function_id` - The ID of the function associated with the trigger.
@@ -63,6 +64,8 @@ In addition to all arguments above, the following attributes are exported:
 * `config_match` - A [$match](https://www.mongodb.com/docs/manual/reference/operator/aggregation/match/) expression document that MongoDB Realm includes in the underlying change stream pipeline for the trigger.
 * `config_project` - A [$project](https://www.mongodb.com/docs/manual/reference/operator/aggregation/project/) expression document that Realm uses to filter the fields that appear in change event objects.
 * `config_full_document` - If true, indicates that `UPDATE` change events should include the most current [majority-committed](https://www.mongodb.com/docs/manual/reference/read-concern-majority/) version of the modified document in the fullDocument field.
+* `config_full_document_before` - If true, indicates that `UPDATE` change events should include the previous revision of the modified document in the fullDocumentBeforeChange field.
+* `config_schedule_type` - The type of the scheduled trigger.
 * `unordered` - Sort order for `DATABASE` type.
 * `config_schedule` - A [cron expression](https://www.mongodb.com/docs/realm/triggers/cron-expressions/) that defines the trigger schedule.
 * `event_processors` - An object where each field name is an event processor ID and each value is an object that configures its corresponding event processor.
