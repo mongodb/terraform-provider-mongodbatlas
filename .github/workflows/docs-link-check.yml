@@ -2,6 +2,7 @@ name: 'Docs Link Check'
 
 on:
   pull_request:
+  # TODO: CLOUDP-381694 Enable nightly cron once broken link fixes land in the follow-up PR
   # schedule:
   #   - cron: '0 4 * * *'
   workflow_dispatch:
