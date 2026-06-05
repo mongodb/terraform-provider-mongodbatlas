@@ -9,7 +9,7 @@ subcategory: "Clusters"
 `mongodbatlas_serverless_instances` describes all serverless instances. This represents serverless instances that have been created for the specified group id.
 
 > **NOTE:**  Serverless instances do not support some Atlas features at this time.
-For a full list of unsupported features, see [Serverless Instance Limitations](https://docs.atlas.mongodb.com/reference/serverless-instance-limitations/).
+For a full list of unsupported features, see [Serverless Instance Limitations](https://www.mongodb.com/docs/atlas/reference/serverless-instance-limitations/).
 
 
 ## Example Usage
@@ -22,7 +22,7 @@ data "mongodbatlas_serverless_instances" "data_serverless" {
 
 ## Argument Reference
 
-* `project_id` - (Required) Unique identifier for the [project](https://docs.atlas.mongodb.com/organizations-projects/#std-label-projects) that contains the specified cluster, also known as `groupId` in the official documentation.
+* `project_id` - (Required) Unique identifier for the [project](https://www.mongodb.com/docs/atlas/organizations-projects/#std-label-projects) that contains the specified cluster, also known as `groupId` in the official documentation.
 
 ## Attributes Reference
 * `results` - A list where each result represents a Serverless Instance. To learn more, see [Serverless Instance](#serverless-instance).
@@ -54,4 +54,4 @@ To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-t
 
 
 
-For more information see: [MongoDB Atlas API - Serverless Instance](https://docs.atlas.mongodb.com/reference/api/serverless-instances/) Documentation.
+For more information see: [MongoDB Atlas API - Serverless Instance](https://www.mongodb.com/docs/atlas/reference/api/serverless-instances/) Documentation.

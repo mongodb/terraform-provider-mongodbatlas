@@ -56,7 +56,7 @@ Atlas enforces rate limiting for each combination of IP address and SA client. S
 
 ### Programmatic Access Key
 
-Generate a PAK with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/). See the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/configure-api-access-org/) for detailed instructions.
+Generate a PAK with the appropriate [role](https://www.mongodb.com/docs/atlas/reference/user-roles/). See the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/configure-api-access-org/) for detailed instructions.
 
 **Role recommendation:** If unsure which role to grant, use an organization API key with the Organization Owner role to ensure sufficient access as in the following example:
 

@@ -9,7 +9,7 @@ subcategory: "Clusters"
 `mongodbatlas_serverless_instance` provides a Serverless Instance resource. This allows serverless instances to be created.
 
 > **NOTE:**  Serverless instances do not support some Atlas features at this time.
-For a full list of unsupported features, see [Serverless Instance Limitations](https://docs.atlas.mongodb.com/reference/serverless-instance-limitations/).
+For a full list of unsupported features, see [Serverless Instance Limitations](https://www.mongodb.com/docs/atlas/reference/serverless-instance-limitations/).
 
 ## Example Usage
 
@@ -79,4 +79,4 @@ Serverless Instance can be imported using the group ID and serverless instance n
 $ terraform import mongodbatlas_serverless_instance.my_serverless_instance 1112222b3bf99403840e8934-My Serverless Instance
 ```
 
-For more information see: [MongoDB Atlas API - Serverless Instance](https://docs.atlas.mongodb.com/reference/api/serverless-instances/) Documentation.
+For more information see: [MongoDB Atlas API - Serverless Instance](https://www.mongodb.com/docs/atlas/reference/api/serverless-instances/) Documentation.

@@ -75,4 +75,4 @@ In addition to all arguments above, the following attributes are exported:
 * `total_collections` - _Returned for replica set only._ Total number of collections to export.
 
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/export/get-one-export-job/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/export/get-one-export-job/)
