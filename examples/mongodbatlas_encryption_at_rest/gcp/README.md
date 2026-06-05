@@ -120,6 +120,6 @@ The configuration manages dependencies between resources:
 
 ## Related Documentation
 
-- [MongoDB Atlas Cloud Provider Access](https://www.mongodb.com/docs/atlas/security/customer-key-management/)
+- [Encryption at Rest using Customer Key Management](https://www.mongodb.com/docs/atlas/security-kms-encryption/)
 - [Google Cloud KMS Documentation](https://cloud.google.com/kms/docs)
 - [Terraform MongoDB Atlas Provider](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs)
