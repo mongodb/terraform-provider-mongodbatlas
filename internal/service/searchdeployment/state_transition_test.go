@@ -19,6 +19,7 @@ var (
 	updating = "UPDATING"
 	idle     = "IDLE"
 	unknown  = ""
+	sc400    = conversion.IntPtr(400)
 	sc404    = conversion.IntPtr(404)
 	sc500    = conversion.IntPtr(500)
 	sc503    = conversion.IntPtr(503)
@@ -72,7 +73,15 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 			expectedError: true,
 		},
 		{
-			name: "Error when API responds with error",
+			name: "Error when API responds with non-transient HTTP error",
+			mockResponses: []response{
+				{statusCode: sc400, err: errors.New("bad request")},
+			},
+			expectedState: nil,
+			expectedError: true,
+		},
+		{
+			name: "Error when API responds with network error",
 			mockResponses: []response{
 				{err: errors.New("network error")},
 			},
@@ -117,7 +126,14 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "Error when API responds with error",
+			name: "Error when API responds with non-transient HTTP error",
+			mockResponses: []response{
+				{statusCode: sc400, err: errors.New("bad request")},
+			},
+			expectedError: true,
+		},
+		{
+			name: "Error when API responds with network error",
 			mockResponses: []response{
 				{err: errors.New("network error")},
 			},
