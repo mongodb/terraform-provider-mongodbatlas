@@ -88,4 +88,4 @@ In addition to all arguments above, the following attributes are exported:
 * `certificates.#.subject` - Fully distinguished name of the database user to which this certificate belongs. To learn more, see RFC 2253.
 
 
-See [MongoDB Atlas - X509 User Certificates](https://docs.atlas.mongodb.com/reference/api/x509-configuration-get-certificates/) and [MongoDB Atlas - Current X509 Configuratuion](https://docs.atlas.mongodb.com/reference/api/x509-configuration-get-current/) Documentation for more information.
+See [MongoDB Atlas - X509 User Certificates](https://www.mongodb.com/docs/atlas/reference/api/x509-configuration-get-certificates/) and [MongoDB Atlas - Current X509 Configuratuion](https://www.mongodb.com/docs/atlas/reference/api/x509-configuration-get-current/) Documentation for more information.

@@ -88,4 +88,4 @@ data "mongodbatlas_project_ip_access_list" "this" {
 - `comment` (String) Remark that explains the purpose or scope of this IP access list entry.
 - `id` (String) Unique identifier used for terraform for internal management.
 
-For more information, see [MongoDB Atlas API Reference](https://docs.atlas.mongodb.com/reference/api/access-lists/).
+For more information, see [MongoDB Atlas API Reference](https://www.mongodb.com/docs/atlas/reference/api/access-lists/).

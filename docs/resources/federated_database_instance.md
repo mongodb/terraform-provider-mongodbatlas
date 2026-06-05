@@ -170,7 +170,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
 * `name` - (Required) Name of the Atlas Federated Database Instance.
 * `cloud_provider_config` - (Optional) Cloud provider linked to this data federated instance.
   * `cloud_provider_config.aws` - AWS provider of the cloud service where the Federated Database Instance can access the S3 Bucket.
-      * `cloud_provider_config.aws.role_id` - (Required) Unique identifier of the role that the Federated Instance can use to access the data stores. If necessary, use the Atlas [UI](https://docs.atlas.mongodb.com/security/manage-iam-roles/) or [API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-get-roles/) to retrieve the role ID. You must also specify the `test_s3_bucket`.
+      * `cloud_provider_config.aws.role_id` - (Required) Unique identifier of the role that the Federated Instance can use to access the data stores. If necessary, use the Atlas [UI](https://www.mongodb.com/docs/atlas/security/manage-iam-roles/) or [API](https://www.mongodb.com/docs/atlas/reference/api/cloud-provider-access-get-roles/) to retrieve the role ID. You must also specify the `test_s3_bucket`.
       * `cloud_provider_config.aws.test_s3_bucket` - (Required) Name of the S3 data bucket that the provided role ID is authorized to access. You must also specify the `role_id`.
     * `cloud_provider_config.azure` - Microsoft Azure provider of the cloud service where the Federated Database Instance can access Blob Storage.
       * `cloud_provider_config.azure.role_id` - (Required) Unique identifier of the role that the Federated Database Instance can use to access the data stores.
@@ -194,7 +194,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
         * `storage_databases.#.collections.#.data_sources.#.provenance_field_name` - Name for the field that includes the provenance of the documents in the results.
         * `storage_databases.#.collections.#.data_sources.#.store_name` - Human-readable label that identifies the data store that MongoDB Cloud maps to the collection.
         * `storage_databases.#.collections.#.data_sources.#.urls` - URLs of the publicly accessible data files. You can't specify URLs that require authentication.
-  * `storage_databases.#.views` -     Array of objects where each object represents an [aggregation pipeline](https://docs.mongodb.com/manual/core/aggregation-pipeline/#id1) on a collection. To learn more about views, see [Views](https://docs.mongodb.com/manual/core/views/).
+  * `storage_databases.#.views` -     Array of objects where each object represents an [aggregation pipeline](https://www.mongodb.com/docs/manual/core/aggregation-pipeline/#id1) on a collection. To learn more about views, see [Views](https://www.mongodb.com/docs/manual/core/views/).
     * `storage_databases.#.views.#.name` - Name of the view.
     * `storage_databases.#.views.#.source` -  Name of the source collection for the view.
     * `storage_databases.#.views.#.pipeline`- Aggregation pipeline stage(s) to apply to the source collection.

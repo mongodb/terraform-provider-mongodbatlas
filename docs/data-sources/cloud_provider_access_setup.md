@@ -78,4 +78,4 @@ In addition to all arguments above, the following attributes are exported:
 * `created_date`  - Date on which this role was created.
 * `last_updated_date`                - Date and time when this Azure Service Principal was last updated. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 
-See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-get-roles/) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api/cloud-provider-access-get-roles/) Documentation for more information.

@@ -48,4 +48,4 @@ In addition to all arguments above, the following attributes are exported:
 * `tenant_id` - UUID that identifies the Azure Active Directory Tenant ID.
 
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/export/create-one-export-bucket/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/export/create-one-export-bucket/)

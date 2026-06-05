@@ -72,4 +72,4 @@ In addition to all arguments above, the following attributes are exported:
 * `replica_set_name` - _Returned for sharded clusters only._ Unique identifier of the export job for the replica set.
 
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/export/get-one-export-job/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/export/get-one-export-job/)
