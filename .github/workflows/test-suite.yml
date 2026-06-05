@@ -63,6 +63,7 @@ concurrency:
    
 jobs:
   variables:
+    permissions: {}
     env:
       schedule_terraform_matrix: '["1.15.x"]'
       schedule_provider_matrix: '[""]' # "" for latest version    
@@ -81,12 +82,16 @@ jobs:
           echo "DAY=$(date +'%a')"
           echo "DAY=$(date +'%a')" >> "$GITHUB_OUTPUT"
   clean-before:
+    permissions: {}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 
   tests:
     needs: [clean-before, variables]
     if: ${{ !cancelled() }}
+    permissions:
+      id-token: write
+      contents: read
     strategy:
       max-parallel: 1
       fail-fast: false
@@ -107,6 +112,7 @@ jobs:
   clean-after:
     needs: tests
     if: ${{ !cancelled() }}
+    permissions: {}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 
@@ -135,6 +141,16 @@ jobs:
           ANTHROPIC_CUSTOM_HEADERS: "api-key: ${{ secrets.AI_GATEWAY_API_KEY }}"
           CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS: "1"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Persist summary to run page and file
+        env:
+          SUMMARY: ${{ fromJSON(steps.summary.outputs.structured_output).summary }}
+        run: |
+          printf '%s\n' "$SUMMARY" | tee summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload summary artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: summary
+          path: summary.md
       - name: Post summary to Slack
         uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
         with:
