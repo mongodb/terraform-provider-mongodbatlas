@@ -748,23 +748,7 @@ replication_specs = [
 * `read_only_specs` - (Optional) Hardware specifications for read-only nodes in the region. All `read_only_specs` in the `region_configs` of a `replication_specs` must have the same `instance_size` as `electable_specs`. Read-only nodes can become the [primary](https://docs.atlas.mongodb.com/reference/glossary/#std-term-primary) and can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region. See [below](#read_only_specs).
 * `region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
 
-  [Gen2](https://www.mongodb.com/docs/atlas/manage-clusters/#aws-gen2-dedicated-clusters) instance sizes for AWS are currently available in the following regions (listed in Atlas region name format):
-  * `AF_SOUTH_1` (Cape Town)
-  * `AP_EAST_1` (Hong Kong)
-  * `AP_EAST_2` (Taipei)
-  * `AP_NORTHEAST_1` (Tokyo)
-  * `AP_NORTHEAST_2` (Seoul)
-  * `AP_NORTHEAST_3` (Osaka)
-  * `AP_SOUTH_1` (Mumbai)
-  * `AP_SOUTH_2` (Hyderabad)
-  * `AP_SOUTHEAST_1` (Singapore)
-  * `AP_SOUTHEAST_2` (Sydney)
-  * `AP_SOUTHEAST_3` (Jakarta)
-  * `AP_SOUTHEAST_4` (Melbourne)
-  * `AP_SOUTHEAST_5` (Malaysia)
-  * `AP_SOUTHEAST_6` (Auckland)
-  * `AP_SOUTHEAST_7` (Thailand)
-  * `IL_CENTRAL_1` (Tel Aviv)
+  For the list of AWS regions that support [Gen2](https://www.mongodb.com/docs/atlas/manage-clusters/#aws-gen2-dedicated-clusters) instance sizes, see [Supported Regions](https://www.mongodb.com/docs/atlas/reference/amazon-aws/#supported-regions).
 
 ### electable_specs
 
