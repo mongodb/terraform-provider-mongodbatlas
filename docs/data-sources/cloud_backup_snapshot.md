@@ -54,4 +54,4 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Unique identifier for the sharded cluster snapshot.
 * `replica_set_name` - Label given to a shard or config server from which Atlas took this snapshot.
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/backup/get-one-backup/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/backup/get-one-backup/)

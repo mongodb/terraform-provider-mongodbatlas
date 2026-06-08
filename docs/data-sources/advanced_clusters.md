@@ -233,7 +233,7 @@ In addition to all arguments above, the following attributes are exported:
 Specifies BI Connector for Atlas configuration.
 
 * `enabled` - Specifies whether or not BI Connector for Atlas is enabled on the cluster.
-* `read_preference` - Specifies the read preference to be used by BI Connector for Atlas on the cluster. Each BI Connector for Atlas read preference contains a distinct combination of [readPreference](https://docs.mongodb.com/manual/core/read-preference/) and [readPreferenceTags](https://docs.mongodb.com/manual/core/read-preference/#tag-sets) options. For details on BI Connector for Atlas read preferences, refer to the [BI Connector Read Preferences Table](https://docs.atlas.mongodb.com/tutorial/create-global-writes-cluster/#bic-read-preferences).
+* `read_preference` - Specifies the read preference to be used by BI Connector for Atlas on the cluster. Each BI Connector for Atlas read preference contains a distinct combination of [readPreference](https://www.mongodb.com/docs/manual/core/read-preference/) and [readPreferenceTags](https://www.mongodb.com/docs/manual/core/read-preference/#tag-sets) options. For details on BI Connector for Atlas read preferences, refer to the [BI Connector Read Preferences Table](https://www.mongodb.com/docs/atlas/tutorial/create-global-writes-cluster/#bic-read-preferences).
 
 ### tags
 
@@ -265,7 +265,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 ### region_configs
 
-* `analytics_specs` - Hardware specifications for [analytics nodes](https://docs.atlas.mongodb.com/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. See [below](#specs).
+* `analytics_specs` - Hardware specifications for [analytics nodes](https://www.mongodb.com/docs/atlas/reference/faq/deployment/#std-label-analytics-nodes-overview) needed in the region. See [below](#specs).
 * `auto_scaling` - Configuration for the Collection of settings that configures auto-scaling information for the cluster. See [below](#auto_scaling).
 * `analytics_auto_scaling` - Configuration for the Collection of settings that configures analytis-auto-scaling information for the cluster. See [below](#analytics_auto_scaling).
 * `backing_provider_name` - Cloud service provider on which you provision the host for a multi-tenant cluster.
@@ -306,7 +306,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 #### Advanced Configuration
 
-* `default_write_concern` -  [Default level of acknowledgment requested from MongoDB for write operations](https://docs.mongodb.com/manual/reference/write-concern/) set for this cluster. MongoDB 6.0 clusters default to [majority](https://docs.mongodb.com/manual/reference/write-concern/).
+* `default_write_concern` -  [Default level of acknowledgment requested from MongoDB for write operations](https://www.mongodb.com/docs/manual/reference/write-concern/) set for this cluster. MongoDB 6.0 clusters default to [majority](https://www.mongodb.com/docs/manual/reference/write-concern/).
 * `javascript_enabled` - When true, the cluster allows execution of operations that perform server-side executions of JavaScript. When false, the cluster disables execution of those operations.
 * `minimum_enabled_tls_protocol` - Sets the minimum Transport Layer Security (TLS) version the cluster accepts for incoming connections. Valid values are:
   - TLS1_2
@@ -335,16 +335,16 @@ In addition to all arguments above, the following attributes are exported:
 
 * `cluster_id` - The cluster ID.
 *  `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
-* `connection_strings` - Set of connection strings that your applications use to connect to this cluster. More information in [Connection-strings](https://docs.mongodb.com/manual/reference/connection-string/). Use the parameters in this object to connect your applications to this cluster. To learn more about the formats of connection strings, see [Connection String Options](https://docs.atlas.mongodb.com/reference/faq/connection-changes/). NOTE: Atlas returns the contents of this object after the cluster is operational, not while it builds the cluster.
+* `connection_strings` - Set of connection strings that your applications use to connect to this cluster. More information in [Connection-strings](https://www.mongodb.com/docs/manual/reference/connection-string/). Use the parameters in this object to connect your applications to this cluster. To learn more about the formats of connection strings, see [Connection String Options](https://www.mongodb.com/docs/atlas/reference/faq/connection-changes/). NOTE: Atlas returns the contents of this object after the cluster is operational, not while it builds the cluster.
 
   **NOTE** Connection strings must be returned as a list, therefore to refer to a specific attribute value add index notation. Example: mongodbatlas_advanced_cluster.cluster-test.connection_strings.0.standard_srv
 
-  Private connection strings may not be available immediately as the reciprocal connections may not have finalized by end of the Terraform run. If the expected connection string(s) do not contain a value a terraform refresh may need to be performed to obtain the value. One can also view the status of the peered connection in the [Atlas UI](https://docs.atlas.mongodb.com/security-vpc-peering/).
+  Private connection strings may not be available immediately as the reciprocal connections may not have finalized by end of the Terraform run. If the expected connection string(s) do not contain a value a terraform refresh may need to be performed to obtain the value. One can also view the status of the peered connection in the [Atlas UI](https://www.mongodb.com/docs/atlas/security-vpc-peering/).
 
   - `connection_strings.standard` -   Public mongodb:// connection string for this cluster.
   - `connection_strings.standard_srv` - Public mongodb+srv:// connection string for this cluster. The mongodb+srv protocol tells the driver to look up the seed list of hosts in DNS. Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don’t need to append the seed list or change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn’t  , use connectionStrings.standard.
-  - `connection_strings.private` -   [Network-peering-endpoint-aware](https://docs.atlas.mongodb.com/security-vpc-peering/#vpc-peering) mongodb://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a network peering connection to this cluster.
-  - `connection_strings.private_srv` -  [Network-peering-endpoint-aware](https://docs.atlas.mongodb.com/security-vpc-peering/#vpc-peering) mongodb+srv://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a network peering connection to this cluster.
+  - `connection_strings.private` -   [Network-peering-endpoint-aware](https://www.mongodb.com/docs/atlas/security-vpc-peering/#vpc-peering) mongodb://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a network peering connection to this cluster.
+  - `connection_strings.private_srv` -  [Network-peering-endpoint-aware](https://www.mongodb.com/docs/atlas/security-vpc-peering/#vpc-peering) mongodb+srv://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a network peering connection to this cluster.
   - `connection_strings.private_endpoint` - Private endpoint connection strings. Each object describes the connection strings you can use to connect to this cluster through a private endpoint. Atlas returns this parameter only if you deployed a private endpoint to all regions to which you deployed this cluster's nodes.
   - `connection_strings.private_endpoint[#].connection_string` - Private-endpoint-aware `mongodb://`connection string for this private endpoint.
   - `connection_strings.private_endpoint[#].srv_connection_string` - Private-endpoint-aware `mongodb+srv://` connection string for this private endpoint. The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS . Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don't need to: Append the seed list or Change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn't, use `connection_strings.private_endpoint[#].connection_string`
@@ -357,4 +357,4 @@ In addition to all arguments above, the following attributes are exported:
 * `paused` - Flag that indicates whether the cluster is paused or not.
 * `state_name` - Current state of the cluster. The possible states are:
 
-See detailed information for arguments and attributes: [MongoDB API Advanced Clusters](https://docs.atlas.mongodb.com/reference/api/cluster-advanced/get-all-cluster-advanced/)
+See detailed information for arguments and attributes: [MongoDB API Advanced Clusters](https://www.mongodb.com/docs/atlas/reference/api/cluster-advanced/get-all-cluster-advanced/)

@@ -6,7 +6,7 @@ subcategory: "Database Users"
 
 `mongodbatlas_custom_db_role` provides a Custom DB Role resource. The customDBRoles resource lets you retrieve, create and modify the custom MongoDB roles in your cluster. Use custom MongoDB roles to specify custom sets of actions which cannot be described by the built-in Atlas database user privileges.
 
--> **IMPORTANT**  You define custom roles at the project level for all clusters in the project. The `mongodbatlas_custom_db_role` resource supports a subset of MongoDB privilege actions. For a complete list of [privilege actions](https://docs.mongodb.com/manual/reference/privilege-actions/) available for this resource, see [Custom Role actions](https://docs.atlas.mongodb.com/reference/api/custom-role-actions/). Custom roles must include actions that all project's clusters support, and that are compatible with each MongoDB version used by your project's clusters. For example, if your project has MongoDB 4.2 clusters, you can't create custom roles that use actions introduced in MongoDB 4.4.
+-> **IMPORTANT**  You define custom roles at the project level for all clusters in the project. The `mongodbatlas_custom_db_role` resource supports a subset of MongoDB privilege actions. For a complete list of [privilege actions](https://www.mongodb.com/docs/manual/reference/privilege-actions/) available for this resource, see [Custom Role actions](https://www.mongodb.com/docs/atlas/reference/api/custom-role-actions/). Custom roles must include actions that all project's clusters support, and that are compatible with each MongoDB version used by your project's clusters. For example, if your project has MongoDB 4.2 clusters, you can't create custom roles that use actions introduced in MongoDB 4.4.
 
 
 ## Example Usage
@@ -116,7 +116,7 @@ resource "mongodbatlas_custom_db_role" "test_role" {
 ### Actions
 Each object in the actions array represents an individual privilege action granted by the role. It is an required field.
 
-* `action` - (Required) Name of the privilege action. For a complete list of actions available in the Atlas API, see [Custom Role Actions](https://docs.atlas.mongodb.com/reference/api/custom-role-actions)
+* `action` - (Required) Name of the privilege action. For a complete list of actions available in the Atlas API, see [Custom Role Actions](https://www.mongodb.com/docs/atlas/reference/api/custom-role-actions)
 -> **Note**: The privilege actions available to the Custom Roles API resource represent a subset of the privilege actions available in the Atlas Custom Roles UI.
 
 * `resources` - (Required) Contains information on where the action is granted. Each object in the array either indicates a database and collection on which the action is granted, or indicates that the action is granted on the cluster resource.
@@ -157,4 +157,4 @@ Database users can be imported using project ID and username, in the format `PRO
 $ terraform import mongodbatlas_custom_db_role.my_role 1112222b3bf99403840e8934-MyCustomRole
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/custom-roles/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/custom-roles/)

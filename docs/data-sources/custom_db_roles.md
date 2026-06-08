@@ -61,4 +61,4 @@ Each object in the inheritedRoles array represents a key-value pair indicating t
 * `database_name` (Required) Database on which the inherited role is granted.
 * `role_name`	(Required) Name of the inherited role. This can either be another custom role or a built-in role.
 
-See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/custom-roles-get-all-roles/) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api/custom-roles-get-all-roles/) Documentation for more information.

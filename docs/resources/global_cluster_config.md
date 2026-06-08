@@ -72,7 +72,7 @@ resource "mongodbatlas_global_cluster_config" "config" {
 
 * `project_id` - (Required) The unique ID for the project, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) The name of the Global Cluster.
-*  `managed_namespaces` - (Optional) Add a managed namespaces to a Global Cluster. For more information about managed namespaces, see [Global Clusters](https://docs.atlas.mongodb.com/reference/api/global-clusters/). See [Managed Namespace](#managed-namespace) below for more details.
+*  `managed_namespaces` - (Optional) Add a managed namespaces to a Global Cluster. For more information about managed namespaces, see [Global Clusters](https://www.mongodb.com/docs/atlas/reference/api/global-clusters/). See [Managed Namespace](#managed-namespace) below for more details.
 *  `custom_zone_mappings` - (Optional) Each element in the list maps one ISO location code to a zone in your Global Cluster. See [Custom Zone Mapping](#custom-zone-mapping) below for more details.
 
 ### Managed Namespace
@@ -80,8 +80,8 @@ resource "mongodbatlas_global_cluster_config" "config" {
 * `collection` -	(Required) The name of the collection associated with the managed namespace.
 * `custom_shard_key` - (Required)	The custom shard key for the collection. Global Clusters require a compound shard key consisting of a location field and a user-selected second key, the custom shard key.
 * `db` - (Required) The name of the database containing the collection.
-* `is_custom_shard_key_hashed` - (Optional) Specifies whether the custom shard key for the collection is [hashed](https://docs.mongodb.com/manual/reference/method/sh.shardCollection/#hashed-shard-keys). If omitted, defaults to `false`. If `false`, Atlas uses [ranged sharding](https://docs.mongodb.com/manual/core/ranged-sharding/). This is only available for Atlas clusters with MongoDB v4.4 and later.
-* `is_shard_key_unique` - (Optional) Specifies whether the underlying index enforces a unique constraint. If omitted, defaults to false. You cannot specify true when using [hashed shard keys](https://docs.mongodb.com/manual/core/hashed-sharding/#std-label-sharding-hashed).
+* `is_custom_shard_key_hashed` - (Optional) Specifies whether the custom shard key for the collection is [hashed](https://www.mongodb.com/docs/manual/reference/method/sh.shardCollection/#hashed-shard-keys). If omitted, defaults to `false`. If `false`, Atlas uses [ranged sharding](https://www.mongodb.com/docs/manual/core/ranged-sharding/). This is only available for Atlas clusters with MongoDB v4.4 and later.
+* `is_shard_key_unique` - (Optional) Specifies whether the underlying index enforces a unique constraint. If omitted, defaults to false. You cannot specify true when using [hashed shard keys](https://www.mongodb.com/docs/manual/core/hashed-sharding/#std-label-sharding-hashed).
 
 ### Custom Zone Mapping
 
@@ -103,4 +103,4 @@ Global Clusters can be imported using project ID and cluster name, in the format
 $ terraform import mongodbatlas_global_cluster_config.config 1112222b3bf99403840e8934-Cluster0
 ```
 
-See detailed information for arguments and attributes: [MongoDB API Global Clusters](https://docs.atlas.mongodb.com/reference/api/global-clusters/)
+See detailed information for arguments and attributes: [MongoDB API Global Clusters](https://www.mongodb.com/docs/atlas/reference/api/global-clusters/)

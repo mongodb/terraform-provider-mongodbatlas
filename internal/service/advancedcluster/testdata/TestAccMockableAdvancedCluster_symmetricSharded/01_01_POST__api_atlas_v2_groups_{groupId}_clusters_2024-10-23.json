@@ -27,7 +27,7 @@
      },
      "priority": 6,
      "providerName": "AZURE",
-     "regionName": "US_EAST"
+     "regionName": "US_EAST_2"
     }
    ],
    "zoneName": "ZoneName managed by Terraform"
@@ -54,7 +54,7 @@
      },
      "priority": 6,
      "providerName": "AZURE",
-     "regionName": "US_EAST"
+     "regionName": "US_EAST_2"
     }
    ],
    "zoneName": "ZoneName managed by Terraform"

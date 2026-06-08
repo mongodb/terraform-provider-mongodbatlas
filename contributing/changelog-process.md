@@ -4,7 +4,7 @@
 - [Changelog format](#changelog-format)
 - [Changelog entry guidelines](#changelog-entry-guidelines)
 - [PR Changelog check](#pr-changelog-check)
-- [Unreleased section of CHANGELOG.md automatic update](#unreleased-section-of-CHANGELOG.md-automatic-update)
+- [Unreleased section of CHANGELOG.md automatic update](#unreleased-section-of-changelogmd-automatic-update)
 
 HashiCorp’s open-source projects have always maintained user-friendly, readable CHANGELOG.md that allow users to tell at a glance whether a release should have any effect on them, and to gauge the risk of an upgrade.
 

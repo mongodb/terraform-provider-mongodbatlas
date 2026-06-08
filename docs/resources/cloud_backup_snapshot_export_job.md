@@ -90,8 +90,8 @@ resource "mongodbatlas_cloud_backup_schedule" "backup" {
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project which contains the Atlas cluster whose snapshot you want to export, also known as `groupId` in the official documentation.
 * `cluster_name` - (Required) Name of the Atlas cluster whose snapshot you want to export.
-* `snapshot_id` - (Required) Unique identifier of the Cloud Backup snapshot to export. If necessary, use the [Get All Cloud Backups](https://docs.atlas.mongodb.com/reference/api/cloud-backup/backup/get-all-backups/) API to retrieve the list of snapshot IDs for a cluster or use the data source [mongodbatlas_cloud_cloud_backup_snapshots](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/cloud_backup_snapshots)
-* `export_bucket_id` - (Required) Unique identifier of the AWS bucket to export the Cloud Backup snapshot to. If necessary, use the [Get All Snapshot Export Buckets](https://docs.atlas.mongodb.com/reference/api/cloud-backup/export/get-all-export-buckets/) API to retrieve the IDs of all available export buckets for a project or use the data source [mongodbatlas_cloud_backup_snapshot_export_buckets](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/backup_snapshot_export_buckets)
+* `snapshot_id` - (Required) Unique identifier of the Cloud Backup snapshot to export. If necessary, use the [Get All Cloud Backups](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/backup/get-all-backups/) API to retrieve the list of snapshot IDs for a cluster or use the data source [mongodbatlas_cloud_cloud_backup_snapshots](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/cloud_backup_snapshots)
+* `export_bucket_id` - (Required) Unique identifier of the AWS bucket to export the Cloud Backup snapshot to. If necessary, use the [Get All Snapshot Export Buckets](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/export/get-all-export-buckets/) API to retrieve the IDs of all available export buckets for a project or use the data source [mongodbatlas_cloud_backup_snapshot_export_buckets](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/backup_snapshot_export_buckets)
 * `custom_data` - (Optional) Custom data to include in the metadata file named `.complete` that Atlas uploads to the bucket when the export job finishes. Custom data can be specified as key and value pairs.
 
 ### Custom Data
@@ -106,7 +106,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `components` - _Returned for sharded clusters only._ Export job details for each replica set in the sharded cluster.
 * `created_at` - Timestamp in ISO 8601 date and time format in UTC when the export job was created.
-* `export_status` - Status of the export job.
+* `export_status_exported_collections` - _Returned for replica set only._ Number of collections that have been exported.
+* `export_status_total_collections` - _Returned for replica set only._ Total number of collections to export.
 * `finished_at` - Timestamp in ISO 8601 date and time format in UTC when the export job completes.
 * `export_job_id` - Unique identifier of the export job.
 * `prefix ` - Full path on the cloud provider bucket to the folder where the snapshot is exported. The path is in the following format:`/exported_snapshots/{ORG-NAME}/{PROJECT-NAME}/{CLUSTER-NAME}/{SNAPSHOT-INITIATION-DATE}/{TIMESTAMP}`
@@ -121,9 +122,6 @@ In addition to all arguments above, the following attributes are exported:
 * `export_id` - _Returned for sharded clusters only._ Export job details for each replica set in the sharded cluster.
 * `replica_set_name` - _Returned for sharded clusters only._ Unique identifier of the export job for the replica set.
 
-### export_status
-* `exported_collections` - _Returned for replica set only._ Number of collections that have been exported.
-* `total_collections` - _Returned for replica set only._ Total number of collections to export.
 
 ## Import
 
@@ -133,4 +131,4 @@ Cloud Backup Snapshot Export Backup entries can be imported using project projec
 $ terraform import mongodbatlas_cloud_backup_snapshot_export_job.test 5d0f1f73cf09a29120e173cf-5d116d82014b764445b2f9b5-5d116d82014b764445b2f9b5
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/export/create-one-export-job/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/export/create-one-export-job/)
