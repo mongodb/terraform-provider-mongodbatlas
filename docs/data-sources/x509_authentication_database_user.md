@@ -76,7 +76,7 @@ data "mongodbatlas_x509_authentication_database_user" "test" {
 ## Attributes Reference
 In addition to all arguments above, the following attributes are exported:
 
-* `current_certificate` - Contains the last X.509 certificate and private key created for a database user.
+* `customer_x509_cas` - PEM string of the customer-managed X.509 Certificate Authority (CA).
 
   #### Certificates
 * `certificates` - Array of objects where each details one unexpired database user certificate.
@@ -88,4 +88,4 @@ In addition to all arguments above, the following attributes are exported:
 * `certificates.#.subject` - Fully distinguished name of the database user to which this certificate belongs. To learn more, see RFC 2253.
 
 
-See [MongoDB Atlas - X509 User Certificates](https://docs.atlas.mongodb.com/reference/api/x509-configuration-get-certificates/) and [MongoDB Atlas - Current X509 Configuratuion](https://docs.atlas.mongodb.com/reference/api/x509-configuration-get-current/) Documentation for more information.
+See [MongoDB Atlas - X509 User Certificates](https://www.mongodb.com/docs/atlas/reference/api/x509-configuration-get-certificates/) and [MongoDB Atlas - Current X509 Configuratuion](https://www.mongodb.com/docs/atlas/reference/api/x509-configuration-get-current/) Documentation for more information.

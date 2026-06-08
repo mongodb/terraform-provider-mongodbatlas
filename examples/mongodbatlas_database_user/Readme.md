@@ -4,7 +4,7 @@ This project aims to provide a very straight-forward example of setting up scope
 
 ![MongoDB Atlas DB User](https://github.com/nikhil-mongo/atlas-database-users/blob/master/atlas-1.png?raw=true)
 
-You can view the MongoDB Atlas Cluster Regions from the [documentation](https://docs.atlas.mongodb.com/cloud-providers-regions/).
+You can view the MongoDB Atlas Cluster Regions from the [documentation](https://www.mongodb.com/docs/atlas/cloud-providers-regions/).
 
 ## Dependencies
 

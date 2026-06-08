@@ -48,4 +48,4 @@ Read-Only:
 - `comment` (String) Remark that explains the purpose or scope of this IP access list entry.
 - `ip_address` (String) Single IP address to be added to the access list. Mutually exclusive with `cidr_block` and `aws_security_group`.
 
-For more information, see [MongoDB Atlas API Reference](https://docs.atlas.mongodb.com/reference/api/access-lists/).
+For more information, see [MongoDB Atlas API Reference](https://www.mongodb.com/docs/atlas/reference/api/access-lists/).

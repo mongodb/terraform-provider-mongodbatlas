@@ -48,6 +48,7 @@ resource "mongodbatlas_stream_instance" "test" {
 ### Stream Config
 
 * `tier` - (Required) Selected tier for the Stream Instance. Configures Memory / VCPU allowances. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/createStreamInstance) describes the valid values.
+* `max_tier_size` - (Optional, Computed) Maximum tier size for the Stream Instance.
 
 
 ## Attributes Reference

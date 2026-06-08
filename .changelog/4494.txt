@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_search_deployment: Treats HTTP 500 responses as transient during state polling
+```

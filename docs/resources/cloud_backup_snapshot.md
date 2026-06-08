@@ -99,4 +99,4 @@ Cloud Backup Snapshot entries can be imported using project project_id, cluster_
 $ terraform import mongodbatlas_cloud_backup_snapshot.test 5d0f1f73cf09a29120e173cf-MyClusterTest-5d116d82014b764445b2f9b5
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/backup/backups/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/backup/backups/)

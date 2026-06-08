@@ -1,6 +1,6 @@
 # Example - MongoDB Atlas Cloud Backup Schedule for setting up policies for multiple clusters
 
-This project aims to provide an example of using [Cloud Backup Schedule in Atlas](https://docs.atlas.mongodb.com/reference/api/cloud-backup/schedule/modify-one-schedule/).
+This project aims to provide an example of using [Cloud Backup Schedule in Atlas](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/schedule/modify-one-schedule/).
 
 
 ## Dependencies

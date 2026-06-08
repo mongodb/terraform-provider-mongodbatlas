@@ -56,4 +56,4 @@ In addition to all arguments above, the following attributes are exported:
 * `end_hour_of_day` - Zero-based integer that represents the end hour of the day for the protected hours window.
 
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/maintenance-windows/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/maintenance-windows/)
