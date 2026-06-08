@@ -10,6 +10,7 @@ BUG FIXES:
 
 * resource/mongodbatlas_advanced_cluster: Emits a warning during plan when `use_effective_fields` is true, auto-scaling is enabled, and `instance_size`, `disk_size_gb`, or `disk_iops` is modified, as Atlas silently ignores these changes in that combination ([#4405](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4405))
 * resource/mongodbatlas_flex_cluster: Fixes deletion waits to improve reliability when deleting flex clusters ([#4431](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4431))
+* resource/mongodbatlas_search_deployment: Treats HTTP 500 responses as transient during state polling ([#4494](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4494))
 
 ## 2.12.0 (May 06, 2026)
 

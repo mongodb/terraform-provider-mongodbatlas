@@ -33,9 +33,8 @@ data "mongodbatlas_cloud_backup_snapshot_export_buckets" "test" {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `links` - One or more links to sub-resources and/or related resources.
 * `results` - Includes CloudProviderSnapshotExportBucket object for each item detailed in the results array section.
-* `totalCount` - Count of the total number of items in the result set. It may be greater than the number of objects in the results array if the entire result set is paginated.
+* `total_count` - Count of the total number of items in the result set. It may be greater than the number of objects in the results array if the entire result set is paginated.
 
 
 ### CloudProviderSnapshotExportBucket
@@ -49,4 +48,4 @@ In addition to all arguments above, the following attributes are exported:
 * `tenant_id` - UUID that identifies the Azure Active Directory Tenant ID.
 
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/export/create-one-export-bucket/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/export/create-one-export-bucket/)

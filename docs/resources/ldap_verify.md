@@ -60,7 +60,7 @@ In addition to all arguments above, the following attributes are exported:
 * `request_id` - The unique identifier for the request to verify the LDAP over TLS/SSL configuration.
 * `status` - The current status of the LDAP over TLS/SSL configuration. One of the following values: `PENDING`, `SUCCESS`, and `FAILED`.
 * `links` - One or more links to sub-resources. The relations in the URLs are explained in the Web Linking Specification.
-* `validations` - Array of validation messages related to the verification of the provided LDAP over TLS/SSL configuration details. The array contains a document for each test that Atlas runs. Atlas stops running tests after the first failure. The following return values can be seen here: [Values](https://docs.atlas.mongodb.com/reference/api/ldaps-configuration-request-verification)
+* `validations` - Array of validation messages related to the verification of the provided LDAP over TLS/SSL configuration details. The array contains a document for each test that Atlas runs. Atlas stops running tests after the first failure. The following return values can be seen here: [Values](https://www.mongodb.com/docs/atlas/reference/api/ldaps-configuration-request-verification)
     
 ## Import
 
@@ -70,4 +70,4 @@ LDAP Configuration must be imported using project ID and request ID, e.g.
 $ terraform import mongodbatlas_ldap_verify.test 5d09d6a59ccf6445652a444a-5d09d6a59ccf6445652a444a
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/ldaps-configuration-request-verification)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/ldaps-configuration-request-verification)

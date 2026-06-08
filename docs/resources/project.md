@@ -46,7 +46,7 @@ resource "mongodbatlas_project" "test" {
 
 * `name` - (Required) The name of the project you want to create.
 * `org_id` - (Required) The ID of the organization you want to create the project within.
-* `project_owner_id` - (Optional) Unique 24-hexadecimal digit string that identifies the Atlas user account to be granted the [Project Owner](https://docs.atlas.mongodb.com/reference/user-roles/#mongodb-authrole-Project-Owner) role on the specified project. If you set this parameter, it overrides the default value of the oldest [Organization Owner](https://docs.atlas.mongodb.com/reference/user-roles/#mongodb-authrole-Organization-Owner).
+* `project_owner_id` - (Optional) Unique 24-hexadecimal digit string that identifies the Atlas user account to be granted the [Project Owner](https://www.mongodb.com/docs/atlas/reference/user-roles/#mongodb-authrole-Project-Owner) role on the specified project. If you set this parameter, it overrides the default value of the oldest [Organization Owner](https://www.mongodb.com/docs/atlas/reference/user-roles/#mongodb-authrole-Organization-Owner).
 * `tags` - (Optional) Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project. See [below](#tags).
 * `with_default_alerts_settings` - (Optional) Flag that indicates whether to create the project with default alert settings. This setting cannot be updated after project creation. By default, this flag is set to true.
 * `is_collect_database_specifics_statistics_enabled` - (Optional) Flag that indicates whether to enable statistics in [cluster metrics](https://www.mongodb.com/docs/atlas/monitor-cluster-metrics/) collection for the project. By default, this flag is set to true.
@@ -121,4 +121,4 @@ Project must be imported using project ID, e.g.
 ```
 $ terraform import mongodbatlas_project.my_project 5d09d6a59ccf6445652a444a
 ```
-For more information see: [MongoDB Atlas Admin API Projects](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Projects) and [MongoDB Atlas Admin API Teams](https://docs.atlas.mongodb.com/reference/api/teams/) Documentation for more information.
+For more information see: [MongoDB Atlas Admin API Projects](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Projects) and [MongoDB Atlas Admin API Teams](https://www.mongodb.com/docs/atlas/reference/api/teams/) Documentation for more information.

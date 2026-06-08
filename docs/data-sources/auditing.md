@@ -36,4 +36,4 @@ In addition to all arguments above, the following attributes are exported:
 * `enabled` - Denotes whether or not the project associated with the {GROUP-ID} has database auditing enabled.
 
 
-See detailed information for arguments and attributes: [MongoDB API Auditing](https://docs.atlas.mongodb.com/reference/api/auditing/)
+See detailed information for arguments and attributes: [MongoDB API Auditing](https://www.mongodb.com/docs/atlas/reference/api/auditing/)
