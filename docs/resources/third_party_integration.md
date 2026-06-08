@@ -6,7 +6,7 @@ subcategory: "Projects"
 
 `mongodbatlas_third_party_integration` Provides a Third-Party Integration Settings for the given type.
 
--> **NOTE:** Slack integrations now use the OAuth2 verification method and must be initially configured, or updated from a legacy integration, through the Atlas third-party service integrations page. Legacy tokens will soon no longer be supported.[Read more about slack setup](https://docs.atlas.mongodb.com/tutorial/third-party-service-integrations/)
+-> **NOTE:** Slack integrations now use the OAuth2 verification method and must be initially configured, or updated from a legacy integration, through the Atlas third-party service integrations page. Legacy tokens will soon no longer be supported.[Read more about slack setup](https://www.mongodb.com/docs/atlas/tutorial/third-party-service-integrations/)
 
 ~> **IMPORTANT** Each project can only have one configuration per integration `type`.
 

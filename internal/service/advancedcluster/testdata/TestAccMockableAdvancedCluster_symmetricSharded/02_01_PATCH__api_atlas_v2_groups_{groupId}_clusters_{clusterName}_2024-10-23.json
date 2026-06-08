@@ -31,7 +31,7 @@
       "instanceSize": "M10",
       "nodeCount": 0
      },
-     "regionName": "US_EAST"
+     "regionName": "US_EAST_2"
     }
    ],
    "zoneName": "ZoneName managed by Terraform"
@@ -66,7 +66,7 @@
       "instanceSize": "M10",
       "nodeCount": 0
      },
-     "regionName": "US_EAST"
+     "regionName": "US_EAST_2"
     }
    ],
    "zoneName": "ZoneName managed by Terraform"

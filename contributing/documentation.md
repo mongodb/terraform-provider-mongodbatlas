@@ -8,7 +8,7 @@ We autogenerate the documentation of our provider resources and data sources via
 
 ### How to generate the documentation for a resource
 - Make sure that the resource and data source schemas have defined the fields `MarkdownDescription` and `Description`.
-  - We recommend to use [Scaffolding Schema and Model Definitions](#scaffolding-schema-and-model-definitions) to autogenerate the schema via the Open API specification.
+  - We recommend to use [Auto-Generating Resources & Data Sources](development-best-practices.md#auto-generating-resources--data-sources-internal-tool) to autogenerate the schema via the Open API specification.
 - Add the resource/data source templates to the [templates](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/templates) folder. See [README.md](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/templates/README.md) for more info.
 - Run the Makefile command `generate-doc`
 ```bash

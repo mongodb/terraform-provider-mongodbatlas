@@ -41,8 +41,8 @@ In addition to all arguments above, the following attributes are exported:
 * `type` - Human-readable label that identifies the resource type associated with this private endpoint.
 * `comment` - Human-readable string to associate with this private endpoint.
 * `provider_name` - Human-readable label that identifies the cloud service provider. Atlas Data Federation supports `AWS` and `AZURE`.
-* `region` - Human-readable region label for the customer's endpoint. For `AWS`, if defined, you must also specify a value for `customer_endpoint_dns_name`.
-* `customer_endpoint_dns_name` - (Optional) Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`.
+* `region` -  Human-readable label to identify the region of VPC endpoint.  Requires the **Atlas region name**, see the reference list for [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/), [GCP](https://www.mongodb.com/docs/atlas/reference/google-gcp/), [Azure](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/).
+* `customer_endpoint_dns_name` - (Optional) Human-readable label to identify VPC endpoint DNS name.
 * `customer_endpoint_ip_address` - IP address used to connect to the Azure private endpoint.
 * `azure_link_id` - Link ID that identifies the Azure private endpoint connection.
 * `error_message` - Error message describing a failure approving the private endpoint request.

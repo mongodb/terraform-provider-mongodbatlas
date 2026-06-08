@@ -112,7 +112,7 @@ X.509 Certificates for a User can be imported using project ID and username, in 
 $ terraform import mongodbatlas_x509_authentication_database_user.test 1112222b3bf99403840e8934-myUsername
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/x509-configuration-get-certificates/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/x509-configuration-get-certificates/)
 
 
 Current X.509 Configuration can be imported using project ID, in the format `project_id`, e.g.
@@ -121,4 +121,4 @@ Current X.509 Configuration can be imported using project ID, in the format `pro
 $ terraform import mongodbatlas_x509_authentication_database_user.test 1112222b3bf99403840e8934
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/x509-configuration-get-certificates/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/x509-configuration-get-certificates/)

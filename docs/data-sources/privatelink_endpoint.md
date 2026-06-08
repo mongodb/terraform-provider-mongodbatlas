@@ -59,4 +59,4 @@ In addition to all arguments above, the following attributes are exported:
 * `service_attachment_names` - List containing one service attachment connected to the private endpoint service for port-mapped architecture. For GCP legacy private endpoint architecture, this is a list of service attachments connected to the private endpoint service (one per Atlas node). Returns an empty list while Atlas creates the service attachments.
 * `port_mapping_enabled` - Flag that indicates whether this resource uses GCP port-mapping. When `true`, the resource uses port-mapped architecture. When `false` or unset, the resource uses GCP legacy private endpoint architecture. Only applicable for GCP provider.
 
-See the [MongoDB Atlas API documentation](https://docs.atlas.mongodb.com/reference/api/private-endpoints-service-get-one/) for more information.
+See the [MongoDB Atlas API documentation](https://www.mongodb.com/docs/atlas/reference/api/private-endpoints-service-get-one/) for more information.

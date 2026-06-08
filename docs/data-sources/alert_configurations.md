@@ -61,7 +61,7 @@ In addition to all arguments above, the following attributes are exported:
 * `matcher` - Rules to apply when matching an object against this alert configuration. See [matchers](#matchers).
 * `metric_threshold_config` - The threshold that causes an alert to be triggered. Required if `event_type_name` : `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`. See [metric threshold config](#metric-threshold-config).
 * `threshold_config` - 	 Threshold that triggers an alert. Required if `event_type_name` is any value other than `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`. See [threshold config](#threshold-config).
-* `notifications` - List of notifications to send when an alert condition is detected. See [notifications](#notifications).
+* `notification` - List of notifications to send when an alert condition is detected. See [notification](#notification).
 * `severity_override` - Severity of the event.
 * `output` - Requested output string format for the alert configuration
 
@@ -109,7 +109,7 @@ Rules to apply when matching an object against this alert configuration. Only en
 ### Metric Threshold Config
 The threshold that causes an alert to be triggered. Required if `event_type_name` : `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`.
 
-* `metric_name` - Name of the metric to check. The full list being quite large, please refer to atlas docs [here for general metrics](https://docs.atlas.mongodb.com/reference/alert-host-metrics/#measurement-types) and [here for serverless metrics](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-create-config/#serverless-measurements)
+* `metric_name` - Name of the metric to check. The full list being quite large, please refer to atlas docs [here for general metrics](https://www.mongodb.com/docs/atlas/reference/alert-host-metrics/#measurement-types) and [here for serverless metrics](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-create-config/#serverless-measurements)
 
 * `operator` - The operator to apply when checking the current metric value against the threshold value.
   Accepted values are:
@@ -131,7 +131,7 @@ The threshold that causes an alert to be triggered. Required if `event_type_name
 * `units` - The units for the threshold value. Depends on the type of metric.
   Refer to the [MongoDB API Alert Configuration documentation](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-get-config/#request-body-parameters) for a list of accepted values.
 
-### Notifications
+### Notification
 Notifications to send when an alert condition is detected.
 
 * `api_token` - Slack API token. Required for the SLACK notifications type. If the token later becomes invalid, Atlas sends an email to the project owner and eventually removes the token.
@@ -175,5 +175,5 @@ Notifications to send when an alert condition is detected.
 * `microsoft_teams_webhook_url` - Microsoft Teams channel incoming webhook URL. Required for the `MICROSOFT_TEAMS` notifications type.
 * `roles` - Atlas role in current Project or Organization. Atlas returns this value if you set `type_name` to `ORG` or `GROUP`.
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/alert-configurations/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations/)
 Or refer to the individual resource or data_source documentation on alert configuration.

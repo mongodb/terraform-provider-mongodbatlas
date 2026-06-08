@@ -21,7 +21,7 @@ If you are already using `mongodbatlas_advanced_cluster` and want to upgrade to 
 - [Changes Overview](#changes-overview)
     - [Migrate advanced\_cluster type `SHARDED`](#migrate-advanced_cluster-type-sharded)
     - [Migrate advanced\_cluster type `GEOSHARDED`](#migrate-advanced_cluster-type-geosharded)
-    - [Upgrade type `REPLICASET` to `SHARDED`](#migrate-advanced_cluster-type-replicaset)
+    - [Upgrade type `REPLICASET` to `SHARDED`](#upgrade-type-replicaset-to-sharded)
 - [Use Independent Shard Scaling](#use-independent-shard-scaling)
 - [Use Auto-Scaling Per Shard](#use-auto-scaling-per-shard)
 - [Resources and Data Sources Impacted by Independent Shard Scaling](#resources-and-data-sources-impacted-by-independent-shard-scaling)
