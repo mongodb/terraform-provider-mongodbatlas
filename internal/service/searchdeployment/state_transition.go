@@ -60,7 +60,7 @@ func searchDeploymentRefreshFunc(ctx context.Context, projectID, clusterName str
 			if validate.StatusNotFound(resp) && strings.Contains(err.Error(), SearchDeploymentDoesNotExistsError) {
 				return "", retrystrategy.RetryStrategyDeletedState, nil
 			}
-			if validate.StatusServiceUnavailable(resp) {
+			if validate.StatusServiceUnavailable(resp) || validate.StatusInternalServerError(resp) {
 				return "", retrystrategy.RetryStrategyUpdatingState, nil
 			}
 			return nil, "", err

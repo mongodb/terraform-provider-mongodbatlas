@@ -186,7 +186,7 @@ For common issues and networking diagnostics, see the [Troubleshooting Guide](ht
 
 [Request Features](https://feedback.mongodb.com/ideas?category=7548141186718564699)
 
-[Support covered by MongoDB Atlas support plans, Developer and above](https://docs.atlas.mongodb.com/support/) 
+[Support covered by MongoDB Atlas support plans, Developer and above](https://www.mongodb.com/docs/atlas/support/) 
 
 ## Examples from MongoDB and the Community
 

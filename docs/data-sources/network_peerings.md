@@ -43,7 +43,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `peering_id` - Atlas assigned unique ID for the peering connection.
 * `connection_id` - Unique identifier for the peering connection.
-* `accepter_region_name` - Specifies the region where the peer VPC resides. For complete lists of supported regions, see [Amazon Web Services](https://docs.atlas.mongodb.com/reference/amazon-aws/).
+* `accepter_region_name` - Specifies the region where the peer VPC resides. For complete lists of supported regions, see [Amazon Web Services](https://www.mongodb.com/docs/atlas/reference/amazon-aws/).
 * `aws_account_id` - Account ID of the owner of the peer VPC.
 * `provider_name` - Cloud provider for this VPC peering connection. If omitted, Atlas sets this parameter to AWS. (Possible Values `AWS`, `AZURE`, `GCP`).
 * `route_table_cidr_block` - Peer VPC CIDR block or subnet.
@@ -60,4 +60,4 @@ In addition to all arguments above, the following attributes are exported:
 * `network_name` - Name of the network peer to which Atlas connects.
 * `error_message` - When `"status" : "FAILED"`, Atlas provides a description of the error.
 
-See detailed information for arguments and attributes: [MongoDB API Network Peering Connection](https://docs.atlas.mongodb.com/reference/api/vpc-get-connections-list/)
+See detailed information for arguments and attributes: [MongoDB API Network Peering Connection](https://www.mongodb.com/docs/atlas/reference/api/vpc-get-connections-list/)

@@ -116,13 +116,13 @@ In order to test the provider, you can run `make test`. You can use [meta-argume
 
 #### Programmatic API key
 
-It's necessary to generate and configure an API key for your organization for the acceptance test to succeed. To grant programmatic access to an organization or project using only the [API](https://docs.atlas.mongodb.com/api/) you need to know:
+It's necessary to generate and configure an API key for your organization for the acceptance test to succeed. To grant programmatic access to an organization or project using only the [API](https://www.mongodb.com/docs/atlas/api/) you need to know:
 
-  - The programmatic API key has two parts: a Public Key and a Private Key. To see more details on how to create a programmatic API key visit https://docs.atlas.mongodb.com/configure-api-access/#programmatic-api-keys.
+  - The programmatic API key has two parts: a Public Key and a Private Key. To see more details on how to create a programmatic API key visit https://www.mongodb.com/docs/atlas/configure-api-access/#programmatic-api-keys.
 
-  - The programmatic API key must be granted roles sufficient for the acceptance test to succeed. The Organization Owner and Project Owner roles should be sufficient. You can see the available roles at https://docs.atlas.mongodb.com/reference/user-roles.
+  - The programmatic API key must be granted roles sufficient for the acceptance test to succeed. The Organization Owner and Project Owner roles should be sufficient. You can see the available roles at https://www.mongodb.com/docs/atlas/reference/user-roles.
 
-  - You must [configure Atlas API Access](https://docs.atlas.mongodb.com/configure-api-access/) for your programmatic API key. You should allow API access for the IP address from which the acceptance test runs.
+  - You must [configure Atlas API Access](https://www.mongodb.com/docs/atlas/configure-api-access/) for your programmatic API key. You should allow API access for the IP address from which the acceptance test runs.
 
 #### Configuring environment variables
 
@@ -174,7 +174,7 @@ You must also configure the following environment variables before running the t
   export AWS_SUBNET_ID=<AWS_SUBNET_ID>
   export AWS_SECURITY_GROUP_ID=<AWS_SECURITY_GROUP_ID>
   ```
-~> **Notice:** For more information about the Network Peering resource, see: https://docs.atlas.mongodb.com/reference/api/vpc/
+~> **Notice:** For more information about the Network Peering resource, see: https://www.mongodb.com/docs/atlas/reference/api/vpc/
 
 - For `Encryption at Rest` resource configuration:
   ```bash
@@ -188,7 +188,7 @@ You must also configure the following environment variables before running the t
   export AWS_CUSTOMER_MASTER_KEY_ID_UPDATED=<AWS_CUSTOMER_MASTER_KEY_ID_UPDATED>
   export AWS_REGION_UPDATED=<AWS_REGION_UPDATED>
   ```
-~> **Notice:** For more information about the Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
+~> **Notice:** For more information about the Encryption at Rest resource, see: https://www.mongodb.com/docs/atlas/reference/api/encryption-at-rest/
 
 - For `Private Endpoint Link` resource configuration:
   ```bash
@@ -200,7 +200,7 @@ You must also configure the following environment variables before running the t
   export AWS_SUBNET_ID=<AWS_SUBNET_ID>
   export AWS_SECURITY_GROUP_ID=<AWS_SECURITY_GROUP_ID>
   ```
-~> **Notice:** For more information about the PrivateLink (for AWS only), see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/https://docs.atlas.mongodb.com/reference/api/private-endpoint/
+~> **Notice:** For more information about the PrivateLink (for AWS only), see: https://www.mongodb.com/docs/atlas/reference/api/private-endpoint/
 
 ##### AZURE env variables
 
@@ -211,7 +211,7 @@ You must also configure the following environment variables before running the t
   export AZURE_RESOURCE_GROUP_NAME=<AZURE_RESOURCE_GROUP_NAME>
   export AZURE_VNET_NAME=<AZURE_VNET_NAME>
   ```
-~> **Notice:** For more information about the Network Peering resource, see: https://docs.atlas.mongodb.com/reference/api/vpc/
+~> **Notice:** For more information about the Network Peering resource, see: https://www.mongodb.com/docs/atlas/reference/api/vpc/
 
 
 - For Encryption at Rest resource configuration:
@@ -227,14 +227,14 @@ You must also configure the following environment variables before running the t
   export AZURE_KEY_VAULT_NAME_UPDATED=<AZURE_KEY_VAULT_NAME_UPDATED>
   export AZURE_KEY_IDENTIFIER_UPDATED=<AZURE_KEY_IDENTIFIER_UPDATED>
   ```
-~> **Notice:** For more information about the Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
+~> **Notice:** For more information about the Encryption at Rest resource, see: https://www.mongodb.com/docs/atlas/reference/api/encryption-at-rest/
 
 ##### GCP env variables
 - For `Network Peering` resource configuration:
   ```bash
   $export GCP_PROJECT_ID=<GCP_PROJECT_ID>
   ```
-~> **Notice:** For more information about the Network Peering resource, see: https://docs.atlas.mongodb.com/reference/api/vpc/
+~> **Notice:** For more information about the Network Peering resource, see: https://www.mongodb.com/docs/atlas/reference/api/vpc/
 
 
 - For Encryption at Rest resource configuration:
@@ -242,7 +242,7 @@ You must also configure the following environment variables before running the t
   export GCP_SERVICE_ACCOUNT_KEY=<GCP_SERVICE_ACCOUNT_KEY>
   export GCP_KEY_VERSION_RESOURCE_ID=<GCP_KEY_VERSION_RESOURCE_ID>
   ```
-~> **Notice:** For more information about the Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
+~> **Notice:** For more information about the Encryption at Rest resource, see: https://www.mongodb.com/docs/atlas/reference/api/encryption-at-rest/
 
 
 #### Run Acceptance tests

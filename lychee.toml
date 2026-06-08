@@ -1,0 +1,31 @@
+no_progress = true
+
+# Skip immutable historical records: released changelog and dated compliance docs.
+exclude_path = ["CHANGELOG.md", "compliance"]
+
+# Known false positives: auth-gated endpoints, literal placeholders, and a third-party site.
+# TODO: CLOUDP-381694 Remove the three entries below once the docs team provides replacement URLs:
+#   - create-global-writes-cluster: BI Connector read-preferences table moved
+#   - data-federation/config/config-oa: databases/stores section moved
+#   - backup/cloud-backup/shared-cluster-backup: shared-tier backup page removed (replaced by Flex)
+exclude = [
+  'cloud.mongodb.com/api',
+  'support.snyk.io',
+  'sts.windows.net',
+  'token.actions.githubusercontent.com',
+  'epoch101.com',
+  'docs/atlas/tutorial/create-global-writes-cluster',
+  'docs/atlas/data-federation/config/config-oa',
+  'docs/atlas/backup/cloud-backup/shared-cluster-backup',
+]
+
+# Terraform Registry renders intra-doc links under docs/ without the .md extension
+# (e.g. ../guides/foo, ../resources/bar#anchor), so docs use extensionless links that resolve
+# on the registry but not on disk. The first rule leaves file:// links that already end in a
+# real extension (.md, .tf, .png, ...) untouched; the second appends .md to extensionless
+# links under docs/ so they resolve. Extensionless links outside docs/ (e.g. example
+# subdirectories) are left alone. Relies on lychee applying the first matching remap only.
+remap = [
+  '(file://[^#]*\.[a-zA-Z]+)(#.*)?$ ${1}${2}',
+  '(file://[^#]*/docs/[^#]*?)(#.*)?$ ${1}.md${2}',
+]
