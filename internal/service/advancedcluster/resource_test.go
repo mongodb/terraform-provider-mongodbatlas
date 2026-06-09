@@ -1128,9 +1128,9 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 func waitOnClusterDeleteDone(t *testing.T, projectID, clusterName string) {
 	t.Helper()
 	diags := &diag.Diagnostics{}
-	clusterResp, _ := advancedcluster.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false, false)
+	clusterResp, _ := advancedcluster.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient(), false, false)
 	require.NotNil(t, clusterResp)
-	_ = advancedcluster.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedcluster.ClusterWaitParams{
+	_ = advancedcluster.AwaitChanges(t.Context(), acc.MongoDBClient(), &advancedcluster.ClusterWaitParams{
 		ProjectID:   projectID,
 		ClusterName: clusterName,
 		Timeout:     60 * time.Minute,
