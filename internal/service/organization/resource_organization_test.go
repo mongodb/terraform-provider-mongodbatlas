@@ -474,9 +474,9 @@ func getTestClientWithNewOrgCreds(rs *terraform.ResourceState) (*admin.APIClient
 		c := &config.Credentials{
 			PublicKey:  publicKey,
 			PrivateKey: privateKey,
-			BaseURL:    acc.MongoDBClient().BaseURL,
+			BaseURL:    acc.MongoDBClient.BaseURL,
 		}
-		client, err := config.NewClient(c, acc.MongoDBClient().TerraformVersion)
+		client, err := config.NewClient(c, acc.MongoDBClient.TerraformVersion)
 		if err != nil {
 			return nil, fmt.Errorf("error creating client with PAK credentials: %s", err)
 		}
@@ -489,9 +489,9 @@ func getTestClientWithNewOrgCreds(rs *terraform.ResourceState) (*admin.APIClient
 		c := &config.Credentials{
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
-			BaseURL:      acc.MongoDBClient().BaseURL,
+			BaseURL:      acc.MongoDBClient.BaseURL,
 		}
-		client, err := config.NewClient(c, acc.MongoDBClient().TerraformVersion)
+		client, err := config.NewClient(c, acc.MongoDBClient.TerraformVersion)
 		if err != nil {
 			return nil, fmt.Errorf("error creating client with SA credentials: %s", err)
 		}

@@ -1,7 +1,6 @@
 package acc
 
 import (
-	"fmt"
 	"log"
 	"maps"
 	"os"
@@ -25,35 +24,24 @@ const (
 // TestAccProviderV6Factories is used in all tests for ProtoV6ProviderFactories.
 var TestAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, error)
 
-// sharedClient holds the acceptance-test client; access it through MongoDBClient().
-var sharedClient *config.MongoDBClient
-
-// clientInitErr records any error from initializing sharedClient, surfaced by MongoDBClient().
-var clientInitErr error
-
-// MongoDBClient returns the shared acceptance-test client, panicking with the init error
-// (e.g. a failed service-account token fetch) instead of a nil pointer dereference.
-func MongoDBClient() *config.MongoDBClient {
-	if sharedClient == nil {
-		panic(fmt.Sprintf("acceptance test Atlas client was not initialized: %v", clientInitErr))
-	}
-	return sharedClient
-}
+// MongoDBClient is used to configure client required for Framework-based acceptance tests.
+// It is guaranteed to be set because init() fails fast if the client cannot be built.
+var MongoDBClient *config.MongoDBClient
 
 func Conn() *matlas.Client {
-	return MongoDBClient().Atlas
+	return MongoDBClient.Atlas
 }
 
 func ConnV2() *admin.APIClient {
-	return MongoDBClient().AtlasV2
+	return MongoDBClient.AtlasV2
 }
 
 func ConnPreview() *adminpreview.APIClient {
-	return MongoDBClient().AtlasPreview
+	return MongoDBClient.AtlasPreview
 }
 
 func ConnV220241113() *admin20241113.APIClient {
-	return MongoDBClient().AtlasV220241113
+	return MongoDBClient.AtlasV220241113
 }
 
 func ConnV2UsingGov() *admin.APIClient {
@@ -64,7 +52,7 @@ func ConnV2UsingGov() *admin.APIClient {
 	}
 	client, err := config.NewClient(c, "")
 	if err != nil {
-		panic(fmt.Sprintf("acceptance test Atlas (gov) client could not be created: %v", err))
+		log.Fatalf("failed to create Atlas (gov) client for acceptance tests: %v", err)
 	}
 	return client.AtlasV2
 }
@@ -93,8 +81,9 @@ func init() {
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
-	sharedClient, clientInitErr = config.NewClient(c, "")
-	if clientInitErr != nil {
-		log.Printf("[ERROR] failed to initialize Atlas client for acceptance tests: %v", clientInitErr)
+	var err error
+	MongoDBClient, err = config.NewClient(c, "")
+	if err != nil {
+		log.Fatalf("failed to initialize Atlas client for acceptance tests: %v", err)
 	}
 }
