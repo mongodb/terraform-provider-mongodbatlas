@@ -100,6 +100,8 @@ jobs:
       && needs.release-config.outputs.creates_new_tag == 'true'
       && needs.release-config.outputs.is_official_release == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -124,6 +126,8 @@ jobs:
       && needs.release-config.outputs.creates_new_tag == 'true'
       && needs.release-config.outputs.is_official_release == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -171,6 +175,9 @@ jobs:
       !cancelled()
       && !contains(needs.*.result, 'failure')
       && needs.release-config.outputs.runs_tests == 'true'
+    permissions:
+      id-token: write
+      contents: read
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
@@ -212,6 +219,8 @@ jobs:
 
   compliance:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: [ release-config, release ]
     if: >-
       !cancelled()
@@ -248,6 +257,8 @@ jobs:
       && needs.release-config.outputs.is_official_release == 'true'
       && needs.compliance.result == 'success'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -276,6 +287,7 @@ jobs:
       !cancelled()
       && needs.release.result == 'success'
       && needs.release-config.outputs.skip_jira != 'true'
+    permissions: {}
     secrets: inherit
     uses: ./.github/workflows/jira-release-version.yml
     with:
