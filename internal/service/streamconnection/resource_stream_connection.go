@@ -14,7 +14,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
 )
 
 const streamConnectionName = "stream_connection"
@@ -82,6 +81,7 @@ type TFFailoverConnectionModel struct {
 	ID                           types.String `tfsdk:"id"`
 	Name                         types.String `tfsdk:"name"`
 	Type                         types.String `tfsdk:"type"`
+	Region                       types.String `tfsdk:"region"`
 	ClusterName                  types.String `tfsdk:"cluster_name"`
 	ClusterProjectID             types.String `tfsdk:"cluster_project_id"`
 	DBRoleToExecute              types.Object `tfsdk:"db_role_to_execute"`
@@ -101,24 +101,25 @@ type TFFailoverConnectionModel struct {
 }
 
 var FailoverConnectionObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"id":                            types.StringType,
-	"name":                          types.StringType,
-	"type":                          types.StringType,
-	"cluster_name":                  types.StringType,
-	"cluster_project_id":            types.StringType,
-	"db_role_to_execute":            DBRoleToExecuteObjectType,
-	"bootstrap_servers":             types.StringType,
-	"authentication":                ConnectionAuthenticationObjectType,
-	"config":                        types.MapType{ElemType: types.StringType},
-	"security":                      ConnectionSecurityObjectType,
-	"networking":                    NetworkingObjectType,
-	"aws":                           AWSObjectType,
-	"azure":                         AzureObjectType,
-	"gcp":                           GCPObjectType,
-	"url":                           types.StringType,
-	"headers":                       types.MapType{ElemType: types.StringType},
-	"schema_registry_provider":      types.StringType,
-	"schema_registry_urls":          types.ListType{ElemType: types.StringType},
+	"id":                             types.StringType,
+	"name":                           types.StringType,
+	"type":                           types.StringType,
+	"region":                         types.StringType,
+	"cluster_name":                   types.StringType,
+	"cluster_project_id":             types.StringType,
+	"db_role_to_execute":             DBRoleToExecuteObjectType,
+	"bootstrap_servers":              types.StringType,
+	"authentication":                 ConnectionAuthenticationObjectType,
+	"config":                         types.MapType{ElemType: types.StringType},
+	"security":                       ConnectionSecurityObjectType,
+	"networking":                     NetworkingObjectType,
+	"aws":                            AWSObjectType,
+	"azure":                          AzureObjectType,
+	"gcp":                            GCPObjectType,
+	"url":                            types.StringType,
+	"headers":                        types.MapType{ElemType: types.StringType},
+	"schema_registry_provider":       types.StringType,
+	"schema_registry_urls":           types.ListType{ElemType: types.StringType},
 	"schema_registry_authentication": SchemaRegistryAuthenticationObjectType,
 }}
 
@@ -307,44 +308,45 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	// Write partial state so the primary connection isn't orphaned if failover creation fails.
+	// Create failover connections if configured, building state directly from create responses
+	// to avoid eventual-consistency issues with the list endpoint.
 	newStreamConnectionModel.FailoverConnections = types.ListNull(FailoverConnectionObjectType)
-	resp.Diagnostics.Append(resp.State.Set(ctx, newStreamConnectionModel)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Create failover connections if configured.
 	if !streamConnectionPlan.FailoverConnections.IsNull() && !streamConnectionPlan.FailoverConnections.IsUnknown() && len(streamConnectionPlan.FailoverConnections.Elements()) > 0 {
 		var planFCs []TFFailoverConnectionModel
 		resp.Diagnostics.Append(streamConnectionPlan.FailoverConnections.ElementsAs(ctx, &planFCs, false)...)
 		if resp.Diagnostics.HasError() {
+			// Save partial state so the primary connection is not orphaned.
+			resp.Diagnostics.Append(resp.State.Set(ctx, newStreamConnectionModel)...)
 			return
 		}
-		conns := make([]admin.StreamsConnection, len(planFCs))
-		for i, fc := range planFCs {
-			fcItem := fc
+		var fcModels []TFFailoverConnectionModel
+		for i := range planFCs {
+			fcItem := planFCs[i]
 			conn, diags := newFailoverConnectionReq(ctx, &fcItem)
 			if diags.HasError() {
 				resp.Diagnostics.Append(diags...)
+				resp.Diagnostics.Append(resp.State.Set(ctx, newStreamConnectionModel)...)
 				return
 			}
-			conns[i] = *conn
+			createdConn, _, err := connV2.StreamsApi.CreateFailoverConnection(ctx, projectID, workspaceOrInstanceName, connectionName, conn).Execute()
+			if err != nil {
+				resp.Diagnostics.AddError("error creating failover connection", err.Error())
+				resp.Diagnostics.Append(resp.State.Set(ctx, newStreamConnectionModel)...)
+				return
+			}
+			// Build state from the plan so sensitive fields (passwords) are always present.
+			// Only inject the computed id from the API response.
+			fcItem.ID = types.StringPointerValue(createdConn.Id)
+			fcModels = append(fcModels, fcItem)
 		}
-		_, _, err := connV2.StreamsApi.CreateFailoverConnections(ctx, projectID, workspaceOrInstanceName, connectionName, &admin.StreamsCreateFailoverConnectionsRequest{Connections: conns}).Execute()
-		if err != nil {
-			resp.Diagnostics.AddError("error creating failover connections", err.Error())
+		fcList, diags := types.ListValueFrom(ctx, FailoverConnectionObjectType, fcModels)
+		if diags.HasError() {
+			resp.Diagnostics.Append(diags...)
+			resp.Diagnostics.Append(resp.State.Set(ctx, newStreamConnectionModel)...)
 			return
 		}
+		newStreamConnectionModel.FailoverConnections = fcList
 	}
-
-	// Read back the failover connections (includes computed id values).
-	fcList, diags := newTFFailoverConnectionsList(ctx, connV2.StreamsApi, projectID, workspaceOrInstanceName, streamConnectionPlan.FailoverConnections, types.ListNull(FailoverConnectionObjectType))
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-	newStreamConnectionModel.FailoverConnections = fcList
 	resp.Diagnostics.Append(resp.State.Set(ctx, newStreamConnectionModel)...)
 }
 
@@ -381,7 +383,7 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	fcList, diags := newTFFailoverConnectionsList(ctx, connV2.StreamsApi, projectID, workspaceOrInstanceName, streamConnectionState.FailoverConnections, streamConnectionState.FailoverConnections)
+	fcList, diags := newTFFailoverConnectionsList(ctx, connV2.StreamsApi, projectID, workspaceOrInstanceName, connectionName, streamConnectionState.FailoverConnections, streamConnectionState.FailoverConnections)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -447,7 +449,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	fcList, diags := newTFFailoverConnectionsList(ctx, connV2.StreamsApi, projectID, workspaceOrInstanceName, streamConnectionPlan.FailoverConnections, streamConnectionState.FailoverConnections)
+	fcList, diags := newTFFailoverConnectionsList(ctx, connV2.StreamsApi, projectID, workspaceOrInstanceName, connectionName, streamConnectionPlan.FailoverConnections, streamConnectionState.FailoverConnections)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

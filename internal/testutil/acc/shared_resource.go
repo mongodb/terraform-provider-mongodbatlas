@@ -27,12 +27,13 @@ type projectInfo struct {
 }
 
 var sharedInfo = struct {
-	clusterName        string
-	streamInstanceName string
-	projects           []projectInfo
-	mu                 sync.Mutex
-	muSleep            sync.Mutex
-	init               bool
+	clusterName                string
+	streamInstanceName         string
+	streamInstanceFailoverName string
+	projects                   []projectInfo
+	mu                         sync.Mutex
+	muSleep                    sync.Mutex
+	init                       bool
 }{
 	projects: []projectInfo{},
 }
@@ -62,8 +63,8 @@ func cleanupSharedResources() error {
 			hasError = true
 		}
 	}
-	if sharedInfo.streamInstanceName != "" {
-		fmt.Printf("Deleting execution stream instance: %s, project id: %s\n", sharedInfo.streamInstanceName, firstProjectID)
+	if sharedInfo.streamInstanceName != "" || sharedInfo.streamInstanceFailoverName != "" {
+		fmt.Printf("Deleting execution stream instances in project id: %s\n", firstProjectID)
 		if _, err := clean.RemoveStreamInstances(context.TODO(), false, ConnV2(), firstProjectID); err != nil {
 			fmt.Printf("[ERROR] Stream instance deletion failed: %v\n", err)
 			hasError = true
@@ -226,6 +227,28 @@ func ProjectIDExecutionWithStreamInstance(tb testing.TB) (projectID, streamInsta
 	}
 
 	return projectID, sharedInfo.streamInstanceName
+}
+
+// ProjectIDExecutionWithStreamInstanceWithFailover returns the project ID and the name of a stream
+// instance that has failover regions enabled, which is a prerequisite for creating failover
+// connections. It uses the same ProjectID as ProjectIDExecution and maintains its own shared
+// instance separate from ProjectIDExecutionWithStreamInstance to keep the common instance lean.
+func ProjectIDExecutionWithStreamInstanceWithFailover(tb testing.TB) (projectID, streamInstanceName string) {
+	tb.Helper()
+	SkipInUnitTest(tb)
+	require.True(tb, sharedInfo.init, "sharedInfo not initialized, use acc.Run() to run tests that require shared resources")
+	projectID = ProjectIDExecution(tb)
+
+	sharedInfo.mu.Lock()
+	defer sharedInfo.mu.Unlock()
+	if sharedInfo.streamInstanceFailoverName == "" {
+		name := RandomStreamInstanceName()
+		tb.Logf("Creating execution stream instance with failover regions: %s\n", name)
+		sharedInfo.streamInstanceFailoverName = name
+		createStreamInstanceWithFailover(tb, projectID, name)
+	}
+
+	return projectID, sharedInfo.streamInstanceFailoverName
 }
 
 // SerialSleep waits a few seconds so clusters in a project are not created concurrently, see HELP-65223.
