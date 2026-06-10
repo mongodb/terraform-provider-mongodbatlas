@@ -248,6 +248,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"type": schema.StringAttribute{
 							Required: true,
 						},
+						"region": schema.StringAttribute{
+							Required: true,
+						},
 						"cluster_name": schema.StringAttribute{
 							Optional: true,
 						},

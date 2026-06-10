@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 )
 
@@ -423,6 +422,7 @@ func newFailoverConnectionReq(ctx context.Context, fc *TFFailoverConnectionModel
 	conn := admin.StreamsConnection{
 		Name:             fc.Name.ValueStringPointer(),
 		Type:             fc.Type.ValueStringPointer(),
+		Region:           fc.Region.ValueStringPointer(),
 		ClusterName:      fc.ClusterName.ValueStringPointer(),
 		ClusterGroupId:   fc.ClusterProjectID.ValueStringPointer(),
 		BootstrapServers: fc.BootstrapServers.ValueStringPointer(),
@@ -571,6 +571,7 @@ func newTFFailoverConnectionModel(ctx context.Context, apiResp *admin.StreamsCon
 		ID:                     types.StringPointerValue(apiResp.Id),
 		Name:                   types.StringPointerValue(apiResp.Name),
 		Type:                   types.StringPointerValue(apiResp.Type),
+		Region:                 types.StringPointerValue(apiResp.Region),
 		ClusterName:            types.StringPointerValue(apiResp.ClusterName),
 		ClusterProjectID:       types.StringPointerValue(apiResp.ClusterGroupId),
 		BootstrapServers:       types.StringPointerValue(apiResp.BootstrapServers),
@@ -700,8 +701,7 @@ func newTFFailoverConnectionModel(ctx context.Context, apiResp *admin.StreamsCon
 }
 
 // newTFFailoverConnectionsList reads the current failover connections from the API and returns a types.List.
-// stateFailoverConnections is used to retrieve the names of failover connections already tracked in state.
-func newTFFailoverConnectionsList(ctx context.Context, streamsAPI admin.StreamsApi, projectID, workspaceName string, planFailoverList types.List, stateFailoverList types.List) (types.List, diag.Diagnostics) {
+func newTFFailoverConnectionsList(ctx context.Context, streamsAPI admin.StreamsApi, projectID, workspaceName, primaryConnectionName string, planFailoverList types.List, stateFailoverList types.List) (types.List, diag.Diagnostics) {
 	var allDiags diag.Diagnostics
 
 	// Collect names in deterministic order: plan order first, then state-only entries.
@@ -740,15 +740,25 @@ func newTFFailoverConnectionsList(ctx context.Context, streamsAPI admin.StreamsA
 		return types.ListNull(FailoverConnectionObjectType), nil
 	}
 
+	// Fetch all failover connections via the dedicated list endpoint.
+	apiConns, _, err := streamsAPI.ListFailoverConnections(ctx, projectID, workspaceName, primaryConnectionName).Execute()
+	if err != nil {
+		allDiags.AddError("error listing failover connections", err.Error())
+		return types.ListNull(FailoverConnectionObjectType), allDiags
+	}
+
+	apiByName := make(map[string]*admin.StreamsConnection, len(apiConns))
+	for i := range apiConns {
+		if apiConns[i].Name != nil {
+			apiByName[*apiConns[i].Name] = &apiConns[i]
+		}
+	}
+
 	var fcModels []TFFailoverConnectionModel
 	for _, name := range orderedNames {
-		apiResp, getResp, err := streamsAPI.GetStreamConnection(ctx, projectID, workspaceName, name).Execute()
-		if err != nil {
-			if validate.StatusNotFound(getResp) {
-				continue // connection was removed out-of-band; skip it
-			}
-			allDiags.AddError("error reading failover connection", fmt.Sprintf("connection %q: %s", name, err.Error()))
-			return types.ListNull(FailoverConnectionObjectType), allDiags
+		apiResp, ok := apiByName[name]
+		if !ok {
+			continue // connection was removed out-of-band; skip it
 		}
 		auth := planAuthByName[name]
 		srAuth := planSRAuthByName[name]
@@ -797,7 +807,6 @@ func syncFailoverConnections(ctx context.Context, streamsAPI admin.StreamsApi, p
 	}
 
 	// Connections to create (in plan but not in state).
-	var toCreate []admin.StreamsConnection
 	for _, fc := range planFCs {
 		name := fc.Name.ValueString()
 		if _, exists := stateByName[name]; !exists {
@@ -807,18 +816,14 @@ func syncFailoverConnections(ctx context.Context, streamsAPI admin.StreamsApi, p
 				allDiags.Append(diags...)
 				return allDiags
 			}
-			toCreate = append(toCreate, *conn)
-		}
-	}
-	if len(toCreate) > 0 {
-		if _, _, err := streamsAPI.CreateFailoverConnections(ctx, projectID, workspaceName, primaryConnectionName, &admin.StreamsCreateFailoverConnectionsRequest{Connections: toCreate}).Execute(); err != nil {
-			allDiags.AddError("error creating failover connections", err.Error())
-			return allDiags
+			if _, _, err := streamsAPI.CreateFailoverConnection(ctx, projectID, workspaceName, primaryConnectionName, conn).Execute(); err != nil {
+				allDiags.AddError("error creating failover connection", fmt.Sprintf("connection %q: %s", name, err.Error()))
+				return allDiags
+			}
 		}
 	}
 
 	// Connections to update (in both plan and state).
-	var toUpdate []admin.StreamsFailoverConnectionUpdate
 	for _, fc := range planFCs {
 		name := fc.Name.ValueString()
 		if stateFC, exists := stateByName[name]; exists {
@@ -832,30 +837,23 @@ func syncFailoverConnections(ctx context.Context, streamsAPI admin.StreamsApi, p
 				allDiags.Append(diags...)
 				return allDiags
 			}
-			toUpdate = append(toUpdate, admin.StreamsFailoverConnectionUpdate{Id: existingID, Connection: *conn})
-		}
-	}
-	if len(toUpdate) > 0 {
-		if _, _, err := streamsAPI.UpdateFailoverConnections(ctx, projectID, workspaceName, primaryConnectionName, &admin.StreamsUpdateFailoverConnectionsRequest{Connections: toUpdate}).Execute(); err != nil {
-			allDiags.AddError("error updating failover connections", err.Error())
-			return allDiags
+			if _, _, err := streamsAPI.UpdateFailoverConnection(ctx, projectID, workspaceName, primaryConnectionName, existingID, conn).Execute(); err != nil {
+				allDiags.AddError("error updating failover connection", fmt.Sprintf("connection %q: %s", name, err.Error()))
+				return allDiags
+			}
 		}
 	}
 
 	// Connections to delete (in state but not in plan).
-	var toDeleteIDs []string
 	for _, fc := range stateFCs {
 		name := fc.Name.ValueString()
 		if _, exists := planByName[name]; !exists {
-			if id := fc.ID.ValueString(); id != "" {
-				toDeleteIDs = append(toDeleteIDs, id)
+			if fcID := fc.ID.ValueString(); fcID != "" {
+				if _, err := streamsAPI.DeleteFailoverConnection(ctx, projectID, workspaceName, primaryConnectionName, fcID).Execute(); err != nil {
+					allDiags.AddError("error deleting failover connection", fmt.Sprintf("connection %q: %s", name, err.Error()))
+					return allDiags
+				}
 			}
-		}
-	}
-	if len(toDeleteIDs) > 0 {
-		if _, err := streamsAPI.DeleteFailoverConnections(ctx, projectID, workspaceName, primaryConnectionName, &admin.StreamsDeleteFailoverConnectionsRequest{ConnectionIds: toDeleteIDs}).Execute(); err != nil {
-			allDiags.AddError("error deleting failover connections", err.Error())
-			return allDiags
 		}
 	}
 
@@ -871,17 +869,14 @@ func deleteAllFailoverConnections(ctx context.Context, streamsAPI admin.StreamsA
 	if diags := stateList.ElementsAs(ctx, &stateFCs, false); diags.HasError() {
 		return diags
 	}
-	var ids []string
 	for _, fc := range stateFCs {
-		if id := fc.ID.ValueString(); id != "" {
-			ids = append(ids, id)
+		fcID := fc.ID.ValueString()
+		if fcID == "" {
+			continue
 		}
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	if _, err := streamsAPI.DeleteFailoverConnections(ctx, projectID, workspaceName, primaryConnectionName, &admin.StreamsDeleteFailoverConnectionsRequest{ConnectionIds: ids}).Execute(); err != nil {
-		return diag.Diagnostics{diag.NewErrorDiagnostic("error deleting failover connections", err.Error())}
+		if _, err := streamsAPI.DeleteFailoverConnection(ctx, projectID, workspaceName, primaryConnectionName, fcID).Execute(); err != nil {
+			return diag.Diagnostics{diag.NewErrorDiagnostic("error deleting failover connection", fmt.Sprintf("connection %q: %s", fc.Name.ValueString(), err.Error()))}
+		}
 	}
 	return nil
 }
