@@ -135,6 +135,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.AutoDeferOnceEnabled = new(autoDeferOnceEnabled.(bool))
 	}
 
+	if waveAssignment, ok := d.GetOk("wave_assignment"); ok {
+		wave := waveAssignment.(int)
+		params.WaveAssignment = &wave
+	}
+
 	params.ProtectedHours = newProtectedHours(d)
 	_, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
 	if err != nil {
