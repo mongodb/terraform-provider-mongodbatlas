@@ -103,6 +103,14 @@ func Resource() *schema.Resource {
 					},
 				},
 			},
+			"wave_assignment": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"effective_wave_assignment": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 		},
 	}
 }
