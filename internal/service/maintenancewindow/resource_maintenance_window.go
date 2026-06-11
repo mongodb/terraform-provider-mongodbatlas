@@ -218,6 +218,19 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 		}
 	}
+
+	if maintenanceWindow.WaveAssignment != nil {
+		if err := d.Set("wave_assignment", maintenanceWindow.GetWaveAssignment()); err != nil {
+			return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+		}
+	}
+
+	if maintenanceWindow.EffectiveWaveAssignment != nil {
+		if err := d.Set("effective_wave_assignment", maintenanceWindow.GetEffectiveWaveAssignment()); err != nil {
+			return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+		}
+	}
+
 	return nil
 }
 
