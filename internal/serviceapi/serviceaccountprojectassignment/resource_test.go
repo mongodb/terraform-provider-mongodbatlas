@@ -137,6 +137,14 @@ func checkBasic(projectIDs []string) resource.TestCheckFunc {
 		))
 	}
 	checks = append(checks, resource.TestCheckResourceAttr(dataSourcePluralName, "results.#", strconv.Itoa(len(projectIDs))))
+	for i := range projectIDs { // all assignments use the same roles so index-based checks are order-independent
+		checks = append(checks,
+			resource.TestCheckResourceAttrSet(dataSourcePluralName, fmt.Sprintf("results.%d.project_id", i)),
+			resource.TestCheckResourceAttr(dataSourcePluralName, fmt.Sprintf("results.%d.roles.#", i), "2"),
+			resource.TestCheckTypeSetElemAttr(dataSourcePluralName, fmt.Sprintf("results.%d.roles.*", i), "GROUP_OWNER"),
+			resource.TestCheckTypeSetElemAttr(dataSourcePluralName, fmt.Sprintf("results.%d.roles.*", i), "GROUP_READ_ONLY"),
+		)
+	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
