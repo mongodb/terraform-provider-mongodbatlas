@@ -273,6 +273,9 @@ func requestOnlyRequiredOnCreateTransformation(attr *Attribute, _ *attrPaths, _ 
 func applyTypeOverride(override *config.Override, attr *Attribute) error {
 	switch *override.Type {
 	case config.Set:
+		if attr.Set != nil || attr.SetNested != nil { // no-op if the attribute already has the target type, e.g. an override applying to both the singular and plural data sources
+			return nil
+		}
 		if attr.List != nil {
 			if attr.CustomType != nil {
 				attr.CustomType = NewCustomSetType(attr.List.ElementType)
@@ -290,6 +293,9 @@ func applyTypeOverride(override *config.Override, attr *Attribute) error {
 			return nil
 		}
 	case config.List:
+		if attr.List != nil || attr.ListNested != nil {
+			return nil
+		}
 		if attr.Set != nil {
 			if attr.CustomType != nil {
 				attr.CustomType = NewCustomListType(attr.Set.ElementType)
