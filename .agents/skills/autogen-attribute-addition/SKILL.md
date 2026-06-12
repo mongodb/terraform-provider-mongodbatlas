@@ -79,8 +79,9 @@ lifecycle, not just the happy path with a value set:
 ## 5. Docs and changelog
 
 - Regenerate docs: `scripts/generate-doc.sh <resource_name>` (requires templates in
-  `templates/`). Only commit the generated docs for the affected resource and data
-  sources.
+  `templates/`). `<resource_name>` is the Terraform resource name, which for
+  production autogen resources matches the config.yml key used in step 3. Only commit
+  the generated docs for the affected resource and data sources.
 - Add `.changelog/<PR number>.txt` with a `release-note:enhancement` block per
   affected resource/data source (see existing entries for format). The filename must
   match the PR number — predict it from the latest issue/PR number and verify right
