@@ -31,9 +31,13 @@ other surfaces:
   `datasources.schema.overrides` for data sources):
 
   ```yaml
-  overrides:
-    roles:
-      type: set # Align with the roles attribute in the resource
+  resources:
+    <resource_name>:
+      datasources:
+        schema:
+          overrides:
+            roles:
+              type: set # Align with the roles attribute in the resource
   ```
 
 - **Descriptions**: each surface inherits wording from its own endpoint schema, so the
@@ -45,7 +49,7 @@ other surfaces:
 
 ```bash
 make autogen-update-api-spec        # fetch + flatten latest prod spec
-make autogen-generate-resources resource_name=<name>
+make autogen-generate-resources resource_name=<name>  # <name> is the resource key in tools/codegen/config.yml
 go build ./...
 ```
 
