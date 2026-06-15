@@ -24,6 +24,7 @@ func TestAccServiceAccountProjectAssignment_singleAssignment(t *testing.T) {
 		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectIDs    = acc.MultipleProjectIDsExecution(t, 1)
 		resourceName0 = resourceName + "_0"
+		roles         = []string{"GROUP_OWNER", "GROUP_READ_ONLY"}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -32,8 +33,8 @@ func TestAccServiceAccountProjectAssignment_singleAssignment(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectIDs, []string{"GROUP_OWNER", "GROUP_READ_ONLY"}),
-				Check:  checkBasic(projectIDs),
+				Config: configBasic(orgID, projectIDs, roles),
+				Check:  checkBasic(projectIDs, roles),
 			},
 			{
 				ResourceName:                         resourceName0,
@@ -52,6 +53,7 @@ func TestAccServiceAccountProjectAssignment_multipleAssignments(t *testing.T) {
 		projectIDs    = acc.MultipleProjectIDsExecution(t, 2)
 		resourceName0 = resourceName + "_0"
 		resourceName1 = resourceName + "_1"
+		roles         = []string{"GROUP_OWNER", "GROUP_READ_ONLY"}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -60,8 +62,8 @@ func TestAccServiceAccountProjectAssignment_multipleAssignments(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectIDs, []string{"GROUP_OWNER", "GROUP_READ_ONLY"}),
-				Check:  checkBasic(projectIDs),
+				Config: configBasic(orgID, projectIDs, roles),
+				Check:  checkBasic(projectIDs, roles),
 			},
 			{
 				ResourceName:                         resourceName0,
@@ -123,9 +125,10 @@ func configBasic(orgID string, projectIDs, roles []string) string {
 	`, orgID, assignmentsStr.String(), resourceNamesStr)
 }
 
-func checkBasic(projectIDs []string) resource.TestCheckFunc {
+func checkBasic(projectIDs, roles []string) resource.TestCheckFunc {
+	rolesCount := strconv.Itoa(len(roles))
 	attrsSet := []string{"client_id", "project_id"}
-	attrsMap := map[string]string{"roles.#": "2"}
+	attrsMap := map[string]string{"roles.#": rolesCount}
 	checks := []resource.TestCheckFunc{}
 	for i := range projectIDs {
 		resourceName := fmt.Sprintf("%s_%d", resourceName, i)
@@ -137,13 +140,14 @@ func checkBasic(projectIDs []string) resource.TestCheckFunc {
 		))
 	}
 	checks = append(checks, resource.TestCheckResourceAttr(dataSourcePluralName, "results.#", strconv.Itoa(len(projectIDs))))
-	for i := range projectIDs { // all assignments use the same roles so index-based checks are order-independent
+	for i := range projectIDs { // all assignments use the same roles, so index-based checks are order-independent.
 		checks = append(checks,
 			resource.TestCheckResourceAttrSet(dataSourcePluralName, fmt.Sprintf("results.%d.project_id", i)),
-			resource.TestCheckResourceAttr(dataSourcePluralName, fmt.Sprintf("results.%d.roles.#", i), "2"),
-			resource.TestCheckTypeSetElemAttr(dataSourcePluralName, fmt.Sprintf("results.%d.roles.*", i), "GROUP_OWNER"),
-			resource.TestCheckTypeSetElemAttr(dataSourcePluralName, fmt.Sprintf("results.%d.roles.*", i), "GROUP_READ_ONLY"),
+			resource.TestCheckResourceAttr(dataSourcePluralName, fmt.Sprintf("results.%d.roles.#", i), rolesCount),
 		)
+		for _, role := range roles {
+			checks = append(checks, resource.TestCheckTypeSetElemAttr(dataSourcePluralName, fmt.Sprintf("results.%d.roles.*", i), role))
+		}
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
