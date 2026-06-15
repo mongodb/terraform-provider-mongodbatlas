@@ -20,15 +20,43 @@ to the relevant specialized skill where one exists.
   the surfaces whose endpoint schemas include the field are affected. Check all
   three before assuming a gap.
 
-## 2. Check schema consistency before regenerating
+## 2. Check schema consistency and apply overrides before regenerating
 
-Compare the new field's spec schema with sibling schemas already exposed on the
-other surfaces:
+The generated schema reflects the spec verbatim, but the spec often does not capture
+how an attribute should behave in Terraform. Before regenerating, **review the full set
+of available overrides** — the `Override` struct in
+`tools/codegen/config/config_model.go` is the source of truth, and
+`tools/codegen/config.yml` has real examples of each — and decide which apply to the new
+field. Overrides go under `schema.overrides` for the resource and
+`datasources.schema.overrides` for data sources.
 
-- **Collection type**: if the field exists on another surface as a Set but the new
-  schema lacks `uniqueItems: true`, codegen emits a List. Align with a type override
-  in `tools/codegen/config.yml` (under `schema.overrides` for the resource, or
-  `datasources.schema.overrides` for data sources):
+Always evaluate these two first, since they are the easiest to miss and the most
+impactful when wrong:
+
+- **`computability` → optional + computed**: if the API returns a default value when the
+  attribute is omitted, mark it optional + computed so an absent config value does not
+  produce a perpetual non-empty plan. This is exactly the override the "omitting the
+  value" acceptance test in step 4 verifies.
+
+  ```yaml
+  resources:
+    <resource_name>:
+      schema:
+        overrides:
+          <attr>:
+            computability:
+              optional: true
+              computed: true
+  ```
+
+- **`sensitive`**: if the field carries a secret (token, password, key, connection
+  string), mark it sensitive. The spec rarely flags this, so it is easy to leak into
+  plan output and state diffs if not set explicitly.
+
+Other overrides to consider for the specific field:
+
+- **Collection type (`type`)**: if the field exists on another surface as a Set but the
+  new schema lacks `uniqueItems: true`, codegen emits a List. Align with a type override:
 
   ```yaml
   resources:
@@ -78,8 +106,8 @@ lifecycle, not just the happy path with a value set:
 
 ## 5. Docs and changelog
 
-- Regenerate docs: `scripts/generate-doc.sh <resource_name>` (requires templates in
-  `templates/`). `<resource_name>` is the Terraform resource name, which for
+- Regenerate docs: `make generate-doc resource_name=<resource_name>` (requires templates
+  in `templates/`). `<resource_name>` is the Terraform resource name, which for
   production autogen resources matches the config.yml key used in step 3. Only commit
   the generated docs for the affected resource and data sources.
 - Add `.changelog/<PR number>.txt` with a `release-note:enhancement` block per
