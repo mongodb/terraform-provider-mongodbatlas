@@ -748,6 +748,8 @@ replication_specs = [
 * `read_only_specs` - (Optional) Hardware specifications for read-only nodes in the region. All `read_only_specs` in the `region_configs` of a `replication_specs` must have the same `instance_size` as `electable_specs`. Read-only nodes can become the [primary](https://www.mongodb.com/docs/atlas/reference/glossary/#std-term-primary) and can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region. See [below](#read_only_specs).
 * `region_name` - (Optional) Physical location of your MongoDB cluster. The region you choose can affect network latency for clients accessing your databases.  Requires the **Atlas region name**, see the reference list for [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/), [GCP](https://www.mongodb.com/docs/atlas/reference/google-gcp/), [Azure](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/).
 
+  For the list of AWS regions that support [Gen2](https://www.mongodb.com/docs/atlas/manage-clusters/#aws-gen2-dedicated-clusters) instance sizes, see [Supported Regions](https://www.mongodb.com/docs/atlas/reference/amazon-aws/#supported-regions).
+
 ### electable_specs
 
 * `instance_size` - (Required) Hardware specification for the instance sizes in this region. Each instance size has a default storage and memory capacity. The instance size you select applies to all the data-bearing hosts in your instance size. Electable nodes and read-only nodes (known as "base nodes") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.
