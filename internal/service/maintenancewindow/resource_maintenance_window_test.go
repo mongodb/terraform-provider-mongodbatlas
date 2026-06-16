@@ -183,6 +183,70 @@ func configWithAutoDeferEnabled(orgID, projectName string, dayOfWeek, hourOfDay 
 		}`, orgID, projectName, dayOfWeek, hourOfDay)
 }
 
+func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		dayOfWeek   = 7
+		hourOfDay   = 3
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithWave(orgID, projectName, dayOfWeek, hourOfDay, 1),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "1"),
+					// Not consistent with wave_assignment due to CLOUDP-414086. Update once resolved.
+					resource.TestCheckResourceAttrSet(resourceName, "effective_wave_assignment"),
+				),
+			},
+			{
+				Config: configWithWave(orgID, projectName, dayOfWeek, hourOfDay, 2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "effective_wave_assignment"),
+				),
+			},
+			{
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay, nil),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "0"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// wave_assignment: after clearing, the API omits the field when null so the imported state
+				// has no key, while pre-import state has the SDKv2 TypeInt zero value.
+				// effective_wave_assignment: currently may differ between reads due to CLOUDP-414086.
+				ImportStateVerifyIgnore: []string{"wave_assignment", "effective_wave_assignment"},
+			},
+		},
+	})
+}
+
+func configWithWave(orgID, projectName string, dayOfWeek, hourOfDay, waveAssignment int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
+		resource "mongodbatlas_maintenance_window" "test" {
+			project_id      = mongodbatlas_project.test.id
+			day_of_week     = %[3]d
+			hour_of_day     = %[4]d
+			wave_assignment = %[5]d
+		}`, orgID, projectName, dayOfWeek, hourOfDay, waveAssignment)
+}
+
 func checkBasic(dayOfWeek, hourOfDay int, protectedHours *admin.ProtectedHours) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
