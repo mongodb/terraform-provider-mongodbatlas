@@ -50,6 +50,10 @@ In addition to all arguments above, the following attributes are exported:
 * `auto_defer_once_enabled` - When `true`, enables automatic deferral of all scheduled maintenance for the given project by one week.
 * `protected_hours` - (Optional) Defines the time period during which there will be no standard updates to the clusters. See [Protected Hours](#protected-hours).
 * `time_zone_id` - Identifier for the current time zone of the maintenance window. This can only be updated via the Project Settings UI.
+* `wave_assignment` - Maintenance wave explicitly assigned to this project. Returns `null` when no explicit wave has been assigned.
+* `effective_wave_assignment` - Maintenance wave Atlas uses when scheduling maintenance for this project. This value can differ from `wave_assignment` in the following scenarios:
+  - **`ENV_TAG_MAPPING` mode is active at the organization level.** When the organization's `wave_assignment_mode` is set to `ENV_TAG_MAPPING` (see [`mongodbatlas_org_maintenance_settings`](../resources/org_maintenance_settings.md)), Atlas ignores any explicit `wave_assignment` and derives the effective wave from the project's environment tag. A project can have `wave_assignment = 1` in state while `effective_wave_assignment` returns a different value.
+  - **Cross-organization billing (`MAINTENANCE_SEQUENCE_CROSS_ORG`).** A linked non-paying organization inherits the paying organization's wave assignment mode. If the paying organization switches to `ENV_TAG_MAPPING`, all linked projects follow regardless of any explicit `wave_assignment` set on them.
 
 ### Protected Hours
 * `start_hour_of_day` - Zero-based integer that represents the beginning hour of the day for the protected hours window.

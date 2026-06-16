@@ -71,6 +71,7 @@ Use `defer` to defer the next scheduled maintenance event by one week. This only
 * `auto_defer_once_enabled` - (Optional) **Recommended** field to enable or disable automatic deferral of all scheduled maintenance for the given project by one week. Achieves the same outcome as `auto_defer`, but by directly setting the value to `true` or `false`, which is idempotent and keeps Terraform state aligned with Atlas. If `auto_defer` is used to toggle the underlying flag, it will also affect the value of this attribute.
 * `auto_defer` - (Optional) Boolean flag to **toggle** automatic deferral on/off. Each change flips the current state (ON → OFF or OFF → ON). Achieves the same outcome as `auto_defer_once_enabled` but through a toggle operation, which can make the current state opaque to Terraform and introduce state drift. **For most use cases, prefer `auto_defer_once_enabled` instead.** <!-- see CLOUDP-375465 for details -->
 * `protected_hours` - (Optional) Defines the time period during which there will be no standard updates to the clusters. See [Protected Hours](#protected-hours).
+* `wave_assignment` - (Optional) Maintenance wave explicitly assigned to this project. Valid values are `1`, `2`, and `3`. Only editable when the organization's wave assignment mode is `MANUAL`. Set to `null` to clear the assignment and return to automatic wave derivation. See [`mongodbatlas_org_maintenance_settings`](org_maintenance_settings.md) to configure the organization-level wave assignment mode.
 
 ### Protected Hours
 * `start_hour_of_day` - Zero-based integer that represents the beginning hour of the day for the protected hours window.
@@ -85,6 +86,10 @@ In addition to all arguments above, the following attributes are exported:
 * `start_asap` - Flag indicating whether project maintenance has been directed to start immediately. If requested, this field returns true from the time the request was made until the time the maintenance event completes.
 
 -> **NOTE:** The `start_asap` attribute can only be enabled via API.
+
+- `effective_wave_assignment` - The maintenance wave Atlas uses when scheduling maintenance for this project. This value can differ from `wave_assignment` in the following scenarios:
+  - **`ENV_TAG_MAPPING` mode is active at the organization level.** When the organization's `wave_assignment_mode` is set to `ENV_TAG_MAPPING` (see [`mongodbatlas_org_maintenance_settings`](org_maintenance_settings.md)), Atlas ignores any explicit `wave_assignment` and derives the effective wave from the project's environment tag. A project can have `wave_assignment = 1` in state while `effective_wave_assignment` returns a different value.
+  - **Cross-organization billing (`MAINTENANCE_SEQUENCE_CROSS_ORG`).** A linked non-paying organization inherits the paying organization's wave assignment mode. If the paying organization switches to `ENV_TAG_MAPPING`, all linked projects follow regardless of any explicit `wave_assignment` set on them.
 
 ## Import
 
