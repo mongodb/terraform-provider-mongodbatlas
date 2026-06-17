@@ -150,7 +150,10 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		if err != nil {
 			return nil, fmt.Errorf("failed to process create request attributes for %s: %w", name, err)
 		}
-		createResponseAttributes, _ = opResponseToAttributes(createOp, configuredVersion)
+		createResponseAttributes, _, err = opResponseToAttributes(createOp, configuredVersion)
+		if err != nil {
+			return nil, fmt.Errorf("failed to process create response attributes for %s: %w", name, err)
+		}
 	}
 
 	if resourceConfig.Update != nil && !resourceConfig.Update.SchemaIgnore {
@@ -160,7 +163,10 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		}
 	}
 	if resourceConfig.Read != nil && !resourceConfig.Read.SchemaIgnore && readOp != nil {
-		readResponseAttributes, responseDisc = opResponseToAttributes(readOp, configuredVersion)
+		readResponseAttributes, responseDisc, err = opResponseToAttributes(readOp, configuredVersion)
+		if err != nil {
+			return nil, fmt.Errorf("failed to process read response attributes for %s: %w", name, err)
+		}
 	}
 
 	attributes := mergeAttributes(&attributeDefinitionSources{
@@ -287,9 +293,9 @@ func pathParamsToAttributes(createOp *high.Operation) Attributes {
 	return pathAttributes
 }
 
-func queryParamsToAttributes(op *high.Operation) Attributes {
+func queryParamsToAttributes(op *high.Operation) (Attributes, error) {
 	if op == nil {
-		return Attributes{}
+		return Attributes{}, nil
 	}
 
 	queryParams := op.Parameters
@@ -309,12 +315,17 @@ func queryParamsToAttributes(op *high.Operation) Attributes {
 		s.Schema.Description = param.Description
 		parameterAttribute, err := s.buildResourceAttr(paramName, "", Optional, false)
 		if err != nil {
+			// A malformed declarative-tooling extension must fail generation; other mapping failures
+			// stay tolerant (warn and drop) to preserve existing behavior.
+			if errors.Is(err, ErrInvalidArraySemantic) {
+				return nil, fmt.Errorf("query param %s could not be mapped: %w", paramName, err)
+			}
 			log.Printf("[WARN] Query param %s could not be mapped: %s", paramName, err)
 			continue
 		}
 		queryAttributes = append(queryAttributes, *parameterAttribute)
 	}
-	return queryAttributes
+	return queryAttributes, nil
 }
 
 func opRequestToAttributes(op *high.Operation, configuredVersion *string) (Attributes, *Discriminator, error) {
@@ -334,7 +345,7 @@ func opRequestToAttributes(op *high.Operation, configuredVersion *string) (Attri
 	return requestAttributes, extractDiscriminator(requestSchema), nil
 }
 
-func opResponseToAttributes(op *high.Operation, configuredVersion *string) (Attributes, *Discriminator) {
+func opResponseToAttributes(op *high.Operation, configuredVersion *string) (Attributes, *Discriminator, error) {
 	responseSchema, err := buildSchemaFromResponse(op, configuredVersion)
 	if err != nil {
 		if errors.Is(err, errSchemaNotFound) {
@@ -342,14 +353,19 @@ func opResponseToAttributes(op *high.Operation, configuredVersion *string) (Attr
 		} else {
 			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		}
-		return nil, nil
+		return nil, nil, nil
 	}
 	responseAttributes, err := buildResourceAttrs(responseSchema, "", false)
 	if err != nil {
+		// A malformed declarative-tooling extension must fail generation wherever it appears; other
+		// mapping failures stay tolerant (warn and drop) to preserve existing behavior.
+		if errors.Is(err, ErrInvalidArraySemantic) {
+			return nil, nil, fmt.Errorf("response attributes could not be mapped (OperationId: %s): %w", op.OperationId, err)
+		}
 		log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
-		return nil, nil
+		return nil, nil, nil
 	}
-	return responseAttributes, extractDiscriminator(responseSchema)
+	return responseAttributes, extractDiscriminator(responseSchema), nil
 }
 
 func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, name string) (APISpecResource, error) {
@@ -461,7 +477,10 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 			return nil, fmt.Errorf("unable to extract data source read operation: %w", err)
 		}
 
-		readResponseAttributes, singularDisc := opResponseToAttributes(oasReadOp, configuredVersion)
+		readResponseAttributes, singularDisc, err := opResponseToAttributes(oasReadOp, configuredVersion)
+		if err != nil {
+			return nil, fmt.Errorf("failed to process data source read response attributes: %w", err)
+		}
 		pathParams := pathParamsToAttributes(oasReadOp)
 		singularAttributes := mergeDataSourceAttributes(pathParams, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
 
@@ -489,9 +508,16 @@ func apiSpecToDataSourcesModel(spec *high.Document, resourceConfig *config.Resou
 			return nil, fmt.Errorf("unable to extract data source read operation: %w", err)
 		}
 
-		readResponseAttributes, pluralDisc := opResponseToAttributes(oasListOp, configuredVersion)
+		readResponseAttributes, pluralDisc, err := opResponseToAttributes(oasListOp, configuredVersion)
+		if err != nil {
+			return nil, fmt.Errorf("failed to process data source list response attributes: %w", err)
+		}
 		params := pathParamsToAttributes(oasListOp)
-		params = append(params, queryParamsToAttributes(oasListOp)...)
+		queryParams, err := queryParamsToAttributes(oasListOp)
+		if err != nil {
+			return nil, fmt.Errorf("failed to process data source list query params: %w", err)
+		}
+		params = append(params, queryParams...)
 		pluralAttributes := mergeDataSourceAttributes(params, readResponseAttributes, dsConfig.SchemaOptions.Aliases)
 
 		listOp = &APIOperation{

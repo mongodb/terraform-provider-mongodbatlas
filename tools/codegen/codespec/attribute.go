@@ -216,17 +216,22 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 
 	itemSchema, err := BuildSchema(s.Schema.Items.A)
 	if err != nil {
-		return nil, fmt.Errorf("error while building nested schema: %s", name)
+		return nil, fmt.Errorf("error while building nested schema %s: %w", name, err)
 	}
 
 	isSet := s.Schema.Format == OASFormatSet || (s.Schema.UniqueItems != nil && *s.Schema.UniqueItems)
+	if semantic, err := s.GetXGenArraySemantic(); err != nil {
+		return nil, fmt.Errorf("property %q: %w", name, err)
+	} else if semantic != nil {
+		isSet = *semantic == arraySemanticSet // extension overrides the format/uniqueItems heuristic in both directions
+	}
 	tfModelName := stringcase.Capitalize(name)
 
 	if itemSchema.Type == OASTypeObject {
 		fullName := ancestorsName + tfModelName
 		objectAttributes, err := buildResourceAttrs(itemSchema, fullName, isFromRequest)
 		if err != nil {
-			return nil, fmt.Errorf("error while building nested schema: %s", name)
+			return nil, fmt.Errorf("error while building nested schema %s: %w", name, err)
 		}
 
 		nestedObject := NestedAttributeObject{
@@ -245,7 +250,7 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 
 	elemType, err := itemSchema.buildElementType()
 	if err != nil {
-		return nil, fmt.Errorf("error while building nested schema: %s", name)
+		return nil, fmt.Errorf("error while building nested schema %s: %w", name, err)
 	}
 
 	result := s.buildRegularCollectionAttribute(name, tfModelName, computability, isSet, elemType)

@@ -1189,6 +1189,134 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
+func TestConvertToProviderSpec_arraySemanticExtension(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_with_array_semantic",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr(testResourceDesc),
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
+							APIName:                  "groupId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testPathParamDesc),
+							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
+						},
+						{
+							// uniqueItems heuristic would yield a set, but the extension wins → list
+							TFSchemaName:             "list_from_extension",
+							TFModelName:              "ListFromExtension",
+							APIName:                  "listFromExtension",
+							ComputedOptionalRequired: codespec.Required,
+							CustomType:               codespec.NewCustomListType(codespec.String),
+							List:                     &codespec.ListAttribute{ElementType: codespec.String},
+							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInAnyResponse:     true,
+						},
+						{
+							TFSchemaName:             "nested_set_from_extension",
+							TFModelName:              "NestedSetFromExtension",
+							APIName:                  "nestedSetFromExtension",
+							ComputedOptionalRequired: codespec.Required,
+							CustomType:               codespec.NewCustomNestedSetType("NestedSetFromExtension"),
+							SetNested: &codespec.SetNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: codespec.Attributes{
+										{
+											TFSchemaName:             "inner_attr",
+											TFModelName:              "InnerAttr",
+											APIName:                  "innerAttr",
+											ComputedOptionalRequired: codespec.Optional,
+											String:                   &codespec.StringAttribute{},
+											ReqBodyUsage:             codespec.AllRequestBodies,
+											PresentInAnyResponse:     true,
+										},
+									},
+								},
+							},
+							ReqBodyUsage:         codespec.AllRequestBodies,
+							PresentInAnyResponse: true,
+						},
+						{
+							// extension declares set, but config.yml type override wins → list
+							TFSchemaName:             "overridden_to_list",
+							TFModelName:              "OverriddenToList",
+							APIName:                  "overriddenToList",
+							ComputedOptionalRequired: codespec.Required,
+							CustomType:               codespec.NewCustomListType(codespec.String),
+							List:                     &codespec.ListAttribute{ElementType: codespec.String},
+							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInAnyResponse:     true,
+						},
+						{
+							// plain array (no format/uniqueItems), extension declares set → set
+							TFSchemaName:             "set_from_extension",
+							TFModelName:              "SetFromExtension",
+							APIName:                  "setFromExtension",
+							ComputedOptionalRequired: codespec.Required,
+							CustomType:               codespec.NewCustomSetType(codespec.String),
+							Set:                      &codespec.SetAttribute{ElementType: codespec.String},
+							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInAnyResponse:     true,
+						},
+					},
+				},
+				Name:        "test_resource_with_array_semantic",
+				PackageName: "testresourcewitharraysemantic",
+				Operations: codespec.APIOperations{
+					Create: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceArraySemantic",
+						HTTPMethod: "POST",
+					},
+					Read: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceArraySemantic",
+						HTTPMethod: "GET",
+					},
+					Update: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceArraySemantic",
+						HTTPMethod: "PATCH",
+					},
+					Delete: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceArraySemantic",
+						HTTPMethod: "DELETE",
+					},
+					VersionHeader: "application/vnd.atlas.2023-01-01+json",
+				},
+			}},
+		},
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+}
+
+func TestConvertToProviderSpec_arraySemanticExtension_invalidValue(t *testing.T) {
+	tests := map[string]string{
+		// invalid value carried in a request body schema
+		"invalid value in request schema": "test_resource_array_semantic_invalid_request",
+		// invalid value carried only in a response body schema (validates sentinel propagation
+		// out of opResponseToAttributes, which is otherwise tolerant of mapping failures)
+		"invalid value in response schema": "test_resource_array_semantic_invalid_response",
+	}
+
+	for name, resourceName := range tests {
+		t.Run(name, func(t *testing.T) {
+			_, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+			require.ErrorIs(t, err, codespec.ErrInvalidArraySemantic)
+			assert.Contains(t, err.Error(), "x-xgen-array-semantic")
+		})
+	}
+}
+
 func TestConvertToProviderSpec_dynamicJSONProperties(t *testing.T) {
 	tc := convertToSpecTestCase{
 		inputOpenAPISpecPath: testDataAPISpecPath,

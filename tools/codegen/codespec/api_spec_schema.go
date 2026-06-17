@@ -1,6 +1,8 @@
 package codespec
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"slices"
 
@@ -9,6 +11,18 @@ import (
 )
 
 const discriminatorExtensionKey = "x-xgen-discriminator"
+
+const arraySemanticExtensionKey = "x-xgen-array-semantic"
+
+const (
+	arraySemanticList = "list"
+	arraySemanticSet  = "set"
+)
+
+// ErrInvalidArraySemantic is returned when the x-xgen-array-semantic extension carries a value
+// other than "list" or "set". It is a sentinel so callers can distinguish a malformed extension
+// (which must fail generation) from a response/parameter schema that simply could not be mapped.
+var ErrInvalidArraySemantic = errors.New("invalid " + arraySemanticExtensionKey + " value")
 
 // DiscriminatorExtension represents the raw x-xgen-discriminator extension as declared in the OpenAPI spec.
 type DiscriminatorExtension struct {
@@ -84,4 +98,29 @@ func (s *APISpecSchema) GetXGenDiscriminator() *DiscriminatorExtension {
 	}
 
 	return &result
+}
+
+// GetXGenArraySemantic returns the declared array semantic ("list" or "set"), or nil if the
+// extension is absent. It returns an error wrapping ErrInvalidArraySemantic when the value is
+// malformed or not one of the allowed values, so generation fails wherever the property appears.
+func (s *APISpecSchema) GetXGenArraySemantic() (*string, error) {
+	if s.Schema.Extensions == nil {
+		return nil, nil
+	}
+
+	node, ok := s.Schema.Extensions.Get(arraySemanticExtensionKey)
+	if !ok || node == nil {
+		return nil, nil
+	}
+
+	var value string
+	if err := node.Decode(&value); err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrInvalidArraySemantic, err)
+	}
+
+	if value != arraySemanticList && value != arraySemanticSet {
+		return nil, fmt.Errorf("%w: %q, expected %q or %q", ErrInvalidArraySemantic, value, arraySemanticList, arraySemanticSet)
+	}
+
+	return &value, nil
 }

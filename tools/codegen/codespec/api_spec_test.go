@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 )
 
@@ -127,6 +128,65 @@ func TestBuildSchema(t *testing.T) {
 				assert.Contains(t, err.Error(), tc.errorContains)
 				assert.Nil(t, result)
 			}
+		})
+	}
+}
+
+func TestGetXGenArraySemantic(t *testing.T) {
+	tests := map[string]struct {
+		expectedValue    *string
+		schemaDefinition string
+		expectInvalid    bool
+	}{
+		"absent extension returns nil": {
+			schemaDefinition: `      type: array
+      items:
+        type: string`,
+			expectedValue: nil,
+		},
+		"set value": {
+			schemaDefinition: `      type: array
+      x-xgen-array-semantic: set
+      items:
+        type: string`,
+			expectedValue: conversion.StringPtr("set"),
+		},
+		"list value": {
+			schemaDefinition: `      type: array
+      x-xgen-array-semantic: list
+      items:
+        type: string`,
+			expectedValue: conversion.StringPtr("list"),
+		},
+		"invalid value returns sentinel error": {
+			schemaDefinition: `      type: array
+      x-xgen-array-semantic: unordered
+      items:
+        type: string`,
+			expectInvalid: true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			openAPIDoc := fmt.Sprintf(openAPIDocTemplate, tc.schemaDefinition)
+			doc, err := libopenapi.NewDocument([]byte(openAPIDoc))
+			require.NoError(t, err)
+			model, err := doc.BuildV3Model()
+			require.NoError(t, err)
+			schemaProxy := model.Model.Components.Schemas.GetOrZero("TestSchema")
+			require.NotNil(t, schemaProxy)
+			result, err := codespec.BuildSchema(schemaProxy)
+			require.NoError(t, err)
+
+			semantic, err := result.GetXGenArraySemantic()
+			if tc.expectInvalid {
+				require.ErrorIs(t, err, codespec.ErrInvalidArraySemantic)
+				assert.Nil(t, semantic)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tc.expectedValue, semantic)
 		})
 	}
 }

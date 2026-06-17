@@ -85,6 +85,40 @@ resources:
         set_string:
           type: list
 
+  test_resource_with_array_semantic:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceArraySemantic
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceArraySemantic
+      method: GET
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResourceArraySemantic
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResourceArraySemantic
+      method: DELETE
+    schema:
+      overrides:
+        overridden_to_list:
+          type: list
+
+  test_resource_array_semantic_invalid_request:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceArraySemanticInvalidRequest
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceArraySemanticInvalidRequest
+      method: GET
+
+  test_resource_array_semantic_invalid_response:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceArraySemanticInvalidResponse
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceArraySemanticInvalidResponse
+      method: GET
+
   test_dynamic_json_properties:
     create:
       path: /api/atlas/v2/dynamicJsonProperties
