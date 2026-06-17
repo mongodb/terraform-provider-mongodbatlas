@@ -505,6 +505,30 @@ resources:
           computability:
             computed: true
 
+  # Singleton resource in org.
+  # Create uses PATCH.
+  org_maintenance_settings_api:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
+      method: PATCH
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
+      method: PATCH
+      static_request_body: '{"waveAssignmentMode": null}'
+      resets_to_defaults: true
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      ignores: ["effective_wave_assignment_mode"]
+      overrides:
+        wave_assignment_mode:
+          request_body_usage: "send_null_as_null_on_update"
+
   # Singleton resource in project.
   # Create uses PATCH.
   project_settings_api:
