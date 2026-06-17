@@ -34,8 +34,8 @@ resource "mongodbatlas_org_maintenance_settings" "example" {
 
 ### Further Examples
 
-<!-- TODO(CLOUDP-414003): Replace with versioned link once Mar's examples land -->
-- [Configure Organization Maintenance Settings](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/[version]/examples/mongodbatlas_org_maintenance_settings)
+<!-- TODO(CLOUDP-414003): Add link to examples once Mar's examples land -->
+Configure Organization Maintenance Settings
 
 ## Argument Reference
 
