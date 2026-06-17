@@ -207,6 +207,8 @@ func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
 				Config: configWithWave(orgID, projectName, dayOfWeek, hourOfDay, 2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "2"),
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
 				),
 			},
 			{
@@ -214,6 +216,8 @@ func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "0"),
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
 				),
 			},
 			{
