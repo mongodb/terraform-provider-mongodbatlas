@@ -40,6 +40,30 @@ func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
 	})
 }
 
+func TestAccConfigDSMaintenanceWindow_waveAssignment(t *testing.T) {
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		dayOfWeek   = 7
+		hourOfDay   = 3
+		dsName      = "data.mongodbatlas_maintenance_window.test"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configDSWithWave(orgID, projectName, dayOfWeek, hourOfDay, 1),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(dsName, "wave_assignment", "1"),
+					resource.TestCheckResourceAttrSet(dsName, "effective_wave_assignment"),
+				),
+			},
+		},
+	})
+}
+
 func configDS(orgID, projectName string, dayOfWeek, hourOfDay int) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
@@ -57,4 +81,22 @@ func configDS(orgID, projectName string, dayOfWeek, hourOfDay int) string {
 			project_id = mongodbatlas_maintenance_window.test.id
 		}
 	`, orgID, projectName, dayOfWeek, hourOfDay)
+}
+
+func configDSWithWave(orgID, projectName string, dayOfWeek, hourOfDay, waveAssignment int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
+		resource "mongodbatlas_maintenance_window" "test" {
+			project_id      = mongodbatlas_project.test.id
+			day_of_week     = %[3]d
+			hour_of_day     = %[4]d
+			wave_assignment = %[5]d
+		}
+		data "mongodbatlas_maintenance_window" "test" {
+			project_id = mongodbatlas_maintenance_window.test.id
+		}
+	`, orgID, projectName, dayOfWeek, hourOfDay, waveAssignment)
 }
