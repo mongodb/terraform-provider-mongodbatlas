@@ -131,8 +131,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.AutoDeferOnceEnabled = new(autoDeferOnceEnabled.(bool))
 	}
 
-	if waveAssignment, ok := d.GetOk("wave_assignment"); ok {
-		wave := waveAssignment.(int)
+	if !d.GetRawConfig().GetAttr("wave_assignment").IsNull() {
+		wave := d.Get("wave_assignment").(int)
 		params.WaveAssignment = &wave
 	}
 
