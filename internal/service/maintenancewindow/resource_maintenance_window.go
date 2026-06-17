@@ -284,13 +284,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("wave_assignment") {
-		if waveAssignment, ok := d.GetOk("wave_assignment"); ok {
-			wave := waveAssignment.(int)
+		// Use GetRawConfig to distinguish an explicit value (including 0) from a removed field.
+		// GetOk alone cannot make this distinction since TypeInt treats 0 and absent identically.
+		if !d.GetRawConfig().GetAttr("wave_assignment").IsNull() {
+			wave := d.Get("wave_assignment").(int)
 			params.WaveAssignment = &wave
 		} else {
-			// SDKv2 TypeInt has no null representation in state: 0 is the absent value.
-			// After clearing, wave_assignment will appear as 0 in state, which is correct.
-			// The SDK produces a plan-vs-state mismatch warning, but no perpetual diff occurs.
 			if diags := clearMaintenanceWave(ctx, meta.(*config.MongoDBClient), projectID); diags != nil {
 				return diags
 			}
