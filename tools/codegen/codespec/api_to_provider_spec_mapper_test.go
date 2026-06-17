@@ -1189,6 +1189,132 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
+func TestConvertToProviderSpec_serverComputedWhenClientOmittedExtension(t *testing.T) {
+	serverComputedOperations := codespec.APIOperations{
+		Create: &codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/testResourceServerComputed",
+			HTTPMethod: "POST",
+		},
+		Read: &codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/testResourceServerComputed",
+			HTTPMethod: "GET",
+		},
+		Update: &codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/testResourceServerComputed",
+			HTTPMethod: "PATCH",
+		},
+		Delete: &codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/testResourceServerComputed",
+			HTTPMethod: "DELETE",
+		},
+		VersionHeader: "application/vnd.atlas.2023-01-01+json",
+	}
+
+	groupIDAttr := codespec.Attribute{
+		TFSchemaName:             "group_id",
+		TFModelName:              "GroupId",
+		APIName:                  "groupId",
+		ComputedOptionalRequired: codespec.Required,
+		String:                   &codespec.StringAttribute{},
+		Description:              conversion.StringPtr(testPathParamDesc),
+		ReqBodyUsage:             codespec.OmitAlways,
+		CreateOnly:               true,
+	}
+
+	t.Run("extension maps optional fields to computed_optional and ignores boolean/required", func(t *testing.T) {
+		resourceName := "test_resource_with_server_computed"
+		expected := &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr(testResourceDesc),
+					Attributes: codespec.Attributes{
+						{
+							// boolean property: extension ignored, stays optional
+							TFSchemaName:             "bool_computed_when_omitted",
+							TFModelName:              "BoolComputedWhenOmitted",
+							APIName:                  "boolComputedWhenOmitted",
+							ComputedOptionalRequired: codespec.Optional,
+							Bool:                     &codespec.BoolAttribute{},
+							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInAnyResponse:     true,
+						},
+						{
+							// optional property: extension promotes to computed_optional
+							TFSchemaName:             "computed_when_omitted",
+							TFModelName:              "ComputedWhenOmitted",
+							APIName:                  "computedWhenOmitted",
+							ComputedOptionalRequired: codespec.ComputedOptional,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInAnyResponse:     true,
+						},
+						groupIDAttr,
+						{
+							TFSchemaName:             "nested_object",
+							TFModelName:              "NestedObject",
+							APIName:                  "nestedObject",
+							ComputedOptionalRequired: codespec.Required,
+							CustomType:               codespec.NewCustomObjectType("NestedObject"),
+							SingleNested: &codespec.SingleNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: codespec.Attributes{
+										{
+											// extension applies to nested optional fields too
+											TFSchemaName:             "inner_computed_when_omitted",
+											TFModelName:              "InnerComputedWhenOmitted",
+											APIName:                  "innerComputedWhenOmitted",
+											ComputedOptionalRequired: codespec.ComputedOptional,
+											String:                   &codespec.StringAttribute{},
+											ReqBodyUsage:             codespec.AllRequestBodies,
+											PresentInAnyResponse:     true,
+										},
+									},
+								},
+							},
+							ReqBodyUsage:         codespec.AllRequestBodies,
+							PresentInAnyResponse: true,
+						},
+						{
+							// required property: extension ignored, stays required
+							TFSchemaName:             "required_computed_when_omitted",
+							TFModelName:              "RequiredComputedWhenOmitted",
+							APIName:                  "requiredComputedWhenOmitted",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInAnyResponse:     true,
+						},
+					},
+				},
+				Name:        resourceName,
+				PackageName: "testresourcewithservercomputed",
+				Operations:  serverComputedOperations,
+			}},
+		}
+
+		result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+		require.NoError(t, err)
+		assert.Equal(t, expected, result, "Expected result to match the specified structure")
+	})
+
+	t.Run("config computability override wins over extension", func(t *testing.T) {
+		resourceName := "test_resource_server_computed_config_override"
+		result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+		require.NoError(t, err)
+		require.Len(t, result.Resources, 1)
+
+		var computedWhenOmitted *codespec.Attribute
+		for i := range result.Resources[0].Schema.Attributes {
+			if result.Resources[0].Schema.Attributes[i].TFSchemaName == "computed_when_omitted" {
+				computedWhenOmitted = &result.Resources[0].Schema.Attributes[i]
+			}
+		}
+		require.NotNil(t, computedWhenOmitted)
+		// extension would yield ComputedOptional, but the config override forces plain Optional
+		assert.Equal(t, codespec.Optional, computedWhenOmitted.ComputedOptionalRequired)
+	})
+}
+
 func TestConvertToProviderSpec_dynamicJSONProperties(t *testing.T) {
 	tc := convertToSpecTestCase{
 		inputOpenAPISpecPath: testDataAPISpecPath,

@@ -10,6 +10,8 @@ import (
 
 const discriminatorExtensionKey = "x-xgen-discriminator"
 
+const serverComputedWhenClientOmittedExtensionKey = "x-xgen-server-computed-when-client-omitted"
+
 // DiscriminatorExtension represents the raw x-xgen-discriminator extension as declared in the OpenAPI spec.
 type DiscriminatorExtension struct {
 	Mapping      map[string]DiscriminatorExtensionType `yaml:"mapping"`
@@ -84,4 +86,26 @@ func (s *APISpecSchema) GetXGenDiscriminator() *DiscriminatorExtension {
 	}
 
 	return &result
+}
+
+// GetXGenServerComputedWhenClientOmitted reports whether the property is annotated with the
+// x-xgen-server-computed-when-client-omitted extension set to true. Returns false if the extension
+// is absent or cannot be decoded.
+func (s *APISpecSchema) GetXGenServerComputedWhenClientOmitted() bool {
+	if s.Schema.Extensions == nil {
+		return false
+	}
+
+	node, ok := s.Schema.Extensions.Get(serverComputedWhenClientOmittedExtensionKey)
+	if !ok || node == nil {
+		return false
+	}
+
+	var value bool
+	if err := node.Decode(&value); err != nil {
+		log.Printf("[WARN] Failed to decode %s extension: %s", serverComputedWhenClientOmittedExtensionKey, err)
+		return false
+	}
+
+	return value
 }

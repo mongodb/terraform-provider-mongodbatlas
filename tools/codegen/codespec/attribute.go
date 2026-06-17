@@ -3,6 +3,7 @@ package codespec
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/pb33f/libopenapi/orderedmap"
@@ -26,7 +27,20 @@ func buildResourceAttrs(s *APISpecSchema, ancestorsName string, isFromRequest bo
 			continue
 		}
 
-		attribute, err := schema.buildResourceAttr(name, ancestorsName, s.GetComputability(name), isFromRequest)
+		computability := s.GetComputability(name)
+		if isFromRequest && schema.GetXGenServerComputedWhenClientOmitted() {
+			switch {
+			case schema.Type == OASTypeBoolean:
+				// booleans must default to false rather than carry this extension (see IPA-111)
+				log.Printf("[WARN] Ignoring %s on boolean property %q", serverComputedWhenClientOmittedExtensionKey, name)
+			case computability == Required:
+				log.Printf("[WARN] Ignoring %s on required property %q (kept required)", serverComputedWhenClientOmittedExtensionKey, name)
+			case computability == Optional:
+				computability = ComputedOptional
+			}
+		}
+
+		attribute, err := schema.buildResourceAttr(name, ancestorsName, computability, isFromRequest)
 		if err != nil {
 			return nil, err
 		}
