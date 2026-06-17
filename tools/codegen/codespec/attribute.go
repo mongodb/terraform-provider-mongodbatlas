@@ -3,6 +3,7 @@ package codespec
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/pb33f/libopenapi/orderedmap"
@@ -32,6 +33,13 @@ func buildResourceAttrs(s *APISpecSchema, ancestorsName string, isFromRequest bo
 		}
 
 		if attribute != nil {
+			if schema.GetXGenServerComputedImmutable() {
+				if schema.Schema.ReadOnly != nil && *schema.Schema.ReadOnly {
+					attribute.ImmutableComputed = true
+				} else {
+					log.Printf("[WARN] Ignoring %s on non-readOnly property %q", serverComputedImmutableExtensionKey, name)
+				}
+			}
 			objectAttributes = append(objectAttributes, *attribute)
 		}
 	}

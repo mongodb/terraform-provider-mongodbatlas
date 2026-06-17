@@ -1189,6 +1189,81 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
+// findAttr returns the attribute with the given TFSchemaName, searching nested objects recursively.
+func findAttr(attrs codespec.Attributes, tfSchemaName string) *codespec.Attribute {
+	for i := range attrs {
+		if attrs[i].TFSchemaName == tfSchemaName {
+			return &attrs[i]
+		}
+		if nested := attrs[i].NestedObject(); nested != nil {
+			if found := findAttr(nested.Attributes, tfSchemaName); found != nil {
+				return found
+			}
+		}
+	}
+	return nil
+}
+
+func TestConvertToProviderSpec_serverComputedImmutableExtension(t *testing.T) {
+	t.Run("readOnly fields get the flag, non-readOnly are ignored", func(t *testing.T) {
+		resourceName := "test_resource_with_immutable_computed"
+		result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+		require.NoError(t, err)
+		require.Len(t, result.Resources, 1)
+		attrs := result.Resources[0].Schema.Attributes
+
+		// readOnly + extension → computed with the immutable plan modifier flag
+		fingerprint := findAttr(attrs, "fingerprint")
+		require.NotNil(t, fingerprint)
+		assert.Equal(t, codespec.Computed, fingerprint.ComputedOptionalRequired)
+		assert.True(t, fingerprint.ImmutableComputed)
+
+		// extension on a non-readOnly property is ignored
+		nonReadonly := findAttr(attrs, "non_readonly_immutable")
+		require.NotNil(t, nonReadonly)
+		assert.False(t, nonReadonly.ImmutableComputed)
+
+		// extension applies to nested readOnly properties and survives the merge
+		innerFingerprint := findAttr(attrs, "inner_fingerprint")
+		require.NotNil(t, innerFingerprint)
+		assert.Equal(t, codespec.Computed, innerFingerprint.ComputedOptionalRequired)
+		assert.True(t, innerFingerprint.ImmutableComputed)
+
+		// data source attributes never carry the resource-only plan modifier flag
+		require.NotNil(t, result.Resources[0].DataSources)
+		require.NotNil(t, result.Resources[0].DataSources.Singular)
+		dsFingerprint := findAttr(result.Resources[0].DataSources.Singular.Attributes, "fingerprint")
+		require.NotNil(t, dsFingerprint)
+		assert.False(t, dsFingerprint.ImmutableComputed)
+	})
+
+	t.Run("flag is dropped when the attribute does not resolve to computed", func(t *testing.T) {
+		// groupId is a required path param that also appears as a readOnly property carrying the
+		// extension in the response; the guard must clear the flag since it resolves to required.
+		resourceName := "test_resource_immutable_guard"
+		result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+		require.NoError(t, err)
+		require.Len(t, result.Resources, 1)
+
+		groupID := findAttr(result.Resources[0].Schema.Attributes, "group_id")
+		require.NotNil(t, groupID)
+		assert.Equal(t, codespec.Required, groupID.ComputedOptionalRequired)
+		assert.False(t, groupID.ImmutableComputed)
+	})
+
+	t.Run("config immutable_computed override wins over extension", func(t *testing.T) {
+		resourceName := "test_resource_immutable_config_override"
+		result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+		require.NoError(t, err)
+		require.Len(t, result.Resources, 1)
+
+		fingerprint := findAttr(result.Resources[0].Schema.Attributes, "fingerprint")
+		require.NotNil(t, fingerprint)
+		// extension would set the flag, but the config override forces it off
+		assert.False(t, fingerprint.ImmutableComputed)
+	})
+}
+
 func TestConvertToProviderSpec_dynamicJSONProperties(t *testing.T) {
 	tc := convertToSpecTestCase{
 		inputOpenAPISpecPath: testDataAPISpecPath,

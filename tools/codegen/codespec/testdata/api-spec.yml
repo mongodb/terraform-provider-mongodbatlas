@@ -527,6 +527,132 @@ paths:
       summary: Enable the Test Resource feature for a project
       tags:
         - Test Resource
+  "/api/atlas/v2/groups/{groupId}/testResourceImmutable":
+    get:
+      description: GET API description
+      operationId: getTestResourceImmutable
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/TestResourceImmutable"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Get the immutable-computed test resource
+      tags:
+        - Test Resource
+    patch:
+      description: PATCH API description
+      operationId: updateTestResourceImmutable
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResourceImmutable"
+            x-xgen-version: 2023-01-01
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Update the immutable-computed test resource
+      tags:
+        - Test Resource
+    post:
+      description: POST API description
+      operationId: createTestResourceImmutable
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResourceImmutable"
+            x-xgen-version: 2023-01-01
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Create the immutable-computed test resource
+      tags:
+        - Test Resource
+    delete:
+      description: DELETE API description
+      operationId: deleteTestResourceImmutable
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Delete the immutable-computed test resource
+      tags:
+        - Test Resource
+  "/api/atlas/v2/groups/{groupId}/testResourceImmutableGuard":
+    get:
+      description: GET API description
+      operationId: getTestResourceImmutableGuard
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/TestResourceImmutableGuard"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Get the immutable-computed guard test resource
+      tags:
+        - Test Resource
+    post:
+      description: POST API description
+      operationId: createTestResourceImmutableGuard
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+            x-xgen-version: 2023-01-01
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Create the immutable-computed guard test resource
+      tags:
+        - Test Resource
   "/api/atlas/v2/dynamicJsonProperties":
     post:
       description: POST API description
@@ -1306,6 +1432,36 @@ components:
         - flag
         - listString
         - setString
+    TestResourceImmutable:
+      type: object
+      properties:
+        fingerprint:
+          type: string
+          readOnly: true
+          x-xgen-server-computed-immutable: true
+        nonReadonlyImmutable:
+          type: string
+          x-xgen-server-computed-immutable: true
+        nestedObject:
+          type: object
+          properties:
+            innerName:
+              type: string
+            innerFingerprint:
+              type: string
+              readOnly: true
+              x-xgen-server-computed-immutable: true
+      required:
+        - nestedObject
+    TestResourceImmutableGuard:
+      type: object
+      properties:
+        groupId:
+          type: string
+          readOnly: true
+          x-xgen-server-computed-immutable: true
+        name:
+          type: string
     SimpleTestResource:
       type: object
       properties:
