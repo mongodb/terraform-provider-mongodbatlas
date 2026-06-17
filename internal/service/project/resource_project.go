@@ -215,7 +215,6 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		_ = projectState.Limits.ElementsAs(ctx, &limits, false)
 	}
 
-	// get project — retry on transient HTTP 500 (common in Gov cloud after create)
 	var projectRes *admin.Group
 	var notFound bool
 	retryErr := retry.RetryContext(ctx, 2*time.Minute, func() *retry.RetryError {
