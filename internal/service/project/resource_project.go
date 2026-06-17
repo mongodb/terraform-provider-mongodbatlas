@@ -215,14 +215,30 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		_ = projectState.Limits.ElementsAs(ctx, &limits, false)
 	}
 
-	// get project
-	projectRes, atlasResp, err := connV2.ProjectsApi.GetGroup(ctx, projectID).Execute()
-	if err != nil {
-		if validate.StatusNotFound(atlasResp) {
+	// get project — retry on transient HTTP 500 (common in Gov cloud after create)
+	var projectRes *admin.Group
+	var notFound bool
+	retryErr := retry.RetryContext(ctx, 2*time.Minute, func() *retry.RetryError {
+		res, atlasResp, err := connV2.ProjectsApi.GetGroup(ctx, projectID).Execute()
+		if err != nil {
+			if validate.StatusNotFound(atlasResp) {
+				notFound = true
+				return retry.NonRetryableError(err)
+			}
+			if validate.StatusInternalServerError(atlasResp) {
+				return retry.RetryableError(err)
+			}
+			return retry.NonRetryableError(err)
+		}
+		projectRes = res
+		return nil
+	})
+	if retryErr != nil {
+		if notFound {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
+		resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(ErrorProjectRead, projectID, retryErr.Error()))
 		return
 	}
 

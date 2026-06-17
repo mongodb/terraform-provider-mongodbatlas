@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"regexp"
+	"strings"
+	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312020/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -75,10 +78,19 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 	workspaceOrInstanceName := GetWorkspaceOrInstanceName(plan.WorkspaceName, plan.InstanceName)
 
 	processorName := plan.ProcessorName.ValueString()
-	_, _, err := connV2.StreamsApi.CreateStreamProcessor(ctx, projectID, workspaceOrInstanceName, streamProcessorReq).Execute()
-
-	if err != nil {
-		resp.Diagnostics.AddError("error creating resource", err.Error())
+	retryErr := retry.RetryContext(ctx, 2*time.Minute, func() *retry.RetryError {
+		_, _, err := connV2.StreamsApi.CreateStreamProcessor(ctx, projectID, workspaceOrInstanceName, streamProcessorReq).Execute()
+		if err != nil {
+			// Atlas stream connections have eventual consistency; retry when the connection is not yet indexed.
+			if strings.Contains(err.Error(), "not yet indexed") {
+				return retry.RetryableError(err)
+			}
+			return retry.NonRetryableError(err)
+		}
+		return nil
+	})
+	if retryErr != nil {
+		resp.Diagnostics.AddError("error creating resource", retryErr.Error())
 		return
 	}
 
