@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"reflect"
 	"slices"
 	"time"
@@ -217,24 +216,26 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	var projectRes *admin.Group
-	var atlasResp *http.Response
 	retryErr := retry.RetryContext(ctx, 30*time.Second, func() *retry.RetryError {
-		var err error
-		projectRes, atlasResp, err = connV2.ProjectsApi.GetGroup(ctx, projectID).Execute()
+		res, atlasResp, err := connV2.ProjectsApi.GetGroup(ctx, projectID).Execute()
 		if err != nil {
+			if validate.StatusNotFound(atlasResp) {
+				resp.State.RemoveResource(ctx)
+				return nil
+			}
 			if validate.StatusInternalServerError(atlasResp) {
 				return retry.RetryableError(err)
 			}
 			return retry.NonRetryableError(err)
 		}
+		projectRes = res
 		return nil
 	})
 	if retryErr != nil {
-		if validate.StatusNotFound(atlasResp) {
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(ErrorProjectRead, projectID, retryErr.Error()))
+		return
+	}
+	if projectRes == nil {
 		return
 	}
 
