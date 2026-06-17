@@ -215,6 +215,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		_ = projectState.Limits.ElementsAs(ctx, &limits, false)
 	}
 
+	// get project
 	projectRes, atlasResp, err := connV2.ProjectsApi.GetGroup(ctx, projectID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(atlasResp) {
