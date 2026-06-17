@@ -1,3 +1,0 @@
-```release-note:enhancement
-resource/mongodbatlas_project: Adds retry on transient HTTP 500 errors in Read to reduce flaky failures
-```
