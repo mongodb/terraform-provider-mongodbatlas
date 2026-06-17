@@ -87,9 +87,9 @@ In addition to all arguments above, the following attributes are exported:
 
 -> **NOTE:** The `start_asap` attribute can only be enabled via API.
 
-- `effective_wave_assignment` - The maintenance wave Atlas uses when scheduling maintenance for this project. This value can differ from `wave_assignment` in the following scenarios:
+- `effective_wave_assignment` - Maintenance wave Atlas uses when scheduling maintenance for this project. This value can differ from `wave_assignment` in the following scenarios:
   - **`ENV_TAG_MAPPING` mode is active at the organization level.** When the organization's `wave_assignment_mode` is set to `ENV_TAG_MAPPING` (see [`mongodbatlas_org_maintenance_settings`](org_maintenance_settings.md)), Atlas ignores any explicit `wave_assignment` and derives the effective wave from the project's environment tag. A project can have `wave_assignment = 1` in state while `effective_wave_assignment` returns a different value.
-  - **Cross-organization billing (`MAINTENANCE_SEQUENCE_CROSS_ORG`).** A linked non-paying organization inherits the paying organization's wave assignment mode. If the paying organization switches to `ENV_TAG_MAPPING`, all linked projects follow regardless of any explicit `wave_assignment` set on them.
+  - **Cross-organization billing (`MAINTENANCE_SEQUENCE_CROSS_ORG`).** Linked non-paying organization inherits the paying organization's wave assignment mode. If the paying organization switches to `ENV_TAG_MAPPING`, all linked projects follow regardless of any explicit `wave_assignment` set on them.
 
 ## Import
 
