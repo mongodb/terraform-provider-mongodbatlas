@@ -217,7 +217,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 
 	var projectRes *admin.Group
 	var notFound bool
-	retryErr := retry.RetryContext(ctx, 2*time.Minute, func() *retry.RetryError {
+	retryErr := retry.RetryContext(ctx, 30*time.Second, func() *retry.RetryError {
 		res, atlasResp, err := connV2.ProjectsApi.GetGroup(ctx, projectID).Execute()
 		if err != nil {
 			if validate.StatusNotFound(atlasResp) {
