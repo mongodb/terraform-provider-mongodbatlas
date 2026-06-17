@@ -201,15 +201,12 @@ func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "1"),
-					// Not consistent with wave_assignment due to CLOUDP-414086. Update once resolved.
-					resource.TestCheckResourceAttrSet(resourceName, "effective_wave_assignment"),
 				),
 			},
 			{
 				Config: configWithWave(orgID, projectName, dayOfWeek, hourOfDay, 2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "2"),
-					resource.TestCheckResourceAttrSet(resourceName, "effective_wave_assignment"),
 				),
 			},
 			{
@@ -226,8 +223,7 @@ func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
 				ImportStateVerify: true,
 				// wave_assignment: after clearing, the API omits the field when null so the imported state
 				// has no key, while pre-import state has the SDKv2 TypeInt zero value.
-				// effective_wave_assignment: currently may differ between reads due to CLOUDP-414086.
-				ImportStateVerifyIgnore: []string{"wave_assignment", "effective_wave_assignment"},
+				ImportStateVerifyIgnore: []string{"wave_assignment"},
 			},
 		},
 	})
