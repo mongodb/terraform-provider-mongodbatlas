@@ -129,7 +129,7 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - name: Summarize test run
         id: summary
-        uses: anthropics/claude-code-action@fbda2eb1bdc90d319b8d853f5deb53bca199a7c1
+        uses: anthropics/claude-code-action@d5726de019ec4498aa667642bc3a80fca83aa102
         with:
           anthropic_api_key: ${{ secrets.AI_GATEWAY_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
