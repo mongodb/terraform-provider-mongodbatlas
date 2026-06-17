@@ -507,7 +507,7 @@ resources:
 
   # Singleton resource in org.
   # Create uses PATCH.
-  org_maintenance_settings_api:
+  org_maintenance_settings:
     read:
       path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
       method: GET
