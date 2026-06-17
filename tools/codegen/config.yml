@@ -529,6 +529,9 @@ resources:
       overrides:
         wave_assignment_mode:
           request_body_usage: "send_null_as_null_on_update"
+          computability:
+            optional: true
+            computed: true
 
   # Singleton resource in project.
   # Create uses PATCH.
