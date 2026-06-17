@@ -42,7 +42,7 @@ resource "mongodbatlas_org_maintenance_settings" "example" {
 `mongodbatlas_org_maintenance_settings` supports the following arguments:
 
 * `org_id` - (Required) Unique 24-hexadecimal digit string that identifies the Atlas organization. This attribute cannot be changed after the resource is created.
-* `wave_assignment_mode` - (Optional) Controls how Atlas assigns projects to maintenance waves. Accepted values are `MANUAL` and `ENV_TAG_MAPPING`. Set to `null` to reset the mode to `MANUAL`. Omitting this field leaves the current value in Atlas unchanged.
+* `wave_assignment_mode` - (Optional) Controls how Atlas assigns projects to maintenance waves. Accepted values are `MANUAL` and `ENV_TAG_MAPPING`. Remove this attribute from your configuration and run `terraform apply` to reset the mode to `MANUAL`.
 
 ## Import
 
