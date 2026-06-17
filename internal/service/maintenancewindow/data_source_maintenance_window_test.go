@@ -57,6 +57,8 @@ func TestAccConfigDSMaintenanceWindow_waveAssignment(t *testing.T) {
 				Config: configDSWithWave(orgID, projectName, dayOfWeek, hourOfDay, 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(dsName, "wave_assignment", "1"),
+					// effective_wave_assignment may not reflect the new value after a PATCH (see CLOUDP-414086).
+					// Once issue has been fixed, this check can be switch to assert the same value as wave_assignment
 					resource.TestCheckResourceAttrSet(dsName, "effective_wave_assignment"),
 				),
 			},

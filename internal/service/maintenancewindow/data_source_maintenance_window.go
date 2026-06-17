@@ -110,11 +110,11 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if err := d.Set("wave_assignment", maintenance.GetWaveAssignment()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+		return diag.Errorf(errorMaintenanceRead, projectID, err)
 	}
 
 	if err := d.Set("effective_wave_assignment", maintenance.GetEffectiveWaveAssignment()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+		return diag.Errorf(errorMaintenanceRead, projectID, err)
 	}
 
 	d.SetId(projectID)
