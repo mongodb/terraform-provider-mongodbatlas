@@ -38,6 +38,6 @@ operations:
     update:
         http_method: PATCH
         path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
-    version_header: application/vnd.atlas.2025-03-12+json
+    version_header: application/vnd.atlas.preview+json
 name: org_maintenance_settings
 packageName: orgmaintenancesettings

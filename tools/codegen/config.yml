@@ -522,7 +522,8 @@ resources:
       method: PATCH
       static_request_body: '{"waveAssignmentMode": null}'
       resets_to_defaults: true
-    version_header: application/vnd.atlas.2025-03-12+json
+      # TODO: version header will need to be updated before merge to master
+    version_header: application/vnd.atlas.preview+json
     schema:
       ignores: ["effective_wave_assignment_mode"]
       overrides:
