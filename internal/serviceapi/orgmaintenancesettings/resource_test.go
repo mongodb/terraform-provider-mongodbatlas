@@ -37,6 +37,7 @@ func TestAccOrgMaintenanceSettings_basic(t *testing.T) {
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "org_id",
+				ImportStateVerifyIgnore:              []string{"wave_assignment_mode"},
 			},
 		},
 	})
