@@ -103,6 +103,10 @@ func Resource() *schema.Resource {
 					},
 				},
 			},
+			"wave_assignment": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -125,6 +129,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if autoDeferOnceEnabled, ok := d.GetOk("auto_defer_once_enabled"); ok {
 		params.AutoDeferOnceEnabled = new(autoDeferOnceEnabled.(bool))
+	}
+
+	if !d.GetRawConfig().GetAttr("wave_assignment").IsNull() {
+		wave := d.Get("wave_assignment").(int)
+		params.WaveAssignment = &wave
 	}
 
 	params.ProtectedHours = newProtectedHours(d)
@@ -205,6 +214,10 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 		}
 	}
+
+	if err := d.Set("wave_assignment", maintenanceWindow.GetWaveAssignment()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+	}
 	return nil
 }
 
@@ -215,6 +228,23 @@ func flattenProtectedHours(protectedHours admin.ProtectedHours) []map[string]int
 		"start_hour_of_day": protectedHours.GetStartHourOfDay(),
 	})
 	return res
+}
+
+// clearMaintenanceWave sends a PATCH with `waveAssignment: null` via UntypedAPICall.
+// Needed because the SDK field is *int with omitempty, so a nil pointer is omitted instead of serialized as null.
+// Once CLOUDP-315290 is resolved, remove this and use the SDK directly.
+func clearMaintenanceWave(ctx context.Context, client *config.MongoDBClient, projectID string) diag.Diagnostics {
+	body := []byte(`{"waveAssignment":null}`)
+	_, err := client.UntypedAPICall(ctx, config.APICallParams{
+		VersionHeader: "application/vnd.atlas.2023-01-01+json",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/maintenanceWindow",
+		PathParams:    map[string]string{"groupId": projectID},
+		Method:        "PATCH",
+	}, body)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorMaintenanceUpdate, projectID, err))
+	}
+	return nil
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -250,6 +280,19 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			}
 		} else {
 			params.ProtectedHours = newProtectedHours(d)
+		}
+	}
+
+	if d.HasChange("wave_assignment") {
+		// SDKv2 GetOk() cannot distinguish an explicit value (including 0) from an unset field,
+		// since TypeInt treats 0 and absent identically. GetRawConfig() allows to distinguish between the two.
+		if !d.GetRawConfig().GetAttr("wave_assignment").IsNull() {
+			wave := d.Get("wave_assignment").(int)
+			params.WaveAssignment = &wave
+		} else {
+			if diags := clearMaintenanceWave(ctx, meta.(*config.MongoDBClient), projectID); diags != nil {
+				return diags
+			}
 		}
 	}
 
