@@ -1221,23 +1221,13 @@ func TestConvertToProviderSpec_serverComputedWhenClientOmittedExtension(t *testi
 		CreateOnly:               true,
 	}
 
-	t.Run("extension maps optional fields to computed_optional and ignores boolean/required", func(t *testing.T) {
+	t.Run("extension maps optional fields to computed_optional and is ignored on required", func(t *testing.T) {
 		resourceName := "test_resource_with_server_computed"
 		expected := &codespec.Model{
 			Resources: []codespec.Resource{{
 				Schema: &codespec.Schema{
 					Description: conversion.StringPtr(testResourceDesc),
 					Attributes: codespec.Attributes{
-						{
-							// boolean property: extension ignored, stays optional
-							TFSchemaName:             "bool_computed_when_omitted",
-							TFModelName:              "BoolComputedWhenOmitted",
-							APIName:                  "boolComputedWhenOmitted",
-							ComputedOptionalRequired: codespec.Optional,
-							Bool:                     &codespec.BoolAttribute{},
-							ReqBodyUsage:             codespec.AllRequestBodies,
-							PresentInAnyResponse:     true,
-						},
 						{
 							// optional property: extension promotes to computed_optional
 							TFSchemaName:             "computed_when_omitted",

@@ -1393,9 +1393,6 @@ components:
         computedWhenOmitted:
           type: string
           x-xgen-server-computed-when-client-omitted: true
-        boolComputedWhenOmitted:
-          type: boolean
-          x-xgen-server-computed-when-client-omitted: true
         requiredComputedWhenOmitted:
           type: string
           x-xgen-server-computed-when-client-omitted: true

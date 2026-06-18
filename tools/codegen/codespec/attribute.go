@@ -29,14 +29,13 @@ func buildResourceAttrs(s *APISpecSchema, ancestorsName string, isFromRequest bo
 
 		computability := s.GetComputability(name)
 		if isFromRequest && schema.GetXGenServerComputedWhenClientOmitted() {
-			switch {
-			case schema.Type == OASTypeBoolean:
-				// booleans must default to false rather than carry this extension (see IPA-111)
-				log.Printf("[WARN] Ignoring %s on boolean property %q", serverComputedWhenClientOmittedExtensionKey, name)
-			case computability == Required:
-				log.Printf("[WARN] Ignoring %s on required property %q (kept required)", serverComputedWhenClientOmittedExtensionKey, name)
-			case computability == Optional:
+			switch computability {
+			case Optional:
 				computability = ComputedOptional
+			case Required:
+				log.Printf("[WARN] Ignoring %s on required property %q (kept required)", serverComputedWhenClientOmittedExtensionKey, name)
+			case Computed, ComputedOptional:
+				// already computed; nothing to promote
 			}
 		}
 
