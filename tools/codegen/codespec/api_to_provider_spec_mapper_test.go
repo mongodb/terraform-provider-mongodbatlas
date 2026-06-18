@@ -1262,6 +1262,21 @@ func TestConvertToProviderSpec_serverComputedImmutableExtension(t *testing.T) {
 		// extension would set the flag, but the config override forces it off
 		assert.False(t, fingerprint.ImmutableComputed)
 	})
+
+	t.Run("flag is kept when the attribute resolves to computed_optional", func(t *testing.T) {
+		// cfgField is an optional request field with a default (computed_optional) that is also a
+		// readOnly property carrying the extension in the response; the guard must keep the flag
+		// because the attribute resolves to computed_optional, not required/optional.
+		resourceName := "test_resource_immutable_computed_optional"
+		result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+		require.NoError(t, err)
+		require.Len(t, result.Resources, 1)
+
+		cfgField := findAttr(result.Resources[0].Schema.Attributes, "cfg_field")
+		require.NotNil(t, cfgField)
+		assert.Equal(t, codespec.ComputedOptional, cfgField.ComputedOptionalRequired)
+		assert.True(t, cfgField.ImmutableComputed)
+	})
 }
 
 func TestConvertToProviderSpec_dynamicJSONProperties(t *testing.T) {
