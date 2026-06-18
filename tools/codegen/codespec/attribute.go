@@ -219,7 +219,7 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 		return nil, fmt.Errorf("error while building nested schema %s: %w", name, err)
 	}
 
-	isSet := s.Schema.Format == OASFormatSet || (s.Schema.UniqueItems != nil && *s.Schema.UniqueItems)
+	isSet := s.Schema.UniqueItems != nil && *s.Schema.UniqueItems
 	if semantic, err := s.GetXGenArraySemantic(); err != nil {
 		return nil, fmt.Errorf("property %q: %w", name, err)
 	} else if semantic != nil {
