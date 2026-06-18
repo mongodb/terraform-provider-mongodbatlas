@@ -19,9 +19,6 @@ const (
 	arraySemanticSet  = "set"
 )
 
-// ErrInvalidArraySemantic is returned when the x-xgen-array-semantic extension carries a value
-// other than "list" or "set". It is a sentinel so callers can distinguish a malformed extension
-// (which must fail generation) from a response/parameter schema that simply could not be mapped.
 var ErrInvalidArraySemantic = errors.New("invalid " + arraySemanticExtensionKey + " value")
 
 // DiscriminatorExtension represents the raw x-xgen-discriminator extension as declared in the OpenAPI spec.
