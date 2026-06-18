@@ -1262,6 +1262,8 @@ resources:
             description: *org_id_description
           project_id:
             description: *project_id_description
+          roles:
+            type: set # Align with the roles attribute in the resource and singular data source, the API spec lacks uniqueItems for this property.
 
   project_ip_access_list:
     datasources:
