@@ -1147,6 +1147,17 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 							PresentInAnyResponse: true,
 						},
 						{
+							TFSchemaName:             "list_string2",
+							TFModelName:              "ListString2",
+							APIName:                  "listString2",
+							ComputedOptionalRequired: codespec.Required,
+							// List overridden to list, no-op
+							CustomType:           codespec.NewCustomListType(codespec.String),
+							List:                 &codespec.ListAttribute{ElementType: codespec.String},
+							ReqBodyUsage:         codespec.AllRequestBodies,
+							PresentInAnyResponse: true,
+						},
+						{
 							TFSchemaName:             "set_string",
 							TFModelName:              "SetString",
 							APIName:                  "setString",
@@ -1154,6 +1165,17 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 							// Set overridden to list
 							CustomType:           codespec.NewCustomListType(codespec.String),
 							List:                 &codespec.ListAttribute{ElementType: codespec.String},
+							ReqBodyUsage:         codespec.AllRequestBodies,
+							PresentInAnyResponse: true,
+						},
+						{
+							TFSchemaName:             "set_string2",
+							TFModelName:              "SetString2",
+							APIName:                  "setString2",
+							ComputedOptionalRequired: codespec.Required,
+							// Set overridden to set, no-op
+							CustomType:           codespec.NewCustomSetType(codespec.String),
+							Set:                  &codespec.SetAttribute{ElementType: codespec.String},
 							ReqBodyUsage:         codespec.AllRequestBodies,
 							PresentInAnyResponse: true,
 						},
