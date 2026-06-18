@@ -1,6 +1,7 @@
 package acc
 
 import (
+	"log"
 	"maps"
 	"os"
 
@@ -24,6 +25,7 @@ const (
 var TestAccProviderV6Factories map[string]func() (tfprotov6.ProviderServer, error)
 
 // MongoDBClient is used to configure client required for Framework-based acceptance tests.
+// It is guaranteed to be set because init() fails fast if the client cannot be built.
 var MongoDBClient *config.MongoDBClient
 
 func Conn() *matlas.Client {
@@ -48,7 +50,10 @@ func ConnV2UsingGov() *admin.APIClient {
 		PrivateKey: os.Getenv("MONGODB_ATLAS_GOV_PRIVATE_KEY"),
 		BaseURL:    os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"),
 	}
-	client, _ := config.NewClient(c, "")
+	client, err := config.NewClient(c, "")
+	if err != nil {
+		log.Fatalf("failed to create Atlas (gov) client for acceptance tests: %v", err)
+	}
 	return client.AtlasV2
 }
 
@@ -76,5 +81,9 @@ func init() {
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
-	MongoDBClient, _ = config.NewClient(c, "")
+	var err error
+	MongoDBClient, err = config.NewClient(c, "")
+	if err != nil {
+		log.Fatalf("failed to initialize Atlas client for acceptance tests: %v", err)
+	}
 }
