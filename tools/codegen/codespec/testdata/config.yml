@@ -82,8 +82,12 @@ resources:
       overrides:
         list_string:
           type: set
+        list_string2:
+          type: list # no-op, attribute already has the target type
         set_string:
           type: list
+        set_string2:
+          type: set # no-op, attribute already has the target type
 
   test_resource_with_immutable_computed:
     create:

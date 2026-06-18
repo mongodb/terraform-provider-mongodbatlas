@@ -1504,7 +1504,16 @@ components:
           type: array
           items:
             type: string
+        listString2:
+          type: array
+          items:
+            type: string
         setString:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+        setString2:
           type: array
           items:
             type: string
@@ -1512,7 +1521,9 @@ components:
       required:
         - flag
         - listString
+        - listString2
         - setString
+        - setString2
     TestResourceImmutable:
       type: object
       properties:
