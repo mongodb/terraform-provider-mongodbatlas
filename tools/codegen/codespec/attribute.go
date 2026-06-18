@@ -223,7 +223,7 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 	if semantic, err := s.GetXGenArraySemantic(); err != nil {
 		return nil, fmt.Errorf("property %q: %w", name, err)
 	} else if semantic != nil {
-		isSet = *semantic == arraySemanticSet // extension overrides the format/uniqueItems heuristic in both directions
+		isSet = *semantic == arraySemanticSet // extension overrides the uniqueItems heuristic in both directions
 	}
 	tfModelName := stringcase.Capitalize(name)
 
