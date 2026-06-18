@@ -32,6 +32,12 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 						},
+						"roles": dsschema.SetAttribute{
+							Computed:            true,
+							MarkdownDescription: "A list of project roles assigned to the Service Account in this project.",
+							CustomType:          customtypes.NewSetType[types.String](ctx),
+							ElementType:         types.StringType,
+						},
 					},
 				},
 			},
@@ -45,5 +51,6 @@ type TFPluralDSModel struct {
 	Results  customtypes.NestedListValue[TFPluralDSResultsModel] `tfsdk:"results" autogen:"omitjson"`
 }
 type TFPluralDSResultsModel struct {
-	ProjectId types.String `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	ProjectId types.String                       `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	Roles     customtypes.SetValue[types.String] `tfsdk:"roles" autogen:"omitjson"`
 }
