@@ -33,7 +33,11 @@ func buildResourceAttrs(s *APISpecSchema, ancestorsName string, isFromRequest bo
 			case Optional:
 				computability = ComputedOptional
 			case Required:
-				log.Printf("[WARN] Ignoring %s on required property %q (kept required)", serverComputedWhenClientOmittedExtensionKey, name)
+				qualifiedName := name
+				if ancestorsName != "" {
+					qualifiedName = ancestorsName + "." + name
+				}
+				log.Printf("[WARN] Ignoring %s on required property %q (kept required)", serverComputedWhenClientOmittedExtensionKey, qualifiedName)
 			case Computed, ComputedOptional:
 				// already computed; nothing to promote
 			}
