@@ -184,8 +184,9 @@ func updateNestedComputabilityAndReqBodyUsage(attrs *Attributes, parentIsCompute
 			attr.ReqBodyUsage = OmitAlways
 		}
 
-		// the immutable-computed plan modifier is only meaningful for computed attributes; drop it
-		// if the attribute ultimately resolved to required/optional (e.g. also a required path param)
+		// the immutable-computed plan modifier is only meaningful for computed or computed_optional
+		// attributes; drop it if the attribute ultimately resolved to required/optional (e.g. also a
+		// required path param)
 		if attr.ImmutableComputed && attr.ComputedOptionalRequired != Computed && attr.ComputedOptionalRequired != ComputedOptional {
 			attr.ImmutableComputed = false
 		}
