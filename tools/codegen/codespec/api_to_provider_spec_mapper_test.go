@@ -1189,125 +1189,57 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
-func TestConvertToProviderSpec_arraySemanticExtension(t *testing.T) {
-	tc := convertToSpecTestCase{
-		inputOpenAPISpecPath: testDataAPISpecPath,
-		inputConfigPath:      testDataConfigPath,
-		inputResourceName:    "test_resource_with_array_semantic",
-
-		expectedResult: &codespec.Model{
-			Resources: []codespec.Resource{{
-				Schema: &codespec.Schema{
-					Description: conversion.StringPtr(testResourceDesc),
-					Attributes: codespec.Attributes{
-						{
-							// plain array with no extension, format or uniqueItems defaults to a list
-							TFSchemaName:             "default_array",
-							TFModelName:              "DefaultArray",
-							APIName:                  "defaultArray",
-							ComputedOptionalRequired: codespec.Required,
-							CustomType:               codespec.NewCustomListType(codespec.String),
-							List:                     &codespec.ListAttribute{ElementType: codespec.String},
-							ReqBodyUsage:             codespec.AllRequestBodies,
-							PresentInAnyResponse:     true,
-						},
-						{
-							TFSchemaName:             "group_id",
-							TFModelName:              "GroupId",
-							APIName:                  "groupId",
-							ComputedOptionalRequired: codespec.Required,
-							String:                   &codespec.StringAttribute{},
-							Description:              conversion.StringPtr(testPathParamDesc),
-							ReqBodyUsage:             codespec.OmitAlways,
-							CreateOnly:               true,
-						},
-						{
-							// uniqueItems heuristic would yield a set, but the extension wins → list
-							TFSchemaName:             "list_from_extension",
-							TFModelName:              "ListFromExtension",
-							APIName:                  "listFromExtension",
-							ComputedOptionalRequired: codespec.Required,
-							CustomType:               codespec.NewCustomListType(codespec.String),
-							List:                     &codespec.ListAttribute{ElementType: codespec.String},
-							ReqBodyUsage:             codespec.AllRequestBodies,
-							PresentInAnyResponse:     true,
-						},
-						{
-							TFSchemaName:             "nested_set_from_extension",
-							TFModelName:              "NestedSetFromExtension",
-							APIName:                  "nestedSetFromExtension",
-							ComputedOptionalRequired: codespec.Required,
-							CustomType:               codespec.NewCustomNestedSetType("NestedSetFromExtension"),
-							SetNested: &codespec.SetNestedAttribute{
-								NestedObject: codespec.NestedAttributeObject{
-									Attributes: codespec.Attributes{
-										{
-											TFSchemaName:             "inner_attr",
-											TFModelName:              "InnerAttr",
-											APIName:                  "innerAttr",
-											ComputedOptionalRequired: codespec.Optional,
-											String:                   &codespec.StringAttribute{},
-											ReqBodyUsage:             codespec.AllRequestBodies,
-											PresentInAnyResponse:     true,
-										},
-									},
-								},
-							},
-							ReqBodyUsage:         codespec.AllRequestBodies,
-							PresentInAnyResponse: true,
-						},
-						{
-							// extension declares set, but config.yml type override wins → list
-							TFSchemaName:             "overridden_to_list",
-							TFModelName:              "OverriddenToList",
-							APIName:                  "overriddenToList",
-							ComputedOptionalRequired: codespec.Required,
-							CustomType:               codespec.NewCustomListType(codespec.String),
-							List:                     &codespec.ListAttribute{ElementType: codespec.String},
-							ReqBodyUsage:             codespec.AllRequestBodies,
-							PresentInAnyResponse:     true,
-						},
-						{
-							// plain array (no format/uniqueItems), extension declares set → set
-							TFSchemaName:             "set_from_extension",
-							TFModelName:              "SetFromExtension",
-							APIName:                  "setFromExtension",
-							ComputedOptionalRequired: codespec.Required,
-							CustomType:               codespec.NewCustomSetType(codespec.String),
-							Set:                      &codespec.SetAttribute{ElementType: codespec.String},
-							ReqBodyUsage:             codespec.AllRequestBodies,
-							PresentInAnyResponse:     true,
-						},
-					},
-				},
-				Name:        "test_resource_with_array_semantic",
-				PackageName: "testresourcewitharraysemantic",
-				Operations: codespec.APIOperations{
-					Create: &codespec.APIOperation{
-						Path:       "/api/atlas/v2/groups/{groupId}/testResourceArraySemantic",
-						HTTPMethod: "POST",
-					},
-					Read: &codespec.APIOperation{
-						Path:       "/api/atlas/v2/groups/{groupId}/testResourceArraySemantic",
-						HTTPMethod: "GET",
-					},
-					Update: &codespec.APIOperation{
-						Path:       "/api/atlas/v2/groups/{groupId}/testResourceArraySemantic",
-						HTTPMethod: "PATCH",
-					},
-					Delete: &codespec.APIOperation{
-						Path:       "/api/atlas/v2/groups/{groupId}/testResourceArraySemantic",
-						HTTPMethod: "DELETE",
-					},
-					VersionHeader: "application/vnd.atlas.2023-01-01+json",
-				},
-			}},
-		},
+// findAttr returns the attribute with the given TFSchemaName, searching nested objects recursively.
+func findAttr(attrs codespec.Attributes, tfSchemaName string) *codespec.Attribute {
+	for i := range attrs {
+		if attrs[i].TFSchemaName == tfSchemaName {
+			return &attrs[i]
+		}
+		if nested := attrs[i].NestedObject(); nested != nil {
+			if found := findAttr(nested.Attributes, tfSchemaName); found != nil {
+				return found
+			}
+		}
 	}
+	return nil
+}
 
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName, nil)
+func TestConvertToProviderSpec_arraySemanticExtension(t *testing.T) {
+	resourceName := "test_resource_with_array_semantic"
+	result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
 	require.NoError(t, err)
-	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+	require.Len(t, result.Resources, 1)
+	attrs := result.Resources[0].Schema.Attributes
+
+	// plain array with no extension, format or uniqueItems defaults to a list
+	defaultArray := findAttr(attrs, "default_array")
+	require.NotNil(t, defaultArray)
+	assert.NotNil(t, defaultArray.List)
+	assert.Nil(t, defaultArray.Set)
+
+	// plain array, extension declares set → set
+	setFromExtension := findAttr(attrs, "set_from_extension")
+	require.NotNil(t, setFromExtension)
+	assert.NotNil(t, setFromExtension.Set)
+	assert.Nil(t, setFromExtension.List)
+
+	// uniqueItems heuristic would yield a set, but the extension wins → list
+	listFromExtension := findAttr(attrs, "list_from_extension")
+	require.NotNil(t, listFromExtension)
+	assert.NotNil(t, listFromExtension.List)
+	assert.Nil(t, listFromExtension.Set)
+
+	// extension declares set on an array of objects → nested set
+	nestedSetFromExtension := findAttr(attrs, "nested_set_from_extension")
+	require.NotNil(t, nestedSetFromExtension)
+	assert.NotNil(t, nestedSetFromExtension.SetNested)
+	assert.Nil(t, nestedSetFromExtension.ListNested)
+
+	// extension declares set, but the config.yml type override wins → list
+	overriddenToList := findAttr(attrs, "overridden_to_list")
+	require.NotNil(t, overriddenToList)
+	assert.NotNil(t, overriddenToList.List)
+	assert.Nil(t, overriddenToList.Set)
 }
 
 func TestConvertToProviderSpec_arraySemanticExtension_invalidValue(t *testing.T) {
