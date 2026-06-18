@@ -1201,6 +1201,17 @@ func TestConvertToProviderSpec_arraySemanticExtension(t *testing.T) {
 					Description: conversion.StringPtr(testResourceDesc),
 					Attributes: codespec.Attributes{
 						{
+							// plain array with no extension, format or uniqueItems defaults to a list
+							TFSchemaName:             "default_array",
+							TFModelName:              "DefaultArray",
+							APIName:                  "defaultArray",
+							ComputedOptionalRequired: codespec.Required,
+							CustomType:               codespec.NewCustomListType(codespec.String),
+							List:                     &codespec.ListAttribute{ElementType: codespec.String},
+							ReqBodyUsage:             codespec.AllRequestBodies,
+							PresentInAnyResponse:     true,
+						},
+						{
 							TFSchemaName:             "group_id",
 							TFModelName:              "GroupId",
 							APIName:                  "groupId",

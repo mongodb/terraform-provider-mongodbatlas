@@ -1475,6 +1475,10 @@ components:
     TestResourceArraySemantic:
       type: object
       properties:
+        defaultArray:
+          type: array
+          items:
+            type: string
         setFromExtension:
           type: array
           x-xgen-array-semantic: set
@@ -1500,6 +1504,7 @@ components:
           items:
             type: string
       required:
+        - defaultArray
         - setFromExtension
         - listFromExtension
         - nestedSetFromExtension
