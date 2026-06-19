@@ -43,6 +43,8 @@ const (
 	descPriority                  = "Precedence is given to this region when a primary election occurs. If your **regionConfigs** has only **readOnlySpecs**, **analyticsSpecs**, or both, set this value to `0`. If you have multiple **regionConfigs** objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is `7`.\n\n**Example:** If you have three regions, their priorities would be `7`, `6`, and `5` respectively. If you added two more regions for supporting electable nodes, the priorities of those regions would be `4` and `3` respectively."
 	descBackingProviderNameTenant = "Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when **providerName** is `TENANT` and **electableSpecs.instanceSize** is `M0`."
 	descContainerID               = "A key-value map of the Network Peering Container ID(s) for the configuration specified in region_configs. The Container ID is the id of the container created when the first cluster in the region (AWS/Azure) or project (GCP) was created."
+	// descClusterProfile documents the cluster_profile PROTOTYPE attribute.
+	descClusterProfile = "PROTOTYPE attribute. Selects a behavior profile for the cluster. Defaults to `CORE` when unset, which keeps today's baseline behavior. `INFINITE` enables compute auto-scaling defaults (scale up + down, `compute_min_instance_size` = configured instance size, `compute_max_instance_size` = two tiers above) for any region config where you have not set `auto_scaling` explicitly."
 )
 
 func resourceSchema(ctx context.Context) schema.Schema {
@@ -79,6 +81,18 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			"cluster_type": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Configuration of nodes that comprise the cluster.",
+			},
+			// cluster_profile PROTOTYPE: drives conditional defaults (see cluster_profile.go).
+			// Optional-only (no Computed/Default): an unset value is treated as CORE (baseline)
+			// by the logic. We intentionally avoid a schema Default here because a Computed
+			// default would show a spurious null -> "CORE" diff right after `terraform import`.
+			// The *conditional* INFINITE auto-scaling defaults are resolved in ModifyPlan.
+			"cluster_profile": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: descClusterProfile,
+				Validators: []validator.String{
+					stringvalidator.OneOf(ClusterProfileCore, ClusterProfileInfinite),
+				},
 			},
 			"config_server_management_mode": schema.StringAttribute{
 				Computed:            true,
@@ -379,6 +393,7 @@ func dataSourceOverridenFields() map[string]dsschema.Attribute {
 		"accept_data_risks_and_force_replica_set_reconfig": nil,
 		"delete_on_create_timeout":                         nil,
 		"retain_backups_enabled":                           nil,
+		"cluster_profile":                                  nil, // cluster_profile PROTOTYPE: resource-only input, not exposed on data sources
 		"use_effective_fields": dsschema.BoolAttribute{
 			Optional:            true,
 			MarkdownDescription: descUseEffectiveFields,
@@ -693,6 +708,7 @@ type TFModel struct {
 	ConfigServerType                              types.String   `tfsdk:"config_server_type"`
 	ReplicaSetScalingStrategy                     types.String   `tfsdk:"replica_set_scaling_strategy"`
 	ClusterType                                   types.String   `tfsdk:"cluster_type"`
+	ClusterProfile                                types.String   `tfsdk:"cluster_profile"` // cluster_profile PROTOTYPE
 	RootCertType                                  types.String   `tfsdk:"root_cert_type"`
 	AdvancedConfiguration                         types.Object   `tfsdk:"advanced_configuration"`
 	PinnedFCV                                     types.Object   `tfsdk:"pinned_fcv"`

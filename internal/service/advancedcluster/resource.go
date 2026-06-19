@@ -80,28 +80,50 @@ type rs struct {
 // 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
 // 2. Adding the different UseStateForUnknown is very verbose.
 func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update
+	diags := &resp.Diagnostics
+	if req.Plan.Raw.IsNull() { // Destroy plan, nothing to modify.
 		return
 	}
-	var plan, state TFModel
-	diags := &resp.Diagnostics
+	var plan, config TFModel
 	diags.Append(req.Plan.Get(ctx, &plan)...)
-	diags.Append(req.State.Get(ctx, &state)...)
+	diags.Append(req.Config.Get(ctx, &config)...)
 	if diags.HasError() {
 		return
 	}
 	// The replication specs can be unknown if the cluster depends on another resource.
-	// handleModifyPlan will try to convert the field to `Target Type: []advancedcluster.TFReplicationSpecsModel`.
+	// The logic below will try to convert the field to `Target Type: []advancedcluster.TFReplicationSpecsModel`.
 	// But since the field is unknown the user gets an error: `Error: Value Conversion Error`.
 	if plan.ReplicationSpecs.IsUnknown() {
 		return
 	}
 
-	handleModifyPlan(ctx, diags, &state, &plan)
+	// cluster_profile PROTOTYPE: resolve profile-driven defaults (e.g. the INFINITE
+	// auto-scaling defaults) before the existing update-only optimization. This runs on
+	// both create and update. For CORE/unset clusters it is a no-op (planChanged stays
+	// false), so behavior is unchanged. See cluster_profile.go.
+	planChanged := applyClusterProfileDefaults(ctx, diags, &config, &plan)
 	if diags.HasError() {
 		return
 	}
-	diags.Append(resp.Plan.Set(ctx, plan)...)
+
+	// Existing update-only optimization. Skipped on create (state is null) and on
+	// fully-known plans (no computed unknowns to resolve) — preserving today's behavior.
+	if !req.State.Raw.IsNull() && !req.Plan.Raw.IsFullyKnown() {
+		var state TFModel
+		diags.Append(req.State.Get(ctx, &state)...)
+		if diags.HasError() {
+			return
+		}
+		handleModifyPlan(ctx, diags, &state, &plan)
+		if diags.HasError() {
+			return
+		}
+		planChanged = true
+	}
+
+	if planChanged {
+		diags.Append(resp.Plan.Set(ctx, plan)...)
+	}
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
