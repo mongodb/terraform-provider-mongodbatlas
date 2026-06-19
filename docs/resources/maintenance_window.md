@@ -91,8 +91,8 @@ In addition to all arguments above, the following attributes are exported:
 
 Maintenance Window entries can be imported using project project_id, in the format `PROJECTID`, e.g.
 
-```
-$ terraform import mongodbatlas_maintenance_window.test 5d0f1f73cf09a29120e173cf
+```shell
+terraform import mongodbatlas_maintenance_window.test 5d0f1f73cf09a29120e173cf
 ```
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-maintenance-windows)

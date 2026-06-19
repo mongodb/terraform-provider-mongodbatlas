@@ -48,8 +48,8 @@ Configure Organization Maintenance Settings
 
 Organization maintenance settings can be imported using the organization ID, in the format `ORG_ID`, e.g.
 
-```
-$ terraform import mongodbatlas_org_maintenance_settings.example 5d09d6a59ccf6445652a444a
+```shell
+terraform import mongodbatlas_org_maintenance_settings.example 5d09d6a59ccf6445652a444a
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/maintenance-windows/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-maintenance-windows)
