@@ -45,6 +45,8 @@ const (
 	descContainerID               = "A key-value map of the Network Peering Container ID(s) for the configuration specified in region_configs. The Container ID is the id of the container created when the first cluster in the region (AWS/Azure) or project (GCP) was created."
 	// descClusterProfile documents the cluster_profile PROTOTYPE attribute.
 	descClusterProfile = "PROTOTYPE attribute. Selects a behavior profile for the cluster. Defaults to `CORE` when unset, which keeps today's baseline behavior. `INFINITE` enables compute auto-scaling defaults (scale up + down, `compute_min_instance_size` = configured instance size, `compute_max_instance_size` = two tiers above) for any region config where you have not set `auto_scaling` explicitly."
+	// descProviderRegion documents the provider_region MINIMAL-CONFIG PROTOTYPE convenience input.
+	descProviderRegion = "PROTOTYPE attribute. Convenience input in `PROVIDER:REGION` form (e.g. `AWS:US_EAST_1`) used to synthesize `replication_specs` when you omit them, so a minimal config (name + provider_region + cluster_profile) deploys a full cluster. Ignored when `replication_specs` is set explicitly."
 )
 
 func resourceSchema(ctx context.Context) schema.Schema {
@@ -78,8 +80,11 @@ func resourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+			// MINIMAL-CONFIG PROTOTYPE: was Required. Now Optional+Computed so it can be omitted;
+			// applyMinimalConfigDefaults fills "REPLICASET" in ModifyPlan. See cluster_profile_minimal.go.
 			"cluster_type": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Configuration of nodes that comprise the cluster.",
 			},
 			// cluster_profile PROTOTYPE: drives conditional defaults (see cluster_profile.go).
@@ -93,6 +98,14 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Validators: []validator.String{
 					stringvalidator.OneOf(ClusterProfileCore, ClusterProfileInfinite),
 				},
+			},
+			// provider_region MINIMAL-CONFIG PROTOTYPE: convenience input "PROVIDER:REGION"
+			// (e.g. "AWS:US_EAST_1"). Used ONLY to synthesize replication_specs when the user
+			// omits them; ignored when replication_specs is set explicitly. TF-only input
+			// (Optional, not Computed) so it never shows an import diff. See cluster_profile_minimal.go.
+			"provider_region": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: descProviderRegion,
 			},
 			"config_server_management_mode": schema.StringAttribute{
 				Computed:            true,
@@ -191,6 +204,8 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Set this field to configure the Sharding Management Mode when creating a new Global Cluster.\n\nWhen set to false, the management mode is set to Atlas-Managed Sharding. This mode fully manages the sharding of your Global Cluster and is built to provide a seamless deployment experience.\n\nWhen set to true, the management mode is set to Self-Managed Sharding. This mode leaves the management of shards in your hands and is built to provide an advanced and flexible deployment experience.\n\nThis setting cannot be changed once the cluster is deployed.",
 			},
+			// MINIMAL-CONFIG PROTOTYPE: project_id stays Required — a cluster must belong to a real
+			// project and there is no sensible default, so the user always supplies it.
 			"project_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
@@ -241,8 +256,12 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Set this field to configure the replica set scaling mode for your cluster.\n\nBy default, Atlas scales under WORKLOAD_TYPE. This mode allows Atlas to scale your analytics nodes in parallel to your operational nodes.\n\nWhen configured as SEQUENTIAL, Atlas scales all nodes sequentially. This mode is intended for steady-state workloads and applications performing latency-sensitive secondary reads.\n\nWhen configured as NODE_TYPE, Atlas scales your electable nodes in parallel with your read-only and analytics nodes. This mode is intended for large, dynamic workloads requiring frequent and timely cluster tier scaling. This is the fastest scaling strategy, but it might impact latency of workloads when performing extensive secondary reads.",
 			},
+			// MINIMAL-CONFIG PROTOTYPE: was Required. Now Optional+Computed so it can be omitted;
+			// applyMinimalConfigDefaults synthesizes a single-region spec (from provider_region +
+			// profile defaults) in ModifyPlan when omitted. Explicit replication_specs is honored.
 			"replication_specs": schema.ListNestedAttribute{
-				Required:            true,
+				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: descReplicationSpecs,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -394,6 +413,7 @@ func dataSourceOverridenFields() map[string]dsschema.Attribute {
 		"delete_on_create_timeout":                         nil,
 		"retain_backups_enabled":                           nil,
 		"cluster_profile":                                  nil, // cluster_profile PROTOTYPE: resource-only input, not exposed on data sources
+		"provider_region":                                  nil, // minimal-config PROTOTYPE: resource-only input, not exposed on data sources
 		"use_effective_fields": dsschema.BoolAttribute{
 			Optional:            true,
 			MarkdownDescription: descUseEffectiveFields,
@@ -709,6 +729,7 @@ type TFModel struct {
 	ReplicaSetScalingStrategy                     types.String   `tfsdk:"replica_set_scaling_strategy"`
 	ClusterType                                   types.String   `tfsdk:"cluster_type"`
 	ClusterProfile                                types.String   `tfsdk:"cluster_profile"` // cluster_profile PROTOTYPE
+	ProviderRegion                                types.String   `tfsdk:"provider_region"` // minimal-config PROTOTYPE
 	RootCertType                                  types.String   `tfsdk:"root_cert_type"`
 	AdvancedConfiguration                         types.Object   `tfsdk:"advanced_configuration"`
 	PinnedFCV                                     types.Object   `tfsdk:"pinned_fcv"`

@@ -90,35 +90,46 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
-	// The replication specs can be unknown if the cluster depends on another resource.
-	// The logic below will try to convert the field to `Target Type: []advancedcluster.TFReplicationSpecsModel`.
-	// But since the field is unknown the user gets an error: `Error: Value Conversion Error`.
-	if plan.ReplicationSpecs.IsUnknown() {
-		return
-	}
 
-	// cluster_profile PROTOTYPE: resolve profile-driven defaults (e.g. the INFINITE
-	// auto-scaling defaults) before the existing update-only optimization. This runs on
-	// both create and update. For CORE/unset clusters it is a no-op (planChanged stays
-	// false), so behavior is unchanged. See cluster_profile.go.
-	planChanged := applyClusterProfileDefaults(ctx, diags, &config, &plan)
+	// MINIMAL-CONFIG PROTOTYPE: fill profile-driven defaults for omitted required inputs
+	// (cluster_type, project_id, and replication_specs synthesized from provider_region) so a
+	// minimal config resolves to a full cluster spec. Must run BEFORE the unknown-guard below
+	// because an omitted replication_specs is Unknown at this point. Explicit user input is
+	// never overwritten. See cluster_profile_minimal.go.
+	planChanged := applyMinimalConfigDefaults(ctx, diags, &config, &plan)
 	if diags.HasError() {
 		return
 	}
 
-	// Existing update-only optimization. Skipped on create (state is null) and on
-	// fully-known plans (no computed unknowns to resolve) — preserving today's behavior.
-	if !req.State.Raw.IsNull() && !req.Plan.Raw.IsFullyKnown() {
-		var state TFModel
-		diags.Append(req.State.Get(ctx, &state)...)
+	// The replication specs can be unknown if the cluster depends on another resource.
+	// The logic below will try to convert the field to `Target Type: []advancedcluster.TFReplicationSpecsModel`.
+	// But since the field is unknown the user gets an error: `Error: Value Conversion Error`.
+	// (If we synthesized replication_specs just above, it is now known and this is skipped.)
+	if !plan.ReplicationSpecs.IsUnknown() {
+		// cluster_profile PROTOTYPE: resolve profile-driven defaults (e.g. the INFINITE
+		// auto-scaling defaults) before the existing update-only optimization. This runs on
+		// both create and update. For CORE/unset clusters it is a no-op. See cluster_profile.go.
+		if applyClusterProfileDefaults(ctx, diags, &config, &plan) {
+			planChanged = true
+		}
 		if diags.HasError() {
 			return
 		}
-		handleModifyPlan(ctx, diags, &state, &plan)
-		if diags.HasError() {
-			return
+
+		// Existing update-only optimization. Skipped on create (state is null) and on
+		// fully-known plans (no computed unknowns to resolve) — preserving today's behavior.
+		if !req.State.Raw.IsNull() && !req.Plan.Raw.IsFullyKnown() {
+			var state TFModel
+			diags.Append(req.State.Get(ctx, &state)...)
+			if diags.HasError() {
+				return
+			}
+			handleModifyPlan(ctx, diags, &state, &plan)
+			if diags.HasError() {
+				return
+			}
+			planChanged = true
 		}
-		planChanged = true
 	}
 
 	if planChanged {

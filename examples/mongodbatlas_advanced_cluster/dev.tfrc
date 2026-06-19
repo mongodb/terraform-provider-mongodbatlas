@@ -1,0 +1,6 @@
+provider_installation {
+  dev_overrides {
+    "mongodb/mongodbatlas" = "/Users/aastha.mahendru/workspace/terraform-provider-mongodbatlas/bin"
+  }
+  direct {}
+}
