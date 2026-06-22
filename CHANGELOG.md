@@ -2,14 +2,16 @@
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_advanced_cluster: Adds `disk_throughput` attribute ([#4453](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4453))
+* data-source/mongodbatlas_advanced_clusters: Adds `disk_throughput` attribute ([#4453](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4453))
 * data-source/mongodbatlas_service_account_project_assignments: Adds `roles` attribute in `results` ([#4502](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4502))
+* resource/mongodbatlas_advanced_cluster: Adds support for Gen 2 instance sizes ([#4524](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4524))
 * resource/mongodbatlas_database_user: Removes incorrect warning emitted on every resource creation regardless of authentication type ([#4443](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4443))
 * resource/mongodbatlas_project: Reduces plan verbosity by avoiding `(known after apply)` on `region_usage_restrictions`, which remains stable after project creation ([#4455](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4455))
 * resource/mongodbatlas_stream_connection: Increases default create/update/delete timeout from 20 to 40 minutes ([#4467](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4467))
 
 BUG FIXES:
 
-* resource/mongodbatlas_advanced_cluster: Emits a warning during plan when `use_effective_fields` is true, auto-scaling is enabled, and `instance_size`, `disk_size_gb`, or `disk_iops` is modified, as Atlas silently ignores these changes in that combination ([#4405](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4405))
 * resource/mongodbatlas_flex_cluster: Fixes deletion waits to improve reliability when deleting flex clusters ([#4431](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4431))
 * resource/mongodbatlas_search_deployment: Treats HTTP 500 responses as transient during state polling ([#4494](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4494))
 

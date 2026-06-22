@@ -1282,6 +1282,43 @@ func TestConvertToProviderSpec_arraySemanticExtension_invalidValue(t *testing.T)
 	}
 }
 
+func TestConvertToProviderSpec_serverComputedWhenClientOmittedExtension(t *testing.T) {
+	t.Run("extension maps optional fields to computed_optional and is ignored on required", func(t *testing.T) {
+		resourceName := "test_resource_with_server_computed"
+		result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+		require.NoError(t, err)
+		require.Len(t, result.Resources, 1)
+		attrs := result.Resources[0].Schema.Attributes
+
+		// optional property: extension promotes to computed_optional
+		computedWhenOmitted := findAttr(attrs, "computed_when_omitted")
+		require.NotNil(t, computedWhenOmitted)
+		assert.Equal(t, codespec.ComputedOptional, computedWhenOmitted.ComputedOptionalRequired)
+
+		// extension applies to nested optional fields too
+		innerComputedWhenOmitted := findAttr(attrs, "inner_computed_when_omitted")
+		require.NotNil(t, innerComputedWhenOmitted)
+		assert.Equal(t, codespec.ComputedOptional, innerComputedWhenOmitted.ComputedOptionalRequired)
+
+		// required property: extension ignored, stays required
+		requiredComputedWhenOmitted := findAttr(attrs, "required_computed_when_omitted")
+		require.NotNil(t, requiredComputedWhenOmitted)
+		assert.Equal(t, codespec.Required, requiredComputedWhenOmitted.ComputedOptionalRequired)
+	})
+
+	t.Run("config computability override wins over extension", func(t *testing.T) {
+		resourceName := "test_resource_server_computed_config_override"
+		result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+		require.NoError(t, err)
+		require.Len(t, result.Resources, 1)
+
+		computedWhenOmitted := findAttr(result.Resources[0].Schema.Attributes, "computed_when_omitted")
+		require.NotNil(t, computedWhenOmitted)
+		// extension would yield ComputedOptional, but the config override forces plain Optional
+		assert.Equal(t, codespec.Optional, computedWhenOmitted.ComputedOptionalRequired)
+	})
+}
+
 func TestConvertToProviderSpec_dynamicJSONProperties(t *testing.T) {
 	tc := convertToSpecTestCase{
 		inputOpenAPISpecPath: testDataAPISpecPath,

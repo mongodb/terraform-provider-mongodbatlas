@@ -23,9 +23,10 @@ import (
 const (
 	descUseEffectiveFields        = "Controls how hardware specification fields are returned in the response. When set to true, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to false (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications."
 	descSpecs                     = "Hardware specifications for nodes deployed in the region."
-	descDiskIops                  = "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"Azure\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : \"M40\"` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost."
+	descDiskIops                  = "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. You can set this attribute if you selected AWS or Azure as your cloud service provider. For AWS, valid configurations are:\n\n- For Gen2 instance sizes (`M30_GEN_2` or greater) with `ebs_volume_type` set to `STANDARD`: configurable between 3000 and 80000 IOPS.\n- For Gen2 instance sizes (`M30_GEN_2` or greater) with `ebs_volume_type` set to `HIGH_PERFORMANCE`: configurable within the allowable range for the selected volume size.\n- For M30 or greater (not including `Mxx_NVME` tiers) with `ebs_volume_type` set to `PROVISIONED`: configurable within the allowable range for the selected volume size.\n\nFor Azure, this parameter applies to M40 or greater (not including `Mxx_NVME` tiers). The maximum IOPS depend on the selected instance size and disk size. This parameter defaults to the cluster tier's standard IOPS value. Changing this value impacts cluster cost."
+	descDiskThroughput            = "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type."
 	descDiskSizeGb                = "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
-	descEbsVolumeType             = "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
+	descEbsVolumeType             = "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types use gp3 storage. For Gen 2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.\n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.\n\n- `HIGH_PERFORMANCE` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size. Only supported for Gen 2 instance sizes."
 	descInstanceSize              = "Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as \"base nodes\") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards."
 	descNodeCount                 = "Number of nodes of the given type for MongoDB Cloud to deploy to the region."
 	descReplicationSpecs          = "List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations."
@@ -558,6 +559,10 @@ func specsSchemaDS() dsschema.SingleNestedAttribute {
 				Computed:            true,
 				MarkdownDescription: descDiskIops,
 			},
+			"disk_throughput": dsschema.Int64Attribute{
+				Computed:            true,
+				MarkdownDescription: descDiskThroughput,
+			},
 			"disk_size_gb": dsschema.Float64Attribute{
 				Computed:            true,
 				MarkdownDescription: descDiskSizeGb,
@@ -866,16 +871,16 @@ type TFRegionConfigsDSModel struct {
 
 var regionConfigsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"analytics_auto_scaling":    autoScalingObjType,
-	"analytics_specs":           specsObjType,
+	"analytics_specs":           specsDSObjType,
 	"auto_scaling":              autoScalingObjType,
 	"backing_provider_name":     types.StringType,
-	"effective_analytics_specs": specsObjType,
-	"effective_electable_specs": specsObjType,
-	"effective_read_only_specs": specsObjType,
-	"electable_specs":           specsObjType,
+	"effective_analytics_specs": specsDSObjType,
+	"effective_electable_specs": specsDSObjType,
+	"effective_read_only_specs": specsDSObjType,
+	"electable_specs":           specsDSObjType,
 	"priority":                  types.Int64Type,
 	"provider_name":             types.StringType,
-	"read_only_specs":           specsObjType,
+	"read_only_specs":           specsDSObjType,
 	"region_name":               types.StringType,
 }}
 
@@ -906,6 +911,24 @@ type TFSpecsModel struct {
 var specsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"disk_iops":       types.Int64Type,
 	"disk_size_gb":    types.Float64Type,
+	"ebs_volume_type": types.StringType,
+	"instance_size":   types.StringType,
+	"node_count":      types.Int64Type,
+}}
+
+type TFSpecsDSModel struct {
+	DiskSizeGb     types.Float64 `tfsdk:"disk_size_gb"`
+	EbsVolumeType  types.String  `tfsdk:"ebs_volume_type"`
+	InstanceSize   types.String  `tfsdk:"instance_size"`
+	DiskIops       types.Int64   `tfsdk:"disk_iops"`
+	DiskThroughput types.Int64   `tfsdk:"disk_throughput"`
+	NodeCount      types.Int64   `tfsdk:"node_count"`
+}
+
+var specsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"disk_iops":       types.Int64Type,
+	"disk_size_gb":    types.Float64Type,
+	"disk_throughput": types.Int64Type,
 	"ebs_volume_type": types.StringType,
 	"instance_size":   types.StringType,
 	"node_count":      types.Int64Type,
