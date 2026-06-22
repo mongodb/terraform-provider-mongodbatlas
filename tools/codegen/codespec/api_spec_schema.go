@@ -21,6 +21,8 @@ const (
 
 var ErrInvalidArraySemantic = errors.New("invalid " + arraySemanticExtensionKey + " value")
 
+const serverComputedImmutableExtensionKey = "x-xgen-server-computed-immutable"
+
 const serverComputedWhenClientOmittedExtensionKey = "x-xgen-server-computed-when-client-omitted"
 
 // DiscriminatorExtension represents the raw x-xgen-discriminator extension as declared in the OpenAPI spec.
@@ -122,6 +124,28 @@ func (s *APISpecSchema) GetXGenArraySemantic() (*string, error) {
 	}
 
 	return &value, nil
+}
+
+// GetXGenServerComputedImmutable reports whether the property is annotated with the
+// x-xgen-server-computed-immutable extension set to true. Returns false if the extension is absent
+// or cannot be decoded.
+func (s *APISpecSchema) GetXGenServerComputedImmutable() bool {
+	if s.Schema.Extensions == nil {
+		return false
+	}
+
+	node, ok := s.Schema.Extensions.Get(serverComputedImmutableExtensionKey)
+	if !ok || node == nil {
+		return false
+	}
+
+	var value bool
+	if err := node.Decode(&value); err != nil {
+		log.Printf("[WARN] Failed to decode %s extension: %s", serverComputedImmutableExtensionKey, err)
+		return false
+	}
+
+	return value
 }
 
 // GetXGenServerComputedWhenClientOmitted reports whether the property is annotated with the
