@@ -1,6 +1,6 @@
 # Example - MongoDB Atlas Federated Database Instance with Microsoft Azure Blob Storage and MongoDB Cluster as storage databases
 
-This project aims to provide an example of using [MongoDB Atlas Federated Database Instance](https://www.mongodb.com/docs/atlas/data-federation/overview/).
+This project aims to provide an example of using [MongoDB Atlas Federated Database Instance](https://www.mongodb.com/docs/atlas/data-federation/adf-overview/overview/).
 
 ## Dependencies
 
