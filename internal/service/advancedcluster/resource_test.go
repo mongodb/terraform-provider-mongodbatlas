@@ -3226,7 +3226,7 @@ func TestAccAdvancedCluster_gen2HighPerformanceDiskIops(t *testing.T) {
 	})
 }
 
-func TestAccAdvancedCluster_gen2ProvisionedDiskIops(t *testing.T) {
+func TestAccAdvancedCluster_gen1ProvisionedDiskIops(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 	)
