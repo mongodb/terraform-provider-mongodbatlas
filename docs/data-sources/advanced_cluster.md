@@ -244,10 +244,9 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 ### specs
 
-* `disk_iops` - Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. This parameter defaults to the cluster tier's standard IOPS value.
-* `ebs_volume_type` - Type of storage you want to attach to your AWS-provisioned cluster. 
-  * `STANDARD` volume types can't exceed the default IOPS rate for the selected volume size.
-  * `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.
+* `disk_iops` - Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. See the resource documentation for [`electable_specs`](../resources/advanced_cluster.md#electable_specs) for additional `disk_iops` configuration details.
+* `disk_throughput` - Target throughput desired for storage attached to this hardware. Returns only for Gen2 instance sizes with Standard (gp3) volume type.
+* `ebs_volume_type` - Type of storage attached to your AWS-provisioned cluster. See the resource documentation for [`electable_specs`](../resources/advanced_cluster.md#electable_specs) for additional `ebs_volume_type` configuration details.
 * `instance_size` - Hardware specification for the instance sizes in this region. 
 * `node_count` - Number of nodes of the given type for MongoDB Atlas to deploy to the region.
 * `disk_size_gb` - Storage capacity that the host's root volume possesses expressed in gigabytes. If disk size specified is below the minimum (10 GB), this parameter defaults to the minimum disk size value. Storage charge calculations depend on whether you choose the default value or a custom value.  The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
