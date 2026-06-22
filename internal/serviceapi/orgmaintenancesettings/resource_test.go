@@ -21,15 +21,15 @@ func TestAccOrgMaintenanceSettings_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithMode(orgID, "MANUAL"),
-				Check:  checkWithMode("MANUAL"),
+				Check:  checkWithMode(orgID, "MANUAL"),
+			},
+			{
+				Config:   configWithMode(orgID, "MANUAL"),
+				PlanOnly: true,
 			},
 			{
 				Config: configWithMode(orgID, "ENV_TAG_MAPPING"),
-				Check:  checkWithMode("ENV_TAG_MAPPING"),
-			},
-			{
-				Config: configEmpty(orgID),
-				Check:  checkEmpty(),
+				Check:  checkWithMode(orgID, "ENV_TAG_MAPPING"),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -38,6 +38,14 @@ func TestAccOrgMaintenanceSettings_basic(t *testing.T) {
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "org_id",
 				ImportStateVerifyIgnore:              []string{"wave_assignment_mode"},
+			},
+			{
+				Config: configEmpty(orgID),
+				Check:  checkEmpty(orgID),
+			},
+			{
+				Config:   configEmpty(orgID),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -60,18 +68,17 @@ func configEmpty(orgID string) string {
 	`, orgID)
 }
 
-func checkWithMode(waveAssignmentMode string) resource.TestCheckFunc {
-	checks := acc.AddAttrChecks(resourceName, nil, map[string]string{
-		"wave_assignment_mode": waveAssignmentMode,
-	})
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+func checkWithMode(orgID, waveAssignmentMode string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+		resource.TestCheckResourceAttr(resourceName, "wave_assignment_mode", waveAssignmentMode),
+	)
 }
 
-func checkEmpty() resource.TestCheckFunc {
+func checkEmpty(orgID string) resource.TestCheckFunc {
 	// When wave_assignment_mode is removed from config, the provider sends null to the API which resets it to the default (MANUAL).
-	// The field may be omitted from GET responses when maintenance sequencing is disabled for the org.
 	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+		resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 	)
 }
 
