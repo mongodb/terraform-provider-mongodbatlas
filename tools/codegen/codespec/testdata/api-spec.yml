@@ -527,6 +527,87 @@ paths:
       summary: Enable the Test Resource feature for a project
       tags:
         - Test Resource
+  "/api/atlas/v2/groups/{groupId}/testResourceArraySemantic":
+    get:
+      description: GET API description
+      operationId: getTestResourceArraySemantic
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/TestResourceArraySemantic"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Get the array-semantic test resource
+      tags:
+        - Test Resource
+    patch:
+      description: PATCH API description
+      operationId: updateTestResourceArraySemantic
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResourceArraySemantic"
+            x-xgen-version: 2023-01-01
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Update the array-semantic test resource
+      tags:
+        - Test Resource
+    post:
+      description: POST API description
+      operationId: createTestResourceArraySemantic
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResourceArraySemantic"
+            x-xgen-version: 2023-01-01
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Create the array-semantic test resource
+      tags:
+        - Test Resource
+    delete:
+      description: DELETE API description
+      operationId: deleteTestResourceArraySemantic
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Delete the array-semantic test resource
+      tags:
+        - Test Resource
   "/api/atlas/v2/groups/{groupId}/testResourceImmutable":
     get:
       description: GET API description
@@ -687,6 +768,91 @@ paths:
       security:
         - DigestAuth: []
       summary: Delete the server-computed test resource
+      tags:
+        - Test Resource
+  "/api/atlas/v2/groups/{groupId}/testResourceArraySemanticInvalidRequest":
+    get:
+      description: GET API description
+      operationId: getTestResourceArraySemanticInvalidRequest
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Get the invalid-request array-semantic test resource
+      tags:
+        - Test Resource
+    post:
+      description: POST API description
+      operationId: createTestResourceArraySemanticInvalidRequest
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResourceArraySemanticInvalid"
+            x-xgen-version: 2023-01-01
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Create the invalid-request array-semantic test resource
+      tags:
+        - Test Resource
+  "/api/atlas/v2/groups/{groupId}/testResourceArraySemanticInvalidResponse":
+    get:
+      description: GET API description
+      operationId: getTestResourceArraySemanticInvalidResponse
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/TestResourceArraySemanticInvalid"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Get the invalid-response array-semantic test resource
+      tags:
+        - Test Resource
+    post:
+      description: POST API description
+      operationId: createTestResourceArraySemanticInvalidResponse
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              type: object
+              properties:
+                stringAttr:
+                  type: string
+            x-xgen-version: 2023-01-01
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Create the invalid-response array-semantic test resource
       tags:
         - Test Resource
   "/api/atlas/v2/groups/{groupId}/testResourceImmutableGuard":
@@ -1605,6 +1771,53 @@ components:
         - listString2
         - setString
         - setString2
+    TestResourceArraySemantic:
+      type: object
+      properties:
+        defaultArray:
+          type: array
+          items:
+            type: string
+        setFromExtension:
+          type: array
+          x-xgen-array-semantic: set
+          items:
+            type: string
+        listFromExtension:
+          type: array
+          uniqueItems: true
+          x-xgen-array-semantic: list
+          items:
+            type: string
+        nestedSetFromExtension:
+          type: array
+          x-xgen-array-semantic: set
+          items:
+            type: object
+            properties:
+              innerAttr:
+                type: string
+        overriddenToList:
+          type: array
+          x-xgen-array-semantic: set
+          items:
+            type: string
+      required:
+        - defaultArray
+        - setFromExtension
+        - listFromExtension
+        - nestedSetFromExtension
+        - overriddenToList
+    TestResourceArraySemanticInvalid:
+      type: object
+      properties:
+        badArray:
+          type: array
+          x-xgen-array-semantic: unordered
+          items:
+            type: string
+      required:
+        - badArray
     TestResourceImmutable:
       type: object
       properties:

@@ -1,6 +1,8 @@
 package codespec
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"slices"
 
@@ -9,6 +11,15 @@ import (
 )
 
 const discriminatorExtensionKey = "x-xgen-discriminator"
+
+const arraySemanticExtensionKey = "x-xgen-array-semantic"
+
+const (
+	arraySemanticList = "list"
+	arraySemanticSet  = "set"
+)
+
+var ErrInvalidArraySemantic = errors.New("invalid " + arraySemanticExtensionKey + " value")
 
 const serverComputedImmutableExtensionKey = "x-xgen-server-computed-immutable"
 
@@ -88,6 +99,31 @@ func (s *APISpecSchema) GetXGenDiscriminator() *DiscriminatorExtension {
 	}
 
 	return &result
+}
+
+// GetXGenArraySemantic returns the declared array semantic ("list" or "set"), or nil if the
+// extension is absent. It returns an error wrapping ErrInvalidArraySemantic when the value is
+// malformed or not one of the allowed values, so generation fails wherever the property appears.
+func (s *APISpecSchema) GetXGenArraySemantic() (*string, error) {
+	if s.Schema.Extensions == nil {
+		return nil, nil
+	}
+
+	node, ok := s.Schema.Extensions.Get(arraySemanticExtensionKey)
+	if !ok || node == nil {
+		return nil, nil
+	}
+
+	var value string
+	if err := node.Decode(&value); err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrInvalidArraySemantic, err)
+	}
+
+	if value != arraySemanticList && value != arraySemanticSet {
+		return nil, fmt.Errorf("%w: %q, expected %q or %q", ErrInvalidArraySemantic, value, arraySemanticList, arraySemanticSet)
+	}
+
+	return &value, nil
 }
 
 // GetXGenServerComputedImmutable reports whether the property is annotated with the

@@ -1226,6 +1226,62 @@ func findAttr(attrs codespec.Attributes, tfSchemaName string) *codespec.Attribut
 	return nil
 }
 
+func TestConvertToProviderSpec_arraySemanticExtension(t *testing.T) {
+	resourceName := "test_resource_with_array_semantic"
+	result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+	require.NoError(t, err)
+	require.Len(t, result.Resources, 1)
+	attrs := result.Resources[0].Schema.Attributes
+
+	// plain array with no extension, format or uniqueItems defaults to a list
+	defaultArray := findAttr(attrs, "default_array")
+	require.NotNil(t, defaultArray)
+	assert.NotNil(t, defaultArray.List)
+	assert.Nil(t, defaultArray.Set)
+
+	// plain array, extension declares set → set
+	setFromExtension := findAttr(attrs, "set_from_extension")
+	require.NotNil(t, setFromExtension)
+	assert.NotNil(t, setFromExtension.Set)
+	assert.Nil(t, setFromExtension.List)
+
+	// uniqueItems heuristic would yield a set, but the extension wins → list
+	listFromExtension := findAttr(attrs, "list_from_extension")
+	require.NotNil(t, listFromExtension)
+	assert.NotNil(t, listFromExtension.List)
+	assert.Nil(t, listFromExtension.Set)
+
+	// extension declares set on an array of objects → nested set
+	nestedSetFromExtension := findAttr(attrs, "nested_set_from_extension")
+	require.NotNil(t, nestedSetFromExtension)
+	assert.NotNil(t, nestedSetFromExtension.SetNested)
+	assert.Nil(t, nestedSetFromExtension.ListNested)
+
+	// extension declares set, but the config.yml type override wins → list
+	overriddenToList := findAttr(attrs, "overridden_to_list")
+	require.NotNil(t, overriddenToList)
+	assert.NotNil(t, overriddenToList.List)
+	assert.Nil(t, overriddenToList.Set)
+}
+
+func TestConvertToProviderSpec_arraySemanticExtension_invalidValue(t *testing.T) {
+	tests := map[string]string{
+		// invalid value carried in a request body schema
+		"invalid value in request schema": "test_resource_array_semantic_invalid_request",
+		// invalid value carried only in a response body schema (validates sentinel propagation
+		// out of opResponseToAttributes, which is otherwise tolerant of mapping failures)
+		"invalid value in response schema": "test_resource_array_semantic_invalid_response",
+	}
+
+	for name, resourceName := range tests {
+		t.Run(name, func(t *testing.T) {
+			_, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+			require.ErrorIs(t, err, codespec.ErrInvalidArraySemantic)
+			assert.Contains(t, err.Error(), "x-xgen-array-semantic")
+		})
+	}
+}
+
 func TestConvertToProviderSpec_serverComputedImmutableExtension(t *testing.T) {
 	t.Run("readOnly fields get the flag, non-readOnly are ignored", func(t *testing.T) {
 		resourceName := "test_resource_with_immutable_computed"
