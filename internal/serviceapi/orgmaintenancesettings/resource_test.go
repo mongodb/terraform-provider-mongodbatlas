@@ -75,7 +75,8 @@ func checkWithMode(orgID, waveAssignmentMode string) resource.TestCheckFunc {
 }
 
 func checkEmpty(orgID string) resource.TestCheckFunc {
-	// When wave_assignment_mode is removed from config, the provider sends null to the API which resets it to the default (MANUAL).
+	// With Optional+Computed, removing wave_assignment_mode from config is a no-op.
+	// Once CLOUDP-415703 is resolved, the attribute will be Optional-only and removal will send null to the API, unsetting the value.
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 		resource.TestCheckResourceAttrSet(resourceName, "wave_assignment_mode"),
