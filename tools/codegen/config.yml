@@ -518,6 +518,8 @@ resources:
       path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
       method: PATCH
     delete:
+      # Custom reset method will be implemented as a follow-up once it's available in OpenAPI spec
+      # See CLOUDP-414476
       path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
       method: PATCH
       static_request_body: '{"waveAssignmentMode": null}'
