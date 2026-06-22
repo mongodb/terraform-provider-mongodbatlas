@@ -37,7 +37,6 @@ func TestAccOrgMaintenanceSettings_basic(t *testing.T) {
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "org_id",
-				ImportStateVerifyIgnore:              []string{"wave_assignment_mode"},
 			},
 			{
 				Config: configEmpty(orgID),
@@ -79,6 +78,7 @@ func checkEmpty(orgID string) resource.TestCheckFunc {
 	// When wave_assignment_mode is removed from config, the provider sends null to the API which resets it to the default (MANUAL).
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+		resource.TestCheckResourceAttrSet(resourceName, "wave_assignment_mode"),
 	)
 }
 
