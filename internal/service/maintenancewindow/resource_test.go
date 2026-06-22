@@ -16,6 +16,7 @@ import (
 )
 
 const resourceName = "mongodbatlas_maintenance_window.test"
+const dataSourceName = "data.mongodbatlas_maintenance_window.test"
 
 var (
 	defaultProtectedHours = &admin.ProtectedHours{
@@ -92,6 +93,8 @@ func TestAccConfigRSMaintenanceWindow_autoDeferActivated(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
 					resource.TestCheckResourceAttr(resourceName, "auto_defer_once_enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "time_zone_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "auto_defer_once_enabled", "true"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "time_zone_id"),
 				),
 			},
 		},
@@ -166,6 +169,9 @@ func configBasic(orgID, projectName string, dayOfWeek, hourOfDay int, protectedH
 			hour_of_day = %[4]d
 			%[5]s
 
+		}
+		data "mongodbatlas_maintenance_window" "test" {
+			project_id = mongodbatlas_maintenance_window.test.project_id
 		}`, orgID, projectName, dayOfWeek, hourOfDay, protectedHoursStr)
 }
 
@@ -180,6 +186,9 @@ func configWithAutoDeferEnabled(orgID, projectName string, dayOfWeek, hourOfDay 
 			day_of_week = %[3]d
 			hour_of_day = %[4]d
 			auto_defer_once_enabled = true
+		}
+		data "mongodbatlas_maintenance_window" "test" {
+			project_id = mongodbatlas_maintenance_window.test.project_id
 		}`, orgID, projectName, dayOfWeek, hourOfDay)
 }
 
@@ -201,6 +210,10 @@ func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "wave_assignment", "1"),
+					// effective_wave_assignment may not reflect the new value after a PATCH (see CLOUDP-414086).
+					// Once issue has been fixed, this check can be switched to assert the same value as wave_assignment.
+					resource.TestCheckResourceAttrSet(dataSourceName, "effective_wave_assignment"),
 				),
 			},
 			{
@@ -244,6 +257,9 @@ func configWithWave(orgID, projectName string, dayOfWeek, hourOfDay, waveAssignm
 			day_of_week     = %[3]d
 			hour_of_day     = %[4]d
 			wave_assignment = %[5]d
+		}
+		data "mongodbatlas_maintenance_window" "test" {
+			project_id = mongodbatlas_maintenance_window.test.project_id
 		}`, orgID, projectName, dayOfWeek, hourOfDay, waveAssignment)
 }
 
@@ -254,6 +270,9 @@ func checkBasic(dayOfWeek, hourOfDay int, protectedHours *admin.ProtectedHours) 
 		resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
 		resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
 		resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+		resource.TestCheckResourceAttr(dataSourceName, "day_of_week", cast.ToString(dayOfWeek)),
+		resource.TestCheckResourceAttr(dataSourceName, "hour_of_day", cast.ToString(hourOfDay)),
 	}
 	if protectedHours != nil {
 		checks = append(checks,
