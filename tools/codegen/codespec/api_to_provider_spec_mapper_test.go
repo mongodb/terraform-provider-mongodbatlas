@@ -1226,6 +1226,81 @@ func findAttr(attrs codespec.Attributes, tfSchemaName string) *codespec.Attribut
 	return nil
 }
 
+func TestConvertToProviderSpec_serverComputedImmutableExtension(t *testing.T) {
+	t.Run("readOnly fields get the flag, non-readOnly are ignored", func(t *testing.T) {
+		resourceName := "test_resource_with_immutable_computed"
+		result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+		require.NoError(t, err)
+		require.Len(t, result.Resources, 1)
+		attrs := result.Resources[0].Schema.Attributes
+
+		// readOnly + extension → computed with the immutable plan modifier flag
+		fingerprint := findAttr(attrs, "fingerprint")
+		require.NotNil(t, fingerprint)
+		assert.Equal(t, codespec.Computed, fingerprint.ComputedOptionalRequired)
+		assert.True(t, fingerprint.ImmutableComputed)
+
+		// extension on a non-readOnly property is ignored
+		nonReadonly := findAttr(attrs, "non_readonly_immutable")
+		require.NotNil(t, nonReadonly)
+		assert.False(t, nonReadonly.ImmutableComputed)
+
+		// extension applies to nested readOnly properties and survives the merge
+		innerFingerprint := findAttr(attrs, "inner_fingerprint")
+		require.NotNil(t, innerFingerprint)
+		assert.Equal(t, codespec.Computed, innerFingerprint.ComputedOptionalRequired)
+		assert.True(t, innerFingerprint.ImmutableComputed)
+
+		// data source attributes never carry the resource-only plan modifier flag
+		require.NotNil(t, result.Resources[0].DataSources)
+		require.NotNil(t, result.Resources[0].DataSources.Singular)
+		dsFingerprint := findAttr(result.Resources[0].DataSources.Singular.Attributes, "fingerprint")
+		require.NotNil(t, dsFingerprint)
+		assert.False(t, dsFingerprint.ImmutableComputed)
+	})
+
+	t.Run("flag is dropped when the attribute does not resolve to computed", func(t *testing.T) {
+		// groupId is a required path param that also appears as a readOnly property carrying the
+		// extension in the response; the guard must clear the flag since it resolves to required.
+		resourceName := "test_resource_immutable_guard"
+		result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+		require.NoError(t, err)
+		require.Len(t, result.Resources, 1)
+
+		groupID := findAttr(result.Resources[0].Schema.Attributes, "group_id")
+		require.NotNil(t, groupID)
+		assert.Equal(t, codespec.Required, groupID.ComputedOptionalRequired)
+		assert.False(t, groupID.ImmutableComputed)
+	})
+
+	t.Run("config immutable_computed override wins over extension", func(t *testing.T) {
+		resourceName := "test_resource_immutable_config_override"
+		result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+		require.NoError(t, err)
+		require.Len(t, result.Resources, 1)
+
+		fingerprint := findAttr(result.Resources[0].Schema.Attributes, "fingerprint")
+		require.NotNil(t, fingerprint)
+		// extension would set the flag, but the config override forces it off
+		assert.False(t, fingerprint.ImmutableComputed)
+	})
+
+	t.Run("flag is kept when the attribute resolves to computed_optional", func(t *testing.T) {
+		// cfgField is an optional request field with a default (computed_optional) that is also a
+		// readOnly property carrying the extension in the response; the guard must keep the flag
+		// because the attribute resolves to computed_optional, not required/optional.
+		resourceName := "test_resource_immutable_computed_optional"
+		result, err := codespec.ToCodeSpecModel(testDataAPISpecPath, testDataConfigPath, &resourceName, nil)
+		require.NoError(t, err)
+		require.Len(t, result.Resources, 1)
+
+		cfgField := findAttr(result.Resources[0].Schema.Attributes, "cfg_field")
+		require.NotNil(t, cfgField)
+		assert.Equal(t, codespec.ComputedOptional, cfgField.ComputedOptionalRequired)
+		assert.True(t, cfgField.ImmutableComputed)
+	})
+}
+
 func TestConvertToProviderSpec_serverComputedWhenClientOmittedExtension(t *testing.T) {
 	t.Run("extension maps optional fields to computed_optional and is ignored on required", func(t *testing.T) {
 		resourceName := "test_resource_with_server_computed"

@@ -89,6 +89,64 @@ resources:
         set_string2:
           type: set # no-op, attribute already has the target type
 
+  test_resource_with_immutable_computed:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceImmutable
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceImmutable
+      method: GET
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResourceImmutable
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResourceImmutable
+      method: DELETE
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/testResourceImmutable
+        method: GET
+
+  test_resource_immutable_config_override:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceImmutable
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceImmutable
+      method: GET
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResourceImmutable
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResourceImmutable
+      method: DELETE
+    schema:
+      overrides:
+        fingerprint:
+          immutable_computed: false
+
+  test_resource_immutable_guard:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceImmutableGuard
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceImmutableGuard
+      method: GET
+
+  test_resource_immutable_computed_optional:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceImmutableComputedOptional
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceImmutableComputedOptional
+      method: GET
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResourceImmutableComputedOptional
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResourceImmutableComputedOptional
+      method: DELETE
+
   test_resource_with_server_computed:
     create:
       path: /api/atlas/v2/groups/{groupId}/testResourceServerComputed
