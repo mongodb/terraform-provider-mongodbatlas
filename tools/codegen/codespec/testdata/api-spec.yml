@@ -608,6 +608,87 @@ paths:
       summary: Delete the immutable-computed test resource
       tags:
         - Test Resource
+  "/api/atlas/v2/groups/{groupId}/testResourceServerComputed":
+    get:
+      description: GET API description
+      operationId: getTestResourceServerComputed
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/TestResourceServerComputed"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Get the server-computed test resource
+      tags:
+        - Test Resource
+    patch:
+      description: PATCH API description
+      operationId: updateTestResourceServerComputed
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResourceServerComputed"
+            x-xgen-version: 2023-01-01
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Update the server-computed test resource
+      tags:
+        - Test Resource
+    post:
+      description: POST API description
+      operationId: createTestResourceServerComputed
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResourceServerComputed"
+            x-xgen-version: 2023-01-01
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Create the server-computed test resource
+      tags:
+        - Test Resource
+    delete:
+      description: DELETE API description
+      operationId: deleteTestResourceServerComputed
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Delete the server-computed test resource
+      tags:
+        - Test Resource
   "/api/atlas/v2/groups/{groupId}/testResourceImmutableGuard":
     get:
       description: GET API description
@@ -1570,6 +1651,24 @@ components:
           type: string
           readOnly: true
           x-xgen-server-computed-immutable: true
+    TestResourceServerComputed:
+      type: object
+      properties:
+        computedWhenOmitted:
+          type: string
+          x-xgen-server-computed-when-client-omitted: true
+        requiredComputedWhenOmitted:
+          type: string
+          x-xgen-server-computed-when-client-omitted: true
+        nestedObject:
+          type: object
+          properties:
+            innerComputedWhenOmitted:
+              type: string
+              x-xgen-server-computed-when-client-omitted: true
+      required:
+        - requiredComputedWhenOmitted
+        - nestedObject
     SimpleTestResource:
       type: object
       properties:

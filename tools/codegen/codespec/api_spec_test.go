@@ -175,3 +175,46 @@ func TestGetXGenServerComputedImmutable(t *testing.T) {
 		})
 	}
 }
+
+func TestGetXGenServerComputedWhenClientOmitted(t *testing.T) {
+	tests := map[string]struct {
+		schemaDefinition string
+		expected         bool
+	}{
+		"absent extension returns false": {
+			schemaDefinition: `      type: string`,
+			expected:         false,
+		},
+		"true value": {
+			schemaDefinition: `      type: string
+      x-xgen-server-computed-when-client-omitted: true`,
+			expected: true,
+		},
+		"false value": {
+			schemaDefinition: `      type: string
+      x-xgen-server-computed-when-client-omitted: false`,
+			expected: false,
+		},
+		"non-boolean value returns false": {
+			schemaDefinition: `      type: string
+      x-xgen-server-computed-when-client-omitted: maybe`,
+			expected: false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			openAPIDoc := fmt.Sprintf(openAPIDocTemplate, tc.schemaDefinition)
+			doc, err := libopenapi.NewDocument([]byte(openAPIDoc))
+			require.NoError(t, err)
+			model, err := doc.BuildV3Model()
+			require.NoError(t, err)
+			schemaProxy := model.Model.Components.Schemas.GetOrZero("TestSchema")
+			require.NotNil(t, schemaProxy)
+			result, err := codespec.BuildSchema(schemaProxy)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.expected, result.GetXGenServerComputedWhenClientOmitted())
+		})
+	}
+}

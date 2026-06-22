@@ -147,6 +147,40 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/testResourceImmutableComputedOptional
       method: DELETE
 
+  test_resource_with_server_computed:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceServerComputed
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceServerComputed
+      method: GET
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResourceServerComputed
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResourceServerComputed
+      method: DELETE
+
+  test_resource_server_computed_config_override:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceServerComputed
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceServerComputed
+      method: GET
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResourceServerComputed
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResourceServerComputed
+      method: DELETE
+    schema:
+      overrides:
+        computed_when_omitted:
+          computability:
+            optional: true
+            computed: false
+
   test_dynamic_json_properties:
     create:
       path: /api/atlas/v2/dynamicJsonProperties
