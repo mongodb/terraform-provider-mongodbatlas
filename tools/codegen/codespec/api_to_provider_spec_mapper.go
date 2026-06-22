@@ -315,8 +315,7 @@ func queryParamsToAttributes(op *high.Operation) (Attributes, error) {
 		s.Schema.Description = param.Description
 		parameterAttribute, err := s.buildResourceAttr(paramName, "", Optional, false)
 		if err != nil {
-			// A malformed declarative-tooling extension must fail generation; other mapping failures
-			// stay tolerant (warn and drop) to preserve existing behavior.
+			// Hard-fail generation on malformed extensions; other mapping failures stay tolerant.
 			if errors.Is(err, ErrInvalidArraySemantic) {
 				return nil, fmt.Errorf("query param %s could not be mapped: %w", paramName, err)
 			}
@@ -357,8 +356,7 @@ func opResponseToAttributes(op *high.Operation, configuredVersion *string) (Attr
 	}
 	responseAttributes, err := buildResourceAttrs(responseSchema, "", false)
 	if err != nil {
-		// A malformed declarative-tooling extension must fail generation wherever it appears; other
-		// mapping failures stay tolerant (warn and drop) to preserve existing behavior.
+		// Hard-fail generation on malformed extensions; other mapping failures stay tolerant.
 		if errors.Is(err, ErrInvalidArraySemantic) {
 			return nil, nil, fmt.Errorf("response attributes could not be mapped (OperationId: %s): %w", op.OperationId, err)
 		}
