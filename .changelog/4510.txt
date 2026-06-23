@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_maintenance_window: Adds `wave_assignment` field to control which maintenance wave a project belongs to within the org-level maintenance window schedule
+```

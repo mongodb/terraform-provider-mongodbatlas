@@ -1,0 +1,7 @@
+```release-note:enhancement
+data-source/mongodbatlas_advanced_cluster: Adds `disk_throughput` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_clusters: Adds `disk_throughput` attribute
+```
