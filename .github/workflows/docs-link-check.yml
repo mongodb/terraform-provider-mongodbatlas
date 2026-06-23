@@ -2,9 +2,8 @@ name: 'Docs Link Check'
 
 on:
   pull_request:
-  # TODO: CLOUDP-381694 Enable nightly cron once broken link fixes land in the follow-up PR
-  # schedule:
-  #   - cron: '0 4 * * *'
+  schedule:
+    - cron: '0 4 * * *'
   workflow_dispatch:
     inputs:
       mode:
@@ -26,6 +25,17 @@ jobs:
         uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411
         with:
           args: --offline --include-fragments --config ./lychee.toml .
+      - name: Check canonical MongoDB docs domains
+        run: |
+          exit_code=0
+          git grep -nE 'https?://(docs\.(atlas\.)?mongodb\.com|dochub\.mongodb\.org)' -- '*.md' ':!CHANGELOG.md' ':!.changelog/**' ':!compliance/**' || exit_code=$?
+          if [ "$exit_code" -eq 0 ]; then
+            echo "::error::Legacy MongoDB docs domains found. Use https://www.mongodb.com/docs/... links instead."
+            exit 1
+          elif [ "$exit_code" -ne 1 ]; then
+            echo "::error::git grep failed unexpectedly (exit $exit_code)"
+            exit "$exit_code"
+          fi
 
   online-changed:
     if: github.event_name == 'pull_request'

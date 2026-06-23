@@ -177,9 +177,9 @@ resource "mongodbatlas_federated_database_instance" "test" {
 * `data_process_region` - (Optional) The cloud provider region to which the Federated Instance routes client connections for data processing.
   * `data_process_region.cloud_provider` - (Required) Name of the cloud service provider. Supported providers: `AWS`, `AZURE`.
   * `data_process_region.region` - (Required) Name of the region to which the Federated Instance routes client connections for data processing. See the [documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createFederatedDatabase) for the available region.
-* `storage_databases` - Configuration details for mapping each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [databases](https://www.mongodb.com/docs/atlas/data-federation/config/config-oa/#databases). An empty object indicates that the Federated Database Instance has no mapping configuration for any data store.
+* `storage_databases` - Configuration details for mapping each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [databases](https://www.mongodb.com/docs/atlas/data-federation/config/config-data-stores/). An empty object indicates that the Federated Database Instance has no mapping configuration for any data store.
   * `storage_databases.#.name` - Name of the database to which the Federated Database Instance maps the data contained in the data store.
-  * `storage_databases.#.collections` -     Array of objects where each object represents a collection and data sources that map to a [stores](https://www.mongodb.com/docs/atlas/data-federation/config/config-oa/#stores) data store.
+  * `storage_databases.#.collections` -     Array of objects where each object represents a collection and data sources that map to a [stores](https://www.mongodb.com/docs/atlas/data-federation/config/config-data-stores/) data store.
     * `storage_databases.#.collections.#.name` - Name of the collection.
       * `storage_databases.#.collections.#.data_sources` -     Array of objects where each object represents a stores data store to map with the collection.
         * `storage_databases.#.collections.#.data_sources.#.store_name` -     Name of a data store to map to the `<collection>`. Must match the name of an object in the stores array.
@@ -198,7 +198,7 @@ resource "mongodbatlas_federated_database_instance" "test" {
     * `storage_databases.#.views.#.name` - Name of the view.
     * `storage_databases.#.views.#.source` -  Name of the source collection for the view.
     * `storage_databases.#.views.#.pipeline`- Aggregation pipeline stage(s) to apply to the source collection.
-* `storage_stores` - Each object in the array represents a data store. Federated Database uses the storage.databases configuration details to map data in each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [stores](https://www.mongodb.com/docs/atlas/data-federation/config/config-oa/#stores). An empty object indicates that the Federated Database Instance has no configured data stores.
+* `storage_stores` - Each object in the array represents a data store. Federated Database uses the storage.databases configuration details to map data in each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [stores](https://www.mongodb.com/docs/atlas/data-federation/config/config-data-stores/). An empty object indicates that the Federated Database Instance has no configured data stores.
   * `storage_stores.#.name` - Name of the data store.
   * `storage_stores.#.provider` - Defines where the data is stored.
   * `storage_stores.#.region` - Name of the AWS region in which the S3 bucket is hosted.

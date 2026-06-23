@@ -336,7 +336,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			"labels": schema.MapAttribute{
 				ElementType:         types.StringType,
 				Optional:            true,
-				MarkdownDescription: "Map of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.\n\nCluster labels are deprecated and will be removed in a future release. We strongly recommend that you use [resource tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas) instead.",
+				MarkdownDescription: "Map of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.\n\nCluster labels are deprecated and will be removed in a future release. We strongly recommend that you use [resource tags](https://www.mongodb.com/docs/atlas/tags/) instead.",
 			},
 			"tags": schema.MapAttribute{
 				ElementType:         types.StringType,
