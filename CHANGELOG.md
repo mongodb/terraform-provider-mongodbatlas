@@ -2,9 +2,12 @@
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_advanced_cluster: Adds `adaptive_capacity` attribute ([#4452](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4452))
 * data-source/mongodbatlas_advanced_cluster: Adds `disk_throughput` attribute ([#4453](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4453))
+* data-source/mongodbatlas_advanced_clusters: Adds `adaptive_capacity` attribute ([#4452](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4452))
 * data-source/mongodbatlas_advanced_clusters: Adds `disk_throughput` attribute ([#4453](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4453))
 * data-source/mongodbatlas_service_account_project_assignments: Adds `roles` attribute in `results` ([#4502](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4502))
+* resource/mongodbatlas_advanced_cluster: Adds `adaptive_capacity` attribute ([#4452](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4452))
 * resource/mongodbatlas_advanced_cluster: Adds support for Gen 2 instance sizes ([#4524](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4524))
 * resource/mongodbatlas_database_user: Removes incorrect warning emitted on every resource creation regardless of authentication type ([#4443](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4443))
 * resource/mongodbatlas_project: Reduces plan verbosity by avoiding `(known after apply)` on `region_usage_restrictions`, which remains stable after project creation ([#4455](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4455))

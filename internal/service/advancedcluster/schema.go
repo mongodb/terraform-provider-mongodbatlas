@@ -305,6 +305,10 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether time-based snapshot copies will be used instead of slower standard snapshot copies during fast Atlas cross-region initial syncs. This flag is only relevant for clusters containing AWS nodes.",
 			},
+			"adaptive_capacity": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Governs adaptive capacity behavior of Azure nodes in single-cloud Azure clusters or multi-cloud clusters that include Azure nodes. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. `ENABLED` means the cluster explicitly opts in to adaptive capacity. `DISABLED` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. `null` means the field is unset; Azure clusters use adaptive capacity by default when the feature is enabled at the group level. Setting this field for single-cloud AWS or GCP clusters is a no-op.",
+			},
 			"version_release_system": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
@@ -678,11 +682,11 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 }
 
 type TFModel struct {
-	Labels                                        types.Map      `tfsdk:"labels"`
 	ReplicationSpecs                              types.List     `tfsdk:"replication_specs"`
+	Labels                                        types.Map      `tfsdk:"labels"`
 	Tags                                          types.Map      `tfsdk:"tags"`
-	StateName                                     types.String   `tfsdk:"state_name"`
-	ConnectionStrings                             types.Object   `tfsdk:"connection_strings"`
+	BiConnectorConfig                             types.Object   `tfsdk:"bi_connector_config"`
+	ClusterType                                   types.String   `tfsdk:"cluster_type"`
 	CreateDate                                    types.String   `tfsdk:"create_date"`
 	AcceptDataRisksAndForceReplicaSetReconfig     types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
 	EncryptionAtRestProvider                      types.String   `tfsdk:"encryption_at_rest_provider"`
@@ -694,14 +698,14 @@ type TFModel struct {
 	MongoDBVersion                                types.String   `tfsdk:"mongo_db_version"`
 	Name                                          types.String   `tfsdk:"name"`
 	VersionReleaseSystem                          types.String   `tfsdk:"version_release_system"`
-	BiConnectorConfig                             types.Object   `tfsdk:"bi_connector_config"`
+	StateName                                     types.String   `tfsdk:"state_name"`
+	ConnectionStrings                             types.Object   `tfsdk:"connection_strings"`
 	ConfigServerType                              types.String   `tfsdk:"config_server_type"`
-	ReplicaSetScalingStrategy                     types.String   `tfsdk:"replica_set_scaling_strategy"`
-	ClusterType                                   types.String   `tfsdk:"cluster_type"`
-	RootCertType                                  types.String   `tfsdk:"root_cert_type"`
 	AdvancedConfiguration                         types.Object   `tfsdk:"advanced_configuration"`
+	RootCertType                                  types.String   `tfsdk:"root_cert_type"`
+	ReplicaSetScalingStrategy                     types.String   `tfsdk:"replica_set_scaling_strategy"`
 	PinnedFCV                                     types.Object   `tfsdk:"pinned_fcv"`
-	TerminationProtectionEnabled                  types.Bool     `tfsdk:"termination_protection_enabled"`
+	AdaptiveCapacity                              types.String   `tfsdk:"adaptive_capacity"`
 	Paused                                        types.Bool     `tfsdk:"paused"`
 	RetainBackupsEnabled                          types.Bool     `tfsdk:"retain_backups_enabled"`
 	BackupEnabled                                 types.Bool     `tfsdk:"backup_enabled"`
@@ -711,15 +715,16 @@ type TFModel struct {
 	UseAwsTimeBasedSnapshotCopyForFastInitialSync types.Bool     `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
 	DeleteOnCreateTimeout                         types.Bool     `tfsdk:"delete_on_create_timeout"`
 	UseEffectiveFields                            types.Bool     `tfsdk:"use_effective_fields"`
+	TerminationProtectionEnabled                  types.Bool     `tfsdk:"termination_protection_enabled"`
 }
 
 // TFModelDS differs from TFModel: removes resource-only fields like timeouts, accept_data_risks_and_force_replica_set_reconfig, retain_backups_enabled
 type TFModelDS struct {
-	Labels                                        types.Map    `tfsdk:"labels"`
 	ReplicationSpecs                              types.List   `tfsdk:"replication_specs"`
+	Labels                                        types.Map    `tfsdk:"labels"`
 	Tags                                          types.Map    `tfsdk:"tags"`
-	ReplicaSetScalingStrategy                     types.String `tfsdk:"replica_set_scaling_strategy"`
-	Name                                          types.String `tfsdk:"name"`
+	MongoDBVersion                                types.String `tfsdk:"mongo_db_version"`
+	EncryptionAtRestProvider                      types.String `tfsdk:"encryption_at_rest_provider"`
 	AdvancedConfiguration                         types.Object `tfsdk:"advanced_configuration"`
 	BiConnectorConfig                             types.Object `tfsdk:"bi_connector_config"`
 	RootCertType                                  types.String `tfsdk:"root_cert_type"`
@@ -729,14 +734,14 @@ type TFModelDS struct {
 	VersionReleaseSystem                          types.String `tfsdk:"version_release_system"`
 	ConnectionStrings                             types.Object `tfsdk:"connection_strings"`
 	StateName                                     types.String `tfsdk:"state_name"`
-	MongoDBVersion                                types.String `tfsdk:"mongo_db_version"`
+	ReplicaSetScalingStrategy                     types.String `tfsdk:"replica_set_scaling_strategy"`
 	CreateDate                                    types.String `tfsdk:"create_date"`
-	EncryptionAtRestProvider                      types.String `tfsdk:"encryption_at_rest_provider"`
+	Name                                          types.String `tfsdk:"name"`
 	ProjectID                                     types.String `tfsdk:"project_id"`
 	ClusterID                                     types.String `tfsdk:"cluster_id"`
 	ConfigServerManagementMode                    types.String `tfsdk:"config_server_management_mode"`
 	PinnedFCV                                     types.Object `tfsdk:"pinned_fcv"`
-	RedactClientLogData                           types.Bool   `tfsdk:"redact_client_log_data"`
+	AdaptiveCapacity                              types.String `tfsdk:"adaptive_capacity"`
 	GlobalClusterSelfManagedSharding              types.Bool   `tfsdk:"global_cluster_self_managed_sharding"`
 	BackupEnabled                                 types.Bool   `tfsdk:"backup_enabled"`
 	Paused                                        types.Bool   `tfsdk:"paused"`
@@ -744,6 +749,7 @@ type TFModelDS struct {
 	PitEnabled                                    types.Bool   `tfsdk:"pit_enabled"`
 	UseAwsTimeBasedSnapshotCopyForFastInitialSync types.Bool   `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
 	UseEffectiveFields                            types.Bool   `tfsdk:"use_effective_fields"`
+	RedactClientLogData                           types.Bool   `tfsdk:"redact_client_log_data"`
 }
 
 type TFModelPluralDS struct {

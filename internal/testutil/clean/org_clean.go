@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250312020/admin"
+	"go.mongodb.org/atlas-sdk/v20250312021/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
@@ -42,8 +42,9 @@ func RemoveStreamInstances(ctx context.Context, dryRun bool, client *admin.APICl
 					return 0, SkipUnauthorizedErr(spResp, spErr)
 				}
 
-				for _, processor := range streamProcessors.GetResults() {
-					_, err = client.StreamsApi.DeleteStreamProcessor(ctx, projectID, instanceName, processor.Name).Execute()
+				processors := streamProcessors.GetResults()
+				for i := range processors {
+					_, err = client.StreamsApi.DeleteStreamProcessor(ctx, projectID, instanceName, processors[i].Name).Execute()
 					if err != nil {
 						return 0, err
 					}

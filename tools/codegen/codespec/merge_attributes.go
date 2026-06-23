@@ -65,6 +65,9 @@ func updateAttrWithNewSource(existingAttr, newAttr *Attribute, reqBodyUsage Attr
 		existingAttr.Description = newAttr.Description
 	}
 
+	// the immutable-computed signal can be declared on any source for the property; preserve it if any source set it
+	existingAttr.ImmutableComputed = existingAttr.ImmutableComputed || newAttr.ImmutableComputed
+
 	// when property is in both request and response values computablity and reqBodyUsage will ignore information from response
 	if !isFromResponse {
 		existingAttr.ReqBodyUsage = reqBodyUsage
@@ -181,6 +184,13 @@ func updateNestedComputabilityAndReqBodyUsage(attrs *Attributes, parentIsCompute
 			attr.ReqBodyUsage = OmitAlways
 		}
 
+		// the immutable-computed plan modifier is only meaningful for computed or computed_optional
+		// attributes; drop it if the attribute ultimately resolved to required/optional (e.g. also a
+		// required path param)
+		if attr.ImmutableComputed && attr.ComputedOptionalRequired != Computed && attr.ComputedOptionalRequired != ComputedOptional {
+			attr.ImmutableComputed = false
+		}
+
 		attrIsComputed := attr.ComputedOptionalRequired == Computed
 		attrIsOmittedInReqBody := attr.ReqBodyUsage == OmitAlways
 
@@ -258,6 +268,8 @@ func mergeDataSourceAttributes(params, responseAttrs Attributes, aliases map[str
 func setAttributeComputedRecursive(attr *Attribute) {
 	attr.ComputedOptionalRequired = Computed
 	attr.ReqBodyUsage = OmitAlways
+	// the immutable-computed plan modifier is resource-only; data source schemas never emit plan modifiers
+	attr.ImmutableComputed = false
 
 	if nested := attr.NestedObject(); nested != nil {
 		for i := range nested.Attributes {
