@@ -595,6 +595,8 @@ go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0 h1:d/gbYJ+obR0EM/3DZf7+ZM
 go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0/go.mod h1:O47ZrMMfcWb31wznNIq2PQkkdoFoK0ea2GlmRqGJC2s=
 go.mongodb.org/atlas-sdk/v20241113005 v20241113005.0.0 h1:aaU2E4rtzYXuEDxv9MoSON2gOEAA9M2gsDf2CqjcGj8=
 go.mongodb.org/atlas-sdk/v20241113005 v20241113005.0.0/go.mod h1:eV9REWR36iVMrpZUAMZ5qPbXEatoVfmzwT+Ue8yqU+U=
+go.mongodb.org/atlas-sdk/v20250312020 v20250312020.1.0 h1:Ba+iX5yraZiwXGs6mCyjWxMDbs5bC7kLGYpHu3R8RGM=
+go.mongodb.org/atlas-sdk/v20250312020 v20250312020.1.0/go.mod h1:8OGHqMpalr/OTRHA9kjSSg2EKfig5lrNEeNaVYphYYo=
 go.mongodb.org/atlas-sdk/v20250312021 v20250312021.0.0 h1:bZYcZVnXNr7QO6uIRawTMxmEk2otUY4U3JC57DfKHgw=
 go.mongodb.org/atlas-sdk/v20250312021 v20250312021.0.0/go.mod h1:zp4x/Ub4/nYjlMRSSVd+IRr5AgZDE+tmBtRcTpNEPs4=
 go.mongodb.org/realm v0.1.0 h1:zJiXyLaZrznQ+Pz947ziSrDKUep39DO4SfA0Fzx8M4M=
