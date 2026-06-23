@@ -3115,6 +3115,131 @@ func TestAccAdvancedCluster_useAwsTimeBasedSnapshotCopy_nonAWSError(t *testing.T
 	})
 }
 
+func TestAccAdvancedCluster_adaptiveCapacity(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:            configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), true, "AZURE", "US_EAST_2"), // create
+				Check:             checkAdaptiveCapacity(new("ENABLED"), true),
+				ConfigStateChecks: pluralAdaptiveCapacityChecks(clusterName, new("ENABLED")),
+			},
+			{
+				Config:            configAdaptiveCapacity(projectID, clusterName, new("DISABLED"), true, "AZURE", "US_EAST_2"), // AC only change
+				Check:             checkAdaptiveCapacity(new("DISABLED"), true),
+				ConfigStateChecks: pluralAdaptiveCapacityChecks(clusterName, new("DISABLED")),
+			},
+			{
+				Config:            configAdaptiveCapacity(projectID, clusterName, nil, true, "AZURE", "US_EAST_2"), // AC remove only
+				Check:             checkAdaptiveCapacity(nil, true),
+				ConfigStateChecks: pluralAdaptiveCapacityChecks(clusterName, nil),
+			},
+			{
+				Config:            configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), false, "AZURE", "US_EAST_2"), // AC set-from-null + tag change
+				Check:             checkAdaptiveCapacity(new("ENABLED"), false),
+				ConfigStateChecks: pluralAdaptiveCapacityChecks(clusterName, new("ENABLED")),
+			},
+			{
+				Config:            configAdaptiveCapacity(projectID, clusterName, nil, true, "AZURE", "US_EAST_2"), // AC remove + tag change
+				Check:             checkAdaptiveCapacity(nil, true),
+				ConfigStateChecks: pluralAdaptiveCapacityChecks(clusterName, nil),
+			},
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
+// TestAccAdvancedCluster_adaptiveCapacityAWS verifies that adaptive_capacity can be set on AWS clusters.
+// Atlas silently ignores the value for non-Azure providers, but Terraform must still accept and persist it.
+func TestAccAdvancedCluster_adaptiveCapacityAWS(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:            configAdaptiveCapacity(projectID, clusterName, new("ENABLED"), false, "AWS", "US_EAST_1"),
+				Check:             checkAdaptiveCapacity(new("ENABLED"), false),
+				ConfigStateChecks: pluralAdaptiveCapacityChecks(clusterName, new("ENABLED")),
+			},
+		},
+	})
+}
+
+func configAdaptiveCapacity(projectID, name string, value *string, addTags bool, providerName, regionName string) string {
+	var extraAttrs string
+	if value != nil {
+		extraAttrs += fmt.Sprintf("adaptive_capacity = %q\n", *value)
+	}
+	if addTags {
+		extraAttrs += `tags = { "env" = "test" }` + "\n"
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = "REPLICASET"
+			%[3]s
+
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					provider_name = %[4]q
+					priority      = 7
+					region_name   = %[5]q
+				}]
+			}]
+		}
+	`, projectID, name, extraAttrs, providerName, regionName) + dataSourcesConfig
+}
+
+func pluralAdaptiveCapacityChecks(clusterName string, value *string) []statecheck.StateCheck {
+	var acCheck knownvalue.Check = knownvalue.Null()
+	if value != nil {
+		acCheck = knownvalue.StringExact(*value)
+	}
+	return []statecheck.StateCheck{
+		acc.PluralResultCheck(dataSourcePluralName, "name", knownvalue.StringExact(clusterName), map[string]knownvalue.Check{
+			"adaptive_capacity": acCheck,
+		}),
+	}
+}
+
+func checkAdaptiveCapacity(value *string, addTags bool) resource.TestCheckFunc {
+	attrName := "adaptive_capacity"
+	checks := []resource.TestCheckFunc{acc.CheckExistsCluster(resourceName)}
+	if value == nil {
+		checks = append(checks,
+			resource.TestCheckNoResourceAttr(resourceName, attrName),
+			resource.TestCheckNoResourceAttr(dataSourceName, attrName),
+		)
+	} else {
+		checks = append(checks,
+			resource.TestCheckResourceAttr(resourceName, attrName, *value),
+			resource.TestCheckResourceAttr(dataSourceName, attrName, *value),
+		)
+	}
+	if addTags {
+		checks = append(checks, resource.TestCheckResourceAttr(resourceName, "tags.env", "test"))
+	} else {
+		checks = append(checks, resource.TestCheckNoResourceAttr(resourceName, "tags.env"))
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
 func configUseAwsTimeBasedSnapshotCopy(projectID, name string, value bool, providerName, regionName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {

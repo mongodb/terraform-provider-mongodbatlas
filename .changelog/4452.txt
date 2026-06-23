@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_advanced_cluster: Adds `adaptive_capacity` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_cluster: Adds `adaptive_capacity` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_clusters: Adds `adaptive_capacity` attribute
+```
