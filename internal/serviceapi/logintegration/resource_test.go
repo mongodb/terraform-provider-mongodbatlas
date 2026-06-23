@@ -41,6 +41,7 @@ var (
 
 type s3Config struct {
 	kmsKey            *string
+	useLegacyPath     *bool
 	bucketName        string
 	bucketPolicyName  string
 	iamRoleName       string
@@ -75,6 +76,7 @@ func TestAccLogIntegration_basicS3(t *testing.T) {
 		awsIAMRoleName       = acc.RandomIAMRole()
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 		kmsKey               = os.Getenv("AWS_KMS_KEY_ID")
+		useLegacyPath        = true
 		withDS               = true
 	)
 
@@ -85,19 +87,19 @@ func TestAccLogIntegration_basicS3(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasicS3(projectID, logTypesMongoD, &s3Config{nil, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, withDS),
-				Check:  checkBasicS3(logTypesMongoD, s3BucketName, prefixPath, withDS),
+				Config: configBasicS3(projectID, logTypesMongoD, &s3Config{nil, nil, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, withDS),
+				Check:  checkBasicS3(logTypesMongoD, s3BucketName, prefixPath, !useLegacyPath, withDS),
 			},
 			{
-				Config: configBasicS3(projectID, logTypesAll, &s3Config{&kmsKey, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, !withDS),
-				Check:  checkBasicS3(logTypesAll, s3BucketName, prefixPath, !withDS),
+				Config: configBasicS3(projectID, logTypesAll, &s3Config{&kmsKey, new(useLegacyPath), s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, !withDS),
+				Check:  checkBasicS3(logTypesAll, s3BucketName, prefixPath, useLegacyPath, !withDS),
 			},
 			{
-				Config: configBasicS3(projectID, logTypesMongoS, &s3Config{nil, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, !withDS),
-				Check:  checkBasicS3(logTypesMongoS, s3BucketName, prefixPath, !withDS),
+				Config: configBasicS3(projectID, logTypesMongoS, &s3Config{nil, new(!useLegacyPath), s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, !withDS),
+				Check:  checkBasicS3(logTypesMongoS, s3BucketName, prefixPath, !useLegacyPath, !withDS),
 			},
 			{
-				Config:                               configBasicS3(projectID, logTypesMongoS, &s3Config{&kmsKey, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, false),
+				Config:                               configBasicS3(projectID, logTypesMongoS, &s3Config{&kmsKey, new(!useLegacyPath), s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath}, false),
 				ResourceName:                         resourceName,
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportState:                          true,
@@ -303,6 +305,10 @@ func configBasicS3(projectID string, logTypes []string, config *s3Config, withDS
 	if config.kmsKey != nil {
 		kmsKeyHCL = fmt.Sprintf("kms_key = %q", *config.kmsKey)
 	}
+	useLegacyPathHCL := ""
+	if config.useLegacyPath != nil {
+		useLegacyPathHCL = fmt.Sprintf("use_legacy_path_structure = %t", *config.useLegacyPath)
+	}
 	dsConfig := ""
 	if withDS {
 		dsConfig = datasourcesConfig
@@ -318,20 +324,22 @@ func configBasicS3(projectID string, logTypes []string, config *s3Config, withDS
 			bucket_name = aws_s3_bucket.log_bucket.bucket
 			prefix_path = %[4]q
 			%[5]s
+			%[6]s
 		}
 
-		%[6]s
-	`, awsIAMRoleAuthAndS3Config(projectID, config), projectID, logTypesStr, config.prefixPath, kmsKeyHCL, dsConfig)
+		%[7]s
+	`, awsIAMRoleAuthAndS3Config(projectID, config), projectID, logTypesStr, config.prefixPath, kmsKeyHCL, useLegacyPathHCL, dsConfig)
 }
 
-func checkBasicS3(logTypes []string, bucketName, prefixPath string, withDS bool) resource.TestCheckFunc {
+func checkBasicS3(logTypes []string, bucketName, prefixPath string, useLegacyPath, withDS bool) resource.TestCheckFunc {
 	setChecks := []string{"iam_role_id", "integration_id"}
 	mapChecks := map[string]string{
-		"bucket_name": bucketName,
-		"prefix_path": prefixPath,
-		"type":        "S3_LOG_EXPORT",
-		"log_types.#": strconv.Itoa(len(logTypes)),
-		"log_types.0": logTypes[0],
+		"bucket_name":               bucketName,
+		"prefix_path":               prefixPath,
+		"type":                      "S3_LOG_EXPORT",
+		"log_types.#":               strconv.Itoa(len(logTypes)),
+		"log_types.0":               logTypes[0],
+		"use_legacy_path_structure": strconv.FormatBool(useLegacyPath),
 	}
 	return commonCheck(setChecks, mapChecks, withDS)
 }
@@ -710,7 +718,7 @@ func gcsStorageBucketConfig(projectID string, config *gcsConfig) string {
 
 		resource "google_storage_bucket_iam_member" "bucket_permission" {
 			bucket = google_storage_bucket.log_bucket.name
-			role   = "roles/storage.objectAdmin"
+			role   = "roles/storage.objectCreator"
 			member = "serviceAccount:${mongodbatlas_cloud_provider_access_authorization.gcp_auth.gcp[0].service_account_for_atlas}"
 		}
 	`, projectID, config.bucketName)

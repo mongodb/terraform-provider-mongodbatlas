@@ -1,0 +1,76 @@
+name: 'Docs Link Check'
+
+on:
+  pull_request:
+  # TODO: CLOUDP-381694 Enable nightly cron once broken link fixes land in the follow-up PR
+  # schedule:
+  #   - cron: '0 4 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Checks to run'
+        type: choice
+        options: [offline, online, both]
+        default: both
+
+permissions:
+  contents: read
+
+jobs:
+  offline:
+    if: github.event_name == 'pull_request' || github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && (inputs.mode == 'offline' || inputs.mode == 'both'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - name: Offline check (relative links, self-repo links, anchors)
+        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411
+        with:
+          args: --offline --include-fragments --config ./lychee.toml .
+
+  online-changed:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          fetch-depth: 2 # need HEAD^1 (the base parent) for the changed-files diff
+      - name: Collect changed markdown files
+        id: changed
+        run: |
+          files=$(git diff --name-only --diff-filter=d HEAD^1 HEAD -- '*.md' | tr '\n' ' ')
+          echo "files=$files" >> "$GITHUB_OUTPUT"
+      - name: Online check (changed files)
+        if: steps.changed.outputs.files != ''
+        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411
+        with:
+          args: --config ./lychee.toml ${{ steps.changed.outputs.files }}
+          failIfEmpty: false # changed files may legitimately contain no links
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  online-full:
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && (inputs.mode == 'online' || inputs.mode == 'both'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - name: Online check (all docs)
+        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411
+        with:
+          args: --config ./lychee.toml .
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify:
+    needs: [offline, online-full]
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "${{ github.event.repository.name }}: nightly docs link check failed. ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }

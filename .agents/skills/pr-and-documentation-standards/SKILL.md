@@ -7,6 +7,17 @@ description: Standards for pull requests, documentation, and code review in this
 
 ## Pull Request Structure
 
+### PR Title Format
+
+PR titles must follow [Conventional Commits](https://www.conventionalcommits.org/): `fix:`, `feat:`, `chore:`, `doc:`, `test:`, `refactor:`, `ci:`, etc. The subject after the colon must start with an uppercase letter.
+
+```text
+fix: Emit warning when use_effective_fields and auto-scaling are enabled
+feat: Add search deployment resource
+```
+
+Do **not** include a scope in parentheses (e.g. `fix(resource/mongodbatlas_advanced_cluster): ...`). The repo convention uses the bare prefix without a scope.
+
 ### Separate Refactoring from Feature Changes
 
 Avoid mixing refactoring with functional changes in the same PR. Reviewers need to clearly distinguish which changed lines are behavioral vs structural.
@@ -20,6 +31,10 @@ Add a changelog entry (`.changelog/<PR_NUMBER>.txt`) for:
 - New resources/data sources (`release-note:new-resource` / `release-note:new-data-source`)
 - Migration guides or user-facing documentation changes
 
+### Changelog Entry Format
+
+- Start with a verb in 3rd person singular (e.g. `Emits`, `Adds`, `Fixes`, `Updates`)
+- Do not end with punctuation
 
 ## Documentation Style Guide
 

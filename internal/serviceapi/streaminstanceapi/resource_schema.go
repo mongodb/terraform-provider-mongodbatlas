@@ -240,7 +240,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"public_private_networking": schema.SingleNestedAttribute{
 							Computed:            true,
-							MarkdownDescription: "Optional for type: AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types.",
+							MarkdownDescription: "Optional for type: AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC).",
 							CustomType:          customtypes.NewObjectType[TFConnectionsPublicPrivateNetworkingModel](ctx),
 							Attributes: map[string]schema.Attribute{
 								"access": schema.SingleNestedAttribute{
@@ -250,7 +250,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									Attributes: map[string]schema.Attribute{
 										"connection_id": schema.StringAttribute{
 											Computed:            true,
-											MarkdownDescription: "The ID of the Private Link connection. Required for `PRIVATE_LINK` type.",
+											MarkdownDescription: "The ID of the Private Link connection. Required for `PRIVATE_LINK` type. For GCP connections using Private Service Connect (PSC), this is the PSC connection ID.",
 										},
 										"links": schema.ListNestedAttribute{
 											Computed:            true,
@@ -271,7 +271,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										},
 										"type": schema.StringAttribute{
 											Computed:            true,
-											MarkdownDescription: "Selected networking type. Either `PUBLIC` or `PRIVATE_LINK`. Defaults to `PUBLIC`.",
+											MarkdownDescription: "Selected networking type. Either `PUBLIC` or `PRIVATE_LINK`. Defaults to `PUBLIC`. For AWS, Azure, and GCP connections, use `PRIVATE_LINK` for AWS PrivateLink, Azure Private Link, or GCP Private Service Connect (PSC) respectively.",
 										},
 									},
 								},

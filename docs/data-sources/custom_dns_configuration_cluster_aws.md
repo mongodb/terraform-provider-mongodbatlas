@@ -32,4 +32,4 @@ In addition to all arguments above, the following attributes are exported:
 * `enabled` - Indicates whether the project's clusters deployed to AWS use custom DNS.
 
 
-See detailed information for arguments and attributes: [MongoDB API Custom DNS Configuration for Atlas Clusters on AWS](https://docs.atlas.mongodb.com/reference/api/aws-custom-dns-get)
+See detailed information for arguments and attributes: [MongoDB API Custom DNS Configuration for Atlas Clusters on AWS](https://www.mongodb.com/docs/atlas/reference/api/aws-custom-dns-get)

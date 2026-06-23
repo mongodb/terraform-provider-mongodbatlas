@@ -2,13 +2,37 @@
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_advanced_cluster: Adds `adaptive_capacity` attribute ([#4452](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4452))
+* data-source/mongodbatlas_advanced_cluster: Adds `disk_throughput` attribute ([#4453](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4453))
+* data-source/mongodbatlas_advanced_clusters: Adds `adaptive_capacity` attribute ([#4452](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4452))
+* data-source/mongodbatlas_advanced_clusters: Adds `disk_throughput` attribute ([#4453](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4453))
+* data-source/mongodbatlas_service_account_project_assignments: Adds `roles` attribute in `results` ([#4502](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4502))
+* resource/mongodbatlas_advanced_cluster: Adds `adaptive_capacity` attribute ([#4452](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4452))
+* resource/mongodbatlas_advanced_cluster: Adds support for Gen 2 instance sizes ([#4524](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4524))
+* resource/mongodbatlas_database_user: Removes incorrect warning emitted on every resource creation regardless of authentication type ([#4443](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4443))
+* resource/mongodbatlas_project: Reduces plan verbosity by avoiding `(known after apply)` on `region_usage_restrictions`, which remains stable after project creation ([#4455](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4455))
+* resource/mongodbatlas_stream_connection: Increases default create/update/delete timeout from 20 to 40 minutes ([#4467](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4467))
+
+BUG FIXES:
+
+* resource/mongodbatlas_flex_cluster: Fixes deletion waits to improve reliability when deleting flex clusters ([#4431](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4431))
+* resource/mongodbatlas_search_deployment: Treats HTTP 500 responses as transient during state polling ([#4494](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4494))
+
+## 2.12.0 (May 06, 2026)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_log_integration: Adds `use_legacy_path_structure` attribute for `S3_LOG_EXPORT` type to use the legacy daily-folder path structure ([#4419](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4419))
+* data-source/mongodbatlas_log_integrations: Adds `use_legacy_path_structure` attribute for `S3_LOG_EXPORT` type to use the legacy daily-folder path structure ([#4419](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4419))
 * data-source/mongodbatlas_stream_privatelink_endpoint: Adds `AZURE_BLOB_STORAGE` as a vendor type for AZURE provider ([#4366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4366))
 * data-source/mongodbatlas_stream_privatelink_endpoints: Adds `AZURE_BLOB_STORAGE` as a vendor type for AZURE provider ([#4366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4366))
 * resource/mongodbatlas_cloud_backup_schedule: Adds `skip_destroy` attribute to skip the API delete call on `terraform destroy`, allowing `terraform destroy` to remove a cluster when a Backup Compliance Policy (BCP) is enabled ([#4397](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4397))
+* resource/mongodbatlas_log_integration: Adds `use_legacy_path_structure` attribute for `S3_LOG_EXPORT` type to use the legacy daily-folder path structure ([#4419](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4419))
 * resource/mongodbatlas_stream_privatelink_endpoint: Adds `AZURE_BLOB_STORAGE` as a vendor type for AZURE provider ([#4366](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4366))
 
 BUG FIXES:
 
+* resource/mongodbatlas_advanced_cluster: Emits a warning when `mongo_db_major_version` is modified outside of Terraform ([#4409](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4409))
 * resource/mongodbatlas_advanced_cluster: Fixes inconsistent result error when scaling attribute changes cause Atlas to recompute oplog_size_mb ([#4413](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4413))
 * resource/mongodbatlas_alert_configuration: Fix inconsistent state when creating OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD alerts ([#4408](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4408))
 * resource/mongodbatlas_federated_settings_org_role_mapping: Fixes plan churn on `role_assignments` fields when adding/removing a new block ([#4394](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4394))

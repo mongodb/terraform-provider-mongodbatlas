@@ -20,8 +20,8 @@ data "mongodbatlas_privatelink_endpoint_service" "this" {
 See [`mongodbatlas_privatelink_endpoint_service` resource](../resources/privatelink_endpoint_service.md) for complete examples with each cloud provider.
 
 ### Available complete examples
-- [Setup private connection to a MongoDB Atlas Cluster with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
-- [GCP Private Service Connect Endpoint and Service (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
+- [Setup private connection to a MongoDB Atlas Cluster with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+- [GCP Private Service Connect Endpoint and Service (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
 
 ## Argument Reference
 
@@ -66,7 +66,7 @@ In addition to all arguments above, the following attributes are exported:
 * `endpoints` - Collection of individual private endpoints that comprise your network endpoint group. Only populated for GCP legacy private endpoint architecture.
   * `endpoint_name` - Forwarding rule that corresponds to the endpoint you created.
   * `ip_address` - Private IP address of the network endpoint group you created.
-  * `status` - Status of the endpoint. Atlas returns one of the [values shown above](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-create-one/#std-label-ref-status-field).
+  * `status` - Status of the endpoint. Atlas returns one of the [values shown above](https://www.mongodb.com/docs/atlas/reference/api/private-endpoints-endpoint-create-one/#std-label-ref-status-field).
 * `port_mapping_enabled` - Flag that indicates whether the underlying `privatelink_endpoint` resource uses GCP port-mapping. This is a read-only attribute that reflects the architecture type. When `true`, the endpoint service uses the port-mapped architecture. When `false`, it uses the GCP legacy private endpoint architecture. Only applicable for GCP provider.
 
-See [MongoDB Atlas API](https://docs.atlas.mongodb.com/reference/api/private-endpoints-endpoint-get-one/) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api/private-endpoints-endpoint-get-one/) Documentation for more information.

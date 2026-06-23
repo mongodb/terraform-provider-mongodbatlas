@@ -65,7 +65,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 			},
 			"org_id": schema.StringAttribute{
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
+				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listorganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
 				Required:            true,
 			},
 			"policies": schema.ListNestedAttribute{

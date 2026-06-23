@@ -1,5 +1,5 @@
 schema:
-    description: Creates one custom role in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role, Project Stream Processing Owner role, or the Project Database Access Admin role.
+    description: Creates one custom role in the specified project.
     attributes:
         - list_nested:
             nested_object:

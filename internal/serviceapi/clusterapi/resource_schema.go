@@ -22,6 +22,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. MongoDB Atlas docs contain more information. To proceed with an operation which carries that risk, set `acceptDataRisksAndForceReplicaSetReconfig` to the current date. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
 			},
+			"adaptive_capacity": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Governs adaptive capacity behavior of Azure nodes in single-cloud Azure clusters or multi-cloud clusters that include Azure nodes. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; Azure clusters use adaptive capacity by default when the feature is enabled at the group level. Setting this field for single-cloud AWS or GCP clusters is a no-op.",
+			},
 			"advanced_configuration": schema.SingleNestedAttribute{
 				Computed:            true,
 				Optional:            true,
@@ -31,13 +35,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"custom_openssl_cipher_config_tls12": schema.ListAttribute{
 						Computed:            true,
 						Optional:            true,
-						MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.",
+						MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. Requires `tlsCipherConfigMode` = `CUSTOM`; when `tlsCipherConfigMode` is omitted, supplying a non-empty list infers `CUSTOM`.",
 						CustomType:          customtypes.NewListType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
 					"custom_openssl_cipher_config_tls13": schema.ListAttribute{
 						Optional:            true,
-						MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.",
+						MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.3. Requires `tlsCipherConfigMode` = `CUSTOM`; when `tlsCipherConfigMode` is omitted, supplying a non-empty list infers `CUSTOM`.",
 						CustomType:          customtypes.NewListType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
@@ -249,9 +253,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Computed:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set `replicationSpecs`.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -321,9 +329,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Computed:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set `replicationSpecs`.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -348,9 +360,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Computed:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set `replicationSpecs`.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -375,9 +391,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Computed:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set `replicationSpecs`.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -402,9 +422,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Computed:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set `replicationSpecs`.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"effective_instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -441,9 +465,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Computed:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set `replicationSpecs`.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -631,9 +659,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Optional:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set `replicationSpecs`.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -713,9 +745,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Computed:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set `replicationSpecs`.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -740,9 +776,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Computed:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set `replicationSpecs`.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -767,9 +807,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Computed:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set `replicationSpecs`.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -796,10 +840,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Optional:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set `replicationSpecs`.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
 												Optional:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"effective_instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -858,9 +906,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Optional:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set `replicationSpecs`.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
+											"disk_throughput": schema.Int64Attribute{
+												Computed:            true,
+												MarkdownDescription: "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type.",
+											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
-												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size.\n\n- `HIGH_PERFORMANCE` volume types use IO2 EBS volumes and must fall within the allowable IOPS range for the selected volume size.\n\nNVMe clusters require either `PROVISIONED` or `HIGH_PERFORMANCE`.",
 											},
 											"instance_size": schema.StringAttribute{
 												Computed:            true,
@@ -945,6 +997,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	AcceptDataRisksAndForceReplicaSetReconfig     types.String                                                  `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
+	AdaptiveCapacity                              types.String                                                  `tfsdk:"adaptive_capacity"`
 	AdvancedConfiguration                         customtypes.ObjectValue[TFAdvancedConfigurationModel]         `tfsdk:"advanced_configuration"`
 	BackupEnabled                                 types.Bool                                                    `tfsdk:"backup_enabled"`
 	BiConnector                                   customtypes.ObjectValue[TFBiConnectorModel]                   `tfsdk:"bi_connector"`
@@ -1047,11 +1100,12 @@ type TFEffectiveReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel str
 	Enabled types.Bool `tfsdk:"enabled" autogen:"omitjson"`
 }
 type TFEffectiveReplicationSpecsRegionConfigsAnalyticsSpecsModel struct {
-	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
-	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
-	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
-	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
+	DiskIOPS       types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskSizeGB     types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskThroughput types.Int64   `tfsdk:"disk_throughput" autogen:"omitjson"`
+	EbsVolumeType  types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
+	InstanceSize   types.String  `tfsdk:"instance_size" autogen:"omitjson"`
+	NodeCount      types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFEffectiveReplicationSpecsRegionConfigsAutoScalingModel struct {
 	Compute customtypes.ObjectValue[TFEffectiveReplicationSpecsRegionConfigsAutoScalingComputeModel] `tfsdk:"compute" autogen:"omitjson"`
@@ -1067,40 +1121,45 @@ type TFEffectiveReplicationSpecsRegionConfigsAutoScalingDiskGBModel struct {
 	Enabled types.Bool `tfsdk:"enabled" autogen:"omitjson"`
 }
 type TFEffectiveReplicationSpecsRegionConfigsEffectiveAnalyticsSpecsModel struct {
-	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
-	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
-	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
-	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
+	DiskIOPS       types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskSizeGB     types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskThroughput types.Int64   `tfsdk:"disk_throughput" autogen:"omitjson"`
+	EbsVolumeType  types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
+	InstanceSize   types.String  `tfsdk:"instance_size" autogen:"omitjson"`
+	NodeCount      types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFEffectiveReplicationSpecsRegionConfigsEffectiveElectableSpecsModel struct {
-	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
-	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
-	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
-	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
+	DiskIOPS       types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskSizeGB     types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskThroughput types.Int64   `tfsdk:"disk_throughput" autogen:"omitjson"`
+	EbsVolumeType  types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
+	InstanceSize   types.String  `tfsdk:"instance_size" autogen:"omitjson"`
+	NodeCount      types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFEffectiveReplicationSpecsRegionConfigsEffectiveReadOnlySpecsModel struct {
-	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
-	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
-	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
-	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
+	DiskIOPS       types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskSizeGB     types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskThroughput types.Int64   `tfsdk:"disk_throughput" autogen:"omitjson"`
+	EbsVolumeType  types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
+	InstanceSize   types.String  `tfsdk:"instance_size" autogen:"omitjson"`
+	NodeCount      types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFEffectiveReplicationSpecsRegionConfigsElectableSpecsModel struct {
 	DiskIOPS              types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
 	DiskSizeGB            types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskThroughput        types.Int64   `tfsdk:"disk_throughput" autogen:"omitjson"`
 	EbsVolumeType         types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
 	EffectiveInstanceSize types.String  `tfsdk:"effective_instance_size" autogen:"omitjson"`
 	InstanceSize          types.String  `tfsdk:"instance_size" autogen:"omitjson"`
 	NodeCount             types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFEffectiveReplicationSpecsRegionConfigsReadOnlySpecsModel struct {
-	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
-	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
-	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
-	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
+	DiskIOPS       types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskSizeGB     types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskThroughput types.Int64   `tfsdk:"disk_throughput" autogen:"omitjson"`
+	EbsVolumeType  types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
+	InstanceSize   types.String  `tfsdk:"instance_size" autogen:"omitjson"`
+	NodeCount      types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFMongoDBEmployeeAccessGrantModel struct {
 	ExpirationTime types.String `tfsdk:"expiration_time"`
@@ -1140,11 +1199,12 @@ type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel struct {
 	Enabled types.Bool `tfsdk:"enabled"`
 }
 type TFReplicationSpecsRegionConfigsAnalyticsSpecsModel struct {
-	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
-	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
-	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
-	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
+	DiskIOPS       types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskSizeGB     types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskThroughput types.Int64   `tfsdk:"disk_throughput" autogen:"omitjson"`
+	EbsVolumeType  types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
+	InstanceSize   types.String  `tfsdk:"instance_size" autogen:"omitjson"`
+	NodeCount      types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFReplicationSpecsRegionConfigsAutoScalingModel struct {
 	Compute customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingComputeModel] `tfsdk:"compute"`
@@ -1160,38 +1220,43 @@ type TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel struct {
 	Enabled types.Bool `tfsdk:"enabled"`
 }
 type TFReplicationSpecsRegionConfigsEffectiveAnalyticsSpecsModel struct {
-	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
-	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
-	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
-	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
+	DiskIOPS       types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskSizeGB     types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskThroughput types.Int64   `tfsdk:"disk_throughput" autogen:"omitjson"`
+	EbsVolumeType  types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
+	InstanceSize   types.String  `tfsdk:"instance_size" autogen:"omitjson"`
+	NodeCount      types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFReplicationSpecsRegionConfigsEffectiveElectableSpecsModel struct {
-	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
-	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
-	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
-	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
+	DiskIOPS       types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskSizeGB     types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskThroughput types.Int64   `tfsdk:"disk_throughput" autogen:"omitjson"`
+	EbsVolumeType  types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
+	InstanceSize   types.String  `tfsdk:"instance_size" autogen:"omitjson"`
+	NodeCount      types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFReplicationSpecsRegionConfigsEffectiveReadOnlySpecsModel struct {
-	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
-	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
-	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
-	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
+	DiskIOPS       types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskSizeGB     types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskThroughput types.Int64   `tfsdk:"disk_throughput" autogen:"omitjson"`
+	EbsVolumeType  types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
+	InstanceSize   types.String  `tfsdk:"instance_size" autogen:"omitjson"`
+	NodeCount      types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFReplicationSpecsRegionConfigsElectableSpecsModel struct {
 	DiskIOPS              types.Int64   `tfsdk:"disk_iops"`
 	DiskSizeGB            types.Float64 `tfsdk:"disk_size_gb"`
+	DiskThroughput        types.Int64   `tfsdk:"disk_throughput" autogen:"omitjson"`
 	EbsVolumeType         types.String  `tfsdk:"ebs_volume_type"`
 	EffectiveInstanceSize types.String  `tfsdk:"effective_instance_size" autogen:"omitjson"`
 	InstanceSize          types.String  `tfsdk:"instance_size"`
 	NodeCount             types.Int64   `tfsdk:"node_count"`
 }
 type TFReplicationSpecsRegionConfigsReadOnlySpecsModel struct {
-	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
-	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
-	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
-	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
+	DiskIOPS       types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskSizeGB     types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskThroughput types.Int64   `tfsdk:"disk_throughput" autogen:"omitjson"`
+	EbsVolumeType  types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
+	InstanceSize   types.String  `tfsdk:"instance_size" autogen:"omitjson"`
+	NodeCount      types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }

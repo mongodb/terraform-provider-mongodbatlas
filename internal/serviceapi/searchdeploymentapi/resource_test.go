@@ -79,7 +79,7 @@ func configBasic(orgID, projectName, clusterName, instanceSize string, searchNod
 			]
 			timeouts = {
 				create = "1h"
-				update = "30m"
+				update = "1h"
 				delete = "10m"
 			}
 		}

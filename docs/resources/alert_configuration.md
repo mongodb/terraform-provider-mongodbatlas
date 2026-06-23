@@ -39,7 +39,7 @@ resource "mongodbatlas_alert_configuration" "test" {
 }
 ```
 
--> **NOTE:** In order to allow for a fast pace of change to alert variables some validations have been removed from this resource in order to unblock alert creation. Impacted areas have links to the MongoDB Atlas API documentation so always check it for the most current information: https://docs.atlas.mongodb.com/reference/api/alert-configurations-create-config/
+-> **NOTE:** In order to allow for a fast pace of change to alert variables some validations have been removed from this resource in order to unblock alert creation. Impacted areas have links to the MongoDB Atlas API documentation so always check it for the most current information: https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-create-config/
 
 
 ```terraform
@@ -135,7 +135,7 @@ resource "mongodbatlas_alert_configuration" "test" {
 ```
 
 ### Further Examples
-- [Alert Configuration](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_alert_configuration)
+- [Alert Configuration](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_alert_configuration)
 
 
 ## Argument Reference
@@ -187,7 +187,7 @@ All other types of alerts do not support matchers.
 ### Metric Threshold Config (`metric_threshold_config`)
 The threshold that causes an alert to be triggered. Required if `event_type_name` : `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`
 
-* `metric_name` - (Required) Name of the metric to check. The full list being quite large, please refer to atlas docs [here for general metrics](https://docs.atlas.mongodb.com/reference/alert-host-metrics/#measurement-types) and [here for serverless metrics](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-create-config/#serverless-measurements)
+* `metric_name` - (Required) Name of the metric to check. The full list being quite large, please refer to atlas docs [here for general metrics](https://www.mongodb.com/docs/atlas/reference/alert-host-metrics/#measurement-types) and [here for serverless metrics](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations-create-config/#serverless-measurements)
 * `operator` - The operator to apply when checking the current metric value against the threshold value.
   Accepted values are:
     - `GREATER_THAN`
@@ -283,4 +283,4 @@ terraform import mongodbatlas_alert_configuration.test 5d0f1f74cf09a29120e123cd-
 
 **NOTE**: Third-party notifications will not contain their respective credentials as these are sensitive attributes. If you wish to perform updates on these notifications without providing the original credentials, the corresponding `notifier_id` attribute must be provided instead.
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/alert-configurations/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/alert-configurations/)

@@ -21,7 +21,7 @@ If you are already using `mongodbatlas_advanced_cluster` and want to upgrade to 
 - [Changes Overview](#changes-overview)
     - [Migrate advanced\_cluster type `SHARDED`](#migrate-advanced_cluster-type-sharded)
     - [Migrate advanced\_cluster type `GEOSHARDED`](#migrate-advanced_cluster-type-geosharded)
-    - [Upgrade type `REPLICASET` to `SHARDED`](#migrate-advanced_cluster-type-replicaset)
+    - [Upgrade type `REPLICASET` to `SHARDED`](#upgrade-type-replicaset-to-sharded)
 - [Use Independent Shard Scaling](#use-independent-shard-scaling)
 - [Use Auto-Scaling Per Shard](#use-auto-scaling-per-shard)
 - [Resources and Data Sources Impacted by Independent Shard Scaling](#resources-and-data-sources-impacted-by-independent-shard-scaling)
@@ -446,7 +446,7 @@ output "shard_sizes" {
 
 To learn more about `use_effective_fields`, see [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields).
 
-**For module authors:** `use_effective_fields` is particularly valuable for reusable Terraform modules, enabling a single module to handle both auto-scaling and non-auto-scaling clusters without requiring lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
+**For module authors:** `use_effective_fields` is particularly valuable for reusable Terraform modules, enabling a single module to handle both auto-scaling and non-auto-scaling clusters without requiring lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
 
 ### Legacy Approach: Using lifecycle.ignore_changes
 

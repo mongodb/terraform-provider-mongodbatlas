@@ -11,14 +11,15 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
-	"go.mongodb.org/atlas-sdk/v20250312018/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312021/mockadmin"
 )
 
 var (
 	updating = "UPDATING"
 	idle     = "IDLE"
 	unknown  = ""
+	sc400    = conversion.IntPtr(400)
 	sc404    = conversion.IntPtr(404)
 	sc500    = conversion.IntPtr(500)
 	sc503    = conversion.IntPtr(503)
@@ -53,6 +54,16 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 			expectedError: false,
 		},
 		{
+			name: "Successful transition to IDLE with 500 error in between",
+			mockResponses: []response{
+				{state: &updating},
+				{statusCode: sc500, err: errors.New("Internal Server Error")},
+				{state: &idle},
+			},
+			expectedState: &idle,
+			expectedError: false,
+		},
+		{
 			name: "Error when transitioning to an unknown state",
 			mockResponses: []response{
 				{state: &updating},
@@ -62,9 +73,17 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 			expectedError: true,
 		},
 		{
-			name: "Error when API responds with error",
+			name: "Error when API responds with non-transient HTTP error",
 			mockResponses: []response{
-				{statusCode: sc500, err: errors.New("Internal server error")},
+				{statusCode: sc400, err: errors.New("bad request")},
+			},
+			expectedState: nil,
+			expectedError: true,
+		},
+		{
+			name: "Error when API responds with network error",
+			mockResponses: []response{
+				{err: errors.New("network error")},
 			},
 			expectedState: nil,
 			expectedError: true,
@@ -98,9 +117,25 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 			expectedError: false,
 		},
 		{
-			name: "Error when API responds with error",
+			name: "Successful transition to DELETED with 500 error in between",
 			mockResponses: []response{
-				{statusCode: sc500, err: errors.New("Internal server error")},
+				{state: &updating},
+				{statusCode: sc500, err: errors.New("Internal Server Error")},
+				{statusCode: sc404, err: errors.New(searchdeployment.SearchDeploymentDoesNotExistsError)},
+			},
+			expectedError: false,
+		},
+		{
+			name: "Error when API responds with non-transient HTTP error",
+			mockResponses: []response{
+				{statusCode: sc400, err: errors.New("bad request")},
+			},
+			expectedError: true,
+		},
+		{
+			name: "Error when API responds with network error",
+			mockResponses: []response{
+				{err: errors.New("network error")},
 			},
 			expectedError: true,
 		},

@@ -3,7 +3,7 @@ package advancedcluster
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
+	"go.mongodb.org/atlas-sdk/v20250312021/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -53,6 +53,7 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
 		UseAwsTimeBasedSnapshotCopyForFastInitialSync: types.BoolValue(conversion.SafeValue(input.UseAwsTimeBasedSnapshotCopyForFastInitialSync)),
 		VersionReleaseSystem:                          types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
+		AdaptiveCapacity:                              types.StringPointerValue(input.AdaptiveCapacity),
 		PinnedFCV:                                     pinnedFCV,
 	}
 }
@@ -262,9 +263,12 @@ func newRegionConfigsDSObjType(ctx context.Context, input *[]admin.CloudRegionCo
 		item := &(*input)[i]
 		baseModel := newRegionConfigModel(ctx, item, diags)
 		dsModel := *conversion.CopyModel[TFRegionConfigsDSModel](&baseModel)
-		dsModel.EffectiveAnalyticsSpecs = newSpecsObjType(ctx, item.EffectiveAnalyticsSpecs, diags)
-		dsModel.EffectiveElectableSpecs = newSpecsObjType(ctx, item.EffectiveElectableSpecs, diags)
-		dsModel.EffectiveReadOnlySpecs = newSpecsObjType(ctx, item.EffectiveReadOnlySpecs, diags)
+		dsModel.AnalyticsSpecs = newSpecsDSObjType(ctx, item.AnalyticsSpecs, diags)
+		dsModel.ElectableSpecs = newSpecsDSFromHwObjType(ctx, item.ElectableSpecs, diags)
+		dsModel.ReadOnlySpecs = newSpecsDSObjType(ctx, item.ReadOnlySpecs, diags)
+		dsModel.EffectiveAnalyticsSpecs = newSpecsDSObjType(ctx, item.EffectiveAnalyticsSpecs, diags)
+		dsModel.EffectiveElectableSpecs = newSpecsDSObjType(ctx, item.EffectiveElectableSpecs, diags)
+		dsModel.EffectiveReadOnlySpecs = newSpecsDSObjType(ctx, item.EffectiveReadOnlySpecs, diags)
 		tfModels[i] = dsModel
 	}
 	listType, diagsLocal := types.ListValueFrom(ctx, regionConfigsDSObjType, tfModels)
@@ -317,6 +321,40 @@ func newSpecsFromHwObjType(ctx context.Context, input *admin.HardwareSpec2024080
 		NodeCount:     types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.NodeCount)),
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, tfModel)
+	diags.Append(diagsLocal...)
+	return objType
+}
+
+func newSpecsDSObjType(ctx context.Context, input *admin.DedicatedHardwareSpec20240805, diags *diag.Diagnostics) types.Object {
+	if input == nil {
+		return types.ObjectNull(specsDSObjType.AttrTypes)
+	}
+	tfModel := TFSpecsDSModel{
+		DiskIops:       types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.DiskIOPS)),
+		DiskThroughput: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.DiskThroughput)),
+		DiskSizeGb:     types.Float64PointerValue(input.DiskSizeGB),
+		EbsVolumeType:  types.StringValue(conversion.SafeValue(input.EbsVolumeType)),
+		InstanceSize:   types.StringValue(conversion.SafeValue(input.InstanceSize)),
+		NodeCount:      types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.NodeCount)),
+	}
+	objType, diagsLocal := types.ObjectValueFrom(ctx, specsDSObjType.AttrTypes, tfModel)
+	diags.Append(diagsLocal...)
+	return objType
+}
+
+func newSpecsDSFromHwObjType(ctx context.Context, input *admin.HardwareSpec20240805, diags *diag.Diagnostics) types.Object {
+	if input == nil {
+		return types.ObjectNull(specsDSObjType.AttrTypes)
+	}
+	tfModel := TFSpecsDSModel{
+		DiskIops:       types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.DiskIOPS)),
+		DiskThroughput: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.DiskThroughput)),
+		DiskSizeGb:     types.Float64PointerValue(input.DiskSizeGB),
+		EbsVolumeType:  types.StringValue(conversion.SafeValue(input.EbsVolumeType)),
+		InstanceSize:   types.StringValue(conversion.SafeValue(input.InstanceSize)),
+		NodeCount:      types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.NodeCount)),
+	}
+	objType, diagsLocal := types.ObjectValueFrom(ctx, specsDSObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
 	return objType
 }

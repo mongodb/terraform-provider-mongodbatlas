@@ -316,7 +316,7 @@ schema:
           request_only_required_on_create: false
         - bool: {}
           description: 'Optional for type: S3_LOG_EXPORT. When true, uses the legacy daily-folder path structure compatible with Push-Based Log Export: `{prefix}/{cluster}/{hostname}/{logType}/{YYYY-MM-DD}/{timestamp}-{logType}.log`. When false (default), uses the flat timestamped structure: `{prefix}/{cluster}/{hostname}/{logType}/{timestamp}-{logType}.log`.'
-          computed_optional_required: optional
+          computed_optional_required: computed_optional
           tf_schema_name: use_legacy_path_structure
           tf_model_name: UseLegacyPathStructure
           api_name: useLegacyPathStructure

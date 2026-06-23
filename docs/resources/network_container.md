@@ -50,7 +50,7 @@ resource "mongodbatlas_network_container" "test" {
 ```
 
 ### Further Examples
-- [GCP and MongoDB Atlas VPC Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_network_peering/gcp)
+- [GCP and MongoDB Atlas VPC Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_network_peering/gcp)
 
 ## Argument Reference
 
@@ -65,9 +65,9 @@ resource "mongodbatlas_network_container" "test" {
     **Important**: Atlas limits the number of MongoDB nodes per Network Peering connection based on the CIDR block and the region selected for the project. Contact [MongoDB Support](https://www.mongodb.com/contact?tck=docs_atlas) for any questions on Atlas limits of MongoDB nodes per Network Peering connection.
 
 * `provider_name`  - (Required GCP and AZURE, Optional but recommended for AWS) Cloud provider for this Network Peering connection.  Accepted values are GCP, AWS, AZURE. If omitted, Atlas sets this parameter to AWS.
-* `region_name` - (Required AWS only) The Atlas AWS region name for where this container will exist, see the reference list for Atlas AWS region names [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/).
-* `region` - (Required AZURE only) Atlas region where the container resides, see the reference list for Atlas Azure region names [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).
-* `regions` - (Optional GCP only) Atlas regions where the container resides. Provide this field only if you provide an `atlas_cidr_block` smaller than `/18`. [GCP Regions values](https://docs.atlas.mongodb.com/reference/api/vpc-create-container/#request-body-parameters).
+* `region_name` - (Required AWS only) The Atlas AWS region name for where this container will exist, see the reference list for Atlas AWS region names [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/).
+* `region` - (Required AZURE only) Atlas region where the container resides, see the reference list for Atlas Azure region names [Azure](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/).
+* `regions` - (Optional GCP only) Atlas regions where the container resides. Provide this field only if you provide an `atlas_cidr_block` smaller than `/18`. [GCP Regions values](https://www.mongodb.com/docs/atlas/reference/api/vpc-create-container/#request-body-parameters).
 
 
 
@@ -104,4 +104,4 @@ Network Peering Containers can be imported using project ID and network peering 
 $ terraform import mongodbatlas_network_container.my_container 1112222b3bf99403840e8934-5cbf563d87d9d67253be590a
 ```
 
-See detailed information for arguments and attributes: [MongoDB API Network Peering Container](https://docs.atlas.mongodb.com/reference/api/vpc-create-container/)
+See detailed information for arguments and attributes: [MongoDB API Network Peering Container](https://www.mongodb.com/docs/atlas/reference/api/vpc-create-container/)

@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	DefaultConnectionTimeout    = 20 * time.Minute
-	defaultConnectionTimeoutDoc = "20m"
+	DefaultConnectionTimeout    = 40 * time.Minute
+	defaultConnectionTimeoutDoc = "40m"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -239,8 +239,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Create:            true,
 				Update:            true,
 				Delete:            true,
-				CreateDescription: constant.TimeoutDescriptionCreateReadUpdate(defaultConnectionTimeoutDoc),
-				UpdateDescription: constant.TimeoutDescriptionCreateReadUpdate(defaultConnectionTimeoutDoc),
+				CreateDescription: constant.TimeoutDescriptionCreateUpdate(defaultConnectionTimeoutDoc),
+				UpdateDescription: constant.TimeoutDescriptionCreateUpdate(defaultConnectionTimeoutDoc),
 				DeleteDescription: constant.TimeoutDescriptionDelete(defaultConnectionTimeoutDoc),
 			}),
 		},

@@ -8,14 +8,14 @@ subcategory: "Network Peering"
 
 Ensure you have first created a network container if it is required for your configuration.  See the network_container resource documentation to determine if you need a network container first.  Examples for creating both container and peering resource are shown below as well as examples for creating the peering connection only.
 
-~> **GCP AND AZURE ONLY:** Connect via Peering Only mode is deprecated, so no longer needed.  See [disable Peering Only mode](https://docs.atlas.mongodb.com/reference/faq/connection-changes/#disable-peering-mode) for details
+~> **GCP AND AZURE ONLY:** Connect via Peering Only mode is deprecated, so no longer needed.  See [disable Peering Only mode](https://www.mongodb.com/docs/atlas/reference/faq/connection-changes/#disable-peering-mode) for details
 
 ~> **AZURE ONLY:** To create the peering request with an Azure VNET, you must grant Atlas the following permissions on the virtual network.
     Microsoft.Network/virtualNetworks/virtualNetworkPeerings/read
     Microsoft.Network/virtualNetworks/virtualNetworkPeerings/write
     Microsoft.Network/virtualNetworks/virtualNetworkPeerings/delete
     Microsoft.Network/virtualNetworks/peer/action
-For more information see https://docs.atlas.mongodb.com/security-vpc-peering/ and https://docs.atlas.mongodb.com/reference/api/vpc-create-peering-connection/
+For more information see https://www.mongodb.com/docs/atlas/security-vpc-peering/ and https://www.mongodb.com/docs/atlas/reference/api/vpc-create-peering-connection/
 
 -> **Create a Whitelist:** Ensure you whitelist the private IP ranges of the subnets in which your application is hosted in order to connect to your Atlas cluster.  See the project_ip_whitelist resource.
 
@@ -140,7 +140,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 ```terraform
 
 # Ensure you have created the required Azure service principal first, see
-# see https://docs.atlas.mongodb.com/security-vpc-peering/
+# see https://www.mongodb.com/docs/atlas/security-vpc-peering/
 
 # Container example provided but not always required, 
 # see network_container documentation for details. 
@@ -292,7 +292,7 @@ resource "google_compute_network_peering" "peering" {
 ```terraform
 
 # Ensure you have created the required Azure service principal first, see
-# see https://docs.atlas.mongodb.com/security-vpc-peering/
+# see https://www.mongodb.com/docs/atlas/security-vpc-peering/
 
 # Create an Atlas cluster, this creates a container if one
 # does not yet exist for this AZURE region
@@ -328,9 +328,9 @@ resource "mongodbatlas_network_peering" "test" {
 ```
 
 ### Further Examples
-- [AWS Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_network_peering/aws)
-- [Azure Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_network_peering/azure)
-- [GCP Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_network_peering/gcp)
+- [AWS Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_network_peering/aws)
+- [Azure Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_network_peering/azure)
+- [GCP Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_network_peering/gcp)
 
 
 ## Argument Reference
@@ -343,7 +343,7 @@ resource "mongodbatlas_network_peering" "test" {
 
 **AWS ONLY:**
 
-* `accepter_region_name` - (Required - AWS) Specifies the AWS region where the peer VPC resides. For complete lists of supported regions, see [Amazon Web Services](https://docs.atlas.mongodb.com/reference/amazon-aws/).
+* `accepter_region_name` - (Required - AWS) Specifies the AWS region where the peer VPC resides. For complete lists of supported regions, see [Amazon Web Services](https://www.mongodb.com/docs/atlas/reference/amazon-aws/).
 * `aws_account_id` - (Required - AWS) AWS Account ID of the owner of the peer VPC.
 * `vpc_id` - (Required) Unique identifier of the AWS peer VPC (Note: this is **not** the same as the Atlas AWS VPC that is returned by the network_container resource).
 * `route_table_cidr_block` - (Required - AWS) AWS VPC CIDR block or subnet.
@@ -371,7 +371,7 @@ In addition to all arguments above, the following attributes are exported:
 
 **AWS ONLY:**
 
-* `accepter_region_name` - Specifies the region where the peer VPC resides. For complete lists of supported regions, see [Amazon Web Services](https://docs.atlas.mongodb.com/reference/amazon-aws/).
+* `accepter_region_name` - Specifies the region where the peer VPC resides. For complete lists of supported regions, see [Amazon Web Services](https://www.mongodb.com/docs/atlas/reference/amazon-aws/).
 * `aws_account_id` - Account ID of the owner of the peer VPC.
 * `route_table_cidr_block` - Peer VPC CIDR block or subnet.
 * `vpc_id` - Unique identifier of the peer VPC.
@@ -413,4 +413,4 @@ Use the [MongoDB Atlas CLI][https://www.mongodb.com/docs/atlas/cli/current/comma
 atlas projects list
 atlas networking peering list --projectId <projectId> --provider <AZURE|GCP|AWS>
 ```
-See detailed information for arguments and attributes: [MongoDB API Network Peering Connection](https://docs.atlas.mongodb.com/reference/api/vpc-create-peering-connection/)
+See detailed information for arguments and attributes: [MongoDB API Network Peering Connection](https://www.mongodb.com/docs/atlas/reference/api/vpc-create-peering-connection/)

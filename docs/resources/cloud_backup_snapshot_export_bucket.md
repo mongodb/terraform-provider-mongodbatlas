@@ -36,8 +36,8 @@ resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
 ```
 
 ### Further Examples
-- [AWS Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/aws)
-- [Azure Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/azure)
+- [AWS Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/aws)
+- [Azure Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/azure)
 
 ## Argument Reference
 
@@ -64,4 +64,4 @@ Cloud Backup Snapshot Export Backup entries can be imported using project projec
 terraform import mongodbatlas_cloud_backup_snapshot_export_bucket.test 5d0f1f73cf09a29120e173cf-5d116d82014b764445b2f9b5
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/export/create-one-export-bucket/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/export/create-one-export-bucket/)

@@ -9,7 +9,6 @@ This project aims to provide an example of using [MongoDB Atlas Federated Databa
 * An Azure account
 
 ```
-Terraform v1.39.0
 + provider registry.terraform.io/mongodb/mongodbatlas v1.39.0
 ```
 

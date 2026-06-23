@@ -9,7 +9,6 @@ This project aims to provide a very straight-forward example of setting up a Mon
 
 ## Dependencies
 
-* Terraform v0.15 or greater
 * A MongoDB Atlas account 
 * provider.mongodbatlas: version = "~> 1.10"
 * [Cross-organization billing](https://www.mongodb.com/docs/atlas/billing/#cross-organization-billing) enabled and the requesting API Key's organization must be a paying organization. 

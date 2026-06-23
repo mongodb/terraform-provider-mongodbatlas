@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
+	"go.mongodb.org/atlas-sdk/v20250312021/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
@@ -89,12 +91,14 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 	return containerIDs, nil
 }
 
-func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
-	if modelIn == nil || modelOut == nil {
+func OverrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel, diags *diag.Diagnostics) {
+	if modelIn == nil || modelOut == nil || diags == nil {
 		return
 	}
 	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())
-	if beforeVersion != nil && !modelIn.MongoDBMajorVersion.Equal(modelOut.MongoDBMajorVersion) {
+	afterVersion := conversion.NilForUnknown(modelOut.MongoDBMajorVersion, modelOut.MongoDBMajorVersion.ValueStringPointer())
+	if beforeVersion != nil {
+		warnIfMajorVersionChanged(*beforeVersion, afterVersion, diags)
 		modelOut.MongoDBMajorVersion = types.StringPointerValue(beforeVersion)
 	}
 	overrideMapStringWithPrevStateValue(&modelIn.Labels, &modelOut.Labels)
@@ -107,6 +111,25 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	modelOut.DeleteOnCreateTimeout = modelIn.DeleteOnCreateTimeout
 	modelOut.RetainBackupsEnabled = modelIn.RetainBackupsEnabled
 	modelOut.UseEffectiveFields = modelIn.UseEffectiveFields
+}
+
+func warnIfMajorVersionChanged(before string, after *string, diags *diag.Diagnostics) {
+	if after == nil || before == *after || majorComponent(before) == majorComponent(*after) {
+		return
+	}
+	diags.AddWarning(
+		"MongoDB major version modified outside of Terraform",
+		fmt.Sprintf("Atlas reports mongo_db_major_version as %q but your Terraform state has %q. "+
+			"Your cluster's major version may have been modified outside of Terraform. "+
+			"Consider setting mongo_db_major_version = %q in your configuration and applying the changes. "+
+			"This warning will continue until you update your configuration. "+
+			"In an upcoming major version of the provider, this drift will result in a non-empty plan.", *after, before, *after),
+	)
+}
+
+func majorComponent(version string) string {
+	major, _, _ := strings.Cut(version, ".")
+	return major
 }
 
 func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {

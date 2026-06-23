@@ -45,9 +45,9 @@ This is our recommended method to migrate from `mongodbatlas_cluster` to `mongod
  - Terraform version 1.8 or later is required, more information in the [State Move page](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move).
  - MongoDB Atlas Provider version 2.0 or later is required. 
 
-The process to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` using the `moved` block varies if you are using `modules` or the resource directly. Module maintainers can upgrade their implementation to `mongodbatlas_advanced_cluster` by making this operation transparent to their users. To learn how, review the examples from a [module maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/migrate_cluster_to_advanced_cluster/module_maintainer) and [module user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/migrate_cluster_to_advanced_cluster/module_user) point of view.
+The process to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` using the `moved` block varies if you are using `modules` or the resource directly. Module maintainers can upgrade their implementation to `mongodbatlas_advanced_cluster` by making this operation transparent to their users. To learn how, review the examples from a [module maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/migrate_cluster_to_advanced_cluster/module_maintainer) and [module user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/migrate_cluster_to_advanced_cluster/module_user) point of view.
 
-If you are managing the resource directly, see [this example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/migrate_cluster_to_advanced_cluster/basic).
+If you are managing the resource directly, see [this example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/migrate_cluster_to_advanced_cluster/basic).
 
 The basic experience when using the `moved` block is as follows:
 1. Before starting, run `terraform plan` to make sure that there are no planned changes.
@@ -239,7 +239,7 @@ To avoid this, always upgrade through the module version that contains the `move
 2. Provider Settings: Moved from the top level to the replication spec allowing you to create multi-cloud clusters.
 3. Auto Scaling: Moved from the top level to the replication spec allowing you to scale replication specs individually. Additionally, `mongodbatlas_advanced_cluster` supports `use_effective_fields` to simplify auto-scaling workflows. See [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields) for details.
 4. Backup Configuration: Renamed from `cloud_backup` to `backup_enabled`.
-5. See the [Migration Guide: Advanced Cluster New Sharding Configurations](advanced-cluster-new-sharding-schema#migration-sharded) for changes to `num_shards` and the new `zone_id`.
+5. See the [Migration Guide: Advanced Cluster New Sharding Configurations](advanced-cluster-new-sharding-schema#migrate-advanced_cluster-type-sharded) for changes to `num_shards` and the new `zone_id`.
 
 ### Example 1: Old Configuration (`mongodbatlas_cluster`)
 

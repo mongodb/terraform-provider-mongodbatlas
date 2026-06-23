@@ -1,5 +1,5 @@
 schema:
-    description: Creates one connection for a stream workspace in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner or Project Stream Processing Owner role.
+    description: Creates one connection for a stream workspace in the specified project.
     discriminator:
         mapping:
             AWSKinesisDataStreams:
@@ -312,6 +312,7 @@ schema:
                       request_only_required_on_create: false
                     - string: {}
                       description: Azure region where the storage account is located.
+                      deprecation_message: This attribute has been deprecated
                       computed_optional_required: optional
                       tf_schema_name: region
                       tf_model_name: Region
@@ -663,7 +664,7 @@ schema:
                         nested_object:
                             attributes:
                                 - string: {}
-                                  description: The ID of the Private Link connection. Required for `PRIVATE_LINK` type.
+                                  description: The ID of the Private Link connection. Required for `PRIVATE_LINK` type. For GCP connections using Private Service Connect (PSC), this is the PSC connection ID.
                                   computed_optional_required: optional
                                   tf_schema_name: connection_id
                                   tf_model_name: ConnectionId
@@ -714,7 +715,7 @@ schema:
                                   present_in_any_response: true
                                   request_only_required_on_create: false
                                 - string: {}
-                                  description: Selected networking type. Either `PUBLIC` or `PRIVATE_LINK`. Defaults to `PUBLIC`.
+                                  description: Selected networking type. Either `PUBLIC` or `PRIVATE_LINK`. Defaults to `PUBLIC`. For AWS, Azure, and GCP connections, use `PRIVATE_LINK` for AWS PrivateLink, Azure Private Link, or GCP Private Service Connect (PSC) respectively.
                                   computed_optional_required: optional
                                   tf_schema_name: type
                                   tf_model_name: Type
@@ -779,7 +780,7 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
-          description: 'Optional for type: AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types.'
+          description: 'Optional for type: AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC).'
           custom_type:
             package: customtypes
             name: PublicPrivateNetworking

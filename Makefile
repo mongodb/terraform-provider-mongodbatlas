@@ -120,7 +120,7 @@ tools:  ## Install the dev tools (dependencies)
 	go install github.com/hashicorp/go-changelog/cmd/changelog-entry@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin $(GOLANGCI_VERSION)
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION)
 
 .PHONY: docs
 docs: ## Give URL to test Terraform documentation

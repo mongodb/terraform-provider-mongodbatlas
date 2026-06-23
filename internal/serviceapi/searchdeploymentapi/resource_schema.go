@@ -36,7 +36,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"specs": schema.ListNestedAttribute{
 				Required:            true,
-				MarkdownDescription: "List of settings that configure the Search Nodes for your cluster.\n\n**NOTE**: We accept a single configuration for all nodes currently.",
+				MarkdownDescription: "List of settings that configure the Search Nodes for your cluster. Provide one element per region when configuring asymmetric deployments; a single element applies to all regions.",
 				CustomType:          customtypes.NewNestedListType[TFSpecsModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -45,8 +45,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Hardware specification for the Search Node instance sizes.",
 						},
 						"node_count": schema.Int64Attribute{
-							Required:            true,
-							MarkdownDescription: "Number of Search Nodes in the cluster.",
+							Optional:            true,
+							MarkdownDescription: "Number of Search Nodes in this region. Optional; falls back to the request-level default when omitted.",
 						},
 					},
 				},

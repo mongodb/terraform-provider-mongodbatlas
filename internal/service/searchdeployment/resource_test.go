@@ -56,7 +56,7 @@ func TestAccSearchDeployment_basic(t *testing.T) {
 	})
 }
 
-const deleteTimeout = 30 * time.Minute
+const deleteTimeout = 60 * time.Minute
 
 func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 	var (

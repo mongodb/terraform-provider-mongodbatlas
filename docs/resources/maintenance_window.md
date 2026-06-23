@@ -60,7 +60,7 @@ Use `defer` to defer the next scheduled maintenance event by one week. This only
 ```
 
 ### Further Examples
-- [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_maintenance_window)
+- [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_maintenance_window)
 
 ## Argument Reference
 
@@ -94,4 +94,4 @@ Maintenance Window entries can be imported using project project_id, in the form
 $ terraform import mongodbatlas_maintenance_window.test 5d0f1f73cf09a29120e173cf
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/maintenance-windows/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/maintenance-windows/)

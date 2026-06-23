@@ -11,7 +11,7 @@ The Terraform MongoDB Atlas Provider offers a two-resource path to perform an au
 - The second resource, `mongodbatlas_cloud_provider_access_authorization`, helps to perform the authorization using the `role_id` of the first resource.
 
 This path is helpful in a multi-provider Terraform file, and allows for a single and decoupled apply. 
-See example of this two-resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_cloud_provider_access/aws), AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_cloud_provider_access/azure) and GCP Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_cloud_provider_access/gcp).
+See example of this two-resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_provider_access/aws), AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_provider_access/azure) and GCP Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_provider_access/gcp).
 
 
 ## mongodbatlas_cloud_provider_access_authorization
@@ -85,9 +85,9 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 ```
 
 ### Further Examples
-- [AWS Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_cloud_provider_access/aws)
-- [Azure Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_cloud_provider_access/azure)
-- [GCP Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_cloud_provider_access/gcp)
+- [AWS Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_provider_access/aws)
+- [Azure Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_provider_access/azure)
+- [GCP Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_provider_access/gcp)
 
 
 ## Argument Reference
@@ -97,7 +97,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 
 Conditional 
 * `aws`
-   * `iam_assumed_role_arn` - (Required) ARN of the IAM Role that Atlas assumes when accessing resources in your AWS account. This value is required after the creation (register of the role) as part of [Set Up Unified AWS Access](https://docs.atlas.mongodb.com/security/set-up-unified-aws-access/#set-up-unified-aws-access).
+   * `iam_assumed_role_arn` - (Required) ARN of the IAM Role that Atlas assumes when accessing resources in your AWS account. This value is required after the creation (register of the role) as part of [Set Up Unified AWS Access](https://www.mongodb.com/docs/atlas/security/set-up-unified-aws-access/#set-up-unified-aws-access).
 * `azure`
    * `atlas_azure_app_id` - (Required) Azure Active Directory Application ID of Atlas.
    * `service_principal_id` - (Required) UUID string that identifies the Azure Service Principal.

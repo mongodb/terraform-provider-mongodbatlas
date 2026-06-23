@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312018/admin"
+	"go.mongodb.org/atlas-sdk/v20250312021/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -129,7 +129,7 @@ func newTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *a
 		return nil
 	}
 	modelOut.AdvancedConfiguration = types.ObjectNull(advancedConfigurationObjType.AttrTypes)
-	overrideAttributesWithPrevStateValue(modelIn, modelOut)
+	OverrideAttributesWithPrevStateValue(modelIn, modelOut, diags)
 	return modelOut
 }
 

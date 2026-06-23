@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_project: Reduces plan verbosity by avoiding `(known after apply)` on `region_usage_restrictions`, which remains stable after project creation
+```

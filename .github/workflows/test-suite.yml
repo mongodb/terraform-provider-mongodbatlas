@@ -13,7 +13,7 @@ on:
     inputs:
       terraform_matrix:
         description: 'Terraform version matrix (JSON array)'
-        default: '["1.14.x","1.13.x","1.12.x","1.11.x","1.10.x","1.9.x","1.8.x"]'
+        default: '["1.15.x","1.14.x","1.13.x","1.12.x","1.11.x","1.10.x","1.9.x"]'
       provider_matrix:
         description: 'Previous MongoDB Atlas Provider version matrix for migration tests (JSON array)'
         default: '[""]' # "" for latest version
@@ -63,8 +63,9 @@ concurrency:
    
 jobs:
   variables:
+    permissions: {}
     env:
-      schedule_terraform_matrix: '["1.14.x"]'
+      schedule_terraform_matrix: '["1.15.x"]'
       schedule_provider_matrix: '[""]' # "" for latest version    
     runs-on: ubuntu-latest
     outputs:
@@ -81,12 +82,16 @@ jobs:
           echo "DAY=$(date +'%a')"
           echo "DAY=$(date +'%a')" >> "$GITHUB_OUTPUT"
   clean-before:
+    permissions: {}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 
   tests:
     needs: [clean-before, variables]
     if: ${{ !cancelled() }}
+    permissions:
+      id-token: write
+      contents: read
     strategy:
       max-parallel: 1
       fail-fast: false
@@ -107,6 +112,7 @@ jobs:
   clean-after:
     needs: tests
     if: ${{ !cancelled() }}
+    permissions: {}
     secrets: inherit
     uses: ./.github/workflows/cleanup-test-env.yml
 
@@ -120,10 +126,10 @@ jobs:
       id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - name: Summarize test run
         id: summary
-        uses: anthropics/claude-code-action@ef50f123a3a9be95b60040d042717517407c7256
+        uses: anthropics/claude-code-action@d5726de019ec4498aa667642bc3a80fca83aa102
         with:
           anthropic_api_key: ${{ secrets.AI_GATEWAY_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -135,8 +141,18 @@ jobs:
           ANTHROPIC_CUSTOM_HEADERS: "api-key: ${{ secrets.AI_GATEWAY_API_KEY }}"
           CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS: "1"
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Persist summary to run page and file
+        env:
+          SUMMARY: ${{ fromJSON(steps.summary.outputs.structured_output).summary }}
+        run: |
+          printf '%s\n' "$SUMMARY" | tee summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload summary artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: summary
+          path: summary.md
       - name: Post summary to Slack
-        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
@@ -156,7 +172,7 @@ jobs:
             }
       - name: Fallback ping if any prior step failed
         if: ${{ failure() }}
-        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c
+        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook

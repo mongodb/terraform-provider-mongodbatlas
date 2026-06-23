@@ -35,8 +35,8 @@
 
 ### Cloud Gov tests
 
-1. Use [`PreCheck: PreCheckGovBasic`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/CLOUDP-250271_cloud_gov/internal/testutil/acc/pre_check.go#L98)
-2. Use the [`acc.ConfigGovProvider`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/CLOUDP-250271_cloud_gov/internal/testutil/acc/provider.go#L61) together with your normal terraform config
+1. Use [`PreCheck: PreCheckGovBasic`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/testutil/acc/pre_check.go#L134)
+2. Use the [`acc.ConfigGovProvider`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/internal/testutil/acc/provider.go#L124) together with your normal terraform config
 3. Modify the `checkExist` and `CheckDestroy` to use `acc.ConnV2UsingGov`
 4. Follow naming convention:
    1. `TestAccGovProject_withProjectOwner`, note prefix: `TestAccGov`
@@ -72,7 +72,7 @@ Acceptance and migration tests can reuse projects and clusters in order to be mo
 ## MacT - Mocked Acceptance Tests
 **Experimental** framework for hooking into the HTTP Client used by the Terraform provider and capture/replay traffic.
 - Works by mutating a `terraform-plugin-testing/helper/resource.TestCase`
-- Limited to `TestAccMockable*` tests in [`resource_advanced_cluster_test.go`](../internal/service/advancedcluster/resource_advanced_cluster_test.go):
+- Limited to `TestAccMockable*` tests in [`resource_test.go`](../internal/service/advancedcluster/resource_test.go):
 - Enabled test cases should always be named with `TestAccMockable` prefix, e.g.: `TestAccMockableAdvancedCluster_tenantUpgrade`
 - To create a new `TestAccMockable` you would need to (see [example commit](https://github.com/mongodb/terraform-provider-mongodbatlas/commit/939244fcab95eca9c4c93993fc1b5118ab8bfddb#diff-f9c590f9ffc351d041a26ff474f91404ff394cbfb83f1e135b415998476ca62aR128))
   - (1) Write the normal acceptance test

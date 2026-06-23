@@ -771,6 +771,10 @@ resources:
           computability:
             optional: true
             computed: true
+        tier: # optional, but when not configured Atlas returns the parent stream instance's tier.
+          computability:
+            optional: true
+            computed: true
 
   stream_connection_api:
     read:
@@ -1158,6 +1162,8 @@ resources:
             description: *org_id_description
           project_id:
             description: *project_id_description
+          roles:
+            type: set # Align with the roles attribute in the resource and singular data source, the API spec lacks uniqueItems for this property.
 
   project_ip_access_list:
     datasources:
@@ -1223,16 +1229,24 @@ resources:
           provider: providerName
           results.provider: providerName
         overrides:
+          # The user-facing docs for this resource are hand-written and intentionally describe AWS-only behavior
+          # (the resource implementation does not support Azure). The description overrides below pin the schema
+          # MarkdownDescription so that tooling that surfaces it (LSP, terraform-ls, IDE plugins) stays consistent
+          # with the manual docs even when the upstream Atlas API spec advertises additional providers.
           project_id:
             description: *project_id_description
           endpoint_id:
             description: "Unique 22-character alphanumeric string that identifies the private endpoint."
+          provider_name:
+            description: "Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services only."
           region:
             description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
           customer_endpoint_dns_name:
             description: "Human-readable DNS name to identify the customer's endpoint. If defined, you must also specify a value for `region`."
           results.endpoint_id:
             description: "Unique 22-character alphanumeric string that identifies the private endpoint."
+          results.provider_name:
+            description: "Human-readable label that identifies the cloud service provider. Atlas Data Lake supports Amazon Web Services only."
           results.region:
             description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
           results.customer_endpoint_dns_name:
@@ -1247,8 +1261,14 @@ resources:
         "results", "customer_endpoint_ip_address", "status", "azure_link_id", "error_message"
       ]
       overrides:
+          # The user-facing docs for this resource are hand-written and intentionally describe AWS-only behavior
+          # (the resource implementation does not support Azure). The description overrides below pin the schema
+          # MarkdownDescription so that tooling that surfaces it (LSP, terraform-ls, IDE plugins) stays consistent
+          # with the manual docs even when the upstream Atlas API spec advertises additional providers.
           project_id:
             description: *project_id_description
+          endpoint_id:
+            description: "Unique 22-character alphanumeric string that identifies the private endpoint."
           region:
             description: "Human-readable region label for the customer's endpoint. If defined, you must also specify a value for `customer_endpoint_dns_name`."
             # Mirrors logic of SDKv2 manual resource for "" values in state instead of null values
@@ -1299,6 +1319,11 @@ resources:
             immutable_computed: true
           otel_supplied_headers:
             sensitive: true
+          use_legacy_path_structure:
+            # Optional but Atlas returns the default value when null.
+            computability:
+              optional: true
+              computed: true
     datasources:
       read:
         path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}

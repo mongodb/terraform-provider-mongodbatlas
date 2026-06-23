@@ -20,14 +20,14 @@ resource "mongodbatlas_team" "test" {
 ```
 
 ### Further Examples
-- [Team and user assignment (module maintainer) v1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/migrate_user_team_assignment/module_maintainer/v1)
-- [Team and user assignment (module maintainer) v2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/migrate_user_team_assignment/module_maintainer/v2)
+- [Team and user assignment (module maintainer) v1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/migrate_user_team_assignment/module_maintainer/v1)
+- [Team and user assignment (module maintainer) v2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/migrate_user_team_assignment/module_maintainer/v2)
 
 ## Argument Reference
 
 * `org_id` - (Required) The unique identifier for the organization you want to associate the team with.
 * `name` - (Required) The name of the team you want to create.
-* `usernames` - **(DEPRECATED)** (Optional) The Atlas usernames (email address). You can only add Atlas users who are part of the organization. Users who have not accepted an invitation to join the organization cannot be added as team members. There is a maximum of 250 Atlas users per team. This attribute is deprecated and will be removed in the next major release. Please transition to `mongodbatlas_cloud_user_team_assignment`. For more details, see [Migration Guide: Team Usernames Attribute to Cloud User Team Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management.md).
+* `usernames` - **(DEPRECATED)** (Optional) The Atlas usernames (email address). You can only add Atlas users who are part of the organization. Users who have not accepted an invitation to join the organization cannot be added as team members. There is a maximum of 250 Atlas users per team. This attribute is deprecated and will be removed in the next major release. Please transition to `mongodbatlas_cloud_user_team_assignment`. For more details, see [Migration Guide: Team Usernames Attribute to Cloud User Team Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management).
 
 ## Attributes Reference
 
@@ -44,4 +44,4 @@ Teams can be imported using the organization ID and team id, in the format ORGID
 $ terraform import mongodbatlas_team.my_team 1112222b3bf99403840e8934-1112222b3bf99403840e8935
 ```
 
-See detailed information for arguments and attributes: [MongoDB API Teams](https://docs.atlas.mongodb.com/reference/api/teams-create-one/)
+See detailed information for arguments and attributes: [MongoDB API Teams](https://www.mongodb.com/docs/atlas/reference/api/teams-create-one/)

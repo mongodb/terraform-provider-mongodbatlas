@@ -142,8 +142,8 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 ```
 
 ### Further Examples
-- [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time)
-- [Restore from backup snapshot using an advanced cluster resource](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.11.0/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time-advanced-cluster)
+- [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time)
+- [Restore from backup snapshot using an advanced cluster resource](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time-advanced-cluster)
 
 ## Argument Reference
 
@@ -210,4 +210,4 @@ Cloud Backup Snapshot Restore Job entries can be imported using project project_
 $ terraform import mongodbatlas_cloud_backup_snapshot_restore_job.test 5cf5a45a9ccf6400e60981b6-MyCluster-5d1b654ecf09a24b888f4c79
 ```
 
-For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/cloud-backup/restore/restores/)
+For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/cloud-backup/restore/restores/)
