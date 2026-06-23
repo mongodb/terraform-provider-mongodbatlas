@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312020/admin"
+	"go.mongodb.org/atlas-sdk/v20250312021/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
