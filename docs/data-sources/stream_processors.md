@@ -142,6 +142,7 @@ role or Project Stream Processing Owner role. (see [below for nested schema](#ne
 
 Read-Only:
 
+- `failover_enabled` (Boolean) Indicates whether failover is enabled for the stream processor. When enabled, the processor will automatically failover to a secondary region if the primary region becomes unavailable.
 - `id` (String) Unique 24-hexadecimal character string that identifies the stream processor.
 - `instance_name` (String, Deprecated) Label that identifies the stream processing workspace.
 - `options` (Attributes) Optional configuration for the stream processor. (see [below for nested schema](#nestedatt--results--options))

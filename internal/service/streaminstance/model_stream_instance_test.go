@@ -47,6 +47,7 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 			expectedTFModel: &streaminstance.TFStreamInstanceModel{
 				ID:                types.StringValue(dummyStreamInstanceID),
 				DataProcessRegion: tfRegionObject(t, cloudProvider, region),
+				FailoverRegions:   types.ListNull(streaminstance.FailoverRegionObjectType),
 				ProjectID:         types.StringValue(dummyProjectID),
 				Hostnames:         tfHostnamesList(t, hostnames),
 				InstanceName:      types.StringValue(instanceName),
@@ -63,6 +64,7 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 			expectedTFModel: &streaminstance.TFStreamInstanceModel{
 				ID:                types.StringValue(dummyStreamInstanceID),
 				DataProcessRegion: types.ObjectNull(streaminstance.ProcessRegionObjectType.AttrTypes),
+				FailoverRegions:   types.ListNull(streaminstance.FailoverRegionObjectType),
 				ProjectID:         types.StringValue(dummyProjectID),
 				Hostnames:         types.ListNull(types.StringType),
 				InstanceName:      types.StringValue(instanceName),
@@ -127,6 +129,7 @@ func TestStreamInstancesSDKToTFModel(t *testing.T) {
 					{
 						ID:                types.StringValue(dummyStreamInstanceID),
 						DataProcessRegion: tfRegionObject(t, cloudProvider, region),
+						FailoverRegions:   types.ListNull(streaminstance.FailoverRegionObjectType),
 						ProjectID:         types.StringValue(dummyProjectID),
 						Hostnames:         tfHostnamesList(t, hostnames),
 						InstanceName:      types.StringValue(instanceName),
