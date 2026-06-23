@@ -529,6 +529,8 @@ resources:
     schema:
       ignores: ["effective_wave_assignment_mode"]
       overrides:
+        org_id:
+          description: *org_id_description
         wave_assignment_mode:
           request_body_usage: "send_null_as_null_on_update"
           computability:
