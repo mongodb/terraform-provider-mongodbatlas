@@ -10,7 +10,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-const resourceName = "mongodbatlas_org_maintenance_settings.test"
+const (
+	resourceName   = "mongodbatlas_org_maintenance_settings.test"
+	dataSourceName = "data.mongodbatlas_org_maintenance_settings.test"
+)
 
 func TestAccOrgMaintenanceSettings_basic(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -56,6 +59,10 @@ func configWithMode(orgID, waveAssignmentMode string) string {
 			org_id               = %[1]q
 			wave_assignment_mode = %[2]q
 		}
+
+		data "mongodbatlas_org_maintenance_settings" "test" {
+			org_id = mongodbatlas_org_maintenance_settings.test.org_id
+		}
 	`, orgID, waveAssignmentMode)
 }
 
@@ -64,6 +71,10 @@ func configEmpty(orgID string) string {
 		resource "mongodbatlas_org_maintenance_settings" "test" {
 			org_id = %[1]q
 		}
+
+		data "mongodbatlas_org_maintenance_settings" "test" {
+			org_id = mongodbatlas_org_maintenance_settings.test.org_id
+		}
 	`, orgID)
 }
 
@@ -71,6 +82,9 @@ func checkWithMode(orgID, waveAssignmentMode string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 		resource.TestCheckResourceAttr(resourceName, "wave_assignment_mode", waveAssignmentMode),
+		resource.TestCheckResourceAttr(dataSourceName, "org_id", orgID),
+		resource.TestCheckResourceAttr(dataSourceName, "wave_assignment_mode", waveAssignmentMode),
+		resource.TestCheckResourceAttrSet(dataSourceName, "effective_wave_assignment_mode"),
 	)
 }
 
@@ -79,6 +93,9 @@ func checkEmpty(orgID string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 		resource.TestCheckResourceAttrSet(resourceName, "wave_assignment_mode"),
+		resource.TestCheckResourceAttr(dataSourceName, "org_id", orgID),
+		resource.TestCheckResourceAttrSet(dataSourceName, "wave_assignment_mode"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "effective_wave_assignment_mode"),
 	)
 }
 
