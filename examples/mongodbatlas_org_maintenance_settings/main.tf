@@ -3,8 +3,9 @@ resource "mongodbatlas_org_maintenance_settings" "example" {
   wave_assignment_mode = "ENV_TAG_MAPPING"
 }
 
+# Set up MongoDB Atlas Project access
 resource "mongodbatlas_project" "example" {
-  name   = "project-name"
+  name   = var.project_name
   org_id = var.org_id
 
   tags = {
@@ -18,6 +19,7 @@ data "mongodbatlas_org_maintenance_settings" "example" {
 
 data "mongodbatlas_maintenance_window" "example" {
   project_id = mongodbatlas_project.example.id
+  depends_on = [mongodbatlas_org_maintenance_settings.example]
 }
 
 output "org_maintenance_settings" {

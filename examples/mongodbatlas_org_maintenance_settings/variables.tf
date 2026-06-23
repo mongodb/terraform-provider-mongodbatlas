@@ -10,6 +10,10 @@ variable "atlas_client_secret" {
   default     = ""
 }
 variable "org_id" {
-  description = "Atlas Organization ID"
+  description = "MongoDB Atlas Organization ID"
+  type        = string
+}
+variable "project_name" {
+  description = "Name of the MongoDB Atlas project"
   type        = string
 }
