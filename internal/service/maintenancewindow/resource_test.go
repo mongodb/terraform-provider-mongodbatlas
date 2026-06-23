@@ -193,7 +193,7 @@ func configWithAutoDeferEnabled(orgID, projectName string, dayOfWeek, hourOfDay 
 }
 
 func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
-	// Skipped in CI until wave fields are promoted to the stable SDK.
+	// TODO: Remove SkipTestForCI once wave fields are promoted to the stable SDK.
 	acc.SkipTestForCI(t)
 
 	var (
