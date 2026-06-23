@@ -71,7 +71,7 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV220250312020 // TODO: Remove before merging to master.
 	projectID := d.Get("project_id").(string)
 
 	maintenance, _, err := connV2.MaintenanceWindowsApi.GetMaintenanceWindow(ctx, projectID).Execute()
