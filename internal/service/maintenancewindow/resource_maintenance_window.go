@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	admin "go.mongodb.org/atlas-sdk/v20250312020/admin" // TODO: Remove before merging to master — pinned for wave fields.
 )
 
 const (
@@ -112,7 +112,7 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV220250312020 // TODO: Remove before merging to master.
 	projectID := d.Get("project_id").(string)
 
 	if deferValue := d.Get("defer").(bool); deferValue {
@@ -168,7 +168,7 @@ func newProtectedHours(d *schema.ResourceData) *admin.ProtectedHours {
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV220250312020 // TODO: Remove before merging to master.
 	projectID := d.Id()
 
 	maintenanceWindow, resp, err := connV2.MaintenanceWindowsApi.GetMaintenanceWindow(ctx, projectID).Execute()
@@ -248,7 +248,7 @@ func clearMaintenanceWave(ctx context.Context, client *config.MongoDBClient, pro
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV220250312020 // TODO: Remove before merging to master.
 	projectID := d.Id()
 
 	if d.HasChange("defer") {
@@ -312,7 +312,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasV220250312020 // TODO: Remove before merging to master.
 	projectID := d.Id()
 
 	_, err := connV2.MaintenanceWindowsApi.ResetMaintenanceWindow(ctx, projectID).Execute()

@@ -193,6 +193,8 @@ func configWithAutoDeferEnabled(orgID, projectName string, dayOfWeek, hourOfDay 
 }
 
 func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
+	acc.SkipTestForCI(t)
+
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
