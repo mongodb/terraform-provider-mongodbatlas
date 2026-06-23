@@ -1,6 +1,8 @@
 package codespec
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"slices"
 
@@ -9,6 +11,19 @@ import (
 )
 
 const discriminatorExtensionKey = "x-xgen-discriminator"
+
+const arraySemanticExtensionKey = "x-xgen-array-semantic"
+
+const (
+	arraySemanticList = "list"
+	arraySemanticSet  = "set"
+)
+
+var ErrInvalidArraySemantic = errors.New("invalid " + arraySemanticExtensionKey + " value")
+
+const serverComputedImmutableExtensionKey = "x-xgen-server-computed-immutable"
+
+const serverComputedWhenClientOmittedExtensionKey = "x-xgen-server-computed-when-client-omitted"
 
 // DiscriminatorExtension represents the raw x-xgen-discriminator extension as declared in the OpenAPI spec.
 type DiscriminatorExtension struct {
@@ -84,4 +99,73 @@ func (s *APISpecSchema) GetXGenDiscriminator() *DiscriminatorExtension {
 	}
 
 	return &result
+}
+
+// GetXGenArraySemantic returns the declared array semantic ("list" or "set"), or nil if the
+// extension is absent. It returns an error wrapping ErrInvalidArraySemantic when the value is
+// malformed or not one of the allowed values, so generation fails wherever the property appears.
+func (s *APISpecSchema) GetXGenArraySemantic() (*string, error) {
+	if s.Schema.Extensions == nil {
+		return nil, nil
+	}
+
+	node, ok := s.Schema.Extensions.Get(arraySemanticExtensionKey)
+	if !ok || node == nil {
+		return nil, nil
+	}
+
+	var value string
+	if err := node.Decode(&value); err != nil {
+		return nil, fmt.Errorf("%w: %s", ErrInvalidArraySemantic, err)
+	}
+
+	if value != arraySemanticList && value != arraySemanticSet {
+		return nil, fmt.Errorf("%w: %q, expected %q or %q", ErrInvalidArraySemantic, value, arraySemanticList, arraySemanticSet)
+	}
+
+	return &value, nil
+}
+
+// GetXGenServerComputedImmutable reports whether the property is annotated with the
+// x-xgen-server-computed-immutable extension set to true. Returns false if the extension is absent
+// or cannot be decoded.
+func (s *APISpecSchema) GetXGenServerComputedImmutable() bool {
+	if s.Schema.Extensions == nil {
+		return false
+	}
+
+	node, ok := s.Schema.Extensions.Get(serverComputedImmutableExtensionKey)
+	if !ok || node == nil {
+		return false
+	}
+
+	var value bool
+	if err := node.Decode(&value); err != nil {
+		log.Printf("[WARN] Failed to decode %s extension: %s", serverComputedImmutableExtensionKey, err)
+		return false
+	}
+
+	return value
+}
+
+// GetXGenServerComputedWhenClientOmitted reports whether the property is annotated with the
+// x-xgen-server-computed-when-client-omitted extension set to true. Returns false if the extension
+// is absent or cannot be decoded.
+func (s *APISpecSchema) GetXGenServerComputedWhenClientOmitted() bool {
+	if s.Schema.Extensions == nil {
+		return false
+	}
+
+	node, ok := s.Schema.Extensions.Get(serverComputedWhenClientOmittedExtensionKey)
+	if !ok || node == nil {
+		return false
+	}
+
+	var value bool
+	if err := node.Decode(&value); err != nil {
+		log.Printf("[WARN] Failed to decode %s extension: %s", serverComputedWhenClientOmittedExtensionKey, err)
+		return false
+	}
+
+	return value
 }

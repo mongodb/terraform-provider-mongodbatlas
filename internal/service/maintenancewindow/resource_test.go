@@ -10,12 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20250312020/admin"
+	"go.mongodb.org/atlas-sdk/v20250312021/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 const resourceName = "mongodbatlas_maintenance_window.test"
+const dataSourceName = "data.mongodbatlas_maintenance_window.test"
 
 var (
 	defaultProtectedHours = &admin.ProtectedHours{
@@ -92,6 +93,8 @@ func TestAccConfigRSMaintenanceWindow_autoDeferActivated(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
 					resource.TestCheckResourceAttr(resourceName, "auto_defer_once_enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "time_zone_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "auto_defer_once_enabled", "true"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "time_zone_id"),
 				),
 			},
 		},
@@ -166,6 +169,9 @@ func configBasic(orgID, projectName string, dayOfWeek, hourOfDay int, protectedH
 			hour_of_day = %[4]d
 			%[5]s
 
+		}
+		data "mongodbatlas_maintenance_window" "test" {
+			project_id = mongodbatlas_maintenance_window.test.project_id
 		}`, orgID, projectName, dayOfWeek, hourOfDay, protectedHoursStr)
 }
 
@@ -180,7 +186,84 @@ func configWithAutoDeferEnabled(orgID, projectName string, dayOfWeek, hourOfDay 
 			day_of_week = %[3]d
 			hour_of_day = %[4]d
 			auto_defer_once_enabled = true
+		}
+		data "mongodbatlas_maintenance_window" "test" {
+			project_id = mongodbatlas_maintenance_window.test.project_id
 		}`, orgID, projectName, dayOfWeek, hourOfDay)
+}
+
+func TestAccConfigRSMaintenanceWindow_waveAssignment(t *testing.T) {
+	// TODO: Remove SkipTestForCI once wave fields are promoted to the stable SDK.
+	acc.SkipTestForCI(t)
+
+	var (
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		dayOfWeek   = 7
+		hourOfDay   = 3
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithWave(orgID, projectName, dayOfWeek, hourOfDay, 1),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "wave_assignment", "1"),
+					// effective_wave_assignment may not reflect the new value after a PATCH (see CLOUDP-414086).
+					// Once issue has been fixed, this check can be switched to assert the same value as wave_assignment.
+					resource.TestCheckResourceAttrSet(dataSourceName, "effective_wave_assignment"),
+				),
+			},
+			{
+				Config: configWithWave(orgID, projectName, dayOfWeek, hourOfDay, 2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "2"),
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
+				),
+			},
+			{
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay, nil),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "wave_assignment", "0"),
+					resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
+					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// wave_assignment: after clearing, the API omits the field when null so the imported state
+				// has no key, while pre-import state has the SDKv2 TypeInt zero value.
+				ImportStateVerifyIgnore: []string{"wave_assignment"},
+			},
+		},
+	})
+}
+
+func configWithWave(orgID, projectName string, dayOfWeek, hourOfDay, waveAssignment int) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
+		resource "mongodbatlas_maintenance_window" "test" {
+			project_id      = mongodbatlas_project.test.id
+			day_of_week     = %[3]d
+			hour_of_day     = %[4]d
+			wave_assignment = %[5]d
+		}
+		data "mongodbatlas_maintenance_window" "test" {
+			project_id = mongodbatlas_maintenance_window.test.project_id
+		}`, orgID, projectName, dayOfWeek, hourOfDay, waveAssignment)
 }
 
 func checkBasic(dayOfWeek, hourOfDay int, protectedHours *admin.ProtectedHours) resource.TestCheckFunc {
@@ -190,6 +273,9 @@ func checkBasic(dayOfWeek, hourOfDay int, protectedHours *admin.ProtectedHours) 
 		resource.TestCheckResourceAttr(resourceName, "day_of_week", cast.ToString(dayOfWeek)),
 		resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
 		resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
+		resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+		resource.TestCheckResourceAttr(dataSourceName, "day_of_week", cast.ToString(dayOfWeek)),
+		resource.TestCheckResourceAttr(dataSourceName, "hour_of_day", cast.ToString(hourOfDay)),
 	}
 	if protectedHours != nil {
 		checks = append(checks,

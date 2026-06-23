@@ -23,9 +23,10 @@ import (
 const (
 	descUseEffectiveFields        = "Controls how hardware specification fields are returned in the response. When set to true, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to false (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications."
 	descSpecs                     = "Hardware specifications for nodes deployed in the region."
-	descDiskIops                  = "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"Azure\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : \"M40\"` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost."
+	descDiskIops                  = "Target IOPS (Input/Output Operations Per Second) desired for storage attached to this hardware. You can set this attribute if you selected AWS or Azure as your cloud service provider. For AWS, valid configurations are:\n\n- For Gen2 instance sizes (`M30_GEN_2` or greater) with `ebs_volume_type` set to `STANDARD`: configurable between 3000 and 80000 IOPS.\n- For Gen2 instance sizes (`M30_GEN_2` or greater) with `ebs_volume_type` set to `HIGH_PERFORMANCE`: configurable within the allowable range for the selected volume size.\n- For M30 or greater (not including `Mxx_NVME` tiers) with `ebs_volume_type` set to `PROVISIONED`: configurable within the allowable range for the selected volume size.\n\nFor Azure, this parameter applies to M40 or greater (not including `Mxx_NVME` tiers). The maximum IOPS depend on the selected instance size and disk size. This parameter defaults to the cluster tier's standard IOPS value. Changing this value impacts cluster cost."
+	descDiskThroughput            = "Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (GP3) volume type."
 	descDiskSizeGb                = "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
-	descEbsVolumeType             = "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
+	descEbsVolumeType             = "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types use gp3 storage. For Gen 2 instance sizes, you can configure IOPS independently of storage size using `disk_iops`.\n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.\n\n- `HIGH_PERFORMANCE` volume types use io2 storage and must fall within the allowable IOPS range for the selected volume size. Only supported for Gen 2 instance sizes."
 	descInstanceSize              = "Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as \"base nodes\") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards."
 	descNodeCount                 = "Number of nodes of the given type for MongoDB Cloud to deploy to the region."
 	descReplicationSpecs          = "List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations."
@@ -304,6 +305,10 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether time-based snapshot copies will be used instead of slower standard snapshot copies during fast Atlas cross-region initial syncs. This flag is only relevant for clusters containing AWS nodes.",
 			},
+			"adaptive_capacity": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Governs adaptive capacity behavior of Azure nodes in single-cloud Azure clusters or multi-cloud clusters that include Azure nodes. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. `ENABLED` means the cluster explicitly opts in to adaptive capacity. `DISABLED` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. `null` means the field is unset; Azure clusters use adaptive capacity by default when the feature is enabled at the group level. Setting this field for single-cloud AWS or GCP clusters is a no-op.",
+			},
 			"version_release_system": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
@@ -558,6 +563,10 @@ func specsSchemaDS() dsschema.SingleNestedAttribute {
 				Computed:            true,
 				MarkdownDescription: descDiskIops,
 			},
+			"disk_throughput": dsschema.Int64Attribute{
+				Computed:            true,
+				MarkdownDescription: descDiskThroughput,
+			},
 			"disk_size_gb": dsschema.Float64Attribute{
 				Computed:            true,
 				MarkdownDescription: descDiskSizeGb,
@@ -673,11 +682,11 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 }
 
 type TFModel struct {
-	Labels                                        types.Map      `tfsdk:"labels"`
 	ReplicationSpecs                              types.List     `tfsdk:"replication_specs"`
+	Labels                                        types.Map      `tfsdk:"labels"`
 	Tags                                          types.Map      `tfsdk:"tags"`
-	StateName                                     types.String   `tfsdk:"state_name"`
-	ConnectionStrings                             types.Object   `tfsdk:"connection_strings"`
+	BiConnectorConfig                             types.Object   `tfsdk:"bi_connector_config"`
+	ClusterType                                   types.String   `tfsdk:"cluster_type"`
 	CreateDate                                    types.String   `tfsdk:"create_date"`
 	AcceptDataRisksAndForceReplicaSetReconfig     types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
 	EncryptionAtRestProvider                      types.String   `tfsdk:"encryption_at_rest_provider"`
@@ -689,14 +698,14 @@ type TFModel struct {
 	MongoDBVersion                                types.String   `tfsdk:"mongo_db_version"`
 	Name                                          types.String   `tfsdk:"name"`
 	VersionReleaseSystem                          types.String   `tfsdk:"version_release_system"`
-	BiConnectorConfig                             types.Object   `tfsdk:"bi_connector_config"`
+	StateName                                     types.String   `tfsdk:"state_name"`
+	ConnectionStrings                             types.Object   `tfsdk:"connection_strings"`
 	ConfigServerType                              types.String   `tfsdk:"config_server_type"`
-	ReplicaSetScalingStrategy                     types.String   `tfsdk:"replica_set_scaling_strategy"`
-	ClusterType                                   types.String   `tfsdk:"cluster_type"`
-	RootCertType                                  types.String   `tfsdk:"root_cert_type"`
 	AdvancedConfiguration                         types.Object   `tfsdk:"advanced_configuration"`
+	RootCertType                                  types.String   `tfsdk:"root_cert_type"`
+	ReplicaSetScalingStrategy                     types.String   `tfsdk:"replica_set_scaling_strategy"`
 	PinnedFCV                                     types.Object   `tfsdk:"pinned_fcv"`
-	TerminationProtectionEnabled                  types.Bool     `tfsdk:"termination_protection_enabled"`
+	AdaptiveCapacity                              types.String   `tfsdk:"adaptive_capacity"`
 	Paused                                        types.Bool     `tfsdk:"paused"`
 	RetainBackupsEnabled                          types.Bool     `tfsdk:"retain_backups_enabled"`
 	BackupEnabled                                 types.Bool     `tfsdk:"backup_enabled"`
@@ -706,15 +715,16 @@ type TFModel struct {
 	UseAwsTimeBasedSnapshotCopyForFastInitialSync types.Bool     `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
 	DeleteOnCreateTimeout                         types.Bool     `tfsdk:"delete_on_create_timeout"`
 	UseEffectiveFields                            types.Bool     `tfsdk:"use_effective_fields"`
+	TerminationProtectionEnabled                  types.Bool     `tfsdk:"termination_protection_enabled"`
 }
 
 // TFModelDS differs from TFModel: removes resource-only fields like timeouts, accept_data_risks_and_force_replica_set_reconfig, retain_backups_enabled
 type TFModelDS struct {
-	Labels                                        types.Map    `tfsdk:"labels"`
 	ReplicationSpecs                              types.List   `tfsdk:"replication_specs"`
+	Labels                                        types.Map    `tfsdk:"labels"`
 	Tags                                          types.Map    `tfsdk:"tags"`
-	ReplicaSetScalingStrategy                     types.String `tfsdk:"replica_set_scaling_strategy"`
-	Name                                          types.String `tfsdk:"name"`
+	MongoDBVersion                                types.String `tfsdk:"mongo_db_version"`
+	EncryptionAtRestProvider                      types.String `tfsdk:"encryption_at_rest_provider"`
 	AdvancedConfiguration                         types.Object `tfsdk:"advanced_configuration"`
 	BiConnectorConfig                             types.Object `tfsdk:"bi_connector_config"`
 	RootCertType                                  types.String `tfsdk:"root_cert_type"`
@@ -724,14 +734,14 @@ type TFModelDS struct {
 	VersionReleaseSystem                          types.String `tfsdk:"version_release_system"`
 	ConnectionStrings                             types.Object `tfsdk:"connection_strings"`
 	StateName                                     types.String `tfsdk:"state_name"`
-	MongoDBVersion                                types.String `tfsdk:"mongo_db_version"`
+	ReplicaSetScalingStrategy                     types.String `tfsdk:"replica_set_scaling_strategy"`
 	CreateDate                                    types.String `tfsdk:"create_date"`
-	EncryptionAtRestProvider                      types.String `tfsdk:"encryption_at_rest_provider"`
+	Name                                          types.String `tfsdk:"name"`
 	ProjectID                                     types.String `tfsdk:"project_id"`
 	ClusterID                                     types.String `tfsdk:"cluster_id"`
 	ConfigServerManagementMode                    types.String `tfsdk:"config_server_management_mode"`
 	PinnedFCV                                     types.Object `tfsdk:"pinned_fcv"`
-	RedactClientLogData                           types.Bool   `tfsdk:"redact_client_log_data"`
+	AdaptiveCapacity                              types.String `tfsdk:"adaptive_capacity"`
 	GlobalClusterSelfManagedSharding              types.Bool   `tfsdk:"global_cluster_self_managed_sharding"`
 	BackupEnabled                                 types.Bool   `tfsdk:"backup_enabled"`
 	Paused                                        types.Bool   `tfsdk:"paused"`
@@ -739,6 +749,7 @@ type TFModelDS struct {
 	PitEnabled                                    types.Bool   `tfsdk:"pit_enabled"`
 	UseAwsTimeBasedSnapshotCopyForFastInitialSync types.Bool   `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
 	UseEffectiveFields                            types.Bool   `tfsdk:"use_effective_fields"`
+	RedactClientLogData                           types.Bool   `tfsdk:"redact_client_log_data"`
 }
 
 type TFModelPluralDS struct {
@@ -866,16 +877,16 @@ type TFRegionConfigsDSModel struct {
 
 var regionConfigsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"analytics_auto_scaling":    autoScalingObjType,
-	"analytics_specs":           specsObjType,
+	"analytics_specs":           specsDSObjType,
 	"auto_scaling":              autoScalingObjType,
 	"backing_provider_name":     types.StringType,
-	"effective_analytics_specs": specsObjType,
-	"effective_electable_specs": specsObjType,
-	"effective_read_only_specs": specsObjType,
-	"electable_specs":           specsObjType,
+	"effective_analytics_specs": specsDSObjType,
+	"effective_electable_specs": specsDSObjType,
+	"effective_read_only_specs": specsDSObjType,
+	"electable_specs":           specsDSObjType,
 	"priority":                  types.Int64Type,
 	"provider_name":             types.StringType,
-	"read_only_specs":           specsObjType,
+	"read_only_specs":           specsDSObjType,
 	"region_name":               types.StringType,
 }}
 
@@ -906,6 +917,24 @@ type TFSpecsModel struct {
 var specsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"disk_iops":       types.Int64Type,
 	"disk_size_gb":    types.Float64Type,
+	"ebs_volume_type": types.StringType,
+	"instance_size":   types.StringType,
+	"node_count":      types.Int64Type,
+}}
+
+type TFSpecsDSModel struct {
+	DiskSizeGb     types.Float64 `tfsdk:"disk_size_gb"`
+	EbsVolumeType  types.String  `tfsdk:"ebs_volume_type"`
+	InstanceSize   types.String  `tfsdk:"instance_size"`
+	DiskIops       types.Int64   `tfsdk:"disk_iops"`
+	DiskThroughput types.Int64   `tfsdk:"disk_throughput"`
+	NodeCount      types.Int64   `tfsdk:"node_count"`
+}
+
+var specsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"disk_iops":       types.Int64Type,
+	"disk_size_gb":    types.Float64Type,
+	"disk_throughput": types.Int64Type,
 	"ebs_volume_type": types.StringType,
 	"instance_size":   types.StringType,
 	"node_count":      types.Int64Type,

@@ -24,10 +24,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:            true,
 				MarkdownDescription: "One-based integer that represents the day of the week that the maintenance window starts.\n\n- `1`: Sunday.\n- `2`: Monday.\n- `3`: Tuesday.\n- `4`: Wednesday.\n- `5`: Thursday.\n- `6`: Friday.\n- `7`: Saturday.",
 			},
-			"effective_wave_assignment": schema.Int64Attribute{
-				Computed:            true,
-				MarkdownDescription: "Maintenance wave that Atlas uses when scheduling maintenance for this project. This value can differ from `waveAssignment` when cross-organization maintenance sequencing is enabled or when the organization derives waves from environment tags.",
-			},
 			"group_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
@@ -64,25 +60,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Identifier for the current time zone of the maintenance window. This can only be updated via the Project Settings UI.",
 			},
-			"wave_assignment": schema.Int64Attribute{
-				Optional:            true,
-				MarkdownDescription: "Maintenance wave explicitly assigned to this project. Editable when the organization's effective wave assignment mode is MANUAL. Must be between 1 and 3, inclusive. Pass `null` to clear an explicit assignment.",
-			},
 		},
 	}
 }
 
 type TFModel struct {
-	AutoDeferOnceEnabled    types.Bool                                     `tfsdk:"auto_defer_once_enabled"`
-	DayOfWeek               types.Int64                                    `tfsdk:"day_of_week"`
-	EffectiveWaveAssignment types.Int64                                    `tfsdk:"effective_wave_assignment" autogen:"omitjson"`
-	GroupId                 types.String                                   `tfsdk:"group_id" autogen:"omitjson"`
-	HourOfDay               types.Int64                                    `tfsdk:"hour_of_day"`
-	NumberOfDeferrals       types.Int64                                    `tfsdk:"number_of_deferrals" autogen:"omitjson"`
-	ProtectedHours          customtypes.ObjectValue[TFProtectedHoursModel] `tfsdk:"protected_hours"`
-	StartASAP               types.Bool                                     `tfsdk:"start_asap"`
-	TimeZoneId              types.String                                   `tfsdk:"time_zone_id" autogen:"omitjson"`
-	WaveAssignment          types.Int64                                    `tfsdk:"wave_assignment"`
+	AutoDeferOnceEnabled types.Bool                                     `tfsdk:"auto_defer_once_enabled"`
+	DayOfWeek            types.Int64                                    `tfsdk:"day_of_week"`
+	GroupId              types.String                                   `tfsdk:"group_id" autogen:"omitjson"`
+	HourOfDay            types.Int64                                    `tfsdk:"hour_of_day"`
+	NumberOfDeferrals    types.Int64                                    `tfsdk:"number_of_deferrals" autogen:"omitjson"`
+	ProtectedHours       customtypes.ObjectValue[TFProtectedHoursModel] `tfsdk:"protected_hours"`
+	StartASAP            types.Bool                                     `tfsdk:"start_asap"`
+	TimeZoneId           types.String                                   `tfsdk:"time_zone_id" autogen:"omitjson"`
 }
 type TFProtectedHoursModel struct {
 	EndHourOfDay   types.Int64 `tfsdk:"end_hour_of_day"`
