@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250312020/admin"
+	"go.mongodb.org/atlas-sdk/v20250312021/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
