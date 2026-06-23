@@ -1,15 +1,14 @@
 no_progress = true
 
 # Skip immutable historical records: released changelog and dated compliance docs.
-exclude_path = ["CHANGELOG.md", "compliance"]
+exclude_path = ["CHANGELOG.md", ".changelog", "compliance"]
 
-# Known false positives: auth-gated endpoints, literal placeholders, and a third-party site.
+# Known false positives: auth-gated endpoints and literal placeholders.
 exclude = [
   'cloud.mongodb.com/api',
   'support.snyk.io',
   'sts.windows.net',
   'token.actions.githubusercontent.com',
-  'epoch101.com',
 ]
 
 # Terraform Registry renders intra-doc links under docs/ without the .md extension

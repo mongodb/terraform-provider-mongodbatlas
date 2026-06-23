@@ -660,7 +660,7 @@ Key-value pairs between 1 to 255 characters in length for tagging and categorizi
 * `key` - (Required) Constant that defines the set of the tag.
 * `value` - (Required) Variable that belongs to the set of the tag.
 
-To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas).
+To learn more, see [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
 
 ### labels
 

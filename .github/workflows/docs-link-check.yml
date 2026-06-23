@@ -25,6 +25,12 @@ jobs:
         uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411
         with:
           args: --offline --include-fragments --config ./lychee.toml .
+      - name: Check canonical MongoDB docs domains
+        run: |
+          if git grep -nE 'https?://docs\.(atlas\.)?mongodb\.com' -- '*.md' ':!CHANGELOG.md' ':!.changelog/**' ':!compliance/**'; then
+            echo "::error::Legacy MongoDB docs domains found. Use https://www.mongodb.com/docs/... links instead."
+            exit 1
+          fi
 
   online-changed:
     if: github.event_name == 'pull_request'
