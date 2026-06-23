@@ -55,9 +55,10 @@ func TestAccStreamProcessor_basic(t *testing.T) {
 
 func TestAccStreamProcessor_withFailoverEnabled(t *testing.T) {
 	var (
-		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		randomSuffix             = acctest.RandString(5)
-		processorName            = "new-processor-failover" + randomSuffix
+		projectID     = acc.ProjectIDExecution(t)
+		randomSuffix  = acctest.RandString(5)
+		workspaceName = acc.RandomName()
+		processorName = "new-processor-failover-" + randomSuffix
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -739,16 +740,35 @@ func config(t *testing.T, projectID, workspaceName, processorName, state, nameSu
 func configWithFailoverEnabled(t *testing.T, projectID, workspaceName, processorName string, failoverEnabled bool) string {
 	t.Helper()
 
+	// failover_enabled requires the workspace to have failover_regions configured,
+	// so this config creates its own workspace with failover_regions rather than
+	// reusing a plain execution instance.
 	return fmt.Sprintf(`
+	resource "mongodbatlas_stream_workspace" "failover_workspace" {
+		project_id     = %[1]q
+		workspace_name = %[2]q
+		data_process_region = {
+			cloud_provider = "AWS"
+			region         = "VIRGINIA_USA"
+		}
+		failover_regions = [
+			{
+				cloud_provider = "AWS"
+				region         = "DUBLIN_IRL"
+			}
+		]
+	}
+
 	data "mongodbatlas_stream_connection" "sample_stream_solar" {
+		depends_on      = [mongodbatlas_stream_workspace.failover_workspace]
 		project_id      = %[1]q
-		workspace_name  = %[2]q
+		workspace_name  = mongodbatlas_stream_workspace.failover_workspace.workspace_name
 		connection_name = "sample_stream_solar"
 	}
 
 	resource "mongodbatlas_stream_processor" "processor" {
 		project_id       = %[1]q
-		workspace_name   = %[2]q
+		workspace_name   = mongodbatlas_stream_workspace.failover_workspace.workspace_name
 		processor_name   = %[3]q
 		pipeline = jsonencode([
 			{ "$source" = { "connectionName" = data.mongodbatlas_stream_connection.sample_stream_solar.connection_name } },
@@ -766,7 +786,7 @@ func configWithFailoverEnabled(t *testing.T, projectID, workspaceName, processor
 
 	data "mongodbatlas_stream_processors" "test" {
 		project_id     = %[1]q
-		workspace_name = %[2]q
+		workspace_name = mongodbatlas_stream_workspace.failover_workspace.workspace_name
 		depends_on     = [mongodbatlas_stream_processor.processor]
 	}
 	`, projectID, workspaceName, processorName, failoverEnabled)

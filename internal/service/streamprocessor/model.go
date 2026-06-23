@@ -123,7 +123,7 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, w
 		State:           types.StringPointerValue(&apiResp.State),
 		Stats:           statsTF,
 		Tier:            types.StringPointerValue(apiResp.Tier),
-		FailoverEnabled: types.BoolPointerValue(apiResp.FailoverEnabled),
+		FailoverEnabled: types.BoolValue(apiResp.GetFailoverEnabled()),
 	}
 
 	if workspaceName != "" {
@@ -169,7 +169,7 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName, w
 		State:           types.StringPointerValue(&apiResp.State),
 		Stats:           statsTF,
 		Tier:            types.StringPointerValue(apiResp.Tier),
-		FailoverEnabled: types.BoolPointerValue(apiResp.FailoverEnabled),
+		FailoverEnabled: types.BoolValue(apiResp.GetFailoverEnabled()),
 	}
 
 	if workspaceName != "" {

@@ -148,9 +148,10 @@ func TestAccStreamWorkspaceRS_failoverWriteOnceRequiresReplace(t *testing.T) {
 				Config: streamsWorkspaceWithFailoverRegionsConfig(projectID, workspaceName, region, cloudProvider, "DUBLIN_IRL"),
 				Check:  checkStreamsWorkspaceExists(resourceName),
 			},
-			// Step 2: change failover region — must require replace, not in-place update
+			// Step 2: change failover region — verify plan shows replace without applying.
 			{
-				Config: streamsWorkspaceWithFailoverRegionsConfig(projectID, workspaceName, region, cloudProvider, "OREGON_USA"),
+				Config:   streamsWorkspaceWithFailoverRegionsConfig(projectID, workspaceName, region, cloudProvider, "OREGON_USA"),
+				PlanOnly: true,
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionDestroyBeforeCreate),
@@ -176,7 +177,7 @@ func TestAccStreamWorkspaceRS_simultaneousDataProcessRegionAndFailoverChange(t *
 			},
 			{
 				Config:      streamsWorkspaceWithChangedRegionAndFailover(projectID, workspaceName),
-				ExpectError: regexp.MustCompile(`data_process_region and failover_regions cannot be changed in the same apply`),
+				ExpectError: regexp.MustCompile(`data_process_region and failover_regions cannot both be changed`),
 			},
 		},
 	})

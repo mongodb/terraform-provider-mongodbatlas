@@ -102,15 +102,15 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if !plan.DataProcessRegion.Equal(state.DataProcessRegion) && !plan.FailoverRegions.IsNull() && !plan.FailoverRegions.IsUnknown() && len(plan.FailoverRegions.Elements()) > 0 {
+	if !plan.DataProcessRegion.Equal(state.DataProcessRegion) && failoverRegionsChanging(&plan, &state) {
 		resp.Diagnostics.AddError("Invalid stream workspace update",
-			"data_process_region and failover_regions cannot be changed in the same apply. Apply each change separately.")
+			"data_process_region and failover_regions cannot both be changed in the same apply. Apply each change separately.")
 		return
 	}
 	connV2 := r.Client.AtlasV2
 	projectID := plan.ProjectID.ValueString()
 	workspaceName := plan.WorkspaceName.ValueString()
-	streamWorkspaceReq, diags := newStreamWorkspaceUpdateReq(ctx, &plan)
+	streamWorkspaceReq, diags := newStreamWorkspaceUpdateReq(ctx, &plan, &state)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

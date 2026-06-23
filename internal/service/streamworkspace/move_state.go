@@ -91,10 +91,7 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 			cloudProvider := schemafunc.GetAttrFromStateObj[string](regionObj, "cloud_provider")
 			region := schemafunc.GetAttrFromStateObj[string](regionObj, "region")
 
-			objValue, diags := types.ObjectValue(map[string]attr.Type{
-				"cloud_provider": types.StringType,
-				"region":         types.StringType,
-			}, map[string]attr.Value{
+			objValue, diags := types.ObjectValue(streaminstance.ProcessRegionObjectType.AttrTypes, map[string]attr.Value{
 				"cloud_provider": types.StringPointerValue(cloudProvider),
 				"region":         types.StringPointerValue(region),
 			})
@@ -104,10 +101,7 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 		}
 	}
 	if model.DataProcessRegion.IsNull() {
-		model.DataProcessRegion = types.ObjectNull(map[string]attr.Type{
-			"cloud_provider": types.StringType,
-			"region":         types.StringType,
-		})
+		model.DataProcessRegion = types.ObjectNull(streaminstance.ProcessRegionObjectType.AttrTypes)
 	}
 
 	// Extract and preserve stream_config if present.
@@ -138,29 +132,33 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 	// Extract and preserve failover_regions if present.
 	if failoverRegionsVal, exists := stateObj["failover_regions"]; exists && !failoverRegionsVal.IsNull() {
 		var regionsList []tftypes.Value
-		if err := failoverRegionsVal.As(&regionsList); err == nil {
-			tfRegions := make([]attr.Value, 0, len(regionsList))
-			for _, regionVal := range regionsList {
-				var regionObj map[string]tftypes.Value
-				if err := regionVal.As(&regionObj); err == nil {
-					cloudProvider := schemafunc.GetAttrFromStateObj[string](regionObj, "cloud_provider")
-					region := schemafunc.GetAttrFromStateObj[string](regionObj, "region")
-					objValue, diags := types.ObjectValue(map[string]attr.Type{
-						"cloud_provider": types.StringType,
-						"region":         types.StringType,
-					}, map[string]attr.Value{
-						"cloud_provider": types.StringPointerValue(cloudProvider),
-						"region":         types.StringPointerValue(region),
-					})
-					if !diags.HasError() {
-						tfRegions = append(tfRegions, objValue)
-					}
-				}
+		if err := failoverRegionsVal.As(&regionsList); err != nil {
+			resp.Diagnostics.AddError("Unable to parse failover_regions during state migration", err.Error())
+			return
+		}
+		tfRegions := make([]attr.Value, 0, len(regionsList))
+		for _, regionVal := range regionsList {
+			var regionObj map[string]tftypes.Value
+			if err := regionVal.As(&regionObj); err != nil {
+				resp.Diagnostics.AddError("Unable to parse failover_regions element during state migration", err.Error())
+				return
 			}
-			listValue, diags := types.ListValue(streaminstance.FailoverRegionObjectType, tfRegions)
-			if !diags.HasError() {
-				model.FailoverRegions = listValue
+			cloudProvider := schemafunc.GetAttrFromStateObj[string](regionObj, "cloud_provider")
+			region := schemafunc.GetAttrFromStateObj[string](regionObj, "region")
+			objValue, diags := types.ObjectValue(streaminstance.FailoverRegionObjectType.AttrTypes, map[string]attr.Value{
+				"cloud_provider": types.StringPointerValue(cloudProvider),
+				"region":         types.StringPointerValue(region),
+			})
+			resp.Diagnostics.Append(diags...)
+			if resp.Diagnostics.HasError() {
+				return
 			}
+			tfRegions = append(tfRegions, objValue)
+		}
+		listValue, diags := types.ListValue(streaminstance.FailoverRegionObjectType, tfRegions)
+		resp.Diagnostics.Append(diags...)
+		if !resp.Diagnostics.HasError() {
+			model.FailoverRegions = listValue
 		}
 	}
 	if model.FailoverRegions.IsNull() {

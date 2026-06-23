@@ -26,16 +26,9 @@ func newStreamWorkspaceCreateReq(ctx context.Context, plan *TFModel) (*admin.Str
 		},
 	}
 	if !plan.FailoverRegions.IsNull() && !plan.FailoverRegions.IsUnknown() {
-		var failoverRegions []TFWorkspaceProcessRegionSpecModel
-		if diags := plan.FailoverRegions.ElementsAs(ctx, &failoverRegions, false); diags.HasError() {
+		failoverDataRegions, diags := failoverRegionsToSDK(ctx, plan.FailoverRegions)
+		if diags.HasError() {
 			return nil, diags
-		}
-		failoverDataRegions := make([]admin.StreamsDataProcessRegion, 0, len(failoverRegions))
-		for _, r := range failoverRegions {
-			failoverDataRegions = append(failoverDataRegions, admin.StreamsDataProcessRegion{
-				CloudProvider: r.CloudProvider.ValueString(),
-				Region:        r.Region.ValueString(),
-			})
 		}
 		streamTenant.FailoverRegions = &failoverDataRegions
 	}
@@ -62,19 +55,13 @@ func newStreamWorkspaceCreateReq(ctx context.Context, plan *TFModel) (*admin.Str
 
 // newStreamWorkspaceUpdateReq creates an API request for updating a stream workspace.
 // dataProcessRegion and failoverRegions are mutually exclusive in the PATCH body.
-func newStreamWorkspaceUpdateReq(ctx context.Context, plan *TFModel) (*admin.StreamsTenantUpdateRequest, diag.Diagnostics) {
+// failoverRegions is sent only when it is being set for the first time (state was null/empty).
+func newStreamWorkspaceUpdateReq(ctx context.Context, plan, state *TFModel) (*admin.StreamsTenantUpdateRequest, diag.Diagnostics) {
 	updateReq := &admin.StreamsTenantUpdateRequest{}
-	if !plan.FailoverRegions.IsNull() && !plan.FailoverRegions.IsUnknown() {
-		var failoverRegions []TFWorkspaceProcessRegionSpecModel
-		if diags := plan.FailoverRegions.ElementsAs(ctx, &failoverRegions, false); diags.HasError() {
+	if failoverRegionsChanging(plan, state) {
+		failoverDataRegions, diags := failoverRegionsToSDK(ctx, plan.FailoverRegions)
+		if diags.HasError() {
 			return nil, diags
-		}
-		failoverDataRegions := make([]admin.StreamsDataProcessRegion, 0, len(failoverRegions))
-		for _, r := range failoverRegions {
-			failoverDataRegions = append(failoverDataRegions, admin.StreamsDataProcessRegion{
-				CloudProvider: r.CloudProvider.ValueString(),
-				Region:        r.Region.ValueString(),
-			})
 		}
 		updateReq.FailoverRegions = &failoverDataRegions
 	} else {
@@ -86,6 +73,29 @@ func newStreamWorkspaceUpdateReq(ctx context.Context, plan *TFModel) (*admin.Str
 		updateReq.Region = dataProcessRegion.Region.ValueStringPointer()
 	}
 	return updateReq, nil
+}
+
+// failoverRegionsChanging reports whether failover_regions is being newly configured in this update
+// (state was null/empty and plan now has values). This is distinct from unchanged inherited state.
+func failoverRegionsChanging(plan, state *TFModel) bool {
+	stateHasNoRegions := state.FailoverRegions.IsNull() || len(state.FailoverRegions.Elements()) == 0
+	planHasRegions := !plan.FailoverRegions.IsNull() && len(plan.FailoverRegions.Elements()) > 0
+	return stateHasNoRegions && planHasRegions
+}
+
+func failoverRegionsToSDK(ctx context.Context, list types.List) ([]admin.StreamsDataProcessRegion, diag.Diagnostics) {
+	var regions []TFWorkspaceProcessRegionSpecModel
+	if diags := list.ElementsAs(ctx, &regions, false); diags.HasError() {
+		return nil, diags
+	}
+	result := make([]admin.StreamsDataProcessRegion, 0, len(regions))
+	for _, r := range regions {
+		result = append(result, admin.StreamsDataProcessRegion{
+			CloudProvider: r.CloudProvider.ValueString(),
+			Region:        r.Region.ValueString(),
+		})
+	}
+	return result, nil
 }
 
 // FromInstanceModel populates this workspace model from a TFStreamInstanceModel and maps instance_name to workspace_name.

@@ -28,8 +28,15 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"data_process_region": schema.SingleNestedAttribute{
-				Required:   true,
-				Attributes: regionAttributes(),
+				Required: true,
+				Attributes: map[string]schema.Attribute{
+					"cloud_provider": schema.StringAttribute{
+						Required: true,
+					},
+					"region": schema.StringAttribute{
+						Required: true,
+					},
+				},
 			},
 			"failover_regions": schema.ListNestedAttribute{
 				Optional: true,
@@ -38,7 +45,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					failoverRegionsWriteOnce{},
 				},
 				NestedObject: schema.NestedAttributeObject{
-					Attributes: regionAttributes(),
+					Attributes: map[string]schema.Attribute{
+						"cloud_provider": schema.StringAttribute{
+							Required: true,
+						},
+						"region": schema.StringAttribute{
+							Required: true,
+						},
+					},
 				},
 			},
 			"hostnames": schema.ListAttribute{
@@ -59,17 +73,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
-		},
-	}
-}
-
-func regionAttributes() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		"cloud_provider": schema.StringAttribute{
-			Required: true,
-		},
-		"region": schema.StringAttribute{
-			Required: true,
 		},
 	}
 }

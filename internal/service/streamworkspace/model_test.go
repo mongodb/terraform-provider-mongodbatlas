@@ -30,12 +30,17 @@ func TestNewStreamWorkspaceUpdateReq(t *testing.T) {
 
 	testCases := map[string]struct {
 		plan                      streamworkspace.TFModel
+		state                     streamworkspace.TFModel
 		expectCloudProvider       string
 		expectRegion              string
 		expectFailoverRegionCount int
 	}{
 		"no_failover_sends_data_process_region": {
 			plan: streamworkspace.TFModel{
+				DataProcessRegion: dataProcessRegionObj,
+				FailoverRegions:   types.ListNull(regionObjType),
+			},
+			state: streamworkspace.TFModel{
 				DataProcessRegion: dataProcessRegionObj,
 				FailoverRegions:   types.ListNull(regionObjType),
 			},
@@ -48,15 +53,32 @@ func TestNewStreamWorkspaceUpdateReq(t *testing.T) {
 				DataProcessRegion: dataProcessRegionObj,
 				FailoverRegions:   failoverList,
 			},
+			state: streamworkspace.TFModel{
+				DataProcessRegion: dataProcessRegionObj,
+				FailoverRegions:   types.ListNull(regionObjType),
+			},
 			expectCloudProvider:       "",
 			expectRegion:              "",
 			expectFailoverRegionCount: 1,
+		},
+		"failover_unchanged_in_state_sends_data_process_region": {
+			plan: streamworkspace.TFModel{
+				DataProcessRegion: dataProcessRegionObj,
+				FailoverRegions:   failoverList,
+			},
+			state: streamworkspace.TFModel{
+				DataProcessRegion: dataProcessRegionObj,
+				FailoverRegions:   failoverList,
+			},
+			expectCloudProvider:       "AWS",
+			expectRegion:              "VIRGINIA_USA",
+			expectFailoverRegionCount: 0,
 		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			req, diags := streamworkspace.NewStreamWorkspaceUpdateReq(context.Background(), &tc.plan)
+			req, diags := streamworkspace.NewStreamWorkspaceUpdateReq(context.Background(), &tc.plan, &tc.state)
 			require.False(t, diags.HasError())
 			require.NotNil(t, req)
 
