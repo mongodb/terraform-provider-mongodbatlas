@@ -1,3 +1,3 @@
 ```release-note:new-resource
-mongodbatlas_org_maintenance_settings
+resource/mongodbatlas_org_maintenance_settings
 ```
