@@ -2,7 +2,7 @@ schema:
     description: Updates maintenance settings for the specified organization. Omit optional fields from the request body to leave their current values unchanged. Specify null on an optional field to reset it to its default value.
     attributes:
         - string: {}
-          description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [`/orgs`](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
+          description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
           computed_optional_required: required
           tf_schema_name: org_id
           tf_model_name: OrgId
