@@ -27,9 +27,14 @@ jobs:
           args: --offline --include-fragments --config ./lychee.toml .
       - name: Check canonical MongoDB docs domains
         run: |
-          if git grep -nE 'https?://(docs\.(atlas\.)?mongodb\.com|dochub\.mongodb\.org)' -- '*.md' ':!CHANGELOG.md' ':!.changelog/**' ':!compliance/**'; then
+          git grep -nE 'https?://(docs\.(atlas\.)?mongodb\.com|dochub\.mongodb\.org)' -- '*.md' ':!CHANGELOG.md' ':!.changelog/**' ':!compliance/**'
+          exit_code=$?
+          if [ "$exit_code" -eq 0 ]; then
             echo "::error::Legacy MongoDB docs domains found. Use https://www.mongodb.com/docs/... links instead."
             exit 1
+          elif [ "$exit_code" -ne 1 ]; then
+            echo "::error::git grep failed unexpectedly (exit $exit_code)"
+            exit "$exit_code"
           fi
 
   online-changed:
