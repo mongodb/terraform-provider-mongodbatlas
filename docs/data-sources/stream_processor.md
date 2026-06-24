@@ -132,7 +132,7 @@ output "stream_processors_results" {
 
 ### Read-Only
 
-- `failover_enabled` (Boolean) Indicates whether failover is enabled for the stream processor. When enabled, the processor will automatically failover to a secondary region if the primary region becomes unavailable.
+- `failover_enabled` (Boolean) Indicates whether the stream processor is eligible for failover. When enabled, an operator can trigger failover to move the processor to a secondary region configured in the workspace's `failover_regions`. Requires the workspace to have `failover_regions` configured and an Atlas-to-Atlas or Atlas-to-Kafka pipeline.
 - `id` (String) Unique 24-hexadecimal character string that identifies the stream processor.
 - `options` (Attributes) Optional configuration for the stream processor. (see [below for nested schema](#nestedatt--options))
 - `pipeline` (String) Stream aggregation pipeline you want to apply to your streaming data. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation) contain more information. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when setting this attribute. For more details see the [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)
