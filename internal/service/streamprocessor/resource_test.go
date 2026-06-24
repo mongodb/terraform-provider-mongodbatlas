@@ -54,11 +54,12 @@ func TestAccStreamProcessor_basic(t *testing.T) {
 }
 
 func TestAccStreamProcessor_withFailoverEnabled(t *testing.T) {
+	// Requires a real Atlas cluster: failover_enabled=true only accepts Atlas-to-Atlas or Atlas-to-Kafka pipelines.
 	var (
-		projectID     = acc.ProjectIDExecution(t)
-		randomSuffix  = acctest.RandString(5)
-		workspaceName = acc.RandomName()
-		processorName = "new-processor-failover-" + randomSuffix
+		projectID, clusterName = acc.ClusterNameExecution(t, false)
+		randomSuffix           = acctest.RandString(5)
+		workspaceName          = acc.RandomName()
+		processorName          = "new-processor-failover-" + randomSuffix
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -67,7 +68,7 @@ func TestAccStreamProcessor_withFailoverEnabled(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithFailoverEnabled(t, projectID, workspaceName, processorName, true),
+				Config: configWithFailoverEnabled(t, projectID, workspaceName, clusterName, processorName, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "failover_enabled", "true"),
@@ -75,7 +76,7 @@ func TestAccStreamProcessor_withFailoverEnabled(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithFailoverEnabled(t, projectID, workspaceName, processorName, false),
+				Config: configWithFailoverEnabled(t, projectID, workspaceName, clusterName, processorName, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "failover_enabled", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "failover_enabled", "false"),
@@ -737,12 +738,12 @@ func config(t *testing.T, projectID, workspaceName, processorName, state, nameSu
 	`, projectID, workspaceName, processorName, pipeline, stateConfig, optionsStr, dependsOnStr, timeoutConfig, deleteOnCreateTimeoutConfig) + otherConfig
 }
 
-func configWithFailoverEnabled(t *testing.T, projectID, workspaceName, processorName string, failoverEnabled bool) string {
+func configWithFailoverEnabled(t *testing.T, projectID, workspaceName, clusterName, processorName string, failoverEnabled bool) string {
 	t.Helper()
 
-	// failover_enabled requires the workspace to have failover_regions configured,
-	// so this config creates its own workspace with failover_regions rather than
-	// reusing a plain execution instance.
+	// failover_enabled=true requires an Atlas-to-Atlas or Atlas-to-Kafka pipeline.
+	// We use a Cluster connection as $source and Kafka (fake creds) as $emit.
+	// state="CREATED" so the processor doesn't need live connections.
 	return fmt.Sprintf(`
 	resource "mongodbatlas_stream_workspace" "failover_workspace" {
 		project_id     = %[1]q
@@ -757,25 +758,49 @@ func configWithFailoverEnabled(t *testing.T, projectID, workspaceName, processor
 				region         = "DUBLIN_IRL"
 			}
 		]
+		stream_config = {
+			tier = "SP10"
+		}
 	}
 
-	data "mongodbatlas_stream_connection" "sample_stream_solar" {
-		depends_on      = [mongodbatlas_stream_workspace.failover_workspace]
+	resource "mongodbatlas_stream_connection" "cluster_src" {
 		project_id      = %[1]q
 		workspace_name  = mongodbatlas_stream_workspace.failover_workspace.workspace_name
-		connection_name = "sample_stream_solar"
+		connection_name = "cluster-src"
+		type            = "Cluster"
+		cluster_name    = %[3]q
+		db_role_to_execute = {
+			role = "atlasAdmin"
+			type = "BUILT_IN"
+		}
+	}
+
+	resource "mongodbatlas_stream_connection" "kafka_dest" {
+		project_id      = %[1]q
+		workspace_name  = mongodbatlas_stream_workspace.failover_workspace.workspace_name
+		connection_name = "kafka-dest"
+		type            = "Kafka"
+		authentication = {
+			mechanism = "PLAIN"
+			username  = "user"
+			password  = "rawpassword"
+		}
+		bootstrap_servers = "localhost:9092,localhost:9092"
+		security = {
+			protocol = "SASL_PLAINTEXT"
+		}
 	}
 
 	resource "mongodbatlas_stream_processor" "processor" {
 		project_id       = %[1]q
 		workspace_name   = mongodbatlas_stream_workspace.failover_workspace.workspace_name
-		processor_name   = %[3]q
+		processor_name   = %[4]q
 		pipeline = jsonencode([
-			{ "$source" = { "connectionName" = data.mongodbatlas_stream_connection.sample_stream_solar.connection_name } },
-			{ "$emit" = { "connectionName" = "__testLog" } }
+			{ "$source" = { "connectionName" = mongodbatlas_stream_connection.cluster_src.connection_name } },
+			{ "$emit" = { "connectionName" = mongodbatlas_stream_connection.kafka_dest.connection_name, "topic" = "failover-test-topic" } }
 		])
-		state            = "STARTED"
-		failover_enabled = %[4]t
+		state            = "CREATED"
+		failover_enabled = %[5]t
 	}
 
 	data "mongodbatlas_stream_processor" "test" {
@@ -789,7 +814,7 @@ func configWithFailoverEnabled(t *testing.T, projectID, workspaceName, processor
 		workspace_name = mongodbatlas_stream_workspace.failover_workspace.workspace_name
 		depends_on     = [mongodbatlas_stream_processor.processor]
 	}
-	`, projectID, workspaceName, processorName, failoverEnabled)
+	`, projectID, workspaceName, clusterName, processorName, failoverEnabled)
 }
 
 func configWithTier(t *testing.T, projectID, workspaceName, processorName, tier string) string {
