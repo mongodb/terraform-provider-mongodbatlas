@@ -58,13 +58,13 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 								},
 							},
 						},
-						"id": dsschema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Unique 24-character hexadecimal digit string that identifies the metric integration configuration.",
-						},
 						"integration_type": dsschema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Type of metric integration. Identifies which protocol will be used for the integration.",
+						},
+						"metric_integration_id": dsschema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "Unique hexadecimal digit string that identifies the metric integration configuration.",
 						},
 						"metric_selection": dsschema.SetAttribute{
 							Computed:            true,
@@ -93,8 +93,8 @@ type TFPluralDSResultsModel struct {
 	AggregationTemporality types.String                                               `tfsdk:"aggregation_temporality" autogen:"omitjson"`
 	Endpoint               types.String                                               `tfsdk:"endpoint" autogen:"omitjson"`
 	Headers                customtypes.NestedListValue[TFPluralDSResultsHeadersModel] `tfsdk:"headers" autogen:"omitjson"`
-	Id                     types.String                                               `tfsdk:"id" autogen:"omitjson"`
 	IntegrationType        types.String                                               `tfsdk:"integration_type" autogen:"omitjson"`
+	MetricIntegrationId    types.String                                               `tfsdk:"metric_integration_id" autogen:"omitjson"`
 	MetricSelection        customtypes.SetValue[types.String]                         `tfsdk:"metric_selection" autogen:"omitjson"`
 	ProviderType           types.String                                               `tfsdk:"provider_type" autogen:"omitjson"`
 }

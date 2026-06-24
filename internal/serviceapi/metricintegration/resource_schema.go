@@ -7,10 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customvalidator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -22,8 +20,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "The temporality to send to the metric integration.",
 			},
 			"endpoint": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.",
+				Required:            true,
+				MarkdownDescription: "OpenTelemetry collector endpoint URL. Must use HTTPS.",
 			},
 			"group_id": schema.StringAttribute{
 				Required:            true,
@@ -31,8 +29,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"headers": schema.ListNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.",
+				Required:            true,
+				MarkdownDescription: "HTTP headers for authentication and configuration. Total size limit 2KB.",
 				CustomType:          customtypes.NewNestedListType[TFHeadersModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -48,23 +46,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
-			"id": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Unique 24-character hexadecimal digit string that identifies the metric integration configuration.",
-			},
 			"integration_type": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Type of metric integration. Identifies which protocol will be used for the integration. This value cannot be modified after the integration is created.",
-				Validators: []validator.String{
-					customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
-						Mapping: map[string]customvalidator.VariantDefinition{
-							"OTEL": {
-								Allowed:  []string{"endpoint", "headers"},
-								Required: []string{"endpoint", "headers"},
-							},
-						},
-					}),
-				},
+			},
+			"id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Unique hexadecimal digit string that identifies the metric integration configuration.",
 			},
 			"metric_selection": schema.SetAttribute{
 				Required:            true,
@@ -85,8 +73,8 @@ type TFModel struct {
 	Endpoint               types.String                                `tfsdk:"endpoint"`
 	GroupId                types.String                                `tfsdk:"group_id" autogen:"omitjson"`
 	Headers                customtypes.NestedListValue[TFHeadersModel] `tfsdk:"headers"`
-	Id                     types.String                                `tfsdk:"id"`
 	IntegrationType        types.String                                `tfsdk:"integration_type"`
+	Id                     types.String                                `tfsdk:"id" apiname:"metricIntegrationId" autogen:"omitjson"`
 	MetricSelection        customtypes.SetValue[types.String]          `tfsdk:"metric_selection"`
 	ProviderType           types.String                                `tfsdk:"provider_type"`
 }

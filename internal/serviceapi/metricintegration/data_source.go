@@ -57,7 +57,7 @@ func dataSourceReadAPICallParams(model *TFDSModel) *config.APICallParams {
 		"id":      model.Id.ValueString(),
 	}
 	return &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.2025-03-12+json",
+		VersionHeader: "application/vnd.atlas.preview+json",
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/metricIntegrations/{id}",
 		PathParams:    pathParams,
 		Method:        "GET",

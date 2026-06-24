@@ -1,21 +1,5 @@
 schema:
-    description: Creates a new metric integration configuration identified by a unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
-    discriminator:
-        mapping:
-            OTEL:
-                allowed:
-                    - api_name: endpoint
-                      tf_schema_name: endpoint
-                    - api_name: headers
-                      tf_schema_name: headers
-                required:
-                    - api_name: endpoint
-                      tf_schema_name: endpoint
-                    - api_name: headers
-                      tf_schema_name: headers
-        property_name:
-            api_name: integrationType
-            tf_schema_name: integration_type
+    description: Creates a new metric integration configuration identified by a unique ID.
     attributes:
         - string: {}
           description: The temporality to send to the metric integration.
@@ -29,8 +13,8 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: OpenTelemetry collector endpoint URL. Must be HTTPS and not exceed 2048 characters.
-          computed_optional_required: optional
+          description: OpenTelemetry collector endpoint URL. Must use HTTPS.
+          computed_optional_required: required
           tf_schema_name: endpoint
           tf_model_name: Endpoint
           api_name: endpoint
@@ -78,27 +62,16 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
-          description: HTTP headers for authentication and configuration. Maximum 10 headers, total size limit 2KB.
+          description: HTTP headers for authentication and configuration. Total size limit 2KB.
           custom_type:
             package: customtypes
             name: Headers
             model: customtypes.NestedListValue[TFHeadersModel]
             schema: customtypes.NewNestedListType[TFHeadersModel](ctx)
-          computed_optional_required: optional
+          computed_optional_required: required
           tf_schema_name: headers
           tf_model_name: Headers
           api_name: headers
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
-          description: Unique 24-character hexadecimal digit string that identifies the metric integration configuration.
-          computed_optional_required: required
-          tf_schema_name: id
-          tf_model_name: Id
-          api_name: id
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -111,6 +84,17 @@ schema:
           tf_model_name: IntegrationType
           api_name: integrationType
           req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
+        - string: {}
+          description: Unique hexadecimal digit string that identifies the metric integration configuration.
+          computed_optional_required: computed
+          tf_schema_name: id
+          tf_model_name: Id
+          api_name: metricIntegrationId
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
           present_in_any_response: true
@@ -153,29 +137,12 @@ operations:
         http_method: GET
         path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{id}
     update:
-        http_method: PATCH
+        http_method: PUT
         path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{id}
-    version_header: application/vnd.atlas.2025-03-12+json
+    version_header: application/vnd.atlas.preview+json
 data_sources:
     singular:
-        description: Returns the configuration for one metric integration identified by its unique ID. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
-        discriminator:
-            mapping:
-                OTEL:
-                    allowed:
-                        - api_name: endpoint
-                          tf_schema_name: endpoint
-                        - api_name: headers
-                          tf_schema_name: headers
-                    required:
-                        - api_name: endpoint
-                          tf_schema_name: endpoint
-                        - api_name: headers
-                          tf_schema_name: headers
-            property_name:
-                api_name: integrationType
-                tf_schema_name: integration_type
-            skip_validation: true
+        description: Returns the configuration for one metric integration identified by its unique ID.
         attributes:
             - string: {}
               description: The temporality to send to the metric integration.
@@ -303,7 +270,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
     plural:
-        description: Returns all metric integration configurations for the project. Optionally filter by integration type and provider type. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+        description: Returns all metric integration configurations for the project. Optionally filter by integration type and provider type.
         attributes:
             - string: {}
               description: |-
@@ -343,23 +310,6 @@ data_sources:
               request_only_required_on_create: false
             - list_nested:
                 nested_object:
-                    discriminator:
-                        mapping:
-                            OTEL:
-                                allowed:
-                                    - api_name: endpoint
-                                      tf_schema_name: endpoint
-                                    - api_name: headers
-                                      tf_schema_name: headers
-                                required:
-                                    - api_name: endpoint
-                                      tf_schema_name: endpoint
-                                    - api_name: headers
-                                      tf_schema_name: headers
-                        property_name:
-                            api_name: integrationType
-                            tf_schema_name: integration_type
-                        skip_validation: true
                     attributes:
                         - string: {}
                           description: The temporality to send to the metric integration.
@@ -424,22 +374,22 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Unique 24-character hexadecimal digit string that identifies the metric integration configuration.
+                          description: Type of metric integration. Identifies which protocol will be used for the integration.
                           computed_optional_required: computed
-                          tf_schema_name: id
-                          tf_model_name: Id
-                          api_name: id
+                          tf_schema_name: integration_type
+                          tf_model_name: IntegrationType
+                          api_name: integrationType
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Type of metric integration. Identifies which protocol will be used for the integration.
+                          description: Unique hexadecimal digit string that identifies the metric integration configuration.
                           computed_optional_required: computed
-                          tf_schema_name: integration_type
-                          tf_model_name: IntegrationType
-                          api_name: integrationType
+                          tf_schema_name: metric_integration_id
+                          tf_model_name: MetricIntegrationId
+                          api_name: metricIntegrationId
                           req_body_usage: omit_always
                           sensitive: false
                           create_only: false
@@ -494,6 +444,6 @@ data_sources:
         list:
             http_method: GET
             path: /api/atlas/v2/groups/{groupId}/metricIntegrations
-        version_header: application/vnd.atlas.2025-03-12+json
+        version_header: application/vnd.atlas.preview+json
 name: metric_integration
 packageName: metricintegration
