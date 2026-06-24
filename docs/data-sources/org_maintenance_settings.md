@@ -29,7 +29,7 @@ output "maintenance_settings" {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `wave_assignment_mode` - Configured wave assignment mode for the organization. Accepted values are `MANUAL` and `ENV_TAG_MAPPING`. Defaults to `MANUAL` when unset.
-* `effective_wave_assignment_mode` - Wave assignment mode Atlas actually uses for scheduling. Its value can differ from `wave_assignment_mode` in some cases. For more details, see the [`mongodbatlas_maintenance_window` data source](../data-sources/maintenance_window.md).
+* `wave_assignment_mode` - Configured wave assignment mode for the organization. Accepted values are `MANUAL` and `ENV_TAG_MAPPING`.
+* `effective_wave_assignment_mode` - Wave assignment mode Atlas actually uses for scheduling. Matches `wave_assignment_mode`, except in a cross-organization billing hierarchy where the organization is a linked non-paying organization. In that case, `effective_wave_assignment_mode` inherits from the paying organization's `wave_assignment_mode` and the two values might differ.
 
 For more information, see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-maintenance-windows)
