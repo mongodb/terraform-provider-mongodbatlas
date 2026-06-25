@@ -23,7 +23,7 @@ resource "mongodbatlas_org_maintenance_settings" "example" {
 
 ### Automatic wave assignment based on environment tags
 
-Set the organization to `ENV_TAG_MAPPING` mode to have Atlas derive the maintenance wave from each project's environment tag.
+Set the organization to `ENV_TAG_MAPPING` mode to have Atlas derive the maintenance wave from each project's environment tag. The tag key must be `environment`. The tag value determines the wave: `development` or `test` maps to Wave 1, `staging` maps to Wave 2, and `production` maps to Wave 3.
 
 ```terraform
 resource "mongodbatlas_org_maintenance_settings" "example" {
