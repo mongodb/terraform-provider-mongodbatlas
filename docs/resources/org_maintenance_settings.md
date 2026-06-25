@@ -34,8 +34,8 @@ resource "mongodbatlas_org_maintenance_settings" "example" {
 
 ### Further Examples
 
-<!-- TODO(CLOUDP-414003): Add link to examples once Mar's examples land -->
-Configure Organization Maintenance Settings
+- [Configure Organization Maintenance Settings: Manual Wave Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_org_maintenance_settings/manual)
+- [Configure Organization Maintenance Settings: Automatic Wave Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_org_maintenance_settings/env-tag-mapping)
 
 ## Argument Reference
 
