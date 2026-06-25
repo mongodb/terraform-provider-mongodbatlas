@@ -55,6 +55,34 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 			},
 		},
 		{
+			name: "SDK response with failover_regions",
+			SDKResp: &admin.StreamsTenant{
+				Id: new(dummyStreamInstanceID),
+				DataProcessRegion: &admin.StreamsDataProcessRegion{
+					CloudProvider: cloudProvider,
+					Region:        region,
+				},
+				StreamConfig: &admin.StreamConfig{
+					Tier: new(tier),
+				},
+				GroupId:   new(dummyProjectID),
+				Hostnames: hostnames,
+				Name:      new(instanceName),
+				FailoverRegions: &[]admin.StreamsDataProcessRegion{
+					{CloudProvider: "AWS", Region: "DUBLIN_IRL"},
+				},
+			},
+			expectedTFModel: &streaminstance.TFStreamInstanceModel{
+				ID:                types.StringValue(dummyStreamInstanceID),
+				DataProcessRegion: tfRegionObject(t, cloudProvider, region),
+				FailoverRegions:   tfFailoverRegionsList(t, []admin.StreamsDataProcessRegion{{CloudProvider: "AWS", Region: "DUBLIN_IRL"}}),
+				ProjectID:         types.StringValue(dummyProjectID),
+				Hostnames:         tfHostnamesList(t, hostnames),
+				InstanceName:      types.StringValue(instanceName),
+				StreamConfig:      tfStreamConfigObject(t, tier),
+			},
+		},
+		{
 			name: "Empty hostnames, streamConfig and dataProcessRegion in response", // should never happen, but verifying it is handled gracefully
 			SDKResp: &admin.StreamsTenant{
 				Id:      new(dummyStreamInstanceID),
@@ -288,6 +316,22 @@ func tfStreamConfigObject(t *testing.T, tier string) types.Object {
 		t.Errorf("failed to create terraform data process region model: %s", diags.Errors()[0].Summary())
 	}
 	return streamConfig
+}
+
+func tfFailoverRegionsList(t *testing.T, regions []admin.StreamsDataProcessRegion) types.List {
+	t.Helper()
+	tfRegions := make([]streaminstance.TFInstanceProcessRegionSpecModel, len(regions))
+	for i, r := range regions {
+		tfRegions[i] = streaminstance.TFInstanceProcessRegionSpecModel{
+			CloudProvider: types.StringValue(r.CloudProvider),
+			Region:        types.StringValue(r.Region),
+		}
+	}
+	resultList, diags := types.ListValueFrom(t.Context(), streaminstance.FailoverRegionObjectType, tfRegions)
+	if diags.HasError() {
+		t.Errorf("failed to create terraform failover regions list: %s", diags.Errors()[0].Summary())
+	}
+	return resultList
 }
 
 func tfHostnamesList(t *testing.T, hostnames *[]string) types.List {

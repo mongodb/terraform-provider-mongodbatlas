@@ -54,6 +54,11 @@ func TestFailoverRegionsWriteOnce(t *testing.T) {
 			planValue:             emptyList,
 			expectRequiresReplace: true,
 		},
+		"unknown_plan_value_does_not_replace": {
+			stateValue:            listWithRegion,
+			planValue:             types.ListUnknown(regionObjType),
+			expectRequiresReplace: false,
+		},
 	}
 
 	for name, tc := range testCases {
