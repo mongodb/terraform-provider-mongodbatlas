@@ -540,6 +540,10 @@ resources:
       read:
         path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
         method: GET
+        schema:
+        overrides:
+          org_id:
+            description: *org_id_description
 
   # Singleton resource in project.
   # Create uses PATCH.
