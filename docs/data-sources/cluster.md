@@ -145,7 +145,7 @@ In addition to all arguments above, the following attributes are exported:
 Indicates BI Connector for Atlas configuration.
 
 * `enabled` - Indicates whether or not BI Connector for Atlas is enabled on the cluster.
-* `read_preference` - Indicates the read preference to be used by BI Connector for Atlas on the cluster. Each BI Connector for Atlas read preference contains a distinct combination of [readPreference](https://www.mongodb.com/docs/manual/core/read-preference/) and [readPreferenceTags](https://www.mongodb.com/docs/manual/core/read-preference/#tag-sets) options. For details on BI Connector for Atlas read preferences, refer to the [BI Connector Read Preferences Table](https://www.mongodb.com/docs/atlas/tutorial/create-global-writes-cluster/#bic-read-preferences).
+* `read_preference` - Indicates the read preference to be used by BI Connector for Atlas on the cluster. Each BI Connector for Atlas read preference contains a distinct combination of [readPreference](https://www.mongodb.com/docs/manual/core/read-preference/) and [readPreferenceTags](https://www.mongodb.com/docs/manual/core/read-preference/#tag-sets) options. For details on BI Connector for Atlas read preferences, refer to the [BI Connector mongosqld reference](https://www.mongodb.com/docs/bi-connector/current/reference/mongosqld/).
 
 ### Replication Spec
 
@@ -174,7 +174,7 @@ Key-value pairs between 1 to 255 characters in length for tagging and categorizi
 * `key` - Constant that defines the set of the tag.
 * `value` - Variable that belongs to the set of the tag.
 
-To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas).
+To learn more, see [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
 
 ### Labels
 
