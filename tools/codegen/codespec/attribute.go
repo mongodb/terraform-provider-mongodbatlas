@@ -3,6 +3,7 @@ package codespec
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/pb33f/libopenapi/orderedmap"
@@ -26,12 +27,35 @@ func buildResourceAttrs(s *APISpecSchema, ancestorsName string, isFromRequest bo
 			continue
 		}
 
-		attribute, err := schema.buildResourceAttr(name, ancestorsName, s.GetComputability(name), isFromRequest)
+		computability := s.GetComputability(name)
+		if isFromRequest && schema.GetXGenServerComputedWhenClientOmitted() {
+			switch computability {
+			case Optional:
+				computability = ComputedOptional
+			case Required:
+				qualifiedName := name
+				if ancestorsName != "" {
+					qualifiedName = ancestorsName + "." + name
+				}
+				log.Printf("[WARN] Ignoring %s on required property %q (kept required)", serverComputedWhenClientOmittedExtensionKey, qualifiedName)
+			case Computed, ComputedOptional:
+				// already computed; nothing to promote
+			}
+		}
+
+		attribute, err := schema.buildResourceAttr(name, ancestorsName, computability, isFromRequest)
 		if err != nil {
 			return nil, err
 		}
 
 		if attribute != nil {
+			if schema.GetXGenServerComputedImmutable() {
+				if schema.Schema.ReadOnly != nil && *schema.Schema.ReadOnly {
+					attribute.ImmutableComputed = true
+				} else {
+					log.Printf("[WARN] Ignoring %s on non-readOnly property %q", serverComputedImmutableExtensionKey, name)
+				}
+			}
 			objectAttributes = append(objectAttributes, *attribute)
 		}
 	}
@@ -216,17 +240,22 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 
 	itemSchema, err := BuildSchema(s.Schema.Items.A)
 	if err != nil {
-		return nil, fmt.Errorf("error while building nested schema: %s", name)
+		return nil, fmt.Errorf("error while building nested schema %s: %w", name, err)
 	}
 
-	isSet := s.Schema.Format == OASFormatSet || (s.Schema.UniqueItems != nil && *s.Schema.UniqueItems)
+	isSet := s.Schema.UniqueItems != nil && *s.Schema.UniqueItems
+	if semantic, err := s.GetXGenArraySemantic(); err != nil {
+		return nil, fmt.Errorf("property %q: %w", name, err)
+	} else if semantic != nil {
+		isSet = *semantic == arraySemanticSet // extension overrides the uniqueItems heuristic in both directions
+	}
 	tfModelName := stringcase.Capitalize(name)
 
 	if itemSchema.Type == OASTypeObject {
 		fullName := ancestorsName + tfModelName
 		objectAttributes, err := buildResourceAttrs(itemSchema, fullName, isFromRequest)
 		if err != nil {
-			return nil, fmt.Errorf("error while building nested schema: %s", name)
+			return nil, fmt.Errorf("error while building nested schema %s: %w", name, err)
 		}
 
 		nestedObject := NestedAttributeObject{
@@ -245,7 +274,7 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 
 	elemType, err := itemSchema.buildElementType()
 	if err != nil {
-		return nil, fmt.Errorf("error while building nested schema: %s", name)
+		return nil, fmt.Errorf("error while building nested schema %s: %w", name, err)
 	}
 
 	result := s.buildRegularCollectionAttribute(name, tfModelName, computability, isSet, elemType)

@@ -1,6 +1,6 @@
 # Example - MongoDB Atlas Federated Database Query Limit with Atlas clusters
 
-This project aims to provide an example of using [MongoDB Atlas Federated Database Query Limit](https://www.mongodb.com/docs/atlas/data-federation/overview/).
+This project aims to provide an example of using [MongoDB Atlas Federated Database Query Limit](https://www.mongodb.com/docs/atlas/data-federation/adf-overview/overview/).
 
 
 ## Dependencies

@@ -68,7 +68,7 @@ $ terraform destroy
 
 **Important Point**
 
-You can fetch the connection string as per the use case by following the MongoDB Atlas documentation on [Connect to your cluster](https://www.mongodb.com/docs/atlas/tutorial/connect-to-your-cluster/index.html).
+You can fetch the connection string as per the use case by following the MongoDB Atlas documentation on [Connect to your cluster](https://www.mongodb.com/docs/atlas/connect-to-database-deployment/).
 
 Or to fetch the connection string using terraform follow the below steps:
 

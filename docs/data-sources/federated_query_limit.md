@@ -4,7 +4,7 @@ subcategory: "Data Federation"
 
 # Data Source: mongodbatlas_federated_query_limit
 
-`mongodbatlas_federated_query_limit` provides a Federated Database Instance Query Limit data source. To learn more about Atlas Data Federation see https://www.mongodb.com/docs/atlas/data-federation/overview/. 
+`mongodbatlas_federated_query_limit` provides a Federated Database Instance Query Limit data source. To learn more about Atlas Data Federation see https://www.mongodb.com/docs/atlas/data-federation/adf-overview/overview/. 
 
 ## Example Usage
 

@@ -1,6 +1,6 @@
 # Example - MongoDB Atlas Federated Database Instance with Private Endpoint - AWS
 
-This example shows how to configure a [MongoDB Atlas Federated Database Instance](https://www.mongodb.com/docs/atlas/data-federation/overview/) with an AWS Private Endpoint
+This example shows how to configure a [MongoDB Atlas Federated Database Instance](https://www.mongodb.com/docs/atlas/data-federation/adf-overview/overview/) with an AWS Private Endpoint
 
 ## Dependencies
 
