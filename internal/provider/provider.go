@@ -340,6 +340,7 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		projectserviceaccountaccesslistentry.PluralDataSource,
 		logintegration.DataSource,
 		logintegration.PluralDataSource,
+		orgmaintenancesettings.DataSource,
 		privatelinkendpointservicedatafederationonlinearchive.DataSource,
 		privatelinkendpointservicedatafederationonlinearchive.PluralDataSource,
 	}

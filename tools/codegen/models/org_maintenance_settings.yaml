@@ -39,5 +39,47 @@ operations:
         http_method: PATCH
         path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
     version_header: application/vnd.atlas.preview+json
+data_sources:
+    singular:
+        description: Returns maintenance settings for the specified organization.
+        attributes:
+            - string: {}
+              description: Wave assignment mode that Atlas uses when scheduling maintenance for projects in this organization. This read-only field takes precedence over `waveAssignmentMode` for scheduling. It matches `waveAssignmentMode` except when cross-organization maintenance sequencing is enabled and this organization is a linked non-paying organization, in which case it reflects the paying organization's `waveAssignmentMode`. Possible values are `MANUAL` and `ENV_TAG_MAPPING`. Defaults to `MANUAL` when no mode is configured. Omitted from GET responses when maintenance sequencing is disabled for this organization.
+              computed_optional_required: computed
+              tf_schema_name: effective_wave_assignment_mode
+              tf_model_name: EffectiveWaveAssignmentMode
+              api_name: effectiveWaveAssignmentMode
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [`/orgs`](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
+              computed_optional_required: required
+              tf_schema_name: org_id
+              tf_model_name: OrgId
+              api_name: orgId
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+            - string: {}
+              description: Mode configured for this organization that determines how maintenance waves are assigned to projects. Possible values are `MANUAL` and `ENV_TAG_MAPPING`. Defaults to `MANUAL` when unset. Atlas uses read-only `effectiveWaveAssignmentMode` (not this field) for scheduling. In a cross-organization billing hierarchy, a linked non-paying organization cannot update its `effectiveWaveAssignmentMode` field, which inherits from the paying organization's `waveAssignmentMode`. In this case, a linked non-paying organization's `effectiveWaveAssignmentMode` and `waveAssignmentMode` might differ.
+              computed_optional_required: computed
+              tf_schema_name: wave_assignment_mode
+              tf_model_name: WaveAssignmentMode
+              api_name: waveAssignmentMode
+              req_body_usage: omit_always
+              sensitive: false
+              create_only: false
+              present_in_any_response: false
+              request_only_required_on_create: false
+    operations:
+        read:
+            http_method: GET
+            path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
+        version_header: application/vnd.atlas.preview+json
 name: org_maintenance_settings
 packageName: orgmaintenancesettings
