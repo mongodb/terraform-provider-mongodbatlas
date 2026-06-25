@@ -2,6 +2,8 @@
 
 This example demonstrates how to configure organization-level maintenance settings using `ENV_TAG_MAPPING` mode, where Atlas automatically assigns project maintenance waves based on the project's `environment` tag.
 
+The tag key must be `environment`. The tag value determines the wave assignment: `development` or `test` map to Wave 1, `staging` maps to Wave 2, and `production` maps to Wave 3.
+
 Required variables to set:
 
 - `atlas_client_id`: MongoDB Atlas Service Account Client ID
