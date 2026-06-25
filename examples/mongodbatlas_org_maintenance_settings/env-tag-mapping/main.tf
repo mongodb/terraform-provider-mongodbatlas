@@ -1,3 +1,8 @@
+resource "mongodbatlas_org_maintenance_settings" "example" {
+  org_id               = var.org_id
+  wave_assignment_mode = "ENV_TAG_MAPPING"
+}
+
 resource "mongodbatlas_project" "dev" {
   name   = var.dev_project_name
   org_id = var.org_id
@@ -14,10 +19,6 @@ resource "mongodbatlas_project" "prod" {
   tags = {
     environment = "production"
   }
-}
-resource "mongodbatlas_org_maintenance_settings" "example" {
-  org_id               = var.org_id
-  wave_assignment_mode = "ENV_TAG_MAPPING"
 }
 
 data "mongodbatlas_org_maintenance_settings" "example" {
