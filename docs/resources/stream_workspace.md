@@ -70,6 +70,8 @@ resource "mongodbatlas_stream_workspace" "example" {
 * `data_process_region` - (Required) Cloud service provider and region where MongoDB Cloud performs stream processing. See [data process region](#data-process-region).
 * `stream_config` - (Optional) Configuration options for an Atlas Stream Processing Instance. See [stream config](#stream-config).
 * `failover_regions` - (Optional) List of cloud provider regions to which the workspace can fail over if the primary region becomes unavailable. See [failover regions](#failover-regions).
+  **Write-once:** once set, `failover_regions` cannot be changed in-place — any modification forces the workspace to be destroyed and recreated.
+  **Mutually exclusive with `data_process_region` updates:** `failover_regions` and `data_process_region` cannot both be changed in the same apply. Apply each change in a separate operation.
 
 
 ### Data Process Region

@@ -26,6 +26,9 @@ func (m failoverRegionsWriteOnce) PlanModifyList(_ context.Context, req planmodi
 	if len(req.StateValue.Elements()) == 0 {
 		return
 	}
+	if req.PlanValue.IsUnknown() {
+		return
+	}
 	if req.PlanValue.Equal(req.StateValue) {
 		return
 	}
