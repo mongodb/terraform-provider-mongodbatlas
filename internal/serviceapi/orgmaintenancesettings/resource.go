@@ -146,11 +146,9 @@ func deleteRequest(r *rs, client *config.MongoDBClient, model *TFModel, diags *d
 		Diags:  diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
-			RelativePath:  "/api/atlas/v2/orgs/{orgId}/maintenanceSettings",
+			RelativePath:  "/api/atlas/v2/orgs/{orgId}/maintenanceSettings:reset",
 			PathParams:    pathParams,
-			Method:        "PATCH",
+			Method:        "POST",
 		},
-		StaticRequestBody: `{"waveAssignmentMode": null}`,
-		ResetsToDefaults:  true,
 	}
 }

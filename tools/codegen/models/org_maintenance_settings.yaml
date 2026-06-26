@@ -25,10 +25,8 @@ schema:
           request_only_required_on_create: false
 operations:
     delete:
-        http_method: PATCH
-        path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
-        static_request_body: '{"waveAssignmentMode": null}'
-        resets_to_defaults: true
+        http_method: POST
+        path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings:reset
     create:
         http_method: PATCH
         path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
@@ -66,7 +64,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Mode configured for this organization that determines how maintenance waves are assigned to projects. Possible values are `MANUAL` and `ENV_TAG_MAPPING`. Defaults to `MANUAL` when unset. Atlas uses read-only `effectiveWaveAssignmentMode` (not this field) for scheduling. In a cross-organization billing hierarchy, a linked non-paying organization cannot update its `effectiveWaveAssignmentMode` field, which inherits from the paying organization's `waveAssignmentMode`. In this case, a linked non-paying organization's `effectiveWaveAssignmentMode` and `waveAssignmentMode` might differ.
+              description: Mode explicitly configured for this organization that determines how maintenance waves are assigned to projects. Possible values are `MANUAL` and `ENV_TAG_MAPPING`. Omitted from the response when no explicit preference has been set; in that case `effectiveWaveAssignmentMode` reflects the value the system uses (`MANUAL` by default). Atlas uses read-only `effectiveWaveAssignmentMode` (not this field) for scheduling. In a cross-organization billing hierarchy, a linked non-paying organization cannot update its `effectiveWaveAssignmentMode` field, which inherits from the paying organization's `waveAssignmentMode`. In this case, a linked non-paying organization's `effectiveWaveAssignmentMode` and `waveAssignmentMode` might differ.
               computed_optional_required: computed
               tf_schema_name: wave_assignment_mode
               tf_model_name: WaveAssignmentMode

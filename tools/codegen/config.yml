@@ -518,12 +518,8 @@ resources:
       path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
       method: PATCH
     delete:
-      # Custom reset method will be implemented as a follow-up once it's available in OpenAPI spec
-      # See CLOUDP-414476
-      path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
-      method: PATCH
-      static_request_body: '{"waveAssignmentMode": null}'
-      resets_to_defaults: true
+      path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings:reset
+      method: POST
       # TODO: version header will need to be updated before merge to master
     version_header: application/vnd.atlas.preview+json
     schema:
