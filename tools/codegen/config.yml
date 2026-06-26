@@ -531,7 +531,6 @@ resources:
           request_body_usage: "send_null_as_null_on_update"
           computability:
             optional: true
-            computed: true
     datasources:
       read:
         path: /api/atlas/v2/orgs/{orgId}/maintenanceSettings
