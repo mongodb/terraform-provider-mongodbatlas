@@ -1,4 +1,5 @@
 no_progress = true
+max_retries = 5
 
 # Skip immutable historical records: released changelog and dated compliance docs.
 exclude_path = ["CHANGELOG.md", ".changelog", "compliance"]
