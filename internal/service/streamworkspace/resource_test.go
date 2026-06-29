@@ -173,7 +173,7 @@ func TestAccStreamWorkspaceRS_simultaneousDataProcessRegionAndFailoverChange(t *
 				Config: streamsWorkspaceConfig(projectID, workspaceName, region, cloudProvider),
 			},
 			{
-				Config:      streamsWorkspaceWithChangedRegionAndFailover(projectID, workspaceName),
+				Config:      streamsWorkspaceWithFailoverRegionsConfig(projectID, workspaceName, "OREGON_USA", cloudProvider, failoverRegion),
 				ExpectError: regexp.MustCompile(`data_process_region and failover_regions cannot both be changed`),
 			},
 		},
@@ -252,27 +252,6 @@ func streamsWorkspaceWithStreamConfigConfig(projectID, workspaceName, region, cl
 	`, projectID, workspaceName, region, cloudProvider, tier, maxTierSize)
 }
 
-func streamsWorkspaceWithChangedRegionAndFailover(projectID, workspaceName string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_stream_workspace" "test" {
-			project_id = %[1]q
-			workspace_name = %[2]q
-			data_process_region = {
-				region = "OREGON_USA"
-				cloud_provider = "AWS"
-			}
-			failover_regions = [
-				{
-					cloud_provider = "AWS"
-					region = %[3]q
-				}
-			]
-			stream_config = {
-				tier = "SP10"
-			}
-		}
-	`, projectID, workspaceName, failoverRegion)
-}
 
 func streamsWorkspaceResourceWithDataSourcesConfig(projectID, workspaceName, region, cloudProvider string) string {
 	return fmt.Sprintf(`
