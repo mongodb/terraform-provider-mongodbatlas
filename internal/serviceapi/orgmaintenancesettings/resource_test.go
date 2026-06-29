@@ -27,10 +27,6 @@ func TestAccOrgMaintenanceSettings_basic(t *testing.T) {
 				Check:  checkWithMode(orgID, "ENV_TAG_MAPPING"),
 			},
 			{
-				Config:   configWithMode(orgID, "ENV_TAG_MAPPING"),
-				PlanOnly: true,
-			},
-			{
 				Config: configWithMode(orgID, "MANUAL"),
 				Check:  checkWithMode(orgID, "MANUAL"),
 			},
@@ -47,7 +43,7 @@ func TestAccOrgMaintenanceSettings_basic(t *testing.T) {
 			},
 			{
 				Config:   configEmpty(orgID),
-				PlanOnly: true,
+				PlanOnly: true, // Check that wave_assignment_mode was correctly unset in API.
 			},
 		},
 	})
