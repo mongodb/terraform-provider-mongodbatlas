@@ -539,6 +539,10 @@ func TestAccProject_basic(t *testing.T) {
 		"is_performance_advisor_enabled",
 		"is_realtime_performance_panel_enabled",
 		"is_schema_advisor_enabled",
+		"is_cluster_ai_assistant_enabled",
+		"is_data_explorer_gen_ai_features_enabled",
+		"is_data_explorer_gen_ai_sample_document_passing_enabled",
+		"is_native_reranking_enabled",
 	}
 
 	dataSourceChecks := map[string]string{
@@ -748,6 +752,10 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "is_performance_advisor_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_realtime_performance_panel_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_schema_advisor_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_cluster_ai_assistant_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_gen_ai_features_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_gen_ai_sample_document_passing_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_native_reranking_enabled", "false"),
 				),
 			},
 			{
@@ -761,6 +769,10 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "is_performance_advisor_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_realtime_performance_panel_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_schema_advisor_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_cluster_ai_assistant_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_gen_ai_features_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_gen_ai_sample_document_passing_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_native_reranking_enabled", "true"),
 				),
 			},
 			{
@@ -774,6 +786,10 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "is_performance_advisor_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_realtime_performance_panel_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_schema_advisor_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_cluster_ai_assistant_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_gen_ai_features_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_gen_ai_sample_document_passing_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_native_reranking_enabled", "false"),
 				),
 			},
 		},
