@@ -20,7 +20,7 @@ point_in_time_utc_seconds     = 0
 ```
 
 - Run `terraform apply`
-- Update `point_in_time_utc_seconds` to the [current epoch time](https://www.epoch101.com/)
+- Update `point_in_time_utc_seconds` to the current epoch time.
 - Run `terraform apply`
 
 You'll now have a project, cluster, backup snapshot, and restore job pointing to specific point in time which to restore.

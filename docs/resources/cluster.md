@@ -377,7 +377,7 @@ But in order to explicitly change `provider_instance_size_name` comment the `lif
   - `CONTINUOUS`:  Atlas creates your cluster using the most recent MongoDB release. Atlas automatically updates your cluster to the latest major and rapid MongoDB releases as they become available.
   - `LTS`: Atlas creates your cluster using the latest patch release of the MongoDB version that you specify in the mongoDBMajorVersion field. Atlas automatically updates your cluster to subsequent patch releases of this MongoDB version. Atlas doesn't update your cluster to newer rapid or major MongoDB releases as they become available.
 * `timeouts` - (Optional) The duration to wait for the Cluster to be created, updated, or deleted. The timeout value is specified in a signed sequence of decimal numbers followed by a time unit (e.g., `1h45m`, `300s`, `10m`). Valid units are: `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout values for the following operations are: `create` (default: `3h`), `update` (default: `3h`), `delete` (default: `3h`). [Learn more about timeouts](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
-* `accept_data_risks_and_force_replica_set_reconfig`- (Optional) If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. MongoDB Atlas docs contain more information. To proceed with an operation which carries that risk, set `accept_data_risks_and_force_replica_set_reconfig` to the current date. Learn more about Reconfiguring a Replica Set during a regional outage [here](https://dochub.mongodb.org/core/regional-outage-reconfigure-replica-set).
+* `accept_data_risks_and_force_replica_set_reconfig`- (Optional) If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. MongoDB Atlas docs contain more information. To proceed with an operation which carries that risk, set `accept_data_risks_and_force_replica_set_reconfig` to the current date. Learn more about Reconfiguring a Replica Set during a regional outage [here](https://www.mongodb.com/docs/atlas/reconfigure-replica-set-during-regional-outage/).
 * `redact_client_log_data` - (Optional) Flag that enables or disables log redaction, see the [manual](https://www.mongodb.com/docs/manual/administration/monitoring/#log-redaction) for more information. Use this in conjunction with Encryption at Rest and TLS/SSL (Transport Encryption) to assist compliance with regulatory requirements. **Note**: Changing this setting on a cluster will trigger a rolling restart as soon as the cluster is updated. The log redaction field is updated via an Atlas API call after cluster creation. Consequently, there may be a brief period during resource creation when log redaction is not yet enabled. To ensure complete log redaction from the outset, use `mongodbatlas_advanced_cluster`.
 
 ### Multi-Region Cluster
@@ -450,7 +450,7 @@ bi_connector_config {
     - Set to `true` to enable BI Connector for Atlas.
     - Set to `false` to disable BI Connector for Atlas.
 
-* `read_preference` - (Optional) Specifies the read preference to be used by BI Connector for Atlas on the cluster. Each BI Connector for Atlas read preference contains a distinct combination of [readPreference](https://www.mongodb.com/docs/manual/core/read-preference/) and [readPreferenceTags](https://www.mongodb.com/docs/manual/core/read-preference/#tag-sets) options. For details on BI Connector for Atlas read preferences, refer to the [BI Connector Read Preferences Table](https://www.mongodb.com/docs/atlas/tutorial/create-global-writes-cluster/#bic-read-preferences).
+* `read_preference` - (Optional) Specifies the read preference to be used by BI Connector for Atlas on the cluster. Each BI Connector for Atlas read preference contains a distinct combination of [readPreference](https://www.mongodb.com/docs/manual/core/read-preference/) and [readPreferenceTags](https://www.mongodb.com/docs/manual/core/read-preference/#tag-sets) options. For details on BI Connector for Atlas read preferences, refer to the [BI Connector mongosqld reference](https://www.mongodb.com/docs/bi-connector/current/reference/mongosqld/).
 
     - Set to "primary" to have BI Connector for Atlas read from the primary.
 
@@ -510,7 +510,7 @@ Key-value pairs between 1 to 255 characters in length for tagging and categorizi
 * `key` - (Required) Constant that defines the set of the tag.
 * `value` - (Required) Variable that belongs to the set of the tag.
 
-To learn more, see [Resource Tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas).
+To learn more, see [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
 
 ### Labels
 

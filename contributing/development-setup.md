@@ -174,7 +174,7 @@ You must also configure the following environment variables before running the t
   export AWS_SUBNET_ID=<AWS_SUBNET_ID>
   export AWS_SECURITY_GROUP_ID=<AWS_SECURITY_GROUP_ID>
   ```
-~> **Notice:** For more information about the Network Peering resource, see: https://www.mongodb.com/docs/atlas/reference/api/vpc/
+~> **Notice:** For more information about the Network Peering resource, see: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Network-Peering
 
 - For `Encryption at Rest` resource configuration:
   ```bash
@@ -188,7 +188,7 @@ You must also configure the following environment variables before running the t
   export AWS_CUSTOMER_MASTER_KEY_ID_UPDATED=<AWS_CUSTOMER_MASTER_KEY_ID_UPDATED>
   export AWS_REGION_UPDATED=<AWS_REGION_UPDATED>
   ```
-~> **Notice:** For more information about the Encryption at Rest resource, see: https://www.mongodb.com/docs/atlas/reference/api/encryption-at-rest/
+~> **Notice:** For more information about the Encryption at Rest resource, see: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Encryption-at-Rest-using-Customer-Key-Management
 
 - For `Private Endpoint Link` resource configuration:
   ```bash
@@ -211,7 +211,7 @@ You must also configure the following environment variables before running the t
   export AZURE_RESOURCE_GROUP_NAME=<AZURE_RESOURCE_GROUP_NAME>
   export AZURE_VNET_NAME=<AZURE_VNET_NAME>
   ```
-~> **Notice:** For more information about the Network Peering resource, see: https://www.mongodb.com/docs/atlas/reference/api/vpc/
+~> **Notice:** For more information about the Network Peering resource, see: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Network-Peering
 
 
 - For Encryption at Rest resource configuration:
@@ -227,14 +227,14 @@ You must also configure the following environment variables before running the t
   export AZURE_KEY_VAULT_NAME_UPDATED=<AZURE_KEY_VAULT_NAME_UPDATED>
   export AZURE_KEY_IDENTIFIER_UPDATED=<AZURE_KEY_IDENTIFIER_UPDATED>
   ```
-~> **Notice:** For more information about the Encryption at Rest resource, see: https://www.mongodb.com/docs/atlas/reference/api/encryption-at-rest/
+~> **Notice:** For more information about the Encryption at Rest resource, see: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Encryption-at-Rest-using-Customer-Key-Management
 
 ##### GCP env variables
 - For `Network Peering` resource configuration:
   ```bash
   $export GCP_PROJECT_ID=<GCP_PROJECT_ID>
   ```
-~> **Notice:** For more information about the Network Peering resource, see: https://www.mongodb.com/docs/atlas/reference/api/vpc/
+~> **Notice:** For more information about the Network Peering resource, see: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Network-Peering
 
 
 - For Encryption at Rest resource configuration:
@@ -242,7 +242,7 @@ You must also configure the following environment variables before running the t
   export GCP_SERVICE_ACCOUNT_KEY=<GCP_SERVICE_ACCOUNT_KEY>
   export GCP_KEY_VERSION_RESOURCE_ID=<GCP_KEY_VERSION_RESOURCE_ID>
   ```
-~> **Notice:** For more information about the Encryption at Rest resource, see: https://www.mongodb.com/docs/atlas/reference/api/encryption-at-rest/
+~> **Notice:** For more information about the Encryption at Rest resource, see: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Encryption-at-Rest-using-Customer-Key-Management
 
 
 #### Run Acceptance tests
