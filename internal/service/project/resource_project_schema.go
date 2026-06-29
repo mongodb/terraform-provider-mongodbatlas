@@ -132,7 +132,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
 				},
-			},	
+			},
 			"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
 				DeprecationMessage: constant.DeprecationParam, // added deprecation in CLOUDP-293855 because was deprecated in the doc
 				Computed:           true,
@@ -230,29 +230,29 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFProjectRSModel struct {
-	Limits                                      types.Set    `tfsdk:"limits"`
-	Teams                                       types.Set    `tfsdk:"teams"`
-	Tags                                        types.Map    `tfsdk:"tags"`
-	IPAddresses                                 types.Object `tfsdk:"ip_addresses"`
-	RegionUsageRestrictions                     types.String `tfsdk:"region_usage_restrictions"`
-	Name                                        types.String `tfsdk:"name"`
-	OrgID                                       types.String `tfsdk:"org_id"`
-	Created                                     types.String `tfsdk:"created"`
-	ProjectOwnerID                              types.String `tfsdk:"project_owner_id"`
-	ID                                          types.String `tfsdk:"id"`
-	ClusterCount                                types.Int64  `tfsdk:"cluster_count"`
-	IsDataExplorerEnabled                       types.Bool   `tfsdk:"is_data_explorer_enabled"`
-	IsPerformanceAdvisorEnabled                 types.Bool   `tfsdk:"is_performance_advisor_enabled"`
-	IsRealtimePerformancePanelEnabled           types.Bool   `tfsdk:"is_realtime_performance_panel_enabled"`
-	IsSchemaAdvisorEnabled                      types.Bool   `tfsdk:"is_schema_advisor_enabled"`
-	IsExtendedStorageSizesEnabled               types.Bool   `tfsdk:"is_extended_storage_sizes_enabled"`
-	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool   `tfsdk:"is_collect_database_specifics_statistics_enabled"`
-	WithDefaultAlertsSettings                   types.Bool   `tfsdk:"with_default_alerts_settings"`
-	IsSlowOperationThresholdingEnabled          types.Bool   `tfsdk:"is_slow_operation_thresholding_enabled"`
-	IsDataExplorerGenAIFeaturesEnabled 				types.Bool   `tfsdk:"is_data_explorer_gen_ai_features_enabled"`
+	Limits                                          types.Set    `tfsdk:"limits"`
+	Teams                                           types.Set    `tfsdk:"teams"`
+	Tags                                            types.Map    `tfsdk:"tags"`
+	IPAddresses                                     types.Object `tfsdk:"ip_addresses"`
+	RegionUsageRestrictions                         types.String `tfsdk:"region_usage_restrictions"`
+	Name                                            types.String `tfsdk:"name"`
+	OrgID                                           types.String `tfsdk:"org_id"`
+	Created                                         types.String `tfsdk:"created"`
+	ProjectOwnerID                                  types.String `tfsdk:"project_owner_id"`
+	ID                                              types.String `tfsdk:"id"`
+	ClusterCount                                    types.Int64  `tfsdk:"cluster_count"`
+	IsDataExplorerEnabled                           types.Bool   `tfsdk:"is_data_explorer_enabled"`
+	IsPerformanceAdvisorEnabled                     types.Bool   `tfsdk:"is_performance_advisor_enabled"`
+	IsRealtimePerformancePanelEnabled               types.Bool   `tfsdk:"is_realtime_performance_panel_enabled"`
+	IsSchemaAdvisorEnabled                          types.Bool   `tfsdk:"is_schema_advisor_enabled"`
+	IsExtendedStorageSizesEnabled                   types.Bool   `tfsdk:"is_extended_storage_sizes_enabled"`
+	IsCollectDatabaseSpecificsStatisticsEnabled     types.Bool   `tfsdk:"is_collect_database_specifics_statistics_enabled"`
+	WithDefaultAlertsSettings                       types.Bool   `tfsdk:"with_default_alerts_settings"`
+	IsSlowOperationThresholdingEnabled              types.Bool   `tfsdk:"is_slow_operation_thresholding_enabled"`
+	IsDataExplorerGenAIFeaturesEnabled              types.Bool   `tfsdk:"is_data_explorer_gen_ai_features_enabled"`
 	IsDataExplorerGenAISampleDocumentPassingEnabled types.Bool   `tfsdk:"is_data_explorer_gen_ai_sample_document_passing_enabled"`
-	IsClusterAiAssistantEnabled 					types.Bool   `tfsdk:"is_cluster_ai_assistant_enabled"`
-	IsNativeRerankingEnabled 						types.Bool   `tfsdk:"is_native_reranking_enabled"`
+	IsClusterAiAssistantEnabled                     types.Bool   `tfsdk:"is_cluster_ai_assistant_enabled"`
+	IsNativeRerankingEnabled                        types.Bool   `tfsdk:"is_native_reranking_enabled"`
 }
 
 type TFTeamModel struct {

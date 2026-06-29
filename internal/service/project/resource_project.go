@@ -147,7 +147,6 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	SetProjectBool(projectPlan.IsClusterAiAssistantEnabled, &projectSettings.IsClusterAiAssistantEnabled)
 	SetProjectBool(projectPlan.IsNativeRerankingEnabled, &projectSettings.IsNativeRerankingEnabled)
 
-
 	if _, _, err = connV2.ProjectsApi.UpdateGroupSettings(ctx, project.GetId(), projectSettings).Execute(); err != nil {
 		errd := deleteProject(ctx, connV2.ClustersApi, connV2.ProjectsApi, project.GetId())
 		if errd != nil {

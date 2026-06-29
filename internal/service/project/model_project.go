@@ -111,25 +111,25 @@ type tfProjectsDSModel struct {
 }
 
 type TFProjectDSModel struct {
-	Tags                                        types.Map              `tfsdk:"tags"`
-	IPAddresses                                 types.Object           `tfsdk:"ip_addresses"`
-	Created                                     types.String           `tfsdk:"created"`
-	OrgID                                       types.String           `tfsdk:"org_id"`
-	RegionUsageRestrictions                     types.String           `tfsdk:"region_usage_restrictions"`
-	ID                                          types.String           `tfsdk:"id"`
-	Name                                        types.String           `tfsdk:"name"`
-	ProjectID                                   types.String           `tfsdk:"project_id"`
-	Teams                                       []*TFTeamDSModel       `tfsdk:"teams"`
-	Limits                                      []*TFLimitModel        `tfsdk:"limits"`
-	Users                                       []*TFCloudUsersDSModel `tfsdk:"users"`
-	ClusterCount                                types.Int64            `tfsdk:"cluster_count"`
-	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool             `tfsdk:"is_collect_database_specifics_statistics_enabled"`
-	IsRealtimePerformancePanelEnabled           types.Bool             `tfsdk:"is_realtime_performance_panel_enabled"`
-	IsSchemaAdvisorEnabled                      types.Bool             `tfsdk:"is_schema_advisor_enabled"`
-	IsPerformanceAdvisorEnabled                 types.Bool             `tfsdk:"is_performance_advisor_enabled"`
-	IsExtendedStorageSizesEnabled               types.Bool             `tfsdk:"is_extended_storage_sizes_enabled"`
-	IsDataExplorerEnabled                       types.Bool             `tfsdk:"is_data_explorer_enabled"`
-	IsSlowOperationThresholdingEnabled          types.Bool             `tfsdk:"is_slow_operation_thresholding_enabled"`
+	Tags                                            types.Map              `tfsdk:"tags"`
+	IPAddresses                                     types.Object           `tfsdk:"ip_addresses"`
+	Created                                         types.String           `tfsdk:"created"`
+	OrgID                                           types.String           `tfsdk:"org_id"`
+	RegionUsageRestrictions                         types.String           `tfsdk:"region_usage_restrictions"`
+	ID                                              types.String           `tfsdk:"id"`
+	Name                                            types.String           `tfsdk:"name"`
+	ProjectID                                       types.String           `tfsdk:"project_id"`
+	Teams                                           []*TFTeamDSModel       `tfsdk:"teams"`
+	Limits                                          []*TFLimitModel        `tfsdk:"limits"`
+	Users                                           []*TFCloudUsersDSModel `tfsdk:"users"`
+	ClusterCount                                    types.Int64            `tfsdk:"cluster_count"`
+	IsCollectDatabaseSpecificsStatisticsEnabled     types.Bool             `tfsdk:"is_collect_database_specifics_statistics_enabled"`
+	IsRealtimePerformancePanelEnabled               types.Bool             `tfsdk:"is_realtime_performance_panel_enabled"`
+	IsSchemaAdvisorEnabled                          types.Bool             `tfsdk:"is_schema_advisor_enabled"`
+	IsPerformanceAdvisorEnabled                     types.Bool             `tfsdk:"is_performance_advisor_enabled"`
+	IsExtendedStorageSizesEnabled                   types.Bool             `tfsdk:"is_extended_storage_sizes_enabled"`
+	IsDataExplorerEnabled                           types.Bool             `tfsdk:"is_data_explorer_enabled"`
+	IsSlowOperationThresholdingEnabled              types.Bool             `tfsdk:"is_slow_operation_thresholding_enabled"`
 	IsDataExplorerGenAIFeaturesEnabled              types.Bool             `tfsdk:"is_data_explorer_gen_ai_features_enabled"`
 	IsDataExplorerGenAISampleDocumentPassingEnabled types.Bool             `tfsdk:"is_data_explorer_gen_ai_sample_document_passing_enabled"`
 	IsClusterAiAssistantEnabled                     types.Bool             `tfsdk:"is_cluster_ai_assistant_enabled"`
@@ -181,22 +181,22 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		ClusterCount:            types.Int64Value(project.ClusterCount),
 		Created:                 types.StringValue(conversion.TimeToString(project.Created)),
 		RegionUsageRestrictions: types.StringPointerValue(project.RegionUsageRestrictions),
-		IsCollectDatabaseSpecificsStatisticsEnabled: types.BoolValue(*projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled),
-		IsDataExplorerEnabled:                       types.BoolValue(*projectSettings.IsDataExplorerEnabled),
-		IsExtendedStorageSizesEnabled:               types.BoolValue(*projectSettings.IsExtendedStorageSizesEnabled),
-		IsPerformanceAdvisorEnabled:                 types.BoolValue(*projectSettings.IsPerformanceAdvisorEnabled),
-		IsRealtimePerformancePanelEnabled:           types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled),
-		IsSchemaAdvisorEnabled:                      types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
+		IsCollectDatabaseSpecificsStatisticsEnabled:     types.BoolValue(*projectSettings.IsCollectDatabaseSpecificsStatisticsEnabled),
+		IsDataExplorerEnabled:                           types.BoolValue(*projectSettings.IsDataExplorerEnabled),
+		IsExtendedStorageSizesEnabled:                   types.BoolValue(*projectSettings.IsExtendedStorageSizesEnabled),
+		IsPerformanceAdvisorEnabled:                     types.BoolValue(*projectSettings.IsPerformanceAdvisorEnabled),
+		IsRealtimePerformancePanelEnabled:               types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled),
+		IsSchemaAdvisorEnabled:                          types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
 		IsClusterAiAssistantEnabled:                     types.BoolValue(*projectSettings.IsClusterAiAssistantEnabled),
 		IsDataExplorerGenAIFeaturesEnabled:              types.BoolValue(*projectSettings.IsDataExplorerGenAIFeaturesEnabled),
 		IsDataExplorerGenAISampleDocumentPassingEnabled: types.BoolValue(*projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled),
 		IsNativeRerankingEnabled:                        types.BoolValue(*projectSettings.IsNativeRerankingEnabled),
-		Teams:                                       NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
-		Limits:                                      NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
-		IPAddresses:                                 ipAddressesModel,
-		Tags:                                        conversion.NewTFTags(project.GetTags()),
-		IsSlowOperationThresholdingEnabled:          types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
-		Users:                                       NewTFCloudUsersDataSourceModel(ctx, projectProps.Users),
+		Teams:                                           NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
+		Limits:                                          NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
+		IPAddresses:                                     ipAddressesModel,
+		Tags:                                            conversion.NewTFTags(project.GetTags()),
+		IsSlowOperationThresholdingEnabled:              types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
+		Users:                                           NewTFCloudUsersDataSourceModel(ctx, projectProps.Users),
 	}, nil
 }
 
