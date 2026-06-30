@@ -993,7 +993,7 @@ This workflow allows you to set specific baseline values from which auto-scaling
 
 ### Adjusting the Auto-Scaling Range with use_effective_fields
 
-Changing the compute auto-scaling range (`compute_min_instance_size` or `compute_max_instance_size`) requires extra care when the new range would no longer contain the cluster's **current effective** instance size, for example raising `compute_min_instance_size` above the effective size or lowering `compute_max_instance_size` below it. Atlas validates the new range against the current effective instance size, so attempting either in a single apply fails with an `INVALID_ATTRIBUTE` error. Updating `instance_size` in the same apply does not avoid the error, because the configured `instance_size` is not applied while auto-scaling is enabled with `use_effective_fields = true`.
+Changing the compute auto-scaling range (`compute_min_instance_size` or `compute_max_instance_size`) requires extra care when the new range would no longer contain the cluster's **current effective** instance size, for example raising `compute_min_instance_size` above the effective size or lowering `compute_max_instance_size` below it. Atlas validates the new range against the current effective instance size, so attempting either in a single apply fails with a validation error from Atlas. Updating `instance_size` in the same apply does not avoid the error, because the configured `instance_size` is not applied while auto-scaling is enabled with `use_effective_fields = true`.
 
 To adjust the range in this case, first move the effective instance size into the new range, then change the bounds:
 
