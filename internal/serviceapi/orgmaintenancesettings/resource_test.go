@@ -22,9 +22,9 @@ func TestAccOrgMaintenanceSettings_basic(t *testing.T) {
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
-			// TODO: This test failure is known, upstream team is investigating the issue.
-			// Will update this comment with the relevant CLOUDP once it's open
-			// Before merging to master, this behavior will need to be workin as expected
+			// TODO: CLOUDP-418087 to track behaviour of setting an org for the first time to MANUAL.
+			// We need to ensure that feature is working as expected before merging to master
+			// Tests are passing in this org because it was set to ENV_TAG_MAPPING after
 			{
 				Config: configWithMode(orgID, "MANUAL"),
 				Check:  checkWithMode(orgID, "MANUAL"),
