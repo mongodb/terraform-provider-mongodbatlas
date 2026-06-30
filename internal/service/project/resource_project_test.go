@@ -740,36 +740,21 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConfigProjectWithSettingsAndDataSource(projectName, orgID, projectOwnerID, false),
-				Check: resource.ComposeAggregateTestCheckFunc(append([]resource.TestCheckFunc{
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", projectName),
-					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-					resource.TestCheckResourceAttr(resourceName, "project_owner_id", projectOwnerID),
-					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"), // uses default value
-				}, projectSettingsChecks(false)...)...,
-				),
+				Check:  projectSettingsChecks(orgID, projectOwnerID, projectName, false),
 			},
 			{
 				Config: acc.ConfigProjectWithSettingsAndDataSource(projectName, orgID, projectOwnerID, true),
-				Check: resource.ComposeAggregateTestCheckFunc(append([]resource.TestCheckFunc{
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"),
-				}, projectSettingsChecks(true)...)...,
-				),
+				Check:  projectSettingsChecks(orgID, projectOwnerID, projectName, true),
 			},
 			{
 				Config: acc.ConfigProjectWithSettingsAndDataSource(projectName, orgID, projectOwnerID, false),
-				Check: resource.ComposeAggregateTestCheckFunc(append([]resource.TestCheckFunc{
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"),
-				}, projectSettingsChecks(false)...)...,
-				),
+				Check:  projectSettingsChecks(orgID, projectOwnerID, projectName, false),
 			},
 		},
 	})
 }
 
-func projectSettingsChecks(value bool) []resource.TestCheckFunc {
+func projectSettingsChecks(orgID, projectOwnerID, projectName string, value bool) resource.TestCheckFunc {
 	v := fmt.Sprintf("%t", value)
 	settingAttrs := []string{
 		"is_collect_database_specifics_statistics_enabled",
@@ -783,14 +768,20 @@ func projectSettingsChecks(value bool) []resource.TestCheckFunc {
 		"is_data_explorer_gen_ai_sample_document_passing_enabled",
 		"is_native_reranking_enabled",
 	}
-	checks := make([]resource.TestCheckFunc, 0, len(settingAttrs)*2)
+	checks := []resource.TestCheckFunc{
+		checkExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "name", projectName),
+		resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
+		resource.TestCheckResourceAttr(resourceName, "project_owner_id", projectOwnerID),
+		resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"),
+	}
 	for _, attr := range settingAttrs {
 		checks = append(checks,
 			resource.TestCheckResourceAttr(resourceName, attr, v),
 			resource.TestCheckResourceAttr(dataSourceNameByID, attr, v),
 		)
 	}
-	return checks
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func TestAccProject_withUpdatedRole(t *testing.T) {
