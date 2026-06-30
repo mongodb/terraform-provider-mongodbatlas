@@ -252,7 +252,6 @@ func streamsWorkspaceWithStreamConfigConfig(projectID, workspaceName, region, cl
 	`, projectID, workspaceName, region, cloudProvider, tier, maxTierSize)
 }
 
-
 func streamsWorkspaceResourceWithDataSourcesConfig(projectID, workspaceName, region, cloudProvider string) string {
 	return fmt.Sprintf(`
 		%s

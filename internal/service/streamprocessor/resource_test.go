@@ -807,6 +807,7 @@ func configWithFailoverEnabled(t *testing.T, projectID, workspaceName, clusterNa
 		project_id     = mongodbatlas_stream_processor.processor.project_id
 		workspace_name = mongodbatlas_stream_processor.processor.workspace_name
 		processor_name = mongodbatlas_stream_processor.processor.processor_name
+		depends_on     = [mongodbatlas_stream_processor.processor]
 	}
 
 	data "mongodbatlas_stream_processors" "test" {
@@ -843,6 +844,7 @@ func configWithTier(t *testing.T, projectID, workspaceName, processorName, tier 
 		project_id     = mongodbatlas_stream_processor.processor.project_id
 		workspace_name = mongodbatlas_stream_processor.processor.workspace_name
 		processor_name = mongodbatlas_stream_processor.processor.processor_name
+		depends_on     = [mongodbatlas_stream_processor.processor]
 	}
 
 	data "mongodbatlas_stream_processors" "test" {
