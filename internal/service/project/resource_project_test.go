@@ -726,7 +726,7 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 	})
 }
 
-func TestAccProject_withUpdatedSettings(t *testing.T) {	
+func TestAccProject_withUpdatedSettings(t *testing.T) {
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
@@ -792,7 +792,6 @@ func projectSettingsChecks(value bool) []resource.TestCheckFunc {
 	}
 	return checks
 }
-
 
 func TestAccProject_withUpdatedRole(t *testing.T) {
 	var (
