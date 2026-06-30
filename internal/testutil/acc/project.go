@@ -50,6 +50,13 @@ func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value 
 	`, projectName, orgID, projectOwnerID, value)
 }
 
+func ConfigProjectWithSettingsAndDataSource(projectName, orgID, projectOwnerID string, value bool) string {
+	return ConfigProjectWithSettings(projectName, orgID, projectOwnerID, value) + `
+		data "mongodbatlas_project" "test" {
+			project_id = mongodbatlas_project.test.id
+		}`
+}
+
 func ImportStateProjectIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
