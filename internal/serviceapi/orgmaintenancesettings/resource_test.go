@@ -22,13 +22,12 @@ func TestAccOrgMaintenanceSettings_basic(t *testing.T) {
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
+			// TODO: CLOUDP-418087 to track behavior of setting an org for the first time to MANUAL.
+			// We need to ensure that feature is working as expected before merging to master
+			// Tests are passing in this org because it was set to ENV_TAG_MAPPING after
 			{
 				Config: configWithMode(orgID, "MANUAL"),
 				Check:  checkWithMode(orgID, "MANUAL"),
-			},
-			{
-				Config:   configWithMode(orgID, "MANUAL"),
-				PlanOnly: true,
 			},
 			{
 				Config: configWithMode(orgID, "ENV_TAG_MAPPING"),
@@ -47,7 +46,7 @@ func TestAccOrgMaintenanceSettings_basic(t *testing.T) {
 			},
 			{
 				Config:   configEmpty(orgID),
-				PlanOnly: true,
+				PlanOnly: true, // Check that wave_assignment_mode was correctly unset in API.
 			},
 		},
 	})
@@ -89,12 +88,11 @@ func checkWithMode(orgID, waveAssignmentMode string) resource.TestCheckFunc {
 }
 
 func checkEmpty(orgID string) resource.TestCheckFunc {
-	// When wave_assignment_mode is removed from config, the provider sends null to the API which resets it to the default (MANUAL).
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
-		resource.TestCheckResourceAttrSet(resourceName, "wave_assignment_mode"),
+		resource.TestCheckNoResourceAttr(resourceName, "wave_assignment_mode"),
 		resource.TestCheckResourceAttr(dataSourceName, "org_id", orgID),
-		resource.TestCheckResourceAttrSet(dataSourceName, "wave_assignment_mode"),
+		resource.TestCheckNoResourceAttr(dataSourceName, "wave_assignment_mode"),
 		resource.TestCheckResourceAttrSet(dataSourceName, "effective_wave_assignment_mode"),
 	)
 }

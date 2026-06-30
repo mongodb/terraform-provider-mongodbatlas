@@ -20,7 +20,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"wave_assignment_mode": schema.StringAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Mode configured for this organization that determines how maintenance waves are assigned to projects. Possible values are `MANUAL` and `ENV_TAG_MAPPING`. Defaults to `MANUAL` when unset. Only this field can be updated; Atlas derives read-only `effectiveWaveAssignmentMode` on GET responses and uses that value for scheduling when it differs from `waveAssignmentMode`. Omit this field to leave the current value unchanged. Specify null to reset to the default value (`MANUAL`).",
 			},
