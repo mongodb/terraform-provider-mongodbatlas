@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.13.0 (June 30, 2026)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_advanced_cluster: Adds `adaptive_capacity` attribute ([#4452](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4452))
