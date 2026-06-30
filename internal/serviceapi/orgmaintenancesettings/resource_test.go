@@ -22,13 +22,16 @@ func TestAccOrgMaintenanceSettings_basic(t *testing.T) {
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
-			{
-				Config: configWithMode(orgID, "ENV_TAG_MAPPING"),
-				Check:  checkWithMode(orgID, "ENV_TAG_MAPPING"),
-			},
+			// TODO: This test failure is known, upstream team is investigating the issue.
+			// Will update this comment with the relevant CLOUDP once it's open
+			// Before merging to master, this behavior will need to be workin as expected
 			{
 				Config: configWithMode(orgID, "MANUAL"),
 				Check:  checkWithMode(orgID, "MANUAL"),
+			},
+			{
+				Config: configWithMode(orgID, "ENV_TAG_MAPPING"),
+				Check:  checkWithMode(orgID, "ENV_TAG_MAPPING"),
 			},
 			{
 				ResourceName:                         resourceName,
