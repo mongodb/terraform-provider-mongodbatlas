@@ -56,7 +56,7 @@ data "mongodbatlas_projects" "test" {
 * `is_extended_storage_sizes_enabled` - Flag that indicates whether to enable extended storage sizes for the specified project.
 * `is_performance_advisor_enabled` - Flag that indicates whether to enable Performance Advisor and Profiler for the project. If enabled, you can analyze database logs to recommend performance improvements.
 * `is_realtime_performance_panel_enabled` - Flag that indicates whether to enable Real Time Performance Panel for the project. If enabled, you can see real time metrics from your MongoDB database.
-* `is_schema_advisor_enabled` - Flag that indicates whether to enable Schema Advisor for the project. If enabled, you receive customized recommendations to optimize your data model and enhance performance. Disable this setting to disable schema suggestions in the [Performance Advisor](https://www.mongodb.com/docs/atlas/performance-advisor/
+* `is_schema_advisor_enabled` - Flag that indicates whether to enable Schema Advisor for the project. If enabled, you receive customized recommendations to optimize your data model and enhance performance. Disable this setting to disable schema suggestions in the [Performance Advisor](https://www.mongodb.com/docs/atlas/performance-advisor/).
 * `is_cluster_ai_assistant_enabled` - Flag that indicates whether the AI Assistant is enabled for the project's clusters.
 * `is_data_explorer_gen_ai_features_enabled` - Flag that indicates whether generative AI features are enabled in the Data Explorer for the project.
 * `is_data_explorer_gen_ai_sample_document_passing_enabled` - Flag that indicates whether passing sample documents to generative AI features in the Data Explorer is enabled for the project.
