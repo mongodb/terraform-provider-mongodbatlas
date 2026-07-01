@@ -991,6 +991,24 @@ When `use_effective_fields = true` and auto-scaling is enabled, you can update `
 
 This workflow allows you to set specific baseline values from which auto-scaling will resume dynamic adjustments based on workload.
 
+### Adjusting the Auto-Scaling Range with use_effective_fields
+
+Changing the compute auto-scaling range (`compute_min_instance_size` or `compute_max_instance_size`) requires extra care when the new range would no longer contain the cluster's **current effective** instance size. This includes:
+
+- Raising `compute_min_instance_size` above the effective size.
+- Lowering `compute_max_instance_size` below the effective size.
+
+Atlas validates the new range against the current effective instance size, so attempting either in a single apply fails with a validation error from Atlas. Updating `instance_size` in the same apply as changing the range does not avoid the error, because the updated `instance_size` value is not applied while auto-scaling is enabled with `use_effective_fields = true`.
+
+To adjust the range when the new range would exclude the current effective instance size, move the effective instance size into the new range before changing the bounds:
+
+1. Disable auto-scaling and set `instance_size` to a value inside your intended new range, then apply. Follow the [Manually Updating Specs with use_effective_fields](#manually-updating-specs-with-use_effective_fields) workflow, which also covers disabling disk auto-scaling and the related `oplog_min_retention_hours` requirement.
+2. Re-enable auto-scaling with the new `compute_min_instance_size` and `compute_max_instance_size` bounds, then apply.
+
+The same process applies to the [`analytics_auto_scaling`](#analytics_auto_scaling) block, using `analytics_specs.instance_size` in step 1.
+
+-> **NOTE:** This multi-step process is only required while the current effective instance size would fall outside the new range. If the new range still contains the effective size, you can change the bounds in a single apply.
+
 ### Terraform Modules
 
 `use_effective_fields` is particularly valuable for reusable Terraform modules. Without it, separate module implementations are required (one with lifecycle blocks for auto-scaling, one without). With `use_effective_fields`, a single module handles both scenarios without lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
