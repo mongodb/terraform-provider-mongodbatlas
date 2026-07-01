@@ -98,7 +98,7 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSM
 	return streamProcessorAPIParams, nil
 }
 
-func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, workspaceName string, apiResp *admin.StreamsProcessorWithStats, timeout *timeouts.Value, deleteOnCreateTimeout *types.Bool) (*TFStreamProcessorRSModel, diag.Diagnostics) {
+func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, workspaceName string, apiResp *admin.StreamsProcessorWithStats, timeout *timeouts.Value, deleteOnCreateTimeout *types.Bool, failoverEnabled *types.Bool) (*TFStreamProcessorRSModel, diag.Diagnostics) {
 	if apiResp == nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("streamProcessor API response is nil", "")}
 	}
@@ -115,15 +115,14 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, w
 		return nil, diags
 	}
 	tfModel := &TFStreamProcessorRSModel{
-		Options:         *optionsTF,
-		Pipeline:        pipelineTF,
-		ProcessorID:     types.StringPointerValue(&apiResp.Id),
-		ProcessorName:   types.StringPointerValue(&apiResp.Name),
-		ProjectID:       types.StringPointerValue(&projectID),
-		State:           types.StringPointerValue(&apiResp.State),
-		Stats:           statsTF,
-		Tier:            types.StringPointerValue(apiResp.Tier),
-		FailoverEnabled: types.BoolValue(apiResp.GetFailoverEnabled()),
+		Options:       *optionsTF,
+		Pipeline:      pipelineTF,
+		ProcessorID:   types.StringPointerValue(&apiResp.Id),
+		ProcessorName: types.StringPointerValue(&apiResp.Name),
+		ProjectID:     types.StringPointerValue(&projectID),
+		State:         types.StringPointerValue(&apiResp.State),
+		Stats:         statsTF,
+		Tier:          types.StringPointerValue(apiResp.Tier),
 	}
 
 	if workspaceName != "" {
@@ -140,6 +139,9 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, w
 	}
 	if deleteOnCreateTimeout != nil {
 		tfModel.DeleteOnCreateTimeout = *deleteOnCreateTimeout
+	}
+	if failoverEnabled != nil {
+		tfModel.FailoverEnabled = *failoverEnabled
 	}
 	return tfModel, nil
 }
