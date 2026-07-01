@@ -114,7 +114,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"failover_enabled": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "When set to `true`, marks this stream processor as eligible for failover. An operator can then trigger failover to move the processor to a secondary region configured in the workspace's `failover_regions`. Requires an Atlas-to-Atlas or Atlas-to-Kafka pipeline with `failover_regions` configured on the workspace.",
+				MarkdownDescription: "Indicates whether this stream processor is eligible for failover. When `true`, an operator can trigger a failover event to migrate the stream processor to a secondary region configured in the workspace's `failover_regions`. Requires an Atlas-to-Atlas or Atlas-to-Kafka pipeline with `failover_regions` configured on the workspace.",
 			},
 		},
 	}
