@@ -35,7 +35,7 @@ const dataSourceProjectByID = `
 		project_id = mongodbatlas_project.test.id
 	}`
 
-func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value bool, withDS bool) string {
+func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value, withDS bool) string {
 	ds := ""
 	if withDS {
 		ds = dataSourceProjectByID
