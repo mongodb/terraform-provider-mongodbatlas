@@ -42,7 +42,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.List{
-					failoverRegionsWriteOnce{},
+					FailoverRegionsWriteOnce{},
 				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
