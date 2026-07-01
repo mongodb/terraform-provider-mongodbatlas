@@ -993,16 +993,21 @@ This workflow allows you to set specific baseline values from which auto-scaling
 
 ### Adjusting the Auto-Scaling Range with use_effective_fields
 
-Changing the compute auto-scaling range (`compute_min_instance_size` or `compute_max_instance_size`) requires extra care when the new range would no longer contain the cluster's **current effective** instance size, for example raising `compute_min_instance_size` above the effective size or lowering `compute_max_instance_size` below it. Atlas validates the new range against the current effective instance size, so attempting either in a single apply fails with a validation error from Atlas. Updating `instance_size` in the same apply does not avoid the error, because the configured `instance_size` is not applied while auto-scaling is enabled with `use_effective_fields = true`.
+Changing the compute auto-scaling range (`compute_min_instance_size` or `compute_max_instance_size`) requires extra care when the new range would no longer contain the cluster's **current effective** instance size. This includes:
 
-To adjust the range in this case, first move the effective instance size into the new range, then change the bounds:
+- Raising `compute_min_instance_size` above the effective size.
+- Lowering `compute_max_instance_size` below the effective size.
 
-1. Temporarily disable compute auto-scaling (`compute_enabled = false`) and set `instance_size` to a value inside your intended new range, then apply. See [Manually Updating Specs with use_effective_fields](#manually-updating-specs-with-use_effective_fields) for details.
+Atlas validates the new range against the current effective instance size, so attempting either in a single apply fails with a validation error from Atlas. Updating `instance_size` in the same apply as changing the range does not avoid the error, because the updated `instance_size` value is not applied while auto-scaling is enabled with `use_effective_fields = true`.
+
+To adjust the range when the new range would exclude the current effective instance size, move the effective instance size into the new range before changing the bounds:
+
+1. Disable auto-scaling and set `instance_size` to a value inside your intended new range, then apply. Follow the [Manually Updating Specs with use_effective_fields](#manually-updating-specs-with-use_effective_fields) workflow, which also covers disabling disk auto-scaling and the related `oplog_min_retention_hours` requirement.
 2. Re-enable compute auto-scaling (`compute_enabled = true`) with the new `compute_min_instance_size` and `compute_max_instance_size` bounds, then apply.
 
-The same process applies to the [`analytics_auto_scaling`](#analytics_auto_scaling) block: disable `analytics_auto_scaling.compute_enabled` and set `analytics_specs.instance_size` in step 1.
+The same process applies to the [`analytics_auto_scaling`](#analytics_auto_scaling) block, using `analytics_specs.instance_size` in step 1.
 
--> **NOTE:** This multi-step process is only required while the current effective instance size would fall outside the new range. If the new range still contains the effective size, you can change the bounds in a single apply. This requirement may be removed in a future Atlas release, after which adjusting the range in a single apply will be supported.
+-> **NOTE:** This multi-step process is only required while the current effective instance size would fall outside the new range. If the new range still contains the effective size, you can change the bounds in a single apply.
 
 ### Terraform Modules
 
