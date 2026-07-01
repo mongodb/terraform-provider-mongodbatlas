@@ -189,12 +189,12 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		IsClusterAiAssistantEnabled:                     types.BoolPointerValue(projectSettings.IsClusterAiAssistantEnabled),
 		IsDataExplorerGenAIFeaturesEnabled:              types.BoolPointerValue(projectSettings.IsDataExplorerGenAIFeaturesEnabled),
 		IsDataExplorerGenAISampleDocumentPassingEnabled: types.BoolPointerValue(projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled),
-		Teams:                                           NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
-		Limits:                                          NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
-		IPAddresses:                                     ipAddressesModel,
-		Tags:                                            conversion.NewTFTags(project.GetTags()),
-		IsSlowOperationThresholdingEnabled:              types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
-		Users:                                           NewTFCloudUsersDataSourceModel(ctx, projectProps.Users),
+		Teams:                              NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
+		Limits:                             NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
+		IPAddresses:                        ipAddressesModel,
+		Tags:                               conversion.NewTFTags(project.GetTags()),
+		IsSlowOperationThresholdingEnabled: types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
+		Users:                              NewTFCloudUsersDataSourceModel(ctx, projectProps.Users),
 	}, nil
 }
 
