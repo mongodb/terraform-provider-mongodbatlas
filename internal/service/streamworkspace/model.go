@@ -98,6 +98,35 @@ func failoverRegionsToSDK(ctx context.Context, list types.List) ([]admin.Streams
 	return result, nil
 }
 
+// newTFWorkspaceModel builds a workspace TFModel from an API response, including failover_regions.
+func newTFWorkspaceModel(ctx context.Context, apiResp *admin.StreamsTenant) (*TFModel, diag.Diagnostics) {
+	instanceModel, diags := streaminstance.NewTFStreamInstance(ctx, apiResp)
+	if diags.HasError() {
+		return nil, diags
+	}
+	var model TFModel
+	model.FromInstanceModel(instanceModel)
+	if apiResp.FailoverRegions != nil && len(*apiResp.FailoverRegions) > 0 {
+		failoverRegions, diags := types.ListValueFrom(ctx, failoverRegionObjectType, toTFFailoverRegions(*apiResp.FailoverRegions))
+		if diags.HasError() {
+			return nil, diags
+		}
+		model.FailoverRegions = failoverRegions
+	}
+	return &model, nil
+}
+
+func toTFFailoverRegions(regions []admin.StreamsDataProcessRegion) []TFWorkspaceProcessRegionSpecModel {
+	result := make([]TFWorkspaceProcessRegionSpecModel, len(regions))
+	for i, r := range regions {
+		result[i] = TFWorkspaceProcessRegionSpecModel{
+			CloudProvider: types.StringValue(r.CloudProvider),
+			Region:        types.StringValue(r.Region),
+		}
+	}
+	return result
+}
+
 // FromInstanceModel populates this workspace model from a TFStreamInstanceModel and maps instance_name to workspace_name.
 // This eliminates the need for conversion functions by directly updating fields.
 func (m *TFModel) FromInstanceModel(instanceModel *streaminstance.TFStreamInstanceModel) {

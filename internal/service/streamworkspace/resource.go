@@ -10,7 +10,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -53,15 +52,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
 	}
-	newInstanceModel, diags := streaminstance.NewTFStreamInstance(ctx, apiResp)
+	newWorkspaceModel, diags := newTFWorkspaceModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-
-	// Convert back to workspace model.
-	var newWorkspaceModel TFModel
-	newWorkspaceModel.FromInstanceModel(newInstanceModel)
 	resp.Diagnostics.Append(resp.State.Set(ctx, newWorkspaceModel)...)
 }
 
@@ -83,15 +78,11 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return
 	}
-	newInstanceModel, diags := streaminstance.NewTFStreamInstance(ctx, apiResp)
+	newWorkspaceModel, diags := newTFWorkspaceModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-
-	// Convert back to workspace model.
-	var newWorkspaceModel TFModel
-	newWorkspaceModel.FromInstanceModel(newInstanceModel)
 	resp.Diagnostics.Append(resp.State.Set(ctx, newWorkspaceModel)...)
 }
 
@@ -121,13 +112,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	newInstanceModel, diags := streaminstance.NewTFStreamInstance(ctx, apiResp)
+	newWorkspaceModel, diags := newTFWorkspaceModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	var newWorkspaceModel TFModel
-	newWorkspaceModel.FromInstanceModel(newInstanceModel)
 	resp.Diagnostics.Append(resp.State.Set(ctx, newWorkspaceModel)...)
 }
 
