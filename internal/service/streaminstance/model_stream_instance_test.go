@@ -47,7 +47,6 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 			expectedTFModel: &streaminstance.TFStreamInstanceModel{
 				ID:                types.StringValue(dummyStreamInstanceID),
 				DataProcessRegion: tfRegionObject(t, cloudProvider, region),
-				FailoverRegions:   types.ListNull(streaminstance.FailoverRegionObjectType),
 				ProjectID:         types.StringValue(dummyProjectID),
 				Hostnames:         tfHostnamesList(t, hostnames),
 				InstanceName:      types.StringValue(instanceName),
@@ -55,7 +54,7 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 			},
 		},
 		{
-			name: "SDK response with failover_regions",
+			name: "SDK response with failover_regions is intentionally ignored by deprecated resource",
 			SDKResp: &admin.StreamsTenant{
 				Id: new(dummyStreamInstanceID),
 				DataProcessRegion: &admin.StreamsDataProcessRegion{
@@ -75,7 +74,6 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 			expectedTFModel: &streaminstance.TFStreamInstanceModel{
 				ID:                types.StringValue(dummyStreamInstanceID),
 				DataProcessRegion: tfRegionObject(t, cloudProvider, region),
-				FailoverRegions:   tfFailoverRegionsList(t, []admin.StreamsDataProcessRegion{{CloudProvider: "AWS", Region: "DUBLIN_IRL"}}),
 				ProjectID:         types.StringValue(dummyProjectID),
 				Hostnames:         tfHostnamesList(t, hostnames),
 				InstanceName:      types.StringValue(instanceName),
@@ -92,7 +90,6 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 			expectedTFModel: &streaminstance.TFStreamInstanceModel{
 				ID:                types.StringValue(dummyStreamInstanceID),
 				DataProcessRegion: types.ObjectNull(streaminstance.ProcessRegionObjectType.AttrTypes),
-				FailoverRegions:   types.ListNull(streaminstance.FailoverRegionObjectType),
 				ProjectID:         types.StringValue(dummyProjectID),
 				Hostnames:         types.ListNull(types.StringType),
 				InstanceName:      types.StringValue(instanceName),
@@ -157,7 +154,6 @@ func TestStreamInstancesSDKToTFModel(t *testing.T) {
 					{
 						ID:                types.StringValue(dummyStreamInstanceID),
 						DataProcessRegion: tfRegionObject(t, cloudProvider, region),
-						FailoverRegions:   types.ListNull(streaminstance.FailoverRegionObjectType),
 						ProjectID:         types.StringValue(dummyProjectID),
 						Hostnames:         tfHostnamesList(t, hostnames),
 						InstanceName:      types.StringValue(instanceName),
@@ -318,21 +314,6 @@ func tfStreamConfigObject(t *testing.T, tier string) types.Object {
 	return streamConfig
 }
 
-func tfFailoverRegionsList(t *testing.T, regions []admin.StreamsDataProcessRegion) types.List {
-	t.Helper()
-	tfRegions := make([]streaminstance.TFInstanceProcessRegionSpecModel, len(regions))
-	for i, r := range regions {
-		tfRegions[i] = streaminstance.TFInstanceProcessRegionSpecModel{
-			CloudProvider: types.StringValue(r.CloudProvider),
-			Region:        types.StringValue(r.Region),
-		}
-	}
-	resultList, diags := types.ListValueFrom(t.Context(), streaminstance.FailoverRegionObjectType, tfRegions)
-	if diags.HasError() {
-		t.Errorf("failed to create terraform failover regions list: %s", diags.Errors()[0].Summary())
-	}
-	return resultList
-}
 
 func tfHostnamesList(t *testing.T, hostnames *[]string) types.List {
 	t.Helper()

@@ -3,6 +3,7 @@ package streamworkspace
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -86,6 +87,11 @@ type TFModel struct {
 	StreamConfig      types.Object `tfsdk:"stream_config"`
 	Hostnames         types.List   `tfsdk:"hostnames"`
 }
+
+var failoverRegionObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"cloud_provider": types.StringType,
+	"region":         types.StringType,
+}}
 
 type TFWorkspaceProcessRegionSpecModel struct {
 	CloudProvider types.String `tfsdk:"cloud_provider"`

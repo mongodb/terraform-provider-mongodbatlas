@@ -105,7 +105,7 @@ func (m *TFModel) FromInstanceModel(instanceModel *streaminstance.TFStreamInstan
 	m.WorkspaceName = instanceModel.InstanceName
 	m.ProjectID = instanceModel.ProjectID
 	m.DataProcessRegion = instanceModel.DataProcessRegion
-	m.FailoverRegions = instanceModel.FailoverRegions
+	m.FailoverRegions = types.ListNull(failoverRegionObjectType)
 	if instanceModel.StreamConfig.IsNull() {
 		m.StreamConfig = types.ObjectNull(map[string]attr.Type{
 			"max_tier_size": types.StringType,

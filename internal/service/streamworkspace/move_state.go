@@ -36,14 +36,6 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 				"region":         tftypes.String,
 			},
 		},
-		"failover_regions": tftypes.List{
-			ElementType: tftypes.Object{
-				AttributeTypes: map[string]tftypes.Type{
-					"cloud_provider": tftypes.String,
-					"region":         tftypes.String,
-				},
-			},
-		},
 		"stream_config": tftypes.Object{
 			AttributeTypes: map[string]tftypes.Type{
 				"tier": tftypes.String,
@@ -129,41 +121,7 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 		})
 	}
 
-	// Extract and preserve failover_regions if present.
-	if failoverRegionsVal, exists := stateObj["failover_regions"]; exists && !failoverRegionsVal.IsNull() {
-		var regionsList []tftypes.Value
-		if err := failoverRegionsVal.As(&regionsList); err != nil {
-			resp.Diagnostics.AddError("Unable to parse failover_regions during state migration", err.Error())
-			return
-		}
-		tfRegions := make([]attr.Value, 0, len(regionsList))
-		for _, regionVal := range regionsList {
-			var regionObj map[string]tftypes.Value
-			if err := regionVal.As(&regionObj); err != nil {
-				resp.Diagnostics.AddError("Unable to parse failover_regions element during state migration", err.Error())
-				return
-			}
-			cloudProvider := schemafunc.GetAttrFromStateObj[string](regionObj, "cloud_provider")
-			region := schemafunc.GetAttrFromStateObj[string](regionObj, "region")
-			objValue, diags := types.ObjectValue(streaminstance.FailoverRegionObjectType.AttrTypes, map[string]attr.Value{
-				"cloud_provider": types.StringPointerValue(cloudProvider),
-				"region":         types.StringPointerValue(region),
-			})
-			resp.Diagnostics.Append(diags...)
-			if resp.Diagnostics.HasError() {
-				return
-			}
-			tfRegions = append(tfRegions, objValue)
-		}
-		listValue, diags := types.ListValue(streaminstance.FailoverRegionObjectType, tfRegions)
-		resp.Diagnostics.Append(diags...)
-		if !resp.Diagnostics.HasError() {
-			model.FailoverRegions = listValue
-		}
-	}
-	if model.FailoverRegions.IsNull() {
-		model.FailoverRegions = types.ListNull(streaminstance.FailoverRegionObjectType)
-	}
+	model.FailoverRegions = types.ListNull(failoverRegionObjectType)
 
 	// Extract and preserve hostnames if present.
 	if hostnamesVal, exists := stateObj["hostnames"]; exists && !hostnamesVal.IsNull() {

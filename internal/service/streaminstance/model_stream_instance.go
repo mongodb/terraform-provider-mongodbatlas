@@ -69,20 +69,6 @@ func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TF
 		streamConfig = returnedStreamConfig
 		diags.Append(diagsStreamConfig...)
 	}
-	failoverRegions := types.ListNull(FailoverRegionObjectType)
-	if apiResp.HasFailoverRegions() {
-		sdkRegions := apiResp.GetFailoverRegions()
-		tfRegions := make([]TFInstanceProcessRegionSpecModel, len(sdkRegions))
-		for i, r := range sdkRegions {
-			tfRegions[i] = TFInstanceProcessRegionSpecModel{
-				CloudProvider: types.StringValue(r.CloudProvider),
-				Region:        types.StringValue(r.Region),
-			}
-		}
-		returnedFailoverRegions, diagsFailover := types.ListValueFrom(ctx, FailoverRegionObjectType, tfRegions)
-		diags.Append(diagsFailover...)
-		failoverRegions = returnedFailoverRegions
-	}
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -92,7 +78,6 @@ func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TF
 		InstanceName:      types.StringPointerValue(apiResp.Name),
 		ProjectID:         types.StringPointerValue(apiResp.GroupId),
 		DataProcessRegion: dataProcessRegion,
-		FailoverRegions:   failoverRegions,
 		StreamConfig:      streamConfig,
 		Hostnames:         hostnames,
 	}, nil
