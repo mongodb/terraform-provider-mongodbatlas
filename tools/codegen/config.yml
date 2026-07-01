@@ -557,10 +557,6 @@ resources:
           computability:
             optional: true
             computed: true
-        is_native_reranking_enabled:
-          computability:
-            optional: true
-            computed: true
 
   project_api:
     read:
