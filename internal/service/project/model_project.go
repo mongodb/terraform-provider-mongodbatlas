@@ -187,10 +187,10 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		IsPerformanceAdvisorEnabled:                     types.BoolValue(*projectSettings.IsPerformanceAdvisorEnabled),
 		IsRealtimePerformancePanelEnabled:               types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled),
 		IsSchemaAdvisorEnabled:                          types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
-		IsClusterAiAssistantEnabled:                     types.BoolPointerValue(projectSettings.IsClusterAiAssistantEnabled),
-		IsDataExplorerGenAIFeaturesEnabled:              types.BoolPointerValue(projectSettings.IsDataExplorerGenAIFeaturesEnabled),
-		IsDataExplorerGenAISampleDocumentPassingEnabled: types.BoolPointerValue(projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled),
-		IsNativeRerankingEnabled:                        types.BoolPointerValue(projectSettings.IsNativeRerankingEnabled),
+		IsClusterAiAssistantEnabled:                     types.BoolValue(*projectSettings.IsClusterAiAssistantEnabled),
+		IsDataExplorerGenAIFeaturesEnabled:              types.BoolValue(*projectSettings.IsDataExplorerGenAIFeaturesEnabled),
+		IsDataExplorerGenAISampleDocumentPassingEnabled: types.BoolValue(*projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled),
+		IsNativeRerankingEnabled:                        types.BoolValue(*projectSettings.IsNativeRerankingEnabled),
 		Teams:                                           NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
 		Limits:                                          NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
 		IPAddresses:                                     ipAddressesModel,
@@ -320,10 +320,10 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		projectPlan.IsPerformanceAdvisorEnabled = types.BoolValue(*projectSettings.IsPerformanceAdvisorEnabled)
 		projectPlan.IsRealtimePerformancePanelEnabled = types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled)
 		projectPlan.IsSchemaAdvisorEnabled = types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled)
-		projectPlan.IsClusterAiAssistantEnabled = types.BoolPointerValue(projectSettings.IsClusterAiAssistantEnabled)
-		projectPlan.IsDataExplorerGenAIFeaturesEnabled = types.BoolPointerValue(projectSettings.IsDataExplorerGenAIFeaturesEnabled)
-		projectPlan.IsDataExplorerGenAISampleDocumentPassingEnabled = types.BoolPointerValue(projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled)
-		projectPlan.IsNativeRerankingEnabled = types.BoolPointerValue(projectSettings.IsNativeRerankingEnabled)
+		projectPlan.IsClusterAiAssistantEnabled = types.BoolValue(*projectSettings.IsClusterAiAssistantEnabled)
+		projectPlan.IsDataExplorerGenAIFeaturesEnabled = types.BoolValue(*projectSettings.IsDataExplorerGenAIFeaturesEnabled)
+		projectPlan.IsDataExplorerGenAISampleDocumentPassingEnabled = types.BoolValue(*projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled)
+		projectPlan.IsNativeRerankingEnabled = types.BoolValue(*projectSettings.IsNativeRerankingEnabled)
 	}
 
 	return &projectPlan, nil
