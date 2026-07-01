@@ -30,11 +30,20 @@ func checkDestroyProject(conn *admin.APIClient, s *terraform.State) error {
 	return nil
 }
 
-func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value bool) string {
+const dataSourceProjectByID = `
+	data "mongodbatlas_project" "test" {
+		project_id = mongodbatlas_project.test.id
+	}`
+
+func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value bool, withDS bool) string {
+	ds := ""
+	if withDS {
+		ds = dataSourceProjectByID
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
-			name   			 = %[1]q
-			org_id 			 = %[2]q
+			name             = %[1]q
+			org_id           = %[2]q
 			project_owner_id = %[3]q
 			is_collect_database_specifics_statistics_enabled = %[4]t
 			is_data_explorer_enabled = %[4]t
@@ -47,14 +56,21 @@ func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value 
 			is_data_explorer_gen_ai_sample_document_passing_enabled = %[4]t
 			is_native_reranking_enabled = %[4]t
 		}
-	`, projectName, orgID, projectOwnerID, value)
+	`, projectName, orgID, projectOwnerID, value) + ds
 }
 
-func ConfigProjectWithSettingsAndDataSource(projectName, orgID, projectOwnerID string, value bool) string {
-	return ConfigProjectWithSettings(projectName, orgID, projectOwnerID, value) + `
-		data "mongodbatlas_project" "test" {
-			project_id = mongodbatlas_project.test.id
-		}`
+func ConfigProjectWithoutSettings(projectName, orgID, projectOwnerID string, withDS bool) string {
+	ds := ""
+	if withDS {
+		ds = dataSourceProjectByID
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name             = %[1]q
+			org_id           = %[2]q
+			project_owner_id = %[3]q
+		}
+	`, projectName, orgID, projectOwnerID) + ds
 }
 
 func ImportStateProjectIDFunc(resourceName string) resource.ImportStateIdFunc {

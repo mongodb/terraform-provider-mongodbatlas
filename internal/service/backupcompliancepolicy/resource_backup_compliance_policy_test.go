@@ -228,7 +228,7 @@ func configBasic(projectName, orgID, projectOwnerID string, useYearly bool) stri
 		`
 	}
 
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) +
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false, false) +
 		fmt.Sprintf(`	  
 	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 			project_id                 = mongodbatlas_project.test.id
@@ -281,7 +281,7 @@ func configBasic(projectName, orgID, projectOwnerID string, useYearly bool) stri
 }
 
 func configWithoutOptionals(projectName, orgID, projectOwnerID string) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false, false) + `	  
 	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 			project_id                 = mongodbatlas_project.test.id
 			authorized_email           = "test@example.com"
@@ -330,7 +330,7 @@ func configWithoutOptionals(projectName, orgID, projectOwnerID string) string {
 }
 
 func configWithoutRestoreDaysAndOnDemand(projectName, orgID, projectOwnerID string) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false, false) + `	  
 	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 			project_id                 = mongodbatlas_project.test.id
 			authorized_email           = "test@example.com"
@@ -374,7 +374,7 @@ func configWithoutRestoreDaysAndOnDemand(projectName, orgID, projectOwnerID stri
 }
 
 func configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectOwnerID string, info *acc.ClusterInfo) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + fmt.Sprintf(`	  
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false, false) + fmt.Sprintf(`	  
 	  %[1]s
 	  resource "mongodbatlas_cloud_backup_schedule" "test" {
 		cluster_name 			   = %[2]s.name
@@ -418,7 +418,7 @@ func configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectO
 }
 
 func configClusterWithBackupSchedule(projectName, orgID, projectOwnerID string, info *acc.ClusterInfo) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + fmt.Sprintf(`	  
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false, false) + fmt.Sprintf(`	  
 	  %[1]s
 	  resource "mongodbatlas_cloud_backup_schedule" "test" {
 		cluster_name 			  = %[2]s.name
@@ -455,7 +455,7 @@ func basicChecks() []resource.TestCheckFunc {
 }
 
 func configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID, restreWindowDays string) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) +
+	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false, false) +
 		fmt.Sprintf(`resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 		project_id                 = mongodbatlas_project.test.id
 		authorized_email           = "test@example.com"

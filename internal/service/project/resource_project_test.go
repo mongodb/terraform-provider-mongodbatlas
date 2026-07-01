@@ -739,15 +739,15 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigProjectWithSettingsAndDataSource(projectName, orgID, projectOwnerID, false),
+				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false, true),
 				Check:  projectSettingsChecks(orgID, projectOwnerID, projectName, false),
 			},
 			{
-				Config: acc.ConfigProjectWithSettingsAndDataSource(projectName, orgID, projectOwnerID, true),
+				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, true, true),
 				Check:  projectSettingsChecks(orgID, projectOwnerID, projectName, true),
 			},
 			{
-				Config: acc.ConfigProjectWithSettingsAndDataSource(projectName, orgID, projectOwnerID, false),
+				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false, true),
 				Check:  projectSettingsChecks(orgID, projectOwnerID, projectName, false),
 			},
 		},
@@ -782,6 +782,30 @@ func projectSettingsChecks(orgID, projectOwnerID, projectName string, value bool
 		)
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func TestAccProject_withSettingsRemovedFromConfig(t *testing.T) {
+	var (
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName    = acc.RandomProjectName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasicOwnerID(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyProject,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, true, true),
+				Check:  projectSettingsChecks(orgID, projectOwnerID, projectName, true),
+			},
+			{
+				Config: acc.ConfigProjectWithoutSettings(projectName, orgID, projectOwnerID, true),
+				Check:  projectSettingsChecks(orgID, projectOwnerID, projectName, true),
+			},
+		},
+	})
 }
 
 func TestAccProject_withUpdatedRole(t *testing.T) {
