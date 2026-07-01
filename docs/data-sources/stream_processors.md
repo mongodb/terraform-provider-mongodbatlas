@@ -142,7 +142,7 @@ role or Project Stream Processing Owner role. (see [below for nested schema](#ne
 
 Read-Only:
 
-- `failover_enabled` (Boolean) When set to `true`, marks this stream processor as eligible for failover. An operator can then trigger failover to move the processor to a secondary region configured in the workspace's `failover_regions`. Requires an Atlas-to-Atlas or Atlas-to-Kafka pipeline with `failover_regions` configured on the workspace.
+- `failover_enabled` (Boolean) Identifies if this stream processor is eligible for failover. See the [`mongodbatlas_stream_processor` resource](../resources/stream_processor.md) for more information.
 - `id` (String) Unique 24-hexadecimal character string that identifies the stream processor.
 - `instance_name` (String, Deprecated) Label that identifies the stream processing workspace.
 - `options` (Attributes) Optional configuration for the stream processor. (see [below for nested schema](#nestedatt--results--options))
