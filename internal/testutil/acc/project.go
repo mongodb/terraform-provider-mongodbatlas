@@ -35,10 +35,19 @@ const dataSourceProjectByID = `
 		project_id = mongodbatlas_project.test.id
 	}`
 
-func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value, withDS bool) string {
+func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value *bool, withDS bool) string {
 	ds := ""
 	if withDS {
 		ds = dataSourceProjectByID
+	}
+	if value == nil {
+		return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name             = %[1]q
+			org_id           = %[2]q
+			project_owner_id = %[3]q
+		}
+	`, projectName, orgID, projectOwnerID) + ds
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
@@ -55,21 +64,7 @@ func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value,
 			is_data_explorer_gen_ai_features_enabled = %[4]t
 			is_data_explorer_gen_ai_sample_document_passing_enabled = %[4]t
 		}
-	`, projectName, orgID, projectOwnerID, value) + ds
-}
-
-func ConfigProjectWithoutSettings(projectName, orgID, projectOwnerID string, withDS bool) string {
-	ds := ""
-	if withDS {
-		ds = dataSourceProjectByID
-	}
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name             = %[1]q
-			org_id           = %[2]q
-			project_owner_id = %[3]q
-		}
-	`, projectName, orgID, projectOwnerID) + ds
+	`, projectName, orgID, projectOwnerID, *value) + ds
 }
 
 func ImportStateProjectIDFunc(resourceName string) resource.ImportStateIdFunc {
