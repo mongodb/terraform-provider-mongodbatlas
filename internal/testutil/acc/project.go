@@ -54,7 +54,6 @@ func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value,
 			is_cluster_ai_assistant_enabled = %[4]t
 			is_data_explorer_gen_ai_features_enabled = %[4]t
 			is_data_explorer_gen_ai_sample_document_passing_enabled = %[4]t
-			is_native_reranking_enabled = %[4]t
 		}
 	`, projectName, orgID, projectOwnerID, value) + ds
 }

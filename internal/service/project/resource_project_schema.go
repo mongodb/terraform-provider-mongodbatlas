@@ -119,13 +119,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"is_native_reranking_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				PlanModifiers: []planmodifier.Bool{
-					boolplanmodifier.UseStateForUnknown(),
-				},
-			},
 			"is_cluster_ai_assistant_enabled": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
@@ -252,7 +245,6 @@ type TFProjectRSModel struct {
 	IsDataExplorerGenAIFeaturesEnabled              types.Bool   `tfsdk:"is_data_explorer_gen_ai_features_enabled"`
 	IsDataExplorerGenAISampleDocumentPassingEnabled types.Bool   `tfsdk:"is_data_explorer_gen_ai_sample_document_passing_enabled"`
 	IsClusterAiAssistantEnabled                     types.Bool   `tfsdk:"is_cluster_ai_assistant_enabled"`
-	IsNativeRerankingEnabled                        types.Bool   `tfsdk:"is_native_reranking_enabled"`
 }
 
 type TFTeamModel struct {

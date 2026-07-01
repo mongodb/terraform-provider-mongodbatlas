@@ -542,7 +542,6 @@ func TestAccProject_basic(t *testing.T) {
 		"is_cluster_ai_assistant_enabled",
 		"is_data_explorer_gen_ai_features_enabled",
 		"is_data_explorer_gen_ai_sample_document_passing_enabled",
-		"is_native_reranking_enabled",
 	}
 
 	dataSourceChecks := map[string]string{
@@ -766,7 +765,6 @@ func projectSettingsChecks(orgID, projectOwnerID, projectName string, value bool
 		"is_cluster_ai_assistant_enabled",
 		"is_data_explorer_gen_ai_features_enabled",
 		"is_data_explorer_gen_ai_sample_document_passing_enabled",
-		"is_native_reranking_enabled",
 	}
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),

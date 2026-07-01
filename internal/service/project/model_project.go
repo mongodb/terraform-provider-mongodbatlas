@@ -133,7 +133,6 @@ type TFProjectDSModel struct {
 	IsDataExplorerGenAIFeaturesEnabled              types.Bool             `tfsdk:"is_data_explorer_gen_ai_features_enabled"`
 	IsDataExplorerGenAISampleDocumentPassingEnabled types.Bool             `tfsdk:"is_data_explorer_gen_ai_sample_document_passing_enabled"`
 	IsClusterAiAssistantEnabled                     types.Bool             `tfsdk:"is_cluster_ai_assistant_enabled"`
-	IsNativeRerankingEnabled                        types.Bool             `tfsdk:"is_native_reranking_enabled"`
 }
 
 type TFTeamDSModel struct {
@@ -187,10 +186,9 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		IsPerformanceAdvisorEnabled:                     types.BoolValue(*projectSettings.IsPerformanceAdvisorEnabled),
 		IsRealtimePerformancePanelEnabled:               types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled),
 		IsSchemaAdvisorEnabled:                          types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled),
-		IsClusterAiAssistantEnabled:                     types.BoolValue(*projectSettings.IsClusterAiAssistantEnabled),
-		IsDataExplorerGenAIFeaturesEnabled:              types.BoolValue(*projectSettings.IsDataExplorerGenAIFeaturesEnabled),
-		IsDataExplorerGenAISampleDocumentPassingEnabled: types.BoolValue(*projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled),
-		IsNativeRerankingEnabled:                        types.BoolValue(*projectSettings.IsNativeRerankingEnabled),
+		IsClusterAiAssistantEnabled:                     types.BoolPointerValue(projectSettings.IsClusterAiAssistantEnabled),
+		IsDataExplorerGenAIFeaturesEnabled:              types.BoolPointerValue(projectSettings.IsDataExplorerGenAIFeaturesEnabled),
+		IsDataExplorerGenAISampleDocumentPassingEnabled: types.BoolPointerValue(projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled),
 		Teams:                                           NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
 		Limits:                                          NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
 		IPAddresses:                                     ipAddressesModel,
@@ -320,10 +318,9 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		projectPlan.IsPerformanceAdvisorEnabled = types.BoolValue(*projectSettings.IsPerformanceAdvisorEnabled)
 		projectPlan.IsRealtimePerformancePanelEnabled = types.BoolValue(*projectSettings.IsRealtimePerformancePanelEnabled)
 		projectPlan.IsSchemaAdvisorEnabled = types.BoolValue(*projectSettings.IsSchemaAdvisorEnabled)
-		projectPlan.IsClusterAiAssistantEnabled = types.BoolValue(*projectSettings.IsClusterAiAssistantEnabled)
-		projectPlan.IsDataExplorerGenAIFeaturesEnabled = types.BoolValue(*projectSettings.IsDataExplorerGenAIFeaturesEnabled)
-		projectPlan.IsDataExplorerGenAISampleDocumentPassingEnabled = types.BoolValue(*projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled)
-		projectPlan.IsNativeRerankingEnabled = types.BoolValue(*projectSettings.IsNativeRerankingEnabled)
+		projectPlan.IsClusterAiAssistantEnabled = types.BoolPointerValue(projectSettings.IsClusterAiAssistantEnabled)
+		projectPlan.IsDataExplorerGenAIFeaturesEnabled = types.BoolPointerValue(projectSettings.IsDataExplorerGenAIFeaturesEnabled)
+		projectPlan.IsDataExplorerGenAISampleDocumentPassingEnabled = types.BoolPointerValue(projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled)
 	}
 
 	return &projectPlan, nil
