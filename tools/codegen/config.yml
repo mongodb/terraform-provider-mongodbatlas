@@ -1342,3 +1342,32 @@ resources:
             description: *project_id_description
           otel_supplied_headers:
             sensitive: true
+
+  metric_integration:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: PUT
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+      method: DELETE
+    schema:
+      aliases:
+        groupId: projectId
+        metricIntegrationId: id
+      ignores: ["links"]
+      overrides:
+        project_id:
+          description: *project_id_description
+        integration_type:
+          plan_modifiers:
+            - definition: "customplanmodifier.CreateOnly()"
+              imports:
+                - "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
+        headers.value:
+          sensitive: true
