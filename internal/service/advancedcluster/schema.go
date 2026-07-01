@@ -240,6 +240,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 						},
 						"external_id": schema.StringAttribute{
 							Computed:            true,
+							Optional:            true,
 							MarkdownDescription: descExternalID,
 						},
 						"region_configs": schema.ListNestedAttribute{

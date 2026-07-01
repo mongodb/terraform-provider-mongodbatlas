@@ -226,8 +226,9 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var state, plan TFModel
+	var state, plan, configModel TFModel
 	diags := &resp.Diagnostics
+	diags.Append(req.Config.Get(ctx, &configModel)...)
 	diags.Append(req.Plan.Get(ctx, &plan)...)
 	diags.Append(req.State.Get(ctx, &state)...)
 	if diags.HasError() {
@@ -265,6 +266,10 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		case diff.upgradeTenantReq != nil:
 			clusterResp = upgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
 		case diff.clusterPatchOnlyReq != nil:
+			setConfiguredReplicationSpecIDs(diff.clusterPatchOnlyReq, newAtlasReq(ctx, &configModel, diags))
+			if diags.HasError() {
+				return
+			}
 			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
 		}
 		if diags.HasError() {
@@ -541,7 +546,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	}
 
 	patchOptions := update.PatchOptions{
-		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknown and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
+		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknown and shouldn't be used
 	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
@@ -558,6 +563,25 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 		return clusterDiff{upgradeTenantReq: upgradeTenantReq}
 	}
 	return clusterDiff{clusterPatchOnlyReq: patchReq}
+}
+
+func setConfiguredReplicationSpecIDs(patchReq, configReq *admin.ClusterDescription20240805) {
+	if patchReq == nil || patchReq.ReplicationSpecs == nil {
+		return
+	}
+	patchSpecs := *patchReq.ReplicationSpecs
+	var configSpecs []admin.ReplicationSpec20240805
+	if configReq != nil && configReq.ReplicationSpecs != nil {
+		configSpecs = *configReq.ReplicationSpecs
+	}
+	for i := range patchSpecs {
+		patchSpecs[i].Id = nil
+		if i < len(configSpecs) && configSpecs[i].Id != nil {
+			id := configSpecs[i].GetId()
+			patchSpecs[i].Id = &id
+		}
+	}
+	patchReq.ReplicationSpecs = &patchSpecs
 }
 
 func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {
