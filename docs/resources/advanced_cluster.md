@@ -1003,7 +1003,7 @@ Atlas validates the new range against the current effective instance size, so at
 To adjust the range when the new range would exclude the current effective instance size, move the effective instance size into the new range before changing the bounds:
 
 1. Disable auto-scaling and set `instance_size` to a value inside your intended new range, then apply. Follow the [Manually Updating Specs with use_effective_fields](#manually-updating-specs-with-use_effective_fields) workflow, which also covers disabling disk auto-scaling and the related `oplog_min_retention_hours` requirement.
-2. Re-enable compute auto-scaling (`compute_enabled = true`) with the new `compute_min_instance_size` and `compute_max_instance_size` bounds, then apply.
+2. Re-enable auto-scaling with the new `compute_min_instance_size` and `compute_max_instance_size` bounds, then apply.
 
 The same process applies to the [`analytics_auto_scaling`](#analytics_auto_scaling) block, using `analytics_specs.instance_size` in step 1.
 
