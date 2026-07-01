@@ -314,7 +314,6 @@ func tfStreamConfigObject(t *testing.T, tier string) types.Object {
 	return streamConfig
 }
 
-
 func tfHostnamesList(t *testing.T, hostnames *[]string) types.List {
 	t.Helper()
 	resultList, diags := types.ListValueFrom(t.Context(), types.StringType, hostnames)

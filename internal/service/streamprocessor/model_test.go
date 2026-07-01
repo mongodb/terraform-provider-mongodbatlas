@@ -284,7 +284,7 @@ func TestSDKToTFModel(t *testing.T) {
 			},
 		},
 		"withFailoverEnabled": {
-			sdkModel: admin.NewStreamsProcessorWithStats(processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED"),
+			sdkModel:        admin.NewStreamsProcessorWithStats(processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED"),
 			failoverEnabled: func() *types.Bool { v := types.BoolValue(true); return &v }(),
 			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
 				InstanceName:    types.StringValue(workspaceName),
