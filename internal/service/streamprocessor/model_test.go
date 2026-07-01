@@ -237,9 +237,9 @@ func TestDSSDKToTFModelInstanceName(t *testing.T) {
 }
 
 func TestSDKToTFModel(t *testing.T) {
-	failoverEnabled := true
 	testCases := map[string]struct {
 		sdkModel        *admin.StreamsProcessorWithStats
+		failoverEnabled *types.Bool
 		expectedTFModel *streamprocessor.TFStreamProcessorRSModel
 	}{
 		"afterCreate": {
@@ -247,51 +247,45 @@ func TestSDKToTFModel(t *testing.T) {
 				processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED",
 			),
 			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
-				InstanceName:    types.StringValue(workspaceName),
-				Options:         types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
-				ProcessorID:     types.StringValue(processorID),
-				Pipeline:        jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
-				ProcessorName:   types.StringValue(processorName),
-				ProjectID:       types.StringValue(projectID),
-				State:           types.StringValue("CREATED"),
-				Stats:           types.StringNull(),
-				FailoverEnabled: types.BoolValue(false),
+				InstanceName:  types.StringValue(workspaceName),
+				Options:       types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
+				ProcessorID:   types.StringValue(processorID),
+				Pipeline:      jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+				ProcessorName: types.StringValue(processorName),
+				ProjectID:     types.StringValue(projectID),
+				State:         types.StringValue("CREATED"),
+				Stats:         types.StringNull(),
 			},
 		},
 		"afterStarted": {
 			sdkModel: streamProcessorWithStats(t, nil),
 			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
-				InstanceName:    types.StringValue(workspaceName),
-				Options:         types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
-				ProcessorID:     types.StringValue(processorID),
-				Pipeline:        jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
-				ProcessorName:   types.StringValue(processorName),
-				ProjectID:       types.StringValue(projectID),
-				State:           types.StringValue("STARTED"),
-				Stats:           types.StringValue(statsExample),
-				FailoverEnabled: types.BoolValue(false),
+				InstanceName:  types.StringValue(workspaceName),
+				Options:       types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
+				ProcessorID:   types.StringValue(processorID),
+				Pipeline:      jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+				ProcessorName: types.StringValue(processorName),
+				ProjectID:     types.StringValue(projectID),
+				State:         types.StringValue("STARTED"),
+				Stats:         types.StringValue(statsExample),
 			},
 		},
 		"withOptions": {
 			sdkModel: streamProcessorWithStats(t, &streamOptionsExample),
 			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
-				InstanceName:    types.StringValue(workspaceName),
-				Options:         optionsToTFModel(t, &streamOptionsExample),
-				ProcessorID:     types.StringValue(processorID),
-				Pipeline:        jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
-				ProcessorName:   types.StringValue(processorName),
-				ProjectID:       types.StringValue(projectID),
-				State:           types.StringValue("STARTED"),
-				Stats:           types.StringNull(),
-				FailoverEnabled: types.BoolValue(false),
+				InstanceName:  types.StringValue(workspaceName),
+				Options:       optionsToTFModel(t, &streamOptionsExample),
+				ProcessorID:   types.StringValue(processorID),
+				Pipeline:      jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+				ProcessorName: types.StringValue(processorName),
+				ProjectID:     types.StringValue(projectID),
+				State:         types.StringValue("STARTED"),
+				Stats:         types.StringNull(),
 			},
 		},
 		"withFailoverEnabled": {
-			sdkModel: func() *admin.StreamsProcessorWithStats {
-				p := admin.NewStreamsProcessorWithStats(processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED")
-				p.FailoverEnabled = &failoverEnabled
-				return p
-			}(),
+			sdkModel: admin.NewStreamsProcessorWithStats(processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED"),
+			failoverEnabled: func() *types.Bool { v := types.BoolValue(true); return &v }(),
 			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
 				InstanceName:    types.StringValue(workspaceName),
 				Options:         types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
@@ -309,7 +303,7 @@ func TestSDKToTFModel(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			sdkModel := tc.sdkModel
-			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", sdkModel, nil, nil, nil)
+			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", sdkModel, nil, nil, tc.failoverEnabled)
 			assert.False(t, diags.HasError())
 			assert.Equal(t, tc.expectedTFModel.Options, resultModel.Options)
 			if sdkModel.Stats != nil {
