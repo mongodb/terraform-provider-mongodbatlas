@@ -764,13 +764,12 @@ func configProjectBasic(projectName, orgID, projectOwnerID string) string {
 			org_id           = %[2]q
 			project_owner_id = %[3]q
 		}
-	`, projectName, orgID, projectOwnerID) + dataSourceProjectByID
-}
 
-const dataSourceProjectByID = `
-	data "mongodbatlas_project" "test" {
-		project_id = mongodbatlas_project.test.id
-	}`
+		data "mongodbatlas_project" "test" {
+			project_id = mongodbatlas_project.test.id
+		}
+	`, projectName, orgID, projectOwnerID)
+}
 
 func configProjectWithSettings(projectName, orgID, projectOwnerID string, value bool) string {
 	return fmt.Sprintf(`
@@ -788,7 +787,11 @@ func configProjectWithSettings(projectName, orgID, projectOwnerID string, value 
 			is_data_explorer_gen_ai_features_enabled = %[4]t
 			is_data_explorer_gen_ai_sample_document_passing_enabled = %[4]t
 		}
-	`, projectName, orgID, projectOwnerID, value) + dataSourceProjectByID
+
+		data "mongodbatlas_project" "test" {
+			project_id = mongodbatlas_project.test.id
+		}
+	`, projectName, orgID, projectOwnerID, value)
 }
 
 func projectSettingsChecks(orgID, projectOwnerID, projectName string, value bool) resource.TestCheckFunc {
