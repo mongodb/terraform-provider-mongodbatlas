@@ -2,6 +2,14 @@
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_project: Adds `is_cluster_ai_assistant_enabled`, `is_data_explorer_gen_ai_features_enabled`, and `is_data_explorer_gen_ai_sample_document_passing_enabled` attributes ([#4541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4541))
+* data-source/mongodbatlas_projects: Adds `is_cluster_ai_assistant_enabled`, `is_data_explorer_gen_ai_features_enabled`, and `is_data_explorer_gen_ai_sample_document_passing_enabled` attributes ([#4541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4541))
+* resource/mongodbatlas_project: Adds `is_cluster_ai_assistant_enabled`, `is_data_explorer_gen_ai_features_enabled`, and `is_data_explorer_gen_ai_sample_document_passing_enabled` attributes ([#4541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4541))
+
+## 2.13.0 (June 30, 2026)
+
+ENHANCEMENTS:
+
 * data-source/mongodbatlas_advanced_cluster: Adds `adaptive_capacity` attribute ([#4452](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4452))
 * data-source/mongodbatlas_advanced_cluster: Adds `disk_throughput` attribute ([#4453](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4453))
 * data-source/mongodbatlas_advanced_clusters: Adds `adaptive_capacity` attribute ([#4452](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4452))
