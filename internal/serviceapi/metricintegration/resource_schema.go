@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
@@ -50,9 +51,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:            true,
 				MarkdownDescription: "Type of metric integration. Identifies which protocol will be used for the integration. This value cannot be modified after the integration is created.",
 			},
-			"id": schema.StringAttribute{
+			"metric_integration_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique hexadecimal digit string that identifies the metric integration configuration.",
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"metric_selection": schema.SetAttribute{
 				Required:            true,
@@ -74,7 +76,7 @@ type TFModel struct {
 	ProjectId              types.String                                `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	Headers                customtypes.NestedListValue[TFHeadersModel] `tfsdk:"headers"`
 	IntegrationType        types.String                                `tfsdk:"integration_type"`
-	Id                     types.String                                `tfsdk:"id" apiname:"metricIntegrationId" autogen:"omitjson"`
+	MetricIntegrationId    types.String                                `tfsdk:"metric_integration_id" autogen:"omitjson"`
 	MetricSelection        customtypes.SetValue[types.String]          `tfsdk:"metric_selection"`
 	ProviderType           types.String                                `tfsdk:"provider_type"`
 }

@@ -88,14 +88,15 @@ schema:
         - string: {}
           description: Unique hexadecimal digit string that identifies the metric integration configuration.
           computed_optional_required: computed
-          tf_schema_name: id
-          tf_model_name: Id
+          tf_schema_name: metric_integration_id
+          tf_model_name: MetricIntegrationId
           api_name: metricIntegrationId
           req_body_usage: omit_always
           sensitive: false
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
+          immutable_computed: true
         - set:
             element_type: 4
           description: Array of metric categories to export. Determines which types of metrics are sent to the integration.
@@ -126,16 +127,16 @@ schema:
 operations:
     delete:
         http_method: DELETE
-        path: /api/atlas/v2/groups/{projectId}/metricIntegrations/{id}
+        path: /api/atlas/v2/groups/{projectId}/metricIntegrations/{metricIntegrationId}
     create:
         http_method: POST
         path: /api/atlas/v2/groups/{projectId}/metricIntegrations
     read:
         http_method: GET
-        path: /api/atlas/v2/groups/{projectId}/metricIntegrations/{id}
+        path: /api/atlas/v2/groups/{projectId}/metricIntegrations/{metricIntegrationId}
     update:
         http_method: PUT
-        path: /api/atlas/v2/groups/{projectId}/metricIntegrations/{id}
+        path: /api/atlas/v2/groups/{projectId}/metricIntegrations/{metricIntegrationId}
     version_header: application/vnd.atlas.preview+json
 name: metric_integration
 packageName: metricintegration
