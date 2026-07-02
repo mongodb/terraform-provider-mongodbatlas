@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_backup_compliance_policy: Fix migration test failure caused by new AI project settings attributes not recognized by previous provider version
+```
