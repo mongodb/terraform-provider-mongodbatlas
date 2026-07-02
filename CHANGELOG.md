@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_project: Adds `is_cluster_ai_assistant_enabled`, `is_data_explorer_gen_ai_features_enabled`, and `is_data_explorer_gen_ai_sample_document_passing_enabled` attributes ([#4541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4541))
+* data-source/mongodbatlas_projects: Adds `is_cluster_ai_assistant_enabled`, `is_data_explorer_gen_ai_features_enabled`, and `is_data_explorer_gen_ai_sample_document_passing_enabled` attributes ([#4541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4541))
+* resource/mongodbatlas_project: Adds `is_cluster_ai_assistant_enabled`, `is_data_explorer_gen_ai_features_enabled`, and `is_data_explorer_gen_ai_sample_document_passing_enabled` attributes ([#4541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4541))
+
 ## 2.13.0 (June 30, 2026)
 
 ENHANCEMENTS:
