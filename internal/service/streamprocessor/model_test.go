@@ -105,28 +105,30 @@ func streamProcessorWithStats(t *testing.T, options *admin.StreamsOptions) *admi
 func streamProcessorDSTFModel(t *testing.T, state, stats string, options types.Object) *streamprocessor.TFStreamProcessorDSModel {
 	t.Helper()
 	return &streamprocessor.TFStreamProcessorDSModel{
-		ID:            types.StringValue(processorID),
-		WorkspaceName: types.StringValue(workspaceName),
-		Options:       options,
-		Pipeline:      types.StringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
-		ProcessorName: types.StringValue(processorName),
-		ProjectID:     types.StringValue(projectID),
-		State:         conversion.StringNullIfEmpty(state),
-		Stats:         conversion.StringNullIfEmpty(stats),
+		ID:              types.StringValue(processorID),
+		WorkspaceName:   types.StringValue(workspaceName),
+		Options:         options,
+		Pipeline:        types.StringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+		ProcessorName:   types.StringValue(processorName),
+		ProjectID:       types.StringValue(projectID),
+		State:           conversion.StringNullIfEmpty(state),
+		Stats:           conversion.StringNullIfEmpty(stats),
+		FailoverEnabled: types.BoolValue(false),
 	}
 }
 
 func streamProcessorDSTFModelWithInstanceName(t *testing.T, state, stats string, options types.Object) *streamprocessor.TFStreamProcessorDSModel {
 	t.Helper()
 	return &streamprocessor.TFStreamProcessorDSModel{
-		ID:            types.StringValue(processorID),
-		InstanceName:  types.StringValue(instanceName),
-		Options:       options,
-		Pipeline:      types.StringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
-		ProcessorName: types.StringValue(processorName),
-		ProjectID:     types.StringValue(projectID),
-		State:         conversion.StringNullIfEmpty(state),
-		Stats:         conversion.StringNullIfEmpty(stats),
+		ID:              types.StringValue(processorID),
+		InstanceName:    types.StringValue(instanceName),
+		Options:         options,
+		Pipeline:        types.StringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+		ProcessorName:   types.StringValue(processorName),
+		ProjectID:       types.StringValue(projectID),
+		State:           conversion.StringNullIfEmpty(state),
+		Stats:           conversion.StringNullIfEmpty(stats),
+		FailoverEnabled: types.BoolValue(false),
 	}
 }
 
@@ -139,6 +141,7 @@ func optionsToTFModel(t *testing.T, options *admin.StreamsOptions) types.Object 
 }
 
 func TestDSSDKToTFModel(t *testing.T) {
+	failoverEnabled := true
 	testCases := map[string]struct {
 		sdkModel        *admin.StreamsProcessorWithStats
 		expectedTFModel *streamprocessor.TFStreamProcessorDSModel
@@ -156,6 +159,18 @@ func TestDSSDKToTFModel(t *testing.T) {
 		"withOptions": {
 			sdkModel:        streamProcessorWithStats(t, &streamOptionsExample),
 			expectedTFModel: streamProcessorDSTFModel(t, stateStarted, statsExample, optionsToTFModel(t, &streamOptionsExample)),
+		},
+		"withFailoverEnabled": {
+			sdkModel: func() *admin.StreamsProcessorWithStats {
+				p := admin.NewStreamsProcessorWithStats(processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, stateCreated)
+				p.FailoverEnabled = &failoverEnabled
+				return p
+			}(),
+			expectedTFModel: func() *streamprocessor.TFStreamProcessorDSModel {
+				m := streamProcessorDSTFModel(t, stateCreated, "", optionsToTFModel(t, nil))
+				m.FailoverEnabled = types.BoolValue(true)
+				return m
+			}(),
 		},
 	}
 
@@ -224,6 +239,7 @@ func TestDSSDKToTFModelInstanceName(t *testing.T) {
 func TestSDKToTFModel(t *testing.T) {
 	testCases := map[string]struct {
 		sdkModel        *admin.StreamsProcessorWithStats
+		failoverEnabled *types.Bool
 		expectedTFModel *streamprocessor.TFStreamProcessorRSModel
 	}{
 		"afterCreate": {
@@ -267,12 +283,27 @@ func TestSDKToTFModel(t *testing.T) {
 				Stats:         types.StringNull(),
 			},
 		},
+		"withFailoverEnabled": {
+			sdkModel:        admin.NewStreamsProcessorWithStats(processorID, processorName, []any{pipelineStageSourceSample, pipelineStageEmitLog}, "CREATED"),
+			failoverEnabled: func() *types.Bool { v := types.BoolValue(true); return &v }(),
+			expectedTFModel: &streamprocessor.TFStreamProcessorRSModel{
+				InstanceName:    types.StringValue(workspaceName),
+				Options:         types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
+				ProcessorID:     types.StringValue(processorID),
+				Pipeline:        jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+				ProcessorName:   types.StringValue(processorName),
+				ProjectID:       types.StringValue(projectID),
+				State:           types.StringValue("CREATED"),
+				Stats:           types.StringNull(),
+				FailoverEnabled: types.BoolValue(true),
+			},
+		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			sdkModel := tc.sdkModel
-			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", sdkModel, nil, nil)
+			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", sdkModel, nil, nil, tc.failoverEnabled)
 			assert.False(t, diags.HasError())
 			assert.Equal(t, tc.expectedTFModel.Options, resultModel.Options)
 			if sdkModel.Stats != nil {
@@ -383,8 +414,10 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 	validPipeline := jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]")
 
 	testCases := map[string]struct {
-		model          *streamprocessor.TFStreamProcessorRSModel
-		expectedResult string
+		model               *streamprocessor.TFStreamProcessorRSModel
+		expectedTenantName  string
+		expectedFailoverSet bool
+		expectedFailover    bool
 	}{
 		"workspace_name provided": {
 			model: &streamprocessor.TFStreamProcessorRSModel{
@@ -394,7 +427,7 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
 			},
-			expectedResult: workspaceName,
+			expectedTenantName: workspaceName,
 		},
 		"instance_name provided": {
 			model: &streamprocessor.TFStreamProcessorRSModel{
@@ -404,7 +437,7 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
 			},
-			expectedResult: instanceName,
+			expectedTenantName: instanceName,
 		},
 		"workspace_name and instance_name provided": {
 			model: &streamprocessor.TFStreamProcessorRSModel{
@@ -414,7 +447,7 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
 			},
-			expectedResult: workspaceName,
+			expectedTenantName: workspaceName,
 		},
 		"neither provided": {
 			model: &streamprocessor.TFStreamProcessorRSModel{
@@ -424,19 +457,62 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
 			},
-			expectedResult: "",
+			expectedTenantName: "",
+		},
+		"failover_enabled true": {
+			model: &streamprocessor.TFStreamProcessorRSModel{
+				WorkspaceName:   types.StringValue(workspaceName),
+				InstanceName:    types.StringNull(),
+				Pipeline:        validPipeline,
+				ProcessorName:   types.StringValue(processorName),
+				ProjectID:       types.StringValue(projectID),
+				FailoverEnabled: types.BoolValue(true),
+			},
+			expectedTenantName:  workspaceName,
+			expectedFailoverSet: true,
+			expectedFailover:    true,
+		},
+		"failover_enabled false": {
+			model: &streamprocessor.TFStreamProcessorRSModel{
+				WorkspaceName:   types.StringValue(workspaceName),
+				InstanceName:    types.StringNull(),
+				Pipeline:        validPipeline,
+				ProcessorName:   types.StringValue(processorName),
+				ProjectID:       types.StringValue(projectID),
+				FailoverEnabled: types.BoolValue(false),
+			},
+			expectedTenantName:  workspaceName,
+			expectedFailoverSet: true,
+			expectedFailover:    false,
+		},
+		"failover_enabled null (not set)": {
+			model: &streamprocessor.TFStreamProcessorRSModel{
+				WorkspaceName:   types.StringValue(workspaceName),
+				InstanceName:    types.StringNull(),
+				Pipeline:        validPipeline,
+				ProcessorName:   types.StringValue(processorName),
+				ProjectID:       types.StringValue(projectID),
+				FailoverEnabled: types.BoolNull(),
+			},
+			expectedTenantName:  workspaceName,
+			expectedFailoverSet: false,
 		},
 	}
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), tc.model)
-			if tc.expectedResult == "" {
-				assert.False(t, diags.HasError())
+			assert.False(t, diags.HasError())
+			if tc.expectedTenantName == "" {
 				assert.Empty(t, updateReq.TenantName)
 			} else {
-				assert.False(t, diags.HasError())
-				assert.Equal(t, tc.expectedResult, updateReq.TenantName)
+				assert.Equal(t, tc.expectedTenantName, updateReq.TenantName)
+			}
+			if tc.expectedFailoverSet {
+				require.NotNil(t, updateReq.StreamsModifyStreamProcessor.FailoverEnabled)
+				assert.Equal(t, tc.expectedFailover, *updateReq.StreamsModifyStreamProcessor.FailoverEnabled)
+			} else {
+				assert.Nil(t, updateReq.StreamsModifyStreamProcessor.FailoverEnabled)
 			}
 		})
 	}
