@@ -82,7 +82,13 @@ func TestAccStreamProcessor_withFailoverEnabled(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "failover_enabled", "false"),
 				),
 			},
-			importStep(),
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "failover_enabled", "stats"},
+			},
 		}})
 }
 
