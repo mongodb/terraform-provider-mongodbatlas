@@ -738,23 +738,33 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: ConfigProjectWithSettings(projectName, orgID, projectOwnerID, new(false), false),
+				Config: configProjectWithSettings(projectName, orgID, projectOwnerID, false),
 				Check:  projectSettingsChecks(orgID, projectOwnerID, projectName, false),
 			},
 			{
-				Config: ConfigProjectWithSettings(projectName, orgID, projectOwnerID, new(true), false),
+				Config: configProjectWithSettings(projectName, orgID, projectOwnerID, true),
 				Check:  projectSettingsChecks(orgID, projectOwnerID, projectName, true),
 			},
 			{
-				Config: ConfigProjectWithSettings(projectName, orgID, projectOwnerID, nil, true),
+				Config: configProjectWithSettings(projectName, orgID, projectOwnerID, false),
 				Check:  projectSettingsChecks(orgID, projectOwnerID, projectName, false),
 			},
 			{
-				Config: ConfigProjectWithSettings(projectName, orgID, projectOwnerID, nil, true),
+				Config: configProjectBasic(projectName, orgID, projectOwnerID),
 				Check:  projectSettingsChecks(orgID, projectOwnerID, projectName, false),
 			},
 		},
 	})
+}
+
+func configProjectBasic(projectName, orgID, projectOwnerID string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name             = %[1]q
+			org_id           = %[2]q
+			project_owner_id = %[3]q
+		}
+	`, projectName, orgID, projectOwnerID) + dataSourceProjectByID
 }
 
 const dataSourceProjectByID = `
@@ -762,20 +772,7 @@ const dataSourceProjectByID = `
 		project_id = mongodbatlas_project.test.id
 	}`
 
-func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value *bool, withDS bool) string {
-	ds := ""
-	if withDS {
-		ds = dataSourceProjectByID
-	}
-	if value == nil {
-		return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name             = %[1]q
-			org_id           = %[2]q
-			project_owner_id = %[3]q
-		}
-	`, projectName, orgID, projectOwnerID) + ds
-	}
+func configProjectWithSettings(projectName, orgID, projectOwnerID string, value bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			name             = %[1]q
@@ -791,7 +788,7 @@ func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value 
 			is_data_explorer_gen_ai_features_enabled = %[4]t
 			is_data_explorer_gen_ai_sample_document_passing_enabled = %[4]t
 		}
-	`, projectName, orgID, projectOwnerID, *value) + ds
+	`, projectName, orgID, projectOwnerID, value) + dataSourceProjectByID
 }
 
 func projectSettingsChecks(orgID, projectOwnerID, projectName string, value bool) resource.TestCheckFunc {
