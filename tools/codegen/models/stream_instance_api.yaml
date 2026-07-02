@@ -1013,6 +1013,86 @@ schema:
           create_only: true
           present_in_any_response: true
           request_only_required_on_create: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Human-readable label that identifies the cloud provider.
+                      computed_optional_required: required
+                      tf_schema_name: cloud_provider
+                      tf_model_name: CloudProvider
+                      api_name: cloudProvider
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - list_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                  computed_optional_required: computed
+                                  tf_schema_name: href
+                                  tf_model_name: Href
+                                  api_name: href
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                                - string: {}
+                                  description: Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
+                                  computed_optional_required: computed
+                                  tf_schema_name: rel
+                                  tf_model_name: Rel
+                                  api_name: rel
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                  present_in_any_response: true
+                                  request_only_required_on_create: false
+                      description: List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.
+                      custom_type:
+                        package: customtypes
+                        name: FailoverRegionsLinks
+                        model: customtypes.NestedListValue[TFFailoverRegionsLinksModel]
+                        schema: customtypes.NewNestedListType[TFFailoverRegionsLinksModel](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: links
+                      tf_model_name: Links
+                      api_name: links
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Name of the cloud provider region hosting Atlas Stream Processing.
+                      computed_optional_required: required
+                      tf_schema_name: region
+                      tf_model_name: Region
+                      api_name: region
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: true
+                      request_only_required_on_create: false
+          description: List of failover regions configured for the stream workspace.
+          custom_type:
+            package: customtypes
+            name: FailoverRegions
+            model: customtypes.NestedListValue[TFFailoverRegionsModel]
+            schema: customtypes.NewNestedListType[TFFailoverRegionsModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: failover_regions
+          tf_model_name: FailoverRegions
+          api_name: failoverRegions
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: true
+          request_only_required_on_create: false
         - string: {}
           description: |-
             Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
@@ -1053,6 +1133,57 @@ schema:
           sensitive: false
           create_only: true
           present_in_any_response: true
+          request_only_required_on_create: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: 'Strategy for the processor: GRACEFUL - attempt to stop the processor, error if processor cannot be stopped. if stop was successful, start the processor in the new region with the latest checkpoint.  FORCED - attempt to stop the processor, proceed to starting the processor in the new region with checkpoints disabled regardless of whether or not the stop succeeds.'
+                      computed_optional_required: optional
+                      tf_schema_name: mode
+                      tf_model_name: Mode
+                      api_name: mode
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: false
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Name of the region against which to apply the status change. Required when `status` is `FAILED_OVER`; optional otherwise.
+                      computed_optional_required: optional
+                      tf_schema_name: region
+                      tf_model_name: Region
+                      api_name: region
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: false
+                      request_only_required_on_create: false
+                    - string: {}
+                      description: Represents the desired action to apply to stream processors within a workspace, such as starting all processors, stopping all processors, or performing a bulk regional failover.
+                      computed_optional_required: required
+                      tf_schema_name: status
+                      tf_model_name: Status
+                      api_name: status
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                      present_in_any_response: false
+                      request_only_required_on_create: false
+          description: Desired status change to apply to a tenant's stream processors.
+          custom_type:
+            package: customtypes
+            name: ProcessorStatus
+            model: customtypes.ObjectValue[TFProcessorStatusModel]
+            schema: customtypes.NewObjectType[TFProcessorStatusModel](ctx)
+          computed_optional_required: optional
+          tf_schema_name: processor_status
+          tf_model_name: ProcessorStatus
+          api_name: processorStatus
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+          present_in_any_response: false
           request_only_required_on_create: false
         - single_nested:
             nested_object:
