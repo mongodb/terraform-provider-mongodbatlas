@@ -1342,3 +1342,30 @@ resources:
             description: *project_id_description
           otel_supplied_headers:
             sensitive: true
+
+  metric_integration:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+        method: GET
+      create:
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations
+        method: POST
+      update:
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+        method: PUT
+      delete:
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+        method: DELETE
+      schema:
+        aliases:
+          metricIntegrationId: id
+      datasources:
+        read:
+          path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+          method: GET
+        list:
+          path: /api/atlas/v2/groups/{groupId}/metricIntegrations
+          method: GET
+        schema:
+          aliases:
+            metricIntegrationId: id
