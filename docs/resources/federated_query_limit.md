@@ -4,7 +4,7 @@ subcategory: "Data Federation"
 
 # Resource: mongodbatlas_federated_query_limit
 
-`mongodbatlas_federated_query_limit` provides a Federated Database Instance Query Limits resource. To learn more about Atlas Data Federation see https://www.mongodb.com/docs/atlas/data-federation/overview/.
+`mongodbatlas_federated_query_limit` provides a Federated Database Instance Query Limits resource. To learn more about Atlas Data Federation see https://www.mongodb.com/docs/atlas/data-federation/adf-overview/overview/.
 
 
 ## Example Usages
@@ -21,7 +21,7 @@ resource "mongodbatlas_federated_query_limit" "test" {
 ```
 
 ### Further Examples
-- [Federated Query Limit](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_federated_query_limit)
+- [Federated Query Limit](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_federated_query_limit)
 
 ## Argument Reference
 

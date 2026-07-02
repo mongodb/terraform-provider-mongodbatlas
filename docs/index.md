@@ -162,7 +162,6 @@ We are committed to clear and proactive communication:
 | 1.12.x | 2025-05-14 | 2027-05-31 | 2027-05-31 |
 | 1.11.x | 2025-02-27 | 2027-02-28 | 2027-02-28 |
 | 1.10.x | 2024-11-27 | 2026-11-30 | 2026-11-30 |
-| 1.9.x | 2024-06-26 | 2026-06-30 | 2026-06-30 |
 <!-- MATRIX_PLACEHOLDER_END -->
 For the safety of our users, we require only consuming versions of HashiCorp Terraform that are currently receiving Security / Maintenance Updates. For more details see [Support Period and End-of-Life (EOL) Policy](https://support.hashicorp.com/hc/en-us/articles/360021185113-Support-Period-and-End-of-Life-EOL-Policy).   
 
@@ -174,7 +173,7 @@ The MongoDB Atlas Provider supports multiple operating systems and architectures
 
 ## Troubleshooting
 
-For common issues and networking diagnostics, see the [Troubleshooting Guide](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/troubleshooting).
+For common issues and networking diagnostics, see the [Troubleshooting Guide](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/troubleshooting).
 
 ## Helpful Links/Information
 
@@ -191,7 +190,7 @@ For common issues and networking diagnostics, see the [Troubleshooting Guide](ht
 ## Examples from MongoDB and the Community
 
 <!-- NOTE: the below examples link is updated during the release process, when doing changes in the following sentence verify scripts/update-examples-reference-in-docs.sh is not impacted-->
-We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples)
+We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples)
 in our GitHub repo that will help both beginner and more advanced users.
 
 Have a good example you've created and want to share?

@@ -5,7 +5,7 @@
 
 We recommend first to read the [resource example](../resource/README.md) as it contains all the relevant information. This example module is identical to it except that it is designed to serve as a reference for platform teams who have created their own module and make it available to internal teams for leveraging the MongoDB Atlas Terraform provider. Typically, these users do not have the ability to execute `terraform state` commands or modify the Terraform state manually.
 
-As in the resource example, the attention is focused on how to avoid the [BACKUP_POLICIES_NOT_MEETING_BACKUP_COMPLIANCE_POLICY_REQUIREMENTS](../resource/README.md#4-cleanup-extra-steps-when-a-backup-compliance-policy-is-enabled) when running `terraform destroy` on a `mongodbatlas_advanced_cluster` with `mongodbatlas_cloud_backup_schedule` and enabled backup compliance policy.
+As in the resource example, the attention is focused on how to avoid the [BACKUP_POLICIES_NOT_MEETING_BACKUP_COMPLIANCE_POLICY_REQUIREMENTS](../resource/README.md#4-how-to-delete-a-cluster-when-a-backup-compliance-policy-is-enabled) when running `terraform destroy` on a `mongodbatlas_advanced_cluster` with `mongodbatlas_cloud_backup_schedule` and enabled backup compliance policy.
 
 To do that, we'll use:
 - an `add_schedule` variable provided by the module maintainer that controls the presence of the `mongodbatlas_cloud_backup_schedule` in the configuration
