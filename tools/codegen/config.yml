@@ -1365,10 +1365,5 @@ resources:
           description: *project_id_description
         metric_integration_id:
           immutable_computed: true
-        integration_type:
-          plan_modifiers:
-            - definition: "customplanmodifier.CreateOnly()"
-              imports:
-                - "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
         headers.value:
           sensitive: true
