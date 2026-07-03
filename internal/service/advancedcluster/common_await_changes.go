@@ -35,7 +35,7 @@ type ClusterWaitParams struct {
 	UseEffectiveFields       bool
 }
 
-func AwaitChangesUpgrade(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
+func AwaitUpgradeToDedicated(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
 	upgradeWaitParams := *waitParams
 	upgradeWaitParams.WaitForDedicatedProvider = true
 	return AwaitChanges(ctx, client, &upgradeWaitParams, errorLocator, diags)
@@ -116,10 +116,7 @@ func ResourceRefreshFunc(ctx context.Context, waitParams *ClusterWaitParams, api
 
 		state := cluster.GetStateName()
 		providerName := getProviderName(cluster.ReplicationSpecs)
-		// Atlas can briefly return the pre-upgrade cluster as IDLE while the upgrade is still propagating.
-		if waitParams.WaitForDedicatedProvider &&
-			state == retrystrategy.RetryStrategyIdleState &&
-			isNonDedicatedProvider(providerName) {
+		if isUpgradeToDedicatedPending(waitParams, state, providerName) {
 			tflog.Warn(ctx, fmt.Sprintf("cluster upgrade still reports non-dedicated provider %s, retrying", providerName))
 			return cluster, retrystrategy.RetryStrategyUpdatingState, nil
 		}
@@ -127,6 +124,9 @@ func ResourceRefreshFunc(ctx context.Context, waitParams *ClusterWaitParams, api
 	}
 }
 
-func isNonDedicatedProvider(providerName string) bool {
-	return providerName == flexcluster.FlexClusterType || providerName == constant.TENANT
+// isUpgradeToDedicatedPending handles Atlas briefly returning the pre-upgrade cluster as IDLE while the upgrade is still propagating.
+func isUpgradeToDedicatedPending(waitParams *ClusterWaitParams, state, providerName string) bool {
+	return waitParams.WaitForDedicatedProvider &&
+		state == retrystrategy.RetryStrategyIdleState &&
+		(providerName == flexcluster.FlexClusterType || providerName == constant.TENANT)
 }
