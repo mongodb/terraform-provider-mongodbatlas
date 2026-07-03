@@ -27,24 +27,18 @@ var (
 )
 
 type ClusterWaitParams struct {
-	ProjectID          string
-	ClusterName        string
-	Timeout            time.Duration
-	IsDelete           bool
-	UseEffectiveFields bool
+	ProjectID                string
+	ClusterName              string
+	Timeout                  time.Duration
+	IsDelete                 bool
+	WaitForDedicatedProvider bool
+	UseEffectiveFields       bool
 }
 
 func AwaitChangesUpgrade(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
-	upgraded := AwaitChanges(ctx, client, waitParams, errorLocator, diags)
-	if diags.HasError() || upgraded == nil {
-		return nil
-	}
-	providerName := getProviderName(upgraded.ReplicationSpecs)
-	if slices.Contains([]string{flexcluster.FlexClusterType, constant.TENANT}, providerName) {
-		tflog.Warn(ctx, fmt.Sprintf("cluster upgrade unexpected provider %s, retrying", providerName))
-		return AwaitChanges(ctx, client, waitParams, errorLocator, diags)
-	}
-	return upgraded
+	upgradeWaitParams := *waitParams
+	upgradeWaitParams.WaitForDedicatedProvider = true
+	return AwaitChanges(ctx, client, &upgradeWaitParams, errorLocator, diags)
 }
 
 func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
@@ -121,6 +115,18 @@ func ResourceRefreshFunc(ctx context.Context, waitParams *ClusterWaitParams, api
 		}
 
 		state := cluster.GetStateName()
+		providerName := getProviderName(cluster.ReplicationSpecs)
+		// Atlas can briefly return the pre-upgrade cluster as IDLE while the upgrade is still propagating.
+		if waitParams.WaitForDedicatedProvider &&
+			state == retrystrategy.RetryStrategyIdleState &&
+			isNonDedicatedProvider(providerName) {
+			tflog.Warn(ctx, fmt.Sprintf("cluster upgrade still reports non-dedicated provider %s, retrying", providerName))
+			return cluster, retrystrategy.RetryStrategyUpdatingState, nil
+		}
 		return cluster, state, nil
 	}
+}
+
+func isNonDedicatedProvider(providerName string) bool {
+	return providerName == flexcluster.FlexClusterType || providerName == constant.TENANT
 }
