@@ -117,7 +117,7 @@ func ResourceRefreshFunc(ctx context.Context, waitParams *ClusterWaitParams, api
 		state := cluster.GetStateName()
 		providerName := getProviderName(cluster.ReplicationSpecs)
 		if isUpgradeToDedicatedPending(waitParams, state, providerName) {
-			tflog.Warn(ctx, fmt.Sprintf("cluster upgrade still reports non-dedicated provider %s, retrying", providerName))
+			tflog.Debug(ctx, fmt.Sprintf("cluster upgrade still reports non-dedicated provider %s, retrying", providerName))
 			return cluster, retrystrategy.RetryStrategyUpdatingState, nil
 		}
 		return cluster, state, nil
