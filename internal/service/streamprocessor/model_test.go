@@ -503,11 +503,7 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), tc.model)
 			assert.False(t, diags.HasError())
-			if tc.expectedTenantName == "" {
-				assert.Empty(t, updateReq.TenantName)
-			} else {
-				assert.Equal(t, tc.expectedTenantName, updateReq.TenantName)
-			}
+			assert.Equal(t, tc.expectedTenantName, updateReq.TenantName)
 			if tc.expectedFailoverSet {
 				require.NotNil(t, updateReq.StreamsModifyStreamProcessor.FailoverEnabled)
 				assert.Equal(t, tc.expectedFailover, *updateReq.StreamsModifyStreamProcessor.FailoverEnabled)

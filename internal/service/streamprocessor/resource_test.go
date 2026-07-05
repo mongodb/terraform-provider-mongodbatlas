@@ -809,19 +809,7 @@ func configWithFailoverEnabled(t *testing.T, projectID, workspaceName, clusterNa
 		failover_enabled = %[5]t
 	}
 
-	data "mongodbatlas_stream_processor" "test" {
-		project_id     = mongodbatlas_stream_processor.processor.project_id
-		workspace_name = mongodbatlas_stream_processor.processor.workspace_name
-		processor_name = mongodbatlas_stream_processor.processor.processor_name
-		depends_on     = [mongodbatlas_stream_processor.processor]
-	}
-
-	data "mongodbatlas_stream_processors" "test" {
-		project_id     = %[1]q
-		workspace_name = mongodbatlas_stream_workspace.failover_workspace.workspace_name
-		depends_on     = [mongodbatlas_stream_processor.processor]
-	}
-	`, projectID, workspaceName, clusterName, processorName, failoverEnabled)
+	`, projectID, workspaceName, clusterName, processorName, failoverEnabled) + processorDataSources()
 }
 
 func configWithTier(t *testing.T, projectID, workspaceName, processorName, tier string) string {
@@ -845,7 +833,11 @@ func configWithTier(t *testing.T, projectID, workspaceName, processorName, tier 
 		state = "STARTED"
 		tier  = %[4]q
 	}
+	`, projectID, workspaceName, processorName, tier) + processorDataSources()
+}
 
+func processorDataSources() string {
+	return `
 	data "mongodbatlas_stream_processor" "test" {
 		project_id     = mongodbatlas_stream_processor.processor.project_id
 		workspace_name = mongodbatlas_stream_processor.processor.workspace_name
@@ -854,11 +846,10 @@ func configWithTier(t *testing.T, projectID, workspaceName, processorName, tier 
 	}
 
 	data "mongodbatlas_stream_processors" "test" {
-		project_id     = %[1]q
-		workspace_name = %[2]q
+		project_id     = mongodbatlas_stream_processor.processor.project_id
+		workspace_name = mongodbatlas_stream_processor.processor.workspace_name
 		depends_on     = [mongodbatlas_stream_processor.processor]
-	}
-	`, projectID, workspaceName, processorName, tier)
+	}`
 }
 
 func configMigration(t *testing.T, projectID, instanceName, processorName, state, nameSuffix string, src, dest connectionConfig, timeoutConfig string, deleteOnCreateTimeout *bool) string {
