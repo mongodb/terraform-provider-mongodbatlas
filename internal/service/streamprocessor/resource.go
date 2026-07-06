@@ -126,7 +126,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 
 	instanceName := plan.InstanceName.ValueString()
 	workspaceName := plan.WorkspaceName.ValueString()
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessorResp, &plan.Timeouts, &plan.DeleteOnCreateTimeout)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessorResp, &plan.Timeouts, &plan.DeleteOnCreateTimeout, &plan.FailoverEnabled)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -158,7 +158,7 @@ func (r *streamProcessorRS) Read(ctx context.Context, req resource.ReadRequest, 
 
 	instanceName := state.InstanceName.ValueString()
 	workspaceName := state.WorkspaceName.ValueString()
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessor, &state.Timeouts, &state.DeleteOnCreateTimeout)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessor, &state.Timeouts, &state.DeleteOnCreateTimeout, &state.FailoverEnabled)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -266,7 +266,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 
 	instanceName := plan.InstanceName.ValueString()
 	workspaceName := plan.WorkspaceName.ValueString()
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessorResp, &plan.Timeouts, &plan.DeleteOnCreateTimeout)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessorResp, &plan.Timeouts, &plan.DeleteOnCreateTimeout, &plan.FailoverEnabled)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
