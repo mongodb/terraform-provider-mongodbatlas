@@ -216,6 +216,10 @@ on:
         required: true
       gcp_service_account_email:
         required: true
+      mongodb_atlas_metric_integration_endpoint:
+        required: true
+      mongodb_atlas_metric_integration_api_key:
+        required: true
 
 env:
   TF_ACC: 1
