@@ -112,6 +112,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
 			},
+			"failover_enabled": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Indicates whether this stream processor is eligible for failover. When `true`, an operator can trigger a failover event to migrate the stream processor to a secondary region configured in the workspace's `failover_regions`. Requires an Atlas-to-Atlas or Atlas-to-Kafka pipeline with `failover_regions` configured on the workspace.",
+			},
 		},
 	}
 }
@@ -129,6 +133,7 @@ type TFStreamProcessorRSModel struct {
 	Tier                  types.String         `tfsdk:"tier"`
 	Timeouts              timeouts.Value       `tfsdk:"timeouts"`
 	DeleteOnCreateTimeout types.Bool           `tfsdk:"delete_on_create_timeout"`
+	FailoverEnabled       types.Bool           `tfsdk:"failover_enabled"`
 }
 
 type TFOptionsModel struct {
@@ -153,16 +158,17 @@ var DlqObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }
 
 type TFStreamProcessorDSModel struct {
-	ID            types.String `tfsdk:"id"`
-	InstanceName  types.String `tfsdk:"instance_name"`
-	WorkspaceName types.String `tfsdk:"workspace_name"`
-	Options       types.Object `tfsdk:"options"`
-	Pipeline      types.String `tfsdk:"pipeline"`
-	ProcessorName types.String `tfsdk:"processor_name"`
-	ProjectID     types.String `tfsdk:"project_id"`
-	State         types.String `tfsdk:"state"`
-	Stats         types.String `tfsdk:"stats"`
-	Tier          types.String `tfsdk:"tier"`
+	ID              types.String `tfsdk:"id"`
+	InstanceName    types.String `tfsdk:"instance_name"`
+	WorkspaceName   types.String `tfsdk:"workspace_name"`
+	Options         types.Object `tfsdk:"options"`
+	Pipeline        types.String `tfsdk:"pipeline"`
+	ProcessorName   types.String `tfsdk:"processor_name"`
+	ProjectID       types.String `tfsdk:"project_id"`
+	State           types.String `tfsdk:"state"`
+	Stats           types.String `tfsdk:"stats"`
+	Tier            types.String `tfsdk:"tier"`
+	FailoverEnabled types.Bool   `tfsdk:"failover_enabled"`
 }
 
 type TFStreamProcessorsDSModel struct {
