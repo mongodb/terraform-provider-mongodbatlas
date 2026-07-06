@@ -10,7 +10,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -53,15 +52,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
 	}
-	newInstanceModel, diags := streaminstance.NewTFStreamInstance(ctx, apiResp)
+	newWorkspaceModel, diags := newTFWorkspaceModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-
-	// Convert back to workspace model.
-	var newWorkspaceModel TFModel
-	newWorkspaceModel.FromInstanceModel(newInstanceModel)
 	resp.Diagnostics.Append(resp.State.Set(ctx, newWorkspaceModel)...)
 }
 
@@ -83,28 +78,30 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return
 	}
-	newInstanceModel, diags := streaminstance.NewTFStreamInstance(ctx, apiResp)
+	newWorkspaceModel, diags := newTFWorkspaceModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-
-	// Convert back to workspace model.
-	var newWorkspaceModel TFModel
-	newWorkspaceModel.FromInstanceModel(newInstanceModel)
 	resp.Diagnostics.Append(resp.State.Set(ctx, newWorkspaceModel)...)
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan TFModel
+	var plan, state TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+	if !plan.DataProcessRegion.Equal(state.DataProcessRegion) && failoverRegionsChanging(&plan, &state) {
+		resp.Diagnostics.AddError("Invalid stream workspace update",
+			"data_process_region and failover_regions cannot both be changed in the same apply. Apply each change separately.")
 		return
 	}
 	connV2 := r.Client.AtlasV2
 	projectID := plan.ProjectID.ValueString()
 	workspaceName := plan.WorkspaceName.ValueString()
-	streamWorkspaceReq, diags := newStreamWorkspaceUpdateReq(ctx, &plan)
+	streamWorkspaceReq, diags := newStreamWorkspaceUpdateReq(ctx, &plan, &state)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -115,13 +112,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	newInstanceModel, diags := streaminstance.NewTFStreamInstance(ctx, apiResp)
+	newWorkspaceModel, diags := newTFWorkspaceModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	var newWorkspaceModel TFModel
-	newWorkspaceModel.FromInstanceModel(newInstanceModel)
 	resp.Diagnostics.Append(resp.State.Set(ctx, newWorkspaceModel)...)
 }
 
