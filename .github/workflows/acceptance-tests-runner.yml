@@ -323,6 +323,7 @@ jobs:
             - 'internal/serviceapi/resourcepolicyapi/*.go'
             - 'internal/serviceapi/streamconnectionapi/*.go'
             - 'internal/serviceapi/logintegration/*.go'
+            - 'internal/serviceapi/metricintegration/*.go'
           autogen_slow:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/clusterapi/*.go'
@@ -694,6 +695,7 @@ jobs:
             ./internal/serviceapi/customdbroleapi
             ./internal/serviceapi/databaseuserapi
             ./internal/serviceapi/logintegration
+            ./internal/serviceapi/metricintegration
             ./internal/serviceapi/maintenancewindowapi
             ./internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive
             ./internal/serviceapi/projectapi
