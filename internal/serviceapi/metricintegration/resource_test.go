@@ -130,6 +130,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if err != nil {
 			return err
 		}
+		defer resp.Body.Close()
 		if resp.StatusCode == http.StatusOK {
 			return nil
 		}
@@ -151,9 +152,14 @@ func checkDestroy(state *terraform.State) error {
 		if err != nil {
 			return err
 		}
+		resp.Body.Close()
+		if resp.StatusCode == http.StatusNotFound {
+			return nil
+		}
 		if resp.StatusCode == http.StatusOK {
 			return fmt.Errorf("metric integration for project_id %s with id %s still exists", projectID, integrationID)
 		}
+		return fmt.Errorf("checkDestroy, unexpected status %d for project_id %s with id %s", resp.StatusCode, projectID, integrationID)
 	}
 	return nil
 }
