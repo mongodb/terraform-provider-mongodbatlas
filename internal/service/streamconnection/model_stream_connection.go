@@ -701,21 +701,18 @@ func newTFFailoverConnectionModel(ctx context.Context, apiResp *admin.StreamsCon
 }
 
 // newTFFailoverConnectionsList reads the current failover connections from the API and returns a types.List.
-func newTFFailoverConnectionsList(ctx context.Context, streamsAPI admin.StreamsApi, projectID, workspaceName, primaryConnectionName string, planFailoverList, stateFailoverList types.List) (types.List, diag.Diagnostics) {
+// knownFailoverList carries the desired connections (plan on Update, prior state on Read) and their
+// auth config, which is used to preserve sensitive fields (passwords) not returned by the API.
+func newTFFailoverConnectionsList(ctx context.Context, streamsAPI admin.StreamsApi, projectID, workspaceName, primaryConnectionName string, knownFailoverList types.List) (types.List, diag.Diagnostics) {
 	var allDiags diag.Diagnostics
 
-	// Collect names in deterministic order: plan order first, then state-only entries.
-	seen := make(map[string]bool)
+	// Collect names in deterministic order and their auth config for password preservation.
 	var orderedNames []string
 	planAuthByName := make(map[string]types.Object)
 	planSRAuthByName := make(map[string]types.Object)
-	for listIdx, list := range []types.List{planFailoverList, stateFailoverList} {
-		isPlanList := listIdx == 0
-		if list.IsNull() || list.IsUnknown() {
-			continue
-		}
+	if !knownFailoverList.IsNull() && !knownFailoverList.IsUnknown() {
 		var items []TFFailoverConnectionModel
-		if diags := list.ElementsAs(ctx, &items, false); diags.HasError() {
+		if diags := knownFailoverList.ElementsAs(ctx, &items, false); diags.HasError() {
 			allDiags.Append(diags...)
 			return types.ListNull(FailoverConnectionObjectType), allDiags
 		}
@@ -724,15 +721,9 @@ func newTFFailoverConnectionsList(ctx context.Context, streamsAPI admin.StreamsA
 			if name == "" {
 				continue
 			}
-			if !seen[name] {
-				seen[name] = true
-				orderedNames = append(orderedNames, name)
-			}
-			// Only plan items carry auth config for password preservation.
-			if isPlanList {
-				planAuthByName[name] = items[i].Authentication
-				planSRAuthByName[name] = items[i].SchemaRegistryAuthentication
-			}
+			orderedNames = append(orderedNames, name)
+			planAuthByName[name] = items[i].Authentication
+			planSRAuthByName[name] = items[i].SchemaRegistryAuthentication
 		}
 	}
 

@@ -310,7 +310,6 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 
 	// Create failover connections if configured, building state directly from create responses
 	// to avoid eventual-consistency issues with the list endpoint.
-	newStreamConnectionModel.FailoverConnections = types.ListNull(FailoverConnectionObjectType)
 	if !streamConnectionPlan.FailoverConnections.IsNull() && !streamConnectionPlan.FailoverConnections.IsUnknown() && len(streamConnectionPlan.FailoverConnections.Elements()) > 0 {
 		var planFCs []TFFailoverConnectionModel
 		resp.Diagnostics.Append(streamConnectionPlan.FailoverConnections.ElementsAs(ctx, &planFCs, false)...)
@@ -383,7 +382,7 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	fcList, diags := newTFFailoverConnectionsList(ctx, connV2.StreamsApi, projectID, workspaceOrInstanceName, connectionName, streamConnectionState.FailoverConnections, streamConnectionState.FailoverConnections)
+	fcList, diags := newTFFailoverConnectionsList(ctx, connV2.StreamsApi, projectID, workspaceOrInstanceName, connectionName, streamConnectionState.FailoverConnections)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -449,7 +448,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	fcList, diags := newTFFailoverConnectionsList(ctx, connV2.StreamsApi, projectID, workspaceOrInstanceName, connectionName, streamConnectionPlan.FailoverConnections, streamConnectionState.FailoverConnections)
+	fcList, diags := newTFFailoverConnectionsList(ctx, connV2.StreamsApi, projectID, workspaceOrInstanceName, connectionName, streamConnectionPlan.FailoverConnections)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
