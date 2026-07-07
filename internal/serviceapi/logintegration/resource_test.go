@@ -230,8 +230,8 @@ func TestAccLogIntegration_basicDatadog(t *testing.T) {
 func TestAccLogIntegration_basicOTel(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
-		endpoint0   = "https://test-otel-url-0.com:1234/v1/logs"
-		endpoint1   = "https://test-otel-url-1.com:5678/v1/logs"
+		endpoint0   = "https://192.0.2.1/v1/logs"
+		endpoint1   = "https://192.0.2.2/v1/logs"
 		headersHCL0 = `otel_supplied_headers = [{name = "header-0", value = "val-0"}]`
 		headersHCL1 = `otel_supplied_headers = [{name = "header-0", value = "val-0-updated"},{name = "header-1", value = "val-1"}]`
 		withDS      = true
@@ -266,8 +266,8 @@ func TestAccLogIntegration_basicOTel(t *testing.T) {
 func TestAccLogIntegration_basicSplunk(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		hecURL0   = "https://test-hec-url-0.com:1234"
-		hecURL1   = "https://test-hec-url-1.com:5678"
+		hecURL0   = "https://192.0.2.1:1234/v1/logs"
+		hecURL1   = "https://192.0.2.2:5678/v1/logs"
 		hecToken0 = "test-hec-token-0" //nolint:gosec // Test data
 		hecToken1 = "test-hec-token-1" //nolint:gosec // Test data
 		withDS    = true
