@@ -294,7 +294,6 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, newStreamConnectionModel)...)
 }
 
@@ -342,7 +341,6 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, newStreamConnectionModel)...)
 }
 

@@ -43,11 +43,12 @@ func TestAccStreamRSStreamConnectionFailover(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            failoverResourceName,
-				ImportStateIdFunc:       failoverImportStateIDFunc(failoverResourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"authentication.password"},
+				ResourceName:      failoverResourceName,
+				ImportStateIdFunc: failoverImportStateIDFunc(failoverResourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// Secrets are never returned by the API, so they cannot be verified on import.
+				ImportStateVerifyIgnore: []string{"authentication.password", "authentication.client_secret", "schema_registry_authentication.password"},
 			},
 		},
 	})
@@ -102,7 +103,7 @@ func failoverImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 		a := rs.Primary.Attributes
-		return fmt.Sprintf("%s-%s-%s-%s", a["project_id"], failoverWorkspaceName(a), a["connection_name"], a["id"]), nil
+		return fmt.Sprintf("%s-%s-%s-%s", failoverWorkspaceName(a), a["project_id"], a["connection_name"], a["id"]), nil
 	}
 }
 

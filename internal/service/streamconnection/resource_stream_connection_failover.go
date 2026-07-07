@@ -2,8 +2,9 @@ package streamconnection
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"strings"
+	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -380,18 +381,34 @@ func (r *streamConnectionFailoverRS) Delete(ctx context.Context, req resource.De
 	}
 }
 
-// ImportState expects an id of the form "{projectID}-{workspaceName}-{connectionName}-{failoverConnectionId}".
+// ImportState expects an id of the form "{workspaceName}-{projectID}-{connectionName}-{failoverConnectionId}".
+// projectID and failoverConnectionId are 24-hex, which anchors the split so that workspace and
+// connection names may themselves contain dashes.
 func (r *streamConnectionFailoverRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	parts := strings.Split(req.ID, "-")
-	if len(parts) != 4 {
-		resp.Diagnostics.AddError("invalid import ID",
-			"import ID must be in the format {project_id}-{workspace_name}-{connection_name}-{failover_connection_id}")
+	workspaceName, projectID, connectionName, failoverConnectionID, err := splitStreamConnectionFailoverImportID(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError("error splitting failover connection import ID", err.Error())
 		return
 	}
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), parts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("workspace_name"), parts[1])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("connection_name"), parts[2])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[3])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("instance_name"), workspaceName)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("workspace_name"), workspaceName)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("connection_name"), connectionName)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), failoverConnectionID)...)
+}
+
+func splitStreamConnectionFailoverImportID(id string) (workspaceName, projectID, connectionName, failoverConnectionID string, err error) {
+	re := regexp.MustCompile(`^(.*)-([0-9a-fA-F]{24})-(.*)-([0-9a-fA-F]{24})$`)
+	parts := re.FindStringSubmatch(id)
+	if len(parts) != 5 {
+		err = errors.New("use the format {workspace_name}-{project_id}-{connection_name}-{failover_connection_id}")
+		return
+	}
+	workspaceName = parts[1]
+	projectID = parts[2]
+	connectionName = parts[3]
+	failoverConnectionID = parts[4]
+	return
 }
 
 // newStreamConnectionFailoverReq builds the StreamsConnection request body for a failover connection,
@@ -412,12 +429,21 @@ func newTFStreamConnectionFailover(ctx context.Context, prior *TFStreamConnectio
 	if diags.HasError() {
 		return nil, diags
 	}
+	// Resolve to a single workspace field: import sets both instance_name and workspace_name, and
+	// only one should end up in state (workspace_name is preferred; instance_name is deprecated).
+	instanceName, workspaceName := prior.InstanceName, prior.WorkspaceName
+	if !workspaceName.IsNull() && !workspaceName.IsUnknown() && workspaceName.ValueString() != "" {
+		instanceName = types.StringNull()
+	} else {
+		workspaceName = types.StringNull()
+	}
+
 	c := model.TFStreamConnectionCommonModel
 	return &TFStreamConnectionFailoverModel{
 		ID:                           types.StringPointerValue(apiResp.Id),
 		ProjectID:                    prior.ProjectID,
-		InstanceName:                 prior.InstanceName,
-		WorkspaceName:                prior.WorkspaceName,
+		InstanceName:                 instanceName,
+		WorkspaceName:                workspaceName,
 		ConnectionName:               prior.ConnectionName,
 		Region:                       types.StringPointerValue(apiResp.Region),
 		Type:                         c.Type,
