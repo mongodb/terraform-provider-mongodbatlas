@@ -30,22 +30,6 @@ func checkDestroyProject(conn *admin.APIClient, s *terraform.State) error {
 	return nil
 }
 
-func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value bool) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   			 = %[1]q
-			org_id 			 = %[2]q
-			project_owner_id = %[3]q
-			is_collect_database_specifics_statistics_enabled = %[4]t
-			is_data_explorer_enabled = %[4]t
-			is_extended_storage_sizes_enabled = %[4]t
-			is_performance_advisor_enabled = %[4]t
-			is_realtime_performance_panel_enabled = %[4]t
-			is_schema_advisor_enabled = %[4]t
-		}
-	`, projectName, orgID, projectOwnerID, value)
-}
-
 func ImportStateProjectIDFunc(resourceName string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
