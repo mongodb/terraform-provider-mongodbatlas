@@ -365,6 +365,8 @@ As of version 1.23.0, enabled `compute` auto-scaling (either `auto_scaling` or `
 
 ### Recommended Approach: Using use_effective_fields
 
+-> **IMPORTANT:** `use_effective_fields` is not supported for multi-shard clusters (more than one `replication_specs` entry). The following example is for documentation purposes only. For single-shard dedicated clusters, using `use_effective_fields` is the recommended approach. See [Multi-shard clusters and topology changes](../resources/advanced_cluster.md#multi-shard-clusters-and-topology-changes).
+
 The following example shows the recommended approach using `use_effective_fields = true` to manage auto-scaling without `lifecycle.ignore_changes` blocks:
 
 ```
@@ -444,9 +446,9 @@ output "shard_sizes" {
 }
 ```
 
-To learn more about `use_effective_fields`, see [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields).
+To learn more about `use_effective_fields`, see [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields) and [Multi-shard clusters and topology changes](../resources/advanced_cluster.md#multi-shard-clusters-and-topology-changes).
 
-**For module authors:** `use_effective_fields` is particularly valuable for reusable Terraform modules, enabling a single module to handle both auto-scaling and non-auto-scaling clusters without requiring lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
+**For module authors:** `use_effective_fields` is particularly valuable for reusable Terraform modules, enabling a single module to handle both auto-scaling and non-auto-scaling clusters without requiring lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations. Note that this approach is only supported for single-shard clusters.
 
 ### Legacy Approach: Using lifecycle.ignore_changes
 
@@ -524,6 +526,8 @@ resource "mongodbatlas_advanced_cluster" "test" {
   }
 }
 ```
+
+~> **IMPORTANT:** Lifecycle ignores address replication specs and region configs by list index, not by shard identity. They can prevent Terraform from reverting an Atlas-managed value while topology and ordering remain unchanged, but they are not a safe mechanism when adding, removing, or reordering shards. See [Multi-shard clusters and topology changes](../resources/advanced_cluster.md#multi-shard-clusters-and-topology-changes).
 
 While the examples initially define two symmetric shards, auto-scaling can lead to asymmetric shards due to changes in `instance_size`, `disk_size_gb`, and `disk_iops`. When either compute or disk auto-scaling is enabled, Atlas may adjust any of these resources to maintain optimal cluster performance.
 

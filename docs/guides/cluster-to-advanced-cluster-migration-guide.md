@@ -303,7 +303,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 }
 ```
 
--> **NOTE:** If you enable compute auto-scaling (`auto_scaling.compute_enabled` or `analytics_auto_scaling.compute_enabled`), consider using `use_effective_fields = true` to avoid needing `lifecycle.ignore_changes` blocks. This allows you to read the actual scaled values using data sources. See [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields) for more details.
+-> **NOTE:** If you enable compute auto-scaling (`auto_scaling.compute_enabled` or `analytics_auto_scaling.compute_enabled`) on a dedicated cluster with exactly one `replication_specs` entry, consider using `use_effective_fields = true` to avoid needing `lifecycle.ignore_changes` blocks. This allows you to read the actual scaled values using data sources. Do not enable it on a multi-shard cluster. See [Multi-shard clusters and topology changes](../resources/advanced_cluster.md#multi-shard-clusters-and-topology-changes) for more details.
 
 ### Output Changes
 
