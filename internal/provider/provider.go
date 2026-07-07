@@ -362,6 +362,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		streaminstance.Resource,
 		streamworkspace.Resource,
 		streamconnection.Resource,
+		streamconnection.FailoverResource,
 		streamprocessor.Resource,
 		encryptionatrestprivateendpoint.Resource,
 		mongodbemployeeaccessgrant.Resource,
