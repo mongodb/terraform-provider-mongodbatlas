@@ -1,0 +1,23 @@
+---
+subcategory: "Streams"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a Stream Failover Connection resource. The resource lets you create, update, delete, and import a failover (regional-alternate) connection for an existing stream connection.
+
+A failover connection shares the primary connection's `connection_name` and is created for one of the workspace's failover regions (see the `failover_regions` argument of `mongodbatlas_stream_workspace`). It is uniquely identified by its region and its computed `id` (the failover connection id).
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+You can import a stream failover connection using the workspace name, project id, connection name, and failover connection id, in the format `WORKSPACE_NAME-PROJECT_ID-CONNECTION_NAME-FAILOVER_CONNECTION_ID`. For example:
+```
+$ terraform import mongodbatlas_stream_connection_failover.test "yourWorkspaceName-6117ac2fe2a3d04ed27a9871-KafkaConnection-671f9c2fe2a3d04ed27a9880"
+```
+
+For more information see: [MongoDB Atlas API - Streams Failover Connection](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-streams) Documentation.
