@@ -849,7 +849,7 @@ operations:
                 - DELETING
             target_states:
                 - DELETED
-            timeout_seconds: 300
+            timeout_seconds: 2400
             min_timeout_seconds: 10
             delay_seconds: 10
         http_method: DELETE
@@ -861,7 +861,7 @@ operations:
                 - PENDING
             target_states:
                 - READY
-            timeout_seconds: 300
+            timeout_seconds: 2400
             min_timeout_seconds: 10
             delay_seconds: 10
         http_method: POST
@@ -876,7 +876,7 @@ operations:
                 - PENDING
             target_states:
                 - READY
-            timeout_seconds: 300
+            timeout_seconds: 2400
             min_timeout_seconds: 10
             delay_seconds: 10
         http_method: PATCH

@@ -55,7 +55,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "POST",
 	}
-	timeout, localDiags := plan.Timeouts.Create(ctx, 300*time.Second)
+	timeout, localDiags := plan.Timeouts.Create(ctx, 2400*time.Second)
 	resp.Diagnostics.Append(localDiags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -121,7 +121,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
-	timeout, localDiags := plan.Timeouts.Update(ctx, 300*time.Second)
+	timeout, localDiags := plan.Timeouts.Update(ctx, 2400*time.Second)
 	resp.Diagnostics.Append(localDiags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -152,7 +152,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 	reqHandle := deleteRequest(r, r.Client, &state, &resp.Diagnostics)
-	timeout, diags := state.Timeouts.Delete(ctx, 300*time.Second)
+	timeout, diags := state.Timeouts.Delete(ctx, 2400*time.Second)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
