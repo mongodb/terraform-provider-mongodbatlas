@@ -96,23 +96,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Optional for type: AzureBlobStorage. Azure-specific configuration for the connection.",
 				CustomType:          customtypes.NewObjectType[TFAzureModel](ctx),
 				Attributes: map[string]schema.Attribute{
-					"links": schema.ListNestedAttribute{
-						Computed:            true,
-						MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-						CustomType:          customtypes.NewNestedListType[TFAzureLinksModel](ctx),
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"href": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
-								"rel": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
-							},
-						},
-					},
 					"region": schema.StringAttribute{
 						Optional:            true,
 						MarkdownDescription: "Azure region where the storage account is located.",
@@ -170,23 +153,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Optional for type: GCPPubSub. GCP-specific configuration for the connection.",
 				CustomType:          customtypes.NewObjectType[TFGcpModel](ctx),
 				Attributes: map[string]schema.Attribute{
-					"links": schema.ListNestedAttribute{
-						Computed:            true,
-						MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-						CustomType:          customtypes.NewNestedListType[TFGcpLinksModel](ctx),
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"href": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
-								"rel": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
-							},
-						},
-					},
 					"service_account_id": schema.StringAttribute{
 						Optional:            true,
 						MarkdownDescription: "Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to the GCP Pub/Sub resources.",
@@ -246,11 +212,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Required for type: SchemaRegistry. The Schema Registry provider.",
 			},
 			"public_private_networking": schema.SingleNestedAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Optional for type: AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC).",
 				CustomType:          customtypes.NewObjectType[TFPublicPrivateNetworkingModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"access": schema.SingleNestedAttribute{
+						Computed:            true,
 						Optional:            true,
 						MarkdownDescription: "Information about networking access.",
 						CustomType:          customtypes.NewObjectType[TFPublicPrivateNetworkingAccessModel](ctx),
@@ -259,43 +227,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								Optional:            true,
 								MarkdownDescription: "The ID of the Private Link connection. Required for `PRIVATE_LINK` type. For GCP connections using Private Service Connect (PSC), this is the PSC connection ID.",
 							},
-							"links": schema.ListNestedAttribute{
-								Computed:            true,
-								MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-								CustomType:          customtypes.NewNestedListType[TFPublicPrivateNetworkingAccessLinksModel](ctx),
-								NestedObject: schema.NestedAttributeObject{
-									Attributes: map[string]schema.Attribute{
-										"href": schema.StringAttribute{
-											Computed:            true,
-											MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-										},
-										"rel": schema.StringAttribute{
-											Computed:            true,
-											MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-										},
-									},
-								},
-							},
 							"type": schema.StringAttribute{
+								Computed:            true,
 								Optional:            true,
 								MarkdownDescription: "Selected networking type. Either `PUBLIC` or `PRIVATE_LINK`. Defaults to `PUBLIC`. For AWS, Azure, and GCP connections, use `PRIVATE_LINK` for AWS PrivateLink, Azure Private Link, or GCP Private Service Connect (PSC) respectively.",
-							},
-						},
-					},
-					"links": schema.ListNestedAttribute{
-						Computed:            true,
-						MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-						CustomType:          customtypes.NewNestedListType[TFPublicPrivateNetworkingLinksModel](ctx),
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"href": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
-								"rel": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
 							},
 						},
 					},
@@ -471,26 +406,16 @@ type TFAwsModel struct {
 	TestBucket types.String `tfsdk:"test_bucket"`
 }
 type TFAzureModel struct {
-	Links              customtypes.NestedListValue[TFAzureLinksModel] `tfsdk:"links" autogen:"omitjson"`
-	Region             types.String                                   `tfsdk:"region"`
-	ServicePrincipalId types.String                                   `tfsdk:"service_principal_id"`
-	StorageAccountName types.String                                   `tfsdk:"storage_account_name"`
-}
-type TFAzureLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
+	Region             types.String `tfsdk:"region"`
+	ServicePrincipalId types.String `tfsdk:"service_principal_id"`
+	StorageAccountName types.String `tfsdk:"storage_account_name"`
 }
 type TFDbRoleToExecuteModel struct {
 	Role types.String `tfsdk:"role"`
 	Type types.String `tfsdk:"type"`
 }
 type TFGcpModel struct {
-	Links            customtypes.NestedListValue[TFGcpLinksModel] `tfsdk:"links" autogen:"omitjson"`
-	ServiceAccountId types.String                                 `tfsdk:"service_account_id"`
-}
-type TFGcpLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
+	ServiceAccountId types.String `tfsdk:"service_account_id"`
 }
 type TFNetworkingModel struct {
 	Access customtypes.ObjectValue[TFNetworkingAccessModel] `tfsdk:"access"`
@@ -502,21 +427,11 @@ type TFNetworkingAccessModel struct {
 	Type         types.String `tfsdk:"type"`
 }
 type TFPublicPrivateNetworkingModel struct {
-	Access customtypes.ObjectValue[TFPublicPrivateNetworkingAccessModel]    `tfsdk:"access"`
-	Links  customtypes.NestedListValue[TFPublicPrivateNetworkingLinksModel] `tfsdk:"links" autogen:"omitjson"`
+	Access customtypes.ObjectValue[TFPublicPrivateNetworkingAccessModel] `tfsdk:"access"`
 }
 type TFPublicPrivateNetworkingAccessModel struct {
-	ConnectionId types.String                                                           `tfsdk:"connection_id"`
-	Links        customtypes.NestedListValue[TFPublicPrivateNetworkingAccessLinksModel] `tfsdk:"links" autogen:"omitjson"`
-	Type         types.String                                                           `tfsdk:"type"`
-}
-type TFPublicPrivateNetworkingAccessLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
-}
-type TFPublicPrivateNetworkingLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
+	ConnectionId types.String `tfsdk:"connection_id"`
+	Type         types.String `tfsdk:"type"`
 }
 type TFSchemaRegistryAuthenticationModel struct {
 	Password types.String `tfsdk:"password" autogen:"sensitive"`

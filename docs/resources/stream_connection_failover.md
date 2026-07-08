@@ -122,19 +122,6 @@ Optional:
 - `service_principal_id` (String) Unique ID of the Azure Service Principal that has access to the storage account.
 - `storage_account_name` (String) Name of the Azure Storage Account to connect to.
 
-Read-Only:
-
-- `links` (Attributes List) List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships. (see [below for nested schema](#nestedatt--azure--links))
-
-<a id="nestedatt--azure--links"></a>
-### Nested Schema for `azure.links`
-
-Read-Only:
-
-- `href` (String) Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
-- `rel` (String) Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
-
-
 
 <a id="nestedatt--db_role_to_execute"></a>
 ### Nested Schema for `db_role_to_execute`
@@ -151,19 +138,6 @@ Required:
 Optional:
 
 - `service_account_id` (String) Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to the GCP Pub/Sub resources.
-
-Read-Only:
-
-- `links` (Attributes List) List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships. (see [below for nested schema](#nestedatt--gcp--links))
-
-<a id="nestedatt--gcp--links"></a>
-### Nested Schema for `gcp.links`
-
-Read-Only:
-
-- `href` (String) Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
-- `rel` (String) Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
-
 
 
 <a id="nestedatt--networking"></a>
@@ -192,10 +166,6 @@ Optional:
 
 - `access` (Attributes) Information about networking access. (see [below for nested schema](#nestedatt--public_private_networking--access))
 
-Read-Only:
-
-- `links` (Attributes List) List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships. (see [below for nested schema](#nestedatt--public_private_networking--links))
-
 <a id="nestedatt--public_private_networking--access"></a>
 ### Nested Schema for `public_private_networking.access`
 
@@ -203,28 +173,6 @@ Optional:
 
 - `connection_id` (String) The ID of the Private Link connection. Required for `PRIVATE_LINK` type. For GCP connections using Private Service Connect (PSC), this is the PSC connection ID.
 - `type` (String) Selected networking type. Either `PUBLIC` or `PRIVATE_LINK`. Defaults to `PUBLIC`. For AWS, Azure, and GCP connections, use `PRIVATE_LINK` for AWS PrivateLink, Azure Private Link, or GCP Private Service Connect (PSC) respectively.
-
-Read-Only:
-
-- `links` (Attributes List) List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships. (see [below for nested schema](#nestedatt--public_private_networking--access--links))
-
-<a id="nestedatt--public_private_networking--access--links"></a>
-### Nested Schema for `public_private_networking.access.links`
-
-Read-Only:
-
-- `href` (String) Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
-- `rel` (String) Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
-
-
-
-<a id="nestedatt--public_private_networking--links"></a>
-### Nested Schema for `public_private_networking.links`
-
-Read-Only:
-
-- `href` (String) Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
-- `rel` (String) Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
 
 
 

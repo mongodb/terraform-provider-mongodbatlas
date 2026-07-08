@@ -910,6 +910,10 @@ resources:
           "networking.links",
           "networking.access.links",
           "security.links",
+          "azure.links",
+          "gcp.links",
+          "public_private_networking.links",
+          "public_private_networking.access.links",
           # The failover connection's own `name` equals the parent `connectionName` (a path param),
           # so it is redundant in the schema and would collide with connection_name.
           "name",
@@ -958,6 +962,19 @@ resources:
             optional: true
             computed: true
         networking.access.type:
+          computability:
+            optional: true
+            computed: true
+        # Azure/GCP connections: API returns a default (PUBLIC) even when not set; mirror networking.
+        public_private_networking:
+          computability:
+            optional: true
+            computed: true
+        public_private_networking.access:
+          computability:
+            optional: true
+            computed: true
+        public_private_networking.access.type:
           computability:
             optional: true
             computed: true
