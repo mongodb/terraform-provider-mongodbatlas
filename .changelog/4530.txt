@@ -1,0 +1,16 @@
+```release-note:enhancement
+resource/mongodbatlas_stream_workspace: Adds `failover_regions` attribute with write-once semantics and mutual exclusivity with `data_process_region` on updates
+```
+
+```release-note:enhancement
+resource/mongodbatlas_stream_processor: Adds optional `failover_enabled` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_processor: Adds `failover_enabled` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_processors: Adds `failover_enabled` attribute
+```
+
