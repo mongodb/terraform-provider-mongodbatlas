@@ -216,6 +216,10 @@ on:
         required: true
       gcp_service_account_email:
         required: true
+      mongodb_atlas_metric_integration_endpoint:
+        required: true
+      mongodb_atlas_metric_integration_api_key:
+        required: true
 
 env:
   TF_ACC: 1
@@ -295,7 +299,7 @@ jobs:
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-    - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d
+    - uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706
       id: filter
       if: ${{ inputs.test_group == ''  && env.mustTrigger == 'false' }}
       with:
@@ -323,6 +327,7 @@ jobs:
             - 'internal/serviceapi/resourcepolicyapi/*.go'
             - 'internal/serviceapi/streamconnectionapi/*.go'
             - 'internal/serviceapi/logintegration/*.go'
+            - 'internal/serviceapi/metricintegration/*.go'
           autogen_slow:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/clusterapi/*.go'
@@ -687,6 +692,8 @@ jobs:
           AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
           AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
           GCP_PROJECT_ID: ${{ secrets.gcp_project_id }}
+          MONGODB_ATLAS_METRIC_INTEGRATION_ENDPOINT: ${{ secrets.mongodb_atlas_metric_integration_endpoint }}
+          MONGODB_ATLAS_METRIC_INTEGRATION_API_KEY: ${{ secrets.mongodb_atlas_metric_integration_api_key }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
             ./internal/serviceapi/alertconfigurationapi
@@ -694,6 +701,7 @@ jobs:
             ./internal/serviceapi/customdbroleapi
             ./internal/serviceapi/databaseuserapi
             ./internal/serviceapi/logintegration
+            ./internal/serviceapi/metricintegration
             ./internal/serviceapi/maintenancewindowapi
             ./internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive
             ./internal/serviceapi/projectapi
