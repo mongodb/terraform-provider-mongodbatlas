@@ -229,7 +229,8 @@ func TestAccLogIntegration_basicDatadog(t *testing.T) {
 
 func TestAccLogIntegration_basicOTel(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
+		projectID = acc.ProjectIDExecution(t)
+		// Dummy endpoints that pass the API validity check.
 		endpoint0   = "https://192.0.2.1/v1/logs"
 		endpoint1   = "https://192.0.2.2/v1/logs"
 		headersHCL0 = `otel_supplied_headers = [{name = "header-0", value = "val-0"}]`
@@ -266,6 +267,7 @@ func TestAccLogIntegration_basicOTel(t *testing.T) {
 func TestAccLogIntegration_basicSplunk(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
+		// Dummy endpoints that pass the API validity check.
 		hecURL0   = "https://192.0.2.1:1234/v1/logs"
 		hecURL1   = "https://192.0.2.2:5678/v1/logs"
 		hecToken0 = "test-hec-token-0" //nolint:gosec // Test data
