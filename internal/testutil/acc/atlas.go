@@ -106,6 +106,33 @@ func createStreamInstance(tb testing.TB, projectID, name string) {
 	require.NoError(tb, err, "Stream instance creation failed: %s, err: %s", name, err)
 }
 
+// createStreamInstanceWithFailover creates a stream instance with failover regions enabled,
+// which is a prerequisite for creating failover connections.
+func createStreamInstanceWithFailover(tb testing.TB, projectID, name string) {
+	tb.Helper()
+	req := admin.StreamsTenant{
+		Name: new(name),
+		DataProcessRegion: &admin.StreamsDataProcessRegion{
+			Region:        "VIRGINIA_USA",
+			CloudProvider: constant.AWS,
+		},
+		FailoverRegions: &[]admin.StreamsDataProcessRegion{
+			{
+				Region:        "DUBLIN_IRL",
+				CloudProvider: constant.AWS,
+			},
+		},
+		StreamConfig: &admin.StreamConfig{
+			Tier: new("SP10"),
+		},
+		SampleConnections: &admin.StreamsSampleConnections{
+			Solar: new(true),
+		},
+	}
+	_, _, err := ConnV2().StreamsApi.CreateStreamWorkspace(tb.Context(), projectID, &req).Execute()
+	require.NoError(tb, err, "Stream instance with failover creation failed: %s, err: %s", name, err)
+}
+
 func projectIDLocal() string {
 	return os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 }

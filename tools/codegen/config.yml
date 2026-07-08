@@ -871,6 +871,97 @@ resources:
             optional: true
             computed: true
 
+  # Regional-alternate (failover) connection for an existing stream connection. Shares the primary
+  # connection's name; identified by its own failoverConnectionId + region. Same StreamsConnection
+  # body as stream_connection_api, under the nested /failoverConnections path.
+  stream_connection_failover:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections
+      method: POST
+      wait: &stream-connection-failover-create-wait
+        state_property: "state"
+        pending_states: ["PENDING"]
+        target_states: ["READY"]
+        timeout_seconds: 300
+        min_timeout_seconds: 10
+        delay_seconds: 10
+    update:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}
+      method: PATCH
+      wait: *stream-connection-failover-create-wait
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}
+      method: DELETE
+      wait:
+        <<: *stream-connection-failover-create-wait
+        pending_states: ["READY", "PENDING", "DELETING"]
+        target_states: ["DELETED"]
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      ignores:
+        [
+          "links",
+          "authentication.links",
+          "aws.links",
+          "db_role_to_execute.links",
+          "networking.links",
+          "networking.access.links",
+          "security.links",
+          # The failover connection's own `name` equals the parent `connectionName` (a path param),
+          # so it is redundant in the schema and would collide with connection_name.
+          "name",
+        ]
+      aliases:
+        id: failoverConnectionId
+        groupId: projectId
+        tenantName: workspaceName
+        clusterGroupId: clusterProjectId
+        provider: schemaRegistryProvider
+      overrides:
+        project_id:
+          description: *project_id_description
+        connection_name:
+          computability:
+            required: true
+        region:
+          computability:
+            required: true
+        type:
+          computability:
+            required: true
+        db_role_to_execute.role:
+          computability:
+            required: true
+        db_role_to_execute.type:
+          computability:
+            required: true
+        aws.role_arn:
+          computability:
+            required: true
+        schema_registry_authentication.password:
+          sensitive: true
+        authentication.ssl_key_password:
+          sensitive: true
+        schema_registry_urls:
+          type: list
+        # API returns a default networking (PUBLIC) even when not set in config; must be
+        # optional+computed to avoid null->value drift. Child attributes follow the parent.
+        networking:
+          computability:
+            optional: true
+            computed: true
+        networking.access:
+          computability:
+            optional: true
+            computed: true
+        networking.access.type:
+          computability:
+            optional: true
+            computed: true
+
   alert_configuration_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}

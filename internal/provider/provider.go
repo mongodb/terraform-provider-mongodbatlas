@@ -60,6 +60,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccount"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccountprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccountsecret"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/streamconnectionfailover"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -362,6 +363,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		streaminstance.Resource,
 		streamworkspace.Resource,
 		streamconnection.Resource,
+		streamconnectionfailover.Resource,
 		streamprocessor.Resource,
 		encryptionatrestprivateendpoint.Resource,
 		mongodbemployeeaccessgrant.Resource,
