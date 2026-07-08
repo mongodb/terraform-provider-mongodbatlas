@@ -237,7 +237,7 @@ To avoid this, always upgrade through the module version that contains the `move
 
 1. Replication Spec Configuration: Supports different node types (electable, analytics, read_only) where hardware configuration can differ between node types. `regions_config` is renamed to `region_configs`.
 2. Provider Settings: Moved from the top level to the replication spec allowing you to create multi-cloud clusters.
-3. Auto Scaling: Moved from the top level to the replication spec allowing you to scale replication specs individually. Additionally, `mongodbatlas_advanced_cluster` supports `use_effective_fields` to simplify auto-scaling workflows for dedicated clusters with one `replication_specs` entry. See [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields) for details.
+3. Auto Scaling: Moved from the top level to the replication spec allowing you to scale replication specs individually. Additionally, `mongodbatlas_advanced_cluster` supports `use_effective_fields` to simplify auto-scaling workflows for dedicated clusters with one `replication_specs` entry, including replica set clusters and sharded or global clusters with one shard. See [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields) for details.
 4. Backup Configuration: Renamed from `cloud_backup` to `backup_enabled`.
 5. See the [Migration Guide: Advanced Cluster New Sharding Configurations](advanced-cluster-new-sharding-schema#migrate-advanced_cluster-type-sharded) for changes to `num_shards` and the new `zone_id`.
 
@@ -303,7 +303,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 }
 ```
 
--> **NOTE:** If you enable compute auto-scaling (`auto_scaling.compute_enabled` or `analytics_auto_scaling.compute_enabled`) on a dedicated cluster with exactly one `replication_specs` entry, consider using `use_effective_fields = true` to avoid needing `lifecycle.ignore_changes` blocks. This allows you to read the actual scaled values using data sources. `use_effective_fields` is not currently supported for multi-shard clusters. MongoDB is working to remove this limitation. For significant production topology changes on multi-shard clusters, contact MongoDB Support to review the safest path before applying the change. See [Multi-shard clusters and topology changes](../resources/advanced_cluster.md#multi-shard-clusters-and-topology-changes) for more details.
+-> **NOTE:** If you enable compute auto-scaling (`auto_scaling.compute_enabled` or `analytics_auto_scaling.compute_enabled`) on a dedicated cluster with exactly one `replication_specs` entry, including replica set clusters and sharded or global clusters with one shard, consider using `use_effective_fields = true` to avoid needing `lifecycle.ignore_changes` blocks. This allows you to read the actual scaled values using data sources. `use_effective_fields` is not currently supported for multi-shard clusters. MongoDB is working to remove this limitation. For significant production topology changes on multi-shard clusters, contact MongoDB Support to review the safest path before applying the change. See [Multi-shard clusters and topology changes](../resources/advanced_cluster.md#multi-shard-clusters-and-topology-changes) for more details.
 
 ### Output Changes
 

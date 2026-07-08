@@ -367,7 +367,7 @@ As of version 1.23.0, enabled `compute` auto-scaling (either `auto_scaling` or `
 
 `use_effective_fields` is not currently supported for multi-shard clusters (more than one `replication_specs` entry). Atlas-managed size values might not stay associated with the intended shard during every update. MongoDB is working to remove this limitation.
 
-For single-shard dedicated clusters, `use_effective_fields = true` remains the recommended approach for managing auto-scaling without `lifecycle.ignore_changes` blocks. To learn more, see [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields).
+For dedicated clusters with exactly one `replication_specs` entry, including replica set clusters and sharded or global clusters with one shard, `use_effective_fields = true` remains the recommended approach for managing auto-scaling without `lifecycle.ignore_changes` blocks. To learn more, see [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields).
 
 For multi-shard clusters, do not rely on `use_effective_fields` to preserve Atlas-managed `instance_size`, `disk_size_gb`, or `disk_iops` values. Use extra care with changes that add, remove, reorder, move, or replace shards, especially when a previous topology change is still in progress or when config server placement is involved. For significant production topology changes, contact MongoDB Support to review the safest path before applying the change. See [Multi-shard clusters and topology changes](../resources/advanced_cluster.md#multi-shard-clusters-and-topology-changes).
 
