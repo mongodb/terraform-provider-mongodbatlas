@@ -3,6 +3,7 @@ package streamworkspace
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -38,6 +39,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+			"failover_regions": schema.ListNestedAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.List{
+					FailoverRegionsWriteOnce{},
+				},
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"cloud_provider": schema.StringAttribute{
+							Required: true,
+						},
+						"region": schema.StringAttribute{
+							Required: true,
+						},
+					},
+				},
+			},
 			"hostnames": schema.ListAttribute{
 				ElementType: types.StringType,
 				Computed:    true,
@@ -65,9 +83,15 @@ type TFModel struct {
 	WorkspaceName     types.String `tfsdk:"workspace_name"` // Only difference from TFStreamInstanceModel
 	ProjectID         types.String `tfsdk:"project_id"`
 	DataProcessRegion types.Object `tfsdk:"data_process_region"`
+	FailoverRegions   types.List   `tfsdk:"failover_regions"`
 	StreamConfig      types.Object `tfsdk:"stream_config"`
 	Hostnames         types.List   `tfsdk:"hostnames"`
 }
+
+var failoverRegionObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"cloud_provider": types.StringType,
+	"region":         types.StringType,
+}}
 
 type TFWorkspaceProcessRegionSpecModel struct {
 	CloudProvider types.String `tfsdk:"cloud_provider"`
