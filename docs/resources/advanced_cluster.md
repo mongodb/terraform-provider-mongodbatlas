@@ -961,7 +961,7 @@ For a cluster with more than one replication spec:
 - Do not assume that deleting the last Terraform `replication_specs` entry is safe. The Atlas shard order used during an update can differ from the Terraform list order.
 - The Atlas UI and Atlas Administration API can apply different guardrails for topology changes, so do not assume that an operation available in one interface is safe to apply through Terraform.
 
-MongoDB is working to remove these limitations. Until then, do not perform a Terraform shard topology change while relying on `use_effective_fields` or index-based lifecycle ignores. MongoDB does not currently provide a general Terraform procedure for shard removal in multi-shard clusters. For significant production topology changes on multi-shard clusters, contact MongoDB Support to review the safest path before applying the change.
+MongoDB is working to remove these limitations. Until then, use extra care with any Terraform shard topology change on a multi-shard cluster, especially when the cluster uses `use_effective_fields`, index-based lifecycle ignores, or different hardware settings across shards. MongoDB does not currently provide a general Terraform procedure for shard removal in multi-shard clusters. For significant production topology changes on multi-shard clusters, contact [MongoDB Support](https://www.mongodb.com/docs/atlas/support/#request-support) to review the safest path before applying the change.
 
 ## Auto-Scaling with Effective Fields
 
