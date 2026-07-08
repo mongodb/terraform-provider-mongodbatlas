@@ -958,7 +958,7 @@ For a cluster with more than one replication spec:
 - Topology changes need extra care when they remove or reorder shards, add a new shard before existing shards, change zone layout, replace a shard while another shard is still being removed, or change config server placement. Recently completed topology changes can also affect later changes.
 - The Atlas UI and Atlas Administration API can apply different guardrails for topology changes, so do not assume that an operation available in one interface is safe to apply through Terraform.
 
-MongoDB is working to remove these limitations. Until then, do not perform a Terraform shard topology change while relying on `use_effective_fields` or index-based lifecycle ignores. For significant production topology changes on multi-shard clusters, contact MongoDB Support to review the safest path before applying the change.
+MongoDB is working to remove these limitations. Until then, do not perform a Terraform shard topology change while relying on `use_effective_fields` or index-based lifecycle ignores. MongoDB does not currently provide a general Terraform procedure for shard removal in multi-shard clusters that rely on `use_effective_fields` or index-based lifecycle ignores. For significant production topology changes on multi-shard clusters, contact MongoDB Support to review the safest path before applying the change.
 
 ## Auto-Scaling with Effective Fields
 
