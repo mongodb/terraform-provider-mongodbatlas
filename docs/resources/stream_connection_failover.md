@@ -13,25 +13,69 @@
 
 ### Optional
 
-- `authentication` (Attributes) Optional for type: Kafka. User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode. (see [below for nested schema](#nestedatt--authentication))
-- `aws` (Attributes) Optional for type: AWSKinesisDataStreams, AWSLambda, S3. AWS configurations for AWS-based connection types. (see [below for nested schema](#nestedatt--aws))
-- `azure` (Attributes) Optional for type: AzureBlobStorage. Azure-specific configuration for the connection. (see [below for nested schema](#nestedatt--azure))
-- `bootstrap_servers` (String) Optional for type: Kafka. Comma separated list of server addresses.
-- `cluster_name` (String) Optional for type: Cluster. Name of the cluster configured for this connection.
-- `cluster_project_id` (String) Optional for type: Cluster. Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.
-- `config` (Map of String) Optional for type: Kafka. A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
-- `db_role_to_execute` (Attributes) Optional for type: Cluster. The name of a Built in or Custom DB Role to connect to an Atlas Cluster. (see [below for nested schema](#nestedatt--db_role_to_execute))
 - `delete_on_create_timeout` (Boolean) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
-- `gcp` (Attributes) Optional for type: GCPPubSub. GCP-specific configuration for the connection. (see [below for nested schema](#nestedatt--gcp))
-- `headers` (Map of String) Optional for type: Https. A map of key-value pairs that will be passed as headers for the request.
-- `networking` (Attributes) Optional for type: AWSKinesisDataStreams, Kafka, S3. Networking configuration for Streams connections. (see [below for nested schema](#nestedatt--networking))
-- `public_private_networking` (Attributes) Optional for type: AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC). (see [below for nested schema](#nestedatt--public_private_networking))
-- `schema_registry_authentication` (Attributes) Required for type: SchemaRegistry. Authentication configuration for Schema Registry. (see [below for nested schema](#nestedatt--schema_registry_authentication))
-- `schema_registry_provider` (String) Required for type: SchemaRegistry. The Schema Registry provider.
-- `schema_registry_urls` (List of String) Required for type: SchemaRegistry. List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
-- `security` (Attributes) Optional for type: Kafka. Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. (see [below for nested schema](#nestedatt--security))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
-- `url` (String) Optional for type: Https. The URL to be used for the request.
+
+<!-- polymorphic attributes restructured by docpostprocess -->
+The following attributes depend on the value of `type`:
+
+#### `AWSKinesisDataStreams`
+
+Optional:
+- `aws` (Attributes) AWS configurations for AWS-based connection types. (see [below for nested schema](#nestedatt--aws))
+- `networking` (Attributes) Networking configuration for Streams connections. (see [below for nested schema](#nestedatt--networking))
+
+#### `AWSLambda`
+
+Optional:
+- `aws` (Attributes) AWS configurations for AWS-based connection types. (see [below for nested schema](#nestedatt--aws))
+
+#### `AzureBlobStorage`
+
+Optional:
+- `azure` (Attributes) Azure-specific configuration for the connection. (see [below for nested schema](#nestedatt--azure))
+- `public_private_networking` (Attributes) Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC). (see [below for nested schema](#nestedatt--public_private_networking))
+
+#### `Cluster`
+
+Optional:
+- `cluster_name` (String) Name of the cluster configured for this connection.
+- `cluster_project_id` (String) Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.
+- `db_role_to_execute` (Attributes) The name of a Built in or Custom DB Role to connect to an Atlas Cluster. (see [below for nested schema](#nestedatt--db_role_to_execute))
+
+#### `GCPPubSub`
+
+Optional:
+- `gcp` (Attributes) GCP-specific configuration for the connection. (see [below for nested schema](#nestedatt--gcp))
+- `public_private_networking` (Attributes) Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC). (see [below for nested schema](#nestedatt--public_private_networking))
+
+#### `Https`
+
+Optional:
+- `headers` (Map of String) A map of key-value pairs that will be passed as headers for the request.
+- `url` (String) The URL to be used for the request.
+
+#### `Kafka`
+
+Optional:
+- `authentication` (Attributes) User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode. (see [below for nested schema](#nestedatt--authentication))
+- `bootstrap_servers` (String) Comma separated list of server addresses.
+- `config` (Map of String) A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
+- `networking` (Attributes) Networking configuration for Streams connections. (see [below for nested schema](#nestedatt--networking))
+- `security` (Attributes) Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. (see [below for nested schema](#nestedatt--security))
+
+#### `S3`
+
+Optional:
+- `aws` (Attributes) AWS configurations for AWS-based connection types. (see [below for nested schema](#nestedatt--aws))
+- `networking` (Attributes) Networking configuration for Streams connections. (see [below for nested schema](#nestedatt--networking))
+
+#### `SchemaRegistry`
+
+Required:
+- `schema_registry_authentication` (Attributes) Authentication configuration for Schema Registry. (see [below for nested schema](#nestedatt--schema_registry_authentication))
+- `schema_registry_provider` (String) The Schema Registry provider.
+- `schema_registry_urls` (List of String) List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
 
 ### Read-Only
 
@@ -191,10 +235,14 @@ Required:
 
 - `type` (String) Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry.
 
-Optional:
+<!-- polymorphic attributes restructured by docpostprocess -->
+The following attributes depend on the value of `type`:
 
-- `password` (String, Sensitive) Required for type: USER_INFO. Password or Private Key for authentication.
-- `username` (String) Required for type: USER_INFO. Username or Public Key for authentication.
+#### `USER_INFO`
+
+Required:
+- `password` (String, Sensitive) Password or Private Key for authentication.
+- `username` (String) Username or Public Key for authentication.
 
 
 <a id="nestedatt--security"></a>
