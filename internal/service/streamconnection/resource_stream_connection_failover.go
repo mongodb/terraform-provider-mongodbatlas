@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -206,6 +207,10 @@ func (r *streamConnectionFailoverRS) Schema(ctx context.Context, req resource.Sc
 			},
 			"networking": schema.SingleNestedAttribute{
 				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Object{
+					objectplanmodifier.UseStateForUnknown(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"access": schema.SingleNestedAttribute{
 						Required: true,
@@ -288,10 +293,19 @@ func (r *streamConnectionFailoverRS) Create(ctx context.Context, req resource.Cr
 		return
 	}
 
-	// Build state from the plan (source of truth for sensitive/config fields) and only inject the
-	// computed failover connection id from the create response, which can be sparse.
-	plan.ID = types.StringPointerValue(created.Id)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	// Read back via the by-id endpoint so computed fields (e.g. networking) reflect the server, while
+	// the plan preserves sensitive fields (passwords) the API never returns.
+	apiResp, _, err := connV2.StreamsApi.GetStreamFailoverConnection(ctx, plan.ProjectID.ValueString(), workspaceName, plan.ConnectionName.ValueString(), created.GetId()).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError("error reading failover connection after create", err.Error())
+		return
+	}
+	newModel, diags := newTFStreamConnectionFailover(ctx, &plan, apiResp)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, newModel)...)
 }
 
 func (r *streamConnectionFailoverRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -356,9 +370,18 @@ func (r *streamConnectionFailoverRS) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	// Preserve the existing id and build state from the plan (see Create).
-	plan.ID = state.ID
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	// Read back via the by-id endpoint so computed fields reflect the server (see Create).
+	apiResp, _, err := connV2.StreamsApi.GetStreamFailoverConnection(ctx, plan.ProjectID.ValueString(), workspaceName, plan.ConnectionName.ValueString(), state.ID.ValueString()).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError("error reading failover connection after update", err.Error())
+		return
+	}
+	newModel, diags := newTFStreamConnectionFailover(ctx, &plan, apiResp)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, newModel)...)
 }
 
 func (r *streamConnectionFailoverRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
