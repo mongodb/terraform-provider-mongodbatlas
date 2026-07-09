@@ -317,6 +317,7 @@ jobs:
             - 'internal/serviceapi/customdbroleapi/*.go'
             - 'internal/serviceapi/databaseuserapi/*.go'
             - 'internal/serviceapi/maintenancewindowapi/*.go'
+            - 'internal/serviceapi/orgmaintenancesettings/*.go'
             - 'internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive/*.go'
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/projectsettingsapi/*.go'
@@ -695,6 +696,7 @@ jobs:
             ./internal/serviceapi/databaseuserapi
             ./internal/serviceapi/logintegration
             ./internal/serviceapi/maintenancewindowapi
+            ./internal/serviceapi/orgmaintenancesettings
             ./internal/serviceapi/privatelinkendpointservicedatafederationonlinearchive
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/projectsettingsapi
