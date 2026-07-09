@@ -142,6 +142,7 @@ role or Project Stream Processing Owner role. (see [below for nested schema](#ne
 
 Read-Only:
 
+- `failover_enabled` (Boolean) Indicates whether this stream processor is eligible for failover. When `true`, an operator can trigger a failover event to migrate the stream processor to a secondary region configured in the workspace's `failover_regions`. Requires an Atlas-to-Atlas or Atlas-to-Kafka pipeline with `failover_regions` configured on the workspace.
 - `id` (String) Unique 24-hexadecimal character string that identifies the stream processor.
 - `instance_name` (String, Deprecated) Label that identifies the stream processing workspace.
 - `options` (Attributes) Optional configuration for the stream processor. (see [below for nested schema](#nestedatt--results--options))

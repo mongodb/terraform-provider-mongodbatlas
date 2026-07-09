@@ -1,22 +1,15 @@
 no_progress = true
+max_retries = 5
 
 # Skip immutable historical records: released changelog and dated compliance docs.
-exclude_path = ["CHANGELOG.md", "compliance"]
+exclude_path = ["CHANGELOG.md", ".changelog", "compliance"]
 
-# Known false positives: auth-gated endpoints, literal placeholders, and a third-party site.
-# TODO: CLOUDP-381694 Remove the three entries below once the docs team provides replacement URLs:
-#   - create-global-writes-cluster: BI Connector read-preferences table moved
-#   - data-federation/config/config-oa: databases/stores section moved
-#   - backup/cloud-backup/shared-cluster-backup: shared-tier backup page removed (replaced by Flex)
+# Known false positives: auth-gated endpoints and literal placeholders.
 exclude = [
   'cloud.mongodb.com/api',
   'support.snyk.io',
   'sts.windows.net',
   'token.actions.githubusercontent.com',
-  'epoch101.com',
-  'docs/atlas/tutorial/create-global-writes-cluster',
-  'docs/atlas/data-federation/config/config-oa',
-  'docs/atlas/backup/cloud-backup/shared-cluster-backup',
 ]
 
 # Terraform Registry renders intra-doc links under docs/ without the .md extension

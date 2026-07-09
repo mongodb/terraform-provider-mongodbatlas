@@ -21,8 +21,27 @@ resource "mongodbatlas_stream_workspace" "test" {
 }
 ```
 
+### With Failover Regions
+
+```terraform
+resource "mongodbatlas_stream_workspace" "test" {
+    project_id = var.project_id
+    workspace_name = "WorkspaceName"
+    data_process_region = {
+        region         = "VIRGINIA_USA"
+        cloud_provider = "AWS"
+    }
+    failover_regions = [
+        {
+            cloud_provider = "AWS"
+            region         = "OREGON_USA"
+        }
+    ]
+}
+```
+
 ### Further Examples
-- [Atlas Stream Workspace](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_stream_workspace)
+- [Atlas Stream Workspace](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_stream_workspace)
 
 ## Migration from stream_instance
 
@@ -49,7 +68,10 @@ resource "mongodbatlas_stream_workspace" "example" {
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 * `workspace_name` - (Required) Label that identifies the stream workspace.
 * `data_process_region` - (Required) Cloud service provider and region where MongoDB Cloud performs stream processing. See [data process region](#data-process-region).
-* `stream_config` - (Optional) Configuration options for an Atlas Stream Processing Instance. See [stream config](#stream-config)
+* `stream_config` - (Optional) Configuration options for an Atlas Stream Processing Instance. See [stream config](#stream-config).
+* `failover_regions` - (Optional) List of cloud provider regions to which the workspace can fail over if the primary region becomes unavailable. See [failover regions](#failover-regions).
+  **Write-once:** once set, `failover_regions` cannot be changed in-place — any modification forces the workspace to be destroyed and recreated.
+  **Mutually exclusive with `data_process_region` updates:** `failover_regions` and `data_process_region` cannot both be changed in the same apply. Apply each change in a separate operation.
 
 
 ### Data Process Region
@@ -62,12 +84,18 @@ resource "mongodbatlas_stream_workspace" "example" {
 * `max_tier_size` - (Optional) Max tier size for the Stream Workspace. Configures Memory / VCPU allowances.
 * `tier` - (Optional) Selected tier for the Stream Workspace. Configures Memory / VCPU allowances. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/creategroupstreamworkspace) describes the valid values.
 
+### Failover Regions
+
+* `cloud_provider` - (Required) Cloud service provider for the failover region. Must match the primary region's cloud provider.
+* `region` - (Required) Name of the failover cloud provider region.
+
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `hostnames` - List that contains the hostnames assigned to the stream workspace.
+* `failover_regions` - List of failover regions configured for the workspace. Populated from the API response after create.
 
 ## Import
 

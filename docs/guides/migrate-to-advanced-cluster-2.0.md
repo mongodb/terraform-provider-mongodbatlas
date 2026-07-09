@@ -22,9 +22,9 @@ page_title: "Migration Guide: Moving to Advanced Cluster v2.0.0"
 | &nbsp; | &nbsp; | &nbsp; |
 | [1(b)](#case-1b-currently-using-mongodbatlas_advanced_cluster-without-num_shards--one-replication_specs-per-shard--older-blocks-syntax) | ..without `num_shards` and one `replication_specs` per shard | You are using the [older blocks syntax](#attribute-vs-block-syntax) and the [**new** independent shard scaling](./advanced-cluster-new-sharding-schema.md) configuration. |
 | &nbsp; | &nbsp; | &nbsp; |
-| [2(a)](#case-2a-currently-using-mongodbatlas_advanced_cluster-preview-for-v200-using-environment-flag-with-num_shards) | ..[**preview for v2.0.0**](https://registry.terraform.io/providers/mongodb/mongodbatlas/1.41.1/docs/resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529) (using environment flag) with `num_shards` | You are using the [new attributes syntax](#attribute-vs-block-syntax) and legacy sharding configuration. |
+| [2(a)](#case-2a-currently-using-mongodbatlas_advanced_cluster-preview-for-v200-using-environment-flag-with-num_shards) | ..[**preview for v2.0.0**](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) (using environment flag) with `num_shards` | You are using the [new attributes syntax](#attribute-vs-block-syntax) and legacy sharding configuration. |
 | &nbsp; | &nbsp; | &nbsp; |
-| [2(b)](#case-2b-currently-using-mongodbatlas_advanced_cluster-preview-for-v200-using-environment-flag-without-num_shards) | ..[**preview for v2.0.0**](https://registry.terraform.io/providers/mongodb/mongodbatlas/1.41.1/docs/resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529) (using environment flag) without `num_shards` and one `replication_specs` per shard | You are using the [new attributes syntax](#attribute-vs-block-syntax) and the [**new** independent shard scaling](./advanced-cluster-new-sharding-schema.md) configuration. |
+| [2(b)](#case-2b-currently-using-mongodbatlas_advanced_cluster-preview-for-v200-using-environment-flag-without-num_shards) | ..[**preview for v2.0.0**](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) (using environment flag) without `num_shards` and one `replication_specs` per shard | You are using the [new attributes syntax](#attribute-vs-block-syntax) and the [**new** independent shard scaling](./advanced-cluster-new-sharding-schema.md) configuration. |
 | &nbsp; | &nbsp; | &nbsp; |
 
 
@@ -119,7 +119,7 @@ This may include:
 
 - **Step #3:** Even though there are no plan changes shown at this point, run `terraform apply`. This will update the `mongodbatlas_advanced_cluster` state to support the new schema.
 
-### Example for migrating a `SHARDED` cluster using `num_shards` (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster/v1.x.x/README.md)):
+### Example for migrating a `SHARDED` cluster using `num_shards` (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster/v1.x.x/README.md)):
 - Before:
 ```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
@@ -202,7 +202,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 ```
 
 
-### Example for migrating a `REPLICASET` cluster using `num_shards = 1` (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_advanced_cluster/replicaset/v1.x.x/README.md)):
+### Example for migrating a `REPLICASET` cluster using `num_shards = 1` (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/replicaset/v1.x.x/README.md)):
 - Before:
 ```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
@@ -405,7 +405,7 @@ At this point, you need to update the configuration by following all of below st
 
 - **Step #3:** Even though there are no plan changes shown at this point, run `terraform apply`. This will update the `mongodbatlas_advanced_cluster` state to support the new schema.
 
-### Example for migrating a `SHARDED` cluster using new sharding configuration (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster/main.tf)):
+### Example for migrating a `SHARDED` cluster using new sharding configuration (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster/main.tf)):
 - Before:
 ```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {

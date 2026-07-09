@@ -32,7 +32,7 @@ output "alert_output" {
 ```
 
 Refer to the following for a full example on using this data_source as a tool to import all resources:
-* [atlas-alert-configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/atlas-alert-configurations)
+* [mongodbatlas_alert_configuration](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_alert_configuration)
 
 ## Argument Reference
 

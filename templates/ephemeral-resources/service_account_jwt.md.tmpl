@@ -39,7 +39,7 @@ ephemeral "mongodbatlas_service_account_jwt" "token" {
 }
 ```
 
-For complete end-to-end examples, see the [`examples/mongodbatlas_service_account_jwt/`](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.12.0/examples/mongodbatlas_service_account_jwt) directory.
+For complete end-to-end examples, see the [`examples/mongodbatlas_service_account_jwt/`](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_service_account_jwt) directory.
 
 ## Credential Resolution
 
