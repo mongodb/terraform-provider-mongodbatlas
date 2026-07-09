@@ -16,7 +16,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 		Attributes: map[string]dsschema.Attribute{
 			"integration_type": dsschema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Optional filter by integration type (e.g., `OTEL`). When specified, `provider_type` must also be specified.",
+				MarkdownDescription: "Type of metric integration. Identifies which protocol will be used for the integration.",
 			},
 			"project_id": dsschema.StringAttribute{
 				Required:            true,
@@ -24,7 +24,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"provider_type": dsschema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Optional filter by provider type (e.g., `CUSTOM`). When specified, `integration_type` must also be specified.",
+				MarkdownDescription: "The provider type for the metric integration. Identifies the third-party service provider.",
 			},
 			"results": dsschema.ListNestedAttribute{
 				Computed:            true,
@@ -60,11 +60,11 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 						},
 						"integration_type": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Optional filter by integration type (e.g., `OTEL`). When specified, `provider_type` must also be specified.",
+							MarkdownDescription: "Type of metric integration. Identifies which protocol will be used for the integration.",
 						},
 						"metric_integration_id": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Unique hexadecimal digit string that identifies the metric integration configuration.",
+							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the metric integration configuration.",
 						},
 						"metric_selection": dsschema.SetAttribute{
 							Computed:            true,
@@ -74,7 +74,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 						},
 						"provider_type": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Optional filter by provider type (e.g., `CUSTOM`). When specified, `integration_type` must also be specified.",
+							MarkdownDescription: "The provider type for the metric integration. Identifies the third-party service provider.",
 						},
 					},
 				},

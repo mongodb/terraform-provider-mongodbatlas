@@ -46,7 +46,7 @@ data "mongodbatlas_metric_integrations" "example" {
 
 ### Required
 
-- `metric_integration_id` (String) Unique identifier of the metric integration configuration.
+- `metric_integration_id` (String) Unique 24-hexadecimal digit string that identifies the metric integration configuration.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Read-Only
@@ -54,9 +54,9 @@ data "mongodbatlas_metric_integrations" "example" {
 - `aggregation_temporality` (String) The temporality to send to the metric integration.
 - `endpoint` (String) OpenTelemetry collector endpoint URL.
 - `headers` (Attributes List) HTTP headers for authentication and configuration. Header values are redacted in responses. (see [below for nested schema](#nestedatt--headers))
-- `integration_type` (String) Optional filter by integration type (e.g., `OTEL`). When specified, `provider_type` must also be specified.
+- `integration_type` (String) Type of metric integration. Identifies which protocol will be used for the integration.
 - `metric_selection` (Set of String) Array of metric categories to export. Determines which types of metrics are sent to the integration.
-- `provider_type` (String) Optional filter by provider type (e.g., `CUSTOM`). When specified, `integration_type` must also be specified.
+- `provider_type` (String) The provider type for the metric integration. Identifies the third-party service provider.
 
 <a id="nestedatt--headers"></a>
 ### Nested Schema for `headers`

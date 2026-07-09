@@ -4,7 +4,7 @@ subcategory: "Metric Integration"
 
 # Resource: mongodbatlas_metric_integration
 
-`mongodbatlas_metric_integration` provides a resource for managing OTel Metrics Sink integrations at the project level. This resource allows you to push Atlas metrics to any OTLP-compatible endpoint such as Datadog, New Relic, or Dynatrace.
+`mongodbatlas_metric_integration` provides a resource for managing OpenTelemetry metric integrations at the project level. This resource allows you to push Atlas metrics to any OTLP-compatible endpoint such as Datadog, New Relic, or Dynatrace.
 
 To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
 
@@ -58,7 +58,7 @@ data "mongodbatlas_metric_integrations" "example" {
 
 ### Read-Only
 
-- `metric_integration_id` (String) Unique hexadecimal digit string that identifies the metric integration configuration.
+- `metric_integration_id` (String) Unique 24-hexadecimal digit string that identifies the metric integration configuration.
 
 <a id="nestedatt--headers"></a>
 ### Nested Schema for `headers`

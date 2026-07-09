@@ -8,6 +8,8 @@ subcategory: "Metric Integration"
 
 To use this data source, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
 
+~> **Note:** `integration_type` and `provider_type` are optional filters that must be specified together. If one is set, the other must also be set.
+
 ## Example Usage
 
 ```terraform
@@ -50,8 +52,8 @@ data "mongodbatlas_metric_integrations" "example" {
 
 ### Optional
 
-- `integration_type` (String) Optional filter by integration type (e.g., `OTEL`). When specified, `provider_type` must also be specified.
-- `provider_type` (String) Optional filter by provider type (e.g., `CUSTOM`). When specified, `integration_type` must also be specified.
+- `integration_type` (String) Type of metric integration. Identifies which protocol will be used for the integration.
+- `provider_type` (String) The provider type for the metric integration. Identifies the third-party service provider.
 
 ### Read-Only
 
@@ -65,10 +67,10 @@ Read-Only:
 - `aggregation_temporality` (String) The temporality to send to the metric integration.
 - `endpoint` (String) OpenTelemetry collector endpoint URL.
 - `headers` (Attributes List) HTTP headers for authentication and configuration. Header values are redacted in responses. (see [below for nested schema](#nestedatt--results--headers))
-- `integration_type` (String) Optional filter by integration type (e.g., `OTEL`). When specified, `provider_type` must also be specified.
-- `metric_integration_id` (String) Unique hexadecimal digit string that identifies the metric integration configuration.
+- `integration_type` (String) Type of metric integration. Identifies which protocol will be used for the integration.
+- `metric_integration_id` (String) Unique 24-hexadecimal digit string that identifies the metric integration configuration.
 - `metric_selection` (Set of String) Array of metric categories to export. Determines which types of metrics are sent to the integration.
-- `provider_type` (String) Optional filter by provider type (e.g., `CUSTOM`). When specified, `integration_type` must also be specified.
+- `provider_type` (String) The provider type for the metric integration. Identifies the third-party service provider.
 
 <a id="nestedatt--results--headers"></a>
 ### Nested Schema for `results.headers`
