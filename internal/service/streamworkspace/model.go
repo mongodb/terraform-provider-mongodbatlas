@@ -71,8 +71,6 @@ func newStreamWorkspaceUpdateReq(ctx context.Context, plan, state *TFModel) (*ad
 		}
 		updateReq.CloudProvider = dataProcessRegion.CloudProvider.ValueStringPointer()
 		updateReq.Region = dataProcessRegion.Region.ValueStringPointer()
-		// stream_config must be sent on update, otherwise in-place changes to tier /
-		// max_tier_size are dropped and the read-back mismatches the plan.
 		if !plan.StreamConfig.IsNull() && !plan.StreamConfig.IsUnknown() {
 			streamConfig := new(TFWorkspaceStreamConfigModel)
 			if diags := plan.StreamConfig.As(ctx, streamConfig, basetypes.ObjectAsOptions{}); diags.HasError() {
