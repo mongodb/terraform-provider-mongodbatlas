@@ -72,7 +72,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		Wait: &autogen.WaitReq{
 			StateProperty:     "state",
-			PendingStates:     []string{"PENDING"},
+			PendingStates:     []string{"PENDING", "DELETED"},
 			TargetStates:      []string{"READY"},
 			Timeout:           timeout,
 			MinTimeoutSeconds: 10,

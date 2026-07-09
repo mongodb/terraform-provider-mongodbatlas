@@ -859,6 +859,7 @@ operations:
             state_property: state
             pending_states:
                 - PENDING
+                - DELETED
             target_states:
                 - READY
             timeout_seconds: 2400

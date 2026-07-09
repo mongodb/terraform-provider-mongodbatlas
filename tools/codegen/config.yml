@@ -883,7 +883,9 @@ resources:
       method: POST
       wait: &stream-connection-failover-create-wait
         state_property: "state"
-        pending_states: ["PENDING"]
+        # DELETED (the 404 sentinel) is a pending state on create: the Streams GET is eventually
+        # consistent and may briefly 404 after creation before the connection becomes visible.
+        pending_states: ["PENDING", "DELETED"]
         target_states: ["READY"]
         # PrivateLink failover connections can take many minutes to reach READY (endpoint
         # provisioning), so match the curated stream connection's 40m default.
@@ -893,7 +895,10 @@ resources:
     update:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}
       method: PATCH
-      wait: *stream-connection-failover-create-wait
+      wait:
+        <<: *stream-connection-failover-create-wait
+        # On update the connection already exists, so a 404 is unexpected (not a pending state).
+        pending_states: ["PENDING"]
     delete:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}
       method: DELETE
