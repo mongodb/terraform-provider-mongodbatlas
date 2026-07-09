@@ -1365,7 +1365,6 @@ resources:
           description: *project_id_description
         metric_integration_id:
           immutable_computed: true
-          description: "Unique 24-hexadecimal digit string that identifies the metric integration configuration."
         headers.value:
           sensitive: true
     datasources:
@@ -1384,15 +1383,3 @@ resources:
             description: *project_id_description
           headers.value:
             sensitive: true
-          integration_type:
-            description: "Type of metric integration. Identifies which protocol will be used for the integration."
-          provider_type:
-            description: "The provider type for the metric integration. Identifies the third-party service provider."
-          metric_integration_id:
-            description: "Unique 24-hexadecimal digit string that identifies the metric integration configuration."
-          results.integration_type:
-            description: "Type of metric integration. Identifies which protocol will be used for the integration."
-          results.provider_type:
-            description: "The provider type for the metric integration. Identifies the third-party service provider."
-          results.metric_integration_id:
-            description: "Unique 24-hexadecimal digit string that identifies the metric integration configuration."

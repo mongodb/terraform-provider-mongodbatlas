@@ -58,7 +58,7 @@ output "metric_integration_ids" {
 
 ### Required
 
-- `metric_integration_id` (String) Unique 24-hexadecimal digit string that identifies the metric integration configuration.
+- `metric_integration_id` (String) Unique identifier of the metric integration configuration.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
 
 ### Read-Only

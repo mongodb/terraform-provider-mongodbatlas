@@ -64,8 +64,8 @@ output "metric_integration_ids" {
 
 ### Optional
 
-- `integration_type` (String) Type of metric integration. Identifies which protocol will be used for the integration.
-- `provider_type` (String) The provider type for the metric integration. Identifies the third-party service provider.
+- `integration_type` (String) Optional filter by integration type (e.g., `OTEL`). When specified, `providerType` must also be specified.
+- `provider_type` (String) Optional filter by provider type (e.g., `CUSTOM`). When specified, `integrationType` must also be specified.
 
 ### Read-Only
 
@@ -80,7 +80,7 @@ Read-Only:
 - `endpoint` (String) OpenTelemetry collector endpoint URL.
 - `headers` (Attributes List) HTTP headers for authentication and configuration. Header values are redacted in responses. (see [below for nested schema](#nestedatt--results--headers))
 - `integration_type` (String) Type of metric integration. Identifies which protocol will be used for the integration.
-- `metric_integration_id` (String) Unique 24-hexadecimal digit string that identifies the metric integration configuration.
+- `metric_integration_id` (String) Unique hexadecimal digit string that identifies the metric integration configuration.
 - `metric_selection` (Set of String) Array of metric categories to export. Determines which types of metrics are sent to the integration.
 - `provider_type` (String) The provider type for the metric integration. Identifies the third-party service provider.
 

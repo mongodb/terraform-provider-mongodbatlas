@@ -46,7 +46,7 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"metric_integration_id": dsschema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the metric integration configuration.",
+				MarkdownDescription: "Unique identifier of the metric integration configuration.",
 			},
 			"metric_selection": dsschema.SetAttribute{
 				Computed:            true,

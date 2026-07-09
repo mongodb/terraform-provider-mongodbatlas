@@ -70,7 +70,7 @@ output "metric_integration_ids" {
 
 ### Read-Only
 
-- `metric_integration_id` (String) Unique 24-hexadecimal digit string that identifies the metric integration configuration.
+- `metric_integration_id` (String) Unique hexadecimal digit string that identifies the metric integration configuration.
 
 <a id="nestedatt--headers"></a>
 ### Nested Schema for `headers`

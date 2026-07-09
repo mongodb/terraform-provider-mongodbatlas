@@ -53,7 +53,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"metric_integration_id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the metric integration configuration.",
+				MarkdownDescription: "Unique hexadecimal digit string that identifies the metric integration configuration.",
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown()},
 			},
 			"metric_selection": schema.SetAttribute{

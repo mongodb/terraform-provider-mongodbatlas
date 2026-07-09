@@ -86,7 +86,7 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: Unique 24-hexadecimal digit string that identifies the metric integration configuration.
+          description: Unique hexadecimal digit string that identifies the metric integration configuration.
           computed_optional_required: computed
           tf_schema_name: metric_integration_id
           tf_model_name: MetricIntegrationId
@@ -216,7 +216,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: Unique 24-hexadecimal digit string that identifies the metric integration configuration.
+              description: Unique identifier of the metric integration configuration.
               computed_optional_required: required
               tf_schema_name: metric_integration_id
               tf_model_name: MetricIntegrationId
@@ -268,7 +268,7 @@ data_sources:
         description: Returns all metric integration configurations for the project. Optionally filter by integration type and provider type.
         attributes:
             - string: {}
-              description: Type of metric integration. Identifies which protocol will be used for the integration.
+              description: Optional filter by integration type (e.g., `OTEL`). When specified, `providerType` must also be specified.
               computed_optional_required: optional
               tf_schema_name: integration_type
               tf_model_name: IntegrationType
@@ -290,7 +290,7 @@ data_sources:
               present_in_any_response: false
               request_only_required_on_create: false
             - string: {}
-              description: The provider type for the metric integration. Identifies the third-party service provider.
+              description: Optional filter by provider type (e.g., `CUSTOM`). When specified, `integrationType` must also be specified.
               computed_optional_required: optional
               tf_schema_name: provider_type
               tf_model_name: ProviderType
@@ -377,7 +377,7 @@ data_sources:
                           present_in_any_response: false
                           request_only_required_on_create: false
                         - string: {}
-                          description: Unique 24-hexadecimal digit string that identifies the metric integration configuration.
+                          description: Unique hexadecimal digit string that identifies the metric integration configuration.
                           computed_optional_required: computed
                           tf_schema_name: metric_integration_id
                           tf_model_name: MetricIntegrationId
