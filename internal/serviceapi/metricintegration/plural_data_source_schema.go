@@ -16,7 +16,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 		Attributes: map[string]dsschema.Attribute{
 			"integration_type": dsschema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Optional filter by integration type (e.g., `OTEL`). When specified, `providerType` must also be specified.",
+				MarkdownDescription: "Optional filter by integration type (e.g., `OTEL`). When specified, `provider_type` must also be specified.",
 			},
 			"project_id": dsschema.StringAttribute{
 				Required:            true,
@@ -24,7 +24,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 			},
 			"provider_type": dsschema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Optional filter by provider type (e.g., `CUSTOM`). When specified, `integrationType` must also be specified.",
+				MarkdownDescription: "Optional filter by provider type (e.g., `CUSTOM`). When specified, `integration_type` must also be specified.",
 			},
 			"results": dsschema.ListNestedAttribute{
 				Computed:            true,
@@ -60,7 +60,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 						},
 						"integration_type": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "Type of metric integration. Identifies which protocol will be used for the integration.",
+							MarkdownDescription: "Optional filter by integration type (e.g., `OTEL`). When specified, `provider_type` must also be specified.",
 						},
 						"metric_integration_id": dsschema.StringAttribute{
 							Computed:            true,
@@ -74,7 +74,7 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 						},
 						"provider_type": dsschema.StringAttribute{
 							Computed:            true,
-							MarkdownDescription: "The provider type for the metric integration. Identifies the third-party service provider.",
+							MarkdownDescription: "Optional filter by provider type (e.g., `CUSTOM`). When specified, `integration_type` must also be specified.",
 						},
 					},
 				},

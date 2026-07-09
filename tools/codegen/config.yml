@@ -1383,3 +1383,7 @@ resources:
             description: *project_id_description
           headers.value:
             sensitive: true
+          integration_type:
+            description: "Optional filter by integration type (e.g., `OTEL`). When specified, `provider_type` must also be specified."
+          provider_type:
+            description: "Optional filter by provider type (e.g., `CUSTOM`). When specified, `integration_type` must also be specified."
