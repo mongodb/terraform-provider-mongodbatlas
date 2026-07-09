@@ -165,7 +165,7 @@ Optional:
 - `sasl_oauthbearer_extensions` (String) SASL OAUTHBEARER extensions parameter for additional OAuth2 configuration.
 - `scope` (String) OIDC scope parameter defining the access permissions requested.
 - `ssl_certificate` (String) SSL certificate for client authentication to Kafka.
-- `ssl_key` (String) SSL key for client authentication to Kafka.
+- `ssl_key` (String, Sensitive) SSL key for client authentication to Kafka.
 - `ssl_key_password` (String, Sensitive) Password for the SSL key, if it is password protected.
 - `token_endpoint_url` (String) OIDC token endpoint URL for obtaining access tokens.
 - `username` (String) Username of the account to connect to the Kafka cluster.

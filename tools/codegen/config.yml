@@ -956,6 +956,8 @@ resources:
           sensitive: true
         authentication.ssl_key_password:
           sensitive: true
+        authentication.ssl_key:
+          sensitive: true
         schema_registry_urls:
           type: list
         # API returns a default networking (PUBLIC) even when not set in config; must be

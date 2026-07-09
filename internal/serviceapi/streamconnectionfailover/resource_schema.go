@@ -60,6 +60,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"ssl_key": schema.StringAttribute{
 						Optional:            true,
 						MarkdownDescription: "SSL key for client authentication to Kafka.",
+						Sensitive:           true,
 					},
 					"ssl_key_password": schema.StringAttribute{
 						Optional:            true,
@@ -396,7 +397,7 @@ type TFAuthenticationModel struct {
 	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions"`
 	Scope                     types.String `tfsdk:"scope"`
 	SslCertificate            types.String `tfsdk:"ssl_certificate"`
-	SslKey                    types.String `tfsdk:"ssl_key"`
+	SslKey                    types.String `tfsdk:"ssl_key" autogen:"sensitive"`
 	SslKeyPassword            types.String `tfsdk:"ssl_key_password" autogen:"sensitive"`
 	TokenEndpointUrl          types.String `tfsdk:"token_endpoint_url"`
 	Username                  types.String `tfsdk:"username"`
