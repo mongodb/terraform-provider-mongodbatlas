@@ -42,6 +42,7 @@ func TestAccMetricIntegration_basic(t *testing.T) {
 		headerValue     = os.Getenv("MONGODB_ATLAS_METRIC_INTEGRATION_API_KEY")
 		metricSelection = []string{"ATLAS_STREAM_PROCESSING"}
 		extraHeader     = true
+		withDS          = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -50,12 +51,12 @@ func TestAccMetricIntegration_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue, metricSelection, !extraHeader, true),
-				Check:  checkBasic(integrationType, providerType, aggregation, endpoint, metricSelection, !extraHeader, true),
+				Config: configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue, metricSelection, !extraHeader, withDS),
+				Check:  checkBasic(integrationType, providerType, aggregation, endpoint, metricSelection, !extraHeader, withDS),
 			},
 			{
-				Config: configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue, metricSelection, extraHeader, false),
-				Check:  checkBasic(integrationType, providerType, aggregation, endpoint, metricSelection, extraHeader, false),
+				Config: configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue, metricSelection, extraHeader, !withDS),
+				Check:  checkBasic(integrationType, providerType, aggregation, endpoint, metricSelection, extraHeader, !withDS),
 			},
 			{
 				Config:                               configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue, metricSelection, extraHeader, false),
