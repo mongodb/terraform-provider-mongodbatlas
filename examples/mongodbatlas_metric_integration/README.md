@@ -9,6 +9,7 @@ This directory contains an example demonstrating how to configure an OpenTelemet
 Configures a metric integration at the project level and demonstrates how to use the singular and plural data sources to read back the integration configuration.
 
 **Resources created:**
+
 - MongoDB Atlas Project
 - MongoDB Atlas Metric Integration
 
@@ -20,8 +21,9 @@ Configures a metric integration at the project level and demonstrates how to use
 ## Variables
 
 | Variable | Description |
-|---|---|
+| --- | --- |
 | `atlas_org_id` | MongoDB Atlas Organization ID. |
 | `atlas_project_name` | Name of the Atlas project to create. |
-| `otel_endpoint` | OTLP-compatible endpoint URL for metric ingestion. |
-| `otel_api_key` | API key or authentication token sent as an HTTP header to the endpoint. |
+| `datadog_api_key` | Datadog API key used to authenticate the Datadog provider. |
+| `datadog_app_key` | Datadog application key used to authenticate the Datadog provider. |
+| `datadog_endpoint` | Datadog OTLP-compatible endpoint URL for metric ingestion. |
