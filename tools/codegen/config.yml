@@ -1367,3 +1367,19 @@ resources:
           immutable_computed: true
         headers.value:
           sensitive: true
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations/{metricIntegrationId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/metricIntegrations
+        method: GET
+      schema:
+        aliases:
+          groupId: projectId
+        ignores: ["links", "results.links"]
+        overrides:
+          project_id:
+            description: *project_id_description
+          headers.value:
+            sensitive: true

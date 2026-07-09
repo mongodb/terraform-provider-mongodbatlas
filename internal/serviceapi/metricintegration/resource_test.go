@@ -15,7 +15,22 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 )
 
-const resourceName = "mongodbatlas_metric_integration.test"
+const (
+	resourceName         = "mongodbatlas_metric_integration.test"
+	dataSourceName       = "data.mongodbatlas_metric_integration.test"
+	pluralDataSourceName = "data.mongodbatlas_metric_integrations.test"
+	datasourcesConfig    = `
+		data "mongodbatlas_metric_integration" "test" {
+			project_id            = mongodbatlas_metric_integration.test.project_id
+			metric_integration_id = mongodbatlas_metric_integration.test.metric_integration_id
+		}
+
+		data "mongodbatlas_metric_integrations" "test" {
+			project_id = mongodbatlas_metric_integration.test.project_id
+			depends_on = [mongodbatlas_metric_integration.test]
+		}
+	`
+)
 
 func TestAccMetricIntegration_basic(t *testing.T) {
 	var (
@@ -27,6 +42,7 @@ func TestAccMetricIntegration_basic(t *testing.T) {
 		headerValue     = os.Getenv("MONGODB_ATLAS_METRIC_INTEGRATION_API_KEY")
 		metricSelection = []string{"ATLAS_STREAM_PROCESSING"}
 		extraHeader     = true
+		withDS          = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -35,15 +51,15 @@ func TestAccMetricIntegration_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue, metricSelection, !extraHeader),
-				Check:  checkBasic(integrationType, providerType, aggregation, endpoint, metricSelection, !extraHeader),
+				Config: configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue, metricSelection, !extraHeader, withDS),
+				Check:  checkBasic(integrationType, providerType, aggregation, endpoint, metricSelection, !extraHeader, withDS),
 			},
 			{
-				Config: configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue, metricSelection, extraHeader),
-				Check:  checkBasic(integrationType, providerType, aggregation, endpoint, metricSelection, extraHeader),
+				Config: configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue, metricSelection, extraHeader, !withDS),
+				Check:  checkBasic(integrationType, providerType, aggregation, endpoint, metricSelection, extraHeader, !withDS),
 			},
 			{
-				Config:                               configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue, metricSelection, extraHeader),
+				Config:                               configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue, metricSelection, extraHeader, false),
 				ResourceName:                         resourceName,
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportState:                          true,
@@ -62,7 +78,7 @@ func preCheckMetricIntegration(tb testing.TB) {
 	}
 }
 
-func configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue string, metricSelection []string, extraHeader bool) string {
+func configBasic(projectID, integrationType, providerType, aggregation, endpoint, headerValue string, metricSelection []string, extraHeader, withDS bool) string {
 	selectionHCL := hcl.StringSliceToHCL(metricSelection)
 	extraHeaderHCL := ""
 	if extraHeader {
@@ -71,6 +87,10 @@ func configBasic(projectID, integrationType, providerType, aggregation, endpoint
 					name  = "x-custom-header"
 					value = "custom-value"
 				}`
+	}
+	dsConfig := ""
+	if withDS {
+		dsConfig = datasourcesConfig
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_metric_integration" "test" {
@@ -88,10 +108,12 @@ func configBasic(projectID, integrationType, providerType, aggregation, endpoint
 				}%[8]s
 			]
 		}
-	`, projectID, integrationType, providerType, aggregation, endpoint, selectionHCL, headerValue, extraHeaderHCL)
+
+		%[9]s
+	`, projectID, integrationType, providerType, aggregation, endpoint, selectionHCL, headerValue, extraHeaderHCL, dsConfig)
 }
 
-func checkBasic(integrationType, providerType, aggregation, endpoint string, metricSelection []string, extraHeader bool) resource.TestCheckFunc {
+func checkBasic(integrationType, providerType, aggregation, endpoint string, metricSelection []string, extraHeader, withDS bool) resource.TestCheckFunc {
 	headerCount := "1"
 	if extraHeader {
 		headerCount = "2"
@@ -105,9 +127,13 @@ func checkBasic(integrationType, providerType, aggregation, endpoint string, met
 		"metric_selection.#":      strconv.Itoa(len(metricSelection)),
 		"headers.#":               headerCount,
 	}
-	checks := acc.AddAttrSetChecks(resourceName, nil, setChecks...)
-	checks = acc.AddAttrChecks(resourceName, checks, mapChecks)
-	checks = append(checks, checkExists(resourceName))
+	var checks []resource.TestCheckFunc
+	var dsName *string
+	if withDS {
+		dsName = new(dataSourceName)
+		checks = append(checks, resource.TestCheckResourceAttrWith(pluralDataSourceName, "results.#", acc.IntGreatThan(0)))
+	}
+	checks = append(checks, acc.CheckRSAndDS(resourceName, dsName, nil, setChecks, mapChecks, checkExists(resourceName)))
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
