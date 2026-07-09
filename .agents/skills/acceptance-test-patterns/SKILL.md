@@ -15,6 +15,10 @@ Merge basic tests for a resource, its singular data source, and its plural data 
 
 Before adding a test, verify no existing test already covers the same configuration and assertions. Tests with identical configs and checks waste CI time.
 
+## CheckExists / CheckDestroy for Autogen Resources
+
+Autogen resources map directly from the OpenAPI spec and never use the Atlas SDK, so their `checkExists` / `checkDestroy` should verify against Atlas with an untyped client, not a typed SDK method. Add a helper under `internal/testutil/acc/` that issues a raw HTTP request with the resource's version header (see `acc.GetMetricIntegration`). Promoting a preview API to stable then only requires bumping the version header, not a rewrite.
+
 ## Plural Data Source Ordering
 
 Avoid hardcoded indices (e.g., `results.0`) when asserting on plural data source results unless the parent resource is guaranteed to be unique within the test execution. When uniqueness is ensured, using `results.0` is acceptable. Otherwise, the API may return items in any order and the test resource may not be at a predictable index.
