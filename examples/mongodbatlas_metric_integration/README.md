@@ -1,6 +1,8 @@
-# MongoDB Atlas Metric Integration with OpenTelemetry Example
+# MongoDB Atlas Metric Integration with Datadog Example
 
-This example demonstrates how to configure a metric integration to export MongoDB Atlas metrics to an OTLP-compatible endpoint such as Datadog, New Relic, or Dynatrace. It also shows how to read the integration back with the singular and plural data sources.
+This example demonstrates how to configure a metric integration to export MongoDB Atlas metrics to Datadog over OTLP. It also shows how to read the integration back with the singular and plural data sources.
+
+This example is focused on Datadog. To export to another provider, update `provider_type` (`CUSTOM`, `NEW_RELIC`, or `DYNATRACE`), the `endpoint`, and the authentication `headers` to match that provider.
 
 ## Prerequisites
 
