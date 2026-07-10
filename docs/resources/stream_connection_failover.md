@@ -6,7 +6,7 @@ subcategory: "Streams"
 
 `mongodbatlas_stream_connection_failover` provides a Stream Failover Connection resource. It lets you create, update, delete, and import a failover (regional-alternate) connection for an existing stream connection.
 
-A failover connection shares its primary connection's `connection_name` and is created for one of the workspace's failover regions (configured via the `failover_regions` argument of `mongodbatlas_stream_workspace`). It is uniquely identified by its `region` and its computed `failover_connection_id`, and carries its own regional connection configuration. Only `Kafka` and `Cluster` connection types support failover.
+A failover connection shares its primary connection's `connection_name` and is created for one of the workspace's failover regions (configured via the `failover_regions` argument of `mongodbatlas_stream_workspace`). It is uniquely identified by its computed `failover_connection_id` and carries its own regional connection configuration in the `region` attribute. Only `Kafka` and `Cluster` connection types support failover.
 
 ## Example Usages
 

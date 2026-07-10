@@ -16,7 +16,8 @@ const resourceName = "mongodbatlas_stream_connection_failover.test"
 // create, update its bootstrap servers, then import. The workspace must have failover regions
 // enabled, and the failover connection shares the primary connection's name.
 func TestAccStreamConnectionFailover(t *testing.T) {
-	projectID, workspaceName := acc.ProjectIDExecutionWithStreamInstanceWithFailover(t)
+	projectID := acc.ProjectIDExecution(t)
+	workspaceName := acc.RandomStreamInstanceName()
 	connectionName := "kafka-failover-primary"
 
 	resource.Test(t, resource.TestCase{
@@ -75,9 +76,24 @@ func configFailover(projectID, workspaceName, connectionName, region, bootstrap 
 		failoverConfig = `config   = { "auto.offset.reset" = "earliest" }`
 	}
 	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_workspace" "test" {
+			project_id     = %[1]q
+			workspace_name = %[2]q
+			data_process_region = {
+				region         = "VIRGINIA_USA"
+				cloud_provider = "AWS"
+			}
+			# Failover connections can only target a region configured here.
+			failover_regions = [{
+				region         = "DUBLIN_IRL"
+				cloud_provider = "AWS"
+			}]
+			stream_config = { tier = "SP10" }
+		}
+
 		resource "mongodbatlas_stream_connection" "primary" {
 			project_id        = %[1]q
-			workspace_name    = %[2]q
+			workspace_name    = mongodbatlas_stream_workspace.test.workspace_name
 			connection_name   = %[3]q
 			type              = "Kafka"
 			bootstrap_servers = "localhost:9092"
@@ -92,7 +108,7 @@ func configFailover(projectID, workspaceName, connectionName, region, bootstrap 
 
 		resource "mongodbatlas_stream_connection_failover" "test" {
 			project_id        = %[1]q
-			workspace_name    = %[2]q
+			workspace_name    = mongodbatlas_stream_workspace.test.workspace_name
 			connection_name   = mongodbatlas_stream_connection.primary.connection_name
 			region            = %[4]q
 			type              = "Kafka"
