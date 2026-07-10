@@ -85,6 +85,8 @@ The provider supports retrieving credentials from AWS Secrets Manager. See [AWS 
    - `public_key`: your-public-key
    - `private_key`: your-private-key
 
+   Optionally, you can also set `base_url`, `realm_base_url`, and `is_mongodbgov_cloud` as keys in the secret (see note below).
+
 2. **Create an IAM Role** with:
    - Permission for `sts:AssumeRole`
    - Attached AWS managed policy `SecretsManagerReadWrite`
