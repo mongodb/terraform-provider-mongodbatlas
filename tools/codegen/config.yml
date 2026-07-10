@@ -937,6 +937,10 @@ resources:
         groupId: projectId
         tenantName: workspaceName
         clusterGroupId: clusterProjectId
+      # The endpoint reuses the shared StreamsConnection schema (discriminator covers every connection
+      # type), but failover connections only support Kafka and Cluster. Restrict the discriminator so
+      # the docs/prefixes/validation don't advertise inapplicable types.
+      discriminator_types: [Kafka, Cluster]
       overrides:
         project_id:
           description: *project_id_description

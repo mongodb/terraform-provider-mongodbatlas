@@ -89,11 +89,6 @@ resource "mongodbatlas_stream_connection_failover" "example" {
 <!-- polymorphic attributes restructured by docpostprocess -->
 The following attributes depend on the value of `type`:
 
-#### `AWSKinesisDataStreams`
-
-Optional:
-- `networking` (Attributes) Networking configuration for Streams connections. (see [below for nested schema](#nestedatt--networking))
-
 #### `Cluster`
 
 Optional:
@@ -109,11 +104,6 @@ Optional:
 - `config` (Map of String) A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
 - `networking` (Attributes) Networking configuration for Streams connections. (see [below for nested schema](#nestedatt--networking))
 - `security` (Attributes) Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. (see [below for nested schema](#nestedatt--security))
-
-#### `S3`
-
-Optional:
-- `networking` (Attributes) Networking configuration for Streams connections. (see [below for nested schema](#nestedatt--networking))
 
 ### Read-Only
 

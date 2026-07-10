@@ -2,22 +2,6 @@ schema:
     description: Creates one failover connection for a stream workspace in the specified project.
     discriminator:
         mapping:
-            AWSKinesisDataStreams:
-                allowed:
-                    - api_name: aws
-                      tf_schema_name: aws
-                    - api_name: networking
-                      tf_schema_name: networking
-            AWSLambda:
-                allowed:
-                    - api_name: aws
-                      tf_schema_name: aws
-            AzureBlobStorage:
-                allowed:
-                    - api_name: azure
-                      tf_schema_name: azure
-                    - api_name: publicPrivateNetworking
-                      tf_schema_name: public_private_networking
             Cluster:
                 allowed:
                     - api_name: clusterName
@@ -26,18 +10,6 @@ schema:
                       tf_schema_name: cluster_project_id
                     - api_name: dbRoleToExecute
                       tf_schema_name: db_role_to_execute
-            GCPPubSub:
-                allowed:
-                    - api_name: gcp
-                      tf_schema_name: gcp
-                    - api_name: publicPrivateNetworking
-                      tf_schema_name: public_private_networking
-            Https:
-                allowed:
-                    - api_name: headers
-                      tf_schema_name: headers
-                    - api_name: url
-                      tf_schema_name: url
             Kafka:
                 allowed:
                     - api_name: authentication
@@ -50,29 +22,6 @@ schema:
                       tf_schema_name: networking
                     - api_name: security
                       tf_schema_name: security
-            S3:
-                allowed:
-                    - api_name: aws
-                      tf_schema_name: aws
-                    - api_name: networking
-                      tf_schema_name: networking
-            Sample:
-                allowed: []
-            SchemaRegistry:
-                allowed:
-                    - api_name: provider
-                      tf_schema_name: provider
-                    - api_name: schemaRegistryAuthentication
-                      tf_schema_name: schema_registry_authentication
-                    - api_name: schemaRegistryUrls
-                      tf_schema_name: schema_registry_urls
-                required:
-                    - api_name: provider
-                      tf_schema_name: provider
-                    - api_name: schemaRegistryAuthentication
-                      tf_schema_name: schema_registry_authentication
-                    - api_name: schemaRegistryUrls
-                      tf_schema_name: schema_registry_urls
         property_name:
             api_name: type
             tf_schema_name: type
@@ -414,7 +363,7 @@ schema:
                       create_only: false
                       present_in_any_response: true
                       request_only_required_on_create: false
-          description: 'Optional for type: AWSKinesisDataStreams, Kafka, S3. Networking configuration for Streams connections.'
+          description: 'Optional for type: Kafka. Networking configuration for Streams connections.'
           custom_type:
             package: customtypes
             name: Networking

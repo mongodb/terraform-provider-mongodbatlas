@@ -127,7 +127,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"networking": schema.SingleNestedAttribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Optional for type: AWSKinesisDataStreams, Kafka, S3. Networking configuration for Streams connections.",
+				MarkdownDescription: "Optional for type: Kafka. Networking configuration for Streams connections.",
 				CustomType:          customtypes.NewObjectType[TFNetworkingModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"access": schema.SingleNestedAttribute{
@@ -191,34 +191,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Validators: []validator.String{
 					customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
 						Mapping: map[string]customvalidator.VariantDefinition{
-							"AWSKinesisDataStreams": {
-								Allowed: []string{"aws", "networking"},
-							},
-							"AWSLambda": {
-								Allowed: []string{"aws"},
-							},
-							"AzureBlobStorage": {
-								Allowed: []string{"azure", "public_private_networking"},
-							},
 							"Cluster": {
 								Allowed: []string{"cluster_name", "cluster_project_id", "db_role_to_execute"},
 							},
-							"GCPPubSub": {
-								Allowed: []string{"gcp", "public_private_networking"},
-							},
-							"Https": {
-								Allowed: []string{"headers", "url"},
-							},
 							"Kafka": {
 								Allowed: []string{"authentication", "bootstrap_servers", "config", "networking", "security"},
-							},
-							"S3": {
-								Allowed: []string{"aws", "networking"},
-							},
-							"Sample": {},
-							"SchemaRegistry": {
-								Allowed:  []string{"provider", "schema_registry_authentication", "schema_registry_urls"},
-								Required: []string{"provider", "schema_registry_authentication", "schema_registry_urls"},
 							},
 						},
 					}),
