@@ -92,19 +92,7 @@ The following attributes depend on the value of `type`:
 #### `AWSKinesisDataStreams`
 
 Optional:
-- `aws` (Attributes) AWS configurations for AWS-based connection types. (see [below for nested schema](#nestedatt--aws))
 - `networking` (Attributes) Networking configuration for Streams connections. (see [below for nested schema](#nestedatt--networking))
-
-#### `AWSLambda`
-
-Optional:
-- `aws` (Attributes) AWS configurations for AWS-based connection types. (see [below for nested schema](#nestedatt--aws))
-
-#### `AzureBlobStorage`
-
-Optional:
-- `azure` (Attributes) Azure-specific configuration for the connection. (see [below for nested schema](#nestedatt--azure))
-- `public_private_networking` (Attributes) Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC). (see [below for nested schema](#nestedatt--public_private_networking))
 
 #### `Cluster`
 
@@ -112,18 +100,6 @@ Optional:
 - `cluster_name` (String) Name of the cluster configured for this connection.
 - `cluster_project_id` (String) Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams workspace. You must first enable the organization setting.
 - `db_role_to_execute` (Attributes) The name of a Built in or Custom DB Role to connect to an Atlas Cluster. (see [below for nested schema](#nestedatt--db_role_to_execute))
-
-#### `GCPPubSub`
-
-Optional:
-- `gcp` (Attributes) GCP-specific configuration for the connection. (see [below for nested schema](#nestedatt--gcp))
-- `public_private_networking` (Attributes) Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC). (see [below for nested schema](#nestedatt--public_private_networking))
-
-#### `Https`
-
-Optional:
-- `headers` (Map of String) A map of key-value pairs that will be passed as headers for the request.
-- `url` (String) The URL to be used for the request.
 
 #### `Kafka`
 
@@ -137,15 +113,7 @@ Optional:
 #### `S3`
 
 Optional:
-- `aws` (Attributes) AWS configurations for AWS-based connection types. (see [below for nested schema](#nestedatt--aws))
 - `networking` (Attributes) Networking configuration for Streams connections. (see [below for nested schema](#nestedatt--networking))
-
-#### `SchemaRegistry`
-
-Required:
-- `schema_registry_authentication` (Attributes) Authentication configuration for Schema Registry. (see [below for nested schema](#nestedatt--schema_registry_authentication))
-- `schema_registry_provider` (String) The Schema Registry provider.
-- `schema_registry_urls` (List of String) List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.
 
 ### Read-Only
 
@@ -171,28 +139,6 @@ Optional:
 - `username` (String) Username of the account to connect to the Kafka cluster.
 
 
-<a id="nestedatt--aws"></a>
-### Nested Schema for `aws`
-
-Required:
-
-- `role_arn` (String) Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
-
-Optional:
-
-- `test_bucket` (String) The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
-
-
-<a id="nestedatt--azure"></a>
-### Nested Schema for `azure`
-
-Optional:
-
-- `region` (String) Azure region where the storage account is located.
-- `service_principal_id` (String) Unique ID of the Azure Service Principal that has access to the storage account.
-- `storage_account_name` (String) Name of the Azure Storage Account to connect to.
-
-
 <a id="nestedatt--db_role_to_execute"></a>
 ### Nested Schema for `db_role_to_execute`
 
@@ -200,14 +146,6 @@ Required:
 
 - `role` (String) The name of the role to use. Can be a built in role or a custom role.
 - `type` (String) Type of the DB role. Can be either Built In or Custom.
-
-
-<a id="nestedatt--gcp"></a>
-### Nested Schema for `gcp`
-
-Optional:
-
-- `service_account_id` (String) Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to the GCP Pub/Sub resources.
 
 
 <a id="nestedatt--networking"></a>
@@ -227,40 +165,6 @@ Optional:
 - `tgw_route_id` (String) Reserved. Will be used by `TRANSIT_GATEWAY` connection type.
 - `type` (String) Selected networking type. Either `PUBLIC`, `VPC`, `PRIVATE_LINK`, or `TRANSIT_GATEWAY`. Defaults to `PUBLIC`. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. `TRANSIT_GATEWAY` support is coming soon.
 
-
-
-<a id="nestedatt--public_private_networking"></a>
-### Nested Schema for `public_private_networking`
-
-Optional:
-
-- `access` (Attributes) Information about networking access. (see [below for nested schema](#nestedatt--public_private_networking--access))
-
-<a id="nestedatt--public_private_networking--access"></a>
-### Nested Schema for `public_private_networking.access`
-
-Optional:
-
-- `connection_id` (String) The ID of the Private Link connection. Required for `PRIVATE_LINK` type. For GCP connections using Private Service Connect (PSC), this is the PSC connection ID.
-- `type` (String) Selected networking type. Either `PUBLIC` or `PRIVATE_LINK`. Defaults to `PUBLIC`. For AWS, Azure, and GCP connections, use `PRIVATE_LINK` for AWS PrivateLink, Azure Private Link, or GCP Private Service Connect (PSC) respectively.
-
-
-
-<a id="nestedatt--schema_registry_authentication"></a>
-### Nested Schema for `schema_registry_authentication`
-
-Required:
-
-- `type` (String) Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry.
-
-<!-- polymorphic attributes restructured by docpostprocess -->
-The following attributes depend on the value of `type`:
-
-#### `USER_INFO`
-
-Required:
-- `password` (String, Sensitive) Password or Private Key for authentication.
-- `username` (String) Username or Public Key for authentication.
 
 
 <a id="nestedatt--security"></a>

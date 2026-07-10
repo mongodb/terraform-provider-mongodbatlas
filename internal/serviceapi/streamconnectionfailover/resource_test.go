@@ -62,7 +62,7 @@ func TestAccStreamConnectionFailover(t *testing.T) {
 				// import-verify identity must point at the real identifier.
 				ImportStateVerifyIdentifierAttribute: "failover_connection_id",
 				// Secrets are never returned by the API, so they cannot be verified on import.
-				ImportStateVerifyIgnore: []string{"authentication.password", "authentication.client_secret", "schema_registry_authentication.password"},
+				ImportStateVerifyIgnore: []string{"authentication.password", "authentication.client_secret"},
 			},
 		},
 	})

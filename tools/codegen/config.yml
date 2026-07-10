@@ -912,34 +912,38 @@ resources:
         [
           "links",
           "authentication.links",
-          "aws.links",
           "db_role_to_execute.links",
           "networking.links",
           "networking.access.links",
           "security.links",
-          "azure.links",
-          "gcp.links",
-          "public_private_networking.links",
-          "public_private_networking.access.links",
           # The failover connection's own `name` equals the parent `connectionName` (a path param),
           # so it is redundant in the schema and would collide with connection_name.
           "name",
+          # Failover connections only support the Kafka and Cluster connection types, so fields that
+          # apply exclusively to other types are dropped from the schema (the underlying spec is a
+          # shared DTO covering every stream connection type).
+          "aws", # AWSKinesisDataStreams, AWSLambda, S3
+          "azure", # AzureBlobStorage
+          "gcp", # GCPPubSub
+          "headers", # Https
+          "url", # Https
+          "public_private_networking", # AzureBlobStorage, GCPPubSub
+          "provider", # SchemaRegistry (aliased to schema_registry_provider; ignore the source name)
+          "schema_registry_authentication", # SchemaRegistry
+          "schema_registry_urls", # SchemaRegistry
         ]
       aliases:
         id: failoverConnectionId
         groupId: projectId
         tenantName: workspaceName
         clusterGroupId: clusterProjectId
-        provider: schemaRegistryProvider
       overrides:
         project_id:
           description: *project_id_description
-        # A PATCH merges, so omitting a map keeps the old value. Send an empty map on update to
+        # A PATCH merges, so omitting the map keeps the old value. Send an empty map on update to
         # clear it when removed; the read side normalizes empty->null to avoid drift. The manual
-        # mongodbatlas_stream_connection resource clears `headers` the same way on this endpoint.
+        # mongodbatlas_stream_connection resource clears maps the same way on this endpoint.
         config:
-          request_body_usage: send_null_as_empty_on_update
-        headers:
           request_body_usage: send_null_as_empty_on_update
         connection_name:
           computability:
@@ -956,17 +960,10 @@ resources:
         db_role_to_execute.type:
           computability:
             required: true
-        aws.role_arn:
-          computability:
-            required: true
-        schema_registry_authentication.password:
-          sensitive: true
         authentication.ssl_key_password:
           sensitive: true
         authentication.ssl_key:
           sensitive: true
-        schema_registry_urls:
-          type: list
         # API returns a default networking (PUBLIC) even when not set in config; must be
         # optional+computed to avoid null->value drift. Child attributes follow the parent.
         networking:
@@ -978,19 +975,6 @@ resources:
             optional: true
             computed: true
         networking.access.type:
-          computability:
-            optional: true
-            computed: true
-        # Azure/GCP connections: API returns a default (PUBLIC) even when not set; mirror networking.
-        public_private_networking:
-          computability:
-            optional: true
-            computed: true
-        public_private_networking.access:
-          computability:
-            optional: true
-            computed: true
-        public_private_networking.access.type:
           computability:
             optional: true
             computed: true

@@ -77,40 +77,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
-			"aws": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Optional for type: AWSKinesisDataStreams, AWSLambda, S3. AWS configurations for AWS-based connection types.",
-				CustomType:          customtypes.NewObjectType[TFAwsModel](ctx),
-				Attributes: map[string]schema.Attribute{
-					"role_arn": schema.StringAttribute{
-						Required:            true,
-						MarkdownDescription: "Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.",
-					},
-					"test_bucket": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.",
-					},
-				},
-			},
-			"azure": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Optional for type: AzureBlobStorage. Azure-specific configuration for the connection.",
-				CustomType:          customtypes.NewObjectType[TFAzureModel](ctx),
-				Attributes: map[string]schema.Attribute{
-					"region": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Azure region where the storage account is located.",
-					},
-					"service_principal_id": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Unique ID of the Azure Service Principal that has access to the storage account.",
-					},
-					"storage_account_name": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Name of the Azure Storage Account to connect to.",
-					},
-				},
-			},
 			"bootstrap_servers": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Optional for type: Kafka. Comma separated list of server addresses.",
@@ -149,27 +115,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
-			"gcp": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Optional for type: GCPPubSub. GCP-specific configuration for the connection.",
-				CustomType:          customtypes.NewObjectType[TFGcpModel](ctx),
-				Attributes: map[string]schema.Attribute{
-					"service_account_id": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to the GCP Pub/Sub resources.",
-					},
-				},
-			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
-			},
-			"headers": schema.MapAttribute{
-				Optional:            true,
-				MarkdownDescription: "Optional for type: Https. A map of key-value pairs that will be passed as headers for the request.",
-				CustomType:          customtypes.NewMapType[types.String](ctx),
-				ElementType:         types.StringType,
 			},
 			"failover_connection_id": schema.StringAttribute{
 				Computed:            true,
@@ -208,75 +157,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
-			"schema_registry_provider": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Required for type: SchemaRegistry. The Schema Registry provider.",
-			},
-			"public_private_networking": schema.SingleNestedAttribute{
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Optional for type: AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC).",
-				CustomType:          customtypes.NewObjectType[TFPublicPrivateNetworkingModel](ctx),
-				Attributes: map[string]schema.Attribute{
-					"access": schema.SingleNestedAttribute{
-						Computed:            true,
-						Optional:            true,
-						MarkdownDescription: "Information about networking access.",
-						CustomType:          customtypes.NewObjectType[TFPublicPrivateNetworkingAccessModel](ctx),
-						Attributes: map[string]schema.Attribute{
-							"connection_id": schema.StringAttribute{
-								Optional:            true,
-								MarkdownDescription: "The ID of the Private Link connection. Required for `PRIVATE_LINK` type. For GCP connections using Private Service Connect (PSC), this is the PSC connection ID.",
-							},
-							"type": schema.StringAttribute{
-								Computed:            true,
-								Optional:            true,
-								MarkdownDescription: "Selected networking type. Either `PUBLIC` or `PRIVATE_LINK`. Defaults to `PUBLIC`. For AWS, Azure, and GCP connections, use `PRIVATE_LINK` for AWS PrivateLink, Azure Private Link, or GCP Private Service Connect (PSC) respectively.",
-							},
-						},
-					},
-				},
-			},
 			"region": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The connection's region.",
-			},
-			"schema_registry_authentication": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Required for type: SchemaRegistry. Authentication configuration for Schema Registry.",
-				CustomType:          customtypes.NewObjectType[TFSchemaRegistryAuthenticationModel](ctx),
-				Attributes: map[string]schema.Attribute{
-					"password": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Required for type: USER_INFO. Password or Private Key for authentication.",
-						Sensitive:           true,
-					},
-					"type": schema.StringAttribute{
-						Required:            true,
-						MarkdownDescription: "Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry.",
-						Validators: []validator.String{
-							customvalidator.ValidateDiscriminator(customvalidator.DiscriminatorDefinition{
-								Mapping: map[string]customvalidator.VariantDefinition{
-									"SASL_INHERIT": {},
-									"USER_INFO": {
-										Allowed:  []string{"password", "username"},
-										Required: []string{"password", "username"},
-									},
-								},
-							}),
-						},
-					},
-					"username": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Required for type: USER_INFO. Username or Public Key for authentication.",
-					},
-				},
-			},
-			"schema_registry_urls": schema.ListAttribute{
-				Optional:            true,
-				MarkdownDescription: "Required for type: SchemaRegistry. List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.",
-				CustomType:          customtypes.NewListType[types.String](ctx),
-				ElementType:         types.StringType,
 			},
 			"security": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -334,16 +217,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							},
 							"Sample": {},
 							"SchemaRegistry": {
-								Allowed:  []string{"schema_registry_authentication", "schema_registry_provider", "schema_registry_urls"},
-								Required: []string{"schema_registry_authentication", "schema_registry_provider", "schema_registry_urls"},
+								Allowed:  []string{"provider", "schema_registry_authentication", "schema_registry_urls"},
+								Required: []string{"provider", "schema_registry_authentication", "schema_registry_urls"},
 							},
 						},
 					}),
 				},
-			},
-			"url": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Optional for type: Https. The URL to be used for the request.",
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed:            true,
@@ -361,32 +240,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Authentication               customtypes.ObjectValue[TFAuthenticationModel]               `tfsdk:"authentication"`
-	Aws                          customtypes.ObjectValue[TFAwsModel]                          `tfsdk:"aws"`
-	Azure                        customtypes.ObjectValue[TFAzureModel]                        `tfsdk:"azure"`
-	BootstrapServers             types.String                                                 `tfsdk:"bootstrap_servers"`
-	ClusterProjectId             types.String                                                 `tfsdk:"cluster_project_id" apiname:"clusterGroupId"`
-	ClusterName                  types.String                                                 `tfsdk:"cluster_name"`
-	Config                       customtypes.MapValue[types.String]                           `tfsdk:"config" autogen:"sendnullasemptyonupdate"`
-	ConnectionName               types.String                                                 `tfsdk:"connection_name" autogen:"omitjson"`
-	DbRoleToExecute              customtypes.ObjectValue[TFDbRoleToExecuteModel]              `tfsdk:"db_role_to_execute"`
-	Gcp                          customtypes.ObjectValue[TFGcpModel]                          `tfsdk:"gcp"`
-	ProjectId                    types.String                                                 `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Headers                      customtypes.MapValue[types.String]                           `tfsdk:"headers" autogen:"sendnullasemptyonupdate"`
-	FailoverConnectionId         types.String                                                 `tfsdk:"failover_connection_id" apiname:"id" autogen:"omitjson"`
-	Networking                   customtypes.ObjectValue[TFNetworkingModel]                   `tfsdk:"networking"`
-	SchemaRegistryProvider       types.String                                                 `tfsdk:"schema_registry_provider" apiname:"provider"`
-	PublicPrivateNetworking      customtypes.ObjectValue[TFPublicPrivateNetworkingModel]      `tfsdk:"public_private_networking"`
-	Region                       types.String                                                 `tfsdk:"region"`
-	SchemaRegistryAuthentication customtypes.ObjectValue[TFSchemaRegistryAuthenticationModel] `tfsdk:"schema_registry_authentication"`
-	SchemaRegistryUrls           customtypes.ListValue[types.String]                          `tfsdk:"schema_registry_urls"`
-	Security                     customtypes.ObjectValue[TFSecurityModel]                     `tfsdk:"security"`
-	State                        types.String                                                 `tfsdk:"state" autogen:"omitjson"`
-	WorkspaceName                types.String                                                 `tfsdk:"workspace_name" apiname:"tenantName" autogen:"omitjson"`
-	Type                         types.String                                                 `tfsdk:"type"`
-	Url                          types.String                                                 `tfsdk:"url"`
-	DeleteOnCreateTimeout        types.Bool                                                   `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
-	Timeouts                     timeouts.Value                                               `tfsdk:"timeouts" autogen:"omitjson"`
+	Authentication        customtypes.ObjectValue[TFAuthenticationModel]  `tfsdk:"authentication"`
+	BootstrapServers      types.String                                    `tfsdk:"bootstrap_servers"`
+	ClusterProjectId      types.String                                    `tfsdk:"cluster_project_id" apiname:"clusterGroupId"`
+	ClusterName           types.String                                    `tfsdk:"cluster_name"`
+	Config                customtypes.MapValue[types.String]              `tfsdk:"config" autogen:"sendnullasemptyonupdate"`
+	ConnectionName        types.String                                    `tfsdk:"connection_name" autogen:"omitjson"`
+	DbRoleToExecute       customtypes.ObjectValue[TFDbRoleToExecuteModel] `tfsdk:"db_role_to_execute"`
+	ProjectId             types.String                                    `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
+	FailoverConnectionId  types.String                                    `tfsdk:"failover_connection_id" apiname:"id" autogen:"omitjson"`
+	Networking            customtypes.ObjectValue[TFNetworkingModel]      `tfsdk:"networking"`
+	Region                types.String                                    `tfsdk:"region"`
+	Security              customtypes.ObjectValue[TFSecurityModel]        `tfsdk:"security"`
+	State                 types.String                                    `tfsdk:"state" autogen:"omitjson"`
+	WorkspaceName         types.String                                    `tfsdk:"workspace_name" apiname:"tenantName" autogen:"omitjson"`
+	Type                  types.String                                    `tfsdk:"type"`
+	DeleteOnCreateTimeout types.Bool                                      `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
+	Timeouts              timeouts.Value                                  `tfsdk:"timeouts" autogen:"omitjson"`
 }
 type TFAuthenticationModel struct {
 	ClientId                  types.String `tfsdk:"client_id"`
@@ -402,21 +272,9 @@ type TFAuthenticationModel struct {
 	TokenEndpointUrl          types.String `tfsdk:"token_endpoint_url"`
 	Username                  types.String `tfsdk:"username"`
 }
-type TFAwsModel struct {
-	RoleArn    types.String `tfsdk:"role_arn"`
-	TestBucket types.String `tfsdk:"test_bucket"`
-}
-type TFAzureModel struct {
-	Region             types.String `tfsdk:"region"`
-	ServicePrincipalId types.String `tfsdk:"service_principal_id"`
-	StorageAccountName types.String `tfsdk:"storage_account_name"`
-}
 type TFDbRoleToExecuteModel struct {
 	Role types.String `tfsdk:"role"`
 	Type types.String `tfsdk:"type"`
-}
-type TFGcpModel struct {
-	ServiceAccountId types.String `tfsdk:"service_account_id"`
 }
 type TFNetworkingModel struct {
 	Access customtypes.ObjectValue[TFNetworkingAccessModel] `tfsdk:"access"`
@@ -426,18 +284,6 @@ type TFNetworkingAccessModel struct {
 	Name         types.String `tfsdk:"name"`
 	TgwRouteId   types.String `tfsdk:"tgw_route_id"`
 	Type         types.String `tfsdk:"type"`
-}
-type TFPublicPrivateNetworkingModel struct {
-	Access customtypes.ObjectValue[TFPublicPrivateNetworkingAccessModel] `tfsdk:"access"`
-}
-type TFPublicPrivateNetworkingAccessModel struct {
-	ConnectionId types.String `tfsdk:"connection_id"`
-	Type         types.String `tfsdk:"type"`
-}
-type TFSchemaRegistryAuthenticationModel struct {
-	Password types.String `tfsdk:"password" autogen:"sensitive"`
-	Type     types.String `tfsdk:"type"`
-	Username types.String `tfsdk:"username"`
 }
 type TFSecurityModel struct {
 	BrokerPublicCertificate types.String `tfsdk:"broker_public_certificate"`

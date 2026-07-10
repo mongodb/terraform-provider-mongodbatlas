@@ -60,17 +60,17 @@ schema:
                 allowed: []
             SchemaRegistry:
                 allowed:
+                    - api_name: provider
+                      tf_schema_name: provider
                     - api_name: schemaRegistryAuthentication
                       tf_schema_name: schema_registry_authentication
-                    - api_name: provider
-                      tf_schema_name: schema_registry_provider
                     - api_name: schemaRegistryUrls
                       tf_schema_name: schema_registry_urls
                 required:
+                    - api_name: provider
+                      tf_schema_name: provider
                     - api_name: schemaRegistryAuthentication
                       tf_schema_name: schema_registry_authentication
-                    - api_name: provider
-                      tf_schema_name: schema_registry_provider
                     - api_name: schemaRegistryUrls
                       tf_schema_name: schema_registry_urls
         property_name:
@@ -227,98 +227,6 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-        - single_nested:
-            nested_object:
-                attributes:
-                    - string: {}
-                      description: Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
-                      computed_optional_required: required
-                      tf_schema_name: role_arn
-                      tf_model_name: RoleArn
-                      api_name: roleArn
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-                    - string: {}
-                      description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
-                      computed_optional_required: optional
-                      tf_schema_name: test_bucket
-                      tf_model_name: TestBucket
-                      api_name: testBucket
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-          description: 'Optional for type: AWSKinesisDataStreams, AWSLambda, S3. AWS configurations for AWS-based connection types.'
-          custom_type:
-            package: customtypes
-            name: Aws
-            model: customtypes.ObjectValue[TFAwsModel]
-            schema: customtypes.NewObjectType[TFAwsModel](ctx)
-          computed_optional_required: optional
-          tf_schema_name: aws
-          tf_model_name: Aws
-          api_name: aws
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - single_nested:
-            nested_object:
-                attributes:
-                    - string: {}
-                      description: Azure region where the storage account is located.
-                      deprecation_message: This attribute has been deprecated
-                      computed_optional_required: optional
-                      tf_schema_name: region
-                      tf_model_name: Region
-                      api_name: region
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-                    - string: {}
-                      description: Unique ID of the Azure Service Principal that has access to the storage account.
-                      computed_optional_required: optional
-                      tf_schema_name: service_principal_id
-                      tf_model_name: ServicePrincipalId
-                      api_name: servicePrincipalId
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-                    - string: {}
-                      description: Name of the Azure Storage Account to connect to.
-                      computed_optional_required: optional
-                      tf_schema_name: storage_account_name
-                      tf_model_name: StorageAccountName
-                      api_name: storageAccountName
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-          description: 'Optional for type: AzureBlobStorage. Azure-specific configuration for the connection.'
-          custom_type:
-            package: customtypes
-            name: Azure
-            model: customtypes.ObjectValue[TFAzureModel]
-            schema: customtypes.NewObjectType[TFAzureModel](ctx)
-          computed_optional_required: optional
-          tf_schema_name: azure
-          tf_model_name: Azure
-          api_name: azure
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
         - string: {}
           description: 'Optional for type: Kafka. Comma separated list of server addresses.'
           computed_optional_required: optional
@@ -419,35 +327,6 @@ schema:
           create_only: false
           present_in_any_response: true
           request_only_required_on_create: false
-        - single_nested:
-            nested_object:
-                attributes:
-                    - string: {}
-                      description: Email address of the Google Cloud Platform (GCP) service account that Atlas Streams uses to connect to the GCP Pub/Sub resources.
-                      computed_optional_required: optional
-                      tf_schema_name: service_account_id
-                      tf_model_name: ServiceAccountId
-                      api_name: serviceAccountId
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-          description: 'Optional for type: GCPPubSub. GCP-specific configuration for the connection.'
-          custom_type:
-            package: customtypes
-            name: Gcp
-            model: customtypes.ObjectValue[TFGcpModel]
-            schema: customtypes.NewObjectType[TFGcpModel](ctx)
-          computed_optional_required: optional
-          tf_schema_name: gcp
-          tf_model_name: Gcp
-          api_name: gcp
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
         - string: {}
           description: Unique 24-hexadecimal digit string that identifies your project, also known as `groupId` in the official documentation.
           computed_optional_required: required
@@ -458,22 +337,6 @@ schema:
           sensitive: false
           create_only: true
           present_in_any_response: false
-          request_only_required_on_create: false
-        - map:
-            element_type: 4
-          description: 'Optional for type: Https. A map of key-value pairs that will be passed as headers for the request.'
-          custom_type:
-            package: customtypes
-            model: customtypes.MapValue[types.String]
-            schema: customtypes.NewMapType[types.String](ctx)
-          computed_optional_required: optional
-          tf_schema_name: headers
-          tf_model_name: Headers
-          api_name: headers
-          req_body_usage: send_null_as_empty_on_update
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
           description: Unique identifier of the connection.
@@ -567,165 +430,11 @@ schema:
           present_in_any_response: true
           request_only_required_on_create: false
         - string: {}
-          description: 'Required for type: SchemaRegistry. The Schema Registry provider.'
-          computed_optional_required: optional
-          tf_schema_name: schema_registry_provider
-          tf_model_name: SchemaRegistryProvider
-          api_name: provider
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - single_nested:
-            nested_object:
-                attributes:
-                    - single_nested:
-                        nested_object:
-                            attributes:
-                                - string: {}
-                                  description: The ID of the Private Link connection. Required for `PRIVATE_LINK` type. For GCP connections using Private Service Connect (PSC), this is the PSC connection ID.
-                                  computed_optional_required: optional
-                                  tf_schema_name: connection_id
-                                  tf_model_name: ConnectionId
-                                  api_name: connectionId
-                                  req_body_usage: all_request_bodies
-                                  sensitive: false
-                                  create_only: false
-                                  present_in_any_response: true
-                                  request_only_required_on_create: false
-                                - string: {}
-                                  description: Selected networking type. Either `PUBLIC` or `PRIVATE_LINK`. Defaults to `PUBLIC`. For AWS, Azure, and GCP connections, use `PRIVATE_LINK` for AWS PrivateLink, Azure Private Link, or GCP Private Service Connect (PSC) respectively.
-                                  computed_optional_required: computed_optional
-                                  tf_schema_name: type
-                                  tf_model_name: Type
-                                  api_name: type
-                                  req_body_usage: all_request_bodies
-                                  sensitive: false
-                                  create_only: false
-                                  present_in_any_response: true
-                                  request_only_required_on_create: false
-                      description: Information about networking access.
-                      custom_type:
-                        package: customtypes
-                        name: PublicPrivateNetworkingAccess
-                        model: customtypes.ObjectValue[TFPublicPrivateNetworkingAccessModel]
-                        schema: customtypes.NewObjectType[TFPublicPrivateNetworkingAccessModel](ctx)
-                      computed_optional_required: computed_optional
-                      tf_schema_name: access
-                      tf_model_name: Access
-                      api_name: access
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-          description: 'Optional for type: AzureBlobStorage, GCPPubSub. Networking configuration for connections that support `PUBLIC` and `PRIVATE_LINK` access types. For GCP connections, use `PRIVATE_LINK` for GCP Private Service Connect (PSC).'
-          custom_type:
-            package: customtypes
-            name: PublicPrivateNetworking
-            model: customtypes.ObjectValue[TFPublicPrivateNetworkingModel]
-            schema: customtypes.NewObjectType[TFPublicPrivateNetworkingModel](ctx)
-          computed_optional_required: computed_optional
-          tf_schema_name: public_private_networking
-          tf_model_name: PublicPrivateNetworking
-          api_name: publicPrivateNetworking
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
           description: The connection's region.
           computed_optional_required: required
           tf_schema_name: region
           tf_model_name: Region
           api_name: region
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - single_nested:
-            nested_object:
-                discriminator:
-                    mapping:
-                        SASL_INHERIT:
-                            allowed: []
-                        USER_INFO:
-                            allowed:
-                                - api_name: password
-                                  tf_schema_name: password
-                                - api_name: username
-                                  tf_schema_name: username
-                            required:
-                                - api_name: password
-                                  tf_schema_name: password
-                                - api_name: username
-                                  tf_schema_name: username
-                    property_name:
-                        api_name: type
-                        tf_schema_name: type
-                attributes:
-                    - string: {}
-                      description: 'Required for type: USER_INFO. Password or Private Key for authentication.'
-                      computed_optional_required: optional
-                      tf_schema_name: password
-                      tf_model_name: Password
-                      api_name: password
-                      req_body_usage: all_request_bodies
-                      sensitive: true
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-                    - string: {}
-                      description: Authentication type discriminator. Specifies the authentication mechanism for Confluent Schema Registry.
-                      computed_optional_required: required
-                      tf_schema_name: type
-                      tf_model_name: Type
-                      api_name: type
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-                    - string: {}
-                      description: 'Required for type: USER_INFO. Username or Public Key for authentication.'
-                      computed_optional_required: optional
-                      tf_schema_name: username
-                      tf_model_name: Username
-                      api_name: username
-                      req_body_usage: all_request_bodies
-                      sensitive: false
-                      create_only: false
-                      present_in_any_response: true
-                      request_only_required_on_create: false
-          description: 'Required for type: SchemaRegistry. Authentication configuration for Schema Registry.'
-          custom_type:
-            package: customtypes
-            name: SchemaRegistryAuthentication
-            model: customtypes.ObjectValue[TFSchemaRegistryAuthenticationModel]
-            schema: customtypes.NewObjectType[TFSchemaRegistryAuthenticationModel](ctx)
-          computed_optional_required: optional
-          tf_schema_name: schema_registry_authentication
-          tf_model_name: SchemaRegistryAuthentication
-          api_name: schemaRegistryAuthentication
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - list:
-            element_type: 4
-          description: 'Required for type: SchemaRegistry. List of Schema Registry endpoint URLs used by this connection. Each URL must use the http or https scheme and specify a valid host and optional port.'
-          custom_type:
-            package: customtypes
-            model: customtypes.ListValue[types.String]
-            schema: customtypes.NewListType[types.String](ctx)
-          computed_optional_required: optional
-          tf_schema_name: schema_registry_urls
-          tf_model_name: SchemaRegistryUrls
-          api_name: schemaRegistryUrls
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
@@ -799,17 +508,6 @@ schema:
           tf_schema_name: type
           tf_model_name: Type
           api_name: type
-          req_body_usage: all_request_bodies
-          sensitive: false
-          create_only: false
-          present_in_any_response: true
-          request_only_required_on_create: false
-        - string: {}
-          description: 'Optional for type: Https. The URL to be used for the request.'
-          computed_optional_required: optional
-          tf_schema_name: url
-          tf_model_name: Url
-          api_name: url
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
