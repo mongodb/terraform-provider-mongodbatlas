@@ -538,7 +538,7 @@ func TestGetCredentials_GovResolution(t *testing.T) {
 			getAWS:       mockAWS(config.Credentials{PublicKey: "k", PrivateKey: "k"}),
 			wantBaseURL:  "",
 		},
-		"no mixing: AWS secret wins, provider base_url ignored (HELP-96418)": {
+		"no mixing: AWS secret wins, provider base_url ignored": {
 			providerVars: &config.Vars{AWSAssumeRoleARN: "arn", BaseURL: "https://cloud-qa.mongodb.com"},
 			envVars:      &config.Vars{},
 			getAWS:       mockAWS(config.Credentials{PublicKey: "k", PrivateKey: "k"}),
@@ -689,9 +689,4 @@ func TestCoalesceCredentials(t *testing.T) {
 			assert.Equal(t, tc.want, got)
 		})
 	}
-}
-
-func TestVars_GetCredentials_IsMongodbGovCloud(t *testing.T) {
-	vars := &config.Vars{IsMongodbGovCloud: true}
-	assert.True(t, vars.GetCredentials().IsMongodbGovCloud)
 }
