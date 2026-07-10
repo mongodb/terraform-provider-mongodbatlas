@@ -116,7 +116,7 @@ The provider supports retrieving credentials from AWS Secrets Manager. See [AWS 
 
    Alternatively, you can use environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, `ASSUME_ROLE_ARN`, `SECRET_NAME`, `AWS_REGION`).
 
-~> **NOTE:** When using AWS Secrets Manager, the secret payload is the single source for the provider configuration. In addition to credentials, you can set `base_url`, `realm_base_url`, and `is_mongodbgov_cloud` as keys inside the secret JSON. These values are ignored if set as provider attributes or environment variables while AWS Secrets Manager is in use. To target MongoDB Atlas for Government, set `is_mongodbgov_cloud` to `true` (or set `base_url` to `https://cloud.mongodbgov.com`) inside the secret.
+~> **NOTE:** When using AWS Secrets Manager, the secret payload is the single source for the provider configuration. In addition to credentials, you can set `base_url`, `realm_base_url`, and `is_mongodbgov_cloud` as keys inside the secret JSON. These values are ignored if set as provider attributes or environment variables while AWS Secrets Manager is in use.
 
 ### Cross-Account and Cross-Region Access
 
@@ -147,7 +147,7 @@ provider "mongodbatlas" {
 * `private_key` - (Optional) PAK Private Key (env: `MONGODB_ATLAS_PRIVATE_API_KEY`).
 * `base_url` - (Optional) MongoDB Atlas Base URL (env: `MONGODB_ATLAS_BASE_URL`). For advanced use cases, you can configure custom API endpoints.
 * `realm_base_url` - (Optional) MongoDB Realm Base URL (env: `MONGODB_REALM_BASE_URL`).
-* `is_mongodbgov_cloud` - (Optional) (env: `MONGODB_ATLAS_IS_MONGODBGOV_CLOUD`) Set to `true` to use MongoDB Atlas for Government, a dedicated deployment option for government agencies and contractors requiring FedRAMP compliance. When enabled, the provider uses government-specific API endpoints. Ensure credentials are created in the government environment. See [Atlas for Government Considerations](https://www.mongodb.com/docs/atlas/government/api/#atlas-for-government-considerations) for feature limitations and requirements.
+* `is_mongodbgov_cloud` - (Optional) Set to `true` to use MongoDB Atlas for Government, a dedicated deployment option for government agencies and contractors requiring FedRAMP compliance. When enabled, the provider uses government-specific API endpoints. Ensure credentials are created in the government environment. See [Atlas for Government Considerations](https://www.mongodb.com/docs/atlas/government/api/#atlas-for-government-considerations) for feature limitations and requirements. (env: `MONGODB_ATLAS_IS_MONGODBGOV_CLOUD`)
   ```terraform
   provider "mongodbatlas" {
     client_id           = var.mongodbatlas_client_id
