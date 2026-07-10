@@ -363,7 +363,7 @@ schema:
           tf_schema_name: config
           tf_model_name: Config
           api_name: config
-          req_body_usage: all_request_bodies
+          req_body_usage: send_null_as_empty_on_update
           sensitive: false
           create_only: false
           present_in_any_response: true
@@ -470,7 +470,7 @@ schema:
           tf_schema_name: headers
           tf_model_name: Headers
           api_name: headers
-          req_body_usage: all_request_bodies
+          req_body_usage: send_null_as_empty_on_update
           sensitive: false
           create_only: false
           present_in_any_response: true

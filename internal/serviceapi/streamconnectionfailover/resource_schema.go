@@ -367,12 +367,12 @@ type TFModel struct {
 	BootstrapServers             types.String                                                 `tfsdk:"bootstrap_servers"`
 	ClusterProjectId             types.String                                                 `tfsdk:"cluster_project_id" apiname:"clusterGroupId"`
 	ClusterName                  types.String                                                 `tfsdk:"cluster_name"`
-	Config                       customtypes.MapValue[types.String]                           `tfsdk:"config"`
+	Config                       customtypes.MapValue[types.String]                           `tfsdk:"config" autogen:"sendnullasemptyonupdate"`
 	ConnectionName               types.String                                                 `tfsdk:"connection_name" autogen:"omitjson"`
 	DbRoleToExecute              customtypes.ObjectValue[TFDbRoleToExecuteModel]              `tfsdk:"db_role_to_execute"`
 	Gcp                          customtypes.ObjectValue[TFGcpModel]                          `tfsdk:"gcp"`
 	ProjectId                    types.String                                                 `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
-	Headers                      customtypes.MapValue[types.String]                           `tfsdk:"headers"`
+	Headers                      customtypes.MapValue[types.String]                           `tfsdk:"headers" autogen:"sendnullasemptyonupdate"`
 	FailoverConnectionId         types.String                                                 `tfsdk:"failover_connection_id" apiname:"id" autogen:"omitjson"`
 	Networking                   customtypes.ObjectValue[TFNetworkingModel]                   `tfsdk:"networking"`
 	SchemaRegistryProvider       types.String                                                 `tfsdk:"schema_registry_provider" apiname:"provider"`

@@ -934,6 +934,13 @@ resources:
       overrides:
         project_id:
           description: *project_id_description
+        # A PATCH merges, so omitting a map keeps the old value. Send an empty map on update to
+        # clear it when removed; the read side normalizes empty->null to avoid drift. The manual
+        # mongodbatlas_stream_connection resource clears `headers` the same way on this endpoint.
+        config:
+          request_body_usage: send_null_as_empty_on_update
+        headers:
+          request_body_usage: send_null_as_empty_on_update
         connection_name:
           computability:
             required: true
