@@ -690,3 +690,13 @@ func TestCoalesceCredentials(t *testing.T) {
 		})
 	}
 }
+
+func TestNewEnvVars_IsMongodbGovCloud(t *testing.T) {
+	t.Setenv("MONGODB_ATLAS_IS_MONGODBGOV_CLOUD", "true")
+	assert.True(t, config.NewEnvVars().IsMongodbGovCloud)
+}
+
+func TestVars_GetCredentials_IsMongodbGovCloud(t *testing.T) {
+	vars := &config.Vars{IsMongodbGovCloud: true}
+	assert.True(t, vars.GetCredentials().IsMongodbGovCloud)
+}
