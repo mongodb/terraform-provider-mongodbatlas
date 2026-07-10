@@ -32,24 +32,11 @@ func newStreamWorkspaceCreateReq(ctx context.Context, plan *TFModel) (*admin.Str
 		}
 		streamTenant.FailoverRegions = &failoverDataRegions
 	}
-	if !plan.StreamConfig.IsNull() && !plan.StreamConfig.IsUnknown() {
-		streamConfig := new(TFWorkspaceStreamConfigModel)
-		if diags := plan.StreamConfig.As(ctx, streamConfig, basetypes.ObjectAsOptions{}); diags.HasError() {
-			return nil, diags
-		}
-		var maxTierSize *string
-		if streamConfig.MaxTierSize.ValueString() != "" {
-			maxTierSize = streamConfig.MaxTierSize.ValueStringPointer()
-		}
-		var tier *string
-		if streamConfig.Tier.ValueString() != "" {
-			tier = streamConfig.Tier.ValueStringPointer()
-		}
-		streamTenant.StreamConfig = &admin.StreamConfig{
-			MaxTierSize: maxTierSize,
-			Tier:        tier,
-		}
+	streamConfig, diags := newStreamConfigReq(ctx, plan.StreamConfig)
+	if diags.HasError() {
+		return nil, diags
 	}
+	streamTenant.StreamConfig = streamConfig
 	return streamTenant, nil
 }
 
@@ -71,26 +58,35 @@ func newStreamWorkspaceUpdateReq(ctx context.Context, plan, state *TFModel) (*ad
 		}
 		updateReq.CloudProvider = dataProcessRegion.CloudProvider.ValueStringPointer()
 		updateReq.Region = dataProcessRegion.Region.ValueStringPointer()
-		if !plan.StreamConfig.IsNull() && !plan.StreamConfig.IsUnknown() {
-			streamConfig := new(TFWorkspaceStreamConfigModel)
-			if diags := plan.StreamConfig.As(ctx, streamConfig, basetypes.ObjectAsOptions{}); diags.HasError() {
-				return nil, diags
-			}
-			var maxTierSize *string
-			if streamConfig.MaxTierSize.ValueString() != "" {
-				maxTierSize = streamConfig.MaxTierSize.ValueStringPointer()
-			}
-			var tier *string
-			if streamConfig.Tier.ValueString() != "" {
-				tier = streamConfig.Tier.ValueStringPointer()
-			}
-			updateReq.StreamConfig = &admin.StreamConfig{
-				MaxTierSize: maxTierSize,
-				Tier:        tier,
-			}
-		}
 	}
+	streamConfig, diags := newStreamConfigReq(ctx, plan.StreamConfig)
+	if diags.HasError() {
+		return nil, diags
+	}
+	updateReq.StreamConfig = streamConfig
 	return updateReq, nil
+}
+
+func newStreamConfigReq(ctx context.Context, planStreamConfig types.Object) (*admin.StreamConfig, diag.Diagnostics) {
+	if planStreamConfig.IsNull() || planStreamConfig.IsUnknown() {
+		return nil, nil
+	}
+	streamConfig := new(TFWorkspaceStreamConfigModel)
+	if diags := planStreamConfig.As(ctx, streamConfig, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return nil, diags
+	}
+	var maxTierSize *string
+	if streamConfig.MaxTierSize.ValueString() != "" {
+		maxTierSize = streamConfig.MaxTierSize.ValueStringPointer()
+	}
+	var tier *string
+	if streamConfig.Tier.ValueString() != "" {
+		tier = streamConfig.Tier.ValueStringPointer()
+	}
+	return &admin.StreamConfig{
+		MaxTierSize: maxTierSize,
+		Tier:        tier,
+	}, nil
 }
 
 // failoverRegionsChanging reports whether failover_regions is being newly configured in this update
