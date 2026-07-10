@@ -89,38 +89,29 @@ func clusterReq(name, projectID string) admin.ClusterDescription20240805 {
 
 func createStreamInstance(tb testing.TB, projectID, name string) {
 	tb.Helper()
-	req := admin.StreamsTenant{
-		Name: new(name),
-		DataProcessRegion: &admin.StreamsDataProcessRegion{
-			Region:        "VIRGINIA_USA",
-			CloudProvider: constant.AWS,
-		},
-		StreamConfig: &admin.StreamConfig{
-			Tier: new("SP10"),
-		},
-		SampleConnections: &admin.StreamsSampleConnections{
-			Solar: new(true),
-		},
-	}
-	_, _, err := ConnV2().StreamsApi.CreateStreamWorkspace(tb.Context(), projectID, &req).Execute()
-	require.NoError(tb, err, "Stream instance creation failed: %s, err: %s", name, err)
+	createStreamInstanceWithReq(tb, projectID, name, streamInstanceReq(name))
 }
 
 // createStreamInstanceWithFailover creates a stream instance with failover regions enabled,
 // which is a prerequisite for creating failover connections.
 func createStreamInstanceWithFailover(tb testing.TB, projectID, name string) {
 	tb.Helper()
-	req := admin.StreamsTenant{
+	req := streamInstanceReq(name)
+	req.FailoverRegions = &[]admin.StreamsDataProcessRegion{
+		{
+			Region:        "DUBLIN_IRL",
+			CloudProvider: constant.AWS,
+		},
+	}
+	createStreamInstanceWithReq(tb, projectID, name, req)
+}
+
+func streamInstanceReq(name string) admin.StreamsTenant {
+	return admin.StreamsTenant{
 		Name: new(name),
 		DataProcessRegion: &admin.StreamsDataProcessRegion{
 			Region:        "VIRGINIA_USA",
 			CloudProvider: constant.AWS,
-		},
-		FailoverRegions: &[]admin.StreamsDataProcessRegion{
-			{
-				Region:        "DUBLIN_IRL",
-				CloudProvider: constant.AWS,
-			},
 		},
 		StreamConfig: &admin.StreamConfig{
 			Tier: new("SP10"),
@@ -129,8 +120,12 @@ func createStreamInstanceWithFailover(tb testing.TB, projectID, name string) {
 			Solar: new(true),
 		},
 	}
+}
+
+func createStreamInstanceWithReq(tb testing.TB, projectID, name string, req admin.StreamsTenant) {
+	tb.Helper()
 	_, _, err := ConnV2().StreamsApi.CreateStreamWorkspace(tb.Context(), projectID, &req).Execute()
-	require.NoError(tb, err, "Stream instance with failover creation failed: %s, err: %s", name, err)
+	require.NoError(tb, err, "Stream instance creation failed: %s, err: %s", name, err)
 }
 
 func projectIDLocal() string {
