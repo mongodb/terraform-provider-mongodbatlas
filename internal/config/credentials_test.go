@@ -532,6 +532,12 @@ func TestGetCredentials_GovResolution(t *testing.T) {
 			getAWS:       mockAWS(config.Credentials{}),
 			wantBaseURL:  govURL,
 		},
+		"provider gov flag keeps dev/qa gov base_url": {
+			providerVars: &config.Vars{PublicKey: "k", PrivateKey: "k", BaseURL: "https://cloud-dev.mongodbgov.com", IsMongodbGovCloud: true},
+			envVars:      &config.Vars{},
+			getAWS:       mockAWS(config.Credentials{}),
+			wantBaseURL:  "https://cloud-dev.mongodbgov.com",
+		},
 		"no mixing: AWS secret wins, env gov ignored": {
 			providerVars: &config.Vars{AWSAssumeRoleARN: "arn"},
 			envVars:      &config.Vars{IsMongodbGovCloud: true},
