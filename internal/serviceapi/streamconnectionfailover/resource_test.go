@@ -25,18 +25,29 @@ func TestAccStreamConnectionFailover(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configFailover(projectID, workspaceName, connectionName, "DUBLIN_IRL", "failover1:9092"),
+				Config: configFailover(projectID, workspaceName, connectionName, "DUBLIN_IRL", "failover1:9092", true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(),
 					resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 					resource.TestCheckResourceAttr(resourceName, "region", "DUBLIN_IRL"),
 					resource.TestCheckResourceAttr(resourceName, "type", "Kafka"),
 					resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", "failover1:9092"),
+					resource.TestCheckResourceAttr(resourceName, "config.auto.offset.reset", "earliest"),
 					resource.TestCheckResourceAttrSet(resourceName, "failover_connection_id"),
 				),
 			},
 			{
-				Config: configFailover(projectID, workspaceName, connectionName, "DUBLIN_IRL", "failover1-updated:9093"),
+				// Remove the `config` block (same bootstrap) to exercise unsetting an optional field on
+				// update. If the PATCH omits it and Atlas keeps the old value, this step fails with
+				// "Provider produced inconsistent result after apply".
+				Config: configFailover(projectID, workspaceName, connectionName, "DUBLIN_IRL", "failover1:9092", false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(),
+					resource.TestCheckNoResourceAttr(resourceName, "config.%"),
+				),
+			},
+			{
+				Config: configFailover(projectID, workspaceName, connectionName, "DUBLIN_IRL", "failover1-updated:9093", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(),
 					resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", "failover1-updated:9093"),
@@ -54,7 +65,11 @@ func TestAccStreamConnectionFailover(t *testing.T) {
 	})
 }
 
-func configFailover(projectID, workspaceName, connectionName, region, bootstrap string) string {
+func configFailover(projectID, workspaceName, connectionName, region, bootstrap string, includeFailoverConfig bool) string {
+	failoverConfig := ""
+	if includeFailoverConfig {
+		failoverConfig = `config   = { "auto.offset.reset" = "earliest" }`
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "primary" {
 			project_id        = %[1]q
@@ -83,10 +98,10 @@ func configFailover(projectID, workspaceName, connectionName, region, bootstrap 
 				username  = "fcuser"
 				password  = "fcpass"
 			}
-			config   = { "auto.offset.reset" = "earliest" }
+			%[6]s
 			security = { protocol = "SASL_PLAINTEXT" }
 		}
-	`, projectID, workspaceName, connectionName, region, bootstrap)
+	`, projectID, workspaceName, connectionName, region, bootstrap, failoverConfig)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
