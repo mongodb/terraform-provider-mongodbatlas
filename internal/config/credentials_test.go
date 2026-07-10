@@ -692,8 +692,41 @@ func TestCoalesceCredentials(t *testing.T) {
 }
 
 func TestNewEnvVars_IsMongodbGovCloud(t *testing.T) {
-	t.Setenv("MONGODB_ATLAS_IS_MONGODBGOV_CLOUD", "true")
-	assert.True(t, config.NewEnvVars().IsMongodbGovCloud)
+	testCases := map[string]struct {
+		envValue string
+		want     bool
+		setEnv   bool
+	}{
+		"true": {
+			envValue: "true",
+			want:     true,
+			setEnv:   true,
+		},
+		"false": {
+			envValue: "false",
+			want:     false,
+			setEnv:   true,
+		},
+		"unparseable": {
+			envValue: "notabool",
+			want:     false,
+			setEnv:   true,
+		},
+		"unset": {
+			want:   false,
+			setEnv: false,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			if tc.setEnv {
+				t.Setenv("MONGODB_ATLAS_IS_MONGODBGOV_CLOUD", tc.envValue)
+			}
+			got := config.NewEnvVars().IsMongodbGovCloud
+			assert.Equal(t, tc.want, got)
+		})
+	}
 }
 
 func TestVars_GetCredentials_IsMongodbGovCloud(t *testing.T) {
