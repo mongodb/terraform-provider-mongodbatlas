@@ -520,12 +520,6 @@ func TestGetCredentials_GovResolution(t *testing.T) {
 			getAWS:       mockAWS(config.Credentials{PublicKey: "k", PrivateKey: "k", BaseURL: "https://cloud-qa.mongodbgov.com", IsMongodbGovCloud: true}),
 			wantBaseURL:  "https://cloud-qa.mongodbgov.com",
 		},
-		"env gov flag resolves to gov prod URL": {
-			providerVars: &config.Vars{},
-			envVars:      &config.Vars{PublicKey: "k", PrivateKey: "k", IsMongodbGovCloud: true},
-			getAWS:       mockAWS(config.Credentials{}),
-			wantBaseURL:  govURL,
-		},
 		"provider gov flag resolves to gov prod URL": {
 			providerVars: &config.Vars{PublicKey: "k", PrivateKey: "k", IsMongodbGovCloud: true},
 			envVars:      &config.Vars{},
@@ -538,9 +532,9 @@ func TestGetCredentials_GovResolution(t *testing.T) {
 			getAWS:       mockAWS(config.Credentials{}),
 			wantBaseURL:  "https://cloud-dev.mongodbgov.com",
 		},
-		"no mixing: AWS secret wins, env gov ignored": {
-			providerVars: &config.Vars{AWSAssumeRoleARN: "arn"},
-			envVars:      &config.Vars{IsMongodbGovCloud: true},
+		"no mixing: AWS secret wins, provider gov ignored": {
+			providerVars: &config.Vars{AWSAssumeRoleARN: "arn", IsMongodbGovCloud: true},
+			envVars:      &config.Vars{},
 			getAWS:       mockAWS(config.Credentials{PublicKey: "k", PrivateKey: "k"}),
 			wantBaseURL:  "",
 		},
@@ -692,44 +686,6 @@ func TestCoalesceCredentials(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			got := config.CoalesceCredentials(tc.credentials...)
-			assert.Equal(t, tc.want, got)
-		})
-	}
-}
-
-func TestNewEnvVars_IsMongodbGovCloud(t *testing.T) {
-	testCases := map[string]struct {
-		envValue string
-		want     bool
-		setEnv   bool
-	}{
-		"true": {
-			envValue: "true",
-			want:     true,
-			setEnv:   true,
-		},
-		"false": {
-			envValue: "false",
-			want:     false,
-			setEnv:   true,
-		},
-		"unparseable": {
-			envValue: "notabool",
-			want:     false,
-			setEnv:   true,
-		},
-		"unset": {
-			want:   false,
-			setEnv: false,
-		},
-	}
-
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			if tc.setEnv {
-				t.Setenv("MONGODB_ATLAS_IS_MONGODBGOV_CLOUD", tc.envValue)
-			}
-			got := config.NewEnvVars().IsMongodbGovCloud
 			assert.Equal(t, tc.want, got)
 		})
 	}

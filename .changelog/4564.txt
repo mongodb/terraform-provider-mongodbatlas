@@ -1,3 +1,3 @@
 ```release-note:enhancement
-provider: Supports `is_mongodbgov_cloud` in the AWS Secrets Manager secret payload and via the `MONGODB_ATLAS_IS_MONGODBGOV_CLOUD` environment variable
+provider: Supports `is_mongodbgov_cloud` in the AWS Secrets Manager secret payload
 ```

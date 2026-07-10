@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -175,7 +174,6 @@ func NewEnvVars() *Vars {
 		PrivateKey:         getEnv("MONGODB_ATLAS_PRIVATE_API_KEY", "MONGODB_ATLAS_PRIVATE_KEY", "MCLI_PRIVATE_API_KEY"),
 		BaseURL:            getEnv("MONGODB_ATLAS_BASE_URL", "MCLI_OPS_MANAGER_URL"),
 		RealmBaseURL:       getEnv("MONGODB_REALM_BASE_URL"),
-		IsMongodbGovCloud:  parseBoolEnv("MONGODB_ATLAS_IS_MONGODBGOV_CLOUD"),
 		AWSAssumeRoleARN:   getEnv("ASSUME_ROLE_ARN", "TF_VAR_ASSUME_ROLE_ARN"),
 		AWSSecretName:      getEnv("SECRET_NAME", "TF_VAR_SECRET_NAME"),
 		AWSRegion:          getEnv("AWS_REGION", "TF_VAR_AWS_REGION"),
@@ -219,14 +217,6 @@ func getEnv(key ...string) string {
 		}
 	}
 	return ""
-}
-
-func parseBoolEnv(key string) bool {
-	v, err := strconv.ParseBool(getEnv(key))
-	if err != nil {
-		return false
-	}
-	return v
 }
 
 func CoalesceAWSVars(awsVars ...*AWSVars) *AWSVars {

@@ -147,7 +147,7 @@ provider "mongodbatlas" {
 * `private_key` - (Optional) PAK Private Key (env: `MONGODB_ATLAS_PRIVATE_API_KEY`).
 * `base_url` - (Optional) MongoDB Atlas Base URL (env: `MONGODB_ATLAS_BASE_URL`). For advanced use cases, you can configure custom API endpoints.
 * `realm_base_url` - (Optional) MongoDB Realm Base URL (env: `MONGODB_REALM_BASE_URL`).
-* `is_mongodbgov_cloud` - (Optional) Set to `true` to use MongoDB Atlas for Government, a dedicated deployment option for government agencies and contractors requiring FedRAMP compliance. When enabled, the provider uses government-specific API endpoints. Ensure credentials are created in the government environment. See [Atlas for Government Considerations](https://www.mongodb.com/docs/atlas/government/api/#atlas-for-government-considerations) for feature limitations and requirements. (env: `MONGODB_ATLAS_IS_MONGODBGOV_CLOUD`)
+* `is_mongodbgov_cloud` - (Optional) Set to `true` to use MongoDB Atlas for Government, a dedicated deployment option for government agencies and contractors requiring FedRAMP compliance. When enabled, the provider uses government-specific API endpoints. Ensure credentials are created in the government environment. See [Atlas for Government Considerations](https://www.mongodb.com/docs/atlas/government/api/#atlas-for-government-considerations) for feature limitations and requirements.
   ```terraform
   provider "mongodbatlas" {
     client_id           = var.mongodbatlas_client_id
