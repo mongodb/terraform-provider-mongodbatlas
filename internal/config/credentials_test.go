@@ -220,8 +220,8 @@ func TestCredentials_IsPresent(t *testing.T) {
 
 func TestCredentials_Warnings(t *testing.T) {
 	testCases := map[string]struct {
-		credentials config.Credentials
 		want        string
+		credentials config.Credentials
 	}{
 		"No credentials": {
 			credentials: config.Credentials{},
@@ -291,8 +291,8 @@ func TestCredentials_Warnings(t *testing.T) {
 
 func TestCredentials_Errors(t *testing.T) {
 	testCases := map[string]struct {
-		credentials config.Credentials
 		want        string
+		credentials config.Credentials
 	}{
 		"No credentials - no error": {
 			credentials: config.Credentials{},
@@ -487,6 +487,70 @@ func TestGetCredentials(t *testing.T) {
 				require.NoError(t, err)
 				assert.Equal(t, tc.want, got)
 			}
+		})
+	}
+}
+
+func TestGetCredentials_GovResolution(t *testing.T) {
+	const govURL = "https://cloud.mongodbgov.com"
+
+	// AWS mock returns whatever the test wants the "secret" to contain.
+	mockAWS := func(secret config.Credentials) func(context.Context, *config.AWSVars) (*config.Credentials, error) {
+		return func(_ context.Context, _ *config.AWSVars) (*config.Credentials, error) {
+			s := secret
+			return &s, nil
+		}
+	}
+
+	testCases := map[string]struct {
+		providerVars *config.Vars
+		envVars      *config.Vars
+		getAWS       func(context.Context, *config.AWSVars) (*config.Credentials, error)
+		wantBaseURL  string
+	}{
+		"secret gov flag resolves to gov prod URL": {
+			providerVars: &config.Vars{AWSAssumeRoleARN: "arn"},
+			envVars:      &config.Vars{},
+			getAWS:       mockAWS(config.Credentials{PublicKey: "k", PrivateKey: "k", IsMongodbGovCloud: true}),
+			wantBaseURL:  govURL,
+		},
+		"secret gov flag keeps dev/qa gov base_url": {
+			providerVars: &config.Vars{AWSAssumeRoleARN: "arn"},
+			envVars:      &config.Vars{},
+			getAWS:       mockAWS(config.Credentials{PublicKey: "k", PrivateKey: "k", BaseURL: "https://cloud-qa.mongodbgov.com", IsMongodbGovCloud: true}),
+			wantBaseURL:  "https://cloud-qa.mongodbgov.com",
+		},
+		"env gov flag resolves to gov prod URL": {
+			providerVars: &config.Vars{},
+			envVars:      &config.Vars{PublicKey: "k", PrivateKey: "k", IsMongodbGovCloud: true},
+			getAWS:       mockAWS(config.Credentials{}),
+			wantBaseURL:  govURL,
+		},
+		"provider gov flag resolves to gov prod URL": {
+			providerVars: &config.Vars{PublicKey: "k", PrivateKey: "k", IsMongodbGovCloud: true},
+			envVars:      &config.Vars{},
+			getAWS:       mockAWS(config.Credentials{}),
+			wantBaseURL:  govURL,
+		},
+		"no mixing: AWS secret wins, env gov ignored": {
+			providerVars: &config.Vars{AWSAssumeRoleARN: "arn"},
+			envVars:      &config.Vars{IsMongodbGovCloud: true},
+			getAWS:       mockAWS(config.Credentials{PublicKey: "k", PrivateKey: "k"}),
+			wantBaseURL:  "",
+		},
+		"no mixing: AWS secret wins, provider base_url ignored (HELP-96418)": {
+			providerVars: &config.Vars{AWSAssumeRoleARN: "arn", BaseURL: "https://cloud-qa.mongodb.com"},
+			envVars:      &config.Vars{},
+			getAWS:       mockAWS(config.Credentials{PublicKey: "k", PrivateKey: "k"}),
+			wantBaseURL:  "",
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			got, err := config.GetCredentials(t.Context(), tc.providerVars, tc.envVars, tc.getAWS)
+			require.NoError(t, err)
+			assert.Equal(t, tc.wantBaseURL, got.BaseURL)
 		})
 	}
 }
