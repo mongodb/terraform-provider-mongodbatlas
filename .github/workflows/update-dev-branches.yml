@@ -116,7 +116,7 @@ jobs:
 
     - name: Send Slack notification for skipped branch
       if: steps.merge-check.outputs.skipped == 'true'
-      uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
+      uses: slackapi/slack-github-action@0d95c9a7becc1e6e297d76df9bc735c44f4cbcbc
       with:
         webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
         webhook-type: incoming-webhook
@@ -154,7 +154,7 @@ jobs:
 
     - name: Send Slack notification
       if: steps.merge-check.outputs.has-changes == 'true'
-      uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
+      uses: slackapi/slack-github-action@0d95c9a7becc1e6e297d76df9bc735c44f4cbcbc
       with:
         webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
         webhook-type: incoming-webhook
@@ -179,7 +179,7 @@ jobs:
     permissions: {}
     steps:
       - name: Send Slack notification on failure
-        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
+        uses: slackapi/slack-github-action@0d95c9a7becc1e6e297d76df9bc735c44f4cbcbc
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
