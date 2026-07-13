@@ -47,10 +47,16 @@ type MoveState struct {
 }
 
 type SchemaOptions struct {
-	Aliases       map[string]string   `yaml:"aliases"` // keys and values use camelCase (e.g., groupId: projectId, nestedObject.innerAttr: renamedAttr). Supports path params and request/response body fields via APIName preservation and apiname tag generation
-	Overrides     map[string]Override `yaml:"overrides"`
-	Ignores       []string            `yaml:"ignores"`
-	ExpandedModel bool                `yaml:"expanded_model"`
+	Aliases   map[string]string   `yaml:"aliases"` // keys and values use camelCase (e.g., groupId: projectId, nestedObject.innerAttr: renamedAttr). Supports path params and request/response body fields via APIName preservation and apiname tag generation
+	Overrides map[string]Override `yaml:"overrides"`
+	Ignores   []string            `yaml:"ignores"`
+	// DiscriminatorTypes optionally restricts a polymorphic schema's discriminator to the listed type
+	// values. Use it when an endpoint reuses a broad shared schema but only supports a subset of its
+	// types (e.g. failover connections reuse StreamsConnection but only support Kafka/Cluster). Pruning
+	// keeps the generated docs' per-type sections, the "for type:" description prefixes, and the runtime
+	// discriminator validation limited to the supported types. Empty means keep every type.
+	DiscriminatorTypes []string `yaml:"discriminator_types,omitempty"`
+	ExpandedModel      bool     `yaml:"expanded_model"`
 }
 
 type Override struct {
