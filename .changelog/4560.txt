@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_stream_workspace: Fixes `stream_config` (`tier` and `max_tier_size`) being dropped on in-place update, causing an inconsistent result after apply
+```
