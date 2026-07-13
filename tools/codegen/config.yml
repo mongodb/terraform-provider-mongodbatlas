@@ -982,6 +982,57 @@ resources:
           computability:
             optional: true
             computed: true
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections
+        method: GET
+      schema:
+        # Mirror the resource: drop the shared-schema fields that don't apply to failover connections
+        # (both the singular shape and the plural `results.` shape).
+        ignores:
+          [
+            "links",
+            "authentication.links",
+            "db_role_to_execute.links",
+            "networking.links",
+            "networking.access.links",
+            "security.links",
+            "aws",
+            "azure",
+            "gcp",
+            "headers",
+            "url",
+            "public_private_networking",
+            "provider",
+            "schema_registry_authentication",
+            "schema_registry_urls",
+            "results.links",
+            "results.authentication.links",
+            "results.db_role_to_execute.links",
+            "results.networking.links",
+            "results.networking.access.links",
+            "results.security.links",
+            "results.aws",
+            "results.azure",
+            "results.gcp",
+            "results.headers",
+            "results.url",
+            "results.public_private_networking",
+            "results.provider",
+            "results.schema_registry_authentication",
+            "results.schema_registry_urls",
+          ]
+        aliases:
+          id: failoverConnectionId
+          groupId: projectId
+          tenantName: workspaceName
+          clusterGroupId: clusterProjectId
+          results.id: failoverConnectionId
+          results.clusterGroupId: clusterProjectId
+        discriminator_types: [Kafka, Cluster]
 
   alert_configuration_api:
     read:

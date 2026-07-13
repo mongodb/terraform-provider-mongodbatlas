@@ -25,7 +25,7 @@ func ApplyTransformationsToResource(resourceConfig *config.Resource, resource *R
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
 	applyAliasToDiscriminator(resourceConfig.SchemaOptions.Aliases, resource.Schema.Discriminator, &resource.Schema.Attributes)
-	if err := pruneDiscriminatorTypes(resource.Schema.Discriminator, resourceConfig.SchemaOptions.DiscriminatorTypes); err != nil {
+	if err := pruneDiscriminatorTypes(resource.Schema.Attributes, resource.Schema.Discriminator, resourceConfig.SchemaOptions.DiscriminatorTypes); err != nil {
 		return err
 	}
 	applyIgnoreValidatorsToDiscriminators(resource.Schema.Discriminator, resource.Schema.Attributes, resourceConfig.SchemaOptions)
@@ -63,7 +63,7 @@ func applyDSSchemaTransformations(schemaOptions config.SchemaOptions, schema *Sc
 		return err
 	}
 	applyAliasToDiscriminator(schemaOptions.Aliases, schema.Discriminator, &schema.Attributes)
-	if err := pruneDiscriminatorTypes(schema.Discriminator, schemaOptions.DiscriminatorTypes); err != nil {
+	if err := pruneDiscriminatorTypes(schema.Attributes, schema.Discriminator, schemaOptions.DiscriminatorTypes); err != nil {
 		return err
 	}
 	skipDiscriminator(schema.Discriminator)
@@ -72,13 +72,31 @@ func applyDSSchemaTransformations(schemaOptions config.SchemaOptions, schema *Sc
 	return nil
 }
 
-// pruneDiscriminatorTypes restricts the discriminator mapping to the allowed type values (see
-// config.SchemaOptions.DiscriminatorTypes). This keeps the generated docs' per-type sections, the
-// "for type:" description prefixes, and the runtime discriminator validation limited to the supported
-// types when an endpoint reuses a broad shared schema. An empty allow-list is a no-op. Unknown type
-// values are reported as errors to catch config typos.
-func pruneDiscriminatorTypes(disc *Discriminator, allowed []string) error {
-	if disc == nil || len(allowed) == 0 {
+// pruneDiscriminatorTypes restricts every discriminator mapping in the schema (root and nested) to the
+// allowed type values (see config.SchemaOptions.DiscriminatorTypes). This keeps the generated docs'
+// per-type sections, the "for type:" description prefixes, and the runtime discriminator validation
+// limited to the supported types when an endpoint reuses a broad shared schema. It recurses into nested
+// objects so it also covers plural data sources, whose discriminator sits under the `results` list. An
+// empty allow-list is a no-op. Unknown type values are reported as errors to catch config typos.
+func pruneDiscriminatorTypes(attrs Attributes, disc *Discriminator, allowed []string) error {
+	if len(allowed) == 0 {
+		return nil
+	}
+	if err := pruneDiscriminatorMapping(disc, allowed); err != nil {
+		return err
+	}
+	for i := range attrs {
+		if nested := attrs[i].NestedObject(); nested != nil {
+			if err := pruneDiscriminatorTypes(nested.Attributes, nested.Discriminator, allowed); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func pruneDiscriminatorMapping(disc *Discriminator, allowed []string) error {
+	if disc == nil {
 		return nil
 	}
 	allowedSet := make(map[string]bool, len(allowed))
