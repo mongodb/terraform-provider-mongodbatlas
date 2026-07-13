@@ -25,24 +25,34 @@ func TestAccStreamWorkspaceRS_basic(t *testing.T) {
 		projectID      = acc.ProjectIDExecution(t)
 		workspaceName  = acc.RandomName()
 	)
-	attrsMap := map[string]string{
-		"workspace_name":                     workspaceName,
-		"data_process_region.region":         region,
-		"data_process_region.cloud_provider": cloudProvider,
-		"stream_config.max_tier_size":        "SP30",
-		"stream_config.tier":                 "SP10",
-	}
 	attrsSet := []string{"project_id", "hostnames.#"}
+	attrsMap := func(tier, maxTierSize string) map[string]string {
+		return map[string]string{
+			"workspace_name":                     workspaceName,
+			"data_process_region.region":         region,
+			"data_process_region.cloud_provider": cloudProvider,
+			"stream_config.max_tier_size":        maxTierSize,
+			"stream_config.tier":                 tier,
+		}
+	}
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: streamsWorkspaceResourceWithDataSourcesConfig(projectID, workspaceName, region, cloudProvider),
+				Config: streamsWorkspaceResourceWithDataSourcesConfig(projectID, workspaceName, region, cloudProvider, "SP10", "SP30"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkStreamsWorkspaceExists(resourceName),
-					acc.CheckRSAndDS(resourceName, &dataSourceName, &pluralDSName, attrsSet, attrsMap),
+					acc.CheckRSAndDS(resourceName, &dataSourceName, &pluralDSName, attrsSet, attrsMap("SP10", "SP30")),
+				),
+			},
+			{
+				// In-place update of stream_config.tier and stream_config.max_tier_size.
+				Config: streamsWorkspaceResourceWithDataSourcesConfig(projectID, workspaceName, region, cloudProvider, "SP30", "SP50"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkStreamsWorkspaceExists(resourceName),
+					acc.CheckRSAndDS(resourceName, &dataSourceName, &pluralDSName, attrsSet, attrsMap("SP30", "SP50")),
 				),
 			},
 			{
@@ -104,27 +114,30 @@ func TestAccStreamWorkspaceRS_updateWithFailoverRegions(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
-			// Step 1: create without failover_regions
+			// Step 1: create without failover_regions, tier SP10
 			{
 				Config: streamsWorkspaceConfig(projectID, workspaceName, region, cloudProvider),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkStreamsWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "failover_regions.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP10"),
 				),
 			},
-			// Step 2: add failover_regions via update (null → value, allowed)
+			// Step 2: add failover_regions (null → value) and change stream_config.tier in the
+			// same apply. stream_config must be sent alongside failoverRegions, not dropped.
 			{
-				Config: streamsWorkspaceWithFailoverRegionsConfig(projectID, workspaceName, region, cloudProvider, failoverRegion),
+				Config: streamsWorkspaceWithFailoverAndTierConfig(projectID, workspaceName, region, cloudProvider, failoverRegion, "SP30"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkStreamsWorkspaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "failover_regions.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "failover_regions.0.region", failoverRegion),
 					resource.TestCheckResourceAttr(resourceName, "failover_regions.0.cloud_provider", cloudProvider),
+					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP30"),
 				),
 			},
-			// Step 3: no-op plan — failover_regions unchanged, expect no diff
+			// Step 3: no-op plan — failover_regions and stream_config unchanged, expect no diff
 			{
-				Config:   streamsWorkspaceWithFailoverRegionsConfig(projectID, workspaceName, region, cloudProvider, failoverRegion),
+				Config:   streamsWorkspaceWithFailoverAndTierConfig(projectID, workspaceName, region, cloudProvider, failoverRegion, "SP30"),
 				PlanOnly: true,
 			},
 		},
@@ -210,6 +223,10 @@ func checkStreamsWorkspaceImportStateIDFunc(resourceName string) resource.Import
 }
 
 func streamsWorkspaceWithFailoverRegionsConfig(projectID, workspaceName, region, cloudProvider, failoverRegion string) string {
+	return streamsWorkspaceWithFailoverAndTierConfig(projectID, workspaceName, region, cloudProvider, failoverRegion, "SP10")
+}
+
+func streamsWorkspaceWithFailoverAndTierConfig(projectID, workspaceName, region, cloudProvider, failoverRegion, tier string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_workspace" "test" {
 			project_id = %[1]q
@@ -225,10 +242,10 @@ func streamsWorkspaceWithFailoverRegionsConfig(projectID, workspaceName, region,
 				}
 			]
 			stream_config = {
-				tier = "SP10"
+				tier = %[6]q
 			}
 		}
-	`, projectID, workspaceName, region, cloudProvider, failoverRegion)
+	`, projectID, workspaceName, region, cloudProvider, failoverRegion, tier)
 }
 
 func streamsWorkspaceConfig(projectID, workspaceName, region, cloudProvider string) string {
@@ -252,7 +269,7 @@ func streamsWorkspaceWithStreamConfigConfig(projectID, workspaceName, region, cl
 	`, projectID, workspaceName, region, cloudProvider, tier, maxTierSize)
 }
 
-func streamsWorkspaceResourceWithDataSourcesConfig(projectID, workspaceName, region, cloudProvider string) string {
+func streamsWorkspaceResourceWithDataSourcesConfig(projectID, workspaceName, region, cloudProvider, tier, maxTierSize string) string {
 	return fmt.Sprintf(`
 		%s
 
@@ -264,5 +281,5 @@ func streamsWorkspaceResourceWithDataSourcesConfig(projectID, workspaceName, reg
 		data "mongodbatlas_stream_workspaces" "test" {
 			project_id = mongodbatlas_stream_workspace.test.project_id
 		}
-	`, streamsWorkspaceConfig(projectID, workspaceName, region, cloudProvider))
+	`, streamsWorkspaceWithStreamConfigConfig(projectID, workspaceName, region, cloudProvider, tier, maxTierSize))
 }
