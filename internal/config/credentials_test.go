@@ -504,43 +504,36 @@ func TestGetCredentials_GovResolution(t *testing.T) {
 
 	testCases := map[string]struct {
 		providerVars *config.Vars
-		envVars      *config.Vars
 		getAWS       func(context.Context, *config.AWSVars) (*config.Credentials, error)
 		wantBaseURL  string
 	}{
 		"secret gov flag resolves to gov prod URL": {
 			providerVars: &config.Vars{AWSAssumeRoleARN: "arn"},
-			envVars:      &config.Vars{},
 			getAWS:       mockAWS(config.Credentials{PublicKey: "k", PrivateKey: "k", IsMongodbGovCloud: true}),
 			wantBaseURL:  govURL,
 		},
 		"secret gov flag keeps dev/qa gov base_url": {
 			providerVars: &config.Vars{AWSAssumeRoleARN: "arn"},
-			envVars:      &config.Vars{},
 			getAWS:       mockAWS(config.Credentials{PublicKey: "k", PrivateKey: "k", BaseURL: "https://cloud-qa.mongodbgov.com", IsMongodbGovCloud: true}),
 			wantBaseURL:  "https://cloud-qa.mongodbgov.com",
 		},
 		"provider gov flag resolves to gov prod URL": {
 			providerVars: &config.Vars{PublicKey: "k", PrivateKey: "k", IsMongodbGovCloud: true},
-			envVars:      &config.Vars{},
 			getAWS:       mockAWS(config.Credentials{}),
 			wantBaseURL:  govURL,
 		},
 		"provider gov flag keeps dev/qa gov base_url": {
 			providerVars: &config.Vars{PublicKey: "k", PrivateKey: "k", BaseURL: "https://cloud-dev.mongodbgov.com", IsMongodbGovCloud: true},
-			envVars:      &config.Vars{},
 			getAWS:       mockAWS(config.Credentials{}),
 			wantBaseURL:  "https://cloud-dev.mongodbgov.com",
 		},
 		"no mixing: AWS secret wins, provider gov ignored": {
 			providerVars: &config.Vars{AWSAssumeRoleARN: "arn", IsMongodbGovCloud: true},
-			envVars:      &config.Vars{},
 			getAWS:       mockAWS(config.Credentials{PublicKey: "k", PrivateKey: "k"}),
 			wantBaseURL:  "",
 		},
 		"no mixing: AWS secret wins, provider base_url ignored": {
 			providerVars: &config.Vars{AWSAssumeRoleARN: "arn", BaseURL: "https://cloud-qa.mongodb.com"},
-			envVars:      &config.Vars{},
 			getAWS:       mockAWS(config.Credentials{PublicKey: "k", PrivateKey: "k"}),
 			wantBaseURL:  "",
 		},
@@ -548,7 +541,7 @@ func TestGetCredentials_GovResolution(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			got, err := config.GetCredentials(t.Context(), tc.providerVars, tc.envVars, tc.getAWS)
+			got, err := config.GetCredentials(t.Context(), tc.providerVars, &config.Vars{}, tc.getAWS)
 			require.NoError(t, err)
 			assert.Equal(t, tc.wantBaseURL, got.BaseURL)
 		})

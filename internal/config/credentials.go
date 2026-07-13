@@ -21,19 +21,17 @@ type Credentials struct {
 	IsMongodbGovCloud bool   `json:"is_mongodbgov_cloud"`
 }
 
-const govBaseURL = "https://cloud.mongodbgov.com"
-
-// govAdditionalBaseURLs are gov control planes that must be preserved as-is
-// when is_mongodbgov_cloud is set, instead of being replaced with govBaseURL.
-var govAdditionalBaseURLs = []string{
-	"https://cloud-dev.mongodbgov.com",
-	"https://cloud-qa.mongodbgov.com",
-}
-
 // applyGovBaseURL sets BaseURL to the gov control plane when IsMongodbGovCloud
 // is set, unless BaseURL is already a recognized dev/qa gov URL.
 func (c *Credentials) applyGovBaseURL() {
-	if c.IsMongodbGovCloud && !slices.Contains(govAdditionalBaseURLs, NormalizeBaseURL(c.BaseURL)) {
+	const govBaseURL = "https://cloud.mongodbgov.com"
+	// additionalBaseURLs are gov control planes that must be preserved as-is
+	// instead of being replaced with govBaseURL.
+	additionalBaseURLs := []string{
+		"https://cloud-dev.mongodbgov.com",
+		"https://cloud-qa.mongodbgov.com",
+	}
+	if c.IsMongodbGovCloud && !slices.Contains(additionalBaseURLs, NormalizeBaseURL(c.BaseURL)) {
 		c.BaseURL = govBaseURL
 	}
 }
