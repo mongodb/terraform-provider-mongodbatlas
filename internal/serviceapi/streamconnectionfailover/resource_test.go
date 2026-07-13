@@ -59,8 +59,10 @@ func TestAccStreamConnectionFailover(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "type", "Kafka"),
 					resource.TestCheckResourceAttr(dataSourceName, "bootstrap_servers", "failover1:9092"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "failover_connection_id"),
-					// Plural data source returns at least the one we created.
-					resource.TestCheckResourceAttrWith(pluralDataSourceName, "results.#", acc.IntGreatThan(0)),
+					// Plural data source (scoped to this connection) returns exactly the failover we created.
+					resource.TestCheckResourceAttr(pluralDataSourceName, "results.#", "1"),
+					resource.TestCheckResourceAttrPair(pluralDataSourceName, "results.0.failover_connection_id", resourceName, "failover_connection_id"),
+					resource.TestCheckResourceAttrPair(pluralDataSourceName, "results.0.region", resourceName, "region"),
 				),
 			},
 			{

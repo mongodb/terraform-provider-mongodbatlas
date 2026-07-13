@@ -72,37 +72,51 @@ func applyDSSchemaTransformations(schemaOptions config.SchemaOptions, schema *Sc
 	return nil
 }
 
-// pruneDiscriminatorTypes restricts every discriminator mapping in the schema (root and nested) to the
-// allowed type values (see config.SchemaOptions.DiscriminatorTypes). This keeps the generated docs'
-// per-type sections, the "for type:" description prefixes, and the runtime discriminator validation
-// limited to the supported types when an endpoint reuses a broad shared schema. It recurses into nested
-// objects so it also covers plural data sources, whose discriminator sits under the `results` list. An
-// empty allow-list is a no-op. Unknown type values are reported as errors to catch config typos.
+// pruneDiscriminatorTypes restricts the schema's discriminator to the allowed type values (see
+// config.SchemaOptions.DiscriminatorTypes). This keeps the generated docs' per-type sections, the
+// "for type:" description prefixes, and the runtime discriminator validation limited to the supported
+// types when an endpoint reuses a broad shared schema. It searches the schema (root and nested) so it
+// also covers plural data sources, whose discriminator sits under the `results` list.
+//
+// Only a discriminator that contains every allowed type is pruned — that is the polymorphic dimension
+// the allow-list targets. Any other discriminator (e.g. an unrelated `authentication` or `networking`
+// union with a different type universe) is left untouched, so this never fails codegen or prunes
+// variants from a discriminator it wasn't meant to touch. An empty allow-list is a no-op; if the
+// allow-list matches no discriminator at all, that's reported as an error to catch config typos.
 func pruneDiscriminatorTypes(attrs Attributes, disc *Discriminator, allowed []string) error {
 	if len(allowed) == 0 {
 		return nil
 	}
-	if err := pruneDiscriminatorMapping(disc, allowed); err != nil {
-		return err
-	}
-	for i := range attrs {
-		if nested := attrs[i].NestedObject(); nested != nil {
-			if err := pruneDiscriminatorTypes(nested.Attributes, nested.Discriminator, allowed); err != nil {
-				return err
-			}
-		}
+	if !pruneMatchingDiscriminators(attrs, disc, allowed) {
+		return fmt.Errorf("discriminator_types %v matched no discriminator (check the configured type names)", allowed)
 	}
 	return nil
 }
 
-func pruneDiscriminatorMapping(disc *Discriminator, allowed []string) error {
+// pruneMatchingDiscriminators prunes every discriminator whose mapping contains all allowed types and
+// reports whether at least one was pruned.
+func pruneMatchingDiscriminators(attrs Attributes, disc *Discriminator, allowed []string) bool {
+	applied := pruneDiscriminatorMapping(disc, allowed)
+	for i := range attrs {
+		if nested := attrs[i].NestedObject(); nested != nil {
+			if pruneMatchingDiscriminators(nested.Attributes, nested.Discriminator, allowed) {
+				applied = true
+			}
+		}
+	}
+	return applied
+}
+
+// pruneDiscriminatorMapping restricts disc.Mapping to allowed, but only when disc contains every allowed
+// type; otherwise it leaves disc untouched. Returns whether it pruned.
+func pruneDiscriminatorMapping(disc *Discriminator, allowed []string) bool {
 	if disc == nil {
-		return nil
+		return false
 	}
 	allowedSet := make(map[string]bool, len(allowed))
 	for _, t := range allowed {
 		if _, ok := disc.Mapping[t]; !ok {
-			return fmt.Errorf("discriminator_types: type %q not found in discriminator mapping", t)
+			return false // not the target discriminator; leave it untouched
 		}
 		allowedSet[t] = true
 	}
@@ -111,7 +125,7 @@ func pruneDiscriminatorMapping(disc *Discriminator, allowed []string) error {
 			delete(disc.Mapping, key)
 		}
 	}
-	return nil
+	return true
 }
 
 func applyAliasToDiscriminator(aliases map[string]string, rootDiscriminator *Discriminator, attributes *Attributes) {
