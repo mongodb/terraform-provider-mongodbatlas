@@ -5,3 +5,7 @@ data "mongodbatlas_stream_connection_failover" "example" {
   connection_name        = mongodbatlas_stream_connection_failover.example.connection_name
   failover_connection_id = mongodbatlas_stream_connection_failover.example.failover_connection_id
 }
+
+output "failover_bootstrap_servers" {
+  value = data.mongodbatlas_stream_connection_failover.example.bootstrap_servers
+}

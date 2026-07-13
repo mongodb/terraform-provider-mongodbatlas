@@ -1033,6 +1033,11 @@ resources:
           results.id: failoverConnectionId
           results.clusterGroupId: clusterProjectId
         discriminator_types: [Kafka, Cluster]
+        overrides:
+          # Use the curated description; the raw spec one has a relative markdown link
+          # ([/groups](#tag/...)) that the docs link-checker flags as a broken fragment.
+          project_id:
+            description: *project_id_description
 
   alert_configuration_api:
     read:

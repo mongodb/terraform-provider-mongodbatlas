@@ -4,3 +4,7 @@ data "mongodbatlas_stream_connection_failovers" "example" {
   workspace_name  = mongodbatlas_stream_workspace.example.workspace_name
   connection_name = mongodbatlas_stream_connection_failover.example.connection_name
 }
+
+output "failover_regions" {
+  value = [for r in data.mongodbatlas_stream_connection_failovers.example.results : r.region]
+}
