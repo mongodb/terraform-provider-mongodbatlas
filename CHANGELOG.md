@@ -13,6 +13,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * resource/mongodbatlas_advanced_cluster: Fixes intermittent failure when upgrading a tenant or flex cluster to a dedicated cluster ([#4548](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4548))
+* resource/mongodbatlas_stream_workspace: Fixes `stream_config` (`tier` and `max_tier_size`) being dropped on in-place update, causing an inconsistent result after apply ([#4560](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4560))
 
 ## 2.13.0 (June 30, 2026)
 
