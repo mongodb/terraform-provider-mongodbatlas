@@ -19,7 +19,7 @@ Credentials can be provided through one of the following sources (in priority or
 2. Provider attributes
 3. Environment variables
 
-The provider selects the first source that has credentials and uses it as the single source of configuration. Sources are not merged: values set in a lower-priority source are ignored once a higher-priority source is selected.
+The provider selects the first source that has credentials and uses it as the single source of configuration. Sources are not merged; values set in a lower-priority source are ignored once a higher-priority source is selected.
 
 ### Service Account (Recommended)
 
@@ -118,7 +118,7 @@ The provider supports retrieving credentials from AWS Secrets Manager. See [AWS 
 
    Alternatively, you can use environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, `ASSUME_ROLE_ARN`, `SECRET_NAME`, `AWS_REGION`).
 
-~> **NOTE:** When using AWS Secrets Manager, the secret payload is the single source for the provider configuration. In addition to credentials, you can set `base_url`, `realm_base_url`, and `is_mongodbgov_cloud` as keys inside the secret JSON. These values are ignored if set as provider attributes or environment variables while AWS Secrets Manager is in use.
+~> **NOTE:** When using AWS Secrets Manager, the provider takes its entire configuration from the secret payload. In addition to credentials, you can set `base_url`, `realm_base_url`, and `is_mongodbgov_cloud` as keys inside the secret JSON.
 
 ### Cross-Account and Cross-Region Access
 
