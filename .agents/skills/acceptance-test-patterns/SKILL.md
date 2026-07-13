@@ -17,7 +17,7 @@ Before adding a test, verify no existing test already covers the same configurat
 
 ## CheckExists / CheckDestroy for Autogen Resources
 
-Autogen resources map directly from the OpenAPI spec and never use the Atlas SDK, so their `checkExists` / `checkDestroy` should verify against Atlas with an untyped client, not a typed SDK method. Add a helper under `internal/testutil/acc/` that issues a raw HTTP request with the resource's version header (see the `apiVersionHeader` const in the resource’s `resource.go`). Promoting a preview API to stable then only requires bumping the version header, not a rewrite.
+Autogen resources map directly from the OpenAPI spec and avoid typed Atlas SDK methods, calling the API through the SDK's untyped client instead. Their `checkExists` / `checkDestroy` should follow the same approach: verify against Atlas with an untyped client rather than a typed SDK method. Keep these check functions in the resource's own `resource_test.go`, since they are resource-specific. Issue the untyped request with the resource's version header (see the `apiVersionHeader` const in the resource’s `resource.go`). Promoting a preview API to stable then only requires bumping the version header, not a rewrite.
 
 ## Plural Data Source Ordering
 
