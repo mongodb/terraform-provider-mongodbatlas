@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `resource/mongodbatlas_stream_connection_failover` ([#4473](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4473))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_project: Adds `is_cluster_ai_assistant_enabled`, `is_data_explorer_gen_ai_features_enabled`, and `is_data_explorer_gen_ai_sample_document_passing_enabled` attributes ([#4541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4541))
