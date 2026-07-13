@@ -122,10 +122,6 @@ func PluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Unique identifier of the connection.",
 						},
-						"name": dsschema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.",
-						},
 						"networking": dsschema.SingleNestedAttribute{
 							Computed:            true,
 							MarkdownDescription: "Applies to type: Kafka. Networking configuration for Streams connections.",
@@ -208,7 +204,6 @@ type TFPluralDSResultsModel struct {
 	Config               customtypes.MapValue[types.String]                             `tfsdk:"config" autogen:"omitjson"`
 	DbRoleToExecute      customtypes.ObjectValue[TFPluralDSResultsDbRoleToExecuteModel] `tfsdk:"db_role_to_execute" autogen:"omitjson"`
 	FailoverConnectionId types.String                                                   `tfsdk:"failover_connection_id" apiname:"id" autogen:"omitjson"`
-	Name                 types.String                                                   `tfsdk:"name" autogen:"omitjson"`
 	Networking           customtypes.ObjectValue[TFPluralDSResultsNetworkingModel]      `tfsdk:"networking" autogen:"omitjson"`
 	Region               types.String                                                   `tfsdk:"region" autogen:"omitjson"`
 	Security             customtypes.ObjectValue[TFPluralDSResultsSecurityModel]        `tfsdk:"security" autogen:"omitjson"`

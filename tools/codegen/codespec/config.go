@@ -93,8 +93,10 @@ func pruneDiscriminatorTypes(attrs Attributes, disc *Discriminator, allowed []st
 	return nil
 }
 
-// pruneMatchingDiscriminators prunes every discriminator whose mapping contains all allowed types and
-// reports whether at least one was pruned.
+// pruneMatchingDiscriminators walks the schema (root discriminator + nested objects, so it also reaches
+// a plural data source's discriminator under `results`) and prunes every discriminator whose mapping
+// contains all allowed types. It returns whether at least one discriminator was pruned, which the
+// caller uses to detect a typo'd allow-list that matched no discriminator anywhere in the schema.
 func pruneMatchingDiscriminators(attrs Attributes, disc *Discriminator, allowed []string) bool {
 	applied := pruneDiscriminatorMapping(disc, allowed)
 	for i := range attrs {

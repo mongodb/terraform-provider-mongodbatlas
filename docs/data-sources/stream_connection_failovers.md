@@ -40,7 +40,6 @@ output "failover_regions" {
 Read-Only:
 
 - `failover_connection_id` (String) Unique identifier of the connection.
-- `name` (String) Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
 - `region` (String) The connection's region.
 - `state` (String) The state of the connection.
 - `type` (String) Type of the connection.

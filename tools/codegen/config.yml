@@ -991,10 +991,14 @@ resources:
         method: GET
       schema:
         # Mirror the resource: drop the shared-schema fields that don't apply to failover connections
-        # (both the singular shape and the plural `results.` shape).
+        # (both the singular shape and the plural `results.` shape). `name` is dropped because a
+        # failover connection's name always equals its parent `connection_name`, so it is redundant.
+        # TODO(CLOUDP-421992): once the API spec gives failover its own Kafka/Cluster schema, this
+        # ignores block (and the resource's) can be removed entirely.
         ignores:
           [
             "links",
+            "name",
             "authentication.links",
             "db_role_to_execute.links",
             "networking.links",
@@ -1010,6 +1014,7 @@ resources:
             "schema_registry_authentication",
             "schema_registry_urls",
             "results.links",
+            "results.name",
             "results.authentication.links",
             "results.db_role_to_execute.links",
             "results.networking.links",

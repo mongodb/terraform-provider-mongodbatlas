@@ -112,10 +112,6 @@ func DataSourceSchema(ctx context.Context) dsschema.Schema {
 				Required:            true,
 				MarkdownDescription: "Label that identifies the stream failover connection id.",
 			},
-			"name": dsschema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.",
-			},
 			"networking": dsschema.SingleNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "Applies to type: Kafka. Networking configuration for Streams connections.",
@@ -194,7 +190,6 @@ type TFDSModel struct {
 	ConnectionName       types.String                                      `tfsdk:"connection_name" autogen:"omitjson"`
 	DbRoleToExecute      customtypes.ObjectValue[TFDSDbRoleToExecuteModel] `tfsdk:"db_role_to_execute" autogen:"omitjson"`
 	FailoverConnectionId types.String                                      `tfsdk:"failover_connection_id" autogen:"omitjson"`
-	Name                 types.String                                      `tfsdk:"name" autogen:"omitjson"`
 	Networking           customtypes.ObjectValue[TFDSNetworkingModel]      `tfsdk:"networking" autogen:"omitjson"`
 	ProjectId            types.String                                      `tfsdk:"project_id" apiname:"groupId" autogen:"omitjson"`
 	Region               types.String                                      `tfsdk:"region" autogen:"omitjson"`
