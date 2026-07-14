@@ -25,7 +25,7 @@ func ApplyTransformationsToResource(resourceConfig *config.Resource, resource *R
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
 	applyAliasToDiscriminator(resourceConfig.SchemaOptions.Aliases, resource.Schema.Discriminator, &resource.Schema.Attributes)
-	if err := pruneDiscriminatorTypes(resource.Schema.Discriminator, resourceConfig.SchemaOptions.DiscriminatorTypes); err != nil {
+	if err := pruneDiscriminatorTypes(resource.Schema.Attributes, resource.Schema.Discriminator, resourceConfig.SchemaOptions.DiscriminatorTypes); err != nil {
 		return err
 	}
 	applyIgnoreValidatorsToDiscriminators(resource.Schema.Discriminator, resource.Schema.Attributes, resourceConfig.SchemaOptions)
@@ -63,7 +63,7 @@ func applyDSSchemaTransformations(schemaOptions config.SchemaOptions, schema *Sc
 		return err
 	}
 	applyAliasToDiscriminator(schemaOptions.Aliases, schema.Discriminator, &schema.Attributes)
-	if err := pruneDiscriminatorTypes(schema.Discriminator, schemaOptions.DiscriminatorTypes); err != nil {
+	if err := pruneDiscriminatorTypes(schema.Attributes, schema.Discriminator, schemaOptions.DiscriminatorTypes); err != nil {
 		return err
 	}
 	skipDiscriminator(schema.Discriminator)
@@ -72,19 +72,47 @@ func applyDSSchemaTransformations(schemaOptions config.SchemaOptions, schema *Sc
 	return nil
 }
 
-// pruneDiscriminatorTypes restricts the discriminator mapping to the allowed type values (see
-// config.SchemaOptions.DiscriminatorTypes). This keeps the generated docs' per-type sections, the
-// "for type:" description prefixes, and the runtime discriminator validation limited to the supported
-// types when an endpoint reuses a broad shared schema. An empty allow-list is a no-op. Unknown type
-// values are reported as errors to catch config typos.
-func pruneDiscriminatorTypes(disc *Discriminator, allowed []string) error {
-	if disc == nil || len(allowed) == 0 {
+// pruneDiscriminatorTypes restricts the schema's discriminator(s) to allowed, so generated docs,
+// description prefixes, and validation only mention supported types. See
+// config.SchemaOptions.DiscriminatorTypes for when to use it and its limitations.
+//
+// Empty allow-list is a no-op; if no discriminator matches, it errors to catch a typo.
+func pruneDiscriminatorTypes(attrs Attributes, disc *Discriminator, allowed []string) error {
+	if len(allowed) == 0 {
 		return nil
+	}
+	if !pruneMatchingDiscriminators(attrs, disc, allowed) {
+		return fmt.Errorf("discriminator_types %v matched no discriminator (check the configured type names)", allowed)
+	}
+	return nil
+}
+
+// pruneMatchingDiscriminators walks the schema (root discriminator + nested objects, so it also reaches
+// a plural data source's discriminator under `results`) and prunes every discriminator whose mapping
+// contains all allowed types. It returns whether at least one discriminator was pruned, which the
+// caller uses to detect a typo'd allow-list that matched no discriminator anywhere in the schema.
+func pruneMatchingDiscriminators(attrs Attributes, disc *Discriminator, allowed []string) bool {
+	applied := pruneDiscriminatorMapping(disc, allowed)
+	for i := range attrs {
+		if nested := attrs[i].NestedObject(); nested != nil {
+			if pruneMatchingDiscriminators(nested.Attributes, nested.Discriminator, allowed) {
+				applied = true
+			}
+		}
+	}
+	return applied
+}
+
+// pruneDiscriminatorMapping restricts disc.Mapping to allowed, but only when disc contains every allowed
+// type; otherwise it leaves disc untouched. Returns whether it pruned.
+func pruneDiscriminatorMapping(disc *Discriminator, allowed []string) bool {
+	if disc == nil {
+		return false
 	}
 	allowedSet := make(map[string]bool, len(allowed))
 	for _, t := range allowed {
 		if _, ok := disc.Mapping[t]; !ok {
-			return fmt.Errorf("discriminator_types: type %q not found in discriminator mapping", t)
+			return false // not the target discriminator; leave it untouched
 		}
 		allowedSet[t] = true
 	}
@@ -93,7 +121,7 @@ func pruneDiscriminatorTypes(disc *Discriminator, allowed []string) error {
 			delete(disc.Mapping, key)
 		}
 	}
-	return nil
+	return true
 }
 
 func applyAliasToDiscriminator(aliases map[string]string, rootDiscriminator *Discriminator, attributes *Attributes) {

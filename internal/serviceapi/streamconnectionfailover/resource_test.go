@@ -10,7 +10,25 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-const resourceName = "mongodbatlas_stream_connection_failover.test"
+const (
+	resourceName         = "mongodbatlas_stream_connection_failover.test"
+	dataSourceName       = "data.mongodbatlas_stream_connection_failover.test"
+	pluralDataSourceName = "data.mongodbatlas_stream_connection_failovers.test"
+	datasourcesConfig    = `
+		data "mongodbatlas_stream_connection_failover" "test" {
+			project_id             = mongodbatlas_stream_connection_failover.test.project_id
+			workspace_name         = mongodbatlas_stream_connection_failover.test.workspace_name
+			connection_name        = mongodbatlas_stream_connection_failover.test.connection_name
+			failover_connection_id = mongodbatlas_stream_connection_failover.test.failover_connection_id
+		}
+
+		data "mongodbatlas_stream_connection_failovers" "test" {
+			project_id      = mongodbatlas_stream_connection_failover.test.project_id
+			workspace_name  = mongodbatlas_stream_connection_failover.test.workspace_name
+			connection_name = mongodbatlas_stream_connection_failover.test.connection_name
+		}
+	`
+)
 
 // TestAccStreamConnectionFailover exercises the CRUD lifecycle of a failover stream connection:
 // create, update its bootstrap servers, then import. The workspace must have failover regions
@@ -26,7 +44,7 @@ func TestAccStreamConnectionFailover(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configFailover(projectID, workspaceName, connectionName, "DUBLIN_IRL", "failover1:9092", true),
+				Config: configFailover(projectID, workspaceName, connectionName, "DUBLIN_IRL", "failover1:9092", true) + datasourcesConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(),
 					resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
@@ -35,6 +53,16 @@ func TestAccStreamConnectionFailover(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", "failover1:9092"),
 					resource.TestCheckResourceAttr(resourceName, "config.auto.offset.reset", "earliest"),
 					resource.TestCheckResourceAttrSet(resourceName, "failover_connection_id"),
+					// Singular data source mirrors the resource.
+					resource.TestCheckResourceAttr(dataSourceName, "connection_name", connectionName),
+					resource.TestCheckResourceAttr(dataSourceName, "region", "DUBLIN_IRL"),
+					resource.TestCheckResourceAttr(dataSourceName, "type", "Kafka"),
+					resource.TestCheckResourceAttr(dataSourceName, "bootstrap_servers", "failover1:9092"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "failover_connection_id"),
+					// Plural data source (scoped to this connection) returns exactly the failover we created.
+					resource.TestCheckResourceAttr(pluralDataSourceName, "results.#", "1"),
+					resource.TestCheckResourceAttrPair(pluralDataSourceName, "results.0.failover_connection_id", resourceName, "failover_connection_id"),
+					resource.TestCheckResourceAttrPair(pluralDataSourceName, "results.0.region", resourceName, "region"),
 				),
 			},
 			{

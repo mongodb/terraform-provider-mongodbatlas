@@ -285,6 +285,8 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		streamworkspace.PluralDataSource,
 		streamconnection.DataSource,
 		streamconnection.PluralDataSource,
+		streamconnectionfailover.DataSource,
+		streamconnectionfailover.PluralDataSource,
 		controlplaneipaddresses.DataSource,
 		projectipaddresses.DataSource,
 		streamprocessor.DataSource,
