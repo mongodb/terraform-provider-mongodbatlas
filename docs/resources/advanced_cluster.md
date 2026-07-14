@@ -959,7 +959,7 @@ When updating a multi-shard cluster, follow this guidance:
 - Keep existing `replication_specs` entries in the same order when updating a multi-shard cluster.
 - Add new shards only after the existing entries, and keep the existing entries unchanged in the same update.
 - If auto-scaling is enabled, do not rely on list-index `lifecycle.ignore_changes` to preserve Atlas-managed `instance_size`, `disk_size_gb`, or `disk_iops` values when changing the shard topology.
-- Before removing a shard or making other significant production topology changes, contact [MongoDB Support](https://www.mongodb.com/docs/atlas/support/#request-support).
+- Before removing a shard or making other significant production topology changes, we recommend that you contact [MongoDB Support](https://www.mongodb.com/docs/atlas/support/#request-support).
 
 ## Auto-Scaling with Effective Fields
 
