@@ -21,7 +21,7 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20260622102447-2d26641d2510
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20260713160812-98aa3fecbef9 // TODO: Temporary pin to the CLOUDP-417642 private-preview SDK branch for maintenance_window wave fields. Revert to the standard dev-latest/tagged release once CLOUDP-421608 ships private previews. Do not merge to master.
 	github.com/pb33f/libopenapi v0.38.5
 	github.com/sebdah/goldie/v2 v2.8.0
 	github.com/spf13/cast v1.10.0
@@ -44,7 +44,6 @@ require (
 	github.com/hashicorp/terraform-json v0.27.2
 	github.com/hashicorp/terraform-plugin-framework-jsontypes v0.2.0
 	github.com/hashicorp/terraform-plugin-sdk v1.17.2
-	go.mongodb.org/atlas-sdk/v20250312020 v20250312020.1.0
 	go.mongodb.org/atlas-sdk/v20250312021 v20250312021.0.0
 	golang.org/x/oauth2 v0.36.0
 )
