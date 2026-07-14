@@ -72,17 +72,11 @@ func applyDSSchemaTransformations(schemaOptions config.SchemaOptions, schema *Sc
 	return nil
 }
 
-// pruneDiscriminatorTypes restricts the schema's discriminator to the allowed type values (see
-// config.SchemaOptions.DiscriminatorTypes). This keeps the generated docs' per-type sections, the
-// "for type:" description prefixes, and the runtime discriminator validation limited to the supported
-// types when an endpoint reuses a broad shared schema. It searches the schema (root and nested) so it
-// also covers plural data sources, whose discriminator sits under the `results` list.
+// pruneDiscriminatorTypes restricts the schema's discriminator(s) to allowed, so generated docs,
+// description prefixes, and validation only mention supported types. See
+// config.SchemaOptions.DiscriminatorTypes for when to use it and its limitations.
 //
-// Only a discriminator that contains every allowed type is pruned — that is the polymorphic dimension
-// the allow-list targets. Any other discriminator (e.g. an unrelated `authentication` or `networking`
-// union with a different type universe) is left untouched, so this never fails codegen or prunes
-// variants from a discriminator it wasn't meant to touch. An empty allow-list is a no-op; if the
-// allow-list matches no discriminator at all, that's reported as an error to catch config typos.
+// Empty allow-list is a no-op; if no discriminator matches, it errors to catch a typo.
 func pruneDiscriminatorTypes(attrs Attributes, disc *Discriminator, allowed []string) error {
 	if len(allowed) == 0 {
 		return nil
