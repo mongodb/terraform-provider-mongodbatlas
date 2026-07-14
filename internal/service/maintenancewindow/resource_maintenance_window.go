@@ -8,10 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/spf13/cast"
 
+	admin "github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	admin "go.mongodb.org/atlas-sdk/v20250312020/admin" // TODO: Remove before merging to master — pinned for wave fields.
 )
 
 const (
@@ -112,17 +112,17 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV220250312020 // TODO: Remove before merging to master.
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 	projectID := d.Get("project_id").(string)
 
 	if deferValue := d.Get("defer").(bool); deferValue {
-		_, err := connV2.MaintenanceWindowsApi.DeferMaintenanceWindow(ctx, projectID).Execute()
+		_, err := connV2.MaintenanceWindowsAPI.DeferMaintenanceWindow(ctx, projectID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorMaintenanceDefer, projectID, err))
 		}
 	}
 
-	params := new(admin.GroupMaintenanceWindow)
+	params := new(admin.GroupMaintenanceWindowPreviewUpdateRequest)
 
 	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
 	params.HourOfDay = new(cast.ToInt(d.Get("hour_of_day")))
@@ -137,13 +137,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	params.ProtectedHours = newProtectedHours(d)
-	_, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
+	_, err := connV2.MaintenanceWindowsAPI.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceCreate, projectID, err))
 	}
 
 	if autoDeferValue := d.Get("auto_defer").(bool); autoDeferValue {
-		_, err := connV2.MaintenanceWindowsApi.ToggleMaintenanceAutoDefer(ctx, projectID).Execute()
+		_, err := connV2.MaintenanceWindowsAPI.ToggleMaintenanceAutoDefer(ctx, projectID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorMaintenanceAutoDefer, projectID, err))
 		}
@@ -168,10 +168,10 @@ func newProtectedHours(d *schema.ResourceData) *admin.ProtectedHours {
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV220250312020 // TODO: Remove before merging to master.
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 	projectID := d.Id()
 
-	maintenanceWindow, resp, err := connV2.MaintenanceWindowsApi.GetMaintenanceWindow(ctx, projectID).Execute()
+	maintenanceWindow, resp, err := connV2.MaintenanceWindowsAPI.GetMaintenanceWindow(ctx, projectID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -236,7 +236,7 @@ func flattenProtectedHours(protectedHours admin.ProtectedHours) []map[string]int
 func clearMaintenanceWave(ctx context.Context, client *config.MongoDBClient, projectID string) diag.Diagnostics {
 	body := []byte(`{"waveAssignment":null}`)
 	_, err := client.UntypedAPICall(ctx, config.APICallParams{
-		VersionHeader: "application/vnd.atlas.2023-01-01+json",
+		VersionHeader: "application/vnd.atlas.preview+json",
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/maintenanceWindow",
 		PathParams:    map[string]string{"groupId": projectID},
 		Method:        "PATCH",
@@ -248,17 +248,17 @@ func clearMaintenanceWave(ctx context.Context, client *config.MongoDBClient, pro
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV220250312020 // TODO: Remove before merging to master.
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 	projectID := d.Id()
 
 	if d.HasChange("defer") {
-		_, err := connV2.MaintenanceWindowsApi.DeferMaintenanceWindow(ctx, projectID).Execute()
+		_, err := connV2.MaintenanceWindowsAPI.DeferMaintenanceWindow(ctx, projectID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorMaintenanceDefer, projectID, err))
 		}
 	}
 
-	params := new(admin.GroupMaintenanceWindow)
+	params := new(admin.GroupMaintenanceWindowPreviewUpdateRequest)
 	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
 
 	if d.HasChange("hour_of_day") {
@@ -296,13 +296,13 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	_, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
+	_, err := connV2.MaintenanceWindowsAPI.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceUpdate, projectID, err))
 	}
 
 	if d.HasChange("auto_defer") {
-		_, err := connV2.MaintenanceWindowsApi.ToggleMaintenanceAutoDefer(ctx, projectID).Execute()
+		_, err := connV2.MaintenanceWindowsAPI.ToggleMaintenanceAutoDefer(ctx, projectID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorMaintenanceAutoDefer, projectID, err))
 		}
@@ -312,10 +312,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV220250312020 // TODO: Remove before merging to master.
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 	projectID := d.Id()
 
-	_, err := connV2.MaintenanceWindowsApi.ResetMaintenanceWindow(ctx, projectID).Execute()
+	_, err := connV2.MaintenanceWindowsAPI.ResetMaintenanceWindow(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceDelete, projectID, err))
 	}
