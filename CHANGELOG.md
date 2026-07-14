@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Data Source:** `data-source/mongodbatlas_stream_connection_failover` ([#4567](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4567))
+* **New Data Source:** `data-source/mongodbatlas_stream_connection_failovers` ([#4567](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4567))
 * **New Resource:** `resource/mongodbatlas_stream_connection_failover` ([#4473](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4473))
 
 ENHANCEMENTS:
