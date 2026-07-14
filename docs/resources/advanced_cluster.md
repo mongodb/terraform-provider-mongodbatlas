@@ -950,18 +950,16 @@ More information about moving resources can be found in our [Migration Guide](ht
 
 This section applies to clusters with more than one `replication_specs` entry.
 
-Terraform tracks `replication_specs` by list position. Atlas assigns shard IDs, and Terraform does not yet provide a configurable shard name that can be used to match each configured shard across every topology change. Because of that, Terraform can manage the current multi-shard shape, but it cannot always prove that a changed list still refers to the same Atlas shards.
-
 **Known issue:** For clusters with more than one `replication_specs` entry, setting `use_effective_fields = true` currently has no effect. The resulting behavior is the same as leaving the attribute unset or setting it to `false`. We recommend that you do not enable this attribute for multi-shard clusters.
 
-Current guidance:
+Terraform matches each `replication_specs` entry to a shard by its position in the list. If you add, remove, or reorder entries, Terraform might associate an existing configuration with a different Atlas shard than intended.
+
+When updating a multi-shard cluster, follow this guidance:
 
 - Keep existing `replication_specs` entries in the same order when updating a multi-shard cluster.
-- If you add a shard, add it after the existing entries and keep the existing entries unchanged. This tail append workflow is the only multi-shard topology change this documentation currently recommends.
-- Do not rely on list-index `lifecycle.ignore_changes` to preserve Atlas-managed `instance_size`, `disk_size_gb`, or `disk_iops` values during topology changes.
-- For significant production topology changes beyond a simple tail append, including shard removal, contact [MongoDB Support](https://www.mongodb.com/docs/atlas/support/#request-support) before applying Terraform.
-
-This Terraform documentation does not provide a general shard-removal workflow for multi-shard clusters.
+- Add new shards only after the existing entries, and keep the existing entries unchanged in the same update.
+- If auto-scaling is enabled, do not rely on list-index `lifecycle.ignore_changes` to preserve Atlas-managed `instance_size`, `disk_size_gb`, or `disk_iops` values when changing the shard topology.
+- Before removing a shard or making other significant production topology changes, contact [MongoDB Support](https://www.mongodb.com/docs/atlas/support/#request-support).
 
 ## Auto-Scaling with Effective Fields
 
