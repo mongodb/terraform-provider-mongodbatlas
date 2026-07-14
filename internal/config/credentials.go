@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -10,28 +11,47 @@ import (
 
 // Credentials has all the authentication fields, it also matches with fields that can be stored in AWS Secrets Manager.
 type Credentials struct {
-	AccessToken  string `json:"access_token"`
-	ClientID     string `json:"client_id"`
-	ClientSecret string `json:"client_secret"`
-	PublicKey    string `json:"public_key"`
-	PrivateKey   string `json:"private_key"`
-	BaseURL      string `json:"base_url"`
-	RealmBaseURL string `json:"realm_base_url"`
+	AccessToken       string `json:"access_token"`
+	ClientID          string `json:"client_id"`
+	ClientSecret      string `json:"client_secret"`
+	PublicKey         string `json:"public_key"`
+	PrivateKey        string `json:"private_key"`
+	BaseURL           string `json:"base_url"`
+	RealmBaseURL      string `json:"realm_base_url"`
+	IsMongodbGovCloud bool   `json:"is_mongodbgov_cloud"`
+}
+
+// applyGovBaseURL sets BaseURL to the gov control plane when IsMongodbGovCloud
+// is set, unless BaseURL is already a recognized dev/qa gov URL.
+func (c *Credentials) applyGovBaseURL() {
+	const govBaseURL = "https://cloud.mongodbgov.com"
+	// additionalBaseURLs are gov control planes that must be preserved as-is
+	// instead of being replaced with govBaseURL.
+	additionalBaseURLs := []string{
+		"https://cloud-dev.mongodbgov.com",
+		"https://cloud-qa.mongodbgov.com",
+	}
+	if c.IsMongodbGovCloud && !slices.Contains(additionalBaseURLs, NormalizeBaseURL(c.BaseURL)) {
+		c.BaseURL = govBaseURL
+	}
 }
 
 // GetCredentials follows the order of AWS Secrets Manager, provider vars and env vars.
 func GetCredentials(ctx context.Context, providerVars, envVars *Vars, getAWSCredentials func(context.Context, *AWSVars) (*Credentials, error)) (*Credentials, error) {
+	var creds *Credentials
 	if awsVars := CoalesceAWSVars(providerVars.GetAWS(), envVars.GetAWS()); awsVars != nil {
 		awsCredentials, err := getAWSCredentials(ctx, awsVars)
 		if err != nil {
 			return nil, err
 		}
-		return awsCredentials, nil
+		creds = awsCredentials
+	} else if c := CoalesceCredentials(providerVars.GetCredentials(), envVars.GetCredentials()); c != nil {
+		creds = c
+	} else {
+		creds = &Credentials{}
 	}
-	if c := CoalesceCredentials(providerVars.GetCredentials(), envVars.GetCredentials()); c != nil {
-		return c, nil
-	}
-	return &Credentials{}, nil
+	creds.applyGovBaseURL()
+	return creds, nil
 }
 
 // AuthMethod follows the order of token, SA and PAK.
@@ -126,20 +146,21 @@ func (a *AWSVars) IsPresent() bool {
 }
 
 type Vars struct {
-	AccessToken        string
-	ClientID           string
+	RealmBaseURL       string
+	AWSRegion          string
 	ClientSecret       string
 	PublicKey          string
 	PrivateKey         string
 	BaseURL            string
-	RealmBaseURL       string
+	ClientID           string
 	AWSAssumeRoleARN   string
+	AccessToken        string
 	AWSSecretName      string
-	AWSRegion          string
+	AWSEndpoint        string
 	AWSAccessKeyID     string
 	AWSSecretAccessKey string
 	AWSSessionToken    string
-	AWSEndpoint        string
+	IsMongodbGovCloud  bool
 }
 
 func NewEnvVars() *Vars {
@@ -163,13 +184,14 @@ func NewEnvVars() *Vars {
 
 func (e *Vars) GetCredentials() *Credentials {
 	return &Credentials{
-		AccessToken:  e.AccessToken,
-		ClientID:     e.ClientID,
-		ClientSecret: e.ClientSecret,
-		PublicKey:    e.PublicKey,
-		PrivateKey:   e.PrivateKey,
-		BaseURL:      e.BaseURL,
-		RealmBaseURL: e.RealmBaseURL,
+		AccessToken:       e.AccessToken,
+		ClientID:          e.ClientID,
+		ClientSecret:      e.ClientSecret,
+		PublicKey:         e.PublicKey,
+		PrivateKey:        e.PrivateKey,
+		BaseURL:           e.BaseURL,
+		RealmBaseURL:      e.RealmBaseURL,
+		IsMongodbGovCloud: e.IsMongodbGovCloud,
 	}
 }
 

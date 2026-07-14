@@ -1,11 +1,16 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `resource/mongodbatlas_stream_connection_failover` ([#4473](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4473))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_project: Adds `is_cluster_ai_assistant_enabled`, `is_data_explorer_gen_ai_features_enabled`, and `is_data_explorer_gen_ai_sample_document_passing_enabled` attributes ([#4541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4541))
 * data-source/mongodbatlas_projects: Adds `is_cluster_ai_assistant_enabled`, `is_data_explorer_gen_ai_features_enabled`, and `is_data_explorer_gen_ai_sample_document_passing_enabled` attributes ([#4541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4541))
 * data-source/mongodbatlas_stream_processor: Adds `failover_enabled` attribute ([#4530](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4530))
 * data-source/mongodbatlas_stream_processors: Adds `failover_enabled` attribute ([#4530](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4530))
+* provider: Supports `is_mongodbgov_cloud` in the AWS Secrets Manager secret payload ([#4564](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4564))
 * resource/mongodbatlas_project: Adds `is_cluster_ai_assistant_enabled`, `is_data_explorer_gen_ai_features_enabled`, and `is_data_explorer_gen_ai_sample_document_passing_enabled` attributes ([#4541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4541))
 * resource/mongodbatlas_stream_processor: Adds optional `failover_enabled` attribute ([#4530](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4530))
 * resource/mongodbatlas_stream_workspace: Adds `failover_regions` attribute with write-once semantics and mutual exclusivity with `data_process_region` on updates ([#4530](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4530))
@@ -13,6 +18,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * resource/mongodbatlas_advanced_cluster: Fixes intermittent failure when upgrading a tenant or flex cluster to a dedicated cluster ([#4548](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4548))
+* resource/mongodbatlas_stream_workspace: Fixes `stream_config` (`tier` and `max_tier_size`) being dropped on in-place update, causing an inconsistent result after apply ([#4560](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4560))
 
 ## 2.13.0 (June 30, 2026)
 

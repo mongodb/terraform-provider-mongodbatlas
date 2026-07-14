@@ -25,6 +25,9 @@ func ApplyTransformationsToResource(resourceConfig *config.Resource, resource *R
 		return fmt.Errorf("failed to apply attribute transformations: %w", err)
 	}
 	applyAliasToDiscriminator(resourceConfig.SchemaOptions.Aliases, resource.Schema.Discriminator, &resource.Schema.Attributes)
+	if err := pruneDiscriminatorTypes(resource.Schema.Discriminator, resourceConfig.SchemaOptions.DiscriminatorTypes); err != nil {
+		return err
+	}
 	applyIgnoreValidatorsToDiscriminators(resource.Schema.Discriminator, resource.Schema.Attributes, resourceConfig.SchemaOptions)
 	skipValidationForComputedDiscriminators(resource.Schema.Discriminator, resource.Schema.Attributes)
 	applyAliasToPathParams(&resource.Operations, resourceConfig.SchemaOptions.Aliases)
@@ -60,9 +63,36 @@ func applyDSSchemaTransformations(schemaOptions config.SchemaOptions, schema *Sc
 		return err
 	}
 	applyAliasToDiscriminator(schemaOptions.Aliases, schema.Discriminator, &schema.Attributes)
+	if err := pruneDiscriminatorTypes(schema.Discriminator, schemaOptions.DiscriminatorTypes); err != nil {
+		return err
+	}
 	skipDiscriminator(schema.Discriminator)
 	skipValidationForAllNestedDiscriminators(&schema.Attributes)
 	EnhanceDescriptionsWithDiscriminator(schema.Attributes, schema.Discriminator, true)
+	return nil
+}
+
+// pruneDiscriminatorTypes restricts the discriminator mapping to the allowed type values (see
+// config.SchemaOptions.DiscriminatorTypes). This keeps the generated docs' per-type sections, the
+// "for type:" description prefixes, and the runtime discriminator validation limited to the supported
+// types when an endpoint reuses a broad shared schema. An empty allow-list is a no-op. Unknown type
+// values are reported as errors to catch config typos.
+func pruneDiscriminatorTypes(disc *Discriminator, allowed []string) error {
+	if disc == nil || len(allowed) == 0 {
+		return nil
+	}
+	allowedSet := make(map[string]bool, len(allowed))
+	for _, t := range allowed {
+		if _, ok := disc.Mapping[t]; !ok {
+			return fmt.Errorf("discriminator_types: type %q not found in discriminator mapping", t)
+		}
+		allowedSet[t] = true
+	}
+	for key := range disc.Mapping {
+		if !allowedSet[key] {
+			delete(disc.Mapping, key)
+		}
+	}
 	return nil
 }
 

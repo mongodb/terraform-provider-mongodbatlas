@@ -322,6 +322,7 @@ jobs:
             - 'internal/serviceapi/projectsettingsapi/*.go'
             - 'internal/serviceapi/resourcepolicyapi/*.go'
             - 'internal/serviceapi/streamconnectionapi/*.go'
+            - 'internal/serviceapi/streamconnectionfailover/*.go'
             - 'internal/serviceapi/logintegration/*.go'
           autogen_slow:
             - 'internal/common/autogen/*.go'
@@ -699,6 +700,7 @@ jobs:
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/projectsettingsapi
             ./internal/serviceapi/streamconnectionapi
+            ./internal/serviceapi/streamconnectionfailover
         run: make testacc
       - name: Acceptance Tests (Resource Policy API)
         env:

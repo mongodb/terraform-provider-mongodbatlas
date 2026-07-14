@@ -325,14 +325,14 @@ func getSDKv2ProviderVars(d *schema.ResourceData) *config.Vars {
 			assumeRoleARN = assumeRole["role_arn"].(string)
 		}
 	}
-	baseURL := applyGovBaseURLIfNeeded(d.Get("base_url").(string), d.Get("is_mongodbgov_cloud").(bool))
 	return &config.Vars{
 		AccessToken:        d.Get("access_token").(string),
 		ClientID:           d.Get("client_id").(string),
 		ClientSecret:       d.Get("client_secret").(string),
 		PublicKey:          d.Get("public_key").(string),
 		PrivateKey:         d.Get("private_key").(string),
-		BaseURL:            baseURL,
+		BaseURL:            d.Get("base_url").(string),
+		IsMongodbGovCloud:  d.Get("is_mongodbgov_cloud").(bool),
 		RealmBaseURL:       d.Get("realm_base_url").(string),
 		AWSAssumeRoleARN:   assumeRoleARN,
 		AWSSecretName:      d.Get("secret_name").(string),
