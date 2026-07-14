@@ -2,7 +2,7 @@
 
 This example demonstrates how to configure a metric integration to export MongoDB Atlas metrics to Datadog over OTLP. It also shows how to read the integration back with the singular and plural data sources.
 
-This example is focused on Datadog. To export to another provider, update `provider_type` (`CUSTOM`, `NEW_RELIC`, or `DYNATRACE`), the `endpoint`, and the authentication `headers` to match that provider.
+This example is specific to Datadog. To export to another provider, update `provider_type` (`CUSTOM`, `NEW_RELIC`, or `DYNATRACE`), the `endpoint`, and the authentication `headers` to match that provider.
 
 ## Prerequisites
 
@@ -13,20 +13,15 @@ This example is focused on Datadog. To export to another provider, update `provi
 
 This example creates the following resources:
 
-### MongoDB Atlas
-
-- Project.
-- Metric Integration configuration.
-
-### Datadog
-
-- API key used to authenticate metric ingestion.
+- MongoDB Atlas Project
+- MongoDB Atlas Metric Integration
+- Datadog API key
 
 ## Usage
 
 **1\. Ensure your MongoDB Atlas and Datadog credentials are set up.**
 
-This can be done using environment variables:
+Set the following environment variables:
 
 ```bash
 export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
@@ -48,7 +43,7 @@ datadog_endpoint    = "https://otlp.datadoghq.com/v1/metrics"
 
 **2\. Review the Terraform plan.**
 
-Execute the following command and ensure you agree with the plan.
+Execute the following command and confirm the plan's accuracy.
 
 ```bash
 terraform plan
@@ -64,7 +59,7 @@ terraform apply
 
 **4\. Destroy the resources.**
 
-When you have finished your testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
+When you have finished your testing, ensure you destroy the resources to avoid accruing charges in Atlas.
 
 ```bash
 terraform destroy

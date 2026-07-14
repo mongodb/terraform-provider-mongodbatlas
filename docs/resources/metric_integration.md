@@ -84,7 +84,7 @@ Required:
 
 ## Import
 
-Metric integration resource can be imported using the project ID and metric integration ID, separated by a slash, e.g.
+Metric integration resource can be imported using the project ID and metric integration ID, separated by a slash, for example:
 
 ```
 $ terraform import mongodbatlas_metric_integration.example 650972848269185c55f40ca1/6789abcd1234ef5678901234
