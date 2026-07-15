@@ -1,0 +1,32 @@
+---
+subcategory: "Metric Integration"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a resource for managing OpenTelemetry metric integrations at the project level. This resource allows you to push Atlas metrics to any OTLP-compatible endpoint such as Datadog, New Relic, or Dynatrace.
+
+To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+
+~> **Note:** After importing this resource, the `headers` attribute will show a diff on the first plan because the Atlas API redacts header values in GET responses. Run `terraform apply` once to reconcile the state.
+
+## Example Usage
+
+The following example uses Datadog. To export to another provider, update `provider_type` (`CUSTOM`, `NEW_RELIC`, or `DYNATRACE`), the `endpoint`, and the authentication `headers` to match that provider.
+
+{{ tffile "examples/mongodbatlas_metric_integration/main.tf" }}
+
+### Further Examples
+- [Metric Integration Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_metric_integration)
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Metric integration resource can be imported using the project ID and metric integration ID, separated by a slash, for example:
+
+```
+$ terraform import mongodbatlas_metric_integration.example 650972848269185c55f40ca1/6789abcd1234ef5678901234
+```
+
+For more information see: [MongoDB Atlas - OTel Integration](https://www.mongodb.com/docs/atlas/tutorial/otel-integration/) Documentation.
