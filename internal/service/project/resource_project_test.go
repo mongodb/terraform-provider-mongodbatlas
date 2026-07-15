@@ -1207,7 +1207,7 @@ func changeRoles(t *testing.T, orgID, projectName, roleName string) {
 	respProject, _, _ := acc.ConnV2().ProjectsApi.GetGroupByName(t.Context(), projectName).Execute()
 	projectID := respProject.GetId()
 	if projectID == "" {
-		t.Errorf("PreConfig: error finding project %s", projectName)
+		t.Fatalf("PreConfig: error finding project %s", projectName)
 	}
 	api := acc.ConnV2().ProgrammaticAPIKeysApi
 	respList, _, _ := api.ListOrgApiKeys(t.Context(), orgID).Execute()
@@ -1222,11 +1222,11 @@ func changeRoles(t *testing.T, orgID, projectName, roleName string) {
 		assignment := []admin.UserAccessRoleAssignment{{Roles: &[]string{roleName}}}
 		_, err := api.AddGroupApiKey(t.Context(), projectID, apiKeyID, &assignment).Execute()
 		if err != nil {
-			t.Errorf("PreConfig: error assigning key to project %s", err)
+			t.Fatalf("PreConfig: error assigning key %s to project %s: %s", apiKeyID, projectID, err)
 		}
 		return
 	}
-	t.Error("PreConfig: key not found")
+	t.Fatal("PreConfig: key not found")
 }
 
 func createDataFederationLimit(limitName string) admin.DataFederationLimit {
