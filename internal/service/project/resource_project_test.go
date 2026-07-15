@@ -1218,10 +1218,11 @@ func changeRoles(t *testing.T, orgID, projectName, roleName string) {
 			continue
 		}
 		apiKeyID := result.GetId()
-		assignment := admin.UpdateAtlasProjectApiKey{Roles: &[]string{roleName}}
-		_, _, err := api.UpdateApiKeyRoles(t.Context(), projectID, apiKeyID, &assignment).Execute()
+		// Assign the org API key to the project with the given role; the project must have the key assigned before its roles can be used.
+		assignment := []admin.UserAccessRoleAssignment{{Roles: &[]string{roleName}}}
+		_, err := api.AddGroupApiKey(t.Context(), projectID, apiKeyID, &assignment).Execute()
 		if err != nil {
-			t.Errorf("PreConfig: error updating key %s", err)
+			t.Errorf("PreConfig: error assigning key to project %s", err)
 		}
 		return
 	}
