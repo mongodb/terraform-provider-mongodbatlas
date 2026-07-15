@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.14.0 (July 15, 2026)
+
 FEATURES:
 
 * **New Data Source:** `data-source/mongodbatlas_stream_connection_failover` ([#4567](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4567))
