@@ -133,6 +133,7 @@ type TFProjectDSModel struct {
 	IsDataExplorerGenAIFeaturesEnabled              types.Bool             `tfsdk:"is_data_explorer_gen_ai_features_enabled"`
 	IsDataExplorerGenAISampleDocumentPassingEnabled types.Bool             `tfsdk:"is_data_explorer_gen_ai_sample_document_passing_enabled"`
 	IsClusterAiAssistantEnabled                     types.Bool             `tfsdk:"is_cluster_ai_assistant_enabled"`
+	IsNativeRerankingEnabled                        types.Bool             `tfsdk:"is_native_reranking_enabled"`
 }
 
 type TFTeamDSModel struct {
@@ -189,12 +190,13 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		IsClusterAiAssistantEnabled:                     types.BoolPointerValue(projectSettings.IsClusterAiAssistantEnabled),
 		IsDataExplorerGenAIFeaturesEnabled:              types.BoolPointerValue(projectSettings.IsDataExplorerGenAIFeaturesEnabled),
 		IsDataExplorerGenAISampleDocumentPassingEnabled: types.BoolPointerValue(projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled),
-		Teams:                              NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
-		Limits:                             NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
-		IPAddresses:                        ipAddressesModel,
-		Tags:                               conversion.NewTFTags(project.GetTags()),
-		IsSlowOperationThresholdingEnabled: types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
-		Users:                              NewTFCloudUsersDataSourceModel(ctx, projectProps.Users),
+		IsNativeRerankingEnabled:                        types.BoolPointerValue(projectSettings.IsNativeRerankingEnabled),
+		Teams:                                           NewTFTeamsDataSourceModel(ctx, projectProps.Teams),
+		Limits:                                          NewTFLimitsDataSourceModel(ctx, projectProps.Limits),
+		IPAddresses:                                     ipAddressesModel,
+		Tags:                                            conversion.NewTFTags(project.GetTags()),
+		IsSlowOperationThresholdingEnabled:              types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
+		Users:                                           NewTFCloudUsersDataSourceModel(ctx, projectProps.Users),
 	}, nil
 }
 
@@ -321,6 +323,7 @@ func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, pro
 		projectPlan.IsClusterAiAssistantEnabled = types.BoolPointerValue(projectSettings.IsClusterAiAssistantEnabled)
 		projectPlan.IsDataExplorerGenAIFeaturesEnabled = types.BoolPointerValue(projectSettings.IsDataExplorerGenAIFeaturesEnabled)
 		projectPlan.IsDataExplorerGenAISampleDocumentPassingEnabled = types.BoolPointerValue(projectSettings.IsDataExplorerGenAISampleDocumentPassingEnabled)
+		projectPlan.IsNativeRerankingEnabled = types.BoolPointerValue(projectSettings.IsNativeRerankingEnabled)
 	}
 
 	return &projectPlan, nil
