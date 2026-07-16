@@ -84,7 +84,7 @@ resource "mongodbatlas_cloud_backup_schedule" "backup" {
 ```
 
 ### Further Examples
-- [Cloud Backup Snapshot Export Job](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_cloud_backup_snapshot_export_job)
+- [Cloud Backup Snapshot Export Job](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_cloud_backup_snapshot_export_job)
 
 ## Argument Reference
 
