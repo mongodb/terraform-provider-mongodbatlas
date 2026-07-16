@@ -41,7 +41,7 @@ resource "mongodbatlas_stream_workspace" "test" {
 ```
 
 ### Further Examples
-- [Atlas Stream Workspace](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_stream_workspace)
+- [Atlas Stream Workspace](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_stream_workspace)
 
 ## Migration from stream_instance
 
