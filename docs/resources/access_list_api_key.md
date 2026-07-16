@@ -36,7 +36,7 @@ resource "mongodbatlas_access_list_api_key" "test" {
 ```
 
 ### Further Examples
-- [Create Programmatic API Key](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_api_key)
+- [Create Programmatic API Key](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_api_key)
 
 ## Argument Reference
 
