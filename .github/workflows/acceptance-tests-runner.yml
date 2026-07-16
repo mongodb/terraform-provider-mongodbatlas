@@ -324,6 +324,7 @@ jobs:
             - 'internal/serviceapi/projectsettingsapi/*.go'
             - 'internal/serviceapi/resourcepolicyapi/*.go'
             - 'internal/serviceapi/streamconnectionapi/*.go'
+            - 'internal/serviceapi/streamconnectionfailover/*.go'
             - 'internal/serviceapi/logintegration/*.go'
           autogen_slow:
             - 'internal/common/autogen/*.go'
@@ -702,6 +703,7 @@ jobs:
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/projectsettingsapi
             ./internal/serviceapi/streamconnectionapi
+            ./internal/serviceapi/streamconnectionfailover
         run: make testacc
       - name: Acceptance Tests (Resource Policy API)
         env:
@@ -1484,7 +1486,7 @@ jobs:
     permissions: {}
     steps:
       - name: Send Slack message
-        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
+        uses: slackapi/slack-github-action@0d95c9a7becc1e6e297d76df9bc735c44f4cbcbc
         with:
           webhook: ${{ secrets.slack_webhook_url_stream }}
           webhook-type: incoming-webhook

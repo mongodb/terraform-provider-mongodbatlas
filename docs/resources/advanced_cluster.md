@@ -98,7 +98,7 @@ output "actual_instance_size" {
 }
 ```
 
-**For module authors:** See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete examples of using `use_effective_fields` and effective specs in reusable Terraform modules.
+**For module authors:** See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete examples of using `use_effective_fields` and effective specs in reusable Terraform modules.
 
 ### Example Tenant Cluster
 
@@ -494,37 +494,37 @@ output "endpoint_service_connection_string" {
 # Example return string: connection_string = "mongodb+srv://cluster-atlas-pl-0.ygo1m.mongodb.net"
 ```
 Refer to the following for full privatelink endpoint connection string examples:
-* [GCP Private Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
-* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_privatelink_endpoint/azure)
-* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
-* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
+* [GCP Private Endpoint (Port-Mapped Architecture)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_privatelink_endpoint/gcp-port-mapped)
+* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_privatelink_endpoint/azure)
+* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
 
 
 ### Further Examples
 
 **Target Examples (Recommended Starting Points):**
-- [Free Tier (M0)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/free-tier)
-- [Simple M10 Replica Set](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/m10-replicaset)
-- [M10 High-Availability Replica Set (2-2-1)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/m10-high-availability)
-- [Simple M30 Single-Shard Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/m30-single-shard)
-- [M30 Multi-Shard Cluster (2 Shards)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/m30-multi-shard)
+- [Free Tier (M0)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/free-tier)
+- [Simple M10 Replica Set](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/m10-replicaset)
+- [M10 High-Availability Replica Set (2-2-1)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/m10-high-availability)
+- [Simple M30 Single-Shard Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/m30-single-shard)
+- [M30 Multi-Shard Cluster (2 Shards)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/m30-multi-shard)
 
 **Cluster Types:**
-- [Replicaset](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/replicaset)
-- [Symmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster)
-- [Asymmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster)
-- [Global Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/global-cluster)
-- [Multi-Cloud](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/multi-cloud)
+- [Replicaset](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/replicaset)
+- [Symmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster)
+- [Asymmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster)
+- [Global Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/global-cluster)
+- [Multi-Cloud](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/multi-cloud)
 
 **Auto-scaling:**
-- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard)
-- [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/effective_fields)
+- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard)
+- [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/effective_fields)
 
 **Upgrades & Migrations:**
-- [Tenant Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/tenant-upgrade)
-- [Flex Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/flex-upgrade)
-- [Version Upgrade with Pinned FCV](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/version-upgrade-with-pinned-fcv)
-- [Migrate Cluster to Advanced Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/migrate_cluster_to_advanced_cluster/basic)
+- [Tenant Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/tenant-upgrade)
+- [Flex Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/flex-upgrade)
+- [Version Upgrade with Pinned FCV](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/version-upgrade-with-pinned-fcv)
+- [Migrate Cluster to Advanced Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/migrate_cluster_to_advanced_cluster/basic)
 
 ## Argument Reference
 
@@ -561,7 +561,7 @@ Refer to the following for full privatelink endpoint connection string examples:
   ~> **NOTE:** If the major version is modified outside of Terraform, the provider will emit a warning at plan time, along with an empty plan. Update this attribute in your configuration to match the current version to clear the warning. In an upcoming major version of the provider, this drift will result in a non-empty plan.
 * `pinned_fcv` - (Optional) Pins the Feature Compatibility Version (FCV) to the current MongoDB version with a provided expiration date. To unpin the FCV the `pinned_fcv` attribute must be removed. This operation can take several minutes as the request processes through the MongoDB data plane. Once FCV is unpinned it will not be possible to downgrade the `mongo_db_major_version`. It is advised that updates to `pinned_fcv` are done isolated from other cluster changes. If a plan contains multiple changes, the FCV change will be applied first. If FCV is unpinned past the expiration date the `pinned_fcv` attribute must be removed. The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021785/) and [FCV documentation](https://www.mongodb.com/docs/atlas/tutorial/major-version-change/#manage-feature-compatibility--fcv--during-upgrades) can be referenced for more details. See [below](#pinned_fcv).
 * `pit_enabled` - (Optional) Flag that indicates if the cluster uses Continuous Cloud Backup.
-* `replication_specs` - List of settings that configure your cluster regions. This attribute has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. The `replication_specs` configuration for all shards within the same zone must be the same, with the exception of `instance_size` and `disk_iops` that can scale independently. Note that independent `disk_iops` values are supported for AWS Gen2 STANDARD (gp3) clusters, AWS PROVISIONED (io2) clusters, AWS HIGH_PERFORMANCE (Gen 2 io2) clusters, and Azure regions that support Extended IOPS. See [below](#replication_specs).
+* `replication_specs` - List of settings that configure your cluster regions. This attribute has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. The `replication_specs` configuration for all shards within the same zone must be the same, with the exception of `instance_size` and `disk_iops` that can scale independently. Note that independent `disk_iops` values are supported for AWS Gen2 STANDARD (gp3) clusters, AWS PROVISIONED (io2) clusters, AWS HIGH_PERFORMANCE (Gen 2 io2) clusters, and Azure regions that support Extended IOPS. If this list contains more than one entry, review [Multi-shard clusters and topology changes](#multi-shard-clusters-and-topology-changes) before adding, removing, or reordering entries. See [below](#replication_specs).
 * `root_cert_type` - (Optional) - Certificate Authority that MongoDB Atlas clusters use. You can specify ISRGROOTX1 (for ISRG Root X1).
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
 * `adaptive_capacity` - (Optional) Governs adaptive capacity behavior of Azure nodes in single-cloud Azure clusters or multi-cloud clusters that include Azure nodes. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. `ENABLED` means the cluster explicitly opts in to adaptive capacity. `DISABLED` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. `null` means the field is unset; Azure clusters use adaptive capacity by default when the feature is enabled at the group level. Setting this field for single-cloud AWS or GCP clusters is a no-op.
@@ -582,6 +582,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 * `config_server_management_mode` - (Optional) Config Server Management Mode for creating or updating a sharded cluster. Valid values are `ATLAS_MANAGED` (default) and `FIXED_TO_DEDICATED`. When configured as `ATLAS_MANAGED`, Atlas may automatically switch the cluster's config server type for optimal performance and savings. When configured as `FIXED_TO_DEDICATED`, the cluster will always use a dedicated config server. To learn more, see the [Sharded Cluster Config Servers documentation](https://www.mongodb.com/docs/manual/core/sharded-cluster-config-servers/).
 - `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 * `use_effective_fields` - (Optional) Controls how hardware specification fields are returned in the response. When set to true, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to false (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications. This opt-in feature enhances auto-scaling workflows by eliminating the need for `lifecycle.ignore_changes` blocks and preventing plan drift from Atlas-managed changes. This attribute applies to dedicated clusters, not to tenant or flex clusters. This attribute will be deprecated in provider version 2.x and removed in 3.x when the new behavior becomes default. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for more details.
+If your cluster has more than one `replication_specs` entry, see [Multi-shard clusters and topology changes](#multi-shard-clusters-and-topology-changes) before enabling this attribute.
 **Important:** Toggle this flag and remove any existing `lifecycle.ignore_changes` blocks for spec fields in the same apply, without combining other changes. Toggling will result in increased plan verbosity with `(known after apply)` markers, which can be safely ignored. If you previously removed `read_only_specs` or `analytics_specs` attributes from your configuration, you'll get a validation error for safety reasons to prevent accidental node loss. To resolve: add the blocks back (to keep nodes) or with `node_count = 0` (to delete nodes), apply without toggling the flag, then toggle in a separate apply.
 
 ### bi_connector_config
@@ -945,6 +946,22 @@ moved {
 
 More information about moving resources can be found in our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide) and in the Terraform documentation [here](https://developer.hashicorp.com/terraform/language/moved) and [here](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring).
 
+## Multi-shard clusters and topology changes
+
+This section applies to clusters with more than one `replication_specs` entry.
+
+**Known issues:**
+
+- **Effective fields:** For clusters with more than one `replication_specs` entry, setting `use_effective_fields = true` currently has no effect. The resulting behavior is the same as leaving the attribute unset or setting it to `false`. We recommend that you do not enable this attribute for multi-shard clusters.
+- **Topology changes:** The update path currently relies on list position to correlate each `replication_specs` entry with a shard. If you add, remove, or reorder entries, an existing configuration might be associated with a different Atlas shard than intended.
+
+When updating a multi-shard cluster, follow this guidance:
+
+- Keep existing `replication_specs` entries in the same order when updating a multi-shard cluster.
+- Add new shards only after the existing entries, and keep the existing entries unchanged in the same update.
+- If auto-scaling is enabled, do not rely on list-index `lifecycle.ignore_changes` to preserve Atlas-managed `instance_size`, `disk_size_gb`, or `disk_iops` values when changing the shard topology.
+- Before removing a shard or making other significant production topology changes, we recommend that you contact [MongoDB Support](https://www.mongodb.com/docs/atlas/support/#request-support).
+
 ## Auto-Scaling with Effective Fields
 
 The `use_effective_fields` attribute enhances auto-scaling workflows by eliminating the need for `lifecycle.ignore_changes` blocks and providing visibility into Atlas-managed changes. This feature only applies to dedicated clusters (M10+) and is not supported for flex and tenant clusters.
@@ -1011,7 +1028,7 @@ The same process applies to the [`analytics_auto_scaling`](#analytics_auto_scali
 
 ### Terraform Modules
 
-`use_effective_fields` is particularly valuable for reusable Terraform modules. Without it, separate module implementations are required (one with lifecycle blocks for auto-scaling, one without). With `use_effective_fields`, a single module handles both scenarios without lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
+`use_effective_fields` is particularly valuable for reusable Terraform modules. Without it, separate module implementations are required (one with lifecycle blocks for auto-scaling, one without). With `use_effective_fields`, a single module handles both scenarios without lifecycle blocks. See the [Effective Fields Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.14.0/examples/mongodbatlas_advanced_cluster/effective_fields) for complete implementations.
 
 ### Migration path and version 3.x
 

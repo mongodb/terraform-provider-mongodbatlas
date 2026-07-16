@@ -1,11 +1,20 @@
 ## (Unreleased)
 
+## 2.14.0 (July 15, 2026)
+
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_stream_connection_failover` ([#4567](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4567))
+* **New Data Source:** `data-source/mongodbatlas_stream_connection_failovers` ([#4567](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4567))
+* **New Resource:** `resource/mongodbatlas_stream_connection_failover` ([#4473](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4473))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_project: Adds `is_cluster_ai_assistant_enabled`, `is_data_explorer_gen_ai_features_enabled`, and `is_data_explorer_gen_ai_sample_document_passing_enabled` attributes ([#4541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4541))
 * data-source/mongodbatlas_projects: Adds `is_cluster_ai_assistant_enabled`, `is_data_explorer_gen_ai_features_enabled`, and `is_data_explorer_gen_ai_sample_document_passing_enabled` attributes ([#4541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4541))
 * data-source/mongodbatlas_stream_processor: Adds `failover_enabled` attribute ([#4530](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4530))
 * data-source/mongodbatlas_stream_processors: Adds `failover_enabled` attribute ([#4530](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4530))
+* provider: Supports `is_mongodbgov_cloud` in the AWS Secrets Manager secret payload ([#4564](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4564))
 * resource/mongodbatlas_project: Adds `is_cluster_ai_assistant_enabled`, `is_data_explorer_gen_ai_features_enabled`, and `is_data_explorer_gen_ai_sample_document_passing_enabled` attributes ([#4541](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4541))
 * resource/mongodbatlas_stream_processor: Adds optional `failover_enabled` attribute ([#4530](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4530))
 * resource/mongodbatlas_stream_workspace: Adds `failover_regions` attribute with write-once semantics and mutual exclusivity with `data_process_region` on updates ([#4530](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/4530))

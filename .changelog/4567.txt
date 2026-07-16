@@ -1,0 +1,7 @@
+```release-note:new-datasource
+data-source/mongodbatlas_stream_connection_failover
+```
+
+```release-note:new-datasource
+data-source/mongodbatlas_stream_connection_failovers
+```

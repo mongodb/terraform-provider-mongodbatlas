@@ -54,8 +54,7 @@ resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archi
 -> **NOTE:** For Azure, recreating the private endpoint is required. Do not reuse an `endpoint_id`; instead, create a new Azure private endpoint. See [Azure's documentation](https://learn.microsoft.com/en-us/azure/private-link/private-endpoint-overview) for further details.
 
 ### Further Examples
-- [AWS PrivateLink for Data Federation and Online Archive](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_privatelink_endpoint/aws/data-federation-online-archive)
-- [Azure PrivateLink for Data Federation and Online Archive](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.13.0/examples/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive/azure)
+- [Azure PrivateLink for Data Federation and Online Archive](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint_service_data_federation_online_archive/azure)
 
 ## Argument Reference
 

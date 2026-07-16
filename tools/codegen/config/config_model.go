@@ -47,10 +47,26 @@ type MoveState struct {
 }
 
 type SchemaOptions struct {
-	Aliases       map[string]string   `yaml:"aliases"` // keys and values use camelCase (e.g., groupId: projectId, nestedObject.innerAttr: renamedAttr). Supports path params and request/response body fields via APIName preservation and apiname tag generation
-	Overrides     map[string]Override `yaml:"overrides"`
-	Ignores       []string            `yaml:"ignores"`
-	ExpandedModel bool                `yaml:"expanded_model"`
+	Aliases   map[string]string   `yaml:"aliases"` // keys and values use camelCase (e.g., groupId: projectId, nestedObject.innerAttr: renamedAttr). Supports path params and request/response body fields via APIName preservation and apiname tag generation
+	Overrides map[string]Override `yaml:"overrides"`
+	Ignores   []string            `yaml:"ignores"`
+	// DiscriminatorTypes optionally restricts a polymorphic schema's discriminator to the listed type
+	// values. Use it when an endpoint reuses a broad shared schema but only supports a subset of its
+	// types (e.g. failover connections reuse StreamsConnection but only support Kafka/Cluster). Pruning
+	// keeps the generated docs' per-type sections, the "for type:" description prefixes, and the runtime
+	// discriminator validation limited to the supported types. Empty means keep every type.
+	//
+	// LIMITATION: this is a single, schema-wide option, not per-attribute. It is applied to every
+	// discriminator in the schema (root and nested) whose mapping contains all listed types, so it
+	// assumes the schema has one polymorphic dimension. It cannot target a specific nested discriminator
+	// and is unsuitable for a schema with multiple distinct polymorphic dimensions that share type
+	// values (an unrelated nested discriminator whose universe is a superset of the listed types would
+	// also be pruned). Discriminators that don't contain all listed types are left untouched.
+	//
+	// This is a stopgap for downstream schemas that over-broadly reuse a shared type; prefer fixing the
+	// source spec to expose only the supported types, and remove this option once no schema needs it.
+	DiscriminatorTypes []string `yaml:"discriminator_types,omitempty"`
+	ExpandedModel      bool     `yaml:"expanded_model"`
 }
 
 type Override struct {
