@@ -13,6 +13,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 )
 
 // MoveState is used with moved block to upgrade from stream_instance to stream_workspace.
@@ -82,10 +83,7 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 			cloudProvider := schemafunc.GetAttrFromStateObj[string](regionObj, "cloud_provider")
 			region := schemafunc.GetAttrFromStateObj[string](regionObj, "region")
 
-			objValue, diags := types.ObjectValue(map[string]attr.Type{
-				"cloud_provider": types.StringType,
-				"region":         types.StringType,
-			}, map[string]attr.Value{
+			objValue, diags := types.ObjectValue(streaminstance.ProcessRegionObjectType.AttrTypes, map[string]attr.Value{
 				"cloud_provider": types.StringPointerValue(cloudProvider),
 				"region":         types.StringPointerValue(region),
 			})
@@ -95,10 +93,7 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 		}
 	}
 	if model.DataProcessRegion.IsNull() {
-		model.DataProcessRegion = types.ObjectNull(map[string]attr.Type{
-			"cloud_provider": types.StringType,
-			"region":         types.StringType,
-		})
+		model.DataProcessRegion = types.ObjectNull(streaminstance.ProcessRegionObjectType.AttrTypes)
 	}
 
 	// Extract and preserve stream_config if present.
@@ -125,6 +120,8 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 			"tier":          types.StringType,
 		})
 	}
+
+	model.FailoverRegions = types.ListNull(failoverRegionObjectType)
 
 	// Extract and preserve hostnames if present.
 	if hostnamesVal, exists := stateObj["hostnames"]; exists && !hostnamesVal.IsNull() {

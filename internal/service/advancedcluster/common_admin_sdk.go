@@ -61,7 +61,7 @@ func upgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.
 		addErrorDiag(diags, operationTenantUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	return AwaitChangesUpgrade(ctx, client, waitParams, operationTenantUpgrade, diags)
+	return AwaitUpgradeToDedicated(ctx, client, waitParams, operationTenantUpgrade, diags)
 }
 
 func upgradeFlexToDedicated(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.AtlasTenantClusterUpgradeRequest20240805) *admin.ClusterDescription20240805 {
@@ -70,7 +70,7 @@ func upgradeFlexToDedicated(ctx context.Context, diags *diag.Diagnostics, client
 		addErrorDiag(diags, operationFlexUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	return AwaitChangesUpgrade(ctx, client, waitParams, operationFlexUpgrade, diags)
+	return AwaitUpgradeToDedicated(ctx, client, waitParams, operationFlexUpgrade, diags)
 }
 
 func PinFCV(ctx context.Context, api admin.ClustersAPI, projectID, clusterName, expirationDateStr string) error {

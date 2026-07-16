@@ -1,0 +1,15 @@
+---
+subcategory: "Streams"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` describes a failover (regional-alternate) connection for an existing stream connection. It is looked up by its parent `connection_name` and its computed `failover_connection_id`. Only `Kafka` and `Cluster` connection types support failover.
+
+## Example Usages
+
+{{ tffile "examples/mongodbatlas_stream_connection_failover/singular-data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Streams Failover Connection](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-streams) Documentation.

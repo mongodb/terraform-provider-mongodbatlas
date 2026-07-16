@@ -228,9 +228,13 @@ func configBasic(projectName, orgID, projectOwnerID string, useYearly bool) stri
 		`
 	}
 
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) +
-		fmt.Sprintf(`	  
-	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name             = %[1]q
+			org_id           = %[2]q
+			project_owner_id = %[3]q
+		}
+		resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 			project_id                 = mongodbatlas_project.test.id
 			authorized_email           = "test@example.com"
 			authorized_user_first_name = "First"
@@ -238,82 +242,88 @@ func configBasic(projectName, orgID, projectOwnerID string, useYearly bool) stri
 			copy_protection_enabled    = false
 			pit_enabled                = false
 			encryption_at_rest_enabled = false
-			
+
 			restore_window_days = 7
-			
+
 			on_demand_policy_item {
 				frequency_interval = 0
 				retention_unit     = "days"
 				retention_value    = 3
 			}
-			
+
 			policy_item_hourly {
 				frequency_interval = 6
 				retention_unit     = "days"
 				retention_value    = 7
 			}
-			
+
 			policy_item_daily {
 				frequency_interval = 0
 				retention_unit     = "days"
 				retention_value    = 7
 			}
-			
+
 			policy_item_weekly {
 				frequency_interval = 0
 				retention_unit     = "weeks"
 				retention_value    = 4
 			}
-			
+
 			policy_item_monthly {
 				frequency_interval = 0
 				retention_unit     = "months"
 				retention_value    = 12
 			}
 
-			%s
-	  }
-		
+			%[4]s
+		}
+
 		data "mongodbatlas_backup_compliance_policy" "backup_policy" {
 			project_id = mongodbatlas_backup_compliance_policy.backup_policy_res.project_id
 		}
-	`, strYearly)
+	`, projectName, orgID, projectOwnerID, strYearly)
 }
 
 func configWithoutOptionals(projectName, orgID, projectOwnerID string) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
-	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name             = %[1]q
+			org_id           = %[2]q
+			project_owner_id = %[3]q
+		}
+
+		resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 			project_id                 = mongodbatlas_project.test.id
 			authorized_email           = "test@example.com"
 			authorized_user_first_name = "First"
 			authorized_user_last_name  = "Last"
-			
+
 			restore_window_days = 7
-			
+
 			on_demand_policy_item {
 				frequency_interval = 0
 				retention_unit     = "days"
 				retention_value    = 3
 			}
-			
+
 			policy_item_hourly {
 				frequency_interval = 6
 				retention_unit     = "days"
 				retention_value    = 7
-				}
-			
+			}
+
 			policy_item_daily {
 				frequency_interval = 0
 				retention_unit     = "days"
 				retention_value    = 7
-				}
-			
+			}
+
 			policy_item_weekly {
 				frequency_interval = 0
 				retention_unit     = "weeks"
 				retention_value    = 4
 			}
-			
+
 			policy_item_monthly {
 				frequency_interval = 0
 				retention_unit     = "months"
@@ -325,13 +335,19 @@ func configWithoutOptionals(projectName, orgID, projectOwnerID string) string {
 				retention_unit     = "years"
 				retention_value    = 1
 			}
-	  }
-	`
+		}
+	`, projectName, orgID, projectOwnerID)
 }
 
 func configWithoutRestoreDaysAndOnDemand(projectName, orgID, projectOwnerID string) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + `	  
-	  resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name             = %[1]q
+			org_id           = %[2]q
+			project_owner_id = %[3]q
+		}
+
+		resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
 			project_id                 = mongodbatlas_project.test.id
 			authorized_email           = "test@example.com"
 			authorized_user_first_name = "First"
@@ -339,25 +355,25 @@ func configWithoutRestoreDaysAndOnDemand(projectName, orgID, projectOwnerID stri
 			copy_protection_enabled    = false
 			pit_enabled                = false
 			encryption_at_rest_enabled = false
-			
+
 			policy_item_hourly {
 				frequency_interval = 6
 				retention_unit     = "days"
 				retention_value    = 7
 			}
-			
+
 			policy_item_daily {
 				frequency_interval = 0
 				retention_unit     = "days"
 				retention_value    = 7
 			}
-			
+
 			policy_item_weekly {
 				frequency_interval = 0
 				retention_unit     = "weeks"
 				retention_value    = 4
 			}
-			
+
 			policy_item_monthly {
 				frequency_interval = 0
 				retention_unit     = "months"
@@ -369,74 +385,86 @@ func configWithoutRestoreDaysAndOnDemand(projectName, orgID, projectOwnerID stri
 				retention_unit     = "years"
 				retention_value    = 1
 			}
-	  }
-	`
+		}
+	`, projectName, orgID, projectOwnerID)
 }
 
 func configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectOwnerID string, info *acc.ClusterInfo) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + fmt.Sprintf(`	  
-	  %[1]s
-	  resource "mongodbatlas_cloud_backup_schedule" "test" {
-		cluster_name 			   = %[2]s.name
-		project_id                 = mongodbatlas_project.test.id
-	  
-		reference_hour_of_day    = 3
-		reference_minute_of_hour = 45
-		restore_window_days      = 2
-	  
-		copy_settings {
-		  cloud_provider      = "AWS"
-		  frequencies         = ["DAILY"]
-		  region_name         = "US_WEST_1"
-		  zone_id = %[2]s.replication_specs.*.zone_id[0]
-		  should_copy_oplogs  = false
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name             = %[1]q
+			org_id           = %[2]q
+			project_owner_id = %[3]q
 		}
-	  }
 
-	  resource "mongodbatlas_backup_compliance_policy" "test" {
-		project_id                 = mongodbatlas_project.test.id
-		authorized_email           = "test@example.com"
-		  authorized_user_first_name = "First"
-		  authorized_user_last_name  = "Last"
-		copy_protection_enabled    = true
-		pit_enabled                = false
-		encryption_at_rest_enabled = false
-	  
-		on_demand_policy_item {
-		  frequency_interval = 1
-		  retention_unit     = "days"
-		  retention_value    = 1
+		%[4]s
+
+		resource "mongodbatlas_cloud_backup_schedule" "test" {
+			cluster_name             = %[5]s.name
+			project_id               = mongodbatlas_project.test.id
+			reference_hour_of_day    = 3
+			reference_minute_of_hour = 45
+			restore_window_days      = 2
+
+			copy_settings {
+				cloud_provider     = "AWS"
+				frequencies        = ["DAILY"]
+				region_name        = "US_WEST_1"
+				zone_id            = %[5]s.replication_specs.*.zone_id[0]
+				should_copy_oplogs = false
+			}
 		}
-	  
-		policy_item_daily {
-		  frequency_interval = 1
-		  retention_unit     = "days"
-		  retention_value    = 1
+
+		resource "mongodbatlas_backup_compliance_policy" "test" {
+			project_id                 = mongodbatlas_project.test.id
+			authorized_email           = "test@example.com"
+			authorized_user_first_name = "First"
+			authorized_user_last_name  = "Last"
+			copy_protection_enabled    = true
+			pit_enabled                = false
+			encryption_at_rest_enabled = false
+
+			on_demand_policy_item {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 1
+			}
+
+			policy_item_daily {
+				frequency_interval = 1
+				retention_unit     = "days"
+				retention_value    = 1
+			}
 		}
-	  }
-	`, info.TerraformStr, info.ResourceName)
+	`, projectName, orgID, projectOwnerID, info.TerraformStr, info.ResourceName)
 }
 
 func configClusterWithBackupSchedule(projectName, orgID, projectOwnerID string, info *acc.ClusterInfo) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) + fmt.Sprintf(`	  
-	  %[1]s
-	  resource "mongodbatlas_cloud_backup_schedule" "test" {
-		cluster_name 			  = %[2]s.name
-		project_id                 = mongodbatlas_project.test.id
-	  
-		reference_hour_of_day    = 3
-		reference_minute_of_hour = 45
-		restore_window_days      = 2
-	  
-		copy_settings {
-		  cloud_provider      = "AWS"
-		  frequencies         = ["DAILY"]
-		  region_name         = "US_WEST_1"
-		  zone_id = %[2]s.replication_specs.*.zone_id[0]
-		  should_copy_oplogs  = false
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name             = %[1]q
+			org_id           = %[2]q
+			project_owner_id = %[3]q
 		}
-	  }
-	`, info.TerraformStr, info.ResourceName)
+
+		%[4]s
+
+		resource "mongodbatlas_cloud_backup_schedule" "test" {
+			cluster_name             = %[5]s.name
+			project_id               = mongodbatlas_project.test.id
+			reference_hour_of_day    = 3
+			reference_minute_of_hour = 45
+			restore_window_days      = 2
+
+			copy_settings {
+				cloud_provider     = "AWS"
+				frequencies        = ["DAILY"]
+				region_name        = "US_WEST_1"
+				zone_id            = %[5]s.replication_specs.*.zone_id[0]
+				should_copy_oplogs = false
+			}
+		}
+	`, projectName, orgID, projectOwnerID, info.TerraformStr, info.ResourceName)
 }
 
 func basicChecks() []resource.TestCheckFunc {
@@ -455,46 +483,53 @@ func basicChecks() []resource.TestCheckFunc {
 }
 
 func configBasicWithOptionalAttributesWithNonDefaultValues(projectName, orgID, projectOwnerID, restreWindowDays string) string {
-	return acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false) +
-		fmt.Sprintf(`resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
-		project_id                 = mongodbatlas_project.test.id
-		authorized_email           = "test@example.com"
-		authorized_user_first_name = "First"
-		authorized_user_last_name  = "Last"
-		copy_protection_enabled    = true
-		pit_enabled                = false
-		encryption_at_rest_enabled = false
-		
-		restore_window_days = %[1]s
-		
-		on_demand_policy_item {
-			frequency_interval = 0
-			retention_unit     = "days"
-			retention_value    = 3
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name             = %[1]q
+			org_id           = %[2]q
+			project_owner_id = %[3]q
 		}
-		
-		policy_item_hourly {
-			frequency_interval = 6
-			retention_unit     = "days"
-			retention_value    = 7
+
+		resource "mongodbatlas_backup_compliance_policy" "backup_policy_res" {
+			project_id                 = mongodbatlas_project.test.id
+			authorized_email           = "test@example.com"
+			authorized_user_first_name = "First"
+			authorized_user_last_name  = "Last"
+			copy_protection_enabled    = true
+			pit_enabled                = false
+			encryption_at_rest_enabled = false
+
+			restore_window_days = %[4]s
+
+			on_demand_policy_item {
+				frequency_interval = 0
+				retention_unit     = "days"
+				retention_value    = 3
+			}
+
+			policy_item_hourly {
+				frequency_interval = 6
+				retention_unit     = "days"
+				retention_value    = 7
+			}
+
+			policy_item_daily {
+				frequency_interval = 0
+				retention_unit     = "days"
+				retention_value    = 7
+			}
+
+			policy_item_weekly {
+				frequency_interval = 0
+				retention_unit     = "weeks"
+				retention_value    = 4
+			}
+
+			policy_item_monthly {
+				frequency_interval = 0
+				retention_unit     = "months"
+				retention_value    = 12
+			}
 		}
-		
-		policy_item_daily {
-			frequency_interval = 0
-			retention_unit     = "days"
-			retention_value    = 7
-		}
-		
-		policy_item_weekly {
-			frequency_interval = 0
-			retention_unit     = "weeks"
-			retention_value    = 4
-		}
-		
-		policy_item_monthly {
-			frequency_interval = 0
-			retention_unit     = "months"
-			retention_value    = 12
-		}
-  }`, restreWindowDays)
+	`, projectName, orgID, projectOwnerID, restreWindowDays)
 }

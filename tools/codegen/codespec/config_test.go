@@ -1662,3 +1662,79 @@ func TestApplyTransformationsToDataSources_TypeOverride(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, expectedAttributes, inputDataSources.Singular.Attributes)
 }
+
+func TestApplyTransformationsToResource_DiscriminatorTypesPrune(t *testing.T) {
+	newDisc := func() *codespec.Discriminator {
+		return &codespec.Discriminator{
+			PropertyName: codespec.NewDiscriminatorAttrName("type"),
+			Mapping: map[string]codespec.DiscriminatorType{
+				"Kafka":   {Allowed: []codespec.DiscriminatorAttrName{codespec.NewDiscriminatorAttrName("config")}},
+				"Cluster": {Allowed: []codespec.DiscriminatorAttrName{codespec.NewDiscriminatorAttrName("clusterName")}},
+				"S3":      {Allowed: []codespec.DiscriminatorAttrName{codespec.NewDiscriminatorAttrName("networking")}},
+			},
+		}
+	}
+	// An unrelated nested discriminator whose type universe does not overlap the allow-list.
+	newUnrelatedNestedAttr := func() codespec.Attribute {
+		return codespec.Attribute{
+			TFSchemaName: "authentication",
+			SingleNested: &codespec.SingleNestedAttribute{
+				NestedObject: codespec.NestedAttributeObject{
+					Discriminator: &codespec.Discriminator{
+						PropertyName: codespec.NewDiscriminatorAttrName("auth_type"),
+						Mapping: map[string]codespec.DiscriminatorType{
+							"OAUTH":     {Allowed: []codespec.DiscriminatorAttrName{codespec.NewDiscriminatorAttrName("client_id")}},
+							"USER_INFO": {Allowed: []codespec.DiscriminatorAttrName{codespec.NewDiscriminatorAttrName("username")}},
+						},
+					},
+					Attributes: codespec.Attributes{{TFSchemaName: "auth_type"}, {TFSchemaName: "client_id"}, {TFSchemaName: "username"}},
+				},
+			},
+		}
+	}
+	newResource := func() *codespec.Resource {
+		return &codespec.Resource{
+			Schema:     &codespec.Schema{Discriminator: newDisc(), Attributes: codespec.Attributes{newUnrelatedNestedAttr()}},
+			Operations: codespec.APIOperations{Create: &codespec.APIOperation{}, Read: &codespec.APIOperation{}},
+		}
+	}
+
+	t.Run("prunes to allow-listed types", func(t *testing.T) {
+		resource := newResource()
+		cfg := &config.Resource{SchemaOptions: config.SchemaOptions{DiscriminatorTypes: []string{"Kafka", "Cluster"}}}
+		require.NoError(t, codespec.ApplyTransformationsToResource(cfg, resource))
+		mapping := resource.Schema.Discriminator.Mapping
+		assert.Len(t, mapping, 2)
+		assert.Contains(t, mapping, "Kafka")
+		assert.Contains(t, mapping, "Cluster")
+		assert.NotContains(t, mapping, "S3")
+	})
+
+	t.Run("empty allow-list keeps every type", func(t *testing.T) {
+		resource := newResource()
+		cfg := &config.Resource{SchemaOptions: config.SchemaOptions{}}
+		require.NoError(t, codespec.ApplyTransformationsToResource(cfg, resource))
+		assert.Len(t, resource.Schema.Discriminator.Mapping, 3)
+	})
+
+	t.Run("unrelated nested discriminator left untouched", func(t *testing.T) {
+		resource := newResource()
+		cfg := &config.Resource{SchemaOptions: config.SchemaOptions{DiscriminatorTypes: []string{"Kafka", "Cluster"}}}
+		require.NoError(t, codespec.ApplyTransformationsToResource(cfg, resource))
+		// Target discriminator pruned...
+		assert.Len(t, resource.Schema.Discriminator.Mapping, 2)
+		// ...but the unrelated auth discriminator (no Kafka/Cluster) keeps all its variants.
+		nested := resource.Schema.Attributes[0].SingleNested.NestedObject.Discriminator.Mapping
+		assert.Len(t, nested, 2)
+		assert.Contains(t, nested, "OAUTH")
+		assert.Contains(t, nested, "USER_INFO")
+	})
+
+	t.Run("typo (no discriminator matches) errors", func(t *testing.T) {
+		resource := newResource()
+		cfg := &config.Resource{SchemaOptions: config.SchemaOptions{DiscriminatorTypes: []string{"Kafka", "Nope"}}}
+		err := codespec.ApplyTransformationsToResource(cfg, resource)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "Nope")
+	})
+}

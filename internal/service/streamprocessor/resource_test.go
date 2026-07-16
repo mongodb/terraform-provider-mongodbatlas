@@ -53,6 +53,45 @@ func TestAccStreamProcessor_basic(t *testing.T) {
 	resource.Test(t, *basicTestCase(t))
 }
 
+func TestAccStreamProcessor_withFailoverEnabled(t *testing.T) {
+	// Requires a real Atlas cluster: failover_enabled=true only accepts Atlas-to-Atlas or Atlas-to-Kafka pipelines.
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t, false)
+		randomSuffix           = acctest.RandString(5)
+		workspaceName          = acc.RandomName()
+		processorName          = "new-processor-failover-" + randomSuffix
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithFailoverEnabled(t, projectID, workspaceName, clusterName, processorName, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "failover_enabled", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "failover_enabled", "true"),
+				),
+			},
+			{
+				Config: configWithFailoverEnabled(t, projectID, workspaceName, clusterName, processorName, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "failover_enabled", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "failover_enabled", "false"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "failover_enabled", "stats"},
+			},
+		}})
+}
+
 func TestAccStreamProcessor_withTier(t *testing.T) {
 	var (
 		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
@@ -705,6 +744,74 @@ func config(t *testing.T, projectID, workspaceName, processorName, state, nameSu
 	`, projectID, workspaceName, processorName, pipeline, stateConfig, optionsStr, dependsOnStr, timeoutConfig, deleteOnCreateTimeoutConfig) + otherConfig
 }
 
+func configWithFailoverEnabled(t *testing.T, projectID, workspaceName, clusterName, processorName string, failoverEnabled bool) string {
+	t.Helper()
+
+	// failover_enabled=true requires an Atlas-to-Atlas or Atlas-to-Kafka pipeline.
+	// We use a Cluster connection as $source and Kafka (fake creds) as $emit.
+	// state="CREATED" so the processor doesn't need live connections.
+	return fmt.Sprintf(`
+	resource "mongodbatlas_stream_workspace" "failover_workspace" {
+		project_id     = %[1]q
+		workspace_name = %[2]q
+		data_process_region = {
+			cloud_provider = "AWS"
+			region         = "VIRGINIA_USA"
+		}
+		failover_regions = [
+			{
+				cloud_provider = "AWS"
+				region         = "DUBLIN_IRL"
+			}
+		]
+		stream_config = {
+			tier = "SP10"
+		}
+	}
+
+	resource "mongodbatlas_stream_connection" "cluster_src" {
+		project_id      = %[1]q
+		workspace_name  = mongodbatlas_stream_workspace.failover_workspace.workspace_name
+		connection_name = "cluster-src"
+		type            = "Cluster"
+		cluster_name    = %[3]q
+		db_role_to_execute = {
+			role = "atlasAdmin"
+			type = "BUILT_IN"
+		}
+	}
+
+	resource "mongodbatlas_stream_connection" "kafka_dest" {
+		project_id      = %[1]q
+		workspace_name  = mongodbatlas_stream_workspace.failover_workspace.workspace_name
+		connection_name = "kafka-dest"
+		type            = "Kafka"
+		authentication = {
+			mechanism = "PLAIN"
+			username  = "user"
+			password  = "rawpassword"
+		}
+		bootstrap_servers = "localhost:9092,localhost:9092"
+		security = {
+			protocol = "SASL_PLAINTEXT"
+		}
+	}
+
+	resource "mongodbatlas_stream_processor" "processor" {
+		project_id       = %[1]q
+		workspace_name   = mongodbatlas_stream_workspace.failover_workspace.workspace_name
+		processor_name   = %[4]q
+		pipeline = jsonencode([
+			{ "$source" = { "connectionName" = mongodbatlas_stream_connection.cluster_src.connection_name } },
+			{ "$emit" = { "connectionName" = mongodbatlas_stream_connection.kafka_dest.connection_name, "topic" = "failover-test-topic" } }
+		])
+		state            = "CREATED"
+		failover_enabled = %[5]t
+	}
+
+	`, projectID, workspaceName, clusterName, processorName, failoverEnabled) + processorDataSources()
+}
+
 func configWithTier(t *testing.T, projectID, workspaceName, processorName, tier string) string {
 	t.Helper()
 
@@ -726,19 +833,23 @@ func configWithTier(t *testing.T, projectID, workspaceName, processorName, tier 
 		state = "STARTED"
 		tier  = %[4]q
 	}
+	`, projectID, workspaceName, processorName, tier) + processorDataSources()
+}
 
+func processorDataSources() string {
+	return `
 	data "mongodbatlas_stream_processor" "test" {
 		project_id     = mongodbatlas_stream_processor.processor.project_id
 		workspace_name = mongodbatlas_stream_processor.processor.workspace_name
 		processor_name = mongodbatlas_stream_processor.processor.processor_name
+		depends_on     = [mongodbatlas_stream_processor.processor]
 	}
 
 	data "mongodbatlas_stream_processors" "test" {
-		project_id     = %[1]q
-		workspace_name = %[2]q
+		project_id     = mongodbatlas_stream_processor.processor.project_id
+		workspace_name = mongodbatlas_stream_processor.processor.workspace_name
 		depends_on     = [mongodbatlas_stream_processor.processor]
-	}
-	`, projectID, workspaceName, processorName, tier)
+	}`
 }
 
 func configMigration(t *testing.T, projectID, instanceName, processorName, state, nameSuffix string, src, dest connectionConfig, timeoutConfig string, deleteOnCreateTimeout *bool) string {

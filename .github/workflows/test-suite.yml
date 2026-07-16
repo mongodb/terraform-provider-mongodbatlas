@@ -129,7 +129,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       - name: Summarize test run
         id: summary
-        uses: anthropics/claude-code-action@a92e7c70a4da9793dc164451d829089dc057a464
+        uses: anthropics/claude-code-action@e90deca47693f9457b72f2b53c17d7c445a87342
         with:
           anthropic_api_key: ${{ secrets.AI_GATEWAY_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -152,7 +152,7 @@ jobs:
           name: summary
           path: summary.md
       - name: Post summary to Slack
-        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
+        uses: slackapi/slack-github-action@0d95c9a7becc1e6e297d76df9bc735c44f4cbcbc
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
@@ -172,7 +172,7 @@ jobs:
             }
       - name: Fallback ping if any prior step failed
         if: ${{ failure() }}
-        uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c
+        uses: slackapi/slack-github-action@0d95c9a7becc1e6e297d76df9bc735c44f4cbcbc
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook

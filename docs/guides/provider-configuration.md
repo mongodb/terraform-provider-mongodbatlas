@@ -13,13 +13,13 @@ The MongoDB Atlas provider supports the following authentication methods:
 1. [**Service Account (SA)** - Recommended](#service-account-recommended)
 2. [**Programmatic Access Key (PAK)**](#programmatic-access-key)
 
-Credentials can be provided through (in priority order):
+Credentials can be provided through one of the following sources (in priority order):
 
-- AWS Secrets Manager
-- Provider attributes
-- Environment variables
+1. AWS Secrets Manager (configured through provider attributes or environment variables)
+2. Provider attributes
+3. Environment variables
 
-The provider uses the first available credentials source.
+The provider selects the first source that has credentials and uses it as the single source of configuration. Sources are not merged; values set in a lower-priority source are ignored once a higher-priority source is selected.
 
 ### Service Account (Recommended)
 
@@ -85,6 +85,8 @@ The provider supports retrieving credentials from AWS Secrets Manager. See [AWS 
    - `public_key`: your-public-key
    - `private_key`: your-private-key
 
+   Optionally, you can also set `base_url`, `realm_base_url`, and `is_mongodbgov_cloud` as keys in the secret (see note below).
+
 2. **Create an IAM Role** with:
    - Permission for `sts:AssumeRole`
    - Attached AWS managed policy `SecretsManagerReadWrite`
@@ -115,6 +117,8 @@ The provider supports retrieving credentials from AWS Secrets Manager. See [AWS 
    ```
 
    Alternatively, you can use environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, `ASSUME_ROLE_ARN`, `SECRET_NAME`, `AWS_REGION`).
+
+~> **NOTE:** When using AWS Secrets Manager, the provider takes its entire configuration from the secret payload. In addition to credentials, you can set `base_url`, `realm_base_url`, and `is_mongodbgov_cloud` as keys inside the secret JSON.
 
 ### Cross-Account and Cross-Region Access
 

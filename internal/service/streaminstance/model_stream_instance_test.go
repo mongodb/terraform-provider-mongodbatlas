@@ -54,6 +54,33 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 			},
 		},
 		{
+			name: "SDK response with failover_regions is intentionally ignored by deprecated resource",
+			SDKResp: &admin.StreamsTenant{
+				Id: new(dummyStreamInstanceID),
+				DataProcessRegion: &admin.StreamsDataProcessRegion{
+					CloudProvider: cloudProvider,
+					Region:        region,
+				},
+				StreamConfig: &admin.StreamConfig{
+					Tier: new(tier),
+				},
+				GroupId:   new(dummyProjectID),
+				Hostnames: hostnames,
+				Name:      new(instanceName),
+				FailoverRegions: &[]admin.StreamsDataProcessRegion{
+					{CloudProvider: "AWS", Region: "DUBLIN_IRL"},
+				},
+			},
+			expectedTFModel: &streaminstance.TFStreamInstanceModel{
+				ID:                types.StringValue(dummyStreamInstanceID),
+				DataProcessRegion: tfRegionObject(t, cloudProvider, region),
+				ProjectID:         types.StringValue(dummyProjectID),
+				Hostnames:         tfHostnamesList(t, hostnames),
+				InstanceName:      types.StringValue(instanceName),
+				StreamConfig:      tfStreamConfigObject(t, tier),
+			},
+		},
+		{
 			name: "Empty hostnames, streamConfig and dataProcessRegion in response", // should never happen, but verifying it is handled gracefully
 			SDKResp: &admin.StreamsTenant{
 				Id:      new(dummyStreamInstanceID),
