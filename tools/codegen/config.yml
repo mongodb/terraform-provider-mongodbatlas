@@ -906,6 +906,179 @@ resources:
             optional: true
             computed: true
 
+  # Regional-alternate (failover) connection for an existing stream connection. Shares the primary
+  # connection's name; identified by its own failoverConnectionId + region. Same StreamsConnection
+  # body as stream_connection_api, under the nested /failoverConnections path.
+  stream_connection_failover:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections
+      method: POST
+      wait: &stream-connection-failover-create-wait
+        state_property: "state"
+        # DELETED (the 404 sentinel) is a pending state on create: the Streams GET is eventually
+        # consistent and may briefly 404 after creation before the connection becomes visible.
+        pending_states: ["PENDING", "DELETED"]
+        target_states: ["READY"]
+        # PrivateLink failover connections can take many minutes to reach READY (endpoint
+        # provisioning), so match the curated stream connection's 40m default.
+        timeout_seconds: 2400
+        min_timeout_seconds: 10
+        delay_seconds: 10
+    update:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}
+      method: PATCH
+      wait:
+        <<: *stream-connection-failover-create-wait
+        # On update the connection already exists, so a 404 is unexpected (not a pending state).
+        pending_states: ["PENDING"]
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}
+      method: DELETE
+      wait:
+        <<: *stream-connection-failover-create-wait
+        pending_states: ["READY", "PENDING", "DELETING"]
+        target_states: ["DELETED"]
+    version_header: application/vnd.atlas.2025-03-12+json
+    schema:
+      ignores:
+        [
+          "links",
+          "authentication.links",
+          "db_role_to_execute.links",
+          "networking.links",
+          "networking.access.links",
+          "security.links",
+          # The failover connection's own `name` equals the parent `connectionName` (a path param),
+          # so it is redundant in the schema and would collide with connection_name.
+          "name",
+          # Failover connections only support the Kafka and Cluster connection types, so fields that
+          # apply exclusively to other types are dropped from the schema (the underlying spec is a
+          # shared DTO covering every stream connection type).
+          "aws", # AWSKinesisDataStreams, AWSLambda, S3
+          "azure", # AzureBlobStorage
+          "gcp", # GCPPubSub
+          "headers", # Https
+          "url", # Https
+          "public_private_networking", # AzureBlobStorage, GCPPubSub
+          "provider", # SchemaRegistry (aliased to schema_registry_provider; ignore the source name)
+          "schema_registry_authentication", # SchemaRegistry
+          "schema_registry_urls", # SchemaRegistry
+        ]
+      aliases:
+        id: failoverConnectionId
+        groupId: projectId
+        tenantName: workspaceName
+        clusterGroupId: clusterProjectId
+      # The endpoint reuses the shared StreamsConnection schema (discriminator covers every connection
+      # type), but failover connections only support Kafka and Cluster. Restrict the discriminator so
+      # the docs/prefixes/validation don't advertise inapplicable types.
+      discriminator_types: [Kafka, Cluster]
+      overrides:
+        project_id:
+          description: *project_id_description
+        # A PATCH merges, so omitting the map keeps the old value. Send an empty map on update to
+        # clear it when removed; the read side normalizes empty->null to avoid drift. The manual
+        # mongodbatlas_stream_connection resource clears maps the same way on this endpoint.
+        config:
+          request_body_usage: send_null_as_empty_on_update
+        connection_name:
+          computability:
+            required: true
+        region:
+          computability:
+            required: true
+        type:
+          computability:
+            required: true
+        db_role_to_execute.role:
+          computability:
+            required: true
+        db_role_to_execute.type:
+          computability:
+            required: true
+        authentication.ssl_key_password:
+          sensitive: true
+        authentication.ssl_key:
+          sensitive: true
+        # API returns a default networking (PUBLIC) even when not set in config; must be
+        # optional+computed to avoid null->value drift. Child attributes follow the parent.
+        networking:
+          computability:
+            optional: true
+            computed: true
+        networking.access:
+          computability:
+            optional: true
+            computed: true
+        networking.access.type:
+          computability:
+            optional: true
+            computed: true
+    datasources:
+      read:
+        path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}
+        method: GET
+      list:
+        path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections
+        method: GET
+      schema:
+        # Mirror the resource: drop the shared-schema fields that don't apply to failover connections
+        # (both the singular shape and the plural `results.` shape). `name` is dropped because a
+        # failover connection's name always equals its parent `connection_name`, so it is redundant.
+        # TODO(CLOUDP-421992): once the API spec gives failover its own Kafka/Cluster schema, this
+        # ignores block (and the resource's) can be removed entirely.
+        ignores:
+          [
+            "links",
+            "name",
+            "authentication.links",
+            "db_role_to_execute.links",
+            "networking.links",
+            "networking.access.links",
+            "security.links",
+            "aws",
+            "azure",
+            "gcp",
+            "headers",
+            "url",
+            "public_private_networking",
+            "provider",
+            "schema_registry_authentication",
+            "schema_registry_urls",
+            "results.links",
+            "results.name",
+            "results.authentication.links",
+            "results.db_role_to_execute.links",
+            "results.networking.links",
+            "results.networking.access.links",
+            "results.security.links",
+            "results.aws",
+            "results.azure",
+            "results.gcp",
+            "results.headers",
+            "results.url",
+            "results.public_private_networking",
+            "results.provider",
+            "results.schema_registry_authentication",
+            "results.schema_registry_urls",
+          ]
+        aliases:
+          id: failoverConnectionId
+          groupId: projectId
+          tenantName: workspaceName
+          clusterGroupId: clusterProjectId
+          results.id: failoverConnectionId
+          results.clusterGroupId: clusterProjectId
+        discriminator_types: [Kafka, Cluster]
+        overrides:
+          # Use the curated description; the raw spec one has a relative markdown link
+          # ([/groups](#tag/...)) that the docs link-checker flags as a broken fragment.
+          project_id:
+            description: *project_id_description
+
   alert_configuration_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}

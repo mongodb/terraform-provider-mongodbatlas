@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"log"
-	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -61,6 +60,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccount"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccountprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/serviceaccountsecret"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/streamconnectionfailover"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -247,14 +247,14 @@ func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *p
 	if len(data.AssumeRole) > 0 {
 		assumeRoleARN = data.AssumeRole[0].RoleARN.ValueString()
 	}
-	baseURL := applyGovBaseURLIfNeeded(data.BaseURL.ValueString(), data.IsMongodbGovCloud.ValueBool())
 	return &config.Vars{
 		AccessToken:        data.AccessToken.ValueString(),
 		ClientID:           data.ClientID.ValueString(),
 		ClientSecret:       data.ClientSecret.ValueString(),
 		PublicKey:          data.PublicKey.ValueString(),
 		PrivateKey:         data.PrivateKey.ValueString(),
-		BaseURL:            baseURL,
+		BaseURL:            data.BaseURL.ValueString(),
+		IsMongodbGovCloud:  data.IsMongodbGovCloud.ValueBool(),
 		RealmBaseURL:       data.RealmBaseURL.ValueString(),
 		AWSAssumeRoleARN:   assumeRoleARN,
 		AWSSecretName:      data.SecretName.ValueString(),
@@ -264,18 +264,6 @@ func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *p
 		AWSSessionToken:    data.AwsSessionToken.ValueString(),
 		AWSEndpoint:        data.StsEndpoint.ValueString(),
 	}
-}
-
-func applyGovBaseURLIfNeeded(providerBaseURL string, providerIsMongodbGovCloud bool) string {
-	const govURL = "https://cloud.mongodbgov.com"
-	govAdditionalURLs := []string{
-		"https://cloud-dev.mongodbgov.com",
-		"https://cloud-qa.mongodbgov.com",
-	}
-	if providerIsMongodbGovCloud && !slices.Contains(govAdditionalURLs, config.NormalizeBaseURL(providerBaseURL)) {
-		return govURL
-	}
-	return providerBaseURL
 }
 
 func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.DataSource {
@@ -298,6 +286,8 @@ func (p *MongodbatlasProvider) DataSources(context.Context) []func() datasource.
 		streamworkspace.PluralDataSource,
 		streamconnection.DataSource,
 		streamconnection.PluralDataSource,
+		streamconnectionfailover.DataSource,
+		streamconnectionfailover.PluralDataSource,
 		controlplaneipaddresses.DataSource,
 		projectipaddresses.DataSource,
 		streamprocessor.DataSource,
@@ -365,6 +355,7 @@ func (p *MongodbatlasProvider) Resources(context.Context) []func() resource.Reso
 		streaminstance.Resource,
 		streamworkspace.Resource,
 		streamconnection.Resource,
+		streamconnectionfailover.Resource,
 		streamprocessor.Resource,
 		encryptionatrestprivateendpoint.Resource,
 		mongodbemployeeaccessgrant.Resource,
