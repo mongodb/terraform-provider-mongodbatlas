@@ -32,7 +32,7 @@ func CheckDestroyFlexCluster(state *terraform.State) error {
 		}
 		projectID := rs.Primary.Attributes["project_id"]
 		name := rs.Primary.Attributes["name"]
-		_, _, err := ConnV2().FlexClustersApi.GetFlexCluster(context.Background(), projectID, name).Execute()
+		_, _, err := ConnV2().FlexClustersAPI.GetFlexCluster(context.Background(), projectID, name).Execute()
 		if err == nil {
 			return fmt.Errorf("flex cluster (%s:%s) still exists", projectID, name)
 		}
@@ -48,7 +48,7 @@ func CheckExistsFlexCluster() resource.TestCheckFunc {
 			}
 			projectID := rs.Primary.Attributes["project_id"]
 			name := rs.Primary.Attributes["name"]
-			_, _, err := ConnV2().FlexClustersApi.GetFlexCluster(context.Background(), projectID, name).Execute()
+			_, _, err := ConnV2().FlexClustersAPI.GetFlexCluster(context.Background(), projectID, name).Execute()
 			if err != nil {
 				return fmt.Errorf("flex cluster (%s:%s) not found", projectID, name)
 			}

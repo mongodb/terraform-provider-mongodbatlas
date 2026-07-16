@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -48,7 +48,7 @@ func AwaitChangesUpgrade(ctx context.Context, client *config.MongoDBClient, wait
 }
 
 func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
-	api := client.AtlasV2.ClustersApi
+	api := client.AtlasV2.ClustersAPI
 	targetState := retrystrategy.RetryStrategyIdleState
 	extraPending := []string{}
 	isDelete := waitParams.IsDelete
@@ -77,7 +77,7 @@ func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams 
 	return cluster
 }
 
-func createStateChangeConfig(ctx context.Context, api admin.ClustersApi, waitParams *ClusterWaitParams, targetState string, extraPending ...string) retry.StateChangeConf {
+func createStateChangeConfig(ctx context.Context, api admin.ClustersAPI, waitParams *ClusterWaitParams, targetState string, extraPending ...string) retry.StateChangeConf {
 	return retry.StateChangeConf{
 		Pending: slices.Concat([]string{
 			retrystrategy.RetryStrategyCreatingState,
@@ -96,7 +96,7 @@ func createStateChangeConfig(ctx context.Context, api admin.ClustersApi, waitPar
 	}
 }
 
-func ResourceRefreshFunc(ctx context.Context, waitParams *ClusterWaitParams, api admin.ClustersApi) retry.StateRefreshFunc {
+func ResourceRefreshFunc(ctx context.Context, waitParams *ClusterWaitParams, api admin.ClustersAPI) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		cluster, resp, err := api.GetCluster(ctx, waitParams.ProjectID, waitParams.ClusterName).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {

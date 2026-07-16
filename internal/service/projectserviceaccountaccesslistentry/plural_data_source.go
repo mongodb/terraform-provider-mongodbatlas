@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	serviceaccountaccesslistentry "github.com/mongodb/terraform-provider-mongodbatlas/internal/service/serviceaccountaccesslistentry"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 var _ datasource.DataSource = &pluralDS{}
@@ -45,7 +45,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	projectID := conf.ProjectID.ValueString()
 	clientID := conf.ClientID.ValueString()
 
-	api := d.Client.AtlasV2.ServiceAccountsApi
+	api := d.Client.AtlasV2.ServiceAccountsAPI
 	entries, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.ServiceAccountIPAccessListEntry], *http.Response, error) {
 		return api.ListAccessList(ctx, projectID, clientID).PageNum(pageNum).ItemsPerPage(serviceaccountaccesslistentry.ItemsPerPage).Execute()
 	})

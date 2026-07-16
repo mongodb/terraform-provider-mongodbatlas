@@ -105,7 +105,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if groupID == "" {
 			return fmt.Errorf("no project_id is set")
 		}
-		if _, _, err := acc.ConnV2().ProjectsApi.GetGroupSettings(context.Background(), groupID).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().ProjectsAPI.GetGroupSettings(context.Background(), groupID).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("project settings for project(%s) do not exist", groupID)

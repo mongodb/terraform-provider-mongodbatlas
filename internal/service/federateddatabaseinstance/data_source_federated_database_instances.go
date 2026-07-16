@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -92,7 +92,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d
 
 	projectID := d.Get("project_id").(string)
 
-	federatedDatabaseInstances, _, err := connV2.DataFederationApi.ListDataFederation(ctx, projectID).Execute()
+	federatedDatabaseInstances, _, err := connV2.DataFederationAPI.ListDataFederation(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting MongoDB Atlas Federated Database Instances information: %s", err))
 	}

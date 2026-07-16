@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -56,7 +56,7 @@ func dataSourceMongoDBAtlasSearchIndexesRead(ctx context.Context, d *schema.Reso
 	}
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	searchIndexes, _, err := connV2.AtlasSearchApi.ListSearchIndex(ctx, projectID.(string), clusterName.(string), collectionName.(string), databaseName.(string)).Execute()
+	searchIndexes, _, err := connV2.AtlasSearchAPI.ListSearchIndex(ctx, projectID.(string), clusterName.(string), collectionName.(string), databaseName.(string)).Execute()
 
 	if err != nil {
 		return diag.Errorf("error getting search indexes information: %s", err)

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -119,11 +119,11 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	peers, _, err := conn.NetworkPeeringApi.ListGroupPeers(ctx, projectID).Execute()
+	peers, _, err := conn.NetworkPeeringAPI.ListGroupPeers(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting network peering connections information: %s", err))
 	}
-	peersMap, err := flattenNetworkPeerings(ctx, conn.NetworkPeeringApi, peers.GetResults(), projectID)
+	peersMap, err := flattenNetworkPeerings(ctx, conn.NetworkPeeringAPI, peers.GetResults(), projectID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -136,7 +136,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	return nil
 }
 
-func flattenNetworkPeerings(ctx context.Context, conn admin.NetworkPeeringApi, peers []admin.BaseNetworkPeeringConnectionSettings, projectID string) ([]map[string]any, error) {
+func flattenNetworkPeerings(ctx context.Context, conn admin.NetworkPeeringAPI, peers []admin.BaseNetworkPeeringConnectionSettings, projectID string) ([]map[string]any, error) {
 	var peersMap []map[string]any
 
 	if len(peers) > 0 {

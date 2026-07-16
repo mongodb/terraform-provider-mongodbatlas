@@ -116,7 +116,7 @@ func IsProjectNameOrID(expected string) resource.CheckResourceAttrWithFunc {
 	return func(input string) error {
 		projectID := expected
 		if startNumber, _ := regexp.MatchString(`^\d`, expected); !startNumber {
-			resp, _, _ := ConnV2().ProjectsApi.GetGroupByName(context.Background(), expected).Execute()
+			resp, _, _ := ConnV2().ProjectsAPI.GetGroupByName(context.Background(), expected).Execute()
 			projectID = resp.GetId()
 			if projectID == "" {
 				return fmt.Errorf("project not found %q", expected)

@@ -11,12 +11,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const SearchDeploymentDoesNotExistsError = "ATLAS_SEARCH_DEPLOYMENT_DOES_NOT_EXIST"
 
-func WaitSearchNodeStateTransition(ctx context.Context, projectID, clusterName string, client admin.AtlasSearchApi,
+func WaitSearchNodeStateTransition(ctx context.Context, projectID, clusterName string, client admin.AtlasSearchAPI,
 	timeConfig retrystrategy.TimeConfig) (*admin.ApiSearchDeploymentResponse, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyPausedState},
@@ -37,7 +37,7 @@ func WaitSearchNodeStateTransition(ctx context.Context, projectID, clusterName s
 	return nil, errors.New("did not obtain valid result when waiting for search deployment state transition")
 }
 
-func WaitSearchNodeDelete(ctx context.Context, projectID, clusterName string, client admin.AtlasSearchApi, timeConfig retrystrategy.TimeConfig) error {
+func WaitSearchNodeDelete(ctx context.Context, projectID, clusterName string, client admin.AtlasSearchAPI, timeConfig retrystrategy.TimeConfig) error {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyIdleState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyPausedState},
 		Target:     []string{retrystrategy.RetryStrategyDeletedState},
@@ -50,7 +50,7 @@ func WaitSearchNodeDelete(ctx context.Context, projectID, clusterName string, cl
 	return err
 }
 
-func searchDeploymentRefreshFunc(ctx context.Context, projectID, clusterName string, client admin.AtlasSearchApi) retry.StateRefreshFunc {
+func searchDeploymentRefreshFunc(ctx context.Context, projectID, clusterName string, client admin.AtlasSearchAPI) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		deploymentResp, resp, err := client.GetClusterSearchDeployment(ctx, projectID, clusterName).Execute()
 		if err != nil && deploymentResp == nil && resp == nil {

@@ -48,7 +48,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	apiResp, _, err := connV2.StreamsApi.CreateStreamWorkspace(ctx, projectID, streamWorkspaceReq).Execute()
+	apiResp, _, err := connV2.StreamsAPI.CreateStreamWorkspace(ctx, projectID, streamWorkspaceReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
@@ -74,7 +74,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	connV2 := r.Client.AtlasV2
 	projectID := streamsWorkspaceState.ProjectID.ValueString()
 	workspaceName := streamsWorkspaceState.WorkspaceName.ValueString()
-	apiResp, getResp, err := connV2.StreamsApi.GetStreamWorkspace(ctx, projectID, workspaceName).Execute()
+	apiResp, getResp, err := connV2.StreamsAPI.GetStreamWorkspace(ctx, projectID, workspaceName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
@@ -109,7 +109,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	apiResp, _, err := connV2.StreamsApi.UpdateStreamWorkspace(ctx, projectID, workspaceName, streamWorkspaceReq).Execute()
+	apiResp, _, err := connV2.StreamsAPI.UpdateStreamWorkspace(ctx, projectID, workspaceName, streamWorkspaceReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
 		return
@@ -134,7 +134,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	connV2 := r.Client.AtlasV2
 	projectID := streamsWorkspaceState.ProjectID.ValueString()
 	workspaceName := streamsWorkspaceState.WorkspaceName.ValueString()
-	if _, err := connV2.StreamsApi.DeleteStreamWorkspace(ctx, projectID, workspaceName).Execute(); err != nil {
+	if _, err := connV2.StreamsAPI.DeleteStreamWorkspace(ctx, projectID, workspaceName).Execute(); err != nil {
 		resp.Diagnostics.AddError("error during resource delete", err.Error())
 		return
 	}

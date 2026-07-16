@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -108,7 +108,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		log.Printf("[DEBUG] projectID: %s", rs.Primary.ID)
-		_, _, err := acc.ConnV2().MaintenanceWindowsApi.GetMaintenanceWindow(context.Background(), rs.Primary.ID).Execute()
+		_, _, err := acc.ConnV2().MaintenanceWindowsAPI.GetMaintenanceWindow(context.Background(), rs.Primary.ID).Execute()
 		if err != nil {
 			return fmt.Errorf("maintenance Window (%s) does not exist", rs.Primary.ID)
 		}
@@ -125,7 +125,7 @@ func checkDestroy(s *terraform.State) error {
 		if projectID == "" {
 			return fmt.Errorf("checkDestroy, no ID is set for: %s", resourceName)
 		}
-		maintenanceWindow, _, _ := acc.ConnV2().MaintenanceWindowsApi.GetMaintenanceWindow(context.Background(), projectID).Execute()
+		maintenanceWindow, _, _ := acc.ConnV2().MaintenanceWindowsAPI.GetMaintenanceWindow(context.Background(), projectID).Execute()
 		// Check if it's back to default settings (day_of_week = 0 means it's been reset)
 		if maintenanceWindow.GetDayOfWeek() != 0 {
 			return fmt.Errorf("maintenance window for project (%s) was not properly reset to defaults", projectID)

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -26,7 +26,7 @@ const (
 
 var failureStates = []string{BucketVerificationFailedState, AssumeRoleFailedState}
 
-func WaitStateTransition(ctx context.Context, projectID string, client admin.PushBasedLogExportApi,
+func WaitStateTransition(ctx context.Context, projectID string, client admin.PushBasedLogExportAPI,
 	timeConfig retrystrategy.TimeConfig) (*admin.PushBasedLogExportProject, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{InitiatingState, BucketVerifiedState},
@@ -47,7 +47,7 @@ func WaitStateTransition(ctx context.Context, projectID string, client admin.Pus
 	return nil, errors.New("did not obtain valid result when waiting for push-based log export configuration state transition")
 }
 
-func WaitResourceDelete(ctx context.Context, projectID string, client admin.PushBasedLogExportApi, timeConfig retrystrategy.TimeConfig) error {
+func WaitResourceDelete(ctx context.Context, projectID string, client admin.PushBasedLogExportAPI, timeConfig retrystrategy.TimeConfig) error {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{ActiveState, InitiatingState, BucketVerifiedState},
 		Target:     []string{UnconfiguredState},
@@ -60,7 +60,7 @@ func WaitResourceDelete(ctx context.Context, projectID string, client admin.Push
 	return err
 }
 
-func refreshFunc(ctx context.Context, projectID string, client admin.PushBasedLogExportApi) retry.StateRefreshFunc {
+func refreshFunc(ctx context.Context, projectID string, client admin.PushBasedLogExportAPI) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		logConfig, resp, err := client.GetLogExport(ctx, projectID).Execute()
 		if err != nil && logConfig == nil && resp == nil {

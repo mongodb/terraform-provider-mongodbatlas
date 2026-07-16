@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func DataSourceSettings() *schema.Resource {
@@ -62,14 +62,14 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	)
 
 	if orgIDOk {
-		org, _, err = conn.OrganizationsApi.GetOrg(ctx, orgID.(string)).Execute()
+		org, _, err = conn.OrganizationsAPI.GetOrg(ctx, orgID.(string)).Execute()
 	}
 
 	if err != nil {
 		return diag.Errorf("Error reading Organization %s %s", orgID, err)
 	}
 
-	federationSettings, _, err := conn.FederatedAuthenticationApi.GetFederationSettings(ctx, org.GetId()).Execute()
+	federationSettings, _, err := conn.FederatedAuthenticationAPI.GetFederationSettings(ctx, org.GetId()).Execute()
 	if err != nil {
 		return diag.Errorf("error getting Federated settings (%s): %s", orgID, err)
 	}

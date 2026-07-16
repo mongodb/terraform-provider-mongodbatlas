@@ -13,7 +13,7 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -786,7 +786,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, v20240530, cluster.Name, err))
 			}
-			_, _, err = connV2.ClustersApi.UpdateProcessArgs(ctx, projectID, cluster.Name, &params).Execute()
+			_, _, err = connV2.ClustersAPI.UpdateProcessArgs(ctx, projectID, cluster.Name, &params).Execute()
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, "", cluster.Name, err))
 			}
@@ -813,7 +813,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any); len(pinnedFCVBlock) > 0 {
 		nestedObj := pinnedFCVBlock[0].(map[string]any)
 		expDateStr := cast.ToString(nestedObj["expiration_date"])
-		if err := advancedcluster.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
+		if err := advancedcluster.PinFCV(ctx, connV2.ClustersAPI, projectID, clusterName, expDateStr); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 		stateConf := CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
@@ -997,7 +997,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorAdvancedConfRead, v20240530, clusterName, err))
 	}
-	processArgs, _, err := connV2.ClustersApi.GetProcessArgs(ctx, projectID, clusterName).Execute()
+	processArgs, _, err := connV2.ClustersAPI.GetProcessArgs(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorAdvancedConfRead, "", clusterName, err))
 	}
@@ -1214,7 +1214,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				}
 			}
 			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs20240805{}) {
-				_, _, err = connV2.ClustersApi.UpdateProcessArgs(ctx, projectID, clusterName, &params).Execute()
+				_, _, err = connV2.ClustersAPI.UpdateProcessArgs(ctx, projectID, clusterName, &params).Execute()
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, "", clusterName, err))
 				}

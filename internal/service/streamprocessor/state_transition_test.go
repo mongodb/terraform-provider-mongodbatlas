@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
-	"go.mongodb.org/atlas-sdk/v20250312021/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/mockadmin"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -115,7 +115,7 @@ func TestStreamProcessorStateTransition(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			m := mockadmin.NewStreamsApi(t)
+			m := mockadmin.NewStreamsAPI(t)
 			m.EXPECT().GetStreamProcessorWithParams(mock.Anything, mock.Anything).Return(admin.GetStreamProcessorApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {

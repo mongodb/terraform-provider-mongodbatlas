@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
-	"go.mongodb.org/atlas-sdk/v20250312021/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -112,10 +112,10 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			teamsMock := mockadmin.NewTeamsApi(t)
-			projectsMock := mockadmin.NewProjectsApi(t)
-			perfMock := mockadmin.NewPerformanceAdvisorApi(t)
-			cloudUsersMock := mockadmin.NewMongoDBCloudUsersApi(t)
+			teamsMock := mockadmin.NewTeamsAPI(t)
+			projectsMock := mockadmin.NewProjectsAPI(t)
+			perfMock := mockadmin.NewPerformanceAdvisorAPI(t)
+			cloudUsersMock := mockadmin.NewMongoDBCloudUsersAPI(t)
 
 			teamsMock.EXPECT().ListGroupTeams(mock.Anything, mock.Anything).Return(admin.ListGroupTeamsApiRequest{ApiService: teamsMock})
 			teamsMock.EXPECT().ListGroupTeamsExecute(mock.Anything).Return(tc.teamRoleReponse.TeamRole, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
@@ -238,7 +238,7 @@ func TestUpdateProject(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mockadmin.NewProjectsApi(t)
+			svc := mockadmin.NewProjectsAPI(t)
 			svc.EXPECT().UpdateGroup(mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateGroupApiRequest{ApiService: svc}).Maybe()
 
 			svc.EXPECT().UpdateGroupExecute(mock.Anything).Return(tc.mockResponses.Project, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
@@ -344,7 +344,7 @@ func TestUpdateProjectLimits(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mockadmin.NewProjectsApi(t)
+			svc := mockadmin.NewProjectsAPI(t)
 
 			svc.EXPECT().DeleteGroupLimit(mock.Anything, mock.Anything, mock.Anything).Return(admin.DeleteGroupLimitApiRequest{ApiService: svc}).Maybe()
 			svc.EXPECT().DeleteGroupLimitExecute(mock.Anything).Return(tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
@@ -437,7 +437,7 @@ func TestUpdateProjectTeams(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mockadmin.NewTeamsApi(t)
+			svc := mockadmin.NewTeamsAPI(t)
 
 			svc.EXPECT().AddGroupTeams(mock.Anything, mock.Anything, mock.Anything).Return(admin.AddGroupTeamsApiRequest{ApiService: svc}).Maybe()
 			svc.EXPECT().AddGroupTeamsExecute(mock.Anything).Return(nil, nil, nil).Maybe()
@@ -497,7 +497,7 @@ func TestResourceProjectDependentsDeletingRefreshFunc(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			svc := mockadmin.NewClustersApi(t)
+			svc := mockadmin.NewClustersAPI(t)
 
 			svc.EXPECT().ListClusters(mock.Anything, dummyProjectID).Return(admin.ListClustersApiRequest{ApiService: svc})
 			svc.EXPECT().ListClustersExecute(mock.Anything).Return(tc.mockResponses.AdvancedClusterDescription, tc.mockResponses.HTTPResponse, tc.mockResponses.Err)
@@ -1161,12 +1161,12 @@ func TestAccProject_slowOperationReadOnly(t *testing.T) {
 
 func changeRoles(t *testing.T, orgID, projectName, roleName string) {
 	t.Helper()
-	respProject, _, _ := acc.ConnV2().ProjectsApi.GetGroupByName(t.Context(), projectName).Execute()
+	respProject, _, _ := acc.ConnV2().ProjectsAPI.GetGroupByName(t.Context(), projectName).Execute()
 	projectID := respProject.GetId()
 	if projectID == "" {
 		t.Errorf("PreConfig: error finding project %s", projectName)
 	}
-	api := acc.ConnV2().ProgrammaticAPIKeysApi
+	api := acc.ConnV2().ProgrammaticAPIKeysAPI
 	respList, _, _ := api.ListOrgApiKeys(t.Context(), orgID).Execute()
 	publicKey := os.Getenv("MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY")
 	keys := respList.GetResults()
@@ -1221,7 +1221,7 @@ func checkExistsWithConn(resourceName string, conn *admin.APIClient) resource.Te
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		if _, _, err := conn.ProjectsApi.GetGroupByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
+		if _, _, err := conn.ProjectsAPI.GetGroupByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)

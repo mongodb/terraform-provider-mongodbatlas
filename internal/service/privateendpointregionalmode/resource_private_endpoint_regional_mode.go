@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 type permCtxKey string
@@ -70,7 +70,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	projectID := d.Id()
 
-	setting, resp, err := conn.PrivateEndpointServicesApi.GetRegionalEndpointMode(ctx, projectID).Execute()
+	setting, resp, err := conn.PrivateEndpointServicesAPI.GetRegionalEndpointMode(ctx, projectID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -100,7 +100,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	settingParam := admin.ProjectSettingItem{
 		Enabled: enabled,
 	}
-	_, resp, err := conn.PrivateEndpointServicesApi.ToggleRegionalEndpointMode(ctx, projectID, &settingParam).Execute()
+	_, resp, err := conn.PrivateEndpointServicesAPI.ToggleRegionalEndpointMode(ctx, projectID, &settingParam).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			return nil
@@ -114,7 +114,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
-		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, conn.ClustersApi),
+		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, conn.ClustersAPI),
 		Timeout:    d.Timeout(timeoutKey.(string)),
 		MinTimeout: 15 * time.Second,
 		Delay:      30 * time.Second, // give time for cluster connection strings to be updated
@@ -143,7 +143,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Id()
 
-	setting, _, err := conn.PrivateEndpointServicesApi.GetRegionalEndpointMode(ctx, projectID).Execute()
+	setting, _, err := conn.PrivateEndpointServicesAPI.GetRegionalEndpointMode(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Private Endpoint Regional Mode for project %s error: %s", projectID, err)
 	}

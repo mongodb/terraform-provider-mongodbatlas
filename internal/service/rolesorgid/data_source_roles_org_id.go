@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func DataSource() *schema.Resource {
@@ -38,7 +38,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 // GetCurrentOrgID returns the current organization ID for the SA or Programmatic API key (PAK) of the authenticated user.
 func GetCurrentOrgID(ctx context.Context, connV2 *admin.APIClient) (string, error) {
-	resp, _, err := connV2.OrganizationsApi.ListOrgs(ctx).Execute()
+	resp, _, err := connV2.OrganizationsAPI.ListOrgs(ctx).Execute()
 	if err != nil {
 		return "", err
 	}

@@ -138,7 +138,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if projectID == "" || clientID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnV2().ServiceAccountsApi.GetGroupServiceAccount(context.Background(), projectID, clientID).Execute()
+		_, _, err := acc.ConnV2().ServiceAccountsAPI.GetGroupServiceAccount(context.Background(), projectID, clientID).Execute()
 		if err == nil {
 			return nil
 		}
@@ -161,7 +161,7 @@ func checkDestroy(s *terraform.State) error {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
 
-		_, _, err := acc.ConnV2().ServiceAccountsApi.GetGroupServiceAccount(context.Background(), projectID, clientID).Execute()
+		_, _, err := acc.ConnV2().ServiceAccountsAPI.GetGroupServiceAccount(context.Background(), projectID, clientID).Execute()
 		if err == nil {
 			return fmt.Errorf("project service account (%s/%s) still exists", projectID, clientID)
 		}

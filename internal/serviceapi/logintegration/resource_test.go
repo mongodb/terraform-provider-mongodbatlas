@@ -545,7 +545,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if projectID == "" || integrationID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnV2().PushBasedLogExportApi.GetGroupLogIntegration(context.Background(), projectID, integrationID).Execute()
+		_, _, err := acc.ConnV2().PushBasedLogExportAPI.GetGroupLogIntegration(context.Background(), projectID, integrationID).Execute()
 		if err == nil {
 			return nil
 		}
@@ -563,7 +563,7 @@ func checkDestroy(state *terraform.State) error {
 		if projectID == "" || integrationID == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnV2().PushBasedLogExportApi.GetGroupLogIntegration(context.Background(), projectID, integrationID).Execute()
+		_, _, err := acc.ConnV2().PushBasedLogExportAPI.GetGroupLogIntegration(context.Background(), projectID, integrationID).Execute()
 		if err == nil {
 			return fmt.Errorf("log integration for project_id %s with id %s still exists", projectID, integrationID)
 		}

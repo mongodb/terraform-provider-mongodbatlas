@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -133,11 +133,11 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
 	}
 
-	snapshots, _, err := connV2.CloudBackupsApi.ListBackupSnapshotsWithParams(ctx, params).Execute()
+	snapshots, _, err := connV2.CloudBackupsAPI.ListBackupSnapshotsWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting cloudProviderSnapshots information: %s", err))
 	}
-	shards, _, _ := connV2.CloudBackupsApi.ListBackupShardedClusters(ctx, params.GroupId, params.ClusterName).Execute()
+	shards, _, _ := connV2.CloudBackupsAPI.ListBackupShardedClusters(ctx, params.GroupId, params.ClusterName).Execute()
 
 	if err := d.Set("results", flattenCloudBackupSnapshots(snapshots.GetResults(), shards)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `results`: %s", err))

@@ -18,7 +18,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -164,7 +164,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		request.SupportedRemoteRegions = &regions
 	}
 
-	privateEndpoint, _, err := connV2.PrivateEndpointServicesApi.CreatePrivateEndpointService(ctx, projectID, request).Execute()
+	privateEndpoint, _, err := connV2.PrivateEndpointServicesAPI.CreatePrivateEndpointService(ctx, projectID, request).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, err))
 	}
@@ -176,7 +176,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		deleteOnCreateTimeout = v.(bool)
 	}
 	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
-		_, errCleanup := connV2.PrivateEndpointServicesApi.DeletePrivateEndpointService(ctxCleanup, projectID, providerName, privateEndpoint.GetId()).Execute()
+		_, errCleanup := connV2.PrivateEndpointServicesAPI.DeletePrivateEndpointService(ctxCleanup, projectID, providerName, privateEndpoint.GetId()).Execute()
 		return errCleanup
 	})
 	if errWait != nil {
@@ -210,7 +210,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		CloudProvider:          providerName,
 		SupportedRemoteRegions: &regions,
 	}
-	_, _, err := connV2.PrivateEndpointServicesApi.UpdatePrivateEndpointService(ctx, projectID, privateLinkID, updateRequest).Execute()
+	_, _, err := connV2.PrivateEndpointServicesAPI.UpdatePrivateEndpointService(ctx, projectID, privateLinkID, updateRequest).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsUpdate, privateLinkID, err))
 	}
@@ -241,7 +241,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	providerName := ids["provider_name"]
 	region := ids["region"]
 
-	privateEndpoint, resp, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
+	privateEndpoint, resp, err := connV2.PrivateEndpointServicesAPI.GetPrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -325,7 +325,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	providerName := ids["provider_name"]
 
-	resp, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
+	resp, err := connV2.PrivateEndpointServicesAPI.DeletePrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			return nil
@@ -386,7 +386,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 
 func refreshFunc(ctx context.Context, client *admin.APIClient, projectID, providerName, privateLinkID string) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		p, resp, err := client.PrivateEndpointServicesApi.GetPrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
+		p, resp, err := client.PrivateEndpointServicesAPI.GetPrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
 		if err != nil {
 			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil

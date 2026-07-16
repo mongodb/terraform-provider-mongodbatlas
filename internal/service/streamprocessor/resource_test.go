@@ -390,7 +390,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			workspaceName = rs.Primary.Attributes["instance_name"]
 		}
 		processorName := rs.Primary.Attributes["processor_name"]
-		_, _, err := acc.ConnV2().StreamsApi.GetStreamProcessor(context.Background(), projectID, workspaceName, processorName).Execute()
+		_, _, err := acc.ConnV2().StreamsAPI.GetStreamProcessor(context.Background(), projectID, workspaceName, processorName).Execute()
 
 		if err != nil {
 			return fmt.Errorf("Stream processor (%s) does not exist", processorName)
@@ -408,7 +408,7 @@ func checkDestroyStreamProcessor(s *terraform.State) error {
 		projectID := rs.Primary.Attributes["project_id"]
 		workspaceName := rs.Primary.Attributes["workspace_name"]
 		processorName := rs.Primary.Attributes["processor_name"]
-		_, _, err := acc.ConnV2().StreamsApi.GetStreamProcessor(context.Background(), projectID, workspaceName, processorName).Execute()
+		_, _, err := acc.ConnV2().StreamsAPI.GetStreamProcessor(context.Background(), projectID, workspaceName, processorName).Execute()
 		if err == nil {
 			return fmt.Errorf("Stream processor (%s) still exists", processorName)
 		}

@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func Resource() *schema.Resource {
@@ -140,7 +140,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	snapshotReq := buildRequestSnapshotReq(d)
 
-	cloudProviderSnapshotRestoreJob, _, err := conn.CloudBackupsApi.CreateBackupRestoreJob(ctx, projectID, clusterName, snapshotReq).Execute()
+	cloudProviderSnapshotRestoreJob, _, err := conn.CloudBackupsAPI.CreateBackupRestoreJob(ctx, projectID, clusterName, snapshotReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error restore a snapshot: %s", err))
 	}
@@ -161,7 +161,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	restoreID := ids["snapshot_restore_job_id"]
-	snapshotReq, resp, err := conn.CloudBackupsApi.GetBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
+	snapshotReq, resp, err := conn.CloudBackupsAPI.GetBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -232,7 +232,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if shouldDelete {
-		_, err := conn.CloudBackupsApi.CancelBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
+		_, err := conn.CloudBackupsAPI.CancelBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error deleting a cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 		}
@@ -248,7 +248,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	if err != nil {
 		return nil, err
 	}
-	u, _, err := conn.CloudBackupsApi.GetBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
+	u, _, err := conn.CloudBackupsAPI.GetBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import cloudProviderSnapshotRestoreJob %s in project %s, error: %s", clusterName, projectID, err)
 	}

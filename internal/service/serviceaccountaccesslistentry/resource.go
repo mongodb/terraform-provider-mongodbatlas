@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -54,7 +54,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	accessListReq := NewMongoDBServiceAccountAccessListEntry(&plan)
 
 	connV2 := r.Client.AtlasV2
-	firstPage, _, err := connV2.ServiceAccountsApi.CreateOrgAccessList(ctx, orgID, clientID, accessListReq).ItemsPerPage(ItemsPerPage).Execute()
+	firstPage, _, err := connV2.ServiceAccountsAPI.CreateOrgAccessList(ctx, orgID, clientID, accessListReq).ItemsPerPage(ItemsPerPage).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
@@ -62,7 +62,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	cidrOrIP := getCidrOrIP(&plan)
 	listPageFunc := func(ctx context.Context, pageNum int) (*admin.PaginatedServiceAccountIPAccessEntry, *http.Response, error) {
-		return connV2.ServiceAccountsApi.ListOrgAccessList(ctx, orgID, clientID).PageNum(pageNum).ItemsPerPage(ItemsPerPage).Execute()
+		return connV2.ServiceAccountsAPI.ListOrgAccessList(ctx, orgID, clientID).PageNum(pageNum).ItemsPerPage(ItemsPerPage).Execute()
 	}
 	entry, _, err := ReadAccessListEntry(ctx, firstPage, listPageFunc, cidrOrIP)
 	if err != nil {
@@ -87,7 +87,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 
 	connV2 := r.Client.AtlasV2
 	listPageFunc := func(ctx context.Context, pageNum int) (*admin.PaginatedServiceAccountIPAccessEntry, *http.Response, error) {
-		return connV2.ServiceAccountsApi.ListOrgAccessList(ctx, orgID, clientID).PageNum(pageNum).ItemsPerPage(ItemsPerPage).Execute()
+		return connV2.ServiceAccountsAPI.ListOrgAccessList(ctx, orgID, clientID).PageNum(pageNum).ItemsPerPage(ItemsPerPage).Execute()
 	}
 	entry, apiResp, err := ReadAccessListEntry(ctx, nil, listPageFunc, cidrOrIP)
 	if err != nil {
@@ -119,7 +119,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	cidrOrIP := getCidrOrIP(&state)
 
 	connV2 := r.Client.AtlasV2
-	if _, err := connV2.ServiceAccountsApi.DeleteOrgAccessEntry(ctx, orgID, clientID, cidrOrIP).Execute(); err != nil {
+	if _, err := connV2.ServiceAccountsAPI.DeleteOrgAccessEntry(ctx, orgID, clientID, cidrOrIP).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const ItemsPerPage = 500 // Max items per page

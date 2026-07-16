@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
@@ -44,7 +44,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	projectID := tfModel.ProjectId.ValueString()
 	name := tfModel.Name.ValueString()
 	connV2 := d.Client.AtlasV2
-	flexSnapshots, err := ListFlexSnapshots(ctx, projectID, name, connV2.FlexSnapshotsApi)
+	flexSnapshots, err := ListFlexSnapshots(ctx, projectID, name, connV2.FlexSnapshotsAPI)
 	if err != nil {
 		resp.Diagnostics.AddError(errorRead, err.Error())
 		return
@@ -52,7 +52,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFModelPluralDS(projectID, name, flexSnapshots))...)
 }
 
-func ListFlexSnapshots(ctx context.Context, projectID, name string, client admin.FlexSnapshotsApi) (*[]admin.FlexBackupSnapshot20241113, error) {
+func ListFlexSnapshots(ctx context.Context, projectID, name string, client admin.FlexSnapshotsAPI) (*[]admin.FlexBackupSnapshot20241113, error) {
 	params := admin.ListFlexBackupSnapshotsApiParams{
 		GroupId: projectID,
 		Name:    name,

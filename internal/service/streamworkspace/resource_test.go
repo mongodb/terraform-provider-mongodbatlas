@@ -64,7 +64,7 @@ func checkStreamsWorkspaceExists(resourceName string) resource.TestCheckFunc {
 		}
 		projectID := rs.Primary.Attributes["project_id"]
 		workspaceName := rs.Primary.Attributes["workspace_name"]
-		_, _, err := acc.ConnV2().StreamsApi.GetStreamWorkspace(context.Background(), projectID, workspaceName).Execute()
+		_, _, err := acc.ConnV2().StreamsAPI.GetStreamWorkspace(context.Background(), projectID, workspaceName).Execute()
 		if err != nil {
 			return fmt.Errorf("stream workspace (%s:%s) does not exist: %s", projectID, workspaceName, err)
 		}

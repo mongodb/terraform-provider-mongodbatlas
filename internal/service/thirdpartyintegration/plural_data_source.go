@@ -32,7 +32,7 @@ func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any)
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
-	integrations, _, err := connV2.ThirdPartyIntegrationsApi.ListGroupIntegrations(ctx, projectID).Execute()
+	integrations, _, err := connV2.ThirdPartyIntegrationsAPI.ListGroupIntegrations(ctx, projectID).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting third party integration list: %s", err))

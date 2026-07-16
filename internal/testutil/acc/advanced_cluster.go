@@ -81,7 +81,7 @@ func CheckDestroyCluster(s *terraform.State) error {
 		if projectID == "" || clusterName == "" {
 			return fmt.Errorf("projectID or clusterName is empty: %s, %s", projectID, clusterName)
 		}
-		resp, _, _ := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
+		resp, _, _ := ConnV2().ClustersAPI.GetCluster(context.Background(), projectID, clusterName).Execute()
 		if resp.GetId() != "" {
 			return fmt.Errorf("cluster (%s:%s) still exists", clusterName, rs.Primary.ID)
 		}
@@ -100,7 +100,7 @@ func CheckExistsCluster(resourceName string) resource.TestCheckFunc {
 		if projectID == "" || clusterName == "" {
 			return fmt.Errorf("projectID or clusterName is empty: %s, %s", projectID, clusterName)
 		}
-		if _, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute(); err != nil {
+		if _, _, err := ConnV2().ClustersAPI.GetCluster(context.Background(), projectID, clusterName).Execute(); err != nil {
 			return fmt.Errorf("cluster(%s:%s) does not exist: %w", projectID, clusterName, err)
 		}
 		return nil
@@ -158,7 +158,7 @@ func PopulateWithSampleDataTestCheck(projectID, clusterName string) resource.Tes
 // PopulateWithSampleData adds Sample Data to the cluster, otherwise resources like online archive or indexes won't work
 func PopulateWithSampleData(projectID, clusterName string) error {
 	ctx := context.Background()
-	jobLoad, _, err := ConnV2().ClustersApi.RequestSampleDatasetLoad(context.Background(), projectID, clusterName).Execute()
+	jobLoad, _, err := ConnV2().ClustersAPI.RequestSampleDatasetLoad(context.Background(), projectID, clusterName).Execute()
 	if err != nil || jobLoad == nil {
 		return fmt.Errorf("cluster(%s:%s) loading sample data set error: %s", projectID, clusterName, err)
 	}
@@ -170,7 +170,7 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 		MinTimeout: 1 * time.Minute,
 		Delay:      1 * time.Minute,
 		Refresh: func() (result any, state string, err error) {
-			job, _, err := ConnV2().ClustersApi.GetSampleDatasetLoad(ctx, projectID, jobID).Execute()
+			job, _, err := ConnV2().ClustersAPI.GetSampleDatasetLoad(ctx, projectID, jobID).Execute()
 			state = job.GetState()
 			return job, state, err
 		},

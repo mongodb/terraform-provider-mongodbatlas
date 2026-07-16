@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
-	"go.mongodb.org/atlas-sdk/v20250312021/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/mockadmin"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -96,7 +96,7 @@ func TestFlexClusterStateTransition(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			m := mockadmin.NewFlexClustersApi(t)
+			m := mockadmin.NewFlexClustersAPI(t)
 			m.EXPECT().GetFlexClusterWithParams(mock.Anything, mock.Anything).Return(admin.GetFlexClusterApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {
@@ -141,7 +141,7 @@ func TestFlexClusterStateTransitionForDelete(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			m := mockadmin.NewFlexClustersApi(t)
+			m := mockadmin.NewFlexClustersAPI(t)
 			m.EXPECT().GetFlexClusterWithParams(mock.Anything, mock.Anything).Return(admin.GetFlexClusterApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {

@@ -15,7 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/zclconf/go-cty/cty"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 var _ datasource.DataSource = &alertConfigurationDS{}
@@ -271,7 +271,7 @@ func (d *alertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 	outputs := alertConfigurationConfig.Output
 
 	connV2 := d.Client.AtlasV2
-	alert, _, err := connV2.AlertConfigurationsApi.GetAlertConfig(ctx, projectID, alertID).Execute()
+	alert, _, err := connV2.AlertConfigurationsAPI.GetAlertConfig(ctx, projectID, alertID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
 		return
