@@ -1204,13 +1204,19 @@ func TestAccProject_slowOperationReadOnly(t *testing.T) {
 
 func changeRoles(t *testing.T, orgID, projectName, roleName string) {
 	t.Helper()
-	respProject, _, _ := acc.ConnV2().ProjectsApi.GetGroupByName(t.Context(), projectName).Execute()
+	respProject, _, err := acc.ConnV2().ProjectsApi.GetGroupByName(t.Context(), projectName).Execute()
+	if err != nil {
+		t.Fatalf("PreConfig: error finding project %s: %s", projectName, err)
+	}
 	projectID := respProject.GetId()
 	if projectID == "" {
-		t.Errorf("PreConfig: error finding project %s", projectName)
+		t.Fatalf("PreConfig: error finding project %s", projectName)
 	}
 	api := acc.ConnV2().ProgrammaticAPIKeysApi
-	respList, _, _ := api.ListOrgApiKeys(t.Context(), orgID).Execute()
+	respList, _, err := api.ListOrgApiKeys(t.Context(), orgID).Execute()
+	if err != nil {
+		t.Fatalf("PreConfig: error listing org API keys for org %s: %s", orgID, err)
+	}
 	publicKey := os.Getenv("MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY")
 	keys := respList.GetResults()
 	for _, result := range keys {
@@ -1218,14 +1224,15 @@ func changeRoles(t *testing.T, orgID, projectName, roleName string) {
 			continue
 		}
 		apiKeyID := result.GetId()
-		assignment := admin.UpdateAtlasProjectApiKey{Roles: &[]string{roleName}}
-		_, _, err := api.UpdateApiKeyRoles(t.Context(), projectID, apiKeyID, &assignment).Execute()
+		// The project must have the key assigned before its roles can be used.
+		assignment := []admin.UserAccessRoleAssignment{{Roles: &[]string{roleName}}}
+		_, err := api.AddGroupApiKey(t.Context(), projectID, apiKeyID, &assignment).Execute()
 		if err != nil {
-			t.Errorf("PreConfig: error updating key %s", err)
+			t.Fatalf("PreConfig: error assigning key %s to project %s: %s", apiKeyID, projectID, err)
 		}
 		return
 	}
-	t.Error("PreConfig: key not found")
+	t.Fatal("PreConfig: key not found")
 }
 
 func createDataFederationLimit(limitName string) admin.DataFederationLimit {
