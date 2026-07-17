@@ -85,7 +85,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 
-	federatedSettingsConnectedOrganization, resp, err := conn.FederatedAuthenticationApi.GetConnectedOrgConfig(ctx, federationSettingsID, orgID).Execute()
+	federatedSettingsConnectedOrganization, resp, err := conn.FederatedAuthenticationAPI.GetConnectedOrgConfig(ctx, federationSettingsID, orgID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -130,7 +130,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 
-	federatedSettingsConnectedOrganizationUpdate, _, err := conn.FederatedAuthenticationApi.GetConnectedOrgConfig(ctx, federationSettingsID, orgID).Execute()
+	federatedSettingsConnectedOrganizationUpdate, _, err := conn.FederatedAuthenticationAPI.GetConnectedOrgConfig(ctx, federationSettingsID, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -167,7 +167,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// keeping existing value [] will raise VALIDATION_ERROR if identity_provider_id is not set
 	federatedSettingsConnectedOrganizationUpdate.RoleMappings = nil
 
-	_, _, err = conn.FederatedAuthenticationApi.UpdateConnectedOrgConfig(ctx, federationSettingsID, orgID, federatedSettingsConnectedOrganizationUpdate).Execute()
+	_, _, err = conn.FederatedAuthenticationAPI.UpdateConnectedOrgConfig(ctx, federationSettingsID, orgID, federatedSettingsConnectedOrganizationUpdate).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -181,7 +181,7 @@ func resourcDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 
-	_, err := conn.FederatedAuthenticationApi.RemoveConnectedOrgConfig(ctx, federationSettingsID, orgID).Execute()
+	_, err := conn.FederatedAuthenticationAPI.RemoveConnectedOrgConfig(ctx, federationSettingsID, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -196,7 +196,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		return nil, err
 	}
 
-	_, _, err = conn.FederatedAuthenticationApi.GetConnectedOrgConfig(ctx, *federationSettingsID, *orgID).Execute()
+	_, _, err = conn.FederatedAuthenticationAPI.GetConnectedOrgConfig(ctx, *federationSettingsID, *orgID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Organization config (%s) in Federation settings (%s), error: %s", *orgID, *federationSettingsID, err)
 	}

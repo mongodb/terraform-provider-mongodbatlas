@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -187,7 +187,7 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 					if apiKeyID == "" {
 						t.Fatalf("API key ID not captured from previous step")
 					}
-					if _, err := acc.ConnV2().ProgrammaticAPIKeysApi.DeleteOrgApiKey(t.Context(), orgID, apiKeyID).Execute(); err != nil {
+					if _, err := acc.ConnV2().ProgrammaticAPIKeysAPI.DeleteOrgApiKey(t.Context(), orgID, apiKeyID).Execute(); err != nil {
 						t.Fatalf("failed to manually delete API key resource: %s", err)
 					}
 					if err := waitForAPIKeyDeletionByID(orgID, apiKeyID, 2*time.Minute); err != nil {
@@ -257,7 +257,7 @@ func TestAccProjectAPIKey_invalidRole(t *testing.T) {
 func waitForAPIKeyDeletionByID(orgID, apiKeyID string, timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
-		_, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.GetOrgApiKey(context.Background(), orgID, apiKeyID).Execute()
+		_, _, err := acc.ConnV2().ProgrammaticAPIKeysAPI.GetOrgApiKey(context.Background(), orgID, apiKeyID).Execute()
 		if err != nil {
 			if admin.IsErrorCode(err, "API_KEY_NOT_FOUND") {
 				return nil // API key successfully deleted and confirmed.
@@ -276,7 +276,7 @@ func checkDestroy(projectID string) resource.TestCheckFunc {
 			if rs.Type != "mongodbatlas_project_api_key" {
 				continue
 			}
-			projectAPIKeys, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListGroupApiKeys(context.Background(), projectID).Execute()
+			projectAPIKeys, _, err := acc.ConnV2().ProgrammaticAPIKeysAPI.ListGroupApiKeys(context.Background(), projectID).Execute()
 			if err != nil {
 				return nil
 			}
@@ -303,7 +303,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		apiKeyID := ids["api_key_id"]
 		orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-		if found, _, _ := acc.ConnV2().ProgrammaticAPIKeysApi.GetOrgApiKey(context.Background(), orgID, apiKeyID).Execute(); found == nil {
+		if found, _, _ := acc.ConnV2().ProgrammaticAPIKeysAPI.GetOrgApiKey(context.Background(), orgID, apiKeyID).Execute(); found == nil {
 			return fmt.Errorf("API Key (%s) does not exist", apiKeyID)
 		}
 		return nil

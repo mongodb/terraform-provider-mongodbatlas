@@ -148,7 +148,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if groupID == "" || clusterName == "" {
 			return fmt.Errorf("groupID or clusterName is empty: %s, %s", groupID, clusterName)
 		}
-		if _, _, err := acc.ConnV2().ClustersApi.GetCluster(context.Background(), groupID, clusterName).Execute(); err != nil {
+		if _, _, err := acc.ConnV2().ClustersAPI.GetCluster(context.Background(), groupID, clusterName).Execute(); err != nil {
 			return fmt.Errorf("cluster(%s:%s) does not exist: %w", groupID, clusterName, err)
 		}
 		return nil
@@ -165,7 +165,7 @@ func checkDestroy(s *terraform.State) error {
 		if groupID == "" || clusterName == "" {
 			return fmt.Errorf("groupID or clusterName is empty: %s, %s", groupID, clusterName)
 		}
-		resp, _, _ := acc.ConnV2().ClustersApi.GetCluster(context.Background(), groupID, clusterName).Execute()
+		resp, _, _ := acc.ConnV2().ClustersAPI.GetCluster(context.Background(), groupID, clusterName).Execute()
 		if resp.GetId() != "" {
 			return fmt.Errorf("cluster (%s:%s) still exists", clusterName, rs.Primary.ID)
 		}

@@ -3,7 +3,7 @@ package cloudbackupsnapshotexportbucket
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -85,7 +85,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
 	}
 
-	buckets, _, err := conn.CloudBackupsApi.ListExportBucketsWithParams(ctx, &request).Execute()
+	buckets, _, err := conn.CloudBackupsAPI.ListExportBucketsWithParams(ctx, &request).Execute()
 	if err != nil {
 		return diag.Errorf("error getting CloudProviderSnapshotExportBuckets information: %s", err)
 	}

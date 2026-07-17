@@ -221,7 +221,7 @@ func dataSourceMongoDBAtlasOnlineArchiveRead(ctx context.Context, d *schema.Reso
 	clusterName := d.Get("cluster_name").(string)
 	archiveID := d.Get("archive_id").(string)
 
-	archive, _, err := connV2.OnlineArchiveApi.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
+	archive, _, err := connV2.OnlineArchiveAPI.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error reading Online Archive datasource with id %s: %s", archiveID, err.Error()))
@@ -250,7 +250,7 @@ func dataSourceMongoDBAtlasOnlineArchivesRead(ctx context.Context, d *schema.Res
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 
-	archives, _, err := connV2.OnlineArchiveApi.ListOnlineArchives(ctx, projectID, clusterName).Execute()
+	archives, _, err := connV2.OnlineArchiveAPI.ListOnlineArchives(ctx, projectID, clusterName).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting Online Archives list for project(%s) in cluster (%s): (%s)", projectID, clusterName, err.Error()))

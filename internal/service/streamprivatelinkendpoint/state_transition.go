@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -16,11 +16,11 @@ const (
 	defaultMinTimeout = 30 * time.Second // Smallest time to wait before refreshes
 )
 
-func waitStateTransition(ctx context.Context, projectID, endpointID string, client admin.StreamsApi) (*admin.StreamsPrivateLinkConnection, error) {
+func waitStateTransition(ctx context.Context, projectID, endpointID string, client admin.StreamsAPI) (*admin.StreamsPrivateLinkConnection, error) {
 	return WaitStateTransitionWithMinTimeout(ctx, defaultMinTimeout, projectID, endpointID, client)
 }
 
-func WaitStateTransitionWithMinTimeout(ctx context.Context, minTimeout time.Duration, projectID, endpointID string, client admin.StreamsApi) (*admin.StreamsPrivateLinkConnection, error) {
+func WaitStateTransitionWithMinTimeout(ctx context.Context, minTimeout time.Duration, projectID, endpointID string, client admin.StreamsAPI) (*admin.StreamsPrivateLinkConnection, error) {
 	return waitStateTransitionForStates(
 		ctx,
 		[]string{retrystrategy.RetryStrategyIdleState, retrystrategy.RetryStrategyWorkingState},
@@ -28,11 +28,11 @@ func WaitStateTransitionWithMinTimeout(ctx context.Context, minTimeout time.Dura
 		minTimeout, projectID, endpointID, client)
 }
 
-func WaitDeleteStateTransition(ctx context.Context, projectID, endpointID string, client admin.StreamsApi) (*admin.StreamsPrivateLinkConnection, error) {
+func WaitDeleteStateTransition(ctx context.Context, projectID, endpointID string, client admin.StreamsAPI) (*admin.StreamsPrivateLinkConnection, error) {
 	return WaitDeleteStateTransitionWithMinTimeout(ctx, defaultMinTimeout, projectID, endpointID, client)
 }
 
-func WaitDeleteStateTransitionWithMinTimeout(ctx context.Context, minTimeout time.Duration, projectID, connectionID string, client admin.StreamsApi) (*admin.StreamsPrivateLinkConnection, error) {
+func WaitDeleteStateTransitionWithMinTimeout(ctx context.Context, minTimeout time.Duration, projectID, connectionID string, client admin.StreamsAPI) (*admin.StreamsPrivateLinkConnection, error) {
 	return waitStateTransitionForStates(
 		ctx,
 		[]string{retrystrategy.RetryStrategyDeleteRequestedState, retrystrategy.RetryStrategyDeletingState},
@@ -40,7 +40,7 @@ func WaitDeleteStateTransitionWithMinTimeout(ctx context.Context, minTimeout tim
 		minTimeout, projectID, connectionID, client)
 }
 
-func waitStateTransitionForStates(ctx context.Context, pending, target []string, minTimeout time.Duration, projectID, connectionID string, client admin.StreamsApi) (*admin.StreamsPrivateLinkConnection, error) {
+func waitStateTransitionForStates(ctx context.Context, pending, target []string, minTimeout time.Duration, projectID, connectionID string, client admin.StreamsAPI) (*admin.StreamsPrivateLinkConnection, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    pending,
 		Target:     target,
@@ -60,7 +60,7 @@ func waitStateTransitionForStates(ctx context.Context, pending, target []string,
 	return nil, errors.New("did not obtain valid result when waiting for state transition")
 }
 
-func refreshFunc(ctx context.Context, projectID, connectionID string, client admin.StreamsApi) retry.StateRefreshFunc {
+func refreshFunc(ctx context.Context, projectID, connectionID string, client admin.StreamsAPI) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		model, resp, err := client.GetPrivateLinkConnection(ctx, projectID, connectionID).Execute()
 		if err != nil && model == nil && resp == nil {

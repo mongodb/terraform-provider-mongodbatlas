@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -232,7 +232,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	clusterName := d.Get("cluster_name").(string)
 
 	inputRequest := mapToArchivePayload(d)
-	outputRequest, _, err := connV2.OnlineArchiveApi.CreateOnlineArchive(ctx, projectID, clusterName, &inputRequest).Execute()
+	outputRequest, _, err := connV2.OnlineArchiveAPI.CreateOnlineArchive(ctx, projectID, clusterName, &inputRequest).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorOnlineArchivesCreate, err))
@@ -263,7 +263,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			deleteOnCreateTimeout = v.(bool)
 		}
 		errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
-			_, errCleanup := connV2.OnlineArchiveApi.DeleteOnlineArchive(ctxCleanup, projectID, archiveID, clusterName).Execute()
+			_, errCleanup := connV2.OnlineArchiveAPI.DeleteOnlineArchive(ctxCleanup, projectID, archiveID, clusterName).Execute()
 			return errCleanup
 		})
 		if errWait != nil {
@@ -276,7 +276,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceOnlineRefreshFunc(ctx context.Context, projectID, clusterName, archiveID string, client *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		c, resp, err := client.OnlineArchiveApi.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
+		c, resp, err := client.OnlineArchiveAPI.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
@@ -310,7 +310,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	onlineArchive, resp, err := connV2.OnlineArchiveApi.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
+	onlineArchive, resp, err := connV2.OnlineArchiveAPI.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -336,7 +336,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, err := connV2.OnlineArchiveApi.DeleteOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
+	_, err := connV2.OnlineArchiveAPI.DeleteOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
 
 	if err != nil {
 		alreadyDeleted := strings.Contains(err.Error(), "404") && !d.IsNewResource()
@@ -367,7 +367,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		projectID, clusterName, archiveID = parts[0], parts[1], parts[2]
 	}
 
-	outOnlineArchive, _, err := connV2.OnlineArchiveApi.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
+	outOnlineArchive, _, err := connV2.OnlineArchiveAPI.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
 
 	if err != nil {
 		return nil, fmt.Errorf("could not import Online Archive %s in project %s, error %s", archiveID, projectID, err.Error())
@@ -491,7 +491,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		request.CollectionType = new(collType)
 	}
 
-	_, _, err := connV2.OnlineArchiveApi.UpdateOnlineArchive(ctx, projectID, atlasID, clusterName, &request).Execute()
+	_, _, err := connV2.OnlineArchiveAPI.UpdateOnlineArchive(ctx, projectID, atlasID, clusterName, &request).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating Mongo Online Archive id: %s %s", atlasID, err.Error()))

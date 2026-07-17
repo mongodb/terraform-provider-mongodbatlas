@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 var _ datasource.DataSource = &streamInstancesDS{}
@@ -46,7 +46,7 @@ func (d *streamInstancesDS) Read(ctx context.Context, req datasource.ReadRequest
 	projectID := streamInstancesConfig.ProjectID.ValueString()
 	itemsPerPage := streamInstancesConfig.ItemsPerPage.ValueInt64Pointer()
 	pageNum := streamInstancesConfig.PageNum.ValueInt64Pointer()
-	apiResp, _, err := connV2.StreamsApi.ListStreamWorkspacesWithParams(ctx, &admin.ListStreamWorkspacesApiParams{
+	apiResp, _, err := connV2.StreamsAPI.ListStreamWorkspacesWithParams(ctx, &admin.ListStreamWorkspacesApiParams{
 		GroupId:      projectID,
 		ItemsPerPage: conversion.Int64PtrToIntPtr(itemsPerPage),
 		PageNum:      conversion.Int64PtrToIntPtr(pageNum),

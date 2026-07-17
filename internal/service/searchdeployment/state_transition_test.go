@@ -11,8 +11,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
-	"go.mongodb.org/atlas-sdk/v20250312021/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/mockadmin"
 )
 
 var (
@@ -92,7 +92,7 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			m := mockadmin.NewAtlasSearchApi(t)
+			m := mockadmin.NewAtlasSearchAPI(t)
 			m.EXPECT().GetClusterSearchDeployment(mock.Anything, mock.Anything, mock.Anything).Return(admin.GetClusterSearchDeploymentApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {
@@ -151,7 +151,7 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			m := mockadmin.NewAtlasSearchApi(t)
+			m := mockadmin.NewAtlasSearchAPI(t)
 			m.EXPECT().GetClusterSearchDeployment(mock.Anything, mock.Anything, mock.Anything).Return(admin.GetClusterSearchDeploymentApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {

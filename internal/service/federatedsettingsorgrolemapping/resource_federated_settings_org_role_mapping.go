@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func Resource() *schema.Resource {
@@ -84,7 +84,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
 
-	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedAuthenticationApi.GetRoleMapping(ctx, federationSettingsID, roleMappingID, orgID).Execute()
+	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedAuthenticationAPI.GetRoleMapping(ctx, federationSettingsID, roleMappingID, orgID).Execute()
 
 	if err != nil {
 		if validate.StatusNotFound(resp) {
@@ -136,7 +136,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		ExternalGroupName: externalGroupName,
 		RoleAssignments:   expandRoleAssignments(d),
 	}
-	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedAuthenticationApi.CreateRoleMapping(ctx, federationSettingsID.(string), orgID.(string), &roleMapping).Execute()
+	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedAuthenticationAPI.CreateRoleMapping(ctx, federationSettingsID.(string), orgID.(string), &roleMapping).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -162,7 +162,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
 
-	federatedSettingsOrganizationRoleMappingUpdate, _, err := conn.FederatedAuthenticationApi.GetRoleMapping(ctx, federationSettingsID, roleMappingID, orgID).Execute()
+	federatedSettingsOrganizationRoleMappingUpdate, _, err := conn.FederatedAuthenticationAPI.GetRoleMapping(ctx, federationSettingsID, roleMappingID, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -175,7 +175,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.HasChange("role_assignments") {
 		federatedSettingsOrganizationRoleMappingUpdate.RoleAssignments = expandRoleAssignments(d)
 	}
-	_, _, err = conn.FederatedAuthenticationApi.UpdateRoleMapping(ctx, federationSettingsID, roleMappingID, orgID, federatedSettingsOrganizationRoleMappingUpdate).Execute()
+	_, _, err = conn.FederatedAuthenticationAPI.UpdateRoleMapping(ctx, federationSettingsID, roleMappingID, orgID, federatedSettingsOrganizationRoleMappingUpdate).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -190,7 +190,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
 
-	_, err := conn.FederatedAuthenticationApi.DeleteRoleMapping(ctx, federationSettingsID, roleMappingID, orgID).Execute()
+	_, err := conn.FederatedAuthenticationAPI.DeleteRoleMapping(ctx, federationSettingsID, roleMappingID, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -206,7 +206,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 		return nil, err
 	}
 
-	_, _, err = conn.FederatedAuthenticationApi.GetRoleMapping(ctx, *federationSettingsID, *roleMappingID, *orgID).Execute()
+	_, _, err = conn.FederatedAuthenticationAPI.GetRoleMapping(ctx, *federationSettingsID, *roleMappingID, *orgID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Role Mappings (%s) in Federation settings (%s), error: %s", *roleMappingID, *federationSettingsID, err)
 	}

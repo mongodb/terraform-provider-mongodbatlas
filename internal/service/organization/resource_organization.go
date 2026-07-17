@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -185,7 +185,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 	conn := getAtlasV2Connection(ctx, d, meta) // Using provider credentials.
-	organization, resp, err := conn.OrganizationsApi.CreateOrg(ctx, newCreateOrganizationRequest(d)).Execute()
+	organization, resp, err := conn.OrganizationsAPI.CreateOrg(ctx, newCreateOrganizationRequest(d)).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) && !strings.Contains(err.Error(), "USER_NOT_FOUND") {
 			d.SetId("")
@@ -211,9 +211,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	conn = getAtlasV2Connection(ctx, d, meta) // Using new credentials from the created organization.
 	orgID := organization.Organization.GetId()
-	_, _, errUpdate := conn.OrganizationsApi.UpdateOrgSettings(ctx, orgID, newOrganizationSettings(d)).Execute()
+	_, _, errUpdate := conn.OrganizationsAPI.UpdateOrgSettings(ctx, orgID, newOrganizationSettings(d)).Execute()
 	if errUpdate != nil {
-		if _, err := conn.OrganizationsApi.DeleteOrg(ctx, orgID).Execute(); err != nil {
+		if _, err := conn.OrganizationsAPI.DeleteOrg(ctx, orgID).Execute(); err != nil {
 			d.SetId("")
 			return diag.FromErr(fmt.Errorf("an error occurred when updating Organization settings: %s.\n Unable to delete organization, there may be dangling resources: %s", errUpdate.Error(), err.Error()))
 		}
@@ -231,7 +231,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
-	organization, resp, err := conn.OrganizationsApi.GetOrg(ctx, orgID).Execute()
+	organization, resp, err := conn.OrganizationsAPI.GetOrg(ctx, orgID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			log.Printf("warning Organization deleted will recreate: %s \n", err.Error())
@@ -251,7 +251,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf("error setting `org_id`: %s", err))
 	}
 
-	settings, _, err := conn.OrganizationsApi.GetOrgSettings(ctx, orgID).Execute()
+	settings, _, err := conn.OrganizationsAPI.GetOrgSettings(ctx, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error reading organization settings: %s", err))
 	}
@@ -289,7 +289,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			Name:                      d.Get("name").(string),
 			SkipDefaultAlertsSettings: new(d.Get("skip_default_alerts_settings").(bool)),
 		}
-		if _, _, err := conn.OrganizationsApi.UpdateOrg(ctx, orgID, updateRequest).Execute(); err != nil {
+		if _, _, err := conn.OrganizationsAPI.UpdateOrg(ctx, orgID, updateRequest).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization name: %s", err))
 		}
 	}
@@ -299,7 +299,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		d.HasChange("restrict_employee_access") ||
 		d.HasChange("gen_ai_features_enabled") ||
 		d.HasChange("security_contact") {
-		if _, _, err := conn.OrganizationsApi.UpdateOrgSettings(ctx, orgID, newOrganizationSettings(d)).Execute(); err != nil {
+		if _, _, err := conn.OrganizationsAPI.UpdateOrgSettings(ctx, orgID, newOrganizationSettings(d)).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization settings: %s", err))
 		}
 	}
@@ -312,7 +312,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
-	if _, err := conn.OrganizationsApi.DeleteOrg(ctx, orgID).Execute(); err != nil {
+	if _, err := conn.OrganizationsAPI.DeleteOrg(ctx, orgID).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting Organization: %s", err))
 	}
 	return nil
@@ -469,7 +469,7 @@ func newSAClient(ctx context.Context, d *schema.ResourceData, clientID, secretVa
 	if d.Id() != "" {
 		ids := conversion.DecodeStateID(d.Id())
 		if orgID := ids["org_id"]; orgID != "" {
-			if _, _, err := newClient.AtlasV2.OrganizationsApi.GetOrg(ctx, orgID).Execute(); err != nil {
+			if _, _, err := newClient.AtlasV2.OrganizationsAPI.GetOrg(ctx, orgID).Execute(); err != nil {
 				return nil
 			}
 		}

@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func DataSource() *schema.Resource {
@@ -115,7 +115,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	peerID := conversion.GetEncodedID(d.Get("peering_id").(string), "peer_id")
 
-	peer, resp, err := conn.NetworkPeeringApi.GetGroupPeer(ctx, projectID, peerID).Execute()
+	peer, resp, err := conn.NetworkPeeringAPI.GetGroupPeer(ctx, projectID, peerID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			return nil
@@ -135,7 +135,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("[WARN] Error setting provider_name for (%s): %s", d.Id(), err))
 	}
 	containerID := peer.GetContainerId()
-	atlasCidrBlock, err := readAtlasCidrBlock(ctx, conn.NetworkPeeringApi, projectID, containerID)
+	atlasCidrBlock, err := readAtlasCidrBlock(ctx, conn.NetworkPeeringAPI, projectID, containerID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -149,7 +149,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		"provider_name": provider,
 	}))
 
-	accepterRegionName, err := ensureAccepterRegionName(ctx, peer, conn.NetworkPeeringApi, projectID)
+	accepterRegionName, err := ensureAccepterRegionName(ctx, peer, conn.NetworkPeeringAPI, projectID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -163,7 +163,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return setCommonFields(d, peer, peerID, accepterRegionName)
 }
 
-func readAtlasCidrBlock(ctx context.Context, conn admin.NetworkPeeringApi, projectID, containerID string) (string, error) {
+func readAtlasCidrBlock(ctx context.Context, conn admin.NetworkPeeringAPI, projectID, containerID string) (string, error) {
 	container, err := getContainer(ctx, conn, projectID, containerID)
 	if err != nil {
 		return "", err
@@ -171,7 +171,7 @@ func readAtlasCidrBlock(ctx context.Context, conn admin.NetworkPeeringApi, proje
 	return container.GetAtlasCidrBlock(), nil
 }
 
-func getContainer(ctx context.Context, conn admin.NetworkPeeringApi, projectID, containerID string) (*admin.CloudProviderContainer, error) {
+func getContainer(ctx context.Context, conn admin.NetworkPeeringAPI, projectID, containerID string) (*admin.CloudProviderContainer, error) {
 	container, _, err := conn.GetGroupContainer(ctx, projectID, containerID).Execute()
 	return container, err
 }

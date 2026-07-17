@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
@@ -17,11 +17,11 @@ const (
 	defaultMinTimeout = 30 * time.Second // Smallest time to wait before refreshes
 )
 
-func waitStateTransition(ctx context.Context, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi, timeout time.Duration) (*admin.EARPrivateEndpoint, error) {
+func waitStateTransition(ctx context.Context, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementAPI, timeout time.Duration) (*admin.EARPrivateEndpoint, error) {
 	return WaitStateTransitionWithMinTimeoutAndTimeout(ctx, defaultMinTimeout, timeout, projectID, cloudProvider, endpointID, client)
 }
 
-func WaitStateTransitionWithMinTimeoutAndTimeout(ctx context.Context, minTimeout, timeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) (*admin.EARPrivateEndpoint, error) {
+func WaitStateTransitionWithMinTimeoutAndTimeout(ctx context.Context, minTimeout, timeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementAPI) (*admin.EARPrivateEndpoint, error) {
 	return waitStateTransitionForStates(
 		ctx,
 		[]string{retrystrategy.RetryStrategyInitiatingState},
@@ -29,11 +29,11 @@ func WaitStateTransitionWithMinTimeoutAndTimeout(ctx context.Context, minTimeout
 		minTimeout, timeout, projectID, cloudProvider, endpointID, client)
 }
 
-func WaitDeleteStateTransition(ctx context.Context, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi, timeout time.Duration) (*admin.EARPrivateEndpoint, error) {
+func WaitDeleteStateTransition(ctx context.Context, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementAPI, timeout time.Duration) (*admin.EARPrivateEndpoint, error) {
 	return WaitDeleteStateTransitionWithMinTimeoutAndTimeout(ctx, defaultMinTimeout, timeout, projectID, cloudProvider, endpointID, client)
 }
 
-func WaitDeleteStateTransitionWithMinTimeoutAndTimeout(ctx context.Context, minTimeout, timeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) (*admin.EARPrivateEndpoint, error) {
+func WaitDeleteStateTransitionWithMinTimeoutAndTimeout(ctx context.Context, minTimeout, timeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementAPI) (*admin.EARPrivateEndpoint, error) {
 	return waitStateTransitionForStates(
 		ctx,
 		[]string{retrystrategy.RetryStrategyDeletingState},
@@ -41,7 +41,7 @@ func WaitDeleteStateTransitionWithMinTimeoutAndTimeout(ctx context.Context, minT
 		minTimeout, timeout, projectID, cloudProvider, endpointID, client)
 }
 
-func waitStateTransitionForStates(ctx context.Context, pending, target []string, minTimeout, timeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) (*admin.EARPrivateEndpoint, error) {
+func waitStateTransitionForStates(ctx context.Context, pending, target []string, minTimeout, timeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementAPI) (*admin.EARPrivateEndpoint, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    pending,
 		Target:     target,
@@ -61,7 +61,7 @@ func waitStateTransitionForStates(ctx context.Context, pending, target []string,
 	return nil, errors.New("did not obtain valid result when waiting for state transition")
 }
 
-func refreshFunc(ctx context.Context, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) retry.StateRefreshFunc {
+func refreshFunc(ctx context.Context, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementAPI) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		model, resp, err := client.GetRestPrivateEndpoint(ctx, projectID, cloudProvider, endpointID).Execute()
 		if err != nil && model == nil && resp == nil {

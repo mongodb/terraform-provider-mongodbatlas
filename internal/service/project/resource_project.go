@@ -9,7 +9,7 @@ import (
 	"slices"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -80,7 +80,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// create project
-	project, _, err := connV2.ProjectsApi.CreateGroupWithParams(ctx, projectAPIParams).Execute()
+	project, _, err := connV2.ProjectsAPI.CreateGroupWithParams(ctx, projectAPIParams).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorProjectCreate, projectPlan.Name.ValueString()), err.Error())
 		return
@@ -90,9 +90,9 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	if len(projectPlan.Teams.Elements()) > 0 {
 		_ = projectPlan.Teams.ElementsAs(ctx, &teams, false)
 
-		_, _, err := connV2.TeamsApi.AddGroupTeams(ctx, project.GetId(), NewTeamRoleList(ctx, teams)).Execute()
+		_, _, err := connV2.TeamsAPI.AddGroupTeams(ctx, project.GetId(), NewTeamRoleList(ctx, teams)).Execute()
 		if err != nil {
-			errd := deleteProject(ctx, connV2.ClustersApi, connV2.ProjectsApi, project.GetId())
+			errd := deleteProject(ctx, connV2.ClustersAPI, connV2.ProjectsAPI, project.GetId())
 			if errd != nil {
 				resp.Diagnostics.AddError("error during project deletion when adding teams", fmt.Sprintf(errorProjectDelete, project.GetId(), err.Error()))
 				return
@@ -111,9 +111,9 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 				Name:  limit.Name.ValueString(),
 				Value: limit.Value.ValueInt64(),
 			}
-			_, _, err := connV2.ProjectsApi.SetGroupLimit(ctx, limit.Name.ValueString(), project.GetId(), dataFederationLimit).Execute()
+			_, _, err := connV2.ProjectsAPI.SetGroupLimit(ctx, limit.Name.ValueString(), project.GetId(), dataFederationLimit).Execute()
 			if err != nil {
-				errd := deleteProject(ctx, connV2.ClustersApi, connV2.ProjectsApi, project.GetId())
+				errd := deleteProject(ctx, connV2.ClustersAPI, connV2.ProjectsAPI, project.GetId())
 				if errd != nil {
 					resp.Diagnostics.AddError("error during project deletion when adding limits", fmt.Sprintf(errorProjectDelete, project.GetId(), err.Error()))
 					return
@@ -125,9 +125,9 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// add settings
-	projectSettings, _, err := connV2.ProjectsApi.GetGroupSettings(ctx, *project.Id).Execute()
+	projectSettings, _, err := connV2.ProjectsAPI.GetGroupSettings(ctx, *project.Id).Execute()
 	if err != nil {
-		errd := deleteProject(ctx, connV2.ClustersApi, connV2.ProjectsApi, project.GetId())
+		errd := deleteProject(ctx, connV2.ClustersAPI, connV2.ProjectsAPI, project.GetId())
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when getting project settings", fmt.Sprintf(errorProjectDelete, project.GetId(), err.Error()))
 			return
@@ -147,8 +147,8 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	SetProjectBool(projectPlan.IsClusterAiAssistantEnabled, &projectSettings.IsClusterAiAssistantEnabled)
 	SetProjectBool(projectPlan.IsNativeRerankingEnabled, &projectSettings.IsNativeRerankingEnabled)
 
-	if _, _, err = connV2.ProjectsApi.UpdateGroupSettings(ctx, project.GetId(), projectSettings).Execute(); err != nil {
-		errd := deleteProject(ctx, connV2.ClustersApi, connV2.ProjectsApi, project.GetId())
+	if _, _, err = connV2.ProjectsAPI.UpdateGroupSettings(ctx, project.GetId(), projectSettings).Execute(); err != nil {
+		errd := deleteProject(ctx, connV2.ClustersAPI, connV2.ProjectsAPI, project.GetId())
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when updating project settings", fmt.Sprintf(errorProjectDelete, project.GetId(), err.Error()))
 			return
@@ -158,12 +158,12 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	projectID := project.GetId()
-	projectRes, _, err := connV2.ProjectsApi.GetGroup(ctx, projectID).Execute()
+	projectRes, _, err := connV2.ProjectsAPI.GetGroup(ctx, projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
-	err = SetSlowOperationThresholding(ctx, connV2.PerformanceAdvisorApi, projectID, projectPlan.IsSlowOperationThresholdingEnabled)
+	err = SetSlowOperationThresholding(ctx, connV2.PerformanceAdvisorAPI, projectID, projectPlan.IsSlowOperationThresholdingEnabled)
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf("error when setting slow operation thresholding after create (%s): %s", projectID, err.Error()), "")
 		return
@@ -172,10 +172,10 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	projectPropsParams := &PropsParams{
 		ProjectID:             projectID,
 		IsDataSource:          false,
-		ProjectsAPI:           connV2.ProjectsApi,
-		TeamsAPI:              connV2.TeamsApi,
-		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
-		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersApi,
+		ProjectsAPI:           connV2.ProjectsAPI,
+		TeamsAPI:              connV2.TeamsAPI,
+		PerformanceAdvisorAPI: connV2.PerformanceAdvisorAPI,
+		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersAPI,
 	}
 
 	// get project props
@@ -220,7 +220,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project
-	projectRes, atlasResp, err := connV2.ProjectsApi.GetGroup(ctx, projectID).Execute()
+	projectRes, atlasResp, err := connV2.ProjectsAPI.GetGroup(ctx, projectID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(atlasResp) {
 			resp.State.RemoveResource(ctx)
@@ -233,10 +233,10 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	projectPropsParams := &PropsParams{
 		ProjectID:             projectID,
 		IsDataSource:          false,
-		ProjectsAPI:           connV2.ProjectsApi,
-		TeamsAPI:              connV2.TeamsApi,
-		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
-		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersApi,
+		ProjectsAPI:           connV2.ProjectsAPI,
+		TeamsAPI:              connV2.TeamsAPI,
+		PerformanceAdvisorAPI: connV2.PerformanceAdvisorAPI,
+		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersAPI,
 	}
 
 	// get project props
@@ -280,31 +280,31 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 	projectID := projectState.ID.ValueString()
 
-	err := UpdateProject(ctx, connV2.ProjectsApi, &projectState, &projectPlan)
+	err := UpdateProject(ctx, connV2.ProjectsAPI, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
 	}
 
-	err = UpdateProjectTeams(ctx, connV2.TeamsApi, &projectState, &projectPlan)
+	err = UpdateProjectTeams(ctx, connV2.TeamsAPI, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project teams update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
 	}
 
-	err = UpdateProjectLimits(ctx, connV2.ProjectsApi, &projectState, &projectPlan)
+	err = UpdateProjectLimits(ctx, connV2.ProjectsAPI, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project limits update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
 	}
 
-	err = updateProjectSettings(ctx, connV2.ProjectsApi, connV2.PerformanceAdvisorApi, &projectState, &projectPlan)
+	err = updateProjectSettings(ctx, connV2.ProjectsAPI, connV2.PerformanceAdvisorAPI, &projectState, &projectPlan)
 	if err != nil {
 		resp.Diagnostics.AddError("error in project settings update", fmt.Sprintf(errorProjectUpdate, projectID, err.Error()))
 		return
 	}
 
-	projectRes, _, err := connV2.ProjectsApi.GetGroup(ctx, projectID).Execute()
+	projectRes, _, err := connV2.ProjectsAPI.GetGroup(ctx, projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -313,10 +313,10 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	projectPropsParams := &PropsParams{
 		ProjectID:             projectID,
 		IsDataSource:          false,
-		ProjectsAPI:           connV2.ProjectsApi,
-		TeamsAPI:              connV2.TeamsApi,
-		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
-		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersApi,
+		ProjectsAPI:           connV2.ProjectsAPI,
+		TeamsAPI:              connV2.TeamsAPI,
+		PerformanceAdvisorAPI: connV2.PerformanceAdvisorAPI,
+		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersAPI,
 	}
 
 	// get project props
@@ -352,7 +352,7 @@ func (r *projectRS) Delete(ctx context.Context, req resource.DeleteRequest, resp
 	}
 
 	projectID := project.ID.ValueString()
-	err := deleteProject(ctx, r.Client.AtlasV2.ClustersApi, r.Client.AtlasV2.ProjectsApi, projectID)
+	err := deleteProject(ctx, r.Client.AtlasV2.ClustersAPI, r.Client.AtlasV2.ProjectsAPI, projectID)
 
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying resource", fmt.Sprintf(errorProjectDelete, projectID, err.Error()))
@@ -400,10 +400,10 @@ type AdditionalProperties struct {
 }
 
 type PropsParams struct {
-	ProjectsAPI           admin.ProjectsApi
-	TeamsAPI              admin.TeamsApi
-	PerformanceAdvisorAPI admin.PerformanceAdvisorApi
-	MongoDBCloudUsersAPI  admin.MongoDBCloudUsersApi
+	ProjectsAPI           admin.ProjectsAPI
+	TeamsAPI              admin.TeamsAPI
+	PerformanceAdvisorAPI admin.PerformanceAdvisorAPI
+	MongoDBCloudUsersAPI  admin.MongoDBCloudUsersAPI
 	ProjectID             string
 	IsDataSource          bool
 }
@@ -451,7 +451,7 @@ func GetProjectPropsFromAPI(ctx context.Context, params *PropsParams, warnings *
 	}, nil
 }
 
-func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI admin.PerformanceAdvisorApi, projectID string, enabledPlan types.Bool) error {
+func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI admin.PerformanceAdvisorAPI, projectID string, enabledPlan types.Bool) error {
 	if enabledPlan.IsNull() || enabledPlan.IsUnknown() {
 		return nil
 	}
@@ -465,7 +465,7 @@ func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI adm
 	return err
 }
 
-func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceAdvisorApi, projectID string, warnings *diag.Diagnostics) (bool, error) {
+func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceAdvisorAPI, projectID string, warnings *diag.Diagnostics) (bool, error) {
 	isEnabled, _, err := api.GetManagedSlowMs(ctx, projectID).Execute()
 	if err != nil {
 		return false, err
@@ -473,7 +473,7 @@ func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceA
 	return isEnabled, nil
 }
 
-func updateProjectSettings(ctx context.Context, projectsAPI admin.ProjectsApi, performanceAdvisorAPI admin.PerformanceAdvisorApi, state, plan *TFProjectRSModel) error {
+func updateProjectSettings(ctx context.Context, projectsAPI admin.ProjectsAPI, performanceAdvisorAPI admin.PerformanceAdvisorAPI, state, plan *TFProjectRSModel) error {
 	projectID := state.ID.ValueString()
 	settings, _, err := projectsAPI.GetGroupSettings(ctx, projectID).Execute()
 	if err != nil {
@@ -504,7 +504,7 @@ func updateProjectSettings(ctx context.Context, projectsAPI admin.ProjectsApi, p
 	return nil
 }
 
-func UpdateProjectLimits(ctx context.Context, projectsAPI admin.ProjectsApi, projectState, projectPlan *TFProjectRSModel) error {
+func UpdateProjectLimits(ctx context.Context, projectsAPI admin.ProjectsAPI, projectState, projectPlan *TFProjectRSModel) error {
 	var planLimits []TFLimitModel
 	var stateLimits []TFLimitModel
 	_ = projectPlan.Limits.ElementsAs(ctx, &planLimits, false)
@@ -542,7 +542,7 @@ func UpdateProjectLimits(ctx context.Context, projectsAPI admin.ProjectsApi, pro
 	return nil
 }
 
-func setProjectLimits(ctx context.Context, projectsAPI admin.ProjectsApi, projectID string, tfLimits []TFLimitModel) error {
+func setProjectLimits(ctx context.Context, projectsAPI admin.ProjectsAPI, projectID string, tfLimits []TFLimitModel) error {
 	for _, limit := range tfLimits {
 		dataFederationLimit := &admin.DataFederationLimit{
 			Name:  limit.Name.ValueString(),
@@ -556,7 +556,7 @@ func setProjectLimits(ctx context.Context, projectsAPI admin.ProjectsApi, projec
 	return nil
 }
 
-func UpdateProjectTeams(ctx context.Context, teamsAPI admin.TeamsApi, projectState, projectPlan *TFProjectRSModel) error {
+func UpdateProjectTeams(ctx context.Context, teamsAPI admin.TeamsAPI, projectState, projectPlan *TFProjectRSModel) error {
 	var planTeams []TFTeamModel
 	var stateTeams []TFTeamModel
 	_ = projectPlan.Teams.ElementsAs(ctx, &planTeams, false)
@@ -624,7 +624,7 @@ func hasLimitsChanged(planLimits, stateLimits []TFLimitModel) bool {
 	return !reflect.DeepEqual(planLimits, stateLimits)
 }
 
-func UpdateProject(ctx context.Context, projectsAPI admin.ProjectsApi, projectState, projectPlan *TFProjectRSModel) error {
+func UpdateProject(ctx context.Context, projectsAPI admin.ProjectsAPI, projectState, projectPlan *TFProjectRSModel) error {
 	tagsBefore := conversion.NewResourceTags(ctx, projectState.Tags)
 	tagsAfter := conversion.NewResourceTags(ctx, projectPlan.Tags)
 	if projectPlan.Name.Equal(projectState.Name) && reflect.DeepEqual(tagsBefore, tagsAfter) {
@@ -640,7 +640,7 @@ func UpdateProject(ctx context.Context, projectsAPI admin.ProjectsApi, projectSt
 	return nil
 }
 
-func deleteProject(ctx context.Context, clustersAPI admin.ClustersApi, projectsAPI admin.ProjectsApi, projectID string) error {
+func deleteProject(ctx context.Context, clustersAPI admin.ClustersAPI, projectsAPI admin.ProjectsAPI, projectID string) error {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{projectDependentsStateDeleting, projectDependentsStateRetry},
 		Target:     []string{projectDependentsStateIdle},
@@ -670,7 +670,7 @@ Else consider the aggregate dependents idle.
 If we get a defined error response, return that right away
 Else retry
 */
-func ResourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersApi) retry.StateRefreshFunc {
+func ResourceProjectDependentsDeletingRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersAPI) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		clusters, _, listClustersErr := clustersAPI.ListClusters(ctx, projectID).Execute()
 		dependents := AtlasProjectDependants{AdvancedClusters: clusters}

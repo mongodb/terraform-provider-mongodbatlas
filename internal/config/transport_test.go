@@ -169,7 +169,7 @@ func TestAccNetworkLogging(t *testing.T) {
 	require.NoError(t, err)
 
 	// Make a simple API call that should trigger our enhanced logging.
-	_, _, err = client.AtlasV2.OrganizationsApi.ListOrgs(t.Context()).Execute()
+	_, _, err = client.AtlasV2.OrganizationsAPI.ListOrgs(t.Context()).Execute()
 	require.NoError(t, err)
 	logStr := logOutput.String()
 	assert.Contains(t, logStr, "Network Request Start")

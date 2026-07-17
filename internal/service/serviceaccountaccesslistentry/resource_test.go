@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -280,7 +280,7 @@ func getCidrOrIP(rs *terraform.ResourceState) string {
 }
 
 func getEntry(orgID, clientID, cidrOrIP string) (*admin.ServiceAccountIPAccessListEntry, error) {
-	res, _, err := acc.ConnV2().ServiceAccountsApi.ListOrgAccessList(context.Background(), orgID, clientID).Execute()
+	res, _, err := acc.ConnV2().ServiceAccountsAPI.ListOrgAccessList(context.Background(), orgID, clientID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get access list: %w", err)
 	}

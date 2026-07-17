@@ -134,7 +134,7 @@ func (d *DatabaseUsersDS) Read(ctx context.Context, req datasource.ReadRequest, 
 
 	projectID := databaseUsersModel.ProjectID.ValueString()
 	connV2 := d.Client.AtlasV2
-	dbUser, _, err := connV2.DatabaseUsersApi.ListDatabaseUsers(ctx, projectID).Execute()
+	dbUser, _, err := connV2.DatabaseUsersAPI.ListDatabaseUsers(ctx, projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error getting database user information", err.Error())
 		return

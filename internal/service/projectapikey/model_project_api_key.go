@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/rolesorgid"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 func expandProjectAssignments(projectAssignments *schema.Set) map[string][]string {
@@ -72,7 +72,7 @@ func getKeyDetails(ctx context.Context, connV2 *admin.APIClient, apiKeyID string
 	if err != nil {
 		return nil, "", err
 	}
-	key, _, err := connV2.ProgrammaticAPIKeysApi.GetOrgApiKey(ctx, orgID, apiKeyID).Execute()
+	key, _, err := connV2.ProgrammaticAPIKeysAPI.GetOrgApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		if admin.IsErrorCode(err, "API_KEY_NOT_FOUND") {
 			return nil, orgID, nil

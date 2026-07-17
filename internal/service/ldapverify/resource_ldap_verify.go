@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -137,7 +137,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.AuthzQueryTemplate = new(v.(string))
 	}
 
-	ldap, _, err := connV2.LDAPConfigurationApi.VerifyUserSecurityLdap(ctx, projectID, params).Execute()
+	ldap, _, err := connV2.LDAPConfigurationAPI.VerifyUserSecurityLdap(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, projectID, err))
 	}
@@ -169,7 +169,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	requestID := ids["request_id"]
-	ldapResp, resp, err := connV2.LDAPConfigurationApi.GetUserSecurityVerify(ctx, projectID, requestID).Execute()
+	ldapResp, resp, err := connV2.LDAPConfigurationAPI.GetUserSecurityVerify(ctx, projectID, requestID).Execute()
 	if err != nil || ldapResp == nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -229,7 +229,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	projectID := parts[0]
 	requestID := parts[1]
 
-	_, _, err := connV2.LDAPConfigurationApi.GetUserSecurityVerify(ctx, projectID, requestID).Execute()
+	_, _, err := connV2.LDAPConfigurationAPI.GetUserSecurityVerify(ctx, projectID, requestID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorRead, requestID, err)
 	}
@@ -251,7 +251,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 
 func resourceRefreshFunc(ctx context.Context, projectID, requestID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		ldap, resp, err := connV2.LDAPConfigurationApi.GetUserSecurityVerify(ctx, projectID, requestID).Execute()
+		ldap, resp, err := connV2.LDAPConfigurationAPI.GetUserSecurityVerify(ctx, projectID, requestID).Execute()
 		if err != nil {
 			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil

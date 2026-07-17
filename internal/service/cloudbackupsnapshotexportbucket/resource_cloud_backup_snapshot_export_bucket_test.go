@@ -148,7 +148,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().CloudBackupsApi.GetExportBucket(context.Background(), ids["project_id"], ids["id"]).Execute()
+		_, _, err := acc.ConnV2().CloudBackupsAPI.GetExportBucket(context.Background(), ids["project_id"], ids["id"]).Execute()
 		if err == nil {
 			return nil
 		}
@@ -162,7 +162,7 @@ func checkDestroy(state *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		snapshotExportBucket, _, err := acc.ConnV2().CloudBackupsApi.GetExportBucket(context.Background(), ids["project_id"], ids["id"]).Execute()
+		snapshotExportBucket, _, err := acc.ConnV2().CloudBackupsAPI.GetExportBucket(context.Background(), ids["project_id"], ids["id"]).Execute()
 		if err == nil && snapshotExportBucket != nil {
 			return fmt.Errorf("snapshot export bucket (%s) still exists", ids["id"])
 		}

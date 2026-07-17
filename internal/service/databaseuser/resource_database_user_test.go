@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 )
 
 const (
@@ -517,7 +517,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		projectID := rs.Primary.Attributes["project_id"]
 		username := rs.Primary.Attributes["username"]
 
-		if _, _, err := acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDB, username).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().DatabaseUsersAPI.GetDatabaseUser(context.Background(), projectID, authDB, username).Execute(); err == nil {
 			return nil
 		}
 
@@ -536,7 +536,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 		// Try to find the database user
-		_, _, err = acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDatabaseName, username).Execute()
+		_, _, err = acc.ConnV2().DatabaseUsersAPI.GetDatabaseUser(context.Background(), projectID, authDatabaseName, username).Execute()
 		if err == nil {
 			return fmt.Errorf("database user (%s) still exists", projectID)
 		}

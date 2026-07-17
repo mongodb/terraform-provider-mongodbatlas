@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312021/admin"
+	"go.mongodb.org/atlas-sdk/v20250312022/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -320,7 +320,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// MongoDB Atlas automatically generates a default backup policy for that cluster.
 	// As a result, we need to first delete the default policies to avoid having
 	// the infrastructure differs from the TF configuration file.
-	if _, _, err := connV2.CloudBackupsApi.DeleteClusterBackupSchedule(ctx, projectID, clusterName).Execute(); err != nil {
+	if _, _, err := connV2.CloudBackupsAPI.DeleteClusterBackupSchedule(ctx, projectID, clusterName).Execute(); err != nil {
 		diagWarning := diag.Diagnostic{
 			Severity: diag.Warning,
 			Summary:  "Error deleting default backup schedule",
@@ -352,7 +352,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	var resp *http.Response
 	var err error
 
-	backupSchedule, resp, err = connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
+	backupSchedule, resp, err = connV2.CloudBackupsAPI.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -465,7 +465,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	if _, _, err := connV2.CloudBackupsApi.DeleteClusterBackupSchedule(ctx, projectID, clusterName).Execute(); err != nil {
+	if _, _, err := connV2.CloudBackupsAPI.DeleteClusterBackupSchedule(ctx, projectID, clusterName).Execute(); err != nil {
 		return diag.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
 
@@ -485,7 +485,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	projectID := parts[0]
 	clusterName := parts[1]
 
-	_, _, err := connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
+	_, _, err := connV2.CloudBackupsAPI.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}
@@ -556,7 +556,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 		req.UpdateSnapshots = value
 	}
 
-	resp, _, err := connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
+	resp, _, err := connV2.CloudBackupsAPI.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return fmt.Errorf("error getting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}
@@ -566,7 +566,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 
 	req.Policies = getRequestPolicies(policiesItem, resp.GetPolicies())
 
-	_, _, err = connV2.CloudBackupsApi.UpdateBackupSchedule(ctx, projectID, clusterName, req).Execute()
+	_, _, err = connV2.CloudBackupsAPI.UpdateBackupSchedule(ctx, projectID, clusterName, req).Execute()
 	if err != nil {
 		return err
 	}
